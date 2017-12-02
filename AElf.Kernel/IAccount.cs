@@ -17,55 +17,49 @@ namespace AElf.Kernel
         AddressType GetAddress();
 
         /// <summary>
-        /// Gets the balance of this account
+        /// Gets the total supply.
         /// </summary>
-        /// <returns>The balance.</returns>
-        ValueType GetBalance();
+        /// <returns>The total supply.</returns>
+        ValueType GetTotalSupply();
 
         /// <summary>
-        /// Gets the total token supply.
+        /// Gets the balance of.
         /// </summary>
-        /// <returns>The total token supply.</returns>
-        ValueType GetTotalTokenSupply();
+        /// <returns>The balance of.</returns>
+        /// <param name="owner">Owner.</param>
+        ValueType GetBalanceOf(AddressType owner);
 
         /// <summary>
-        /// Gets the token balance of.
+        /// Transfer the specified to and value.
         /// </summary>
-        /// <returns>The token balance of.</returns>
-        /// <param name="owner">Owner Address.</param>
-        ValueType GetTokenBalanceOf(AddressType owner);
-
-        /// <summary>
-        /// Transfers the token.
-        /// </summary>
-        /// <returns><c>true</c>, if token was transfered, <c>false</c> otherwise.</returns>
+        /// <returns>The transfer.</returns>
         /// <param name="to">To.</param>
         /// <param name="value">Value.</param>
-        bool TransferToken(AddressType to, ValueType value);
+        bool Transfer(AddressType to, ValueType value);
 
         /// <summary>
-        /// Transfers the token from one address to another if approved
+        /// Transfers from.
         /// </summary>
-        /// <returns><c>true</c>, if token from was transfered, <c>false</c> otherwise.</returns>
+        /// <returns><c>true</c>, if from was transfered, <c>false</c> otherwise.</returns>
         /// <param name="from">From.</param>
         /// <param name="to">To.</param>
         /// <param name="value">Value.</param>
-        bool TransferTokenFrom(AddressType from, AddressType to, ValueType value);
+        bool TransferFrom(AddressType from, AddressType to, ValueType value);
 
         /// <summary>
-        /// Approve the specified spender of value.
+        /// Approve the specified spender and value.
         /// </summary>
         /// <returns>The approve.</returns>
         /// <param name="spender">Spender.</param>
-        /// <param name="_value">Value.</param>
-        bool ApproveToken(AddressType spender, ValueType value);
+        /// <param name="value">Value.</param>
+        bool Approve(AddressType spender, ValueType value);
 
         /// <summary>
-        /// Gets the allowance token.
+        /// Gets the allowance.
         /// </summary>
-        /// <returns>The allowance token.</returns>
+        /// <returns>The allowance.</returns>
         /// <param name="owner">Owner.</param>
         /// <param name="spender">Spender.</param>
-        ValueType GetAllowanceToken(AddressType owner, AddressType spender);
+        ValueType GetAllowance(AddressType owner, AddressType spender);
     }
 }
