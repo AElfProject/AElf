@@ -11,3 +11,4 @@ before_script:
  - dotnet test "AElf.Kernel.Tests/AElf.Kernel.Tests.csproj"
 script:
  - dotnet build "AElf.Kernel/AElf.Kernel.csproj"
+ 
