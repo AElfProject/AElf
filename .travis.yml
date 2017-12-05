@@ -12,3 +12,4 @@ before_script:
 script:
  - dotnet build "AElf.Kernel/AElf.Kernel.csproj"
  
+ 
