@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel", "AElf.Kernel/
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Tests", "AElf.Kernel.Tests\AElf.Kernel.Tests.csproj", "{43CE2CD7-AE6C-4086-8594-7BC82FC83B74}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS", "AElf.OS\AElf.OS.csproj", "{F1B2B70C-7E8D-4F73-80C2-455CAF21C09C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{43CE2CD7-AE6C-4086-8594-7BC82FC83B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43CE2CD7-AE6C-4086-8594-7BC82FC83B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43CE2CD7-AE6C-4086-8594-7BC82FC83B74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1B2B70C-7E8D-4F73-80C2-455CAF21C09C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1B2B70C-7E8D-4F73-80C2-455CAF21C09C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1B2B70C-7E8D-4F73-80C2-455CAF21C09C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1B2B70C-7E8D-4F73-80C2-455CAF21C09C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

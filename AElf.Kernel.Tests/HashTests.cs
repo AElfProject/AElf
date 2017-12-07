@@ -15,5 +15,13 @@ namespace AElf.Kernel.Tests
 
             hash.Object.GetBytes()[0].ShouldBe((byte)1);
         }
+
+        [Fact]
+        public void MerkleTree()
+        {
+            var mt=new Mock<IMerkleTree<ITransaction>>();
+
+            mt.Setup(p => p.AddNode(It.IsAny<IHash<ITransaction>>()));
+        }
     }
 }
