@@ -12,9 +12,9 @@ namespace AElf.Kernel.Tests
         public void Test1()
         {
             var hash = new Mock<IHash>();
-            hash.Setup(p => p.GetBytes()).Returns(new byte[] {1, 2, 3});
+            hash.Setup(p => p.GetHashBytes()).Returns(new byte[] {1, 2, 3});
 
-            hash.Object.GetBytes()[0].ShouldBe((byte)1);
+            hash.Object.GetHashBytes()[0].ShouldBe((byte)1);
         }
 
         [Fact]

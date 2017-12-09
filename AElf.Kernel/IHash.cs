@@ -8,7 +8,7 @@ namespace AElf.Kernel
     /// </summary>
     public interface IHash:IEquatable<IHash>
     {
-        byte[] GetBytes();
+        byte[] GetHashBytes();
     }
 
     public interface IHash<T> : IHash
