@@ -13,5 +13,11 @@
         /// </summary>
         /// <returns></returns>
         IHash<IBlockHeader> LastBlockHashWhenCreating();
+
+        /// <summary>
+        /// Get parallel meta data
+        /// </summary>
+        /// <returns></returns>
+        ITransactionParallelMetaData GetParallelMetaData();
     }
 }

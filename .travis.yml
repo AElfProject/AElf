@@ -6,7 +6,7 @@ branches:
   only:
   - master
 install:
- - dotnet restore -s "https://nuget.cnblogs.com/v3/index.json" -s "https://api.nuget.org/v3/index.json" "AElf.sln"
+ - dotnet restore -s "https://nuget.cdn.azure.cn/v3/index.json" -s "https://api.nuget.org/v3/index.json" "AElf.sln"
 before_script:
  - dotnet test "AElf.Kernel.Tests/AElf.Kernel.Tests.csproj"
 script:
