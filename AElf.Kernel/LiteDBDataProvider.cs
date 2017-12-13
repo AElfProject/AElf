@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Linq;
 using LiteDB;
 
 namespace AElf.Kernel
@@ -25,11 +26,12 @@ namespace AElf.Kernel
             this.db = new LiteDatabase(@"path");
         }
 
-        Task<ISerializable> IAccountDataProvider.GetAsync(IHash key)
+        async Task<ISerializable> IAccountDataProvider.GetAsync(IHash key)
         {
             var c = this.db.GetCollection<Record>("data");
-            var result = c.Find(x => x.Key.Equals(key));
-            return result;
+            Task<ISerializable> task = new Task<ISerializable>(() => c.Find(x => x.Key.Equals(key)));
+            task.Start();
+            return await task;
         }
 
         IHash<IMerkleTree<ISerializable>> IAccountDataProvider.GetDataMerkleTreeRoot()
