@@ -2,20 +2,6 @@
 
 namespace AElf.Kernel
 {
-    public struct Address :IHash<IAccount>
-    {
-        bool IEquatable<IHash>.Equals(IHash other)
-        {
-            throw new NotImplementedException();
-        }
-
-        byte[] IHash.GetHashBytes()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-
     /// <summary>
     /// Account.
     /// </summary>
