@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Linq;
 using LiteDB;
 
 namespace AElf.Kernel
 {
     public class LiteDBDataProvider:IAccountDataProvider
     {
-        class Record:ISerializable
+        struct Record:ISerializable
         {
             public IHash Key { get; set; }
             public byte[] Value { get; set; }
@@ -29,7 +28,7 @@ namespace AElf.Kernel
         async Task<ISerializable> IAccountDataProvider.GetAsync(IHash key)
         {
             var c = this.db.GetCollection<Record>("data");
-            Task<ISerializable> task = new Task<ISerializable>(() => c.Find(x => x.Key.Equals(key)));
+            Task<ISerializable> task = new Task<ISerializable>(() => c.FindOne(x => x.Key.Equals(key)));
             task.Start();
             return await task;
         }
