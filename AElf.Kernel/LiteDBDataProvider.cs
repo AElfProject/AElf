@@ -35,14 +35,17 @@ namespace AElf.Kernel
 
         IHash<IMerkleTree<ISerializable>> IAccountDataProvider.GetDataMerkleTreeRoot()
         {
-            var c = this.db.GetCollection<Record>("accounts");
-            var result = c.Find(x => x.Key.Equals("root"));
-            return null;        
+            var c = this.db.GetCollection<Record>("merkleroot");
+           // return c.FindOne(x => x.Key.Equals("root")); 
         }
 
-        Task IAccountDataProvider.SetAsync(IHash key, ISerializable obj)
+        async Task IAccountDataProvider.SetAsync(IHash key, ISerializable obj)
         {
-            throw new NotImplementedException();
+            var c = this.db.GetCollection<Record>("data");
+            Task<bool> task = new Task<bool>(() => c.Upsert(new Record(){Key = key, Value = obj.Serialize()}));
+            task.Start();
+            await task;
+            return;
         }
     }
 }
