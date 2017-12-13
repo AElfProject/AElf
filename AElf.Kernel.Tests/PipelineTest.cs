@@ -16,7 +16,7 @@ namespace AElf.Kernel.Tests
             blk.Setup(b => b.GetHeader()).Returns(blkheader.Object);
 
             var hash = new Mock<IHash>();
-            hash.Setup(p => p.GetBytes()).Returns(new byte[] { 1, 2, 3 });
+            hash.Setup(p => p.GetHashBytes()).Returns(new byte[] { 1, 2, 3 });
 
             var merkletree = new Mock<IMerkleTree<ITransaction>>();
             merkletree.Setup(m => m.AddNode(It.IsAny<IHash<ITransaction>>()));

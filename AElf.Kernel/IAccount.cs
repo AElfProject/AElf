@@ -2,9 +2,6 @@
 
 namespace AElf.Kernel
 {
-    using AddressType = IHash<IAccount>;
-    using ValueType = System.Numerics.BigInteger;
-
     /// <summary>
     /// Every smart contract was an account
     /// </summary>
@@ -14,6 +11,14 @@ namespace AElf.Kernel
         /// Get Account's Address, the address is the id for a account
         /// </summary>
         /// <returns></returns>
-        AddressType GetAddress();
+        IHash<IAccount> GetAddress();
+
+        /// <summary>
+        /// Invoke the specified methodName and values.
+        /// </summary>
+        /// <returns>The invoke.</returns>
+        /// <param name="methodName">Method name.</param>
+        /// <param name="values">Values.</param>
+        void Invoke(string methodName, params string[] values);
     }
 }
