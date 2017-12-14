@@ -1,4 +1,6 @@
-﻿namespace AElf.Kernel
+﻿using System.Threading.Tasks;
+
+namespace AElf.Kernel
 {
     /// <summary>
     /// Every smart contract was an account
@@ -10,5 +12,7 @@
         /// </summary>
         /// <returns></returns>
         IHash<IAccount> GetAddress();
+
+
     }
 }

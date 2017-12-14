@@ -16,5 +16,4 @@ namespace AElf.Kernel
         /// <returns></returns>
         IEnumerable<IHash> GetDataConflict();
     }
-    
 }
