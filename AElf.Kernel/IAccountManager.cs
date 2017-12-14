@@ -7,9 +7,10 @@ namespace AElf.Kernel
         /// <summary>
         /// execute a transaction from an account
         /// </summary>
-        /// <param name="fromAccount"></param>
+        /// <param name="fromAccount">caller account</param>
+        /// <param name="toAccount">instance account</param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        Task ExecuteTransactionAsync(IAccount fromAccount, ITransaction tx);
+        Task ExecuteTransactionAsync(IAccount fromAccount,IAccount toAccount, ITransaction tx);
     }
 }

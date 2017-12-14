@@ -19,6 +19,7 @@ namespace AElf.Kernel
 
         private LiteDatabase db;
 
+        object IAccountDataProvider.Context { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public LiteDBDataProvider(string path)
         {
@@ -33,12 +34,6 @@ namespace AElf.Kernel
             return await task;
         }
 
-        IHash<IMerkleTree<ISerializable>> IAccountDataProvider.GetDataMerkleTreeRoot()
-        {
-            var c = this.db.GetCollection<Record>("merkleroot");
-           // return c.FindOne(x => x.Key.Equals("root")); 
-        }
-
         async Task IAccountDataProvider.SetAsync(IHash key, ISerializable obj)
         {
             var c = this.db.GetCollection<Record>("data");
@@ -46,6 +41,13 @@ namespace AElf.Kernel
             task.Start();
             await task;
             return;
+        }
+
+        Task<IHash<IMerkleTree<ISerializable>>> IAccountDataProvider.GetDataMerkleTreeRootAsync()
+        {
+            var c = this.db.GetCollection<Record>("merkleroot");
+            // return c.FindOne(x => x.Key.Equals("root")); 
+            throw new NotImplementedException();
         }
     }
 }

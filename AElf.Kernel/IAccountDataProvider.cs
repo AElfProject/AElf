@@ -16,22 +16,24 @@ namespace AElf.Kernel
         /// <summary>
         /// Gets the data merkle tree root.
         /// </summary>
-        /// <returns>The data merkle tree root.</returns>
-        IHash<IMerkleTree<ISerializable>> GetDataMerkleTreeRoot();
+        /// <returns></returns>
+        Task<IHash<IMerkleTree<ISerializable>>> GetDataMerkleTreeRootAsync();
 
         /// <summary>
         /// Gets the async.
         /// </summary>
-        /// <returns>The async.</returns>
-        /// <param name="key">Key.</param>
-        Task<ISerializable> GetAsync(IHash key);
+        /// <param name="address"></param>
+        /// <returns></returns>
+        Task<ISerializable> GetAsync(IHash address);
 
         /// <summary>
-        /// Sets the async.
         /// </summary>
-        /// <returns>The async.</returns>
-        /// <param name="key">Key.</param>
-        /// <param name="obj">Object.</param>
-        Task SetAsync(IHash key,ISerializable obj);
+        /// <param name="address"></param>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        Task SetAsync(IHash address,ISerializable obj);
+        
+        object Context { get; set; }
+        
     }
 }
