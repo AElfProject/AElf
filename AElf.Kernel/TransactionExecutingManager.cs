@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace AElf.Kernel
 {
     public class TransactionExecutingManager:ITransactionExecutingManager
     {
-        Dictionary<IHash, IEnumerable<ITransaction>> pending;
+        private Mutex mut = new Mutex();
+        private Dictionary<IHash, IEnumerable<ITransaction>> pending;
+
         public TransactionExecutingManager()
         {
             pending=new Dictionary<IHash, IEnumerable<ITransaction>>();
@@ -21,13 +24,27 @@ namespace AElf.Kernel
         {
             Task task = new Task(() =>
             {
-                foreach (var queue in pending)
+                // TODO: seperate transactions into un-related groups
+                this.mut.WaitOne();
+
+                this.mut.ReleaseMutex();
+            });
+            task.Start();
+                 
+            await task;
+        }
+
+        /// <summary>
+        /// Schedule execution of transaction
+        /// </summary>
+        void Scheduler() {
+            foreach (var queue in pending)
+            {
+                foreach (var a in queue.Value)
                 {
 
                 }
-            });
-            task.Start();
-            await task;
+            }
         }
     }
 }
