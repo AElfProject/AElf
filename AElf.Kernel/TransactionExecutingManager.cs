@@ -9,7 +9,7 @@ namespace AElf.Kernel
     public class TransactionExecutingManager:ITransactionExecutingManager
     {
         private Mutex mut = new Mutex();
-        private Dictionary<IHash, IEnumerable<ITransaction>> pending = new Dictionary<IHash, IEnumerable<ITransaction>>();
+        private Dictionary<IHash, List<ITransaction>> pending = new Dictionary<IHash, List<ITransaction>>();
 
         public TransactionExecutingManager()
         {
@@ -24,9 +24,18 @@ namespace AElf.Kernel
         {
             Task task = new Task(() =>
             {
-                // TODO: seperate transactions into un-related groups
+                // step 1: group transaction by resource types
+                var conflicts = tx.GetParallelMetaData().GetDataConflict();
                 this.mut.WaitOne();
-                var md = tx.GetParallelMetaData();
+                foreach (var res in conflicts)
+                {
+                    if (pending[res] != null) {
+                        pending[res] = new List<ITransaction>();
+
+                    }
+                    pending[res].Add(tx);
+
+                }
                 this.mut.ReleaseMutex();
             });
             task.Start();
@@ -38,15 +47,17 @@ namespace AElf.Kernel
         /// Schedule execution of transaction
         /// </summary>
         Task Scheduler() {
+            // TODO: step 2: generate a DAG for dependency
+
+
+            // TODO: step 3: execution on the DAG
             Task task = new Task(() =>
             {
-                foreach (var queue in pending)
-                {
-                    foreach (var tx in queue.Value)
-                    {
-                    }
-                }
+        
             });
+
+            // TODO: step 4: reset pending 
+            pending = new Dictionary<IHash, List<ITransaction>>();
             return task;
         }
     }
