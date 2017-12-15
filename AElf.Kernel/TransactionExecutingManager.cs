@@ -67,20 +67,39 @@ namespace AElf.Kernel
 
 
             // step1:
-            var rootnodes = new Dictionary<IHash, ITransaction>();
+            var rootnodes = new Dictionary<IHash, Node>();
             this.mut.WaitOne();
             foreach (var list in pending)
             {
-                foreach(var tx in list.Value) {
-                    
+                foreach (var tx in list.Value)
+                {
+                    //TODO:
                 }
             }
 
-
-            this.mut.ReleaseMutex();
-                
             // reset pending 
             pending = new Dictionary<IHash, List<ITransaction>>();
+            this.mut.ReleaseMutex();
+
+            // parallel execution on root nodes;
+            foreach (var node in rootnodes) {
+                await ExecuteGraph(node.Value);
+            }
+        }
+
+
+        /// <summary>
+        /// Parallel Executes the graph
+        /// </summary>
+        /// <param name="n">N.</param>
+        async Task ExecuteGraph(Node n){
+            Task task = new Task(() =>
+            {
+                // TODO : check graph connectivity
+
+                // TODO: recursively execute transactions on the subgraph
+            });
+            await task;
         }
     }
 }
