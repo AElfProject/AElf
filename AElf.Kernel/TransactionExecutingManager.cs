@@ -49,10 +49,11 @@ namespace AElf.Kernel
         Task Scheduler() {
             //  execution strategy(experimental)
             //  1. tranform the dependency of Resource(R) into graph of related Transactions(T)
-            //  2. find the T which owns the most neightbours
+            //  2. find the T(ransaction) which owns the most neightbours
             //  3. exeucte the T(ransaction)
-            //  4. check to see if this Transaction leads to graph split
-            //  5. if YES parallel execute the same strategy from step 2， if NO, goto step 2
+            //  4. check to see if this T(ransaction) leads to graph split
+            //  5. if YES, we can parallel execute the transactions from the splitted graph
+            //  6  if NO, goto step 2
 
             Task task = new Task(() =>
             {
