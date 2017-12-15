@@ -6,7 +6,7 @@ using System.Diagnostics.Contracts;
 
 namespace AElf.Kernel
 {
-    public class TransactionExecutingManager:ITransactionExecutingManager
+    public class TransactionExecutingManager : ITransactionExecutingManager
     {
         private Mutex mut = new Mutex();
         private Dictionary<IHash, List<ITransaction>> pending = new Dictionary<IHash, List<ITransaction>>();
@@ -24,7 +24,7 @@ namespace AElf.Kernel
         {
             Task task = new Task(() =>
             {
-                // step 1: group transaction by resource types
+                // group transactions by resource type
                 var conflicts = tx.GetParallelMetaData().GetDataConflict();
                 this.mut.WaitOne();
                 foreach (var res in conflicts)
@@ -47,16 +47,19 @@ namespace AElf.Kernel
         /// Schedule execution of transaction
         /// </summary>
         Task Scheduler() {
-            // TODO: step 2: generate a DAG for dependency
+            //  execution strategy(experimental)
+            //  1. tranform the dependency of Resource(R) into graph of related Transactions(T)
+            //  2. find the T which owns the most neightbours
+            //  3. exeucte the T(ransaction)
+            //  4. check to see if this Transaction leads to graph split
+            //  5. if YES parallel execute the same strategy from step 2， if NO, goto step 2
 
-
-            // TODO: step 3: execution on the DAG
             Task task = new Task(() =>
             {
         
             });
 
-            // TODO: step 4: reset pending 
+            // reset pending 
             pending = new Dictionary<IHash, List<ITransaction>>();
             return task;
         }
