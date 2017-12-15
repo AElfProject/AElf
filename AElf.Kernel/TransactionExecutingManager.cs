@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics.Contracts;
+using QuickGraph;
 
 namespace AElf.Kernel
 {
@@ -18,7 +19,6 @@ namespace AElf.Kernel
         private class Node
         {
             public ITransaction tx;
-            public Dictionary<IHash, ITransaction> neighbours; 
         }
 
         public TransactionExecutingManager()
@@ -39,7 +39,8 @@ namespace AElf.Kernel
                 this.mut.WaitOne();
                 foreach (var res in conflicts)
                 {
-                    if (pending[res] != null) {
+                    if (pending[res] != null)
+                    {
                         pending[res] = new List<ITransaction>();
 
                     }
@@ -49,31 +50,43 @@ namespace AElf.Kernel
                 this.mut.ReleaseMutex();
             });
             task.Start();
-                 
+
             await task;
         }
 
         /// <summary>
         /// Schedule execution of transaction
         /// </summary>
-        void Scheduler() {
+        void Scheduler()
+        {
             //  Execution strategy(experimental)
             //  1. tranform the dependency of Resource(R) into graph of related Transactions(T)
-            //  2. find the T(ransaction) which owns the most neightbours
-            //  3. exeucte the T(ransaction), and removes this node from the graph
+            //  2. find the T(ransaction) which connects to the most neightbours
+            //  3. execute the T(ransaction), and removes this node from the graph
             //  4. check to see if this removal leads to graph split
             //  5. if YES, we can parallel execute the transactions from the splitted graph
             //  6  if NO, goto step 2
 
-
             // step1:
-            var rootnodes = new Dictionary<IHash, Node>();
+            AdjacencyGraph<IHash, Edge<IHash>> graph = new AdjacencyGraph<IHash, Edge<IHash>>(false);
             this.mut.WaitOne();
-            foreach (var list in pending)
+            foreach (var grp in pending)
             {
-                foreach (var tx in list.Value)
+                foreach (var tx in grp.Value)
                 {
-                    //TODO:
+                    // TODO: how to dedup?
+                    graph.AddVertex(tx.GetHash());
+                }
+
+                foreach (var tx in grp.Value)
+                {
+                    foreach (var neighbour in grp.Value)
+                    {
+                        if (!tx.Equals(neighbour))
+                        {
+                            graph.AddEdge(new Edge<IHash>(tx.GetHash(), neighbour.GetHash()));
+                        }
+                    }
                 }
             }
 
@@ -81,10 +94,7 @@ namespace AElf.Kernel
             pending = new Dictionary<IHash, List<ITransaction>>();
             this.mut.ReleaseMutex();
 
-            // parallel execution on root nodes;
-            foreach (var node in rootnodes) {
-                await ExecuteGraph(node.Value);
-            }
+            // TODO: parallel execution on root nodes;
         }
 
 
@@ -92,14 +102,10 @@ namespace AElf.Kernel
         /// Parallel Executes the graph
         /// </summary>
         /// <param name="n">N.</param>
-        async Task ExecuteGraph(Node n){
-            Task task = new Task(() =>
-            {
-                // TODO : check graph connectivity
-
-                // TODO: recursively execute transactions on the subgraph
-            });
-            await task;
+        void ExecuteGraph(AdjacencyGraph<IHash, Edge<IHash>> n)
+        {
+            // TODO : check graph connectivity
+            // TODO: recursively execute transactions on the subgraph
         }
     }
 }

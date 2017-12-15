@@ -7,5 +7,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="LiteDB" Version="4.0.0" />
+    <PackageReference Include="QuickGraph" Version="3.6.61119.7" />
   </ItemGroup>
 </Project>
