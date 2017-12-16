@@ -12,15 +12,6 @@ namespace AElf.Kernel
         private Mutex mut = new Mutex();
         private Dictionary<IHash, List<ITransaction>> pending = new Dictionary<IHash, List<ITransaction>>();
 
-
-        /// <summary>
-        /// Node 
-        /// </summary>
-        private class Node
-        {
-            public ITransaction tx;
-        }
-
         public TransactionExecutingManager()
         {
         }
@@ -67,14 +58,16 @@ namespace AElf.Kernel
             //  5. if YES, we can parallel execute the transactions from the splitted graph
             //  6  if NO, goto step 2
 
-            // step1:
-            AdjacencyGraph<IHash, Edge<IHash>> graph = new AdjacencyGraph<IHash, Edge<IHash>>(false);
+            // build the graph
+            UndirectedGraph<IHash, Edge<IHash>> graph = new UndirectedGraph<IHash, Edge<IHash>>(false);
             this.mut.WaitOne();
             foreach (var grp in pending)
             {
                 foreach (var tx in grp.Value)
                 {
-                    // TODO: how to dedup?
+                    if (!graph.ContainsVertex(tx.GetHash())) {
+                        
+                    }
                     graph.AddVertex(tx.GetHash());
                 }
 
@@ -90,7 +83,11 @@ namespace AElf.Kernel
                 }
             }
 
-            // reset pending 
+
+            // TODO : maintain a heap for tracking the most connected vertex
+            // execute the transaction, and remove it from the graph
+
+            // reset 
             pending = new Dictionary<IHash, List<ITransaction>>();
             this.mut.ReleaseMutex();
 
@@ -102,7 +99,7 @@ namespace AElf.Kernel
         /// Parallel Executes the graph
         /// </summary>
         /// <param name="n">N.</param>
-        void ExecuteGraph(AdjacencyGraph<IHash, Edge<IHash>> n)
+        void ExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
         {
             // TODO : check graph connectivity
             // TODO: recursively execute transactions on the subgraph
