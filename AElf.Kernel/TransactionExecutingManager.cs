@@ -50,6 +50,9 @@ namespace AElf.Kernel
         /// </summary>
         void Scheduler()
         {
+            //  How to improve this loop?
+            //  https://github.com/ethereum/go-ethereum/blob/master/core/state_processor.go#L58
+            //
             //  Execution strategy(experimental)
             //  1. tranform the dependency of Resource(R) into graph of related Transactions(T)
             //  2. find the T(ransaction) which connects to the most neightbours
