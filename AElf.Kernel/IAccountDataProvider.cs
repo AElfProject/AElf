@@ -2,36 +2,38 @@
 
 namespace AElf.Kernel
 {
+
+    public interface ISerializable
+    {
+        byte[] Serialize();
+    }
+
     /// <summary>
     /// Data is stored associated with Account
     /// </summary>
     public interface IAccountDataProvider
     {
         /// <summary>
-        /// The merkle tree root of one account's data
+        /// Gets the data merkle tree root.
         /// </summary>
         /// <returns></returns>
-        Task<IHash<IMerkleTree<object>>> GetDataMerkleTreeRootAsync();
-
+        Task<IHash<IMerkleTree<ISerializable>>> GetDataMerkleTreeRootAsync();
 
         /// <summary>
-        /// 
+        /// Gets the async.
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        Task<object> GetAsync(IHash address);
+        Task<ISerializable> GetAsync(IHash address);
 
         /// <summary>
         /// </summary>
         /// <param name="address"></param>
         /// <param name="obj"></param>
         /// <returns></returns>
-        Task SetAsync(IHash address,object obj);
+        Task SetAsync(IHash address,ISerializable obj);
         
         object Context { get; set; }
         
     }
-    
-    
-
 }

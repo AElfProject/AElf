@@ -12,6 +12,5 @@ namespace AElf.Kernel
         /// <param name="tx"></param>
         /// <returns></returns>
         Task ExecuteTransactionAsync(IAccount fromAccount,IAccount toAccount, ITransaction tx);
-        
     }
 }

@@ -8,6 +8,6 @@
         IHash GetHash();
         IBlockHeader GetHeader();
         IBlockBody GetBody();
-        void AddTransaction(ITransaction tx);
+        bool AddTransaction(ITransaction tx);
     }
 }

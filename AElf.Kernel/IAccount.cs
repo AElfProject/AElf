@@ -13,6 +13,12 @@ namespace AElf.Kernel
         /// <returns></returns>
         IHash<IAccount> GetAddress();
 
-
+        /// <summary>
+        /// Invoke the specified methodName and values.
+        /// </summary>
+        /// <returns>The invoke.</returns>
+        /// <param name="methodName">Method name.</param>
+        /// <param name="values">Values.</param>
+        void Invoke(string methodName, params string[] values);
     }
 }
