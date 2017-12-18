@@ -12,7 +12,7 @@
 
 ## Phase2 : between ledger nodes
 
-1. tx_pool/mem_pool design.
+1. tx_pool/mem_pool design(unconfirmed tx).
 2. basic block in-memory construct, eg: merkletree, block header, transactions, statsdb, caching.
 3. wire protocol for inter-ledger block/tx transfering.
 4. dPoS implementation, mining.
