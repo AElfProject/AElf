@@ -2,7 +2,7 @@
 
 # Development Roadmap
 
-## Phase1 : inner affair
+## Phase1 : the internal affair of the wonderland
 
 1. A graph-based scheduler algorithm implementation.
 2. Tagged primitive resource Data-Structure(sstable a.k.a. sorted string table), the basic element for resource isolation, backed by distributed KV database, this structure is comparable to dataflow processing paradigm(like mr/reactivex).
@@ -10,7 +10,7 @@
 4. Actor(eg. akka) based task distribution inside a single cluster/ledger.
 5. A contract for demostration of concurrent execution.
 
-## Phase2 : between ledger nodes
+## Phase2 : a tale between two nodes
 
 1. tx_pool/mem_pool design(unconfirmed tx).
 2. basic block in-memory construct, eg: merkletree, block header, transactions, statsdb, caching.
