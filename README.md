@@ -5,7 +5,7 @@
 ## Phase1 : inner affair
 
 1. graph-based scheduler algorithm implementation.
-2. tagged resource data-structure(map/list...), the basic element for resource isolation, backed by distributed KV database.
+2. tagged resource data-structure(sstable-sorted string table), the basic element for resource isolation, backed by distributed KV database.
 3. in-cluster wire protocol(data/task marshal/unmarshal).
 4. actor(eg. akka) based task distribution inside a single cluster/ledger.
 5. a contract for demostration of concurrent execution.
