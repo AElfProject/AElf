@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics.Contracts;
+using System.Linq;
 using QuickGraph;
+using QuickGraph.Collections;
 
 namespace AElf.Kernel
 {
@@ -50,9 +53,6 @@ namespace AElf.Kernel
         /// </summary>
         void Scheduler()
         {
-            //  How to improve this loop?
-            //  https://github.com/ethereum/go-ethereum/blob/master/core/state_processor.go#L58
-            //
             //  Execution strategy(experimental)
             //  1. tranform the dependency of Resource(R) into graph of related Transactions(T)
             //  2. find the T(ransaction) which connects to the most neightbours
@@ -63,14 +63,13 @@ namespace AElf.Kernel
 
             // build the graph
             UndirectedGraph<IHash, Edge<IHash>> graph = new UndirectedGraph<IHash, Edge<IHash>>(false);
+            //Dictionary<IHash, int> neiCount=new Dictionary<IHash, int>();
             this.mut.WaitOne();
             foreach (var grp in pending)
             {
                 foreach (var tx in grp.Value)
                 {
-                    if (!graph.ContainsVertex(tx.GetHash())) {
-                        
-                    }
+                    if (graph.ContainsVertex(tx.GetHash())) continue;
                     graph.AddVertex(tx.GetHash());
                 }
 
@@ -81,15 +80,15 @@ namespace AElf.Kernel
                         if (!tx.Equals(neighbour))
                         {
                             graph.AddEdge(new Edge<IHash>(tx.GetHash(), neighbour.GetHash()));
+                            
                         }
                     }
                 }
             }
 
-
-            // TODO : maintain a heap for tracking the most connected vertex
-            // execute the transaction, and remove it from the graph
-
+            ExecuteGraph(graph);
+            
+            
             // reset 
             pending = new Dictionary<IHash, List<ITransaction>>();
             this.mut.ReleaseMutex();
@@ -104,8 +103,60 @@ namespace AElf.Kernel
         /// <param name="n">N.</param>
         void ExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
         {
-            // TODO : check graph connectivity
-            // TODO: recursively execute transactions on the subgraph
+            
+            HashSet<IHash> set=new HashSet<IHash>();
+            
+            foreach (var ihash in n.Vertices)
+            {
+                if(set.Contains(ihash)) continue;
+                
+                UndirectedGraph<IHash, Edge<IHash>> subGraph=new UndirectedGraph<IHash, Edge<IHash>>();
+                BinaryHeap<int,IHash> binaryHeap = new BinaryHeap<int,IHash>(MaxIntCompare);
+                
+                // dfs search for connectivity and create heap for subgraph
+                DfsSearch(n, ihash, set, subGraph, binaryHeap);
+                
+                //remove heap root
+                subGraph.RemoveVertex(binaryHeap.RemoveMinimum().Value);
+                
+                if(subGraph.VertexCount>1)
+                    ExecuteGraph(subGraph);
+            }
+           
+        }
+
+
+        /// <summary>
+        /// dfs and add vertexs to heap during search,
+        /// heap root is the vertex with most neighbors 
+        /// </summary>
+        /// <param name="n">N.</param>
+        /// <param name="ihash"></param>
+        /// <param name="set"></param>
+        /// <param name="subGraph" />
+        void DfsSearch(UndirectedGraph<IHash, Edge<IHash>> n, IHash ihash, HashSet<IHash> set, UndirectedGraph<IHash, Edge<IHash>> subGraph, BinaryHeap<int,IHash> binaryHeap)
+        {
+            set.Add(ihash);
+            subGraph.AddVertex(ihash);
+            binaryHeap.Add(n.AdjacentEdges(ihash).Count(),ihash);
+            foreach (var edge in n.AdjacentEdges(ihash))
+            {
+                IHash nei = edge.Source == ihash ? edge.Target : edge.Source;
+                if (set.Contains(nei)) continue;
+                subGraph.AddVertex(nei);
+                subGraph.AddEdge(new Edge<IHash>(ihash, nei));
+                DfsSearch(n,nei,set,subGraph,binaryHeap);
+            }
+        }
+        
+        /// comparsion for heap
+        int MaxIntCompare(int i1, int i2)
+        {
+            if (i1 < i2)
+                return -1;     
+            if (i1 > i2)
+                return 1;
+            return 0;
         }
     }
 }
