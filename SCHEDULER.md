@@ -1,4 +1,4 @@
-# A brief introduction to scheduler
+# A brief introduction to AELF scheduler
 
 When a block has been created by a miner, and the block finally arrives at the ledger, how can we process the transactions as fast as possible? The idea behind AELF is **resource isolation** and **parallel processing**, from many aspects of the blockchain, e.g.:
 
