@@ -47,7 +47,7 @@ from the perspective of graph theory, unrelated vertex groups (islands), can be 
 
 and then, we can recursively split Gn into subgraphs of Gn1, Gn2,… Gnm when execution of transactions leads to elimination of dependencies.
 
-Here comes the challenging part, which transaction we should pick next, will benefits the whole system the most? There could be a best strategy for picking next, I could be a NP-complete problem, but we can set up a greedy strategy for picking the most connected T(s), and execute them first, and maintain a data structure, such as heap for tracking the most connected Tasks.
+Here comes the challenging part, which transaction we should pick next, will benefits the whole system the most? There could be a best strategy for picking next, It could be a NP-complete problem, but we can set up a greedy strategy for picking the most connected T(s), and execute them first, and maintain a data structure, such as heap for tracking the most connected Tasks.
 
 Still, we’ve got to consider:
 
