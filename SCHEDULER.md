@@ -1,4 +1,4 @@
-# A brief explation on scheduler
+# A brief introduction on scheduler
 
 When a block has generated from the miner, and the block finally arrived at the ledger, how can we apply the transaction as fast as possible?
 The idea behind AELF is **resource isolation**, from many aspects of the blockchain, eg:
