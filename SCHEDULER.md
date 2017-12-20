@@ -57,7 +57,7 @@ S can be totally left to the contract designer. After all, it’s completely an 
 
 **S as sstable**: sorted string table is one of the mostly used data structure in data processing paradigm. We can simply group data into different sets for parallel executing. Under such scenario, it’s comparable to many data-flow based blockchains, or non-turing complete virtual machines.
 
-**S as document**: document, such as json/xml/struct, is one of the best representation of an account/user, and the interoperation between accounts is quite loose, especially for IM or personal evolving games.
+**S as document**: document, such as json/xml/struct, is one of the best representation of an account/user, and the frequencey of interoperation between accounts is quite loose, especially for IM or personal evolving games.
 
 WRAP UP: Parallel execution scheduler is an important part in AELF, as an attempt to scale transaction computing power inside a single chain in AELF ecology. If it works as planned, complex industry usage will be made possible on AELF.
 
