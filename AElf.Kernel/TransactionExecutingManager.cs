@@ -105,24 +105,24 @@ namespace AElf.Kernel
         {
             
             HashSet<IHash> set=new HashSet<IHash>();
-            
+
             foreach (var ihash in n.Vertices)
             {
-                if(set.Contains(ihash)) continue;
-                
-                UndirectedGraph<IHash, Edge<IHash>> subGraph=new UndirectedGraph<IHash, Edge<IHash>>();
-                BinaryHeap<int,IHash> binaryHeap = new BinaryHeap<int,IHash>(MaxIntCompare);
+                if (set.Contains(ihash)) continue;
+
+                UndirectedGraph<IHash, Edge<IHash>> subGraph = new UndirectedGraph<IHash, Edge<IHash>>();
+                BinaryHeap<int, IHash> binaryHeap = new BinaryHeap<int, IHash>(MaxIntCompare);
+
                 
                 // dfs search for connectivity and create heap for subgraph
                 DfsSearch(n, ihash, set, subGraph, binaryHeap);
-                
+
                 //remove heap root
                 subGraph.RemoveVertex(binaryHeap.RemoveMinimum().Value);
-                
-                if(subGraph.VertexCount>1)
+
+                if (subGraph.VertexCount > 1)
                     ExecuteGraph(subGraph);
             }
-           
         }
 
 
@@ -141,10 +141,15 @@ namespace AElf.Kernel
             binaryHeap.Add(n.AdjacentEdges(ihash).Count(),ihash);
             foreach (var edge in n.AdjacentEdges(ihash))
             {
+                
                 IHash nei = edge.Source == ihash ? edge.Target : edge.Source;
-                if (set.Contains(nei)) continue;
+                
+                //build subgraph
                 subGraph.AddVertex(nei);
-                subGraph.AddEdge(new Edge<IHash>(ihash, nei));
+                subGraph.AddEdge(edge);
+                
+                if (set.Contains(nei)) continue;
+                
                 DfsSearch(n,nei,set,subGraph,binaryHeap);
             }
         }
