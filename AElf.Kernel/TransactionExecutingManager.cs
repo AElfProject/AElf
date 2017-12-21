@@ -105,18 +105,35 @@ namespace AElf.Kernel
         {
             
             HashSet<IHash> set=new HashSet<IHash>();
+            Dictionary<IHash,int> colorDictionary = new Dictionary<IHash, int>();
+
+            
 
             foreach (var ihash in n.Vertices)
             {
+                
                 if (set.Contains(ihash)) continue;
 
+                
                 UndirectedGraph<IHash, Edge<IHash>> subGraph = new UndirectedGraph<IHash, Edge<IHash>>();
                 BinaryHeap<int, IHash> binaryHeap = new BinaryHeap<int, IHash>(MaxIntCompare);
 
+                int color = 1;
                 
                 // dfs search for connectivity and create heap for subgraph
-                DfsSearch(n, ihash, set, subGraph, binaryHeap);
+                bool binaryGraph = DfsSearch(n, ihash, set, subGraph, binaryHeap, colorDictionary, color);
 
+                
+                
+
+                if (binaryGraph)
+                {
+                    //TODO: if binaryGraph, parallel process two vertex sets; 
+                    
+                    continue;
+                }
+                
+                //TODO: if not, continue excute subgraphs
                 //remove heap root
                 subGraph.RemoveVertex(binaryHeap.RemoveMinimum().Value);
 
@@ -134,11 +151,14 @@ namespace AElf.Kernel
         /// <param name="ihash"></param>
         /// <param name="set"></param>
         /// <param name="subGraph" />
-        void DfsSearch(UndirectedGraph<IHash, Edge<IHash>> n, IHash ihash, HashSet<IHash> set, UndirectedGraph<IHash, Edge<IHash>> subGraph, BinaryHeap<int,IHash> binaryHeap)
+        bool DfsSearch(UndirectedGraph<IHash, Edge<IHash>> n, IHash ihash, HashSet<IHash> set, UndirectedGraph<IHash, Edge<IHash>> subGraph, BinaryHeap<int,IHash> binaryHeap, Dictionary<IHash,int> colorDictionary, int color)
         {
+            
             set.Add(ihash);
             subGraph.AddVertex(ihash);
             binaryHeap.Add(n.AdjacentEdges(ihash).Count(),ihash);
+            colorDictionary[ihash] = color;
+            bool res = true;
             foreach (var edge in n.AdjacentEdges(ihash))
             {
                 
@@ -147,11 +167,14 @@ namespace AElf.Kernel
                 //build subgraph
                 subGraph.AddVertex(nei);
                 subGraph.AddEdge(edge);
-                
-                if (set.Contains(nei)) continue;
-                
-                DfsSearch(n,nei,set,subGraph,binaryHeap);
+                if (set.Contains(nei))
+                {
+                    if (colorDictionary[nei] == color) res = false;
+                    continue;
+                }
+                if ( !DfsSearch(n, nei, set, subGraph, binaryHeap, colorDictionary, -1*color)) res = false;
             }
+            return res;
         }
         
         /// comparsion for heap
