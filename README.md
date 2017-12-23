@@ -1,5 +1,9 @@
 # AElf
 
+# Project Status
+
+Early stage, still under development.
+
 # Development Roadmap
 
 ## Phase1 : the internal affair of the wonderland
