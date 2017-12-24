@@ -25,7 +25,7 @@ Early stage, still under development.
 
 ## Phase3: the mainchain (May 2018)
 
-1. crosschain，two-way peg
+1. crosschain，two-way peg, merkle proofs.
 2. event trigger from one sidechain to another, a.k.a cross chain interoperability.
 
 ## Phase4: the governance (May 2018 - August 2018)
