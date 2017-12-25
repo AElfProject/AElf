@@ -21,12 +21,12 @@ Early stage, still under development.
 5. Block validator, crypto related algorithms, e.g. signing, hmac.
 6. p2p discovery/communication.
 
-## Phase3: The Main Chain (May 2018)
+## Phase 3: The Main Chain (May 2018)
 
 1. Crosschain，two-way peg, merkle proofs.
 2. Event trigger from one sidechain to another a.k.a cross chain interoperability.
 
-## Phase4: Governance (May 2018 - August 2018)
+## Phase 4: Governance (May 2018 - August 2018)
 
 1. Voting mechanism for sidechain join/leave
 2. Voting mechanism for emergency treatment 
