@@ -107,33 +107,48 @@ namespace AElf.Kernel
             // Bipartite Graph check
             Dictionary<IHash,int> colorDictionary = new Dictionary<IHash, int>();
 
+            
             foreach (var ihash in n.Vertices)
             {
-                
                 if (colorDictionary.Keys.Contains(ihash)) continue;
 
                 UndirectedGraph<IHash, Edge<IHash>> subGraph = new UndirectedGraph<IHash, Edge<IHash>>();
                 BinaryHeap<int, IHash> binaryHeap = new BinaryHeap<int, IHash>(MaxIntCompare);
 
-                
                 // dfs search for connectivity and create heap for subgraph
                 
                 bool bipartite = DfsSearch(n, ihash,  subGraph, binaryHeap, colorDictionary);
                 
+
                 if (bipartite)
                 {
-                    //TODO : parallel process for tasks in both sets; 
+                    Console.WriteLine("bipartite");
+                    
+                    /*foreach (var hash in subGraph.Vertices)
+                    {
+                        
+                    }*/
+                    
+                    //TODO : parallel process for tasks in both sets asynchronously;
+                    
                     continue;
                 }
                 
+
                 //if not bipartite, continue excute subgraphs
                 //remove heap root and vertex from graph
                 var txIhash = binaryHeap.RemoveMinimum().Value;
-                
-                //TODO: process single task, txIhash
+
+                if (subGraph.VertexCount == 1)
+                {
+                    //TODO: if only one task, process single task asynchronously,
+                    continue;
+                }
+                //TODO: if more than one task, process single task synchronously,
                 
                 subGraph.RemoveVertex(txIhash);
-                
+                Console.WriteLine("remove:"+ txIhash.GetHashBytes()[0]);
+
                 if (subGraph.VertexCount > 1)
                     ExecuteGraph(subGraph);
             }
@@ -149,11 +164,12 @@ namespace AElf.Kernel
         /// <param name="subGraph" />
         /// <param name="binaryHeap"></param>
         /// <param name="colorDictionary"></param>
-        bool DfsSearch(UndirectedGraph<IHash, Edge<IHash>> n, IHash ihash, UndirectedGraph<IHash, Edge<IHash>> subGraph, BinaryHeap<int,IHash> binaryHeap, Dictionary<IHash,int> colorDictionary)
+        bool DfsSearch(UndirectedGraph<IHash, Edge<IHash>> n, IHash ihash, UndirectedGraph<IHash, Edge<IHash>> subGraph, BinaryHeap<int,IHash> binaryHeap,  Dictionary<IHash,int> colorDictionary)
         {
+
             //stack
             Stack<IHash> stack=new Stack<IHash>();
-           
+            stack.Push(ihash);
             subGraph.AddVertex(ihash);
             binaryHeap.Add(n.AdjacentEdges(ihash).Count(),ihash);
             int color = 1;
@@ -162,6 +178,8 @@ namespace AElf.Kernel
 
             while (stack.Count>0)
             {
+                
+
                 IHash cur = stack.Pop();
                 
                 // add task ihash to heap when pop
@@ -169,11 +187,12 @@ namespace AElf.Kernel
 
                 //opposite color
                 color = colorDictionary[cur] * -1;
-                
+                //Console.Write(cur.GetHashBytes()[0]+" ");
                 foreach (var edge in n.AdjacentEdges(cur))
                 {
                     IHash nei = edge.Source == cur ? edge.Target : edge.Source;
                     
+
                     //color check 
                     if (colorDictionary.Keys.Contains(nei))
                     {
@@ -181,17 +200,17 @@ namespace AElf.Kernel
                     }
                     else
                     {
-                        //build subgraph
+                        //add vertex 
                         subGraph.AddVertex(nei);
-                        subGraph.AddEdge(edge);
                         
-                        colorDictionary[cur] = color;
-                        
+                        colorDictionary.Add(nei,color);
                         stack.Push(nei);
                     }
+                    //add edge
+                    if(!subGraph.ContainsEdge(edge)) subGraph.AddEdge(edge);
                 }
             }
-            
+            //Console.WriteLine();
             return res;
         }
         
@@ -204,9 +223,9 @@ namespace AElf.Kernel
         int MaxIntCompare(int i1, int i2)
         {
             if (i1 < i2)
-                return -1;     
+                return 1;     
             if (i1 > i2)
-                return 1;
+                return -1;
             return 0;
         }
     }
