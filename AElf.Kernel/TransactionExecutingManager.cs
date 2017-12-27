@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics.Contracts;
+using System.Drawing;
 using System.Linq;
 using QuickGraph;
 using QuickGraph.Collections;
@@ -39,7 +40,7 @@ namespace AElf.Kernel
 
                     }
                     pending[res].Add(tx);
-
+                    
                 }
                 this.mut.ReleaseMutex();
             });
@@ -87,8 +88,6 @@ namespace AElf.Kernel
             }
 
             ExecuteGraph(graph);
-            
-            
             // reset 
             pending = new Dictionary<IHash, List<ITransaction>>();
             this.mut.ReleaseMutex();
@@ -104,56 +103,73 @@ namespace AElf.Kernel
         public void ExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
         {
             
-            // Bipartite Graph check
-            Dictionary<IHash,int> colorDictionary = new Dictionary<IHash, int>();
+            
+            BinaryHeap<int, IHash> hashHeap = new BinaryHeap<int, IHash>(MaxIntCompare);
+            
+            // map hash to graph
+            Dictionary<IHash,UndirectedGraph<IHash, Edge<IHash>>> hashToGraph= new Dictionary<IHash, UndirectedGraph<IHash, Edge<IHash>>>();
 
             
-            foreach (var ihash in n.Vertices)
+            subGraphs(n,hashHeap,hashToGraph);
+
+            while(hashHeap.Count>0)
             {
-                if (colorDictionary.Keys.Contains(ihash)) continue;
-
-                UndirectedGraph<IHash, Edge<IHash>> subGraph = new UndirectedGraph<IHash, Edge<IHash>>();
-                BinaryHeap<int, IHash> binaryHeap = new BinaryHeap<int, IHash>(MaxIntCompare);
-
-                // dfs search for connectivity and create heap for subgraph
+                var hashToProcess = hashHeap.RemoveMinimum().Value;
+               
+                var subgraph = hashToGraph[hashToProcess];
                 
-                bool bipartite = DfsSearch(n, ihash,  subGraph, binaryHeap, colorDictionary);
+                //TODO: process the sigle task synchronously
+                //Console.WriteLine("remove:" + (char)hashToProcess.GetHashBytes()[0]+", "+subgraph.AdjacentDegree(hashToProcess));
+                subgraph.RemoveVertex(hashToProcess);
+
                 
-
-                if (bipartite)
-                {
-                    Console.WriteLine("bipartite");
-                    
-                    /*foreach (var hash in subGraph.Vertices)
-                    {
-                        
-                    }*/
-                    
-                    //TODO : parallel process for tasks in both sets asynchronously;
-                    
-                    continue;
-                }
-                
-
-                //if not bipartite, continue excute subgraphs
-                //remove heap root and vertex from graph
-                var txIhash = binaryHeap.RemoveMinimum().Value;
-
-                if (subGraph.VertexCount == 1)
-                {
-                    //TODO: if only one task, process single task asynchronously,
-                    continue;
-                }
-                //TODO: if more than one task, process single task synchronously,
-                
-                subGraph.RemoveVertex(txIhash);
-                Console.WriteLine("remove:"+ txIhash.GetHashBytes()[0]);
-
-                if (subGraph.VertexCount > 1)
-                    ExecuteGraph(subGraph);
+                subGraphs(subgraph, hashHeap, hashToGraph);
+                hashToGraph.Remove(hashToProcess);
             }
         }
-
+        
+        
+        void subGraphs(UndirectedGraph<IHash, Edge<IHash>> n, BinaryHeap<int, IHash> hashHeap, Dictionary<IHash,UndirectedGraph<IHash, Edge<IHash>>> hashToGraph)
+        {
+            // Bipartite Graph check
+            Dictionary<IHash,int> colorDictionary = new Dictionary<IHash, int>();
+            
+            foreach (var hash in n.Vertices)
+            {
+                if (colorDictionary.Keys.Contains(hash)) continue;
+                
+                UndirectedGraph<IHash, Edge<IHash>> subGraph = new UndirectedGraph<IHash, Edge<IHash>>();
+                IHash maxHash = hash;
+                bool isBipartite  = DfsSearch(n, subGraph, ref maxHash, colorDictionary);
+                
+                
+                if (isBipartite)
+                {
+                    //TODO : if bipartite, parallel process for tasks in both sets asynchronously;
+                    foreach (var h in subGraph.Vertices)
+                    {
+                        if (colorDictionary[h]==1)
+                        {
+                            //Console.WriteLine("white:" + (char)h.GetHashBytes()[0]);
+                        }
+                        if (colorDictionary[h]==-1)
+                        {
+                            //Console.WriteLine("black:" + (char)h.GetHashBytes()[0]);
+                        }
+                       
+                    }
+                    continue;
+                }
+                
+                //if not Bipartite, add maxhash to heap and hashToGraph Dictionary
+                
+                hashHeap.Add(subGraph.AdjacentDegree(maxHash),maxHash);
+                hashToGraph[maxHash]=subGraph;
+                
+                
+            }
+            
+        }
 
         /// <summary>
         /// dfs and add vertexs to heap during search,
@@ -164,35 +180,31 @@ namespace AElf.Kernel
         /// <param name="subGraph" />
         /// <param name="binaryHeap"></param>
         /// <param name="colorDictionary"></param>
-        bool DfsSearch(UndirectedGraph<IHash, Edge<IHash>> n, IHash ihash, UndirectedGraph<IHash, Edge<IHash>> subGraph, BinaryHeap<int,IHash> binaryHeap,  Dictionary<IHash,int> colorDictionary)
+        bool DfsSearch(UndirectedGraph<IHash, Edge<IHash>> n,  UndirectedGraph<IHash, Edge<IHash>> subGraph, ref IHash maxHash, Dictionary<IHash,int> colorDictionary)
         {
-
             //stack
             Stack<IHash> stack=new Stack<IHash>();
-            stack.Push(ihash);
-            subGraph.AddVertex(ihash);
-            binaryHeap.Add(n.AdjacentEdges(ihash).Count(),ihash);
+            stack.Push(maxHash);
+            subGraph.AddVertex(maxHash);
+            
             int color = 1;
-            colorDictionary[ihash] = color;
+            colorDictionary[maxHash] = color;
             bool res = true;
-
+            
+            
             while (stack.Count>0)
             {
-                
-
                 IHash cur = stack.Pop();
                 
-                // add task ihash to heap when pop
-                binaryHeap.Add(n.AdjacentEdges(cur).Count(),cur);
+                maxHash = n.AdjacentDegree(maxHash) > n.AdjacentDegree(cur) ? maxHash : cur;
 
                 //opposite color
                 color = colorDictionary[cur] * -1;
-                //Console.Write(cur.GetHashBytes()[0]+" ");
+
                 foreach (var edge in n.AdjacentEdges(cur))
                 {
                     IHash nei = edge.Source == cur ? edge.Target : edge.Source;
                     
-
                     //color check 
                     if (colorDictionary.Keys.Contains(nei))
                     {
@@ -202,16 +214,17 @@ namespace AElf.Kernel
                     {
                         //add vertex 
                         subGraph.AddVertex(nei);
-                        
-                        colorDictionary.Add(nei,color);
+                        colorDictionary.Add(nei, color);
                         stack.Push(nei);
                     }
+                    
                     //add edge
                     if(!subGraph.ContainsEdge(edge)) subGraph.AddEdge(edge);
                 }
             }
-            //Console.WriteLine();
+            
             return res;
+            
         }
         
         /// <summary>
