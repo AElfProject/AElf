@@ -46,7 +46,7 @@ actually,  we still have some checkpoint cannot cross.).
 
 Besides, the time for solving that mathematical hard problem in competitive consensus is not stable(because of it’s 
 un-predictable behavior, hashing), the intervals between producing two consecutive blocks can be random between 1 minute
-and 1 hour(or more), a Gaussian distribution possibly. 
+and 1 hour(or more), a Poisson distribution precisely. 
 
 The racing game between nodes are wasteful compared to the cooperative ones, because the winner takes all, losers
 waste their time and money, only produces carbon dioxide to the world and nothing more. Since no one wants to lose,
