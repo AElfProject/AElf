@@ -51,6 +51,12 @@ the nodes started to work together to solve that hard problem, promise that if o
 that reward fairly. The real world PoW is kind of DPoW — **Delegated Proof of Work**, we delegate our computational power
 to the mining pool, and it works so well in the real world. 
 
+The [Proof of Stake](https://en.bitcoin.it/wiki/Proof_of_Stake) consensus is an attempt to solve the problem of power consumption, a kind of PoS system is by combining (multiplicatively) your hashrate and stake, formalized as: 
+
+`Hash(blockHeader ) < GetTarget(nBits) * CoinAge`
+
+(CoinAge - the stake, more stakes adjusts the degree of difficulty for block production)
+
 Here is how we think:
 
 In AELF, is there a consensus algorithm which took the advantages of both Cooperative and Competitive consensus mechanism 
