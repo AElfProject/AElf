@@ -17,7 +17,7 @@ Early stage, still under development.
 1. tx_pool/mem_pool design (unconfirmed tx).
 2. Basic block in-memory construct, eg: merkletree, block header, transactions, statsdb, caching.
 3. Wire protocol for inter-ledger block/tx transfering.
-4. dPoS implementation, hashing, mining.
+4. [DPoS](docs/CONSENSUS.md) implementation, hashing, mining.
 5. Block validator, crypto related algorithms, e.g. signing, hmac.
 6. p2p discovery/communication.
 
