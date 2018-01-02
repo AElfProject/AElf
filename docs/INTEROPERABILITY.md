@@ -40,9 +40,9 @@ other than the one are convinced to believe that the corresponding transaction h
 cross-chain transactions can be formalized as below:
 
 1. A transaction happens on the sidechain A.
-2. A Node of side-chain A sends a message to the 'mainchain' in order to record this transaction with minimal required information on the '**mainchain**', i.e. the merkle root + block header which is unforgeable. 
-3. Sidechain A actively makes a function call to the corresponding method from another sidechain B with a proof — i.e. the merkle proof. 
-4. The method in sidechain B tries to verify the proof on the '**mainchain**' that both side-chain trust, and execute the corresponding actions if verified valid.
+2. A Node of side-chain A sends a message to the node of 'mainchain' in order to record this transaction with minimal required information on the '**mainchain**', i.e. the merkle root + block header which is unforgeable. 
+3. The node of sidechain A actively makes a function call(broadcast tx) to the corresponding method from another sidechain B with a proof — i.e. the merkle proof. 
+4. The method in the nodes of sidechain B tries to verify the proof on the '**mainchain**' that both side-chain trust, and execute the corresponding actions if verified valid.
 
 As we can see from the steps above, this is actually an '**active**' process. If we trust the smart contracts (open source)
 on both sidechains, we can confirm that the above procedure will definitely run as expected, automatically and controlled 
