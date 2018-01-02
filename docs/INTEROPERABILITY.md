@@ -40,7 +40,7 @@ other than the one are convinced to believe that the corresponding transaction h
 cross-chain transactions can be formalized as below:
 
 1. A transaction happens on the sidechain A.
-2. Sidechain A sends a message to the ‘mainchain’ in order to record this transaction with minimal required information on the '**mainchain**', i.e. the merkle root simply. 
+2. A Node of side-chain A sends a message to the 'mainchain' in order to record this transaction with minimal required information on the '**mainchain**', i.e. the merkle root + block header which is unforgeable. 
 3. Sidechain A actively makes a function call to the corresponding method from another sidechain B with a proof — i.e. the merkle proof. 
 4. The method in sidechain B tries to verify the proof on the '**mainchain**' that both side-chain trust, and execute the corresponding actions if verified valid.
 
@@ -48,13 +48,7 @@ As we can see from the steps above, this is actually an '**active**' process. If
 on both sidechains, we can confirm that the above procedure will definitely run as expected, automatically and controlled 
 by the one who initiated the transaction.
 
-As for '**passive**' monitoring paradigm like the scenario at the beginning of this article, we may construct differently, like below:
-
-1. Sidechain B monitors transactions on side-chain A.
-2. If a special transaction has happened on sidechain A, to make sure it’s not deniable, side-chain B waits until the 'merkle root' of side-chain A has been included in the '**mainchain**'.
-3. After it’s confirmed on the '**mainchain**' and verified as valid, Side-chain B executes its corresponding actions.
-
-As we can see from above, merkle proof has played an important part in both '**active**' and '**passive**' cross-chain transactions,
+As we can see from above, merkle proof has played an important part in cross-chain transactions,
 let’s talk a little more about the merkle proof:
 
 In cryptography, A '**merkle proof**' is a kind of signature proof which can be used to prove that a given transaction exists 
@@ -64,7 +58,7 @@ in the target block, a merkle proof contains:
 
 Basically, it’s a list of hashes as an evidence taken from the merkle tree to prove the existence of a transaction. 
 
-The security of merkle proof relies upon the computational infeasibility of hash collision, i.e. you can barely fake 
+The security of merkle proof relies upon the computational infeasibility of hash collision, i.e. you cannot possibly fake 
 a meaningful transaction whose transaction hash can be computed the same as the previous one. Generally speaking, once t
 he merkle root in a sidechain has been included in the mainchain, we can conclude that all the transactions in 
 that block has been confirmed by the '**mainchain**', meanwhile the mainchain is kept decentralized with DPoS.
