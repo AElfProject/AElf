@@ -12,7 +12,7 @@ on the bitcoin blockchain by creating a signed [raw transaction](https://en.bitc
 it to the bitcoin network. 
 
 One advantage of this 
-alized way for blockchain interoperability is its simplicity. Basically, we can write as many adapters
+centralized way for blockchain interoperability is its simplicity. Basically, we can write as many adapters
 as we want to connect with different blockchains, broadcast the transactions to any one of them, and even trigger cascaded actions, 
 e.g. if I deposit some ethers to one specific smart contract on Ethereum. The monitor can trigger the actions on Bitcoin and to pay
 the bill with [Lighting Network](https://lightning.network/) to some service provider and the vendor finally triggers a movement or action on a tiny cute
