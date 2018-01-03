@@ -40,7 +40,7 @@ transactions. It works as if one sidechain can provide a proof that can be verif
 other than this one are convinced to believe that the corresponding transaction has happened indeed. The whole process of a 
 cross-chain transactions can be formalized as below:
 
-1. A transaction happens on the sidechain A.
+1. A transaction happened on sidechain A.
 2. A node of side-chain A broadcast a tranaction to the nodes of 'mainchain' to record this transaction with minimal required information on the '**mainchain**', i.e. the merkle root + block header which is unforgeable. 
 3. The node of sidechain A actively makes a function call(broadcast tx) to the corresponding method from another sidechain B with a proof — i.e. the merkle proof. 
 4. The method in the nodes of sidechain B tries to verify the proof on the '**mainchain**' that both side-chain trust, and execute the corresponding actions if verified valid.
