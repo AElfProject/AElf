@@ -11,7 +11,8 @@ has been confirmed for more than 12 or 36 times on its block-height, the monitor
 on the bitcoin blockchain by creating a signed [raw transaction](https://en.bitcoin.it/wiki/Raw_Transactions) and broadcast
 it to the bitcoin network. 
 
-One advantage of this centralized way for blockchain interoperability is its simplicity. Basically, we can write as many adapters
+One advantage of this 
+alized way for blockchain interoperability is its simplicity. Basically, we can write as many adapters
 as we want to connect with different blockchains, broadcast the transactions to any one of them, and even trigger cascaded actions, 
 e.g. if I deposit some ethers to one specific smart contract on Ethereum. The monitor can trigger the actions on Bitcoin and to pay
 the bill with [Lighting Network](https://lightning.network/) to some service provider and the vendor finally triggers a movement or action on a tiny cute
@@ -26,7 +27,7 @@ perspective.
 In AELF, making the whole process automatic, guaranteed and decentralized is our goal.
 
 If the counterparties in different blockchains wants to exchange assets, meanwhile they don’t trust each other, there have to be
-a middleman they all trust, think about how you buy and sell assets on a centralized exchanges, e.g. Bittrex, we somewhat laid trust
+a middleman they all trust, think about how you buy and sell assets on a centralized exchange, e.g. Bittrex, we somewhat laid trust
 on these exchanges intentionally or unconsciously.
 
 Decentralized exchanges(DEX) are becoming epidemic nowadays, projects like 0x, Kyber Network and AirSwap won great attention by 
