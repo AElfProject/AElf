@@ -60,6 +60,5 @@ in the target block, a merkle proof contains:
 Basically, it’s a list of hashes as an evidence taken from the merkle tree to prove the existence of a transaction. 
 
 The security of merkle proof relies upon the computational infeasibility of hash collision, i.e. you cannot possibly fake 
-a meaningful transaction whose transaction hash can be computed the same as the previous one. Generally speaking, once t
-he merkle root in a sidechain has been included in the mainchain, we can conclude that all the transactions in 
+a meaningful transaction whose transaction hash can be computed the same as the previous one. Generally speaking, once the merkle root in a sidechain has been included in the mainchain, we can conclude that all the transactions in 
 that block has been confirmed by the '**mainchain**', meanwhile the mainchain is kept decentralized with DPoS.
