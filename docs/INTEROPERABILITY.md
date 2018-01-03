@@ -2,7 +2,7 @@
 
 When we talk about interoperability of blockchain, the first question we have to answer is : 
 
-> "How the transaction on one blockchain can trigger the execution of a smart contract on another blockchain?"
+> "How does the transaction on one blockchain trigger the execution of a smart contract on another blockchain?"
 
 In the simplest form between Ethereum and Bitcoin, we can write a piece of code to monitor the events on Ethereum with proper libraries,
 such as [web3js](https://github.com/ethereum/web3.js/) or [JSONRPC](https://github.com/ethereum/wiki/wiki/JSON-RPC), for example,
