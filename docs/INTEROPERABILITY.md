@@ -30,7 +30,7 @@ on these exchanges, intentionally or unconsciously.
 
 Decentralized exchanges(DEX) are becoming more common every day.  Projects like 0x, Kyber Network and AirSwap have won great attention from 
 the public. General speaking, DEX is a special use case in cross-chain interoperability. The idea behind DEX is called '**atomic swap**', 
-i.e. we swap assets without third parties, and are provided ‘end-to-end’ security in token exchanges (or at least we hope we are).
+i.e. we swap assets without third parties, and are provided '**end-to-end**' security in token exchanges (or at least we hope we are).
 
 In ÆLF, making the whole process automatic, guaranteed, and decentralized is our goal.
 
