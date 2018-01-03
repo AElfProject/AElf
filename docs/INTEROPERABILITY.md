@@ -37,7 +37,7 @@ i.e. we swap assets without third parties, and provide ‘end-to-end’ security
 The '**mainchain**' endorsement mechanism we are going to set up in AELF is a decentralized middleman (DPoS), who can provide '**trust**' 
 for each side-chain in AELF ecology. All side chains in AELF ecology can lay their trust on the '**mainchain**' for cross-chain
 transactions. It works as if one sidechain can provide a proof that can be verified through the mainchain, then the sidechains 
-other than the one are convinced to believe that the corresponding transaction has happened indeed. The whole process of a 
+other than this one are convinced to believe that the corresponding transaction has happened indeed. The whole process of a 
 cross-chain transactions can be formalized as below:
 
 1. A transaction happens on the sidechain A.
