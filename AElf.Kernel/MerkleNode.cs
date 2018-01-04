@@ -86,7 +86,6 @@ namespace AElf.Kernel
                         MerkleProofDict[code].ModifyBrotherNode(newStr, nodeIndex, MerkleProofDict);
                     }
                 }
-
             }
         }
     }
