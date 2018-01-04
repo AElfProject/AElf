@@ -28,7 +28,7 @@ If the counterparties in different blockchains want to exchange assets, meanwhil
 a middleman they both trust.  Think about how you buy and sell assets on a centralized exchange, e.g. Bittrex - we somewhat lay trust
 on these exchanges, intentionally or unconsciously.
 
-Decentralized exchanges(DEX) are becoming more common every day.  Projects like 0x, Kyber Network and AirSwap have won great attention from 
+Decentralized exchanges(DEX) are becoming more common every day.  Projects like [0x](https://0xproject.com/), [Kyber Network](https://kyber.network/) and [AirSwap](https://www.airswap.io/) have won great attention from 
 the public. General speaking, DEX is a special use case in cross-chain interoperability. The idea behind DEX is called '**atomic swap**', 
 i.e. we swap assets without third parties, and are provided '**end-to-end**' security in token exchanges (or at least we hope we are).
 
@@ -40,7 +40,7 @@ transactions. The sidechain can provide a proof that can be verified through the
 cross-chain transaction can be formalized as below:
 
 1. A transaction happens on the sidechain A.
-2. A node of sidechain A broadcasts the transaction to nodes in the **mainchain** to record this transaction with minimal required information, i.e. the merkle root + block header which is unforgeable(as difficult as mining a block). 
+2. A node of sidechain A broadcasts the transaction to nodes in the **mainchain** to record this transaction with minimal required information, i.e. the merkle root + block header which is unforgeable(or as difficult as mining a block). 
 3. The node of sidechain A actively makes a function call(broadcast tx) to the corresponding method from another sidechain B with a proof — i.e. the merkle proof. 
 4. The method in nodes of sidechain B tries to verify the proof on the '**mainchain**', which both sidechains trust, and execute the corresponding actions if verified valid.
 
