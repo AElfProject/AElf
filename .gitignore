@@ -260,4 +260,6 @@ paket-files/
 __pycache__/
 *.pyc
 *.DS_Store
-/.vs/
+
+.vs/
+slnx.sqlite
