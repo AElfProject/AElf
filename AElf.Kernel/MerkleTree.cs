@@ -176,12 +176,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public MerkleNode NewProofBySelf(MerkleNode proof)
         {
-            MerkleNode newProof = new MerkleNode()
-            {
-                ProofHashValue = proof.ProofHashValue.GetMerkleHash(),
-                Code = currentCode++,
-                ChildrenList = new List<int>()
-            };
+            MerkleNode newProof = new MerkleNode() { ProofHashValue = proof.ProofHashValue.GetMerkleHash(), Code = currentCode++, ChildrenList = new List<int>() };
             newProof.ChildrenList.Add(proof.Code);
             proof.ParentProofCode = newProof.Code;
             proof.Distance++;
@@ -201,11 +196,7 @@ namespace AElf.Kernel
             }
         }
 
-        /// <summary>
-        /// Modify node.
-        /// </summary>
-        /// <param name="proof"></param>
-        /// <param name="newValue"></param>
+
         public void ModifyChild(MerkleNode proof, string newValue)
         {
             proof.ProofHashValue = newValue;
