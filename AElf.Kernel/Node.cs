@@ -1,11 +1,11 @@
-namespace AElf.Kernel
+﻿namespace AElf.Kernel
 {
     /// <summary>
-    /// meikletree中的每一个节点基类
+    /// Base class of Merkle nodes.
     /// </summary>
     public class Node
     {
-        public int Side { get; set; }//1表示在右，2表示在左
-        public string HashValue { get; set; }//这个节点的Hash值
+        public int Side { get; set; }//1-right;2-left.
+        public string HashValue { get; set; }//The hash value of this node.
     }
 }

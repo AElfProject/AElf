@@ -260,3 +260,4 @@ paket-files/
 __pycache__/
 *.pyc
 *.DS_Store
+/.vs/AElf/v15/Server/sqlite3
