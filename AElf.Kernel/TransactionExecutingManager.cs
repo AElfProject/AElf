@@ -179,7 +179,6 @@ namespace AElf.Kernel
                 
                     //if not Bipartite, add maxhash to hashToGraph Dictionary
                     Task t = AsyncExecute(subGraph, maxHash);
-
                 }
                 
             });
