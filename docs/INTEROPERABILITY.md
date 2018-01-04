@@ -34,7 +34,7 @@ i.e. we swap assets without third parties, and are provided '**end-to-end**' sec
 
 In ÆLF, making the whole process automatic, guaranteed, and decentralized is our goal.
 
-The '**mainchain**' endorsement mechanism we are going to set up in ÆLF is a Delegated Proof-of-Stake (DPoS), a sort of 'dencentralized middleman' who can provide '**trust**' 
+The '**mainchain**' endorsement mechanism we are going to set up in ÆLF is a Delegated Proof-of-Stake (DPoS), a sort of 'decentralized middleman' who can provide '**trust**' 
 for each sidechain in the ÆLF ecosystem. All ÆLF sidechains can lay their trust on the '**mainchain**' for cross-chain
 transactions. The sidechain can provide a proof that can be verified through the mainchain, enabling other sidechains to confidently trust the corresponding transaction has indeed happened. The whole process of a 
 cross-chain transaction can be formalized as below:
