@@ -40,7 +40,7 @@ transactions. The sidechain can provide a proof that can be verified through the
 cross-chain transaction can be formalized as below:
 
 1. A transaction happens on the sidechain A.
-2. A node of sidechain A broadcasts the transaction to nodes in the **mainchain** to record this transaction with minimal required information, i.e. the merkle root + block header which is unforgeable. 
+2. A node of sidechain A broadcasts the transaction to nodes in the **mainchain** to record this transaction with minimal required information, i.e. the merkle root + block header which is unforgeable(as difficult as mining a block). 
 3. The node of sidechain A actively makes a function call(broadcast tx) to the corresponding method from another sidechain B with a proof — i.e. the merkle proof. 
 4. The method in nodes of sidechain B tries to verify the proof on the '**mainchain**', which both sidechains trust, and execute the corresponding actions if verified valid.
 
