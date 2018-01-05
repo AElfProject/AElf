@@ -4,6 +4,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Account.cs" />
+    <Compile Remove="MerkleNode.cs" />
+    <Compile Remove="MerkleTree.cs" />
+    <Compile Remove="MerkleTree\Node.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="LiteDB" Version="4.0.0" />

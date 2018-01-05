@@ -263,3 +263,5 @@ __pycache__/
 
 .vs/
 slnx.sqlite
+/AElf.Kernel/MerkleTree.cs
+/AElf.Kernel/MerkleNode.cs

@@ -1,92 +1,106 @@
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-namespace AElf.Kernel
+using System.Linq;
+using System.Text;
+
+namespace AElf.Kernel.MerkleTree
 {
-    /// <summary>
-    /// A Node of Merkle Tree.
-    /// </summary>
-    public class MerkleNode
+    public class MerkleNode : IEnumerable<MerkleNode>
     {
+        public MerkleNode LeftNode { get; set; }
         /// <summary>
-        /// The list of brother nodes which is necessary to calculate the merkle tree.
+        /// Regard the right node is null if it doesn't exist.
         /// </summary>
-        public List<Node> NodeList { get; set; }
-        /// <summary>
-        /// The hash code of this node.
-        /// </summary>
-        public string ProofHashValue { get; set; }
-        /// <summary>
-        /// Code to identify this node.
-        /// </summary>
-        public int Code { get; set; }
-        /// <summary>
-        /// Children of this nodes.
-        /// </summary>
-        public List<int> ChildrenList { get; set; }
-        /// <summary>
-        /// Distance to Merkle Root / Depth - 1.
-        /// </summary>
-        public int Distance { get; set; }
-        /// <summary>
-        /// Parent node.
-        /// </summary>
-        public int ParentProofCode { get; set; }
-        /// <summary>
-        /// Brother node.
-        /// </summary>
-        public int BrotherNode { get; set; }
+        public MerkleNode RightNode { get; set; }
+        public MerkleNode ParentNode { get; set; }
+        public MerkleHash Hash { get; set; }
 
         /// <summary>
-        /// Add brother node.
+        /// Set left node then directly compute hash.
         /// </summary>
-        /// <param name="brotherNode"></param>
-        /// <param name="MerkleProofDict"></param>
-        /// <param name="brotherCode"></param>
-        public void AddBrotherNode(Node brotherNode, Dictionary<int, MerkleNode> MerkleProofDict, int brotherCode)
+        public void SetLeftNode(MerkleNode left)
         {
-            BrotherNode = brotherCode;
-            AddBrotherNode(brotherNode, MerkleProofDict);
+            if (left.Hash == null)
+            {
+                throw new MerkleException("Merkle node did not initialized.");
+            }
+            LeftNode = left;
+            LeftNode.ParentNode = this;
+
+            ComputeHash();
         }
 
         /// <summary>
-        /// Add brother node.
+        /// Set right node then compute hash if left node is not null.
         /// </summary>
-        /// <param name="brotherNode"></param>
-        /// <param name="MerkleProofDict"></param>
-        public void AddBrotherNode(Node brotherNode, Dictionary<int, MerkleNode> MerkleProofDict)
+        public void SetRightNode(MerkleNode right)
         {
-            if (NodeList == null)
-                NodeList = new List<Node>();
-            NodeList.Add(brotherNode);
-            Distance++;
-            if (ChildrenList != null && ChildrenList.Count > 0)
+            if (right.Hash == null)
             {
-                foreach (int code in ChildrenList)
-                {
-                    MerkleProofDict[code].AddBrotherNode(brotherNode, MerkleProofDict);
-                }
+                throw new MerkleException("Merkle node did not initialized.");
+            }
+            RightNode = right;
+            RightNode.ParentNode = this;
+
+            if (LeftNode != null)
+            {
+                ComputeHash();
             }
         }
 
         /// <summary>
-        /// Modify brother node.
+        /// Compute hash value as well as update the merkle tree.
         /// </summary>
-        /// <param name="newStr"></param>
-        /// <param name="nodeIndex"></param>
-        /// <param name="MerkleProofDict"></param>
-        public void ModifyBrotherNode(string newStr, int nodeIndex, Dictionary<int, MerkleNode> MerkleProofDict)
+        private void ComputeHash()
         {
-            if (NodeList != null && NodeList.Count > nodeIndex)
+            if (RightNode == null)
             {
-                NodeList[nodeIndex].HashValue = newStr;
-                if (ChildrenList != null && ChildrenList.Count > 0)
-                {
-                    nodeIndex++;
-                    foreach (int code in ChildrenList)
-                    {
-                        MerkleProofDict[code].ModifyBrotherNode(newStr, nodeIndex, MerkleProofDict);
-                    }
-                }
+                Hash = LeftNode.Hash;
             }
+            else
+            {
+                Hash = new MerkleHash(LeftNode.Hash, RightNode.Hash);
+            }
+
+            ParentNode?.ComputeHash();//Recursely update the hash value of parent node
         }
+
+        #region Implement of IEnumerable<MerkleNode>
+
+        public IEnumerator<MerkleNode> GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            foreach (var n in Iterate(this))
+                yield return n;
+        }
+
+        /// <summary>
+        /// LRN / PostOrder
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        protected IEnumerable<MerkleNode> Iterate(MerkleNode node)
+        {
+            if (node.LeftNode != null)
+            {
+                foreach (var n in Iterate(node.LeftNode))
+                    yield return n;
+            }
+
+            if (node.RightNode != null)
+            {
+                foreach (var n in Iterate(node.RightNode))
+                    yield return n;
+            }
+
+            yield return node;
+        }
+
+        #endregion
     }
 }
