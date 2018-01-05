@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace AElf.Kernel.MerkleTree
+namespace AElf.Kernel.Merkle
 {
     public class MerkleHash
     {
@@ -35,6 +34,11 @@ namespace AElf.Kernel.MerkleTree
         public MerkleHash(MerkleHash left, MerkleHash right)
         {
             Value = left.Value.Concat(right.Value).ToArray().ComputeHash();
+        }
+
+        public override string ToString()
+        {
+            return BitConverter.ToString(Value).Replace("-", "");
         }
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AElf.Kernel.MerkleTree
+namespace AElf.Kernel.Merkle
 {
     public class MerkleProof
     {

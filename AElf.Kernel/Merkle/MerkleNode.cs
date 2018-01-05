@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-namespace AElf.Kernel.MerkleTree
+namespace AElf.Kernel.Merkle
 {
     public class MerkleNode : IEnumerable<MerkleNode>
     {
@@ -15,6 +13,21 @@ namespace AElf.Kernel.MerkleTree
         public MerkleNode RightNode { get; set; }
         public MerkleNode ParentNode { get; set; }
         public MerkleHash Hash { get; set; }
+
+        public MerkleNode() { }
+
+        public MerkleNode(MerkleNode left, MerkleNode right = null)
+        {
+            LeftNode = left;
+            RightNode = right;
+            LeftNode.ParentNode = this;
+            if (RightNode != null)
+            {
+                RightNode.ParentNode = this;
+            }
+
+            ComputeHash();
+        }
 
         /// <summary>
         /// Set left node then directly compute hash.
@@ -66,12 +79,26 @@ namespace AElf.Kernel.MerkleTree
             ParentNode?.ComputeHash();//Recursely update the hash value of parent node
         }
 
-        #region Implement of IEnumerable<MerkleNode>
-
-        public IEnumerator<MerkleNode> GetEnumerator()
+        /// <summary>
+        /// Verify the hash value itself.
+        /// </summary>
+        /// <returns></returns>
+        public bool VerifyHash()
         {
-            return GetEnumerator();
+            //Nothing to verify
+            if (LeftNode == null && RightNode == null) return true;
+
+            //If right node is null, verify the left node.
+            if (RightNode == null)
+                return Hash.Value.SequenceEqual(LeftNode.Hash.Value);
+
+            return Hash.Value.SequenceEqual(
+                new MerkleHash(LeftNode.Hash, RightNode.Hash).Value);
         }
+
+        #region Implementation of IEnumerable<MerkleNode>
+
+        public IEnumerator<MerkleNode> GetEnumerator() => GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
         {

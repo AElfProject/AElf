@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace AElf.Kernel.MerkleTree
+namespace AElf.Kernel.Merkle
 {
     public static class MerkleExtensionMethods
     {
