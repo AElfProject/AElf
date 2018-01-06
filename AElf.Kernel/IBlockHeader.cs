@@ -1,7 +1,4 @@
-﻿using System;
-using System.Transactions;
-
-namespace AElf.Kernel
+﻿namespace AElf.Kernel
 {
     public interface IBlockHeader
     {
