@@ -11,22 +11,25 @@ namespace AElf.Kernel.Merkle
         protected SortedList<MerkleHash, MerkleNode> SortedLeaves { get; set; } 
             = new SortedList<MerkleHash, MerkleNode>(new MerkleHashCompare());
 
-        public void AddLeaf(MerkleNode node)
+        public MerkleTree AddLeaf(MerkleNode node)
         {
             Nodes.Add(node);
             Leaves.Add(node);
             SortedLeaves.Add(node.Hash, node);
+
+            return this;
         }
 
-        public void AddLeaves(List<MerkleNode> nodes)
+        public MerkleTree AddLeaves(List<MerkleNode> nodes)
         {
             nodes.ForEach(n => AddLeaf(n));
+
+            return this;
         }
 
         public MerkleNode FindLeaf(MerkleHash hash)
         {
-            MerkleNode node;
-            if (SortedLeaves.TryGetValue(hash, out node))
+            if (SortedLeaves.TryGetValue(hash, out MerkleNode node))
                 return node;
             else
                 return null;
@@ -61,10 +64,17 @@ namespace AElf.Kernel.Merkle
                     MerkleNode right = (i + 1 < nodes.Count) ? nodes[i + 1] : null;
                     MerkleNode parent = new MerkleNode(nodes[i], right);
                     parents.Add(parent);
+                    Nodes.Add(parent);
                 }
 
                 GenerateMerkleTree(parents);
             }
+        }
+
+        public bool VerifyProofList(List<MerkleHash> hashlist)
+        {
+            List<MerkleHash> t = hashlist.ComputeProofHash();
+            return MerkleRoot.Hash.ToString() == hashlist.ComputeProofHash()[0].ToString();
         }
     }
 }
