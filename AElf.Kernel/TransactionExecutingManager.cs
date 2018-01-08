@@ -97,20 +97,27 @@ namespace AElf.Kernel
 
 
         /// <summary>
-        /// Parallel Executes the graph
+        /// Executes the graph synchronously
         /// </summary>
         /// <param name="n">N.</param>
-        public void ExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
+        private void ExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
         {
             
+            /*
+             * 1. DFS is applied to traverse graph to find the node with most neighbors for each subgraphs.
+             * 2. use Hash-Graph map and Max-root heap to maintain subGraphs processing in turn
+             * 3. Repeat above process until all graph done.
+             * 4. use bipartite check to accelerate processing(Black-White graph)
+             */
             
+            // Max-Root Heap
             BinaryHeap<int, IHash> hashHeap = new BinaryHeap<int, IHash>(MaxIntCompare);
             
-            // map hash to graph
+            // hashTograph map
             Dictionary<IHash,UndirectedGraph<IHash, Edge<IHash>>> hashToGraph= new Dictionary<IHash, UndirectedGraph<IHash, Edge<IHash>>>();
 
-            
-            subGraphs(n,hashHeap,hashToGraph);
+            // verify graph connectivity and map hash to subgraphs
+            SubGraphs(n,hashHeap,hashToGraph);
 
             while(hashHeap.Count>0)
             {
@@ -119,17 +126,103 @@ namespace AElf.Kernel
                 var subgraph = hashToGraph[hashToProcess];
                 
                 //TODO: process the sigle task synchronously
-                //Console.WriteLine("remove:" + (char)hashToProcess.GetHashBytes()[0]+", "+subgraph.AdjacentDegree(hashToProcess));
+                
+                
                 subgraph.RemoveVertex(hashToProcess);
 
-                
-                subGraphs(subgraph, hashHeap, hashToGraph);
+                SubGraphs(subgraph, hashHeap, hashToGraph);
                 hashToGraph.Remove(hashToProcess);
             }
         }
+
+        /// <summary>
+        /// Executes the graph asynchronously
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public async Task AsyncExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
+        {
+            /*
+             * search for subgraphs and process subgraphs asynchronously
+             * if no subgraphs, execute and remove the node with most neighbors
+             */
+            Task task=Task.Run(() =>
+            {
+                Dictionary<IHash,int> colorDictionary = new Dictionary<IHash, int>();
+                int res = 0;
+            
+                foreach (var hash in n.Vertices)
+                {
+                    if (colorDictionary.Keys.Contains(hash)) continue;
+                    UndirectedGraph<IHash, Edge<IHash>> subGraph = new UndirectedGraph<IHash, Edge<IHash>>();
+                    IHash maxHash = hash;
+                    bool isBipartite  = DfsSearch(n, subGraph, ref maxHash, colorDictionary);
+                
+                
+                    if (isBipartite)
+                    {
+                        //TODO : if bipartite, parallel process for tasks in both sets asynchronously;
+                        /*foreach (var h in subGraph.Vertices)
+                        {
+                            if (colorDictionary[h]==1)
+                            {
+                                Console.Write("T"+Thread.CurrentThread.ManagedThreadId+":" + (char)h.GetHashBytes()[0]+"!    ");
+                            }
+                            if (colorDictionary[h]==-1)
+                            {
+                                Console.Write("T"+Thread.CurrentThread.ManagedThreadId+":" + (char)h.GetHashBytes()[0]+"?    ");
+                            }
+                           
+                        }*/
+                        continue;
+                    }
+                
+                    //if not Bipartite, add maxhash to hashToGraph Dictionary
+                    Task t = AsyncExecute(subGraph, maxHash);
+                }
+                
+            });
+            
+            task.Start();
+            
+            await task;
+        }
+
+        
+        /// <summary>
+        /// Execute the tx and throw subgraps left into new task 
+        /// and process the subgraph after remove one node 
+        /// </summary>
+        /// <param name="n"></param>
+        /// <param name="maxHash"></param>
+        /// <returns></returns>
+        public async Task AsyncExecute(UndirectedGraph<IHash, Edge<IHash>> n, IHash maxHash)
+        {
+            /*
+             * execute transaction and remove from graph,
+             * and then process the graph left.
+             */
+            Task task=Task.Run(()=>
+            {
+                //TODO: execute the tx
+                //Console.Write("T"+Thread.CurrentThread.ManagedThreadId +":"+ (char)maxHash.GetHashBytes()[0]+"    ");
+                n.RemoveVertex(maxHash);
+                Task t = AsyncExecuteGraph(n);
+            });
+            
+            task.Start();
+            
+            await task;
+        }
         
         
-        void subGraphs(UndirectedGraph<IHash, Edge<IHash>> n, BinaryHeap<int, IHash> hashHeap, Dictionary<IHash,UndirectedGraph<IHash, Edge<IHash>>> hashToGraph)
+        /// <summary>
+        /// verify graph connectivity for synchronously process
+        /// </summary>
+        /// <param name="n"></param>
+        /// <param name="hashHeap"></param>
+        /// <param name="hashToGraph"></param>
+        private void SubGraphs(UndirectedGraph<IHash, Edge<IHash>> n, BinaryHeap<int, IHash> hashHeap, Dictionary<IHash,UndirectedGraph<IHash, Edge<IHash>>> hashToGraph)
         {
             // Bipartite Graph check
             Dictionary<IHash,int> colorDictionary = new Dictionary<IHash, int>();
@@ -139,6 +232,8 @@ namespace AElf.Kernel
                 if (colorDictionary.Keys.Contains(hash)) continue;
                 
                 UndirectedGraph<IHash, Edge<IHash>> subGraph = new UndirectedGraph<IHash, Edge<IHash>>();
+                
+                // hash with most dependencies in the graph 
                 IHash maxHash = hash;
                 bool isBipartite  = DfsSearch(n, subGraph, ref maxHash, colorDictionary);
                 
@@ -146,41 +241,41 @@ namespace AElf.Kernel
                 if (isBipartite)
                 {
                     //TODO : if bipartite, parallel process for tasks in both sets asynchronously;
-                    foreach (var h in subGraph.Vertices)
+                    /*foreach (var h in subGraph.Vertices)
                     {
                         if (colorDictionary[h]==1)
                         {
-                            //Console.WriteLine("white:" + (char)h.GetHashBytes()[0]);
+                            Console.Write("white:" + (char)h.GetHashBytes()[0]+"    ");
                         }
                         if (colorDictionary[h]==-1)
                         {
-                            //Console.WriteLine("black:" + (char)h.GetHashBytes()[0]);
+                            Console.Write("black:" + (char)h.GetHashBytes()[0]+"    ");
                         }
                        
-                    }
+                    }*/
                     continue;
                 }
                 
                 //if not Bipartite, add maxhash to heap and hashToGraph Dictionary
-                
                 hashHeap.Add(subGraph.AdjacentDegree(maxHash),maxHash);
                 hashToGraph[maxHash]=subGraph;
-                
                 
             }
             
         }
+        
+        
+        
 
+        
         /// <summary>
-        /// dfs and add vertexs to heap during search,
-        /// heap root is the vertex with most neighbors 
+        /// DFS is applied to traverse graph with color for bipartite  
         /// </summary>
         /// <param name="n">N.</param>
-        /// <param name="ihash"></param>
         /// <param name="subGraph" />
-        /// <param name="binaryHeap"></param>
+        /// <param name="maxHash"></param>
         /// <param name="colorDictionary"></param>
-        bool DfsSearch(UndirectedGraph<IHash, Edge<IHash>> n,  UndirectedGraph<IHash, Edge<IHash>> subGraph, ref IHash maxHash, Dictionary<IHash,int> colorDictionary)
+        private bool DfsSearch(UndirectedGraph<IHash, Edge<IHash>> n,  UndirectedGraph<IHash, Edge<IHash>> subGraph, ref IHash maxHash, Dictionary<IHash,int> colorDictionary)
         {
             //stack
             Stack<IHash> stack=new Stack<IHash>();
