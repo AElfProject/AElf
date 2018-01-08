@@ -100,6 +100,32 @@ namespace AElf.Kernel.Tests
             Assert.True(prooflist[prooflist.Count - 1].Hash.ToString() == tree.MerkleRoot.Hash.ToString());
         }
 
+        [Fact]
+        public void VerifyProofListTest()
+        {
+            MerkleTree tree = new MerkleTree();
+            tree.AddLeaves(CreateLeaves(new string[] { "a", "e", "l", "f" }));
+            tree.GenerateMerkleTree();
+
+            #region Proof List
+            //Proof List: hash(a), hash(e), hash(hash(l), hash(f))
+            var hash_a = new MerkleHash("a");
+
+            var hash_e = new MerkleHash("e");
+
+            var hash_l = new MerkleHash("l");
+            var hash_f = new MerkleHash("f");
+            var hash_l_f = new MerkleHash(hash_l, hash_f);
+            #endregion
+
+            List<MerkleHash> prooflist = new List<MerkleHash>();
+            prooflist.Add(hash_a);
+            prooflist.Add(hash_e);
+            prooflist.Add(hash_l_f);
+
+            Assert.True(tree.VerifyProofList(prooflist));
+        }
+
         #region Some methods
 
         private static MerkleNode CreateNode(string buffer1, string buffer2)

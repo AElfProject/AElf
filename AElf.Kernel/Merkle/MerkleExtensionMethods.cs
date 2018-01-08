@@ -10,6 +10,21 @@ namespace AElf.Kernel.Merkle
             return SHA256.Create().ComputeHash(buffer);
         }
 
+        public static List<MerkleHash> ComputeProofHash(this List<MerkleHash> hashlist)
+        {
+            if (hashlist.Count < 2)
+                return hashlist;
+
+            List<MerkleHash> list = new List<MerkleHash>();
+            list.Add(new MerkleHash(hashlist[0], hashlist[1]));
+
+            if (hashlist.Count > 2)
+                hashlist.GetRange(2, hashlist.Count - 2).ForEach(h => list.Add(h));
+
+            return ComputeProofHash(list);
+        }
+
+
         public static List<ProofNode> GetProofList(this MerkleTree tree, MerkleHash hash)
         {
             List<ProofNode> prooflist = new List<ProofNode>();

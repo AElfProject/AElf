@@ -70,5 +70,11 @@ namespace AElf.Kernel.Merkle
                 GenerateMerkleTree(parents);
             }
         }
+
+        public bool VerifyProofList(List<MerkleHash> hashlist)
+        {
+            List<MerkleHash> t = hashlist.ComputeProofHash();
+            return MerkleRoot.Hash.ToString() == hashlist.ComputeProofHash()[0].ToString();
+        }
     }
 }
