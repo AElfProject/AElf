@@ -34,8 +34,10 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void VerifyLeftHash()
         {
-            MerkleNode left = new MerkleNode();
-            left.Hash = new MerkleHash("aelf");
+            MerkleNode left = new MerkleNode
+            {
+                Hash = new MerkleHash("aelf")
+            };
 
             MerkleNode parent = new MerkleNode();
             parent.SetLeftNode(left);
@@ -75,14 +77,41 @@ namespace AElf.Kernel.Tests
             Assert.NotNull(tree.MerkleRoot);
         }
 
+        [Fact]
+        public void GenerateTreeWithOddLeaves()
+        {
+            MerkleTree tree = new MerkleTree();
+            tree.AddLeaves(CreateLeaves(new string[] { "e", "l", "f" }));
+            tree.GenerateMerkleTree();
+            Assert.NotNull(tree.MerkleRoot);
+        }
+
+        [Fact]
+        public void ProofListTest()
+        {
+            MerkleTree tree = new MerkleTree();
+            tree.AddLeaves(CreateLeaves(new string[] { "a", "e", "l", "f", "2", "0", "1", "8" }));
+            tree.GenerateMerkleTree();
+
+            MerkleHash target = new MerkleHash("e");
+            var prooflist = tree.GetProofList(target);
+
+            Assert.True(prooflist[0].Hash.ToString() == new MerkleHash("a").ToString());
+            Assert.True(prooflist[prooflist.Count - 1].Hash.ToString() == tree.MerkleRoot.Hash.ToString());
+        }
+
         #region Some methods
 
         private static MerkleNode CreateNode(string buffer1, string buffer2)
         {
-            MerkleNode left = new MerkleNode();
-            MerkleNode right = new MerkleNode();
-            left.Hash = new MerkleHash(buffer1);
-            right.Hash = new MerkleHash(buffer2);
+            MerkleNode left = new MerkleNode
+            {
+                Hash = new MerkleHash(buffer1)
+            };
+            MerkleNode right = new MerkleNode
+            {
+                Hash = new MerkleHash(buffer2)
+            };
 
             MerkleNode parent = new MerkleNode();
             parent.SetLeftNode(left);
@@ -97,8 +126,10 @@ namespace AElf.Kernel.Tests
             foreach (var buffer in buffers)
             {
                 MerkleHash hash = new MerkleHash(buffer);
-                MerkleNode node = new MerkleNode();
-                node.Hash = hash;
+                MerkleNode node = new MerkleNode
+                {
+                    Hash = hash
+                };
                 leaves.Add(node);
             }
             return leaves;
