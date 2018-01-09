@@ -101,7 +101,7 @@ namespace AElf.Kernel
         /// Executes the graph synchronously
         /// </summary>
         /// <param name="n">N.</param>
-        public void ExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
+        private void ExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
         {
             
             /*
@@ -141,7 +141,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public void AsyncExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
+        private void AsyncExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
         {
             /*
              * search for subgraphs and process subgraphs asynchronously
@@ -179,8 +179,9 @@ namespace AElf.Kernel
                 //if not Bipartite, execute ths subgraph in new task
                 Task task = Task.Run(() =>
                 {
-                    //execute the tx
+                    //TODO : execute the tx
                     //Console.WriteLine("T" + Thread.CurrentThread.ManagedThreadId +":" +(char) maxHash.GetHashBytes()[0] + "    ");
+                    
                     subGraph.RemoveVertex(maxHash); 
                     AsyncExecuteGraph(subGraph);
                 });
