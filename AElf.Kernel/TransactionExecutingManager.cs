@@ -21,6 +21,13 @@ namespace AElf.Kernel
         {
         }
 
+        public Dictionary<IHash, List<ITransaction>> TransactionDictionary
+        {
+            get => pending;
+           
+            set => pending = value;
+        }
+
         /// <summary>
         /// AEs the lf. kernel. IT ransaction executing manager. execute async.
         /// </summary>
@@ -53,7 +60,7 @@ namespace AElf.Kernel
         /// <summary>
         /// Schedule execution of transaction
         /// </summary>
-        void Scheduler()
+        public void Scheduler()
         {
             //  Execution strategy(experimental)
             //  1. tranform the dependency of Resource(R) into graph of related Transactions(T)
@@ -86,9 +93,10 @@ namespace AElf.Kernel
                         }
                     }
                 }
+
             }
 
-            ExecuteGraph(graph);
+            AsyncExecuteGraph(graph);
             // reset 
             pending = new Dictionary<IHash, List<ITransaction>>();
             this.mut.ReleaseMutex();
@@ -141,7 +149,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        private void AsyncExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
+        public void AsyncExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
         {
             /*
              * search for subgraphs and process subgraphs asynchronously
@@ -172,8 +180,8 @@ namespace AElf.Kernel
                         {
                             Console.Write("T"+Thread.CurrentThread.ManagedThreadId+":" + (char)h.GetHashBytes()[0]+"?    ");
                         }
-                    }*/
-                    continue;
+                    }
+                    continue;*/
                 }
 
                 //if not Bipartite, execute ths subgraph in new task
