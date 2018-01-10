@@ -1,20 +1,20 @@
 # AELF.Kernel
 
 ```
-                 MINIMAL VIABLE PROCESS FOR AELF.KERNEL
+                MINIMAL VIABLE PROCESS FOR AELF.KERNEL
 
 
 
                    +---------------+       +--------------+
-                   |               |       |              |
-   +----------------+ Broadcaster <---------+ Tranactions |
-   |               |               |       |              |
+                   |               |       |              +------+
+   +----------------+ Broadcaster <---------+ Tranactions |------|
+   |               |               |       |              +------+
    |               +---------------+       +--------------+
    |
    |
    |      +------------------+   +------------+   +-----------------------+
    |      |                  |   |            |   |                       |
-   +-------> Block(unmined) +----->  Mining +------> Block(nonce filled)  |
+   +------->  TX Receiver  +------>  Mining +------> Block(nonce filled)  |
           |                  |   |            |   |                       |
           +------------------+   +------------+   +----------+------------+
                                                              |
