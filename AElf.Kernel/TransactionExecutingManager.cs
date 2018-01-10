@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics.Contracts;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using QuickGraph;
 using QuickGraph.Collections;
@@ -18,6 +19,13 @@ namespace AElf.Kernel
 
         public TransactionExecutingManager()
         {
+        }
+
+        public Dictionary<IHash, List<ITransaction>> TransactionDictionary
+        {
+            get => pending;
+           
+            set => pending = value;
         }
 
         /// <summary>
@@ -52,7 +60,7 @@ namespace AElf.Kernel
         /// <summary>
         /// Schedule execution of transaction
         /// </summary>
-        void Scheduler()
+        public void Scheduler()
         {
             //  Execution strategy(experimental)
             //  1. tranform the dependency of Resource(R) into graph of related Transactions(T)
@@ -85,9 +93,10 @@ namespace AElf.Kernel
                         }
                     }
                 }
+
             }
 
-            ExecuteGraph(graph);
+            AsyncExecuteGraph(graph);
             // reset 
             pending = new Dictionary<IHash, List<ITransaction>>();
             this.mut.ReleaseMutex();
@@ -140,80 +149,58 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public async Task AsyncExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
+        public void AsyncExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
         {
             /*
              * search for subgraphs and process subgraphs asynchronously
              * if no subgraphs, execute and remove the node with most neighbors
              */
-            Task task=Task.Run(() =>
+
+            Dictionary<IHash, int> colorDictionary = new Dictionary<IHash, int>();
+
+            foreach (var hash in n.Vertices)
             {
-                Dictionary<IHash,int> colorDictionary = new Dictionary<IHash, int>();
-                int res = 0;
-            
-                foreach (var hash in n.Vertices)
+                if (colorDictionary.Keys.Contains(hash)) continue;
+                
+                UndirectedGraph<IHash, Edge<IHash>> subGraph = new UndirectedGraph<IHash, Edge<IHash>>();
+                IHash maxHash = hash;
+                bool isBipartite = DfsSearch(n, subGraph, ref maxHash, colorDictionary);
+
+
+                if (isBipartite)
                 {
-                    if (colorDictionary.Keys.Contains(hash)) continue;
-                    UndirectedGraph<IHash, Edge<IHash>> subGraph = new UndirectedGraph<IHash, Edge<IHash>>();
-                    IHash maxHash = hash;
-                    bool isBipartite  = DfsSearch(n, subGraph, ref maxHash, colorDictionary);
-                
-                
-                    if (isBipartite)
+                    //TODO : if bipartite, parallel process for tasks in both sets asynchronously;
+                    /*foreach (var h in subGraph.Vertices)
                     {
-                        //TODO : if bipartite, parallel process for tasks in both sets asynchronously;
-                        /*foreach (var h in subGraph.Vertices)
+                        if (colorDictionary[h]==1)
                         {
-                            if (colorDictionary[h]==1)
-                            {
-                                Console.Write("T"+Thread.CurrentThread.ManagedThreadId+":" + (char)h.GetHashBytes()[0]+"!    ");
-                            }
-                            if (colorDictionary[h]==-1)
-                            {
-                                Console.Write("T"+Thread.CurrentThread.ManagedThreadId+":" + (char)h.GetHashBytes()[0]+"?    ");
-                            }
-                           
-                        }*/
-                        continue;
+                            Console.Write("T"+Thread.CurrentThread.ManagedThreadId+":" + (char)h.GetHashBytes()[0]+"!    ");
+                        }
+                        if (colorDictionary[h]==-1)
+                        {
+                            Console.Write("T"+Thread.CurrentThread.ManagedThreadId+":" + (char)h.GetHashBytes()[0]+"?    ");
+                        }
                     }
-                
-                    //if not Bipartite, add maxhash to hashToGraph Dictionary
-                    Task t = AsyncExecute(subGraph, maxHash);
+                    continue;*/
                 }
+
+                //if not Bipartite, execute ths subgraph in new task
+                Task task = Task.Run(() =>
+                {
+                    //TODO : execute the tx
+                    //Console.WriteLine("T" + Thread.CurrentThread.ManagedThreadId +":" +(char) maxHash.GetHashBytes()[0] + "    ");
+                    
+                    subGraph.RemoveVertex(maxHash); 
+                    AsyncExecuteGraph(subGraph);
+                });
                 
-            });
-            
-            task.Start();
-            
-            await task;
+                
+
+            }
+
         }
 
         
-        /// <summary>
-        /// Execute the tx and throw subgraps left into new task 
-        /// and process the subgraph after remove one node 
-        /// </summary>
-        /// <param name="n"></param>
-        /// <param name="maxHash"></param>
-        /// <returns></returns>
-        public async Task AsyncExecute(UndirectedGraph<IHash, Edge<IHash>> n, IHash maxHash)
-        {
-            /*
-             * execute transaction and remove from graph,
-             * and then process the graph left.
-             */
-            Task task=Task.Run(()=>
-            {
-                //TODO: execute the tx
-                //Console.Write("T"+Thread.CurrentThread.ManagedThreadId +":"+ (char)maxHash.GetHashBytes()[0]+"    ");
-                n.RemoveVertex(maxHash);
-                Task t = AsyncExecuteGraph(n);
-            });
-            
-            task.Start();
-            
-            await task;
-        }
         
         
         /// <summary>
@@ -263,10 +250,6 @@ namespace AElf.Kernel
             }
             
         }
-        
-        
-        
-
         
         /// <summary>
         /// DFS is applied to traverse graph with color for bipartite  
