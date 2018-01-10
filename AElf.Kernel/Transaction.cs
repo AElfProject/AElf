@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace AElf.Kernel
@@ -8,7 +12,10 @@ namespace AElf.Kernel
     {
         public IHash<ITransaction> GetHash()
         {
-            throw new NotImplementedException();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                return new Hash<ITransaction>(SHA256.Create().ComputeHash(ms));
+            }
         }
 
         public ITransactionParallelMetaData GetParallelMetaData()

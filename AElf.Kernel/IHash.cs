@@ -6,13 +6,14 @@ namespace AElf.Kernel
     /// <summary>
     /// Hash result
     /// </summary>
-    public interface IHash:IEquatable<IHash>
+    public interface IHash : IEquatable<IHash>
     {
+        byte[] Value { get; set; }
         byte[] GetHashBytes();
     }
 
     public interface IHash<T> : IHash
     {
-        
+
     }
 }

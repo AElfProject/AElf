@@ -5,8 +5,8 @@ namespace AElf.Kernel
     public class BlockHeader : IBlockHeader
     {
         public int Version => 0;
-        public Hash PreBlockHash { get; protected set; }
-        public Hash MerkleRootHash { get; protected set; }
+        public IHash<IBlock> PreBlockHash { get; protected set; }
+        public IHash<IMerkleTree<ITransaction>> MerkleRootHash { get; protected set; }
         public long TimeStamp { get; protected set; }
         /// <summary>
         /// The difficulty of mining.

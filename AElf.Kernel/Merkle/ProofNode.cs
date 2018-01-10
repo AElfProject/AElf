@@ -14,7 +14,7 @@ namespace AElf.Kernel
         /// The side of this node.
         /// </summary>
         public NodeSide Side { get; set; }
-        public Hash Hash { get; set; }
+        public Hash<IMerkleNode> Hash { get; set; }
 
         public override string ToString() => Hash.ToString();
     }
