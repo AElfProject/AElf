@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace AElf.Kernel.Merkle
+namespace AElf.Kernel
 {
     public class MerkleTree
     {
@@ -8,8 +8,8 @@ namespace AElf.Kernel.Merkle
 
         protected List<MerkleNode> Nodes { get; set; } = new List<MerkleNode>();
         protected List<MerkleNode> Leaves { get; set; } = new List<MerkleNode>();
-        protected SortedList<MerkleHash, MerkleNode> SortedLeaves { get; set; } 
-            = new SortedList<MerkleHash, MerkleNode>(new MerkleHashCompare());
+        protected SortedList<Hash, MerkleNode> SortedLeaves { get; set; }
+            = new SortedList<Hash, MerkleNode>(new MerkleHashCompare());
 
         public MerkleTree AddLeaf(MerkleNode node)
         {
@@ -27,7 +27,7 @@ namespace AElf.Kernel.Merkle
             return this;
         }
 
-        public MerkleNode FindLeaf(MerkleHash hash)
+        public MerkleNode FindLeaf(Hash hash)
         {
             if (SortedLeaves.TryGetValue(hash, out MerkleNode node))
                 return node;
@@ -35,20 +35,20 @@ namespace AElf.Kernel.Merkle
                 return null;
         }
 
-        public void GenerateMerkleTree()
+        public void Generate()
         {
-            GenerateMerkleTree(Leaves);
+            Generate(Leaves);
         }
 
         /// <summary>
         /// Generate Merkle Tree with a list of merkle nodes.
         /// </summary>
         /// <param name="nodes"></param>
-        public void GenerateMerkleTree(List<MerkleNode> nodes)
+        public void Generate(List<MerkleNode> nodes)
         {
             if (nodes.Count < 1)
             {
-                throw new MerkleException("Cannot generate merkle tree without any nodes.");
+                throw new AELFException("Cannot generate merkle tree without any nodes.");
             }
 
             if (nodes.Count == 1)//Finally
@@ -67,13 +67,13 @@ namespace AElf.Kernel.Merkle
                     Nodes.Add(parent);
                 }
 
-                GenerateMerkleTree(parents);
+                Generate(parents);
             }
         }
 
-        public bool VerifyProofList(List<MerkleHash> hashlist)
+        public bool VerifyProofList(List<Hash> hashlist)
         {
-            List<MerkleHash> t = hashlist.ComputeProofHash();
+            List<Hash> t = hashlist.ComputeProofHash();
             return MerkleRoot.Hash.ToString() == hashlist.ComputeProofHash()[0].ToString();
         }
     }

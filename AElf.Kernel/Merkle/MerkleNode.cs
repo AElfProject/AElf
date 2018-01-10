@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AElf.Kernel.Merkle
+namespace AElf.Kernel
 {
     public class MerkleNode : IEnumerable<MerkleNode>
     {
@@ -12,7 +12,7 @@ namespace AElf.Kernel.Merkle
         /// </summary>
         public MerkleNode RightNode { get; set; }
         public MerkleNode ParentNode { get; set; }
-        public MerkleHash Hash { get; set; }
+        public Hash Hash { get; set; }
 
         public MerkleNode() { }
 
@@ -36,7 +36,7 @@ namespace AElf.Kernel.Merkle
         {
             if (left.Hash == null)
             {
-                throw new MerkleException("Merkle node did not initialized.");
+                throw new AELFException("Merkle node did not initialized.");
             }
             LeftNode = left;
             LeftNode.ParentNode = this;
@@ -51,7 +51,7 @@ namespace AElf.Kernel.Merkle
         {
             if (right.Hash == null)
             {
-                throw new MerkleException("Merkle node did not initialized.");
+                throw new AELFException("Merkle node did not initialized.");
             }
             RightNode = right;
             RightNode.ParentNode = this;
@@ -73,7 +73,7 @@ namespace AElf.Kernel.Merkle
             }
             else
             {
-                Hash = new MerkleHash(LeftNode.Hash, RightNode.Hash);
+                Hash = new Hash(LeftNode.Hash, RightNode.Hash);
             }
 
             ParentNode?.ComputeHash();//Recursely update the hash value of parent node
@@ -93,7 +93,7 @@ namespace AElf.Kernel.Merkle
                 return Hash.Value.SequenceEqual(LeftNode.Hash.Value);
 
             return Hash.Value.SequenceEqual(
-                new MerkleHash(LeftNode.Hash, RightNode.Hash).Value);
+                new Hash(LeftNode.Hash, RightNode.Hash).Value);
         }
 
         #region Implementation of IEnumerable<MerkleNode>

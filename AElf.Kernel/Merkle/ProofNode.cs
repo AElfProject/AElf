@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AElf.Kernel.Merkle
+namespace AElf.Kernel
 {
     public class ProofNode
     {
@@ -14,7 +14,7 @@ namespace AElf.Kernel.Merkle
         /// The side of this node.
         /// </summary>
         public NodeSide Side { get; set; }
-        public MerkleHash Hash { get; set; }
+        public Hash Hash { get; set; }
 
         public override string ToString() => Hash.ToString();
     }

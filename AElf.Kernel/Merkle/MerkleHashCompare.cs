@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AElf.Kernel.Merkle
+namespace AElf.Kernel
 {
-    public class MerkleHashCompare : IComparer<MerkleHash>
+    public class MerkleHashCompare : IComparer<Hash>
     {
-        public int Compare(MerkleHash x, MerkleHash y)
+        public int Compare(Hash x, Hash y)
         {
             if (x.ToString() == y.ToString())
                 return 0;
