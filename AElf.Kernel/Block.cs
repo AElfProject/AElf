@@ -28,7 +28,7 @@ namespace AElf.Kernel
         {
             if (BlockBody.AddTransaction(tx))
             {
-                BlockHeader.AddTransaction(new Hash<ITransaction>(tx.GetSHA256Hash()));
+                BlockHeader.AddTransaction(tx.GetHash());
                 return true;
             }
             return false;

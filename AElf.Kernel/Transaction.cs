@@ -10,6 +10,8 @@ namespace AElf.Kernel
 {
     public class Transaction : ITransaction
     {
+        public Transaction() { }
+
         public IHash<ITransaction> GetHash()
         {
             using (MemoryStream ms = new MemoryStream())
