@@ -16,7 +16,7 @@ namespace AElf.Kernel
 
         private MerkleTree<ITransaction> MerkleTree { get; set; }
 
-        public long TimeStamp { get; protected set; }
+        public long TimeStamp => DateTime.UtcNow.Second;
 
         public BlockHeader(IHash<IBlock> preBlockHash)
         {

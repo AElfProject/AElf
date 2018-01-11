@@ -8,11 +8,15 @@ namespace AElf.Kernel
     {
         public byte[] Mine(IBlockHeader blockheader)
         {
-            int nonce = (blockheader as BlockHeader).Nonce;
+            //TODO: Use blockheader to produce a new block.
+            var header = blockheader as BlockHeader;
+            int nonce = header.Nonce;
             while (true)
             {
                 nonce++;
-
+                if (true)
+                {
+                }
             }
         }
     }

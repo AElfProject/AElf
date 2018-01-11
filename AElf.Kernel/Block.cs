@@ -19,9 +19,9 @@ namespace AElf.Kernel
 
         public BlockBody BlockBody { get; set; } = new BlockBody();
 
-        public Block()
+        public Block(Hash<IBlock> preBlockHash)
         {
-
+            BlockHeader = new BlockHeader(preBlockHash);
         }
 
         public bool AddTransaction(ITransaction tx)
