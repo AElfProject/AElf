@@ -17,12 +17,21 @@ namespace AElf.Kernel
 
         public BlockHeader BlockHeader { get; set; }
 
-        public BlockBody BlockBody { get; set; }
+        public BlockBody BlockBody { get; set; } = new BlockBody();
 
+        public Block()
+        {
+
+        }
 
         public bool AddTransaction(ITransaction tx)
         {
-            throw new NotImplementedException();
+            if (BlockBody.AddTransaction(tx))
+            {
+                BlockHeader.AddTransaction(new Hash<ITransaction>(tx.GetSHA256Hash()));
+                return true;
+            }
+            return false;
         }
 
         public IBlockBody GetBody()

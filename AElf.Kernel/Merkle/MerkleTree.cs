@@ -19,6 +19,7 @@ namespace AElf.Kernel
         public void AddNode(IHash<T> hash)
         {
             Nodes.Add(hash);
+            ComputeRootHash();
         }
 
         public MerkleTree<T> AddNodes(List<IHash<T>> hashes)

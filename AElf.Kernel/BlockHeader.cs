@@ -6,8 +6,23 @@ namespace AElf.Kernel
     {
         public int Version => 0;
         public IHash<IBlock> PreBlockHash { get; protected set; }
-        public IHash<IMerkleTree<ITransaction>> MerkleRootHash { get; protected set; }
+        public IHash<IMerkleTree<ITransaction>> MerkleRootHash
+        {
+            get
+            {
+                return GetTransactionMerkleTreeRoot();
+            }
+        }
+
+        private MerkleTree<ITransaction> MerkleTree { get; set; }
+
         public long TimeStamp { get; protected set; }
+
+        public BlockHeader(IHash<IBlock> preBlockHash)
+        {
+            PreBlockHash = preBlockHash;
+        }
+
         /// <summary>
         /// The difficulty of mining.
         /// </summary>
@@ -19,12 +34,12 @@ namespace AElf.Kernel
 
         public void AddTransaction(IHash<ITransaction> hash)
         {
-            throw new NotImplementedException();
+            MerkleTree.AddNode(hash);
         }
 
         public IHash<IMerkleTree<ITransaction>> GetTransactionMerkleTreeRoot()
         {
-            throw new NotImplementedException();
+            return MerkleTree.ComputeRootHash();
         }
 
         private int GetBits()
@@ -34,7 +49,7 @@ namespace AElf.Kernel
 
         private int GetNonce()
         {
-            return new Random().Next(1, 100);
+            return new Random().Next(1, 100000);
         }
     }
 }

@@ -6,9 +6,15 @@ namespace AElf.Kernel
 {
     public static class ExtensionMethods
     {
-        public static byte[] ComputeHash(this byte[] buffer)
+        public static byte[] GetSHA256Hash(this ITransaction tx)
         {
-            return SHA256.Create().ComputeHash(buffer);
+            return SHA256.Create().ComputeHash(tx.GetHash().Value);
+        }
+
+        public static byte[] GetSHA256Hash(this string str)
+        {
+            return SHA256.Create().ComputeHash(
+                Encoding.UTF8.GetBytes(str));
         }
 
         /// <summary>
