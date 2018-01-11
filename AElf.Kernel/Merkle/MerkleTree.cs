@@ -1,80 +1,79 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
-namespace AElf.Kernel.Merkle
+namespace AElf.Kernel
 {
-    public class MerkleTree
+    public class MerkleTree<T> : IMerkleTree<T>
     {
-        public MerkleNode MerkleRoot { get; set; }
-
-        protected List<MerkleNode> Nodes { get; set; } = new List<MerkleNode>();
-        protected List<MerkleNode> Leaves { get; set; } = new List<MerkleNode>();
-        protected SortedList<MerkleHash, MerkleNode> SortedLeaves { get; set; } 
-            = new SortedList<MerkleHash, MerkleNode>(new MerkleHashCompare());
-
-        public MerkleTree AddLeaf(MerkleNode node)
-        {
-            Nodes.Add(node);
-            Leaves.Add(node);
-            SortedLeaves.Add(node.Hash, node);
-
-            return this;
-        }
-
-        public MerkleTree AddLeaves(List<MerkleNode> nodes)
-        {
-            nodes.ForEach(n => AddLeaf(n));
-
-            return this;
-        }
-
-        public MerkleNode FindLeaf(MerkleHash hash)
-        {
-            if (SortedLeaves.TryGetValue(hash, out MerkleNode node))
-                return node;
-            else
-                return null;
-        }
-
-        public void GenerateMerkleTree()
-        {
-            GenerateMerkleTree(Leaves);
-        }
+        /// <summary>
+        /// Merkle nodes
+        /// </summary>
+        public List<IHash<T>> Nodes { get; protected set; } = new List<IHash<T>>();
 
         /// <summary>
-        /// Generate Merkle Tree with a list of merkle nodes.
+        /// Add a leaf at the same time.
         /// </summary>
-        /// <param name="nodes"></param>
-        public void GenerateMerkleTree(List<MerkleNode> nodes)
+        /// <param name="hash"></param>
+        public void AddNode(IHash<T> hash)
         {
-            if (nodes.Count < 1)
+            Nodes.Add(hash);
+        }
+
+        public MerkleTree<T> AddNodes(List<IHash<T>> hashes)
+        {
+            hashes.ForEach(hash => Nodes.Add(hash));
+
+            return this;
+        }
+
+        public IHash<IMerkleTree<T>> ComputeRootHash()
+        {
+            return ComputeRootHash(Nodes);
+        }
+
+        private Hash<IMerkleTree<T>> CreateHash(byte[] hash)
+        {
+            return new Hash<IMerkleTree<T>>(hash);
+        }
+
+        public IHash<IMerkleTree<T>> ComputeRootHash(List<IHash<T>> hashes)
+        {
+            if (hashes.Count < 1)
             {
-                throw new MerkleException("Cannot generate merkle tree without any nodes.");
+                throw new AELFException("Cannot generate merkle tree without any nodes.");
             }
 
-            if (nodes.Count == 1)//Finally
+            if (hashes.Count == 1)//Finally
             {
-                MerkleRoot = nodes[0];
+                return CreateHash(hashes[0].Value);
             }
             else
             {
-                List<MerkleNode> parents = new List<MerkleNode>();
+                //Every time goes to a higher level.
+                List<IHash<T>> parents = new List<IHash<T>>();
 
-                for (int i = 0; i < nodes.Count; i += 2)
+                for (int i = 0; i < hashes.Count; i += 2)
                 {
-                    MerkleNode right = (i + 1 < nodes.Count) ? nodes[i + 1] : null;
-                    MerkleNode parent = new MerkleNode(nodes[i], right);
+                    IHash<T> right = (i + 1 < hashes.Count) ? new Hash<T>(hashes[i + 1].Value) : null;
+                    IHash<T> parent = new Hash<T>(
+                        SHA256.Create().ComputeHash(//TODO: Make it easier to change.
+                            Encoding.UTF8.GetBytes(
+                                new Hash<T>(hashes[i].Value).ToString() + right.ToString()).ToArray()));
                     parents.Add(parent);
-                    Nodes.Add(parent);
                 }
 
-                GenerateMerkleTree(parents);
+                return ComputeRootHash(parents);
             }
         }
 
-        public bool VerifyProofList(List<MerkleHash> hashlist)
+        public IHash<T> FindLeaf(IHash<T> leaf) => Nodes.FirstOrDefault(l => l == leaf);
+
+        public bool VerifyProofList(List<Hash<ITransaction>> hashlist)
         {
-            List<MerkleHash> t = hashlist.ComputeProofHash();
-            return MerkleRoot.Hash.ToString() == hashlist.ComputeProofHash()[0].ToString();
+            List<Hash<ITransaction>> t = hashlist.ComputeProofHash();
+            return ComputeRootHash().ToString() == hashlist.ComputeProofHash()[0].ToString();
         }
     }
 }

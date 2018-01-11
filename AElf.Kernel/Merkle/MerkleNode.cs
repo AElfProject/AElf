@@ -1,20 +1,27 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
-namespace AElf.Kernel.Merkle
+namespace AElf.Kernel
 {
-    public class MerkleNode : IEnumerable<MerkleNode>
+    public class MerkleNode : IMerkleNode
     {
         public MerkleNode LeftNode { get; set; }
         /// <summary>
         /// Regard the right node is null if it doesn't exist.
-        /// </summary>
+        /// </summaryMerkleNode
         public MerkleNode RightNode { get; set; }
         public MerkleNode ParentNode { get; set; }
-        public MerkleHash Hash { get; set; }
+        public Hash<IMerkleNode> Hash { get; set; }
 
         public MerkleNode() { }
+
+        //public MerkleNode(IHash<IMerkleNode> left, IHash<IMerkleNode> right = null)
+        //{
+
+        //}
 
         public MerkleNode(MerkleNode left, MerkleNode right = null)
         {
@@ -36,7 +43,7 @@ namespace AElf.Kernel.Merkle
         {
             if (left.Hash == null)
             {
-                throw new MerkleException("Merkle node did not initialized.");
+                throw new AELFException("Merkle node did not initialized.");
             }
             LeftNode = left;
             LeftNode.ParentNode = this;
@@ -51,7 +58,7 @@ namespace AElf.Kernel.Merkle
         {
             if (right.Hash == null)
             {
-                throw new MerkleException("Merkle node did not initialized.");
+                throw new AELFException("Merkle node did not initialized.");
             }
             RightNode = right;
             RightNode.ParentNode = this;
@@ -65,7 +72,7 @@ namespace AElf.Kernel.Merkle
         /// <summary>
         /// Compute hash value as well as update the merkle tree.
         /// </summary>
-        private void ComputeHash()
+        public void ComputeHash()
         {
             if (RightNode == null)
             {
@@ -73,7 +80,9 @@ namespace AElf.Kernel.Merkle
             }
             else
             {
-                Hash = new MerkleHash(LeftNode.Hash, RightNode.Hash);
+                Hash = new Hash<IMerkleNode>(
+                    SHA256.Create().ComputeHash(
+                        Encoding.UTF8.GetBytes(LeftNode.Hash.ToString() + RightNode.Hash.ToString())));
             }
 
             ParentNode?.ComputeHash();//Recursely update the hash value of parent node
@@ -93,14 +102,16 @@ namespace AElf.Kernel.Merkle
                 return Hash.Value.SequenceEqual(LeftNode.Hash.Value);
 
             return Hash.Value.SequenceEqual(
-                new MerkleHash(LeftNode.Hash, RightNode.Hash).Value);
+                new Hash<IMerkleNode>(
+                    SHA256.Create().ComputeHash(
+                        Encoding.UTF8.GetBytes(LeftNode.Hash.ToString() + RightNode.Hash.ToString()))).Value);
         }
 
         #region Implementation of IEnumerable<MerkleNode>
 
         public IEnumerator<MerkleNode> GetEnumerator() => GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
+        IEnumerator<IMerkleNode> IEnumerable<IMerkleNode>.GetEnumerator()
         {
             foreach (var n in Iterate(this))
                 yield return n;
@@ -111,7 +122,7 @@ namespace AElf.Kernel.Merkle
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        protected IEnumerable<MerkleNode> Iterate(MerkleNode node)
+        protected IEnumerable<IMerkleNode> Iterate(MerkleNode node)
         {
             if (node.LeftNode != null)
             {
@@ -126,6 +137,12 @@ namespace AElf.Kernel.Merkle
             }
 
             yield return node;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            foreach (var n in Iterate(this))
+                yield return n;
         }
 
         #endregion
