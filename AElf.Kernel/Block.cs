@@ -1,9 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace AElf.Kernel
 {
+    [Serializable]
     public class Block : IBlock
     {
         public int MagicNumber => 0xAE1F;
@@ -41,7 +46,9 @@ namespace AElf.Kernel
 
         public IHash GetHash()
         {
-            throw new NotImplementedException();
+            return new Hash<IBlockHeader>(SHA256.Create().ComputeHash(
+                Encoding.UTF8.GetBytes(
+                    JsonConvert.SerializeObject(this))));
         }
 
         public IBlockHeader GetHeader()

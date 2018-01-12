@@ -1,11 +1,14 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace AElf.Kernel
 {
+    [Serializable]
     public class BlockHeader : IBlockHeader
     {
         public int Version => 0;
@@ -20,7 +23,7 @@ namespace AElf.Kernel
             }
         }
 
-        private MerkleTree<ITransaction> MerkleTree { get; set; }
+        private MerkleTree<ITransaction> MerkleTree { get; set; } = new MerkleTree<ITransaction>();
 
         public long TimeStamp => DateTime.UtcNow.Second;
 
@@ -33,10 +36,11 @@ namespace AElf.Kernel
         /// The difficulty of mining.
         /// </summary>
         public int Bits => GetBits();
+
         /// <summary>
         /// Random value.
         /// </summary>
-        public int Nonce { get; set; } = 0;
+        public int Nonce { get; set; }
 
         public void AddTransaction(IHash<ITransaction> hash)
         {
@@ -55,12 +59,14 @@ namespace AElf.Kernel
 
         public IHash<IBlockHeader> GetHash()
         {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                IFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(ms, this);
-                return new Hash<IBlockHeader>(SHA256.Create().ComputeHash(ms));
-            }
+            return new Hash<IBlockHeader>(SHA256.Create().ComputeHash(
+                Encoding.UTF8.GetBytes(
+                    JsonConvert.SerializeObject(this))));
+        }
+
+        public void SetNonce()
+        {
+            Nonce++;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace AElf.Kernel
 {
-    public class PoWMiner : IMiner
+    public class Miner : IMiner
     {
         public byte[] Mine(IBlockHeader blockheader)
         {
@@ -8,7 +8,7 @@
             while (true)
             {
                 //Change the nonce
-                (blockheader as BlockHeader).Nonce++;
+                (blockheader as BlockHeader).SetNonce();
                 //Do mining
                 var result = (blockheader as BlockHeader).GetHash();
                 if (result.Value.NumberOfZero() == bits)

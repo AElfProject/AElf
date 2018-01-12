@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace AElf.Kernel
 {
+    [Serializable]
     public class BlockBody : IBlockBody
     {
         private List<ITransaction> Transactions { get; set; }
