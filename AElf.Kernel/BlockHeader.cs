@@ -9,7 +9,9 @@ namespace AElf.Kernel
     public class BlockHeader : IBlockHeader
     {
         public int Version => 0;
+
         public IHash<IBlock> PreBlockHash { get; protected set; }
+
         public IHash<IMerkleTree<ITransaction>> MerkleRootHash
         {
             get
@@ -55,7 +57,6 @@ namespace AElf.Kernel
         {
             using (MemoryStream ms = new MemoryStream())
             {
-                Nonce++;
                 IFormatter formatter = new BinaryFormatter();
                 formatter.Serialize(ms, this);
                 return new Hash<IBlockHeader>(SHA256.Create().ComputeHash(ms));
