@@ -1,4 +1,8 @@
 ﻿using System;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.Cryptography;
 
 namespace AElf.Kernel
 {
@@ -30,7 +34,7 @@ namespace AElf.Kernel
         /// <summary>
         /// Random value.
         /// </summary>
-        public int Nonce => GetNonce();
+        public int Nonce { get; set; } = 0;
 
         public void AddTransaction(IHash<ITransaction> hash)
         {
@@ -47,9 +51,15 @@ namespace AElf.Kernel
             return 1;
         }
 
-        private int GetNonce()
+        public IHash<IBlockHeader> GetHash()
         {
-            return new Random().Next(1, 100000);
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Nonce++;
+                IFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(ms, this);
+                return new Hash<IBlockHeader>(SHA256.Create().ComputeHash(ms));
+            }
         }
     }
 }

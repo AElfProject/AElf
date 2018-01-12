@@ -36,6 +36,16 @@ namespace AElf.Kernel
             return ComputeProofHash(list);
         }
 
+        public static int NumberOfZero(this byte[] hash)
+        {
+            int number = 0;
+            while (hash[number] == 0)
+            {
+                number++;
+            }
+            return number;
+        }
+
         //TODO: Should build a whole merkle tree to get proof list.
         //public static List<ProofNode> GetProofList<T>(this MerkleTree<T> tree, Hash<T> hash)
         //{
