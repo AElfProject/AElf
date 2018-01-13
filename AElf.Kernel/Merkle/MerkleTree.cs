@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace AElf.Kernel
 {
+    [Serializable]
     public class MerkleTree<T> : IMerkleTree<T>
     {
         /// <summary>
@@ -19,6 +21,7 @@ namespace AElf.Kernel
         public void AddNode(IHash<T> hash)
         {
             Nodes.Add(hash);
+            ComputeRootHash();
         }
 
         public MerkleTree<T> AddNodes(List<IHash<T>> hashes)
@@ -60,7 +63,7 @@ namespace AElf.Kernel
                     IHash<T> parent = new Hash<T>(
                         SHA256.Create().ComputeHash(//TODO: Make it easier to change.
                             Encoding.UTF8.GetBytes(
-                                new Hash<T>(hashes[i].Value).ToString() + right.ToString()).ToArray()));
+                                new Hash<T>(hashes[i].Value).ToString() + right?.ToString()).ToArray()));
                     parents.Add(parent);
                 }
 

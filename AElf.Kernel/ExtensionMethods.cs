@@ -6,9 +6,10 @@ namespace AElf.Kernel
 {
     public static class ExtensionMethods
     {
-        public static byte[] ComputeHash(this byte[] buffer)
+        public static byte[] GetSHA256Hash(this string str)
         {
-            return SHA256.Create().ComputeHash(buffer);
+            return SHA256.Create().ComputeHash(
+                Encoding.UTF8.GetBytes(str));
         }
 
         /// <summary>
@@ -33,6 +34,16 @@ namespace AElf.Kernel
                 hashlist.GetRange(2, hashlist.Count - 2).ForEach(h => list.Add(h));
 
             return ComputeProofHash(list);
+        }
+
+        public static int NumberOfZero(this byte[] hash)
+        {
+            int number = 0;
+            while (hash[number] == 0)
+            {
+                number++;
+            }
+            return number;
         }
 
         //TODO: Should build a whole merkle tree to get proof list.

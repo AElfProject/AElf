@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
 
 namespace AElf.Kernel
 {
+    [Serializable]
     public class Hash<T> : IHash<T>
     {
         public byte[] Value { get; set; }
