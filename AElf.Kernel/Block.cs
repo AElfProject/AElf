@@ -20,9 +20,9 @@ namespace AElf.Kernel
         /// </summary>
         public int BlockSize => 92;
 
-        public BlockHeader BlockHeader { get; set; }
+        private BlockHeader BlockHeader { get; set; }
 
-        public BlockBody BlockBody { get; set; } = new BlockBody();
+        private BlockBody BlockBody { get; set; } = new BlockBody();
 
         public Block(Hash<IBlock> preBlockHash)
         {
@@ -44,16 +44,14 @@ namespace AElf.Kernel
             return BlockBody;
         }
 
-        public IHash GetHash()
-        {
-            return new Hash<IBlockHeader>(SHA256.Create().ComputeHash(
-                Encoding.UTF8.GetBytes(
-                    JsonConvert.SerializeObject(this))));
-        }
-
         public IBlockHeader GetHeader()
         {
             return BlockHeader;
+        }
+
+        public IHash GetHash()
+        {
+            return new Hash<IBlock>(this.GetSHA256Hash());
         }
     }
 }

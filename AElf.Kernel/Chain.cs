@@ -18,7 +18,7 @@ namespace AElf.Kernel
         {
             get
             {
-                return new Hash<IBlock>(Blocks[Blocks.Count - 1].BlockHeader.MerkleRootHash.Value);
+                return new Hash<IBlock>(Blocks[Blocks.Count - 1].GetHeader().GetTransactionMerkleTreeRoot().Value);
             }
         }
 

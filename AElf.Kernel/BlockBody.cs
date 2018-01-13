@@ -17,11 +17,7 @@ namespace AElf.Kernel
             }
         }
 
-        
-        public BlockBody()
-        {
-
-        }
+        public BlockBody() { }
 
         public IQueryable<ITransaction> GetTransactions()
         {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -6,10 +7,11 @@ namespace AElf.Kernel
 {
     public static class ExtensionMethods
     {
-        public static byte[] GetSHA256Hash(this string str)
+        public static byte[] GetSHA256Hash(this object obj)
         {
             return SHA256.Create().ComputeHash(
-                Encoding.UTF8.GetBytes(str));
+                Encoding.UTF8.GetBytes(
+                    JsonConvert.SerializeObject(obj)));
         }
 
         /// <summary>
@@ -25,9 +27,7 @@ namespace AElf.Kernel
 
             List<Hash<ITransaction>> list = new List<Hash<ITransaction>>()
             {
-                new Hash<ITransaction>(
-                    SHA256.Create().ComputeHash(
-                        Encoding.UTF8.GetBytes(hashlist[0].ToString() + hashlist[1].ToString())))
+                new Hash<ITransaction>((hashlist[0].ToString() + hashlist[1].ToString()).GetSHA256Hash())
             };
 
             if (hashlist.Count > 2)
