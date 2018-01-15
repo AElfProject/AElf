@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
@@ -14,12 +15,7 @@ namespace AElf.Kernel
 
         public IHash<ITransaction> GetHash()
         {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                IFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(ms, this);
-                return new Hash<ITransaction>(SHA256.Create().ComputeHash(ms));
-            }
+            return new Hash<ITransaction>(this.GetSHA256Hash());
         }
 
         public ITransactionParallelMetaData GetParallelMetaData()

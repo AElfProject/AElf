@@ -17,13 +17,12 @@ namespace AElf.Kernel.Tests
             Miner miner = new Miner();
 
             MerkleTree<ITransaction> tree = new MerkleTree<ITransaction>();
-            CreateLeaves(new string[] { "a", "e", "l", "f" }).ForEach(l => block.BlockHeader.AddTransaction(l));
+            CreateLeaves(new string[] { "a", "e", "l", "f" }).ForEach(l => block.GetHeader().AddTransaction(l));
 
-            Assert.NotNull(miner.Mine(block.BlockHeader));
-            //Assert.NotNull(block.BlockHeader.Nonce);
+            Assert.NotNull(miner.Mine(block.GetHeader()));
         }
 
-
+        #region Some methods
         private static List<IHash<ITransaction>> CreateLeaves(string[] buffers)
         {
             List<IHash<ITransaction>> leaves = new List<IHash<ITransaction>>();
@@ -34,5 +33,6 @@ namespace AElf.Kernel.Tests
             }
             return leaves;
         }
+        #endregion
     }
 }

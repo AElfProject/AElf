@@ -1,8 +1,5 @@
-﻿using Xunit;
-using System.Collections.Generic;
-using System.Text;
-using System.Security.Cryptography;
-using System;
+﻿using System.Collections.Generic;
+using Xunit;
 
 namespace AElf.Kernel.Tests
 {
@@ -27,8 +24,7 @@ namespace AElf.Kernel.Tests
         public void VerifyProofListTest()
         {
             MerkleTree<ITransaction> tree = new MerkleTree<ITransaction>();
-            tree.AddNodes(CreateLeaves(new string[] { "a", "e", "l", "f" }))
-                .ComputeRootHash();
+            tree.AddNodes(CreateLeaves(new string[] { "a", "e", "l", "f" }));
 
             #region Create elements of Proof List
             /* Merkle Tree:

@@ -59,9 +59,7 @@ namespace AElf.Kernel
 
         public IHash<IBlockHeader> GetHash()
         {
-            return new Hash<IBlockHeader>(SHA256.Create().ComputeHash(
-                Encoding.UTF8.GetBytes(
-                    JsonConvert.SerializeObject(this))));
+            return new Hash<IBlockHeader>(this.GetSHA256Hash());
         }
 
         public void SetNonce()
