@@ -16,18 +16,21 @@ namespace AElf.Kernel
     {
         private Mutex mut = new Mutex();
         private Dictionary<IHash, List<ITransaction>> pending = new Dictionary<IHash, List<ITransaction>>();
+        
 
         public TransactionExecutingManager()
         {
         }
 
-        public Dictionary<IHash, List<ITransaction>> TransactionDictionary
+        
+        
+        public Dictionary<IHash, List<ITransaction>> Pending
         {
             get => pending;
-           
             set => pending = value;
         }
 
+        
         /// <summary>
         /// AEs the lf. kernel. IT ransaction executing manager. execute async.
         /// </summary>
@@ -45,7 +48,6 @@ namespace AElf.Kernel
                     if (pending[res] != null)
                     {
                         pending[res] = new List<ITransaction>();
-
                     }
                     pending[res].Add(tx);
                     
@@ -57,10 +59,12 @@ namespace AElf.Kernel
             await task;
         }
 
+        
+
         /// <summary>
         /// Schedule execution of transaction
         /// </summary>
-        public void Scheduler()
+        public void Schedule()
         {
             //  Execution strategy(experimental)
             //  1. tranform the dependency of Resource(R) into graph of related Transactions(T)
@@ -93,10 +97,9 @@ namespace AElf.Kernel
                         }
                     }
                 }
-
             }
 
-            AsyncExecuteGraph(graph);
+            AsyncExecuteGraph(graph,0);
             // reset 
             pending = new Dictionary<IHash, List<ITransaction>>();
             this.mut.ReleaseMutex();
@@ -109,7 +112,7 @@ namespace AElf.Kernel
         /// Executes the graph synchronously
         /// </summary>
         /// <param name="n">N.</param>
-        private void ExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
+        private void ExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n, int phase)
         {
             
             /*
@@ -135,7 +138,8 @@ namespace AElf.Kernel
                 var subgraph = hashToGraph[hashToProcess];
                 
                 //TODO: process the sigle task synchronously
-                
+                Worker worker=new Worker();
+                worker.process(hashToProcess, phase);
                 
                 subgraph.RemoveVertex(hashToProcess);
 
@@ -149,7 +153,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public void AsyncExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
+        public void AsyncExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n, int phase)
         {
             /*
              * search for subgraphs and process subgraphs asynchronously
@@ -158,6 +162,7 @@ namespace AElf.Kernel
 
             Dictionary<IHash, int> colorDictionary = new Dictionary<IHash, int>();
 
+            List<Task> tasks=new List<Task>();
             foreach (var hash in n.Vertices)
             {
                 if (colorDictionary.Keys.Contains(hash)) continue;
@@ -165,7 +170,6 @@ namespace AElf.Kernel
                 UndirectedGraph<IHash, Edge<IHash>> subGraph = new UndirectedGraph<IHash, Edge<IHash>>();
                 IHash maxHash = hash;
                 bool isBipartite = DfsSearch(n, subGraph, ref maxHash, colorDictionary);
-
 
                 if (isBipartite)
                 {
@@ -187,21 +191,24 @@ namespace AElf.Kernel
                 //if not Bipartite, execute ths subgraph in new task
                 Task task = Task.Run(() =>
                 {
-                    //TODO : execute the tx
-                    //Console.WriteLine("T" + Thread.CurrentThread.ManagedThreadId +":" +(char) maxHash.GetHashBytes()[0] + "    ");
+                    //process the tx
+                    Worker worker=new Worker();
+                    worker.process(maxHash, phase);
                     
                     subGraph.RemoveVertex(maxHash); 
-                    AsyncExecuteGraph(subGraph);
+                    AsyncExecuteGraph(subGraph, phase+1);
                 });
-                
-                
-
+                tasks.Add(task);
             }
+            var whenAllTask = Task.WhenAll(tasks);
+            
+            try {
+                whenAllTask.Wait();
+            }
+            catch {} 
 
         }
 
-        
-        
         
         /// <summary>
         /// verify graph connectivity for synchronously process
@@ -239,8 +246,8 @@ namespace AElf.Kernel
                             Console.Write("black:" + (char)h.GetHashBytes()[0]+"    ");
                         }
                        
-                    }*/
-                    continue;
+                    }
+                    continue;*/
                 }
                 
                 //if not Bipartite, add maxhash to heap and hashToGraph Dictionary
