@@ -5,12 +5,10 @@
     "Version": 0,
     "PreBlockHash": null,
     "MerkleRootHash": "8421BA8B8B744496514A3F9F99A72CA7528ACB7E2DF0B245680A0A6A0638A89D",
-    "TimeStamp": 0,
-    "Bits": 1,
-    "Nonce": 44575
+    "TimeStamp": 0
   },
   "BlockBody": {
 
   }
-
+  
 }
