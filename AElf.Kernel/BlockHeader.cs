@@ -11,10 +11,27 @@ namespace AElf.Kernel
     [Serializable]
     public class BlockHeader : IBlockHeader
     {
-        public int Version => 0;
+        /// <summary>
+        /// AELF version magic words
+        /// </summary>
+        /// <value>The version.</value>
+        public const int Version = 0xAE1F;
 
+        /// <summary>
+        /// points to previous block hash 
+        /// </summary>
+        /// <value>The pre block hash.</value>
         public IHash<IBlock> PreBlockHash { get; protected set; }
 
+        /// <summary>
+        /// The miner's signature.
+        /// </summary>
+        public byte[] Signatures;
+
+        /// <summary>
+        /// the merkle root hash
+        /// </summary>
+        /// <value>The merkle root hash.</value>
         public IHash<IMerkleTree<ITransaction>> MerkleRootHash
         {
             get
@@ -25,6 +42,10 @@ namespace AElf.Kernel
 
         private MerkleTree<ITransaction> MerkleTree { get; set; } = new MerkleTree<ITransaction>();
 
+        /// <summary>
+        /// the timestamp of this block
+        /// </summary>
+        /// <value>The time stamp.</value>
         public long TimeStamp => DateTime.UtcNow.Second;
 
         public BlockHeader(IHash<IBlock> preBlockHash)
@@ -33,38 +54,40 @@ namespace AElf.Kernel
         }
 
         /// <summary>
-        /// The difficulty of mining.
+        /// include transactions into this block
         /// </summary>
-        public int Bits => GetBits();
-
-        /// <summary>
-        /// Random value.
-        /// </summary>
-        public int Nonce { get; set; }
-
+        /// <param name="hash">Hash.</param>
         public void AddTransaction(IHash<ITransaction> hash)
         {
             MerkleTree.AddNode(hash);
         }
 
+        /// <summary>
+        /// Gets the transaction merkle tree root.
+        /// </summary>
+        /// <returns>The transaction merkle tree root.</returns>
         public IHash<IMerkleTree<ITransaction>> GetTransactionMerkleTreeRoot()
         {
             return MerkleTree.ComputeRootHash();
         }
 
-        private int GetBits()
-        {
-            return 1;
-        }
-
+        /// <summary>
+        /// Gets the block hash.
+        /// </summary>
+        /// <returns>The hash.</returns>
         public IHash<IBlockHeader> GetHash()
         {
             return new Hash<IBlockHeader>(this.GetSHA256Hash());
         }
 
-        public void SetNonce()
+        /// <summary>
+        /// Serialize the header.
+        /// </summary>
+        /// <returns>serizlied header</returns>
+        public byte[] Serialize()
         {
-            Nonce++;
+            // TODO: build binary result
+            throw new NotImplementedException();
         }
     }
 }

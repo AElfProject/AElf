@@ -1,22 +1,18 @@
 ﻿namespace AElf.Kernel
 {
+    /// <summary>
+    /// An embeded dummy miner 
+    /// </summary>
     public class Miner : IMiner
     {
+        /// <summary>
+        /// Mine the specified blockheader.
+        /// </summary>
+        /// <returns>does not but serilize the block</returns>
+        /// <param name="blockheader">Blockheader.</param>
         public byte[] Mine(IBlockHeader blockheader)
         {
-            int bits = (blockheader as BlockHeader).Bits;
-            while (true)
-            {
-                //Change the nonce
-                (blockheader as BlockHeader).SetNonce();
-                //Do mining
-                var result = (blockheader as BlockHeader).GetHash();
-                if (result.Value.NumberOfZero() == bits)
-                {
-                    //Get the proper hash value.
-                    return result.Value;
-                }
-            }
+            return blockheader.Serialize();
         }
     }
 }
