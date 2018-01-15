@@ -34,5 +34,6 @@ namespace AElf.Kernel
             Transactions.Add(tx);
             return true;
         }
+
     }
 }

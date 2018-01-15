@@ -15,7 +15,7 @@ namespace AElf.Kernel
         /// AELF version magic words
         /// </summary>
         /// <value>The version.</value>
-        public const int Version = 0xAE1F;
+        public const int Version = 0x1;
 
         /// <summary>
         /// points to previous block hash 
@@ -54,7 +54,7 @@ namespace AElf.Kernel
         }
 
         /// <summary>
-        /// include transactions into this block
+        /// include transactions into the merkle tree
         /// </summary>
         /// <param name="hash">Hash.</param>
         public void AddTransaction(IHash<ITransaction> hash)
