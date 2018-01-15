@@ -79,15 +79,5 @@ namespace AElf.Kernel
         {
             return new Hash<IBlockHeader>(this.GetSHA256Hash());
         }
-
-        /// <summary>
-        /// Serialize the header.
-        /// </summary>
-        /// <returns>serizlied header</returns>
-        public byte[] Serialize()
-        {
-            // TODO: build binary result
-            throw new NotImplementedException();
-        }
     }
 }

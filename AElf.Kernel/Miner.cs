@@ -12,7 +12,8 @@
         /// <param name="blockheader">Blockheader.</param>
         public byte[] Mine(IBlockHeader blockheader)
         {
-            return blockheader.Serialize();
+            // TODO: return a serlized block header
+            return null;
         }
     }
 }
