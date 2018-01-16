@@ -46,7 +46,7 @@ namespace AElf.Kernel
             return number;
         }
 
-        //TODO: Should build a whole merkle tree to get proof list.
+        #region TODO: Should build a whole merkle tree to get proof list.
         //public static List<ProofNode> GetProofList<T>(this MerkleTree<T> tree, Hash<T> hash)
         //{
         //    List<ProofNode> prooflist = new List<ProofNode>();
@@ -70,5 +70,6 @@ namespace AElf.Kernel
         //    });
         //    return prooflist;
         //}
+        #endregion
     }
 }

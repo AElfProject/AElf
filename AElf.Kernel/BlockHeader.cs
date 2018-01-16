@@ -1,32 +1,26 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System;
 
 namespace AElf.Kernel
 {
     [Serializable]
     public class BlockHeader : IBlockHeader
     {
-        public int Version => 0;
-
+        /// <summary>
+        /// The hash value of pervious block.
+        /// Called 'parentHash' in Ethereum.
+        /// </summary>
         public IHash<IBlock> PreBlockHash { get; protected set; }
 
-        public IHash<IMerkleTree<ITransaction>> MerkleRootHash
-        {
-            get
-            {
-                return GetTransactionMerkleTreeRoot();
-            }
-        }
-
-        private MerkleTree<ITransaction> MerkleTree { get; set; } = new MerkleTree<ITransaction>();
-
+        /// <summary>
+        /// Time stamp.
+        /// </summary>
         public long TimeStamp => DateTime.UtcNow.Second;
 
+        /// <summary>
+        /// Should use the hash value of previous block to generate
+        /// a new block.
+        /// </summary>
+        /// <param name="preBlockHash"></param>
         public BlockHeader(IHash<IBlock> preBlockHash)
         {
             PreBlockHash = preBlockHash;
@@ -42,16 +36,32 @@ namespace AElf.Kernel
         /// </summary>
         public int Nonce { get; set; }
 
+        #region Private fields
+        private MerkleTree<ITransaction> TransactionTrie = new MerkleTree<ITransaction>();
+        #endregion
+
+        /// <summary>
+        /// Just add the hash value of each transaction.
+        /// For the block header should be very small.
+        /// </summary>
+        /// <param name="hash"></param>
         public void AddTransaction(IHash<ITransaction> hash)
         {
-            MerkleTree.AddNode(hash);
+            TransactionTrie.AddNode(hash);
         }
 
+        /// <summary>
+        /// Get the merkle root hash value of transactions.
+        /// </summary>
         public IHash<IMerkleTree<ITransaction>> GetTransactionMerkleTreeRoot()
         {
-            return MerkleTree.ComputeRootHash();
+            return TransactionTrie.ComputeRootHash();
         }
 
+        /// <summary>
+        /// Get the difficulty of mining.
+        /// </summary>
+        /// <returns></returns>
         private int GetBits()
         {
             return 1;
@@ -62,8 +72,12 @@ namespace AElf.Kernel
             return new Hash<IBlockHeader>(this.GetSHA256Hash());
         }
 
-        public void SetNonce()
+        /// <summary>
+        /// Adjust the value of Nonce while mining.
+        /// </summary>
+        public void AdjustNonceWhileMining()
         {
+            //For now just plus 1 everytime.
             Nonce++;
         }
     }

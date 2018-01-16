@@ -11,6 +11,17 @@ namespace AElf.Kernel
 {
     public class Transaction : ITransaction
     {
+        /// <summary>
+        /// Temporary property.
+        /// To identify a tx.
+        /// </summary>
+        public string Data { get; set; }
+
+        /// <summary>
+        /// Temporary property.
+        /// </summary>
+        public string To { get; set; }
+
         public Transaction() { }
 
         public IHash<ITransaction> GetHash()

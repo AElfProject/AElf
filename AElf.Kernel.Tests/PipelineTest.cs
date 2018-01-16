@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -22,7 +23,7 @@ namespace AElf.Kernel.Tests
             merkletree.Setup(m => m.AddNode(It.IsAny<IHash<ITransaction>>()));
 
             var miner = new Mock<IMiner>();
-            miner.Setup(m => m.Mine(It.IsAny<IBlockHeader>())).Returns(new byte[] {4,5,6});
+            miner.Setup(m => m.Mine(It.IsAny<IBlockHeader>())).Returns(new byte[] { 4, 5, 6 });
 
             var chainmgr = new Mock<IChainManager>();
             chainmgr.Setup(c => c.AddBlockAsync(It.IsAny<IChain>(), It.IsAny<IBlock>()));
@@ -33,7 +34,7 @@ namespace AElf.Kernel.Tests
             var tx = new Mock<ITransaction>();
             blk.Object.AddTransaction(tx.Object);
             miner.Object.Mine(blk.Object.GetHeader());
-            chainmgr.Object.AddBlockAsync(chain.Object,blk.Object);
+            chainmgr.Object.AddBlockAsync(chain.Object, blk.Object);
         }
     }
 }

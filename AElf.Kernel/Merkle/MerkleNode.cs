@@ -18,11 +18,6 @@ namespace AElf.Kernel
 
         public MerkleNode() { }
 
-        //public MerkleNode(IHash<IMerkleNode> left, IHash<IMerkleNode> right = null)
-        //{
-
-        //}
-
         public MerkleNode(MerkleNode left, MerkleNode right = null)
         {
             LeftNode = left;

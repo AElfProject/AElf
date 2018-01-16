@@ -4,23 +4,19 @@ namespace AElf.Kernel
 {
     public class Chain : IChain
     {
-        public List<Block> Blocks { get; set; } = new List<Block>();
-
-        public long CurrentBlockHeight
+        private List<IBlock> Blocks
         {
             get
             {
-                return Blocks.Count;
+                return new List<IBlock>();
+
+                //TODO:
+                //Maybe get the blocks from database.
             }
         }
 
-        public IHash<IBlock> CurrentBlockHash
-        {
-            get
-            {
-                return new Hash<IBlock>(Blocks[Blocks.Count - 1].GetHeader().GetTransactionMerkleTreeRoot().Value);
-            }
-        }
+        public long CurrentBlockHeight => Blocks.Count;
 
+        public IHash<IBlock> CurrentBlockHash => new Hash<IBlock>(Blocks[Blocks.Count - 1].GetHash().Value);
     }
 }
