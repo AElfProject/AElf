@@ -32,7 +32,7 @@ namespace AElf.Kernel
         /// we must now know the hash value of previous block.
         /// </summary>
         /// <param name="preBlockHash"></param>
-        public Block(Hash<IBlock> preBlockHash)
+        public Block(IHash<IBlock> preBlockHash)
         {
             _blockHeader = new BlockHeader(preBlockHash);
         }

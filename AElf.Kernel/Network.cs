@@ -35,11 +35,6 @@ namespace AElf.Kernel
             ChainManager.AddBlockAsync(Chain, block);
         }
 
-        public static void AddBlock(IBlock block)
-        {
-            Chain
-        }
-
         /// <summary>
         /// Simulation of sending a transaction.
         /// </summary>

@@ -6,10 +6,7 @@ namespace AElf.Kernel
     {
         public Task AddBlockAsync(IChain chain, IBlock block)
         {
-            if (CheckBlock(block))
-            {
-                chain.add
-            }
+            throw new System.NotImplementedException();
         }
 
         private bool CheckBlock(IBlock block)
