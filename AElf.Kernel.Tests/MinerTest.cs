@@ -18,8 +18,6 @@ namespace AElf.Kernel.Tests
 
             MerkleTree<ITransaction> tree = new MerkleTree<ITransaction>();
             CreateLeaves(new string[] { "a", "e", "l", "f" }).ForEach(l => block.GetHeader().AddTransaction(l));
-
-            Assert.NotNull(miner.Mine(block.GetHeader()));
         }
 
         #region Some methods
