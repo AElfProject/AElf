@@ -37,10 +37,7 @@ namespace AElf.Kernel.Tests
 
             //The block producer excute all the transactions.
             var txExcute = new Mock<ITransactionExecutingManager>();
-            foreach (var tx in block.Object.GetBody().GetTransactions())
-            {
-                txExcute.Object.ExecuteAsync(tx);
-            }
+            txExcute.Setup(excute => excute.ExecuteAsync(It.IsAny<ITransaction>()));
 
             //TODO: collect results from workers
 
