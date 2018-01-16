@@ -4,8 +4,9 @@ using System.Text;
 
 namespace AElf.Kernel
 {
-    public interface ITransactionReceiver
+    public interface IBlockReceiver
     {
-        void GetTransactions();
+        bool VerifyBlock();
+
     }
 }

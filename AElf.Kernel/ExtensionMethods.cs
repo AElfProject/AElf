@@ -7,7 +7,7 @@ namespace AElf.Kernel
 {
     public static class ExtensionMethods
     {
-        public static byte[] GetSHA256Hash(this object obj)
+        public static byte[] GetHash(this object obj)
         {
             return SHA256.Create().ComputeHash(
                 Encoding.UTF8.GetBytes(
@@ -27,7 +27,7 @@ namespace AElf.Kernel
 
             List<Hash<ITransaction>> list = new List<Hash<ITransaction>>()
             {
-                new Hash<ITransaction>((hashlist[0].ToString() + hashlist[1].ToString()).GetSHA256Hash())
+                new Hash<ITransaction>((hashlist[0].ToString() + hashlist[1].ToString()).GetHash())
             };
 
             if (hashlist.Count > 2)
@@ -44,6 +44,20 @@ namespace AElf.Kernel
                 number++;
             }
             return number;
+        }
+
+        public static bool TryDequeue<T>(this Queue<T> queue, out T t)
+        {
+            if (queue.Count > 0)
+            {
+                t = queue.Dequeue();
+                return true;
+            }
+            else
+            {
+                t = default(T);
+                return false;
+            }
         }
 
         #region TODO: Should build a whole merkle tree to get proof list.

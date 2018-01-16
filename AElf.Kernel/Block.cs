@@ -23,8 +23,8 @@ namespace AElf.Kernel
         #endregion
 
         #region Private fields
-        private BlockHeader BlockHeader { get; set; }
-        private BlockBody BlockBody { get; set; } = new BlockBody();
+        private BlockHeader _blockHeader { get; set; }
+        private BlockBody _blockBody { get; set; } = new BlockBody();
         #endregion
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace AElf.Kernel
         /// <param name="preBlockHash"></param>
         public Block(Hash<IBlock> preBlockHash)
         {
-            BlockHeader = new BlockHeader(preBlockHash);
+            _blockHeader = new BlockHeader(preBlockHash);
         }
 
         /// <summary>
@@ -44,11 +44,11 @@ namespace AElf.Kernel
         /// <returns></returns>
         public bool AddTransaction(ITransaction tx)
         {
-            if (BlockBody.AddTransaction(tx))
+            if (_blockBody.AddTransaction(tx))
             {
                 //If successfully add a transaction to the block body,
                 //add the hash value of transaction to block header.
-                BlockHeader.AddTransaction(tx.GetHash());
+                _blockHeader.AddTransaction(tx.GetHash());
                 return true;
             }
             return false;
@@ -56,17 +56,17 @@ namespace AElf.Kernel
 
         public IBlockBody GetBody()
         {
-            return BlockBody;
+            return _blockBody;
         }
 
         public IBlockHeader GetHeader()
         {
-            return BlockHeader;
+            return _blockHeader;
         }
 
         public IHash GetHash()
         {
-            return new Hash<IBlock>(this.GetSHA256Hash());
+            return new Hash<IBlock>(ExtensionMethods.GetHash(this));
         }
     }
 }

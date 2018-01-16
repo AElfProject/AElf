@@ -60,7 +60,7 @@ namespace AElf.Kernel
                 for (int i = 0; i < hashes.Count; i += 2)
                 {
                     IHash<T> right = (i + 1 < hashes.Count) ? new Hash<T>(hashes[i + 1].Value) : null;
-                    IHash<T> parent = new Hash<T>((hashes[i].ToString() + right?.ToString()).GetSHA256Hash());
+                    IHash<T> parent = new Hash<T>((hashes[i].ToString() + right?.ToString()).GetHash());
 
                     parents.Add(parent);
                 }

@@ -7,13 +7,13 @@ namespace AElf.Kernel
     [Serializable]
     public class BlockBody : IBlockBody
     {
-        private List<ITransaction> Transactions { get; set; }
+        private List<ITransaction> _transactions { get; set; } = new List<ITransaction>();
 
         public int TransactionsCount
         {
             get
             {
-                return Transactions.Count;
+                return _transactions.Count;
             }
         }
 
@@ -21,17 +21,17 @@ namespace AElf.Kernel
 
         public IQueryable<ITransaction> GetTransactions()
         {
-            return Transactions.AsQueryable();
+            return _transactions.AsQueryable();
         }
 
         public bool AddTransaction(ITransaction tx)
         {
             //Avoid duplication of addition.
-            if (Transactions.Exists(t => t.GetHash() == tx.GetHash()))
+            if (_transactions.Exists(t => t.GetHash() == tx.GetHash()))
             {
                 return false;
             }
-            Transactions.Add(tx);
+            _transactions.Add(tx);
             return true;
         }
     }

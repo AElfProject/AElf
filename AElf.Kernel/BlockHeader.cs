@@ -14,7 +14,7 @@ namespace AElf.Kernel
         /// <summary>
         /// Time stamp.
         /// </summary>
-        public long TimeStamp => DateTime.UtcNow.Second;
+        public long TimeStamp => (long)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds;
 
         /// <summary>
         /// Should use the hash value of previous block to generate
@@ -37,7 +37,7 @@ namespace AElf.Kernel
         public int Nonce { get; set; }
 
         #region Private fields
-        private MerkleTree<ITransaction> TransactionTrie = new MerkleTree<ITransaction>();
+        private MerkleTree<ITransaction> _transactionTrie = new MerkleTree<ITransaction>();
         #endregion
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace AElf.Kernel
         /// <param name="hash"></param>
         public void AddTransaction(IHash<ITransaction> hash)
         {
-            TransactionTrie.AddNode(hash);
+            _transactionTrie.AddNode(hash);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace AElf.Kernel
         /// </summary>
         public IHash<IMerkleTree<ITransaction>> GetTransactionMerkleTreeRoot()
         {
-            return TransactionTrie.ComputeRootHash();
+            return _transactionTrie.ComputeRootHash();
         }
 
         /// <summary>
@@ -69,16 +69,7 @@ namespace AElf.Kernel
 
         public IHash<IBlockHeader> GetHash()
         {
-            return new Hash<IBlockHeader>(this.GetSHA256Hash());
-        }
-
-        /// <summary>
-        /// Adjust the value of Nonce while mining.
-        /// </summary>
-        public void AdjustNonceWhileMining()
-        {
-            //For now just plus 1 everytime.
-            Nonce++;
+            return new Hash<IBlockHeader>(ExtensionMethods.GetHash(this));
         }
     }
 }
