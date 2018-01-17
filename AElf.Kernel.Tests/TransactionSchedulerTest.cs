@@ -15,6 +15,8 @@ namespace AElf.Kernel.Tests
 {
     public class TransactionSchedulerTest
     {
+        public static Dictionary<IHash, int> ExecutePlan = new Dictionary<IHash, int>();
+        
         private static IHash CreateHash(byte b)
         {
             Mock<IHash> hash = new Mock<IHash>();
@@ -72,10 +74,10 @@ namespace AElf.Kernel.Tests
                     int index = random.Next(hashCount);
                     if(index>=hashCount) continue;
                     var h = hashList.ElementAt(index);
-
                     if (!pending.Keys.Contains(h)) pending[h] = new List<ITransaction>();
-                    pending[h].Add(t);
-                } while (random.Next(hashCount) < hashCount / 2);
+                    if(!pending[h].Contains(t)) pending[h].Add(t);
+                } 
+                while (random.Next(hashCount) < hashCount / 2);
             }
 
             return pending;
@@ -88,40 +90,30 @@ namespace AElf.Kernel.Tests
             var h1 = CreateHash(1);
             var t1 = CreateTransaction(65);
 
+            // one hash and one tx
             Dictionary<IHash, List<ITransaction>> pending = new Dictionary<IHash, List<ITransaction>>();
             pending[h1]=new List<ITransaction>();
             pending[h1].Add(t1);
             var transactionExecutingManager = new TransactionExecutingManager { Pending = pending };
             transactionExecutingManager.Schedule();
-            Assert.Equal(1, Worker.ExecutePlan.Count);
+            var plan = TransactionExecutingManager.ExecutePlan;
+            Assert.Equal(1, plan[0].Count);
 
-            Worker.ExecutePlan = new Dictionary<IHash, int>();
-            int hashCount = 1;
-            int txCount = 1;
-            pending = CreatePending(hashCount, txCount);
-            transactionExecutingManager.Pending = pending ;
+            // one hash and two tx
+            transactionExecutingManager.Pending = CreatePending(1,3);
             transactionExecutingManager.Schedule();
+            plan = TransactionExecutingManager.ExecutePlan;
+            Assert.Equal(3, plan.Count);
+            Assert.Equal(1, plan[0].Count);
+            Assert.Equal(1, plan[1].Count);
             
-            Assert.Equal(txCount, Worker.ExecutePlan.Count);
-
-            Worker.ExecutePlan = new Dictionary<IHash, int>();
-            hashCount = 1;
-            txCount = 2;
-            pending = CreatePending(hashCount, txCount);
+            
+            // two hash and five tx
+            pending = CreatePending(2, 5);
             transactionExecutingManager.Pending = pending;
             transactionExecutingManager.Schedule();
-            
-            Assert.Equal(txCount, Worker.ExecutePlan.Count);
-
-            Worker.ExecutePlan = new Dictionary<IHash, int>();
-            hashCount = 2;
-            txCount = 2;
-            pending = CreatePending(hashCount, txCount);
-            transactionExecutingManager.Pending = pending;
-            transactionExecutingManager.Schedule();
-            Assert.Equal(txCount, Worker.ExecutePlan.Count);
-
-            Worker.ExecutePlan = new Dictionary<IHash, int>();
+            plan = TransactionExecutingManager.ExecutePlan;
+            Assert.Equal(5, plan.Count);
 
         }
         

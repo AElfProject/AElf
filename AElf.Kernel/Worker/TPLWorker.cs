@@ -1,16 +1,13 @@
 ﻿using System;
-namespace AElf.Kernel
+
+namespace AElf.Kernel.Worker
 {
     /// <summary>
     /// The embeded TPL based worker.
     /// </summary>
-    public class TPLWorker:IWorker
+    public class TPLWorker : IWorker
     {
-        public TPLWorker()
-        {
-        }
-
-        public void process(IHash hash, int phase)
+        public void Process()
         {
             throw new NotImplementedException();
         }

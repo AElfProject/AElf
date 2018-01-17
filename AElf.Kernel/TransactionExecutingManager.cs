@@ -7,6 +7,7 @@ using System.Diagnostics.Contracts;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using AElf.Kernel.Worker;
 using QuickGraph;
 using QuickGraph.Collections;
 
@@ -16,6 +17,7 @@ namespace AElf.Kernel
     {
         private Mutex mut = new Mutex();
         private Dictionary<IHash, List<ITransaction>> pending = new Dictionary<IHash, List<ITransaction>>();
+        public static Dictionary<int, List<IHash>> ExecutePlan = new Dictionary<int, List<IHash>>();
         
 
         public TransactionExecutingManager()
@@ -99,7 +101,8 @@ namespace AElf.Kernel
                 }
             }
 
-            AsyncExecuteGraph(graph,0);
+            CalculateExecutingPlan(graph);
+            AsyncExecuteGraph(graph);
             // reset 
             pending = new Dictionary<IHash, List<ITransaction>>();
             this.mut.ReleaseMutex();
@@ -112,6 +115,7 @@ namespace AElf.Kernel
         /// Executes the graph synchronously
         /// </summary>
         /// <param name="n">N.</param>
+        /// <param name="phase">phase</param>
         private void ExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n, int phase)
         {
             
@@ -129,7 +133,7 @@ namespace AElf.Kernel
             Dictionary<IHash,UndirectedGraph<IHash, Edge<IHash>>> hashToGraph= new Dictionary<IHash, UndirectedGraph<IHash, Edge<IHash>>>();
 
             // verify graph connectivity and map hash to subgraphs
-            SubGraphs(n,hashHeap,hashToGraph);
+            SubGraphsWithMaxHeap(n, hashHeap, hashToGraph);
 
             while(hashHeap.Count>0)
             {
@@ -138,14 +142,88 @@ namespace AElf.Kernel
                 var subgraph = hashToGraph[hashToProcess];
                 
                 //TODO: process the sigle task synchronously
-                Worker worker=new Worker();
-                worker.process(hashToProcess, phase);
+                TPLWorker tplWorker=new TPLWorker();
                 
                 subgraph.RemoveVertex(hashToProcess);
 
-                SubGraphs(subgraph, hashHeap, hashToGraph);
+                SubGraphsWithMaxHeap(subgraph, hashHeap, hashToGraph);
                 hashToGraph.Remove(hashToProcess);
             }
+        }
+
+        
+        
+        /// <summary>
+        /// calculate the executing plan recorded in ExecutePlan
+        /// </summary>
+        /// <param name="n"> graph </param>
+        private void CalculateExecutingPlan(UndirectedGraph<IHash, Edge<IHash>> graph)
+        {
+            ExecutePlan = new Dictionary<int, List<IHash>>();
+            int phase = 0;
+            Dictionary<UndirectedGraph<IHash, Edge<IHash>>, IHash> graphToHash = new Dictionary<UndirectedGraph<IHash, Edge<IHash>>, IHash>();
+            if (graph.VertexCount > 0)
+                graphToHash[graph] = graph.Vertices.ElementAt(0);
+            GeneratePhase(graphToHash, phase);
+        }
+        
+        
+
+        /// <summary>
+        /// verify graph connectivity and get all connected components
+        /// </summary>
+        /// <param name="graph"></param>
+        /// <param name="graphToHash"></param>
+        private void SubGraphs(UndirectedGraph<IHash, Edge<IHash>> graph, Dictionary<UndirectedGraph<IHash, Edge<IHash>>, IHash>  graphToHash)
+        {
+
+            // Bipartite Graph check
+            Dictionary<IHash,int> colorDictionary = new Dictionary<IHash, int>();
+            
+            foreach (var hash in graph.Vertices)
+            {
+                if (colorDictionary.Keys.Contains(hash)) continue;
+                
+                UndirectedGraph<IHash, Edge<IHash>> subGraph = new UndirectedGraph<IHash, Edge<IHash>>();
+                
+                // hash with most dependencies in the graph 
+                IHash maxHash = hash;
+                DfsSearch(graph, subGraph, ref maxHash, colorDictionary);
+                
+                graphToHash[subGraph] = maxHash;
+                
+            }
+
+        }
+
+        /// <summary>
+        /// generate txs can be executed in one phase
+        /// </summary>
+        /// <param name="graphToHash"></param>
+        /// <param name="phase"></param>
+        private void GeneratePhase(Dictionary<UndirectedGraph<IHash, Edge<IHash>>, IHash>  graphToHash, int phase)
+        {
+            Dictionary<UndirectedGraph<IHash, Edge<IHash>>, IHash> nextPhaseGrapthToHash = new Dictionary<UndirectedGraph<IHash, Edge<IHash>>, IHash>();
+            
+            foreach (var graph in graphToHash.Keys)
+            {
+                if (graph.VertexCount == 0) continue;
+                SubGraphs(graph, nextPhaseGrapthToHash);
+            }
+            
+            foreach (var graph in nextPhaseGrapthToHash.Keys)
+            {
+                if(!ExecutePlan.Keys.Contains(phase)) ExecutePlan[phase] = new List<IHash>();
+                ExecutePlan[phase].Add(nextPhaseGrapthToHash[graph]);
+
+                graph.RemoveVertex(nextPhaseGrapthToHash[graph]);
+            }
+            
+            graphToHash = nextPhaseGrapthToHash;
+            
+            if (graphToHash.Count == 0) return;
+            GeneratePhase(graphToHash, phase+1);
+
         }
 
         /// <summary>
@@ -153,7 +231,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public void AsyncExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n, int phase)
+        private void AsyncExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
         {
             /*
              * search for subgraphs and process subgraphs asynchronously
@@ -192,23 +270,18 @@ namespace AElf.Kernel
                 Task task = Task.Run(() =>
                 {
                     //process the tx
-                    Worker worker=new Worker();
-                    worker.process(maxHash, phase);
                     
                     subGraph.RemoveVertex(maxHash); 
-                    AsyncExecuteGraph(subGraph, phase+1);
+                    AsyncExecuteGraph(subGraph);
                 });
                 tasks.Add(task);
             }
-            var whenAllTask = Task.WhenAll(tasks);
             
-            try {
-                whenAllTask.Wait();
-            }
-            catch {} 
-
+            Task.WaitAll(tasks.ToArray());
         }
 
+        
+        
         
         /// <summary>
         /// verify graph connectivity for synchronously process
@@ -216,7 +289,7 @@ namespace AElf.Kernel
         /// <param name="n"></param>
         /// <param name="hashHeap"></param>
         /// <param name="hashToGraph"></param>
-        private void SubGraphs(UndirectedGraph<IHash, Edge<IHash>> n, BinaryHeap<int, IHash> hashHeap, Dictionary<IHash,UndirectedGraph<IHash, Edge<IHash>>> hashToGraph)
+        private void SubGraphsWithMaxHeap(UndirectedGraph<IHash, Edge<IHash>> n, BinaryHeap<int, IHash> hashHeap, Dictionary<IHash, UndirectedGraph<IHash, Edge<IHash>>> hashToGraph)
         {
             // Bipartite Graph check
             Dictionary<IHash,int> colorDictionary = new Dictionary<IHash, int>();
@@ -237,11 +310,11 @@ namespace AElf.Kernel
                     //TODO : if bipartite, parallel process for tasks in both sets asynchronously;
                     /*foreach (var h in subGraph.Vertices)
                     {
-                        if (colorDictionary[h]==1)
+                        if (colorDictionary[h] == 1)
                         {
                             Console.Write("white:" + (char)h.GetHashBytes()[0]+"    ");
                         }
-                        if (colorDictionary[h]==-1)
+                        if (colorDictionary[h] == -1)
                         {
                             Console.Write("black:" + (char)h.GetHashBytes()[0]+"    ");
                         }
