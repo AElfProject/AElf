@@ -1,12 +1,10 @@
-﻿using QuickGraph;
-
-namespace AElf.Kernel
+﻿namespace AElf.Kernel.Worker
 {
     /// <summary>
     /// Worker to process transaction
     /// </summary>
     public interface IWorker
     {
-        void process(IHash hash, int phase);
+        void Process();
     }
 }
