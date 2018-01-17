@@ -5,4 +5,4 @@
         IHash<IMerkleTree<T>> ComputeRootHash();
         void AddNode(IHash<T> hash);
     }
-} 
+}

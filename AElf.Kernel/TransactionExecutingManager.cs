@@ -42,7 +42,7 @@ namespace AElf.Kernel
             {
                 // group transactions by resource type
                 var conflicts = tx.GetParallelMetaData().GetDataConflict();
-                this.mut.WaitOne();
+                mut.WaitOne();
                 foreach (var res in conflicts)
                 {
                     if (pending[res] != null)
@@ -52,7 +52,7 @@ namespace AElf.Kernel
                     pending[res].Add(tx);
                     
                 }
-                this.mut.ReleaseMutex();
+                mut.ReleaseMutex();
             });
             task.Start();
 

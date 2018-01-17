@@ -20,7 +20,7 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task MerkleTree()
         {
-            var mt=new Mock<IMerkleTree<ITransaction>>();
+            var mt = new Mock<IMerkleTree<ITransaction>>();
 
             mt.Setup(p => p.AddNode(It.IsAny<IHash<ITransaction>>()));
 
