@@ -76,7 +76,7 @@ namespace AElf.Kernel
 
         public void AddState(IAccount account)
         {
-            var hash = new Hash<IAccount>(ExtensionMethods.GetHash(account));
+            var hash = account.GetAddress();
             _stateTireRightChild.AddNode(hash);
         }
 
