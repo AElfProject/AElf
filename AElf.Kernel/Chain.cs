@@ -16,6 +16,9 @@ namespace AElf.Kernel
 
         public IHash<IBlock> CurrentBlockHash => new Hash<IBlock>(Blocks[Blocks.Count - 1].GetHash().Value);
 
+        public IHash<IAccount> CurrentBlockStateHash => new Hash<IAccount>(
+            Blocks[Blocks.Count - 1].GetHeader().GetStateMerkleTreeRoot().Value);
+
         public void AddBlock(IBlock block)
         {
             Blocks.Add(block);

@@ -2,20 +2,18 @@ using System;
 
 namespace AElf.Kernel
 {
-    /// <summary>
-    /// Account.
-    /// </summary>
     public class Account : IAccount
     {
-        private Address m_address;
+        public int Amount { get; set; }
 
-        Account(Address address) {
-            this.m_address = address;
+        public IHash<IAccount> GetAddress()
+        {
+            return new Hash<IAccount>(ExtensionMethods.GetHash(this));
         }
 
-        IHash<IAccount> IAccount.GetAddress()
+        public void Invoke(string methodName, params string[] values)
         {
-            return this.m_address;
+            throw new NotImplementedException();
         }
     }
 }

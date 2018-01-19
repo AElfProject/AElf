@@ -1,4 +1,6 @@
-﻿namespace AElf.Kernel
+﻿using System.Threading.Tasks;
+
+namespace AElf.Kernel
 {
     /// <summary>
     /// World State presents the state of a chain, changed by block. 
@@ -10,6 +12,6 @@
         /// </summary>
         /// <param name="account"></param>
         /// <returns></returns>
-        IAccountDataProvider GetAccountDataProviderByAccount(IAccount account);
+        IAccountDataProvider GetAccountDataProviderByAccountAsync(IAccount account);
     }
 }

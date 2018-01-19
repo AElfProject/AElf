@@ -13,7 +13,7 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void MineTest()
         {
-            Block block = new Block(new Hash<IBlock>("aelf".GetHash()));
+            Block block = new Block(new Hash<IBlock>("aelf".GetHash()), new Hash<IAccount>("2018".GetHash()));
             Miner miner = new Miner();
 
             MerkleTree<ITransaction> tree = new MerkleTree<ITransaction>();

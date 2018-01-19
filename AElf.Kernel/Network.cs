@@ -27,7 +27,7 @@ namespace AElf.Kernel
 
         static Network()
         {
-            Block block = new Block(new Hash<IBlock>("aelf".GetHash()));
+            Block block = new Block(new Hash<IBlock>("aelf".GetHash()), new Hash<IAccount>("2018".GetHash()));
             Miner miner = new Miner();
             MerkleTree<ITransaction> tree = new MerkleTree<ITransaction>();
             CreateLeaves(new string[] { "a", "e", "l", "f" }).ForEach(l => block.GetHeader().AddTransaction(l));

@@ -8,6 +8,7 @@ namespace AElf.Kernel
     public class BlockBody : IBlockBody
     {
         private List<ITransaction> _transactions { get; set; } = new List<ITransaction>();
+        private MerkleTree<IAccount> _stateMerkleTreeRightChild = new MerkleTree<IAccount>();
 
         public int TransactionsCount
         {
@@ -24,6 +25,11 @@ namespace AElf.Kernel
             return _transactions.AsQueryable();
         }
 
+        public MerkleTree<IAccount> GetChangedWorldState()
+        {
+            return _stateMerkleTreeRightChild;
+        }
+
         public bool AddTransaction(ITransaction tx)
         {
             //Avoid duplication of addition.
@@ -33,6 +39,22 @@ namespace AElf.Kernel
             }
             _transactions.Add(tx);
             return true;
+        }
+
+        /// <summary>
+        /// For one account, just update once its state.
+        /// </summary>
+        /// <param name="account"></param>
+        /// <returns></returns>
+        public bool AddState(IAccount account)
+        {
+            var hash = new Hash<IAccount>(ExtensionMethods.GetHash(account));
+            if (null == _stateMerkleTreeRightChild.FindLeaf(hash))
+            {
+                _stateMerkleTreeRightChild.AddNode(hash);
+                return true;
+            }
+            return false;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace AElf.Kernel
 {
@@ -11,6 +12,27 @@ namespace AElf.Kernel
         /// </summary>
         public IHash<IBlock> PreBlockHash { get; protected set; }
 
+        public IHash<IMerkleTree<IAccount>> StateRootHash
+        {
+            get
+            {
+                MerkleTree<IAccount> merkle = new MerkleTree<IAccount>();
+                if (_stateTireRightChild.Nodes.Count < 1)
+                {
+                    merkle.AddNode(_preStateRootHash);
+                }
+                else
+                {
+                    merkle.AddNodes(new List<IHash<IAccount>>{ _preStateRootHash,
+                        new Hash<IAccount>(_stateTireRightChild?.ComputeRootHash().Value) });
+                }
+
+                return merkle.ComputeRootHash();
+            }
+        }
+
+        private IHash<IAccount> _preStateRootHash;
+
         /// <summary>
         /// Time stamp.
         /// </summary>
@@ -21,9 +43,10 @@ namespace AElf.Kernel
         /// a new block.
         /// </summary>
         /// <param name="preBlockHash"></param>
-        public BlockHeader(IHash<IBlock> preBlockHash)
+        public BlockHeader(IHash<IBlock> preBlockHash, IHash<IAccount> preStateRootHash)
         {
             PreBlockHash = preBlockHash;
+            _preStateRootHash = preStateRootHash;
         }
 
         /// <summary>
@@ -38,6 +61,7 @@ namespace AElf.Kernel
 
         #region Private fields
         private MerkleTree<ITransaction> _transactionTrie = new MerkleTree<ITransaction>();
+        private MerkleTree<IAccount> _stateTireRightChild = new MerkleTree<IAccount>();
         #endregion
 
         /// <summary>
@@ -48,6 +72,12 @@ namespace AElf.Kernel
         public void AddTransaction(IHash<ITransaction> hash)
         {
             _transactionTrie.AddNode(hash);
+        }
+
+        public void AddState(IAccount account)
+        {
+            var hash = new Hash<IAccount>(ExtensionMethods.GetHash(account));
+            _stateTireRightChild.AddNode(hash);
         }
 
         /// <summary>
@@ -70,6 +100,11 @@ namespace AElf.Kernel
         public IHash<IBlockHeader> GetHash()
         {
             return new Hash<IBlockHeader>(ExtensionMethods.GetHash(this));
+        }
+
+        public IHash<IMerkleTree<IAccount>> GetStateMerkleTreeRoot()
+        {
+            return StateRootHash;
         }
     }
 }

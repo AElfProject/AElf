@@ -33,7 +33,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns>The lf. kernel. IT ransaction executing manager. execute async.</returns>
         /// <param name="tx">Tx.</param>
-        async Task ITransactionExecutingManager.ExecuteAsync(ITransaction tx)
+        async public Task ExecuteAsync(ITransaction tx)
         {
             Task task = new Task(() =>
             {

@@ -7,6 +7,5 @@ namespace AElf.Kernel
     public interface IBlockReceiver
     {
         bool VerifyBlock();
-
     }
 }

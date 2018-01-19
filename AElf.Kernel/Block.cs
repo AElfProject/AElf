@@ -1,10 +1,5 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AElf.Kernel
 {
@@ -32,9 +27,9 @@ namespace AElf.Kernel
         /// we must now know the hash value of previous block.
         /// </summary>
         /// <param name="preBlockHash"></param>
-        public Block(IHash<IBlock> preBlockHash)
+        public Block(IHash<IBlock> preBlockHash, IHash<IAccount> preStateRootHash)
         {
-            _blockHeader = new BlockHeader(preBlockHash);
+            _blockHeader = new BlockHeader(preBlockHash, preStateRootHash);
         }
 
         /// <summary>
@@ -52,6 +47,17 @@ namespace AElf.Kernel
                 return true;
             }
             return false;
+        }
+
+        public void UpdateState(List<IAccount> accounts)
+        {
+            foreach (var account in accounts)
+            {
+                if (_blockBody.AddState(account))
+                {
+                    _blockHeader.AddState(account);
+                }
+            }
         }
 
         public IBlockBody GetBody()

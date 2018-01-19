@@ -45,7 +45,8 @@ namespace AElf.Kernel
         {
             if (hashes.Count < 1)
             {
-                throw new AELFException("Cannot generate merkle tree without any nodes.");
+                //throw new AELFException("Cannot generate merkle tree without any nodes.");
+                return null;
             }
 
             if (hashes.Count == 1)//Finally
