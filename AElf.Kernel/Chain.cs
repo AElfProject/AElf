@@ -4,24 +4,18 @@ namespace AElf.Kernel
 {
     public class Chain : IChain
     {
-        private List<IBlock> Blocks
-        {
-            get
-            {
-                return new List<IBlock>();
-            }
-        }
+        private List<IBlock> _blocks = new List<IBlock>();
 
-        public long CurrentBlockHeight => Blocks.Count;
+        public long CurrentBlockHeight => _blocks.Count;
 
-        public IHash<IBlock> CurrentBlockHash => new Hash<IBlock>(Blocks[Blocks.Count - 1].GetHash().Value);
+        public IHash<IBlock> CurrentBlockHash => new Hash<IBlock>(_blocks[_blocks.Count - 1].GetHash().Value);
 
         public IHash<IAccount> CurrentBlockStateHash => new Hash<IAccount>(
-            Blocks[Blocks.Count - 1].GetHeader().GetStateMerkleTreeRoot().Value);
+            _blocks[_blocks.Count - 1].GetHeader().GetStateMerkleTreeRoot().Value);
 
         public void AddBlock(IBlock block)
         {
-            Blocks.Add(block);
+            _blocks.Add(block);
         }
     }
    
