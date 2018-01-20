@@ -5,21 +5,6 @@ namespace AElf.Kernel.Tests
 {
     public class MerkleTest
     {
-
-        //[Fact]
-        //public void ProofListTest()
-        //{
-        //    MerkleTree tree = new MerkleTree();
-        //    tree.AddLeaves(CreateLeaves(new string[] { "a", "e", "l", "f", "2", "0", "1", "8" }))
-        //        .Generate();
-
-        //    Hash target = new Hash("e");
-        //    var prooflist = tree.GetProofList(target);
-
-        //    Assert.True(prooflist[0].Hash.ToString() == new Hash("a").ToString());
-        //    Assert.True(prooflist[prooflist.Count - 1].Hash.ToString() == tree.MerkleRoot.Hash.ToString());
-        //}
-
         [Fact]
         public void VerifyProofListTest()
         {
@@ -54,25 +39,6 @@ namespace AElf.Kernel.Tests
         }
 
         #region Some methods
-
-        //private static MerkleNode CreateNode(string buffer1, string buffer2)
-        //{
-        //    MerkleNode left = new MerkleNode
-        //    {
-        //        Hash = new Hash<T>(buffer1)
-        //    };
-        //    MerkleNode right = new MerkleNode
-        //    {
-        //        Hash = new Hash<T>(buffer2)
-        //    };
-
-        //    MerkleNode parent = new MerkleNode();
-        //    parent.SetLeftNode(left);
-        //    parent.SetRightNode(right);
-
-        //    return parent;
-        //}
-
         private static List<IHash<ITransaction>> CreateLeaves(string[] buffers)
         {
             List<IHash<ITransaction>> leaves = new List<IHash<ITransaction>>();

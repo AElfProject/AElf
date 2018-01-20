@@ -6,7 +6,6 @@ namespace AElf.Kernel
     [Serializable]
     public class Block : IBlock
     {
-        #region Seems useless for now, but maybe useful in the future
         public int MagicNumber => 0xAE1F;
 
         /// <summary>
@@ -15,7 +14,6 @@ namespace AElf.Kernel
         /// BlockHeader: 84B
         /// </summary>
         public int BlockSize => 92;
-        #endregion
 
         #region Private fields
         private BlockHeader _blockHeader { get; set; }
