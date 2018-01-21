@@ -18,5 +18,4 @@ namespace AElf.Kernel
             _blocks.Add(block);
         }
     }
-   
 }

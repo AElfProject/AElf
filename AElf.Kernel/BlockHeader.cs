@@ -17,14 +17,14 @@ namespace AElf.Kernel
             get
             {
                 MerkleTree<IAccount> merkle = new MerkleTree<IAccount>();
-                if (_stateTireRightChild.Nodes.Count < 1)
+                if (_stateTrieRightChild.Nodes.Count < 1)
                 {
                     merkle.AddNode(_preStateRootHash);
                 }
                 else
                 {
                     merkle.AddNodes(new List<IHash<IAccount>>{ _preStateRootHash,
-                        new Hash<IAccount>(_stateTireRightChild?.ComputeRootHash().Value) });
+                        new Hash<IAccount>(_stateTrieRightChild?.ComputeRootHash().Value) });
                 }
 
                 return merkle.ComputeRootHash();
@@ -61,7 +61,7 @@ namespace AElf.Kernel
 
         #region Private fields
         private MerkleTree<ITransaction> _transactionTrie = new MerkleTree<ITransaction>();
-        private MerkleTree<IAccount> _stateTireRightChild = new MerkleTree<IAccount>();
+        private MerkleTree<IAccount> _stateTrieRightChild = new MerkleTree<IAccount>();
         #endregion
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace AElf.Kernel
         public void AddState(IAccount account)
         {
             var hash = account.GetAddress();
-            _stateTireRightChild.AddNode(hash);
+            _stateTrieRightChild.AddNode(hash);
         }
 
         /// <summary>
