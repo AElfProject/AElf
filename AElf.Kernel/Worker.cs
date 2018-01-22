@@ -14,7 +14,7 @@ namespace AElf.Kernel
             _transaction = tx;
         }
 
-        public List<Account> ExecuteTransaction()
+        public List<IAccount> ExecuteTransaction()
         {
             return new AccountManager().ExecuteTransactionAsync(_transaction);
         }

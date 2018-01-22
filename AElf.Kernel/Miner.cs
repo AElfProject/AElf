@@ -48,7 +48,7 @@ namespace AElf.Kernel
                 (blockheader as BlockHeader).Nonce++;
                 //Do mining
                 var result = (blockheader as BlockHeader).GetHash();
-                if (result.Value.NumberOfZero() == bits)
+                if (result.Value.CountOfZero() == bits)
                 {
                     //Get the proper hash value.
                     return result.Value;

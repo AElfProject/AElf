@@ -16,18 +16,10 @@ namespace AElf.Kernel
         public static Chain Chain { get; set; } = new Chain();
 
         public static ChainManager ChainManager { get; set; } = new ChainManager();
-        ///// <summary>
-        ///// Add some transactions.
-        ///// </summary>
-        //public void Initialazation()
-        //{
-        //    new List<string> { "a", "e", "l", "f" }.ForEach(
-        //        str => _transactions.Enqueue(new Transaction() { Data = str }));
-        //}
 
         static Network()
         {
-            Block block = new Block(new Hash<IBlock>("aelf".GetHash()), new Hash<IAccount>("2018".GetHash()));
+            Block block = new Block(new Hash<IBlock>("aelf".GetSHA256Hash()), new Hash<IAccount>("2018".GetSHA256Hash()));
             Miner miner = new Miner();
             MerkleTree<ITransaction> tree = new MerkleTree<ITransaction>();
             CreateLeaves(new string[] { "a", "e", "l", "f" }).ForEach(l => block.GetHeader().AddTransaction(l));
@@ -58,16 +50,32 @@ namespace AElf.Kernel
             return null;
         }
 
-
         private static List<IHash<ITransaction>> CreateLeaves(string[] buffers)
         {
             List<IHash<ITransaction>> leaves = new List<IHash<ITransaction>>();
             foreach (var buffer in buffers)
             {
-                IHash<ITransaction> hash = new Hash<ITransaction>(buffer.GetHash());
+                IHash<ITransaction> hash = new Hash<ITransaction>(buffer.GetSHA256Hash());
                 leaves.Add(hash);
             }
             return leaves;
+        }
+    }
+
+    public static class QueueExtensions
+    {
+        public static bool TryDequeue<T>(this Queue<T> queue, out T t)
+        {
+            if (queue.Count > 0)
+            {
+                t = queue.Dequeue();
+                return true;
+            }
+            else
+            {
+                t = default(T);
+                return false;
+            }
         }
     }
 }

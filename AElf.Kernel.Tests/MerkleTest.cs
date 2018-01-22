@@ -19,13 +19,13 @@ namespace AElf.Kernel.Tests
              *      a        e          l           f
              */
             //Proof List: { hash(a), hash(e), hash(hash(l), hash(f)) }
-            var hash_a = new Hash<ITransaction>("a".GetHash());
+            var hash_a = new Hash<ITransaction>("a".GetSHA256Hash());
 
-            var hash_e = new Hash<ITransaction>("e".GetHash());
+            var hash_e = new Hash<ITransaction>("e".GetSHA256Hash());
 
-            var hash_l = new Hash<ITransaction>("l".GetHash());
-            var hash_f = new Hash<ITransaction>("f".GetHash());
-            var hash_l_f = new Hash<ITransaction>((hash_l.ToString() + hash_f.ToString()).GetHash());
+            var hash_l = new Hash<ITransaction>("l".GetSHA256Hash());
+            var hash_f = new Hash<ITransaction>("f".GetSHA256Hash());
+            var hash_l_f = new Hash<ITransaction>((hash_l.ToString() + hash_f.ToString()).GetSHA256Hash());
             #endregion
 
             List<Hash<ITransaction>> prooflist = new List<Hash<ITransaction>>
@@ -44,7 +44,7 @@ namespace AElf.Kernel.Tests
             List<IHash<ITransaction>> leaves = new List<IHash<ITransaction>>();
             foreach (var buffer in buffers)
             {
-                IHash<ITransaction> hash = new Hash<ITransaction>(buffer.GetHash());
+                IHash<ITransaction> hash = new Hash<ITransaction>(buffer.GetSHA256Hash());
                 leaves.Add(hash);
             }
             return leaves;

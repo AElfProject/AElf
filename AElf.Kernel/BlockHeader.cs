@@ -99,7 +99,7 @@ namespace AElf.Kernel
 
         public IHash<IBlockHeader> GetHash()
         {
-            return new Hash<IBlockHeader>(ExtensionMethods.GetHash(this));
+            return new Hash<IBlockHeader>(this.GetSHA256Hash());
         }
 
         public IHash<IMerkleTree<IAccount>> GetStateMerkleTreeRoot()

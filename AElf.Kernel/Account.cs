@@ -8,7 +8,7 @@ namespace AElf.Kernel
 
         public IHash<IAccount> GetAddress()
         {
-            return new Hash<IAccount>(ExtensionMethods.GetHash(this));
+            return new Hash<IAccount>(this.GetSHA256Hash());
         }
 
         public void Invoke(string methodName, params string[] values)

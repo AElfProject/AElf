@@ -2,6 +2,12 @@
 {
     public interface ITransaction
     {
+        IAccount AccountFrom { get; set; }
+
+        IAccount AccountTo { get; set; }
+
+        int Amount { get; set; }
+
         /// <summary>
         /// Get hash of the transaction
         /// </summary>

@@ -48,7 +48,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public bool AddState(IAccount account)
         {
-            var hash = new Hash<IAccount>(ExtensionMethods.GetHash(account));
+            var hash = new Hash<IAccount>(this.GetSHA256Hash());
             if (null == _stateMerkleTreeRightChild.FindLeaf(hash))
             {
                 _stateMerkleTreeRightChild.AddNode(hash);

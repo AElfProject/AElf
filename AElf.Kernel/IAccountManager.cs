@@ -10,6 +10,6 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        List<Account> ExecuteTransactionAsync(ITransaction tx);
+        List<IAccount> ExecuteTransactionAsync(ITransaction tx);
     }
 }

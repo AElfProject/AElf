@@ -6,15 +6,6 @@ namespace AElf.Kernel
     [Serializable]
     public class Block : IBlock
     {
-        public int MagicNumber => 0xAE1F;
-
-        /// <summary>
-        /// Magic Number: 4B
-        /// BlockSize: 4B
-        /// BlockHeader: 84B
-        /// </summary>
-        public int BlockSize => 92;
-
         #region Private fields
         private BlockHeader _blockHeader { get; set; }
         private BlockBody _blockBody { get; set; } = new BlockBody();
@@ -22,7 +13,8 @@ namespace AElf.Kernel
 
         /// <summary>
         /// When we want to generate a new block,
-        /// we must now know the hash value of previous block.
+        /// we must now know the hash value of previous block,
+        /// as well as the state root hash value of previous block.
         /// </summary>
         /// <param name="preBlockHash"></param>
         public Block(IHash<IBlock> preBlockHash, IHash<IAccount> preStateRootHash)
@@ -70,7 +62,7 @@ namespace AElf.Kernel
 
         public IHash GetHash()
         {
-            return new Hash<IBlock>(ExtensionMethods.GetHash(this));
+            return new Hash<IBlock>(this.GetSHA256Hash());
         }
     }
 }

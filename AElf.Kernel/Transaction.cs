@@ -14,7 +14,7 @@ namespace AElf.Kernel
 
         public IHash<ITransaction> GetHash()
         {
-            return new Hash<ITransaction>(ExtensionMethods.GetHash(this));
+            return new Hash<ITransaction>(this.GetSHA256Hash());
         }
 
         public ITransactionParallelMetaData GetParallelMetaData()

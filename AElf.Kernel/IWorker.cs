@@ -7,6 +7,6 @@ namespace AElf.Kernel
 {
     public interface IWorker
     {
-        List<Account> ExecuteTransaction();
+        List<IAccount> ExecuteTransaction();
     }
 }

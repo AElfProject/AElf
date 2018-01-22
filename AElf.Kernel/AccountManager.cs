@@ -7,11 +7,11 @@ namespace AElf.Kernel
 {
     class AccountManager : IAccountManager
     {
-        public List<Account> ExecuteTransactionAsync(ITransaction tx)
+        public List<IAccount> ExecuteTransactionAsync(ITransaction tx)
         {
-            var accountFrom = ((tx as Transaction).AccountFrom as Account);
-            var accountTo = ((tx as Transaction).AccountFrom as Account);
-            var amount = (tx as Transaction).Amount;
+            var accountFrom = tx.AccountFrom;
+            var accountTo = tx.AccountFrom;
+            var amount = tx.Amount;
 
             var stateFrom = WorldState.GetAmountByAccount(accountFrom);
             var stateTo = WorldState.GetAmountByAccount(accountTo);
@@ -19,7 +19,7 @@ namespace AElf.Kernel
             accountFrom.Amount = stateFrom - amount;
             accountTo.Amount = stateFrom + amount;
 
-            var list = new List<Account>() { accountFrom, accountTo };
+            var list = new List<IAccount>() { accountFrom, accountTo };
 
             return list;
         }

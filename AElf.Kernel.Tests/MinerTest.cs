@@ -13,7 +13,7 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void MineTest()
         {
-            Block block = new Block(new Hash<IBlock>("aelf".GetHash()), new Hash<IAccount>("2018".GetHash()));
+            Block block = new Block(new Hash<IBlock>("aelf".GetSHA256Hash()), new Hash<IAccount>("2018".GetSHA256Hash()));
             Miner miner = new Miner();
 
             MerkleTree<ITransaction> tree = new MerkleTree<ITransaction>();
@@ -28,7 +28,7 @@ namespace AElf.Kernel.Tests
             List<IHash<ITransaction>> leaves = new List<IHash<ITransaction>>();
             foreach (var buffer in buffers)
             {
-                IHash<ITransaction> hash = new Hash<ITransaction>(buffer.GetHash());
+                IHash<ITransaction> hash = new Hash<ITransaction>(buffer.GetSHA256Hash());
                 leaves.Add(hash);
             }
             return leaves;
