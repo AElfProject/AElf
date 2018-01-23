@@ -12,6 +12,7 @@ using AElf.Kernel.Worker;
 using QuickGraph;
 using QuickGraph.Collections;
 using QuickGraph.Graphviz.Dot;
+using QuickGraph.Serialization.DirectedGraphML;
 
 namespace AElf.Kernel
 {
@@ -19,7 +20,7 @@ namespace AElf.Kernel
     {
         private Mutex mut = new Mutex();
         private Dictionary<IHash, List<ITransaction>> pending = new Dictionary<IHash, List<ITransaction>>();
-        public static Dictionary<int, List<IHash>> ExecutePlan = new Dictionary<int, List<IHash>>();
+        private Dictionary<int, List<IHash>> executingPlan = new Dictionary<int, List<IHash>>();
         
 
         public TransactionExecutingManager()
@@ -34,6 +35,11 @@ namespace AElf.Kernel
             set => pending = value;
         }
 
+        public Dictionary<int, List<IHash>> ExecutingPlan
+        {
+            get => executingPlan;
+        }
+        
         
         /// <summary>
         /// AEs the lf. kernel. IT ransaction executing manager. execute async.
@@ -42,7 +48,7 @@ namespace AElf.Kernel
         /// <param name="tx">Tx.</param>
         async Task ITransactionExecutingManager.ExecuteAsync(ITransaction tx)
         {
-            Task task = new Task(() =>
+            var task = new Task(() =>
             {
                 // group transactions by resource type
                 var conflicts = tx.GetParallelMetaData().GetDataConflict();
@@ -103,12 +109,11 @@ namespace AElf.Kernel
                 }
             }
 
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
             //CalculateExecutingPlan(graph);
             //AsyncExecuteGraph(graph);
             ColorGraph(graph);
-            stopwatch.Stop();
+            
+            //ConnectedComponentsForColoring(graph);
             
             // reset 
             pending = new Dictionary<IHash, List<ITransaction>>();
@@ -194,7 +199,6 @@ namespace AElf.Kernel
         /// Executes the graph synchronously
         /// </summary>
         /// <param name="n">N.</param>
-        /// <param name="phase">phase</param>
         private void ExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n)
         {
             
@@ -221,7 +225,6 @@ namespace AElf.Kernel
                 var subgraph = hashToGraph[hashToProcess];
                 
                 //TODO: process the sigle task synchronously
-                TPLWorker tplWorker=new TPLWorker();
                 
                 subgraph.RemoveVertex(hashToProcess);
 
@@ -347,8 +350,8 @@ namespace AElf.Kernel
         /// <param name="graph"></param>
         private void CalculateExecutingPlan(UndirectedGraph<IHash, Edge<IHash>> graph)
         {
-            ExecutePlan = new Dictionary<int, List<IHash>>();
-            int phase = 0;
+            executingPlan = new Dictionary<int, List<IHash>>();
+            var phase = 0;
             List<UndirectedGraph<IHash, Edge<IHash>>> graphs = new List<UndirectedGraph<IHash, Edge<IHash>>>();
             if (graph.VertexCount > 0)
                 graphs.Add(graph);
@@ -362,7 +365,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="graph"></param>
         /// <param name="graphToHash"></param>
-        private void SubGraphs(UndirectedGraph<IHash, Edge<IHash>> graph, Dictionary<UndirectedGraph<IHash, Edge<IHash>>, IHash>  graphToHash)
+        private void SubGraphsForCalculatingExecutingPlan(UndirectedGraph<IHash, Edge<IHash>> graph, Dictionary<UndirectedGraph<IHash, Edge<IHash>>, IHash>  graphToHash)
         {
 
             Dictionary<IHash, int> colorDictionary = new Dictionary<IHash, int>();
@@ -391,15 +394,14 @@ namespace AElf.Kernel
 
             while (graphs.Count>0)
             {
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Start();
+                
                 Dictionary<UndirectedGraph<IHash, Edge<IHash>>, IHash> nextPhaseGraphToHash = new Dictionary<UndirectedGraph<IHash, Edge<IHash>>, IHash>();
 
                 Stopwatch stopwatchSubGraphs = new Stopwatch();
                 stopwatchSubGraphs.Start();
                 foreach (var graph in graphs)
                 {
-                    SubGraphs(graph, nextPhaseGraphToHash);
+                    SubGraphsForCalculatingExecutingPlan(graph, nextPhaseGraphToHash);
                 }
                 stopwatchSubGraphs.Stop();
                 
@@ -408,16 +410,13 @@ namespace AElf.Kernel
                 foreach (var graph in nextPhaseGraphToHash.Keys)
                 {
                     var p = phase;
-                    if(!ExecutePlan.Keys.Contains(p)) ExecutePlan[p] = new List<IHash>();
-                    ExecutePlan[p].Add(nextPhaseGraphToHash[graph]);
+                    if(!executingPlan.Keys.Contains(p)) executingPlan[p] = new List<IHash>();
+                    executingPlan[p].Add(nextPhaseGraphToHash[graph]);
 
                     graph.RemoveVertex(nextPhaseGraphToHash[graph]);
                     if(graph.VertexCount!=0) graphs.Add(graph); 
                 }
-                //
-                stopwatch.Stop();
-                
-                
+            
                 phase++;
                 
             }
@@ -438,7 +437,8 @@ namespace AElf.Kernel
         
         #region Coloring Algorithm
 
-       
+
+
         /// <summary>
         /// use coloring algorithm to claasify txs
         /// </summary>
@@ -446,34 +446,24 @@ namespace AElf.Kernel
         private void ColorGraph(UndirectedGraph<IHash, Edge<IHash>> graph)
         {
             
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
+            // use Max-Root Heap sort to determine coloring order
             BinaryHeap<int, IHash> hashHeap = new BinaryHeap<int, IHash>(MaxIntCompare);
-            
             foreach (var hash in graph.Vertices)
             {
                 hashHeap.Add(graph.AdjacentDegree(hash), hash);
             }
             
+            // color result for each vertex
             Dictionary<IHash, int> colorResult = new Dictionary<IHash, int>();
             
+            // coloring whol graph
             GreedyColoring(graph, hashHeap, colorResult);
             
-            stopwatch.Stop();
-            
-            
-            Dictionary<int, List<IHash>> results = new Dictionary<int, List<IHash>>();
-
-            foreach (var kv in colorResult)
+            foreach (var r in executingPlan)
             {
-                if(!results.Keys.Contains(kv.Value)) results[kv.Value] = new List<IHash>();
-                results[kv.Value].Add(kv.Key);
-            }
-
-            
-            foreach (var r in results)
-            {
+                Console.Write(r.Key + ":");
                 List<Task> tasks = new List<Task>();
+                
                 foreach (var h in r.Value)
                 {
                     Task task = Task.Run(() =>
@@ -483,8 +473,9 @@ namespace AElf.Kernel
                     tasks.Add(task);
                 }
                 Task.WaitAll(tasks.ToArray());
+                Console.WriteLine();
             }
-            
+            Console.WriteLine();
         }
         
         
@@ -497,13 +488,18 @@ namespace AElf.Kernel
         /// <param name="colorResult"></param>
         private void GreedyColoring(UndirectedGraph<IHash, Edge<IHash>> graph, BinaryHeap<int, IHash> hashHeap, Dictionary<IHash, int> colorResult)
         {
+            
             IHash hash = hashHeap.RemoveMinimum().Value;
             colorResult[hash] = 0;
 
+            if(!executingPlan.Keys.Contains(0)) executingPlan[0] = new List<IHash>();
+            executingPlan[0].Add(hash);
+            
             // d+1, d means maximum degree in the given graph 
-            int maxColorCount = graph.AdjacentDegree(hash) + 1;
+            var maxColorCount = graph.AdjacentDegree(hash) + 1;
+            
             // array for colors to represent if available, false == yes, true == no
-            bool []available = new bool[maxColorCount];
+            var available = new bool[maxColorCount];
 
             while(hashHeap.Count > 0)
             {
@@ -518,14 +514,14 @@ namespace AElf.Kernel
                     }
                 }
 
-                for (int i = 0; i < maxColorCount; i++)
+                for (var i = 0; i < maxColorCount; i++)
                 {
                     var color = available[i];
-                    if (!color)
-                    {
-                        colorResult[h] = i;
-                        break;
-                    }
+                    if (color) continue;
+                    colorResult[h] = i;
+                    if(!executingPlan.Keys.Contains(i)) executingPlan[i] = new List<IHash>();
+                    executingPlan[i].Add(h);
+                    break;
                 }
                 
                 // reset available array, all colors should be available before next iteration
