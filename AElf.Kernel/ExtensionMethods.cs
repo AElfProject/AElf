@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -6,9 +7,11 @@ namespace AElf.Kernel
 {
     public static class ExtensionMethods
     {
-        public static byte[] ComputeHash(this byte[] buffer)
+        public static byte[] GetSHA256Hash(this object obj)
         {
-            return SHA256.Create().ComputeHash(buffer);
+            return SHA256.Create().ComputeHash(
+                Encoding.UTF8.GetBytes(
+                    JsonConvert.SerializeObject(obj)));
         }
 
         /// <summary>
@@ -24,15 +27,23 @@ namespace AElf.Kernel
 
             List<Hash<ITransaction>> list = new List<Hash<ITransaction>>()
             {
-                new Hash<ITransaction>(
-                    SHA256.Create().ComputeHash(
-                        Encoding.UTF8.GetBytes(hashlist[0].ToString() + hashlist[1].ToString())))
+                new Hash<ITransaction>((hashlist[0].ToString() + hashlist[1].ToString()).GetSHA256Hash())
             };
 
             if (hashlist.Count > 2)
                 hashlist.GetRange(2, hashlist.Count - 2).ForEach(h => list.Add(h));
 
             return ComputeProofHash(list);
+        }
+
+        public static int NumberOfZero(this byte[] hash)
+        {
+            int number = 0;
+            while (hash[number] == 0)
+            {
+                number++;
+            }
+            return number;
         }
 
         //TODO: Should build a whole merkle tree to get proof list.

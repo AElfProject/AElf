@@ -1,19 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AElf.Kernel
+﻿namespace AElf.Kernel
 {
+    /// <summary>
+    /// An embeded dummy miner 
+    /// </summary>
     public class Miner : IMiner
     {
+        /// <summary>
+        /// Mine the specified blockheader.
+        /// </summary>
+        /// <returns>does not but serilize the block</returns>
+        /// <param name="blockheader">Blockheader.</param>
         public byte[] Mine(IBlockHeader blockheader)
         {
-            int nonce = (blockheader as BlockHeader).Nonce;
-            while (true)
-            {
-                nonce++;
-
-            }
+            // TODO: return a serlized block header
+            return null;
         }
     }
 }

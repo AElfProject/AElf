@@ -1,40 +1,83 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace AElf.Kernel
 {
+    [Serializable]
     public class BlockHeader : IBlockHeader
     {
-        public int Version => 0;
-        public IHash<IBlock> PreBlockHash { get; protected set; }
-        public IHash<IMerkleTree<ITransaction>> MerkleRootHash { get; protected set; }
-        public long TimeStamp { get; protected set; }
         /// <summary>
-        /// The difficulty of mining.
+        /// AELF version magic words
         /// </summary>
-        public int Bits => GetBits();
-        /// <summary>
-        /// Random value.
-        /// </summary>
-        public int Nonce => GetNonce();
+        /// <value>The version.</value>
+        public const int Version = 0x1;
 
+        /// <summary>
+        /// points to previous block hash 
+        /// </summary>
+        /// <value>The pre block hash.</value>
+        public IHash<IBlock> PreBlockHash { get; protected set; }
+
+        /// <summary>
+        /// The miner's signature.
+        /// </summary>
+        public byte[] Signatures;
+
+        /// <summary>
+        /// the merkle root hash
+        /// </summary>
+        /// <value>The merkle root hash.</value>
+        public IHash<IMerkleTree<ITransaction>> MerkleRootHash
+        {
+            get
+            {
+                return GetTransactionMerkleTreeRoot();
+            }
+        }
+
+        private MerkleTree<ITransaction> MerkleTree { get; set; } = new MerkleTree<ITransaction>();
+
+        /// <summary>
+        /// the timestamp of this block
+        /// </summary>
+        /// <value>The time stamp.</value>
+        public long TimeStamp => DateTime.UtcNow.Second;
+
+        public BlockHeader(IHash<IBlock> preBlockHash)
+        {
+            PreBlockHash = preBlockHash;
+        }
+
+        /// <summary>
+        /// include transactions into the merkle tree
+        /// </summary>
+        /// <param name="hash">Hash.</param>
         public void AddTransaction(IHash<ITransaction> hash)
         {
-            throw new NotImplementedException();
+            MerkleTree.AddNode(hash);
         }
 
+        /// <summary>
+        /// Gets the transaction merkle tree root.
+        /// </summary>
+        /// <returns>The transaction merkle tree root.</returns>
         public IHash<IMerkleTree<ITransaction>> GetTransactionMerkleTreeRoot()
         {
-            throw new NotImplementedException();
+            return MerkleTree.ComputeRootHash();
         }
 
-        private int GetBits()
+        /// <summary>
+        /// Gets the block hash.
+        /// </summary>
+        /// <returns>The hash.</returns>
+        public IHash<IBlockHeader> GetHash()
         {
-            return 1;
-        }
-
-        private int GetNonce()
-        {
-            return new Random().Next(1, 100);
+            return new Hash<IBlockHeader>(this.GetSHA256Hash());
         }
     }
 }
