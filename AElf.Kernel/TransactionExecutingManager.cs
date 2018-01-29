@@ -138,8 +138,8 @@ namespace AElf.Kernel
                 var subgraph = hashToGraph[hashToProcess];
                 
                 //TODO: process the sigle task synchronously
-                Worker worker=new Worker();
-                worker.process(hashToProcess, phase);
+                //Worker worker=new Worker();
+                //worker.process(hashToProcess, phase);
                 
                 subgraph.RemoveVertex(hashToProcess);
 
@@ -192,8 +192,8 @@ namespace AElf.Kernel
                 Task task = Task.Run(() =>
                 {
                     //process the tx
-                    Worker worker=new Worker();
-                    worker.process(maxHash, phase);
+                    //Worker worker=new Worker();
+                    //worker.process(maxHash, phase);
                     
                     subGraph.RemoveVertex(maxHash); 
                     AsyncExecuteGraph(subGraph, phase+1);

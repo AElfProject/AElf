@@ -1,4 +1,6 @@
-﻿namespace AElf.Kernel
+﻿using System.Threading.Tasks;
+
+namespace AElf.Kernel
 {
     /// <summary>
     /// World State presents the state of a chain, changed by block. 
@@ -11,5 +13,11 @@
         /// <param name="account"></param>
         /// <returns></returns>
         IAccountDataProvider GetAccountDataProviderByAccount(IAccount account);
+        
+        /// <summary>
+        /// The merkle tree root presents the world state of a chain
+        /// </summary>
+        /// <returns></returns>
+        Task<IHash<IMerkleTree<IHash>>> GetWordStateMerkleTreeRootAsync();
     }
 }
