@@ -29,6 +29,8 @@ namespace AElf.Kernel
         async Task<ISerializable> IAccountDataProvider.GetAsync(IHash key)
         {
             var c = this.db.GetCollection<Record>("data");
+            
+            
             Task<ISerializable> task = new Task<ISerializable>(() => c.FindOne(x => x.Key.Equals(key)));
             task.Start();
             return await task;
