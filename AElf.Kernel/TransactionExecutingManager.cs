@@ -1,34 +1,28 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Threading;
-using System.Diagnostics.Contracts;
-using System.Drawing;
-using System.IO;
 using System.Linq;
 using QuickGraph;
 using QuickGraph.Collections;
+
 
 namespace AElf.Kernel
 {
     public class TransactionExecutingManager : ITransactionExecutingManager
     {
         private Mutex mut = new Mutex();
-        private Dictionary<IHash, List<ITransaction>> pending = new Dictionary<IHash, List<ITransaction>>();
-        
-
-        public TransactionExecutingManager()
-        {
-        }
-
+        private Dictionary<IHash, List<ITransaction>> _pending = new Dictionary<IHash, List<ITransaction>>();
+        private Dictionary<int, List<IHash>> _executingPlan = new Dictionary<int, List<IHash>>();
         
         
         public Dictionary<IHash, List<ITransaction>> Pending
         {
-            get => pending;
-            set => pending = value;
+            get => _pending;
+            set => _pending = value;
         }
+        public Dictionary<int, List<IHash>> ExecutingPlan { get => _executingPlan;  } 
 
         
         /// <summary>
@@ -36,20 +30,20 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns>The lf. kernel. IT ransaction executing manager. execute async.</returns>
         /// <param name="tx">Tx.</param>
-        async Task ITransactionExecutingManager.ExecuteAsync(ITransaction tx)
+        public async Task ExecuteAsync(ITransaction tx)
         {
-            Task task = new Task(() =>
+            var task = new Task(() =>
             {
                 // group transactions by resource type
                 var conflicts = tx.GetParallelMetaData().GetDataConflict();
                 mut.WaitOne();
                 foreach (var res in conflicts)
                 {
-                    if (pending[res] != null)
+                    if (_pending[res] != null)
                     {
-                        pending[res] = new List<ITransaction>();
+                        _pending[res] = new List<ITransaction>();
                     }
-                    pending[res].Add(tx);
+                    _pending[res].Add(tx);
                     
                 }
                 mut.ReleaseMutex();
@@ -78,11 +72,13 @@ namespace AElf.Kernel
             UndirectedGraph<IHash, Edge<IHash>> graph = new UndirectedGraph<IHash, Edge<IHash>>(false);
             
             this.mut.WaitOne();
-            foreach (var grp in pending)
+            foreach (var grp in _pending)
             {
                 foreach (var tx in grp.Value)
                 {
-                    if (graph.ContainsVertex(tx.GetHash())) continue;
+                    if (graph.ContainsVertex(tx.GetHash())) 
+                        continue;
+                    
                     graph.AddVertex(tx.GetHash());
                 }
 
@@ -99,218 +95,21 @@ namespace AElf.Kernel
                 }
             }
 
-            AsyncExecuteGraph(graph,0);
+            //Calculate_executingPlan(graph);
+            //AsyncExecuteGraph(graph);
+            ColorGraph(graph);
+            
+            //ConnectedComponentsForColoring(graph);
+            
             // reset 
-            pending = new Dictionary<IHash, List<ITransaction>>();
+            _pending = new Dictionary<IHash, List<ITransaction>>();
             this.mut.ReleaseMutex();
 
             // TODO: parallel execution on root nodes;
         }
-
-
-        /// <summary>
-        /// Executes the graph synchronously
-        /// </summary>
-        /// <param name="n">N.</param>
-        private void ExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n, int phase)
-        {
-            
-            /*
-             * 1. DFS is applied to traverse graph to find the node with most neighbors for each subgraphs.
-             * 2. use Hash-Graph map and Max-root heap to maintain subGraphs processing in turn
-             * 3. Repeat above process until all graph done.
-             * 4. use bipartite check to accelerate processing(Black-White graph)
-             */
-            
-            // Max-Root Heap
-            BinaryHeap<int, IHash> hashHeap = new BinaryHeap<int, IHash>(MaxIntCompare);
-            
-            // hashTograph map
-            Dictionary<IHash,UndirectedGraph<IHash, Edge<IHash>>> hashToGraph= new Dictionary<IHash, UndirectedGraph<IHash, Edge<IHash>>>();
-
-            // verify graph connectivity and map hash to subgraphs
-            SubGraphs(n,hashHeap,hashToGraph);
-
-            while(hashHeap.Count>0)
-            {
-                var hashToProcess = hashHeap.RemoveMinimum().Value;
-               
-                var subgraph = hashToGraph[hashToProcess];
-                
-                //TODO: process the sigle task synchronously
-                //Worker worker=new Worker();
-                //worker.process(hashToProcess, phase);
-                
-                subgraph.RemoveVertex(hashToProcess);
-
-                SubGraphs(subgraph, hashHeap, hashToGraph);
-                hashToGraph.Remove(hashToProcess);
-            }
-        }
-
-        /// <summary>
-        /// Executes the graph asynchronously
-        /// </summary>
-        /// <param name="n"></param>
-        /// <returns></returns>
-        public void AsyncExecuteGraph(UndirectedGraph<IHash, Edge<IHash>> n, int phase)
-        {
-            /*
-             * search for subgraphs and process subgraphs asynchronously
-             * if no subgraphs, execute and remove the node with most neighbors
-             */
-
-            Dictionary<IHash, int> colorDictionary = new Dictionary<IHash, int>();
-
-            List<Task> tasks=new List<Task>();
-            foreach (var hash in n.Vertices)
-            {
-                if (colorDictionary.Keys.Contains(hash)) continue;
-                
-                UndirectedGraph<IHash, Edge<IHash>> subGraph = new UndirectedGraph<IHash, Edge<IHash>>();
-                IHash maxHash = hash;
-                bool isBipartite = DfsSearch(n, subGraph, ref maxHash, colorDictionary);
-
-                if (isBipartite)
-                {
-                    //TODO : if bipartite, parallel process for tasks in both sets asynchronously;
-                    /*foreach (var h in subGraph.Vertices)
-                    {
-                        if (colorDictionary[h]==1)
-                        {
-                            Console.Write("T"+Thread.CurrentThread.ManagedThreadId+":" + (char)h.GetHashBytes()[0]+"!    ");
-                        }
-                        if (colorDictionary[h]==-1)
-                        {
-                            Console.Write("T"+Thread.CurrentThread.ManagedThreadId+":" + (char)h.GetHashBytes()[0]+"?    ");
-                        }
-                    }
-                    continue;*/
-                }
-
-                //if not Bipartite, execute ths subgraph in new task
-                Task task = Task.Run(() =>
-                {
-                    //process the tx
-                    //Worker worker=new Worker();
-                    //worker.process(maxHash, phase);
-                    
-                    subGraph.RemoveVertex(maxHash); 
-                    AsyncExecuteGraph(subGraph, phase+1);
-                });
-                tasks.Add(task);
-            }
-            var whenAllTask = Task.WhenAll(tasks);
-            
-            try {
-                whenAllTask.Wait();
-            }
-            catch {} 
-
-        }
-
         
-        /// <summary>
-        /// verify graph connectivity for synchronously process
-        /// </summary>
-        /// <param name="n"></param>
-        /// <param name="hashHeap"></param>
-        /// <param name="hashToGraph"></param>
-        private void SubGraphs(UndirectedGraph<IHash, Edge<IHash>> n, BinaryHeap<int, IHash> hashHeap, Dictionary<IHash,UndirectedGraph<IHash, Edge<IHash>>> hashToGraph)
-        {
-            // Bipartite Graph check
-            Dictionary<IHash,int> colorDictionary = new Dictionary<IHash, int>();
-            
-            foreach (var hash in n.Vertices)
-            {
-                if (colorDictionary.Keys.Contains(hash)) continue;
-                
-                UndirectedGraph<IHash, Edge<IHash>> subGraph = new UndirectedGraph<IHash, Edge<IHash>>();
-                
-                // hash with most dependencies in the graph 
-                IHash maxHash = hash;
-                bool isBipartite  = DfsSearch(n, subGraph, ref maxHash, colorDictionary);
-                
-                
-                if (isBipartite)
-                {
-                    //TODO : if bipartite, parallel process for tasks in both sets asynchronously;
-                    /*foreach (var h in subGraph.Vertices)
-                    {
-                        if (colorDictionary[h]==1)
-                        {
-                            Console.Write("white:" + (char)h.GetHashBytes()[0]+"    ");
-                        }
-                        if (colorDictionary[h]==-1)
-                        {
-                            Console.Write("black:" + (char)h.GetHashBytes()[0]+"    ");
-                        }
-                       
-                    }
-                    continue;*/
-                }
-                
-                //if not Bipartite, add maxhash to heap and hashToGraph Dictionary
-                hashHeap.Add(subGraph.AdjacentDegree(maxHash),maxHash);
-                hashToGraph[maxHash]=subGraph;
-                
-            }
-            
-        }
         
-        /// <summary>
-        /// DFS is applied to traverse graph with color for bipartite  
-        /// </summary>
-        /// <param name="n">N.</param>
-        /// <param name="subGraph" />
-        /// <param name="maxHash"></param>
-        /// <param name="colorDictionary"></param>
-        private bool DfsSearch(UndirectedGraph<IHash, Edge<IHash>> n,  UndirectedGraph<IHash, Edge<IHash>> subGraph, ref IHash maxHash, Dictionary<IHash,int> colorDictionary)
-        {
-            //stack
-            Stack<IHash> stack=new Stack<IHash>();
-            stack.Push(maxHash);
-            subGraph.AddVertex(maxHash);
-            
-            int color = 1;
-            colorDictionary[maxHash] = color;
-            bool res = true;
-            
-            
-            while (stack.Count>0)
-            {
-                IHash cur = stack.Pop();
-                
-                maxHash = n.AdjacentDegree(maxHash) > n.AdjacentDegree(cur) ? maxHash : cur;
-
-                //opposite color
-                color = colorDictionary[cur] * -1;
-
-                foreach (var edge in n.AdjacentEdges(cur))
-                {
-                    IHash nei = edge.Source == cur ? edge.Target : edge.Source;
-                    
-                    //color check 
-                    if (colorDictionary.Keys.Contains(nei))
-                    {
-                        if (colorDictionary[nei] != color) res = false;
-                    }
-                    else
-                    {
-                        //add vertex 
-                        subGraph.AddVertex(nei);
-                        colorDictionary.Add(nei, color);
-                        stack.Push(nei);
-                    }
-                    
-                    //add edge
-                    if(!subGraph.ContainsEdge(edge)) subGraph.AddEdge(edge);
-                }
-            }
-            
-            return res;
-            
-        }
+        
         
         /// <summary>
         /// comparsion for heap
@@ -326,5 +125,127 @@ namespace AElf.Kernel
                 return -1;
             return 0;
         }
+        
+        /// <summary>
+        /// use coloring algorithm to claasify txs
+        /// </summary>
+        /// <param name="graph"></param>
+        private void ColorGraph(UndirectedGraph<IHash, Edge<IHash>> graph)
+        {
+            
+            // use Max-Root Heap sort to determine coloring order
+            BinaryHeap<int, IHash> hashHeap = new BinaryHeap<int, IHash>(MaxIntCompare);
+            foreach (var hash in graph.Vertices)
+            {
+                hashHeap.Add(graph.AdjacentDegree(hash), hash);
+            }
+            
+            // color result for each vertex
+            Dictionary<IHash, int> colorResult = new Dictionary<IHash, int>();
+            
+            // coloring whol graph
+            GreedyColoring(graph, hashHeap, colorResult);
+            
+            foreach (var r in _executingPlan)
+            {
+                Console.Write(r.Key + ":");
+                List<Task> tasks = new List<Task>();
+                
+                foreach (var h in r.Value)
+                {
+                    var task = Task.Factory.StartNew(() =>
+                    {
+                        var a = 1 + 1;
+                    });
+                    tasks.Add(task);
+                }
+                Task.WaitAll(tasks.ToArray());
+                Console.WriteLine();
+            }
+            Console.WriteLine();
+        }
+
+        /// <summary>
+        /// graph coloring algorithm
+        /// </summary>
+        /// <param name="graph"></param>
+        /// <param name="hashHeap"></param>
+        /// <param name="colorResult"></param>
+        private void GreedyColoring(UndirectedGraph<IHash, Edge<IHash>> graph, BinaryHeap<int, IHash> hashHeap, Dictionary<IHash, int> colorResult)
+        {
+            
+            IHash hash = hashHeap.RemoveMinimum().Value;
+            colorResult[hash] = 0;
+
+            if(!_executingPlan.Keys.Contains(0)) _executingPlan[0] = new List<IHash>();
+            _executingPlan[0].Add(hash);
+            
+            // d+1, d means maximum degree in the given graph 
+            var maxColorCount = graph.AdjacentDegree(hash) + 1;
+            
+            // array for colors to represent if available, false == yes, true == no
+            var available = new bool[maxColorCount];
+
+            while(hashHeap.Count > 0)
+            {
+                IHash h = hashHeap.RemoveMinimum().Value;
+                
+                foreach (var edge in graph.AdjacentEdges(h))
+                {
+                    var nei = edge.Source != h ? edge.Source : edge.Target;
+                    if (colorResult.Keys.Contains(nei) && colorResult[nei] != -1)
+                    {
+                        available[colorResult[nei]] = true;
+                    }
+                }
+
+                for (var i = 0; i < maxColorCount; i++)
+                {
+                    var color = available[i];
+                    if (color) 
+                        continue;
+                    colorResult[h] = i;
+                    if(!_executingPlan.Keys.Contains(i)) _executingPlan[i] = new List<IHash>();
+                    _executingPlan[i].Add(h);
+                    break;
+                }
+                
+                // reset available array, all colors should be available before next iteration
+                foreach (var edge in graph.AdjacentEdges(h))
+                {
+                    var nei = edge.Source != h ? edge.Source : edge.Target;
+                    if (colorResult.Keys.Contains(nei)  && colorResult[nei] != -1)
+                    {
+                        available[colorResult[nei]] = false;
+                    }
+                }
+                
+                
+            }
+            
+        }
+        
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
