@@ -33,7 +33,14 @@ namespace AElf.Kernel
         /// <returns></returns>
         Task SetAsync(IHash address,ISerializable obj);
         
-        object Context { get; set; }
-        
+        IAccountDataContext Context { get; set; }
+
+
+        IHash<IAccount> GetAccountAddress();
+    }
+
+    public interface IAccountDataContext
+    {
+        long IncreasementId { get; set; }
     }
 }
