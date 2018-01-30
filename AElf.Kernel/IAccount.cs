@@ -12,6 +12,5 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns></returns>
         IHash<IAccount> GetAddress();
-
     }
 }

@@ -41,6 +41,6 @@ namespace AElf.Kernel
 
     public interface IAccountDataContext
     {
-        long IncreasementId { get; set; }
+        ulong IncreasementId { get; set; }
     }
 }

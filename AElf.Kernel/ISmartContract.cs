@@ -5,7 +5,7 @@ namespace AElf.Kernel
     
     public interface ISmartContract
     {
-        void SetAccountDataProvider(IAccountDataProvider provider);
-        Task Invoke(IHash<IAccount> caller, string methodname, params object[] objs);
+        Task InititalizeAsync(IAccountDataProvider dataProvider);
+        Task InvokeAsync(IHash<IAccount> caller, string methodname, params object[] objs);
     }
 }
