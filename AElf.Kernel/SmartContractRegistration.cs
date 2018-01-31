@@ -2,7 +2,7 @@
 {
     
     
-    public class SmartContractRegistration
+    public class SmartContractRegistration: ISerializable
     {
         
         /// <summary>
@@ -15,5 +15,9 @@
         public IHash Hash { get; set; }
         
         public byte[] Bytes { get; set; }
+        public byte[] Serialize()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

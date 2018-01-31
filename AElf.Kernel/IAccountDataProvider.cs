@@ -1,13 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AElf.Kernel
 {
-
-    public interface ISerializable
-    {
-        byte[] Serialize();
-    }
-
     /// <summary>
     /// Data is stored associated with Account
     /// </summary>
@@ -20,23 +15,26 @@ namespace AElf.Kernel
         Task<IHash<IMerkleTree<ISerializable>>> GetDataMerkleTreeRootAsync();
 
         /// <summary>
-        /// Gets the async.
+        /// 
         /// </summary>
-        /// <param name="address"></param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        Task<ISerializable> GetAsync(IHash address);
+        Task<ISerializable> GetAsync(IHash key);
 
         /// <summary>
+        /// 
         /// </summary>
-        /// <param name="address"></param>
+        /// <param name="key"></param>
         /// <param name="obj"></param>
         /// <returns></returns>
-        Task SetAsync(IHash address,ISerializable obj);
+        Task SetAsync(IHash key,ISerializable obj);
         
         IAccountDataContext Context { get; set; }
 
 
         IHash<IAccount> GetAccountAddress();
+
+        Task<IAccountDataProvider> GetMapAsync(string name);
     }
 
     public interface IAccountDataContext
