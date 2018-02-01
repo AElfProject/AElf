@@ -1,114 +1,114 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Threading;
 using System.Linq;
 using QuickGraph;
-using QuickGraph.Collections;
 
 
 namespace AElf.Kernel
 {
     public class TransactionExecutingManager : ITransactionExecutingManager
     {
-        private Mutex mut = new Mutex();
+        
+        private readonly object _locker = new object();
         private Dictionary<IHash, List<ITransaction>> _pending = new Dictionary<IHash, List<ITransaction>>();
-        private Dictionary<int, List<IHash>> _executingPlan = new Dictionary<int, List<IHash>>();
         
+        private Dictionary<int, List<ITransaction>> _executingPlan ;
+        private UndirectedGraph<ITransaction, Edge<ITransaction>> _graph;
         
-        public Dictionary<IHash, List<ITransaction>> Pending
-        {
-            get => _pending;
-            set => _pending = value;
-        }
-        public Dictionary<int, List<IHash>> ExecutingPlan { get => _executingPlan;  } 
+        public Dictionary<int, List<ITransaction>> ExecutingPlan { get => _executingPlan;} 
 
         
         /// <summary>
-        /// AEs the lf. kernel. IT ransaction executing manager. execute async.
+        /// AElf.kernel.ITransaction executing manager. execute async.
         /// </summary>
         /// <returns>The lf. kernel. IT ransaction executing manager. execute async.</returns>
         /// <param name="tx">Tx.</param>
-        public async Task ExecuteAsync(ITransaction tx)
+        public Task ExecuteAsync(ITransaction tx)
         {
-            var task = new Task(() =>
+            var task = Task.Factory.StartNew(() =>
             {
-                // group transactions by resource type
-                var conflicts = tx.GetParallelMetaData().GetDataConflict();
-                mut.WaitOne();
-                foreach (var res in conflicts)
-                {
-                    if (_pending[res] != null)
-                    {
-                        _pending[res] = new List<ITransaction>();
-                    }
-                    _pending[res].Add(tx);
-                    
-                }
-                mut.ReleaseMutex();
+                var a = 1 + 1;
             });
-            task.Start();
-
-            await task;
+            return task;
         }
 
+
+        /// <summary>
+        /// </summary>
+        /// <param name="tx"></param>
+        private Task ReceiveTransaction(ITransaction tx)
+        {
+            var task = Task.Factory.StartNew(() =>
+            {
+                // group transactions by resource type
+                // var conflicts = tx.GetParallelMetaData().GetDataConflict();
+                
+                // get state occupied by the tx
+                var conflicts = new List<IHash> {tx.From.GetAddress(), tx.To.GetAddress()};
+                
+                _graph.AddVertex(tx);
+
+                lock (_locker) 
+                {
+                    foreach (var res in conflicts)
+                    {
+                           
+                        if (!_pending.ContainsKey(res))
+                        {
+                            _pending[res] = new List<ITransaction>();
+                        }
+                        foreach (var t in _pending[res])
+                        {
+                            _graph.AddEdge(new Edge<ITransaction>(t, tx));
+                        }
+                        _pending[res].Add(tx);
+                    }
+                }
+            });
+
+            return task;
+        }
         
 
         /// <summary>
         /// Schedule execution of transaction
         /// </summary>
-        public void Schedule()
+        public void Schedule(List<ITransaction> transactions)
         {
-            //  Execution strategy(experimental)
-            //  1. tranform the dependency of Resource(R) into graph of related Transactions(T)
-            //  2. find the T(ransaction) which connects to the most neightbours
-            //  3. execute the T(ransaction), and removes this node from the graph
-            //  4. check to see if this removal leads to graph split
-            //  5. if YES, we can parallel execute the transactions from the splitted graph
-            //  6  if NO, goto step 2
-
-            // build the graph
-            UndirectedGraph<IHash, Edge<IHash>> graph = new UndirectedGraph<IHash, Edge<IHash>>(false);
+           
+            _executingPlan = new Dictionary<int, List<ITransaction>>();
+            _graph = new UndirectedGraph<ITransaction, Edge<ITransaction>>(false);
             
-            this.mut.WaitOne();
-            foreach (var grp in _pending)
+            foreach (var tx in transactions)
             {
-                foreach (var tx in grp.Value)
-                {
-                    if (graph.ContainsVertex(tx.GetHash())) 
-                        continue;
-                    
-                    graph.AddVertex(tx.GetHash());
-                }
+                
+                var conflicts = new List<IHash> {tx.From.GetAddress(), tx.To.GetAddress()};
+                
+                _graph.AddVertex(tx);
 
-                foreach (var tx in grp.Value)
+                
+                foreach (var res in conflicts)
                 {
-                    foreach (var neighbour in grp.Value)
+                       
+                    if (!_pending.ContainsKey(res))
                     {
-                        if (!tx.Equals(neighbour))
-                        {
-                            graph.AddEdge(new Edge<IHash>(tx.GetHash(), neighbour.GetHash()));
-                            
-                        }
+                        _pending[res] = new List<ITransaction>();
                     }
+                    foreach (var t in _pending[res])
+                    {
+                        _graph.AddEdge(new Edge<ITransaction>(t, tx));
+                    }
+                    _pending[res].Add(tx);
                 }
+                
             }
-
-            //Calculate_executingPlan(graph);
-            //AsyncExecuteGraph(graph);
-            ColorGraph(graph);
             
-            //ConnectedComponentsForColoring(graph);
+            ColorGraph(transactions);
             
             // reset 
             _pending = new Dictionary<IHash, List<ITransaction>>();
-            this.mut.ReleaseMutex();
-
-            // TODO: parallel execution on root nodes;
+            
         }
-        
-        
         
         
         /// <summary>
@@ -126,102 +126,85 @@ namespace AElf.Kernel
             return 0;
         }
         
+        
         /// <summary>
         /// use coloring algorithm to claasify txs
         /// </summary>
-        /// <param name="graph"></param>
-        private void ColorGraph(UndirectedGraph<IHash, Edge<IHash>> graph)
+        private void ColorGraph(List<ITransaction> transactions)
         {
-            
-            // use Max-Root Heap sort to determine coloring order
-            BinaryHeap<int, IHash> hashHeap = new BinaryHeap<int, IHash>(MaxIntCompare);
-            foreach (var hash in graph.Vertices)
-            {
-                hashHeap.Add(graph.AdjacentDegree(hash), hash);
-            }
-            
             // color result for each vertex
-            Dictionary<IHash, int> colorResult = new Dictionary<IHash, int>();
+            Dictionary<ITransaction, int> colorResult = new Dictionary<ITransaction, int>();
             
             // coloring whol graph
-            GreedyColoring(graph, hashHeap, colorResult);
+            GreedyColoring(colorResult, transactions);
+
             
             foreach (var r in _executingPlan)
             {
-                Console.Write(r.Key + ":");
+                
                 List<Task> tasks = new List<Task>();
                 
                 foreach (var h in r.Value)
                 {
-                    var task = Task.Factory.StartNew(() =>
-                    {
-                        var a = 1 + 1;
-                    });
+                    var task = ExecuteAsync(h);
                     tasks.Add(task);
                 }
                 Task.WaitAll(tasks.ToArray());
-                Console.WriteLine();
             }
-            Console.WriteLine();
         }
-
+        
+        
         /// <summary>
         /// graph coloring algorithm
         /// </summary>
-        /// <param name="graph"></param>
-        /// <param name="hashHeap"></param>
         /// <param name="colorResult"></param>
-        private void GreedyColoring(UndirectedGraph<IHash, Edge<IHash>> graph, BinaryHeap<int, IHash> hashHeap, Dictionary<IHash, int> colorResult)
+        private void GreedyColoring(Dictionary<ITransaction, int> colorResult, List<ITransaction> transactions)
         {
             
-            IHash hash = hashHeap.RemoveMinimum().Value;
-            colorResult[hash] = 0;
-
-            if(!_executingPlan.Keys.Contains(0)) _executingPlan[0] = new List<IHash>();
-            _executingPlan[0].Add(hash);
-            
-            // d+1, d means maximum degree in the given graph 
-            var maxColorCount = graph.AdjacentDegree(hash) + 1;
             
             // array for colors to represent if available, false == yes, true == no
-            var available = new bool[maxColorCount];
+            var available = new List<bool> {false};
 
-            while(hashHeap.Count > 0)
+
+            foreach (var tx in  transactions)
             {
-                IHash h = hashHeap.RemoveMinimum().Value;
                 
-                foreach (var edge in graph.AdjacentEdges(h))
+                foreach (var edge in _graph.AdjacentEdges(tx))
                 {
-                    var nei = edge.Source != h ? edge.Source : edge.Target;
+                    var nei = edge.Source != tx ? edge.Source : edge.Target;
                     if (colorResult.Keys.Contains(nei) && colorResult[nei] != -1)
                     {
                         available[colorResult[nei]] = true;
                     }
                 }
 
-                for (var i = 0; i < maxColorCount; i++)
+                var i = 0;
+                for (; i < available.Count; i++)
                 {
-                    var color = available[i];
-                    if (color) 
+                    if (available[i]) 
                         continue;
-                    colorResult[h] = i;
-                    if(!_executingPlan.Keys.Contains(i)) _executingPlan[i] = new List<IHash>();
-                    _executingPlan[i].Add(h);
+                    colorResult[tx] = i;
+                    if(!_executingPlan.Keys.Contains(i)) _executingPlan[i] = new List<ITransaction>();
+                    _executingPlan[i].Add(tx);
                     break;
                 }
-                
-                // reset available array, all colors should be available before next iteration
-                foreach (var edge in graph.AdjacentEdges(h))
+
+                if (i == available.Count)
                 {
-                    var nei = edge.Source != h ? edge.Source : edge.Target;
-                    if (colorResult.Keys.Contains(nei)  && colorResult[nei] != -1)
-                    {
-                        available[colorResult[nei]] = false;
-                    }
+                    available.Add(false);
+                    colorResult[tx] = i;
+                    if(!_executingPlan.Keys.Contains(i)) _executingPlan[i] = new List<ITransaction>();
+                    _executingPlan[i].Add(tx);
                 }
                 
                 
+                // reset available array, all colors should be available before next iteration
+                for (int j = 0; j < available.Count; j++)
+                {
+                    available[j] = false;
+                }
             }
+
             
         }
         
