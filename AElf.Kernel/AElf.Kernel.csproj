@@ -11,6 +11,6 @@
   <ItemGroup>
     <PackageReference Include="LiteDB" Version="4.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="QuickGraph" Version="3.6.61119.7" />
+    <PackageReference Include="QuickGraphCore" Version="1.0.0" />
   </ItemGroup>
 </Project>
