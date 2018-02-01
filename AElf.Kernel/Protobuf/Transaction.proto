@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel.Protobuf";
+
+message TransactionData
+{
+    /* public object[] Params { get; set; } */
+    string MethodName = 1;
+
+    AccountData From = 2;
+    AccountData To = 3;
+}
+
+message AccountData
+{
+    bytes Address = 1;
+}
