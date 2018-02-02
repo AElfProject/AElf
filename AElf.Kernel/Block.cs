@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using AElf.Kernel.Extensions;
+using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Runtime.Serialization;

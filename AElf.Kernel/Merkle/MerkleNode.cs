@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -43,7 +44,7 @@ namespace AElf.Kernel
         {
             if (left.Hash == null)
             {
-                throw new AELFException("Merkle node did not initialized.");
+                throw new InvalidOperationException("Merkle node did not initialized.");
             }
             LeftNode = left;
             LeftNode.ParentNode = this;
@@ -58,7 +59,7 @@ namespace AElf.Kernel
         {
             if (right.Hash == null)
             {
-                throw new AELFException("Merkle node did not initialized.");
+                throw new InvalidOperationException("Merkle node did not initialized.");
             }
             RightNode = right;
             RightNode.ParentNode = this;

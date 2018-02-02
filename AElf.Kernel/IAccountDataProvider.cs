@@ -36,6 +36,6 @@ namespace AElf.Kernel
 
         IHash<IAccount> GetAccountAddress();
 
-        Task<IAccountDataProvider> GetMapAsync(string name);
+        Task<IDataProvider> GetMapAsync(string name);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AElf.Kernel.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -45,7 +46,7 @@ namespace AElf.Kernel
         {
             if (hashes.Count < 1)
             {
-                throw new AELFException("Cannot generate merkle tree without any nodes.");
+                throw new InvalidOperationException("Cannot generate merkle tree without any nodes.");
             }
 
             if (hashes.Count == 1)//Finally

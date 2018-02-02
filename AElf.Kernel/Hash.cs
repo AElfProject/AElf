@@ -3,7 +3,6 @@ using AElf.Kernel.Extensions;
 
 namespace AElf.Kernel
 {
-    [Serializable]
     public class Hash<T> : IHash<T>
     {
         public static readonly Hash<T> Zero = new Hash<T>();
