@@ -10,44 +10,21 @@ namespace AElf.Kernel
     {
         private Dictionary<string, IHash> _constractMap = new Dictionary<string, IHash>();
 
+        public IAccountDataContext Context { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         public IHash<IAccount> GetAccountAddress()
         {
             throw new NotImplementedException();
         }
 
-        public Task<ISerializable> GetAsync(IHash key)
+        public IDataProvider GetDataProvider()
         {
             throw new NotImplementedException();
-        }
-
-        public Task<IHash<IMerkleTree<ISerializable>>> GetDataMerkleTreeRootAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IDataProvider> GetMapAsync(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IHash GetDataProviderHash(string name)
-        {
-            IHash hash;
-            if (_constractMap.TryGetValue(name, out hash))
-            {
-                return hash;
-            }
-            return null;
         }
 
         public byte[] Serialize()
         {
-            return SerializeExtensions.Serialize(this);
-        }
-
-        public Task SetAsync(IHash key, ISerializable obj)
-        {
-            throw new NotImplementedException();
+            return SerializationExtensions.Serialize(this);
         }
     }
 }

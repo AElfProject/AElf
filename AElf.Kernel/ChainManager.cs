@@ -16,7 +16,6 @@ namespace AElf.Kernel
         public Task AddBlockAsync(IChain chain, IBlock block)
         {
             return new Task(() =>(chain as Chain).Blocks.Add(block as Block));
-                                
         }
     }
 }

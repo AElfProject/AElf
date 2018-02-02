@@ -42,12 +42,6 @@ namespace AElf.Kernel
         {
             return (IDataProvider)_dataProviders[providerAddress].Deserialize();
         }
-
-        public static IDataProvider GetDataProvider(IHash accountAddress, string providerName)
-        {
-            var _accountDataProvider = GetAccountDataProvider(accountAddress);
-            return GetDataProvider(_accountDataProvider.GetDataProviderHash(providerName));
-        }
         #endregion
 
         #region Set Account Data Provider

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AElf.Kernel.Extensions
 {
-    public static class SerializeExtensions
+    public static class SerializationExtensions
     {
         public static byte[] Serialize(this object obj)
         {

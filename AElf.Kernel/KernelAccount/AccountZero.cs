@@ -15,10 +15,5 @@ namespace AElf.Kernel.KernelAccount
         {
             return Hash<IAccount>.Zero;
         }
-
-        public ISmartContractInvoker CreateInvoker(string methodName, params object[] values)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
