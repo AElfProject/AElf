@@ -8,9 +8,11 @@ namespace AElf.Kernel.KernelAccount
         private IAccountDataProvider _accountDataProvider;
         
         
-        public Task InititalizeAsync(IAccountDataProvider dataProvider)
+        public async Task InititalizeAsync(IAccountDataProvider dataProvider)
         {
             this._accountDataProvider = dataProvider;
+
+            await Task.CompletedTask;
         }
 
         public async Task InvokeAsync(IHash<IAccount> caller, 
@@ -32,12 +34,12 @@ namespace AElf.Kernel.KernelAccount
         public async Task RegisterSmartContrace(SmartContractRegistration reg)
         {
             
-            // My Sql
+            // Like My Sql
             
             
             var smartContractMap = (IAccountDataProvider)
                 await _accountDataProvider.GetMapAsync("SmartContractMap");
-            await smartContractMap.SetAsync(reg.Hash, reg);
+            await smartContractMap.GetDataProvider().SetAsync(reg.Hash, reg);
 
         }
     }
