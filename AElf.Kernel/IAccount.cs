@@ -12,7 +12,5 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns></returns>
         IHash<IAccount> GetAddress();
-
-        ISmartContractInvoker CreateInvoker(string methodName, params object[] values);
     }
 }
