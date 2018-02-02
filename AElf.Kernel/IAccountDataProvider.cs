@@ -9,13 +9,9 @@ namespace AElf.Kernel
     public interface IAccountDataProvider
     {
         
-        
         IAccountDataContext Context { get; set; }
 
-
         IHash<IAccount> GetAccountAddress();
-
-        Task<IAccountDataProvider> GetMapAsync(string name);
 
         IDataProvider GetDataProvider();
     }
