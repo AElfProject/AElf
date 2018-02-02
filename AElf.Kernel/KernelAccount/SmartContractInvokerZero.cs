@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel.KernelAccount
 {
-    public class SmartContractInvokerZero: ISmartContractInvoker
+    public class SmartContractInvokerZero : ISmartContractInvoker
     {
 
         private SmartContractZero _contract;
@@ -23,8 +23,6 @@ namespace AElf.Kernel.KernelAccount
         public async Task InvokeAsync(IAccountDataProvider accountDataProvider)
         {
             //First step, setup data access driver
-            
-            
         }
     }
 }

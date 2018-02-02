@@ -20,20 +20,22 @@ namespace AElf.Kernel
         Task<IHash<IMerkleTree<ISerializable>>> GetDataMerkleTreeRootAsync();
 
         /// <summary>
-        /// Gets the async.
+        /// 
         /// </summary>
-        /// <param name="address"></param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        Task<ISerializable> GetAsync(IHash address);
+        Task<ISerializable> GetAsync(IHash key);
 
         /// <summary>
+        /// 
         /// </summary>
-        /// <param name="address"></param>
+        /// <param name="key"></param>
         /// <param name="obj"></param>
         /// <returns></returns>
-        Task SetAsync(IHash address,ISerializable obj);
-        
-        object Context { get; set; }
-        
+        Task SetAsync(IHash key,ISerializable obj);
+
+        IHash<IAccount> GetAccountAddress();
+
+        Task<IAccountDataProvider> GetMapAsync(string name);
     }
 }
