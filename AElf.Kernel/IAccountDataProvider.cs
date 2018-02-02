@@ -11,7 +11,7 @@ namespace AElf.Kernel
     /// <summary>
     /// Data is stored associated with Account
     /// </summary>
-    public interface IAccountDataProvider
+    public interface IAccountDataProvider : ISerializable
     {
         /// <summary>
         /// Gets the data merkle tree root.

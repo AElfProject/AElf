@@ -41,7 +41,7 @@ namespace AElf.Kernel
             }
         }
 
-        private MerkleTree<ITransaction> MerkleTree { get; set; } = new MerkleTree<ITransaction>();
+        private BinaryMerkleTree<ITransaction> MerkleTree { get; set; } = new BinaryMerkleTree<ITransaction>();
 
         /// <summary>
         /// the timestamp of this block
@@ -78,7 +78,7 @@ namespace AElf.Kernel
         /// <returns>The hash.</returns>
         public IHash<IBlockHeader> GetHash()
         {
-            return new Hash<IBlockHeader>(this.GetSHA256Hash());
+            return new Hash<IBlockHeader>(this.CalculateHash());
         }
     }
 }

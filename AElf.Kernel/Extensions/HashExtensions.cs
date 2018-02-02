@@ -8,11 +8,25 @@ namespace AElf.Kernel.Extensions
 {
     public static class HashExtensions
     {
-        public static byte[] GetSHA256Hash(this object obj)
+        public static byte[] CalculateHash(this object obj)
         {
-            return SHA256.Create().ComputeHash(
+            return CalculateHash(
                 Encoding.UTF8.GetBytes(
                     JsonConvert.SerializeObject(obj)));
         }
+        
+        public static byte[] CalculateHashWith(this object obj, object another)
+        {
+            return CalculateHash(
+                Encoding.UTF8.GetBytes(
+                    JsonConvert.SerializeObject(obj) + JsonConvert.SerializeObject(another)));
+        }
+
+        #region private methods
+        private static byte[] CalculateHash(byte[] bytes)
+        {
+            return SHA256.Create().ComputeHash(bytes);
+        }
+        #endregion
     }
 }

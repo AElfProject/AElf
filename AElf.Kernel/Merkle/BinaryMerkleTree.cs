@@ -2,13 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace AElf.Kernel
 {
-    [Serializable]
-    public class MerkleTree<T> : IMerkleTree<T>
+    public class BinaryMerkleTree<T> : IMerkleTree<T>
     {
         /// <summary>
         /// Merkle nodes
@@ -16,7 +13,7 @@ namespace AElf.Kernel
         public List<IHash<T>> Nodes { get; protected set; } = new List<IHash<T>>();
 
         /// <summary>
-        /// Add a leaf at the same time.
+        /// Add a leaf node and compute root hash.
         /// </summary>
         /// <param name="hash"></param>
         public void AddNode(IHash<T> hash)
@@ -25,22 +22,14 @@ namespace AElf.Kernel
             ComputeRootHash();
         }
 
-        public MerkleTree<T> AddNodes(List<IHash<T>> hashes)
+        public BinaryMerkleTree<T> AddNodes(List<IHash<T>> hashes)
         {
             hashes.ForEach(hash => Nodes.Add(hash));
 
             return this;
         }
 
-        public IHash<IMerkleTree<T>> ComputeRootHash()
-        {
-            return ComputeRootHash(Nodes);
-        }
-
-        private Hash<IMerkleTree<T>> CreateHash(byte[] hash)
-        {
-            return new Hash<IMerkleTree<T>>(hash);
-        }
+        public IHash<IMerkleTree<T>> ComputeRootHash() => ComputeRootHash(Nodes);
 
         public IHash<IMerkleTree<T>> ComputeRootHash(List<IHash<T>> hashes)
         {
@@ -51,7 +40,7 @@ namespace AElf.Kernel
 
             if (hashes.Count == 1)//Finally
             {
-                return CreateHash(hashes[0].Value);
+                return new Hash<IMerkleTree<T>>(hashes[0].Value);
             }
             else
             {
@@ -61,7 +50,7 @@ namespace AElf.Kernel
                 for (int i = 0; i < hashes.Count; i += 2)
                 {
                     IHash<T> right = (i + 1 < hashes.Count) ? new Hash<T>(hashes[i + 1].Value) : null;
-                    IHash<T> parent = new Hash<T>((hashes[i].ToString() + right?.ToString()).GetSHA256Hash());
+                    IHash<T> parent = new Hash<T>((hashes[i].ToString() + right?.ToString()).CalculateHash());
 
                     parents.Add(parent);
                 }
@@ -74,8 +63,24 @@ namespace AElf.Kernel
 
         public bool VerifyProofList(List<Hash<ITransaction>> hashlist)
         {
-            List<Hash<ITransaction>> list = hashlist.ComputeProofHash();
+            List<Hash<ITransaction>> list = ComputeProofHash(hashlist);
             return ComputeRootHash().ToString() == list[0].ToString();
+        }
+
+        private List<Hash<ITransaction>> ComputeProofHash(List<Hash<ITransaction>> hashlist)
+        {
+            if (hashlist.Count < 2)
+                return hashlist;
+
+            List<Hash<ITransaction>> list = new List<Hash<ITransaction>>()
+            {
+                new Hash<ITransaction>((hashlist[0].ToString() + hashlist[1].ToString()).CalculateHash())
+            };
+
+            if (hashlist.Count > 2)
+                hashlist.GetRange(2, hashlist.Count - 2).ForEach(h => list.Add(h));
+
+            return ComputeProofHash(list);
         }
     }
 }

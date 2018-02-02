@@ -6,7 +6,7 @@ namespace AElf.Kernel.Extensions
 {
     public static class SerializeExtensions
     {
-        public static ISerializable Serialize(this object obj)
+        public static byte[] Serialize(this object obj)
         {
             // TODO:
             // Use this extension method to make the specific serialize implementation easy to change.

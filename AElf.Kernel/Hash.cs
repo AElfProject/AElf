@@ -1,9 +1,9 @@
-﻿using System;
-using AElf.Kernel.Extensions;
+﻿using AElf.Kernel.Extensions;
+using System.Collections.Generic;
 
 namespace AElf.Kernel
 {
-    public class Hash<T> : IHash<T>
+    public class Hash<T> : IHash<T>, IComparer<Hash<T>>
     {
         public static readonly Hash<T> Zero = new Hash<T>();
         
@@ -23,5 +23,15 @@ namespace AElf.Kernel
         public byte[] GetHashBytes() => Value;
 
         public bool Equals(IHash other) => Value == other.GetHashBytes();
+
+        public int Compare(Hash<T> x, Hash<T> y)
+        {
+            if (x.ToString() == y.ToString())
+                return 0;
+            if (x.ToString().CompareTo(y.ToString()) > 0)
+                return 1;
+            else
+                return -1;
+        }
     }
 }

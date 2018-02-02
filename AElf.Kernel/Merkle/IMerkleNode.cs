@@ -2,8 +2,8 @@
 
 namespace AElf.Kernel
 {
-    public interface IMerkleNode: IEnumerable<IMerkleNode>
+    public interface IMerkleNode : IEnumerable<IMerkleNode>, ISerializable
     {
-        void ComputeHash();
+
     }
 }

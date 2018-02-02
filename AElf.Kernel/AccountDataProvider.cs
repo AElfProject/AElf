@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AElf.Kernel.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,6 +26,11 @@ namespace AElf.Kernel
         public Task<IDataProvider> GetMapAsync(string name)
         {
             throw new NotImplementedException();
+        }
+
+        public byte[] Serialize()
+        {
+            return SerializeExtensions.Serialize(this);
         }
 
         public Task SetAsync(IHash key, ISerializable obj)

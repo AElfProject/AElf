@@ -1,26 +1,11 @@
 ﻿using AElf.Kernel.Extensions;
-using Newtonsoft.Json;
 using System;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace AElf.Kernel
 {
     [Serializable]
     public class Block : IBlock
     {
-        public int MagicNumber => 0xAE1F;
-
-        /// <summary>
-        /// Magic Number: 4B
-        /// BlockSize: 4B
-        /// BlockHeader: 84B
-        /// </summary>
-        public int BlockSize => 92;
-
         private BlockHeader BlockHeader { get; set; }
 
         private BlockBody BlockBody { get; set; } = new BlockBody();
@@ -75,7 +60,7 @@ namespace AElf.Kernel
         /// <returns>The hash.</returns>
         public IHash GetHash()
         {
-            return new Hash<IBlock>(this.GetSHA256Hash());
+            return new Hash<IBlock>(this.CalculateHash());
         }
     }
 }
