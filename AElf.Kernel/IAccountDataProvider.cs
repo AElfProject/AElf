@@ -2,12 +2,6 @@
 
 namespace AElf.Kernel
 {
-
-    public interface ISerializable
-    {
-        byte[] Serialize();
-    }
-
     /// <summary>
     /// Data is stored associated with Account
     /// </summary>

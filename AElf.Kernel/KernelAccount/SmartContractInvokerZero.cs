@@ -5,7 +5,6 @@ namespace AElf.Kernel.KernelAccount
 {
     public class SmartContractInvokerZero : ISmartContractInvoker
     {
-
         private SmartContractZero _contract;
         private readonly string _methodName;
         private readonly object[] _objs;
