@@ -37,5 +37,7 @@ namespace AElf.Kernel
         IHash<IAccount> GetAccountAddress();
 
         Task<IDataProvider> GetMapAsync(string name);
+
+        IHash GetDataProviderHash(string name);
     }
 }

@@ -46,10 +46,7 @@ namespace AElf.Kernel
         public static IDataProvider GetDataProvider(IHash accountAddress, string providerName)
         {
             var _accountDataProvider = GetAccountDataProvider(accountAddress);
-            // TODO:
-            // The method GetMapAsync should call GetDataProvider method above,
-            // after get the have value of the data provider by a map in the account data provider.
-            return _accountDataProvider.GetMapAsync(providerName).Result;
+            return GetDataProvider(_accountDataProvider.GetDataProviderHash(providerName));
         }
         #endregion
 
