@@ -41,13 +41,13 @@ namespace AElf.Kernel
             }
         }
 
-        private BinaryMerkleTree<ITransaction> MerkleTree { get; set; } = new BinaryMerkleTree<ITransaction>();
+        private BinaryMerkleTree<ITransaction> _transactionMerkleTree { get; set; } = new BinaryMerkleTree<ITransaction>();
 
         /// <summary>
         /// the timestamp of this block
         /// </summary>
         /// <value>The time stamp.</value>
-        public long TimeStamp => DateTime.UtcNow.Second;
+        public long TimeStamp => (long)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds;
 
         public BlockHeader(IHash<IBlock> preBlockHash)
         {
@@ -60,7 +60,7 @@ namespace AElf.Kernel
         /// <param name="hash">Hash.</param>
         public void AddTransaction(IHash<ITransaction> hash)
         {
-            MerkleTree.AddNode(hash);
+            _transactionMerkleTree.AddNode(hash);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace AElf.Kernel
         /// <returns>The transaction merkle tree root.</returns>
         public IHash<IMerkleTree<ITransaction>> GetTransactionMerkleTreeRoot()
         {
-            return MerkleTree.ComputeRootHash();
+            return _transactionMerkleTree.ComputeRootHash();
         }
 
         /// <summary>

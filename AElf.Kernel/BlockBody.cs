@@ -1,39 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace AElf.Kernel
 {
-    [Serializable]
     public class BlockBody : IBlockBody
     {
-        private List<ITransaction> Transactions { get; set; }
+        private List<ITransaction> _transactions;
 
-        public int TransactionsCount
-        {
-            get
-            {
-                return Transactions.Count;
-            }
-        }
+        public int TransactionsCount => _transactions.Count;
 
         public BlockBody() { }
 
-        public IQueryable<ITransaction> GetTransactions()
-        {
-            return Transactions.AsQueryable();
-        }
+        public IQueryable<ITransaction> GetTransactions() => _transactions.AsQueryable();
 
         public bool AddTransaction(ITransaction tx)
         {
             //Avoid duplication of addition.
-            if (Transactions.Exists(t => t.GetHash() == tx.GetHash()))
+            if (_transactions.Exists(t => t.GetHash() == tx.GetHash()))
             {
                 return false;
             }
-            Transactions.Add(tx);
+            _transactions.Add(tx);
             return true;
         }
-
     }
 }

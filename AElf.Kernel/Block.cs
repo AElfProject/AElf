@@ -6,9 +6,10 @@ namespace AElf.Kernel
     [Serializable]
     public class Block : IBlock
     {
-        private BlockHeader BlockHeader { get; set; }
-
-        private BlockBody BlockBody { get; set; } = new BlockBody();
+        #region Private Fileds
+        private BlockHeader _blockHeader;
+        private BlockBody _blockBody;
+        #endregion
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AElf.Kernel.Block"/> class.
@@ -17,7 +18,8 @@ namespace AElf.Kernel
         /// <param name="preBlockHash">Pre block hash.</param>
         public Block(Hash<IBlock> preBlockHash)
         {
-            BlockHeader = new BlockHeader(preBlockHash);
+            _blockHeader = new BlockHeader(preBlockHash);
+            _blockBody = new BlockBody();
         }
 
         /// <summary>
@@ -27,9 +29,9 @@ namespace AElf.Kernel
         /// <param name="tx">Tx.</param>
         public bool AddTransaction(ITransaction tx)
         {
-            if (BlockBody.AddTransaction(tx))
+            if (_blockBody.AddTransaction(tx))
             {
-                BlockHeader.AddTransaction(tx.GetHash());
+                _blockHeader.AddTransaction(tx.GetHash());
                 return true;
             }
             return false;
@@ -41,7 +43,7 @@ namespace AElf.Kernel
         /// <returns>The body.</returns>
         public IBlockBody GetBody()
         {
-            return BlockBody;
+            return _blockBody;
         }
 
         /// <summary>
@@ -51,7 +53,7 @@ namespace AElf.Kernel
         /// <returns>The header.</returns>
         public IBlockHeader GetHeader()
         {
-            return BlockHeader;
+            return _blockHeader;
         }
 
         /// <summary>
