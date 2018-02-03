@@ -11,6 +11,7 @@ namespace AElf.Kernel
         public List<Block> Blocks { get; set; } = new List<Block>();
 
         public long CurrentBlockHeight => Blocks.Count;
+
         public IHash<IBlock> CurrentBlockHash => new Hash<IBlock>(Blocks[Blocks.Count - 1].GetHeader().GetTransactionMerkleTreeRoot().Value);
     }
 }

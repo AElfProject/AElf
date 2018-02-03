@@ -1,5 +1,4 @@
-﻿using AElf.Kernel.Extensions;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,22 +7,28 @@ using System.Text;
 
 namespace AElf.Kernel
 {
-    public class BinaryMerkleNode : IMerkleNode
+    public class MerkleNode : IMerkleNode
     {
-        public BinaryMerkleNode LeftNode { get; set; }
+        public MerkleNode LeftNode { get; set; }
         /// <summary>
         /// Regard the right node is null if it doesn't exist.
         /// </summaryMerkleNode
-        public BinaryMerkleNode RightNode { get; set; }
-        public BinaryMerkleNode ParentNode { get; set; }
+        public MerkleNode RightNode { get; set; }
+        public MerkleNode ParentNode { get; set; }
         public Hash<IMerkleNode> Hash { get; set; }
 
-        public BinaryMerkleNode(BinaryMerkleNode left, BinaryMerkleNode right = null)
+        public MerkleNode() { }
+
+        //public MerkleNode(IHash<IMerkleNode> left, IHash<IMerkleNode> right = null)
+        //{
+
+        //}
+
+        public MerkleNode(MerkleNode left, MerkleNode right = null)
         {
             LeftNode = left;
             RightNode = right;
             LeftNode.ParentNode = this;
-
             if (RightNode != null)
             {
                 RightNode.ParentNode = this;
@@ -35,7 +40,7 @@ namespace AElf.Kernel
         /// <summary>
         /// Set left node then directly compute hash.
         /// </summary>
-        public void SetLeftNode(BinaryMerkleNode left)
+        public void SetLeftNode(MerkleNode left)
         {
             if (left.Hash == null)
             {
@@ -50,7 +55,7 @@ namespace AElf.Kernel
         /// <summary>
         /// Set right node then compute hash if left node is not null.
         /// </summary>
-        public void SetRightNode(BinaryMerkleNode right)
+        public void SetRightNode(MerkleNode right)
         {
             if (right.Hash == null)
             {
@@ -76,7 +81,9 @@ namespace AElf.Kernel
             }
             else
             {
-                Hash = new Hash<IMerkleNode>((LeftNode.Hash.ToString() + RightNode.Hash.ToString()).CalculateHash());
+                Hash = new Hash<IMerkleNode>(
+                    SHA256.Create().ComputeHash(
+                        Encoding.UTF8.GetBytes(LeftNode.Hash.ToString() + RightNode.Hash.ToString())));
             }
 
             ParentNode?.ComputeHash();//Recursely update the hash value of parent node
@@ -103,7 +110,7 @@ namespace AElf.Kernel
 
         #region Implementation of IEnumerable<MerkleNode>
 
-        public IEnumerator<BinaryMerkleNode> GetEnumerator() => GetEnumerator();
+        public IEnumerator<MerkleNode> GetEnumerator() => GetEnumerator();
 
         IEnumerator<IMerkleNode> IEnumerable<IMerkleNode>.GetEnumerator()
         {
@@ -116,7 +123,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        protected IEnumerable<IMerkleNode> Iterate(BinaryMerkleNode node)
+        protected IEnumerable<IMerkleNode> Iterate(MerkleNode node)
         {
             if (node.LeftNode != null)
             {
@@ -137,11 +144,6 @@ namespace AElf.Kernel
         {
             foreach (var n in Iterate(this))
                 yield return n;
-        }
-
-        public byte[] Serialize()
-        {
-            throw new NotImplementedException();
         }
 
         #endregion

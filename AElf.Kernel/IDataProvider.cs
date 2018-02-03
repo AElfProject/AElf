@@ -2,10 +2,11 @@
 
 namespace AElf.Kernel
 {
-    public interface IDataProvider : ISerializable
+    public interface IDataProvider
     {
         IDataProvider GetDataProvider(string name);
-
+        
+        
         /// <summary>
         /// 
         /// </summary>
@@ -19,8 +20,8 @@ namespace AElf.Kernel
         /// <param name="key"></param>
         /// <param name="obj"></param>
         /// <returns></returns>
-        Task SetAsync(IHash key, ISerializable obj);
-
+        Task SetAsync(IHash key,ISerializable obj);
+        
         /// <summary>
         /// Gets the data merkle tree root.
         /// </summary>
