@@ -45,11 +45,6 @@ namespace AElf.Kernel
             }
         }
 
-        public byte[] Serialize()
-        {
-            return this.ToBytes();
-        }
-
         public Task SetAsync(IHash key, ISerializable obj)
         {
             return Task.FromResult(_data[key] = obj);
