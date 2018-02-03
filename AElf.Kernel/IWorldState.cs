@@ -18,6 +18,6 @@ namespace AElf.Kernel
         /// The merkle tree root presents the world state of a chain
         /// </summary>
         /// <returns></returns>
-        Task<IHash<IMerkleTree<IHash>>> GetWordStateMerkleTreeRootAsync();
+        Task<IHash<IMerkleTree<IHash>>> GetWorldStateMerkleTreeRootAsync();
     }
 }

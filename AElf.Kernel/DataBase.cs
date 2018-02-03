@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel
 {
-    public static class WorldState
+    public static class DataBase
     {
         private static Dictionary<IHash, byte[]> _dataProviders = new Dictionary<IHash, byte[]>();
 

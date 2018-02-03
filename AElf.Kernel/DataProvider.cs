@@ -35,13 +35,13 @@ namespace AElf.Kernel
             IHash hash;
             if (_constractMap.TryGetValue(name, out hash))
             {
-                return WorldState.GetDataProvider(_constractMap[name]);
+                return DataBase.GetDataProvider(_constractMap[name]);
             }
             else
             {
                 hash = GenerateDataProviderHash();
                 _constractMap[name] = hash;
-                return WorldState.GetDataProvider(hash);
+                return DataBase.GetDataProvider(hash);
             }
         }
 
