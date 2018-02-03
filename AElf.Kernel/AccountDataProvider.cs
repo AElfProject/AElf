@@ -19,10 +19,5 @@ namespace AElf.Kernel
         {
             throw new NotImplementedException();
         }
-
-        public byte[] Serialize()
-        {
-            return SerializationExtensions.Serialize(this);
-        }
     }
 }

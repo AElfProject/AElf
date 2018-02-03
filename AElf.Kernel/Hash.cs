@@ -1,37 +1,62 @@
 ﻿using AElf.Kernel.Extensions;
+using System;
 using System.Collections.Generic;
 
 namespace AElf.Kernel
 {
-    public class Hash<T> : IHash<T>, IComparer<Hash<T>>
+    public class Hash<T> : IHash<T>
     {
         public static readonly Hash<T> Zero = new Hash<T>();
-        
+
         public byte[] Value { get; set; }
 
         public Hash(byte[] buffer) => Value = buffer;
 
         //TODO: define length in a static property
         // ReSharper disable once MemberCanBePrivate.Global
-        public Hash():this(new byte[32])
+        public Hash() : this(new byte[32])
         {
-           
+
         }
 
         public override string ToString() => Value.ToHex();
 
         public byte[] GetHashBytes() => Value;
 
-        public bool Equals(IHash other) => Value == other.GetHashBytes();
-
-        public int Compare(Hash<T> x, Hash<T> y)
+        public bool Equals(IHash other)
         {
-            if (x.ToString() == y.ToString())
+            var bytes = GetHashBytes();
+            var otherBytes = other.GetHashBytes();
+            if (bytes.Length != otherBytes.Length)
+            {
+                return false;
+            }
+            for (int i = 0; i < Math.Min(bytes.Length, otherBytes.Length); i++)
+            {
+                if (bytes[i] != otherBytes[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public int Compare(IHash x, IHash y)
+        {
+            if (x == y)
                 return 0;
-            if (x.ToString().CompareTo(y.ToString()) > 0)
-                return 1;
-            else
-                return -1;
+
+            var xValue = x.Value;
+            var yValue = y.Value;
+            for (int i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
+            {
+                if (xValue[i] > yValue[i])
+                {
+                    return 1;
+                }
+            }
+
+            return -1;
         }
     }
 }

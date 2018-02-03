@@ -7,14 +7,22 @@ namespace AElf.Kernel
 {
     public class DataProvider : IDataProvider
     {
-        private List<ISerializable> _data = new List<ISerializable>();
+        private Dictionary<IHash, ISerializable> _data = new Dictionary<IHash, ISerializable>();
         private BinaryMerkleTree<ISerializable> _dataMerkleTree = new BinaryMerkleTree<ISerializable>();
 
         private Dictionary<string, IHash> _constractMap = new Dictionary<string, IHash>();
 
         public Task<ISerializable> GetAsync(IHash key)
         {
-            throw new NotImplementedException();
+            ISerializable result;
+            if (_data.TryGetValue(key, out result))
+            {
+                return Task.FromResult(result);
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public Task<IHash<IMerkleTree<ISerializable>>> GetDataMerkleTreeRootAsync()
@@ -39,12 +47,12 @@ namespace AElf.Kernel
 
         public byte[] Serialize()
         {
-            return SerializationExtensions.Serialize(this);
+            return this.ToBytes();
         }
 
         public Task SetAsync(IHash key, ISerializable obj)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(_data[key] = obj);
         }
 
         /// <summary>

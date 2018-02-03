@@ -6,14 +6,14 @@ namespace AElf.Kernel.Extensions
 {
     public static class SerializationExtensions
     {
-        public static byte[] Serialize(this object obj)
+        public static byte[] ToBytes(this ISerializable obj)
         {
             // TODO:
             // Use this extension method to make the specific serialize implementation easy to change.
             throw new NotImplementedException();
         }
 
-        public static object Deserialize(this ISerializable data)
+        public static ISerializable ToObject(this byte[] data)
         {
             // TODO:
             // Use this extension method to make the specific serialize implementation easy to change.

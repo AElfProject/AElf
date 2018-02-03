@@ -7,7 +7,7 @@ namespace AElf.Kernel
 {
     public static class WorldState
     {
-        private static Dictionary<IHash, ISerializable> _dataProviders = new Dictionary<IHash, ISerializable>();
+        private static Dictionary<IHash, byte[]> _dataProviders = new Dictionary<IHash, byte[]>();
 
         #region Get Account Data Provider
         /// <summary>
@@ -18,16 +18,14 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static IAccountDataProvider GetAccountDataProvider(IHash address)
         {
-            ISerializable result;
+            byte[] result;
             if (_dataProviders.TryGetValue(address, out result))
             {
-                return (IAccountDataProvider)result.Deserialize();
+                return (IAccountDataProvider)result.ToObject();
             }
             else
             {
-                var defaultAccountDataProvider = new AccountDataProvider();
-                _dataProviders.Add(address, defaultAccountDataProvider);
-                return defaultAccountDataProvider;
+                return null;
             }
         }
 
@@ -40,31 +38,24 @@ namespace AElf.Kernel
         #region Get Data Provider
         public static IDataProvider GetDataProvider(IHash providerAddress)
         {
-            ISerializable result;
+            byte[] result;
             if (_dataProviders.TryGetValue(providerAddress, out result))
             {
-                return (IDataProvider)result.Deserialize();
+                return (IDataProvider)result.ToObject();
             }
             else
             {
-                var defaultDataProvider = new DataProvider();
-                _dataProviders.Add(providerAddress, defaultDataProvider);
-                return defaultDataProvider;
+                return null;
             }
         }
         #endregion
 
         #region Set Account Data Provider
-        public static bool SetAccountDataProvider(IHash address, ISerializable accountDataProvider)
+        public static bool SetAccountDataProvider(IHash address, byte[] accountDataProvider)
         {
             if (_dataProviders.ContainsKey(address))
             {
                 //If the account data provider already exists, shouldn't set its value directly.
-                return false;
-            }
-            //Validation
-            if (accountDataProvider.GetType() != typeof(AccountDataProvider))
-            {
                 return false;
             }
             _dataProviders[address] = accountDataProvider;
@@ -73,13 +64,8 @@ namespace AElf.Kernel
         #endregion
 
         #region Set Data Provider
-        public static bool SetDataProvider(IHash providerAddress, ISerializable dataProvider)
+        public static bool SetDataProvider(IHash providerAddress, byte[] dataProvider)
         {
-            //Validation
-            if (dataProvider.GetType() != typeof(DataProvider))
-            {
-                return false;
-            }
             _dataProviders[providerAddress] = dataProvider;
             return true;
         }
