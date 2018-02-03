@@ -6,7 +6,7 @@ namespace AElf.Kernel
     /// <summary>
     /// Data is stored associated with Account
     /// </summary>
-    public interface IAccountDataProvider
+    public interface IAccountDataProvider : ISerializable
     {
         
         IAccountDataContext Context { get; set; }
