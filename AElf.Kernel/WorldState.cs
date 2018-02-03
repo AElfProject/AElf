@@ -40,7 +40,17 @@ namespace AElf.Kernel
         #region Get Data Provider
         public static IDataProvider GetDataProvider(IHash providerAddress)
         {
-            return (IDataProvider)_dataProviders[providerAddress].Deserialize();
+            ISerializable result;
+            if (_dataProviders.TryGetValue(providerAddress, out result))
+            {
+                return (IDataProvider)result.Deserialize();
+            }
+            else
+            {
+                var defaultDataProvider = new DataProvider();
+                _dataProviders.Add(providerAddress, defaultDataProvider);
+                return defaultDataProvider;
+            }
         }
         #endregion
 
@@ -52,15 +62,26 @@ namespace AElf.Kernel
                 //If the account data provider already exists, shouldn't set its value directly.
                 return false;
             }
+            //Validation
+            if (accountDataProvider.GetType() != typeof(AccountDataProvider))
+            {
+                return false;
+            }
             _dataProviders[address] = accountDataProvider;
             return true;
         }
         #endregion
 
         #region Set Data Provider
-        public static void SetDataProvider(IHash providerAddress, ISerializable obj)
+        public static bool SetDataProvider(IHash providerAddress, ISerializable dataProvider)
         {
-            _dataProviders[providerAddress] = obj;
+            //Validation
+            if (dataProvider.GetType() != typeof(DataProvider))
+            {
+                return false;
+            }
+            _dataProviders[providerAddress] = dataProvider;
+            return true;
         }
         #endregion
 

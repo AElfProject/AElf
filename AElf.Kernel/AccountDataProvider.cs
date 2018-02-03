@@ -8,8 +8,6 @@ namespace AElf.Kernel
 {
     public class AccountDataProvider : IAccountDataProvider
     {
-        private Dictionary<string, IHash> _constractMap = new Dictionary<string, IHash>();
-
         public IAccountDataContext Context { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public IHash<IAccount> GetAccountAddress()

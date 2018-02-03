@@ -2,10 +2,9 @@
 
 namespace AElf.Kernel
 {
-    public interface IDataProvider
+    public interface IDataProvider : ISerializable
     {
         IDataProvider GetDataProvider(string name);
-
 
         /// <summary>
         /// 
