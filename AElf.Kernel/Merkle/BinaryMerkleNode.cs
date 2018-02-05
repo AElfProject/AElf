@@ -6,14 +6,15 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Merkle
 {
     public class BinaryMerkleNode : IMerkleNode
     {
         public BinaryMerkleNode LeftNode { get; set; }
+
         /// <summary>
         /// Regard the right node is null if it doesn't exist.
-        /// </summaryMerkleNode
+        /// </summary>
         public BinaryMerkleNode RightNode { get; set; }
         public BinaryMerkleNode ParentNode { get; set; }
         public Hash<IMerkleNode> Hash { get; set; }

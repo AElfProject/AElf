@@ -1,4 +1,4 @@
-﻿using AElf.Kernel.Extensions;
+﻿using AElf.Kernel.Merkle;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,22 +7,11 @@ namespace AElf.Kernel
 {
     public class DataProvider : IDataProvider
     {
-        private Dictionary<IHash, ISerializable> _data = new Dictionary<IHash, ISerializable>();
-        private BinaryMerkleTree<ISerializable> _dataMerkleTree = new BinaryMerkleTree<ISerializable>();
-
-        private Dictionary<string, IHash> _constractMap = new Dictionary<string, IHash>();
+        private readonly BinaryMerkleTree<ISerializable> _dataMerkleTree = new BinaryMerkleTree<ISerializable>();
 
         public Task<ISerializable> GetAsync(IHash key)
         {
-            ISerializable result;
-            if (_data.TryGetValue(key, out result))
-            {
-                return Task.FromResult(result);
-            }
-            else
-            {
-                return null;
-            }
+            throw new NotImplementedException();
         }
 
         public Task<IHash<IMerkleTree<ISerializable>>> GetDataMerkleTreeRootAsync()
@@ -32,29 +21,10 @@ namespace AElf.Kernel
 
         public IDataProvider GetDataProvider(string name)
         {
-            IHash hash;
-            if (_constractMap.TryGetValue(name, out hash))
-            {
-                return DataBase.GetDataProvider(_constractMap[name]);
-            }
-            else
-            {
-                hash = GenerateDataProviderHash();
-                _constractMap[name] = hash;
-                return DataBase.GetDataProvider(hash);
-            }
+            throw new NotImplementedException();
         }
 
         public Task SetAsync(IHash key, ISerializable obj)
-        {
-            return Task.FromResult(_data[key] = obj);
-        }
-
-        /// <summary>
-        /// Somehow to generate the data provider's hash value.
-        /// </summary>
-        /// <returns></returns>
-        private IHash GenerateDataProviderHash()
         {
             throw new NotImplementedException();
         }

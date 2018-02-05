@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AElf.Kernel.Merkle
+namespace AElf.Kernel
 {
     public class WorldState : IWorldState
     {
         public IAccountDataProvider GetAccountDataProviderByAccount(IAccount account)
         {
-            return DataBase.GetAccountDataProviderByAccount(account);
+            throw new NotImplementedException();
         }
 
         public Task<IHash<IMerkleTree<IHash>>> GetWorldStateMerkleTreeRootAsync()

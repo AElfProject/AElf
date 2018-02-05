@@ -1,5 +1,5 @@
 ﻿using AElf.Kernel.Extensions;
-using System;
+using AElf.Kernel.Merkle;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Moq;

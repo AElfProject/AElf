@@ -3,14 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Merkle
 {
     public class BinaryMerkleTree<T> : IMerkleTree<T>
     {
         /// <summary>
         /// Merkle nodes
         /// </summary>
-        public List<IHash<T>> Nodes { get; protected set; } = new List<IHash<T>>();
+        private List<IHash<T>> Nodes { get; set; } = new List<IHash<T>>();
 
         /// <summary>
         /// Add a leaf node and compute root hash.

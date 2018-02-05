@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AElf.Kernel
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="" />
     /// <summary>
     /// Hash result
     /// </summary>

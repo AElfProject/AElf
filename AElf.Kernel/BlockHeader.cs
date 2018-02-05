@@ -1,5 +1,7 @@
 ﻿using AElf.Kernel.Extensions;
+using AElf.Kernel.Merkle;
 using System;
+
 namespace AElf.Kernel
 {
     [Serializable]
@@ -15,7 +17,7 @@ namespace AElf.Kernel
         /// points to previous block hash 
         /// </summary>
         /// <value>The pre block hash.</value>
-        public IHash<IBlock> PreBlockHash { get; protected set; }
+        private IHash<IBlock> _preBlockHash;
 
         /// <summary>
         /// The miner's signature.
@@ -26,15 +28,9 @@ namespace AElf.Kernel
         /// the merkle root hash
         /// </summary>
         /// <value>The merkle root hash.</value>
-        public IHash<IMerkleTree<ITransaction>> MerkleRootHash
-        {
-            get
-            {
-                return GetTransactionMerkleTreeRoot();
-            }
-        }
+        public IHash<IMerkleTree<ITransaction>> MerkleRootHash => GetTransactionMerkleTreeRoot();
 
-        private BinaryMerkleTree<ITransaction> _transactionMerkleTree { get; set; } = new BinaryMerkleTree<ITransaction>();
+        private readonly BinaryMerkleTree<ITransaction> _transactionMerkleTree = new BinaryMerkleTree<ITransaction>();
 
         /// <summary>
         /// the timestamp of this block
@@ -44,7 +40,7 @@ namespace AElf.Kernel
 
         public BlockHeader(IHash<IBlock> preBlockHash)
         {
-            PreBlockHash = preBlockHash;
+            _preBlockHash = preBlockHash;
         }
 
         /// <summary>

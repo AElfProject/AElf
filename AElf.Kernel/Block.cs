@@ -7,8 +7,8 @@ namespace AElf.Kernel
     public class Block : IBlock
     {
         #region Private Fileds
-        private BlockHeader _blockHeader;
-        private BlockBody _blockBody;
+        private readonly BlockHeader _blockHeader;
+        private readonly BlockBody _blockBody;
         #endregion
 
         /// <summary>

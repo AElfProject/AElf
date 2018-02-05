@@ -1,8 +1,4 @@
-﻿using AElf.Kernel.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 
 namespace AElf.Kernel
 {
