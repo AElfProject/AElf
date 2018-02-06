@@ -1,29 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using AElf.Kernel.Extensions;
+using AElf.Kernel.Merkle;
+using System.Collections.Generic;
 using Xunit;
 
 namespace AElf.Kernel.Tests
 {
     public class MerkleTest
     {
-
-        //[Fact]
-        //public void ProofListTest()
-        //{
-        //    MerkleTree tree = new MerkleTree();
-        //    tree.AddLeaves(CreateLeaves(new string[] { "a", "e", "l", "f", "2", "0", "1", "8" }))
-        //        .Generate();
-
-        //    Hash target = new Hash("e");
-        //    var prooflist = tree.GetProofList(target);
-
-        //    Assert.True(prooflist[0].Hash.ToString() == new Hash("a").ToString());
-        //    Assert.True(prooflist[prooflist.Count - 1].Hash.ToString() == tree.MerkleRoot.Hash.ToString());
-        //}
-
         [Fact]
         public void VerifyProofListTest()
         {
-            MerkleTree<ITransaction> tree = new MerkleTree<ITransaction>();
+            BinaryMerkleTree<ITransaction> tree = new BinaryMerkleTree<ITransaction>();
             tree.AddNodes(CreateLeaves(new string[] { "a", "e", "l", "f" }));
 
             #region Create elements of Proof List
@@ -34,13 +21,13 @@ namespace AElf.Kernel.Tests
              *      a        e          l           f
              */
             //Proof List: { hash(a), hash(e), hash(hash(l), hash(f)) }
-            var hash_a = new Hash<ITransaction>("a".GetSHA256Hash());
+            var hash_a = new Hash<ITransaction>("a".CalculateHash());
 
-            var hash_e = new Hash<ITransaction>("e".GetSHA256Hash());
+            var hash_e = new Hash<ITransaction>("e".CalculateHash());
 
-            var hash_l = new Hash<ITransaction>("l".GetSHA256Hash());
-            var hash_f = new Hash<ITransaction>("f".GetSHA256Hash());
-            var hash_l_f = new Hash<ITransaction>((hash_l.ToString() + hash_f.ToString()).GetSHA256Hash());
+            var hash_l = new Hash<ITransaction>("l".CalculateHash());
+            var hash_f = new Hash<ITransaction>("f".CalculateHash());
+            var hash_l_f = new Hash<ITransaction>((hash_l.ToString() + hash_f.ToString()).CalculateHash());
             #endregion
 
             List<Hash<ITransaction>> prooflist = new List<Hash<ITransaction>>
@@ -54,31 +41,12 @@ namespace AElf.Kernel.Tests
         }
 
         #region Some methods
-
-        //private static MerkleNode CreateNode(string buffer1, string buffer2)
-        //{
-        //    MerkleNode left = new MerkleNode
-        //    {
-        //        Hash = new Hash<T>(buffer1)
-        //    };
-        //    MerkleNode right = new MerkleNode
-        //    {
-        //        Hash = new Hash<T>(buffer2)
-        //    };
-
-        //    MerkleNode parent = new MerkleNode();
-        //    parent.SetLeftNode(left);
-        //    parent.SetRightNode(right);
-
-        //    return parent;
-        //}
-
         private static List<IHash<ITransaction>> CreateLeaves(string[] buffers)
         {
             List<IHash<ITransaction>> leaves = new List<IHash<ITransaction>>();
             foreach (var buffer in buffers)
             {
-                IHash<ITransaction> hash = new Hash<ITransaction>(buffer.GetSHA256Hash());
+                IHash<ITransaction> hash = new Hash<ITransaction>(buffer.CalculateHash());
                 leaves.Add(hash);
             }
             return leaves;

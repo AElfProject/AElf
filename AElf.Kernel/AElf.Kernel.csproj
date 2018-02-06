@@ -13,4 +13,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="QuickGraphCore" Version="1.0.0" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="GenesisBlock.json" />
+  </ItemGroup>
 </Project>
