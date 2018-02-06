@@ -1,6 +1,6 @@
 ﻿namespace AElf.Kernel
 {
-    public interface ITransaction
+    public interface ITransaction : ISerializable
     {
         /// <summary>
         /// Get hash of the transaction
