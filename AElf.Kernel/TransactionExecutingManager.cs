@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using AElf.Kernel.Extensions;
 using QuickGraph;
 
 
@@ -10,13 +12,16 @@ namespace AElf.Kernel
     {
         
         private readonly object _locker = new object();
-        private Dictionary<IHash, List<ITransaction>> _pending = new Dictionary<IHash, List<ITransaction>>();
-        
-        private Dictionary<int, List<ITransaction>> _executingPlan ;
+        private Dictionary<byte[], List<ITransaction>> _pending;
         private UndirectedGraph<ITransaction, Edge<ITransaction>> _graph;
-        
-        public Dictionary<int, List<ITransaction>> ExecutingPlan { get => _executingPlan;} 
+        public Dictionary<int, List<ITransaction>> ExecutingPlan { get; private set; }
+        private readonly WorldState _worldState;
 
+        public TransactionExecutingManager(WorldState worldState)
+        {
+            _worldState = worldState;
+        }
+        
         
         /// <summary>
         /// AElf.kernel.ITransaction executing manager. execute async.
@@ -25,53 +30,25 @@ namespace AElf.Kernel
         /// <param name="tx">Tx.</param>
         public Task ExecuteAsync(ITransaction tx)
         {
+            
             var task = Task.Factory.StartNew(() =>
             {
+                // TODO: execute tx
                 var a = 1 + 1;
-                a += 1;
             });
             return task;
         }
 
 
         /// <summary>
-        /// </summary>
+        /// transfer coins between accounts
         /// <param name="tx"></param>
-        private Task ReceiveTransaction(ITransaction tx)
+        /// </summary>
+        private void transfer(ITransaction tx)
         {
-            //TODO
-            /*var task = Task.Factory.StartNew(() =>
-            {
-                // group transactions by resource type
-                // var conflicts = tx.GetParallelMetaData().GetDataConflict();
-                
-                // get state occupied by the tx
-                var conflicts = new List<IHash> {tx.From.GetAddress(), tx.To.GetAddress()};
-                
-                _graph.AddVertex(tx);
-
-                lock (_locker) 
-                {
-                    foreach (var res in conflicts)
-                    {
-                           
-                        if (!_pending.ContainsKey(res))
-                        {
-                            _pending[res] = new List<ITransaction>();
-                        }
-                        foreach (var t in _pending[res])
-                        {
-                            _graph.AddEdge(new Edge<ITransaction>(t, tx));
-                        }
-                        _pending[res].Add(tx);
-                    }
-                }
-            });
-
-            return task; */
-            
-            return new Task(() => {});
+            throw new NotImplementedException();
         }
+
         
 
         /// <summary>
@@ -79,18 +56,15 @@ namespace AElf.Kernel
         /// </summary>
         public void Schedule(List<ITransaction> transactions)
         {
-           //TODO
-            /*_executingPlan = new Dictionary<int, List<ITransaction>>();
+            // reset 
+            _pending = new Dictionary<byte[], List<ITransaction>>();
+            ExecutingPlan = new Dictionary<int, List<ITransaction>>();
             _graph = new UndirectedGraph<ITransaction, Edge<ITransaction>>(false);
             
             foreach (var tx in transactions)
             {
-                
-                var conflicts = new List<IHash> {tx.From.GetAddress(), tx.To.GetAddress()};
-                
+                var conflicts = new List<byte[]> {tx.From, tx.To};
                 _graph.AddVertex(tx);
-
-                
                 foreach (var res in conflicts)
                 {
                        
@@ -104,14 +78,8 @@ namespace AElf.Kernel
                     }
                     _pending[res].Add(tx);
                 }
-                
             }
-            
-            ColorGraph(transactions);
-            
-            // reset 
-            _pending = new Dictionary<IHash, List<ITransaction>>();*/
-            
+            ColorGraph(transactions); 
         }
         
         
@@ -141,11 +109,8 @@ namespace AElf.Kernel
             
             // coloring whol graph
             GreedyColoring(colorResult, transactions);
-
-            
-            foreach (var r in _executingPlan)
+            foreach (var r in ExecutingPlan)
             {
-                
                 List<Task> tasks = new List<Task>();
                 
                 foreach (var h in r.Value)
@@ -164,15 +129,10 @@ namespace AElf.Kernel
         /// <param name="colorResult"></param>
         private void GreedyColoring(Dictionary<ITransaction, int> colorResult, List<ITransaction> transactions)
         {
-            
-            
             // array for colors to represent if available, false == yes, true == no
             var available = new List<bool> {false};
-
-
             foreach (var tx in  transactions)
             {
-                
                 foreach (var edge in _graph.AdjacentEdges(tx))
                 {
                     var nei = edge.Source != tx ? edge.Source : edge.Target;
@@ -181,26 +141,24 @@ namespace AElf.Kernel
                         available[colorResult[nei]] = true;
                     }
                 }
-
+                
                 var i = 0;
                 for (; i < available.Count; i++)
                 {
                     if (available[i]) 
                         continue;
                     colorResult[tx] = i;
-                    if(!_executingPlan.Keys.Contains(i)) _executingPlan[i] = new List<ITransaction>();
-                    _executingPlan[i].Add(tx);
+                    if(!ExecutingPlan.Keys.Contains(i)) ExecutingPlan[i] = new List<ITransaction>();
+                    ExecutingPlan[i].Add(tx);
                     break;
                 }
-
                 if (i == available.Count)
                 {
                     available.Add(false);
                     colorResult[tx] = i;
-                    if(!_executingPlan.Keys.Contains(i)) _executingPlan[i] = new List<ITransaction>();
-                    _executingPlan[i].Add(tx);
+                    if(!ExecutingPlan.Keys.Contains(i)) ExecutingPlan[i] = new List<ITransaction>();
+                    ExecutingPlan[i].Add(tx);
                 }
-                
                 
                 // reset available array, all colors should be available before next iteration
                 for (int j = 0; j < available.Count; j++)
@@ -208,31 +166,8 @@ namespace AElf.Kernel
                     available[j] = false;
                 }
             }
-
-            
         }
         
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
