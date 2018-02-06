@@ -15,5 +15,10 @@ namespace AElf.Kernel.KernelAccount
         {
             return Hash<IAccount>.Zero;
         }
+
+        public byte[] Serialize()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
