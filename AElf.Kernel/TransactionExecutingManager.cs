@@ -12,7 +12,7 @@ namespace AElf.Kernel
     {
         
         private readonly object _locker = new object();
-        private Dictionary<byte[], List<ITransaction>> _pending;
+        private Dictionary<IAccount, List<ITransaction>> _pending;
         private UndirectedGraph<ITransaction, Edge<ITransaction>> _graph;
         public Dictionary<int, List<ITransaction>> ExecutingPlan { get; private set; }
         private readonly WorldState _worldState;
@@ -33,8 +33,15 @@ namespace AElf.Kernel
             
             var task = Task.Factory.StartNew(() =>
             {
-                // TODO: execute tx
-                var a = 1 + 1;
+                try
+                {
+                    var a = 1 + 1;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
             });
             return task;
         }
@@ -44,9 +51,36 @@ namespace AElf.Kernel
         /// transfer coins between accounts
         /// <param name="tx"></param>
         /// </summary>
-        private void transfer(ITransaction tx)
+        private void Transfer(ITransaction tx)
         {
-            throw new NotImplementedException();
+            var accountFrom = tx.From;
+            var accountTo = tx.To;
+            var methodName = tx.MethodName;
+                    
+            var accountFromDataProvider = _worldState.GetAccountDataProviderByAccount(accountFrom);
+            var accountToDataProvider = _worldState.GetAccountDataProviderByAccount(accountTo);
+            
+            var param = tx.Params;
+            if (param.Length != 1 || (int)param[0] < 0)
+                throw new ArgumentException("Illegal parameter", "params");
+                        
+            var fromBalanceHash = accountFrom.CalculateHashWith("Balance");
+            var fromBalanceDataProvider = accountFromDataProvider.GetDataProvider().GetDataProvider("Balance");
+            var fromBalance = fromBalanceDataProvider.GetAsync(new Hash<decimal>(fromBalanceHash)).Result;
+            
+            var toBalanceHash = accountTo.CalculateHashWith("Balance");
+            var toBalanceDataProvider = accountToDataProvider.GetDataProvider().GetDataProvider("Balance");
+            var toBalance = toBalanceDataProvider.GetAsync(new Hash<decimal>(toBalanceHash)).Result;
+            
+            // TODO: deserialize the Balances
+            
+            
+            // TODO: calculate
+            decimal amount = (decimal) param[0];
+
+            // TODO: serialize new Balances and uodate
+            
+            //accountFromDataProvider.GetDataProvider().GetDataProvider("Balance").SetAsync((accountFrom.CalculateHash(), );
         }
 
         
@@ -57,13 +91,13 @@ namespace AElf.Kernel
         public void Schedule(List<ITransaction> transactions)
         {
             // reset 
-            _pending = new Dictionary<byte[], List<ITransaction>>();
+            _pending = new Dictionary<IAccount, List<ITransaction>>();
             ExecutingPlan = new Dictionary<int, List<ITransaction>>();
             _graph = new UndirectedGraph<ITransaction, Edge<ITransaction>>(false);
             
             foreach (var tx in transactions)
             {
-                var conflicts = new List<byte[]> {tx.From, tx.To};
+                var conflicts = new List<IAccount> {tx.From, tx.To};
                 _graph.AddVertex(tx);
                 foreach (var res in conflicts)
                 {
@@ -170,4 +204,25 @@ namespace AElf.Kernel
         
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -33,12 +33,12 @@
         /// <summary>
         /// The caller
         /// </summary>
-        byte[] From { get; set; }
+        IAccount From { get; set; }
 
         /// <summary>
         /// The instrance of a smart contract
         /// </summary>
-        byte[] To { get; set; }
+        IAccount To { get; set; }
 
         ulong IncrementId { get; set; }
     }

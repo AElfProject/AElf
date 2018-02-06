@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
 using Moq;
 using Xunit;
 
@@ -11,19 +9,42 @@ namespace AElf.Kernel.Tests
 {
     public class TransactionSchedulerTest
     {
-        private List<byte[]> CreateAccountAddressList(int accountCount)
+        
+        private Mock<IHash<IAccount>> CreateHash(byte b)
         {
-            List<byte[]> accountAddressList = new List<byte[]>();
+            Mock<IHash<IAccount>> hash = new Mock<IHash<IAccount>>();
+            hash.Setup(h => h.GetHashBytes()).Returns(new[] {b});
             
-            for (int j = 0; j < accountCount; j++)
-            {
-                accountAddressList.Add(new []{(byte)(j + 'a')});
-            }
-            return accountAddressList;
+            Mock.Get(hash.Object).Setup(h => h.Equals(It.IsAny<IHash>()))
+                .Returns<IHash>(t => t?.GetHashBytes() == hash.Object.GetHashBytes());
+            return hash;
         }
         
         
-        private ITransaction CreateTransaction(byte b, byte[] from, byte[] to)
+        private IAccount CreateAccount(byte b)
+        {
+            var hash = CreateHash(b);
+            
+            Mock <IAccount> account=new Mock<IAccount>();
+            account.Setup(a => a.GetAddress()).Returns( hash.Object );
+           
+            Mock.Get(account.Object).Setup(a => a.Equals(It.IsAny<ITransaction>()))
+                .Returns<IAccount>(t =>t?.GetAddress().GetHashBytes() == account.Object.GetAddress().GetHashBytes());
+            return account.Object;
+        }
+        
+        private List<IAccount> CreateAccountList(int accountCount)
+        {
+            List<IAccount> accounts = new List<IAccount>();
+            for (int j = 0; j < accountCount; j++)
+            {
+                accounts.Add(CreateAccount((byte)(j + 'a')));
+            }
+            return accounts;
+        }
+        
+        
+        private ITransaction CreateTransaction(byte b, IAccount from, IAccount to)
         {
             Mock<IHash<ITransaction>> hash = new Mock<IHash<ITransaction>>();
             hash.Setup(h => h.GetHashBytes()).Returns(new []{b});
@@ -45,16 +66,15 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void SchedulerTest()
         {
-            WorldState worldState = new WorldState();
-            var transactionExecutingManager = new TransactionExecutingManager(worldState);
+            var transactionExecutingManager = new TransactionExecutingManager {};
             
             // simple demo cases
 
 
-            var accountAddressList = CreateAccountAddressList(10);
+            var accounts = CreateAccountList(10);
             // one tx
             // A
-            var tx1 = CreateTransaction((byte) 'A', accountAddressList[0], accountAddressList[1]);
+            var tx1 = CreateTransaction((byte) 'A', accounts[0], accounts[1]);
             
             var transactions = new List<ITransaction> {tx1};
             
@@ -68,7 +88,7 @@ namespace AElf.Kernel.Tests
             // two txs
             // two seperate txs
             // A B
-            var tx2 = CreateTransaction((byte) 'B', accountAddressList[2], accountAddressList[3] );
+            var tx2 = CreateTransaction((byte) 'B', accounts[2], accounts[3] );
             transactions = new List<ITransaction>{tx1, tx2};
             transactionExecutingManager.Schedule(transactions);
             plan = transactionExecutingManager.ExecutingPlan;
@@ -81,7 +101,7 @@ namespace AElf.Kernel.Tests
 
             // two connected txs
             // A-B
-            tx2 = CreateTransaction((byte) 'B', accountAddressList[0], accountAddressList[1] );
+            tx2 = CreateTransaction((byte) 'B', accounts[0], accounts[1] );
             transactions = new List<ITransaction>{tx1, tx2};
             transactionExecutingManager.Schedule(transactions);
             plan = transactionExecutingManager.ExecutingPlan;
@@ -91,12 +111,13 @@ namespace AElf.Kernel.Tests
             
             
             
+            
             // three txs
             
             
             // two connected and one more seperate
             // A-B C
-            var tx3 = CreateTransaction((byte) 'C', accountAddressList[2], accountAddressList[3]);
+            var tx3 = CreateTransaction((byte) 'C', accounts[2], accounts[3]);
             transactions = new List<ITransaction>{tx1, tx2, tx3};
             transactionExecutingManager.Schedule(transactions);
             plan = transactionExecutingManager.ExecutingPlan;
@@ -107,8 +128,8 @@ namespace AElf.Kernel.Tests
            
             // one connected with the other two
             // A-B B-C
-            tx2 = CreateTransaction((byte) 'B', accountAddressList[1], accountAddressList[2]);
-            tx3 = CreateTransaction((byte) 'C', accountAddressList[2], accountAddressList[3]);
+            tx2 = CreateTransaction((byte) 'B', accounts[1], accounts[2]);
+            tx3 = CreateTransaction((byte) 'C', accounts[2], accounts[3]);
             transactions = new List<ITransaction>{tx1, tx2, tx3};
             transactionExecutingManager.Schedule(transactions);
             plan = transactionExecutingManager.ExecutingPlan;
@@ -122,7 +143,7 @@ namespace AElf.Kernel.Tests
             // three txs connected with each other, three edges
             // A-B B-C C-A
             
-            tx3 = CreateTransaction((byte) 'C', accountAddressList[0], accountAddressList[2]);
+            tx3 = CreateTransaction((byte) 'C', accounts[0], accounts[2]);
             transactions = new List<ITransaction>{tx1, tx2, tx3};
             transactionExecutingManager.Schedule(transactions);
             plan = transactionExecutingManager.ExecutingPlan;
@@ -137,8 +158,8 @@ namespace AElf.Kernel.Tests
             
             // one pair of txs, and the other two seperated, one edge
             // A-B C D
-            tx3 = CreateTransaction((byte) 'C', accountAddressList[3], accountAddressList[4]);
-            var tx4 = CreateTransaction((byte) 'D', accountAddressList[5], accountAddressList[6]);
+            tx3 = CreateTransaction((byte) 'C', accounts[3], accounts[4]);
+            var tx4 = CreateTransaction((byte) 'D', accounts[5], accounts[6]);
             transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
             transactionExecutingManager.Schedule(transactions);
             plan = transactionExecutingManager.ExecutingPlan;
@@ -152,8 +173,8 @@ namespace AElf.Kernel.Tests
             
             // two pairs of txs, two edges
             // A-B C-D
-            tx3 = CreateTransaction((byte) 'C', accountAddressList[3], accountAddressList[4]);
-            tx4 = CreateTransaction((byte) 'D', accountAddressList[4], accountAddressList[5]);
+            tx3 = CreateTransaction((byte) 'C', accounts[3], accounts[4]);
+            tx4 = CreateTransaction((byte) 'D', accounts[4], accounts[5]);
 
             transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
             transactionExecutingManager.Schedule(transactions);
@@ -178,9 +199,9 @@ namespace AElf.Kernel.Tests
             
             // 4 edges
             // A-B B-C C-D D-A
-            tx2 = CreateTransaction((byte) 'B', accountAddressList[1], accountAddressList[2]);
-            tx3 = CreateTransaction((byte) 'C', accountAddressList[2], accountAddressList[3]);
-            tx4 = CreateTransaction((byte) 'D', accountAddressList[3], accountAddressList[0]);
+            tx2 = CreateTransaction((byte) 'B', accounts[1], accounts[2]);
+            tx3 = CreateTransaction((byte) 'C', accounts[2], accounts[3]);
+            tx4 = CreateTransaction((byte) 'D', accounts[3], accounts[0]);
 
             transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
             transactionExecutingManager.Schedule(transactions);
@@ -196,9 +217,9 @@ namespace AElf.Kernel.Tests
             // one tx connected with the other two
             // 5 edsges
             // A-B A-C A-D C-D C-B 
-            tx2 = CreateTransaction((byte) 'B', accountAddressList[1], accountAddressList[2]);
-            tx3 = CreateTransaction((byte) 'C', accountAddressList[1], accountAddressList[3]);
-            tx4 = CreateTransaction((byte) 'D', accountAddressList[3], accountAddressList[0]);
+            tx2 = CreateTransaction((byte) 'B', accounts[1], accounts[2]);
+            tx3 = CreateTransaction((byte) 'C', accounts[1], accounts[3]);
+            tx4 = CreateTransaction((byte) 'D', accounts[3], accounts[0]);
 
             transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
             transactionExecutingManager.Schedule(transactions);
@@ -212,9 +233,9 @@ namespace AElf.Kernel.Tests
             
             // connect each other, 6 edsges
             // A-B A-C A-D B-C B-D C-D 
-            tx2 = CreateTransaction((byte) 'B', accountAddressList[0], accountAddressList[1]);
-            tx3 = CreateTransaction((byte) 'C', accountAddressList[0], accountAddressList[1]);
-            tx4 = CreateTransaction((byte) 'D', accountAddressList[0], accountAddressList[1]);
+            tx2 = CreateTransaction((byte) 'B', accounts[0], accounts[1]);
+            tx3 = CreateTransaction((byte) 'C', accounts[0], accounts[1]);
+            tx4 = CreateTransaction((byte) 'D', accounts[0], accounts[1]);
 
             transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
             transactionExecutingManager.Schedule(transactions);
@@ -224,7 +245,9 @@ namespace AElf.Kernel.Tests
             Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetHashBytes()[0]);
             Assert.Equal(67, plan[2].ElementAt(0).GetHash().GetHashBytes()[0]);
             Assert.Equal(68, plan[3].ElementAt(0).GetHash().GetHashBytes()[0]);
+            
         }
+
         
     }
 }
