@@ -12,12 +12,12 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        IAccountDataProvider GetAccountDataProviderByAccount(byte[] address);
+        IAccountDataProvider GetAccountDataProviderByAccountAddress(byte[] address);
         
         /// <summary>
         /// The merkle tree root presents the world state of a chain
         /// </summary>
         /// <returns></returns>
-        Task<IHash<IMerkleTree<IHash>>> GetWordStateMerkleTreeRootAsync();
+        Task<IHash<IMerkleTree<IHash>>> GetWorldStateMerkleTreeRootAsync();
     }
 }

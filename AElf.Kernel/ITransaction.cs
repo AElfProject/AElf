@@ -19,28 +19,28 @@
         /// </summary>
         /// <returns></returns>
         ITransactionParallelMetaData GetParallelMetaData();
-        
+
         /// <summary>
         /// Method name
         /// </summary>
         string MethodName { get; set; }
-        
+
         /// <summary>
         /// Params
         /// </summary>
         object[] Params { get; set; }
-        
+
         /// <summary>
         /// The caller
         /// </summary>
-        byte[] From { get; set; }
-        
+        IAccount From { get; set; }
+
         /// <summary>
         /// The instrance of a smart contract
         /// </summary>
-        byte[] To { get; set; }
-        
+        IAccount To { get; set; }
+
         ulong IncrementId { get; set; }
     }
-    
+
 }
