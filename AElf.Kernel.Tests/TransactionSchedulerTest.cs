@@ -55,8 +55,10 @@ namespace AElf.Kernel.Tests
             
             Mock <ITransaction> transaction=new Mock<ITransaction>();
             transaction.Setup(t => t.GetHash()).Returns(hash.Object);
-            transaction.Setup(t => t.From).Returns(from);
-            transaction.Setup(t => t.To).Returns(to);
+            
+            // TODO
+            //transaction.Setup(t => t.From).Returns(from);
+            //transaction.Setup(t => t.To).Returns(to);
 
             Mock.Get(transaction.Object).Setup(m => m.Equals(It.IsAny<ITransaction>()))
                 .Returns<ITransaction>(t =>t?.GetHash().GetHashBytes() == transaction.Object.GetHash().GetHashBytes());

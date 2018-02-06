@@ -39,7 +39,8 @@ namespace AElf.Kernel
         /// <param name="tx"></param>
         private Task ReceiveTransaction(ITransaction tx)
         {
-            var task = Task.Factory.StartNew(() =>
+            //TODO
+            /*var task = Task.Factory.StartNew(() =>
             {
                 // group transactions by resource type
                 // var conflicts = tx.GetParallelMetaData().GetDataConflict();
@@ -67,7 +68,9 @@ namespace AElf.Kernel
                 }
             });
 
-            return task;
+            return task; */
+            
+            return new Task(() => {});
         }
         
 
@@ -76,8 +79,8 @@ namespace AElf.Kernel
         /// </summary>
         public void Schedule(List<ITransaction> transactions)
         {
-           
-            _executingPlan = new Dictionary<int, List<ITransaction>>();
+           //TODO
+            /*_executingPlan = new Dictionary<int, List<ITransaction>>();
             _graph = new UndirectedGraph<ITransaction, Edge<ITransaction>>(false);
             
             foreach (var tx in transactions)
@@ -107,7 +110,7 @@ namespace AElf.Kernel
             ColorGraph(transactions);
             
             // reset 
-            _pending = new Dictionary<IHash, List<ITransaction>>();
+            _pending = new Dictionary<IHash, List<ITransaction>>();*/
             
         }
         

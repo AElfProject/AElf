@@ -8,11 +8,11 @@ namespace AElf.Kernel
     public interface IWorldState
     {
         /// <summary>
-        /// Get a data provider for an account to do further data operation 
+        /// Get a data provider from the accounts address
         /// </summary>
-        /// <param name="account"></param>
+        /// <param name="address"></param>
         /// <returns></returns>
-        IAccountDataProvider GetAccountDataProviderByAccount(IAccount account);
+        IAccountDataProvider GetAccountDataProviderByAccount(byte[] address);
         
         /// <summary>
         /// The merkle tree root presents the world state of a chain
