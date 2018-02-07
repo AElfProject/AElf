@@ -1,4 +1,4 @@
-﻿using AElf.Kernel.Merkle;
+using AElf.Kernel.Merkle;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,6 +13,10 @@ namespace AElf.Kernel
         private Dictionary<string, IDataProvider> _dataProviders = new Dictionary<string, IDataProvider>();
         private Dictionary<IHash, IHash> _mapSerializedValue = new Dictionary<IHash, IHash>();
 
+        private IHash keyHash;
+        private IHash oldValueHash;
+        private IHash newValueHash;
+
         /// <summary>
         /// ctor.
         /// </summary>
@@ -20,8 +24,18 @@ namespace AElf.Kernel
         public DataProvider(IAccount account)
         {
             _account = account;
+
+            keyHash = default(IHash);
+            oldValueHash = default(IHash);
+            newValueHash = default(IHash);
         }
 
+        /// <summary>
+        /// Directly fetch a data from k-v database.
+        /// We will use the key to calculate a hash to act as the address.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public Task<ISerializable> GetAsync(string key)
         {
             return GetAsync(new Hash<string>(_account.GetAddress().CalculateHashWith(key)));
@@ -76,18 +90,46 @@ namespace AElf.Kernel
         public Task SetAsync(IHash key, ISerializable obj)
         {
             //Add the hash of value to merkle tree.
-            _dataMerkleTree.AddNode(new Hash<ISerializable>(obj.CalculateHash()));
+            var newMerkleNode = new Hash<ISerializable>(obj.CalculateHash());
+            var oldMerkleNode = new Hash<ISerializable>(GetAsync(key).CalculateHash());
+            _dataMerkleTree.AddNode(newMerkleNode, oldMerkleNode);
+
             //Re-calculate the hash with the value, 
             //and use _mapSerializedValue to map the key with the value's truely address in database.
             //Thus we can use the same key to get it's value (after updated).
             var finalHash = new Hash<ISerializable>(key.CalculateHashWith(obj));
-            _mapSerializedValue[key] = finalHash;
+
+            #region Store the context
+            keyHash = key;
+            newValueHash = finalHash;
+            #endregion
+
             return new Task(() => Database.Insert(finalHash, obj));
         }
 
+        /// <summary>
+        /// Directly add a data to k-v database.
+        /// We will use the key to calculate a hash to act as the address.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public Task SetAsync(string key, ISerializable obj)
         {
             return SetAsync(new Hash<string>(_account.GetAddress().CalculateHashWith(key)), obj);
+        }
+        
+        /// <summary>
+        /// Call this method after sucessfully execute the related transaction.
+        /// But in this way we can only set one k-v pair in one transaction.
+        /// </summary>
+        public void Execute()
+        {
+            if (keyHash == default(IHash) || newValueHash == default(IHash))
+            {
+                return;
+            }
+            _mapSerializedValue[keyHash] = newValueHash;
         }
     }
 }

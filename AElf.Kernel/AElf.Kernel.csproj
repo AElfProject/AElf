@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
@@ -17,5 +17,8 @@
       <Project>{13DC325F-B46C-4A90-A67E-785AE8D92640}</Project>
       <Name>AElf.Serialization</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectCapability Include="CSharp;Managed;ClassDesigner" />
   </ItemGroup>
 </Project>
