@@ -9,6 +9,9 @@
         /// </summary>
         public int Category { get; set; }
         
+        /// <summary>
+        /// Smart contract name for recognition just like hash calculating
+        /// </summary>
         public string Name { get; set; }
 
         public IHash Hash { get; set; }
