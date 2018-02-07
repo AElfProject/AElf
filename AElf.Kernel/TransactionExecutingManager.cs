@@ -42,13 +42,10 @@ namespace AElf.Kernel
                 switch (method)
                 {
                     case "transfer":
-                        
                         break;
                     case "CreatAccount":
-                        
                         break;
                     case "InvokeMethod":
-                        
                         break;
                     case "DeployContract":
                         break;
@@ -60,6 +57,7 @@ namespace AElf.Kernel
             return task;
         }
 
+        
 
         /// <summary>
         /// transfer coins between accounts
@@ -67,34 +65,30 @@ namespace AElf.Kernel
         /// <param name="accountFrom"></param>
         /// <param name="accountTo"></param>
         /// <param name="amount"></param>
-        private Task Transfer(IAccount accountFrom, IAccount accountTo, decimal amount)
+        private async Task Transfer(IAccount accountFrom, IAccount accountTo, decimal amount)
         {
-            Task task = Task.Factory.StartNew(() =>
-            {
-                // get accountDataProviders from WorldState
-                var accountFromDataProvider = _worldState.GetAccountDataProviderByAccount(accountFrom);
-                var accountToDataProvider = _worldState.GetAccountDataProviderByAccount(accountTo);
-                
-                // use dataProvider to get Serialized Balance obj
-                var fromBalanceHash = new Hash<decimal>(accountFrom.CalculateHashWith("Balance"));
-                var fromBalanceDataProvider = accountFromDataProvider.GetDataProvider().GetDataProvider("Balance");
-                var fromBalance = fromBalanceDataProvider.GetAsync(fromBalanceHash).Result;
+            // get accountDataProviders from WorldState
+            var accountFromDataProvider = _worldState.GetAccountDataProviderByAccount(accountFrom);
+            var accountToDataProvider = _worldState.GetAccountDataProviderByAccount(accountTo);
+            
+            // use dataProvider to get Serialized Balance obj
+            var fromBalanceHash = new Hash<decimal>(accountFrom.CalculateHashWith("Balance"));
+            var fromBalanceDataProvider = accountFromDataProvider.GetDataProvider().GetDataProvider("Balance");
+            var fromBalance = fromBalanceDataProvider.GetAsync(fromBalanceHash).Result;
 
-                var toBalanceHash = new Hash<decimal>(accountTo.CalculateHashWith("Balance"));
-                var toBalanceDataProvider = accountToDataProvider.GetDataProvider().GetDataProvider("Balance");
-                var toBalance = toBalanceDataProvider.GetAsync(toBalanceHash).Result;
+            var toBalanceHash = new Hash<decimal>(accountTo.CalculateHashWith("Balance"));
+            var toBalanceDataProvider = accountToDataProvider.GetDataProvider().GetDataProvider("Balance");
+            var toBalance = toBalanceDataProvider.GetAsync(toBalanceHash).Result;
 
-               
-                // TODO: calculate with amount
-                // 
+           
+            // TODO: calculate with amount
+            // 
 
-                // TODO: serialize new Balances and uodate
-                accountFromDataProvider.GetDataProvider().GetDataProvider("Balance")
-                    .SetAsync(fromBalanceHash, fromBalance);
-                accountToDataProvider.GetDataProvider().GetDataProvider("Balance").SetAsync(toBalanceHash, toBalance);
-            });
-
-            return task;
+            // TODO: serialize new Balances and uodate
+            await accountFromDataProvider.GetDataProvider().GetDataProvider("Balance")
+                .SetAsync(fromBalanceHash, fromBalance);
+            await accountToDataProvider.GetDataProvider().GetDataProvider("Balance").SetAsync(toBalanceHash, toBalance);
+            
         }
 
         
@@ -106,17 +100,17 @@ namespace AElf.Kernel
         /// <param name="method"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        private Task InvokeMethod(IAccount accountFrom, IAccount accountTo, string method, object[] param)
+        private async Task InvokeMethod(IAccount accountFrom, IAccount accountTo, string method, object[] param)
         {
-            Task task = Task.Factory.StartNew(async () =>
-            {
-                var accountToDaataProvider = _worldState.GetAccountDataProviderByAccount(accountTo);
-                var smartConrtract = new SmartContract();
-                await smartConrtract.InititalizeAsync(accountToDaataProvider);
-                await smartConrtract.InvokeAsync(accountFrom.GetAddress(), method, param);
-            });
-            return task;
+        
+            var accountToDaataProvider = _worldState.GetAccountDataProviderByAccount(accountTo);
+            var smartConrtract = new SmartContract();
+            await smartConrtract.InititalizeAsync(accountToDaataProvider);
+            await smartConrtract.InvokeAsync(accountFrom.GetAddress(), method, param);
+            
         }
+        
+        
 
         /// <summary>
         /// Create a new account with old contract
@@ -138,6 +132,7 @@ namespace AElf.Kernel
             
         }
 
+        
 
         /// <summary>
         /// deploy a new smartcontract with tx
@@ -202,6 +197,7 @@ namespace AElf.Kernel
         }
         
         
+        
         /// <summary>
         /// comparsion for heap
         /// </summary>
@@ -216,6 +212,7 @@ namespace AElf.Kernel
                 return -1;
             return 0;
         }
+        
         
         
         /// <summary>
@@ -241,6 +238,7 @@ namespace AElf.Kernel
             }
         }
 
+        
 
         /// <summary>
         /// graph coloring algorithm

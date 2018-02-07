@@ -68,8 +68,10 @@ namespace AElf.Kernel.Tests
         public void SchedulerTest()
         {
             var worldState = new WorldState();
-            var accountZero = new AccountZero();
-            var transactionExecutingManager = new TransactionExecutingManager(worldState, accountZero);
+            var smartContractZero = new SmartContractZero();
+            var accountZero = new AccountZero(smartContractZero);
+            var accountManager = new AccountManager();
+            var transactionExecutingManager = new TransactionExecutingManager(worldState, accountZero, accountManager);
             
             // simple demo cases
 
