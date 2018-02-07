@@ -3,7 +3,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Account.cs" />
     <Compile Remove="MerkleNode.cs" />
     <Compile Remove="MerkleTree.cs" />
     <Compile Remove="Merkle\Node.cs" />

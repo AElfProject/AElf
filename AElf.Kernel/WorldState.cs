@@ -29,11 +29,11 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="accountAddress"></param>
         /// <returns></returns>
-        public IAccountDataProvider GetAccountDataProviderByAccountAddress(byte[] accountAddress)
+        public IAccountDataProvider GetAccountDataProviderByAccount(IAccount account)
         {
-            return _accountDataProviders.TryGetValue(accountAddress, out var accountDataProvider)
+            return _accountDataProviders.TryGetValue(account.GetAddress().Value, out var accountDataProvider)
                 ? accountDataProvider
-                : AddAccountDataProvider(accountAddress);
+                : AddAccountDataProvider(account);
         }
 
         public Task<IHash<IMerkleTree<IHash>>> GetWorldStateMerkleTreeRootAsync()
@@ -41,11 +41,11 @@ namespace AElf.Kernel
             return Task.FromResult(_merkleTree.ComputeRootHash());
         }
 
-        private IAccountDataProvider AddAccountDataProvider(byte[] accountAddress)
+        private IAccountDataProvider AddAccountDataProvider(IAccount account)
         {
-            var accountDataProvider = new AccountDataProvider(accountAddress);
+            var accountDataProvider = new AccountDataProvider(account);
             //Add the address to dict.
-            _accountDataProviders[accountAddress] = accountDataProvider;
+            _accountDataProviders[account.GetAddress().Value] = accountDataProvider;
             //Add the hash of account data provider to merkle tree as a node.
             _merkleTree.AddNode(new Hash<IHash>(accountDataProvider.CalculateHash()));
 

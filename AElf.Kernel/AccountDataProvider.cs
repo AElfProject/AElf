@@ -4,20 +4,20 @@ namespace AElf.Kernel
 {
     public class AccountDataProvider : IAccountDataProvider
     {
-        private readonly byte[] _accountAddress;
+        private readonly IAccount _account;
         private readonly IDataProvider _dataProvider;
         
         public IAccountDataContext Context { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public AccountDataProvider(byte[] accountAddress)
+        public AccountDataProvider(IAccount account)
         {
-            _accountAddress = accountAddress;
-            _dataProvider = new DataProvider(accountAddress);
+            _account = account;
+            _dataProvider = new DataProvider(account);
         }
         
-        public byte[] GetAccountAddress()
+        public IHash<IAccount> GetAccountAddress()
         {
-            return _accountAddress;
+            return _account.GetAddress();
         }
 
         public IDataProvider GetDataProvider()

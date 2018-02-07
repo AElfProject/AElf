@@ -11,7 +11,7 @@ namespace AElf.Kernel
         
         IAccountDataContext Context { get; set; }
 
-        byte[] GetAccountAddress();
+        IHash<IAccount> GetAccountAddress();
 
         IDataProvider GetDataProvider();
     }

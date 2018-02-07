@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using AElf.Kernel.KernelAccount;
 using Moq;
 using Xunit;
 
@@ -66,7 +67,9 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void SchedulerTest()
         {
-            var transactionExecutingManager = new TransactionExecutingManager {};
+            var worldState = new WorldState();
+            var accountZero = new AccountZero();
+            var transactionExecutingManager = new TransactionExecutingManager(worldState, accountZero);
             
             // simple demo cases
 

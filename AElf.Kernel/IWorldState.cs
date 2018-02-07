@@ -12,7 +12,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        IAccountDataProvider GetAccountDataProviderByAccountAddress(byte[] address);
+        IAccountDataProvider GetAccountDataProviderByAccount(IAccount account);
         
         /// <summary>
         /// The merkle tree root presents the world state of a chain

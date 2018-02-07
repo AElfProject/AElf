@@ -8,6 +8,8 @@
         /// 2: Javascript
         /// </summary>
         public int Category { get; set; }
+        
+        public string Name { get; set; }
 
         public IHash Hash { get; set; }
 
