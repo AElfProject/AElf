@@ -7,9 +7,9 @@ namespace AElf.Kernel
     /// </summary>
     public class Account : IAccount
     {
-        private readonly byte[] _address;
+        private readonly Hash<IAccount> _address;
 
-        public Account(byte[] address)
+        public Account(Hash<IAccount> address)
         {
             _address = address;
         }
@@ -19,9 +19,9 @@ namespace AElf.Kernel
             throw new NotImplementedException();
         }
 
-        IHash<IAccount> IAccount.GetAddress()
+        public IHash<IAccount> GetAddress()
         {
-            return new Hash<IAccount>(_address);
+            return _address;
         }
     }
 }
