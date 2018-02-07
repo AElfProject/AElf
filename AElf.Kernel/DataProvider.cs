@@ -35,8 +35,8 @@ namespace AElf.Kernel
         public Task<ISerializable> GetAsync(IHash key)
         {
             return _mapSerializedValue.TryGetValue(key, out var finalHash) ? 
-                Task.FromResult(Database.Select(_mapSerializedValue[key])) :
-                Task.FromResult(Database.Select(_mapSerializedValue[key]));
+                Task.FromResult(Database.Select(finalHash)) :
+                Task.FromResult(Database.Select(null));
         }
 
         public Task<IHash<IMerkleTree<ISerializable>>> GetDataMerkleTreeRootAsync()
