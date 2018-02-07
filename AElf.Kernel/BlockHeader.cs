@@ -1,10 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using AElf.Kernel.Extensions;
+using AElf.Kernel.Merkle;
 using System;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace AElf.Kernel
 {
@@ -21,7 +17,7 @@ namespace AElf.Kernel
         /// points to previous block hash 
         /// </summary>
         /// <value>The pre block hash.</value>
-        public IHash<IBlock> PreBlockHash { get; protected set; }
+        private IHash<IBlock> _preBlockHash;
 
         /// <summary>
         /// The miner's signature.
@@ -32,25 +28,19 @@ namespace AElf.Kernel
         /// the merkle root hash
         /// </summary>
         /// <value>The merkle root hash.</value>
-        public IHash<IMerkleTree<ITransaction>> MerkleRootHash
-        {
-            get
-            {
-                return GetTransactionMerkleTreeRoot();
-            }
-        }
+        public IHash<IMerkleTree<ITransaction>> MerkleRootHash => GetTransactionMerkleTreeRoot();
 
-        private MerkleTree<ITransaction> MerkleTree { get; set; } = new MerkleTree<ITransaction>();
+        private readonly BinaryMerkleTree<ITransaction> _transactionMerkleTree = new BinaryMerkleTree<ITransaction>();
 
         /// <summary>
         /// the timestamp of this block
         /// </summary>
         /// <value>The time stamp.</value>
-        public long TimeStamp => DateTime.UtcNow.Second;
+        public long TimeStamp => (long)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds;
 
         public BlockHeader(IHash<IBlock> preBlockHash)
         {
-            PreBlockHash = preBlockHash;
+            _preBlockHash = preBlockHash;
         }
 
         /// <summary>
@@ -59,7 +49,7 @@ namespace AElf.Kernel
         /// <param name="hash">Hash.</param>
         public void AddTransaction(IHash<ITransaction> hash)
         {
-            MerkleTree.AddNode(hash);
+            _transactionMerkleTree.AddNode(hash);
         }
 
         /// <summary>
@@ -68,7 +58,7 @@ namespace AElf.Kernel
         /// <returns>The transaction merkle tree root.</returns>
         public IHash<IMerkleTree<ITransaction>> GetTransactionMerkleTreeRoot()
         {
-            return MerkleTree.ComputeRootHash();
+            return _transactionMerkleTree.ComputeRootHash();
         }
 
         /// <summary>
@@ -77,7 +67,7 @@ namespace AElf.Kernel
         /// <returns>The hash.</returns>
         public IHash<IBlockHeader> GetHash()
         {
-            return new Hash<IBlockHeader>(this.GetSHA256Hash());
+            return new Hash<IBlockHeader>(this.CalculateHash());
         }
     }
 }

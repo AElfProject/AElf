@@ -1,9 +1,8 @@
-﻿
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using AElf.Kernel.KernelAccount;
 using Moq;
 using Xunit;
 
@@ -68,7 +67,11 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void SchedulerTest()
         {
-            var transactionExecutingManager = new TransactionExecutingManager {};
+            var worldState = new WorldState();
+            var smartContractZero = new SmartContractZero();
+            var accountZero = new AccountZero(smartContractZero);
+            var accountManager = new AccountManager();
+            var transactionExecutingManager = new TransactionExecutingManager(worldState, accountZero, accountManager);
             
             // simple demo cases
 
@@ -248,9 +251,6 @@ namespace AElf.Kernel.Tests
             Assert.Equal(67, plan[2].ElementAt(0).GetHash().GetHashBytes()[0]);
             Assert.Equal(68, plan[3].ElementAt(0).GetHash().GetHashBytes()[0]);
             
-            
-           
-
         }
 
         

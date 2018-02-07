@@ -1,5 +1,7 @@
-﻿using System;
+﻿using AElf.Kernel.Extensions;
+using AElf.Kernel.Merkle;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using Shouldly;
@@ -13,23 +15,15 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void MineTest()
         {
-            Block block = new Block(new Hash<IBlock>("aelf".GetSHA256Hash()));
-            Miner miner = new Miner();
+            var block = new Block(new Hash<IBlock>("aelf".CalculateHash()));
 
-            MerkleTree<ITransaction> tree = new MerkleTree<ITransaction>();
-            CreateLeaves(new string[] { "a", "e", "l", "f" }).ForEach(l => block.GetHeader().AddTransaction(l));
+            CreateLeaves(new[] { "a", "e", "l", "f" }).ForEach(l => block.GetHeader().AddTransaction(l));
         }
 
         #region Some methods
-        private static List<IHash<ITransaction>> CreateLeaves(string[] buffers)
+        private static List<IHash<ITransaction>> CreateLeaves(IEnumerable<string> buffers)
         {
-            List<IHash<ITransaction>> leaves = new List<IHash<ITransaction>>();
-            foreach (var buffer in buffers)
-            {
-                IHash<ITransaction> hash = new Hash<ITransaction>(buffer.GetSHA256Hash());
-                leaves.Add(hash);
-            }
-            return leaves;
+            return buffers.Select(buffer => new Hash<ITransaction>(buffer.CalculateHash())).Cast<IHash<ITransaction>>().ToList();
         }
         #endregion
     }

@@ -1,6 +1,6 @@
 ﻿namespace AElf.Kernel
 {
-    public interface ITransaction
+    public interface ITransaction : ISerializable
     {
         /// <summary>
         /// Get hash of the transaction
@@ -19,28 +19,28 @@
         /// </summary>
         /// <returns></returns>
         ITransactionParallelMetaData GetParallelMetaData();
-        
+
         /// <summary>
         /// Method name
         /// </summary>
         string MethodName { get; set; }
-        
+
         /// <summary>
         /// Params
         /// </summary>
         object[] Params { get; set; }
-        
+
         /// <summary>
         /// The caller
         /// </summary>
         IAccount From { get; set; }
-        
+
         /// <summary>
         /// The instrance of a smart contract
         /// </summary>
         IAccount To { get; set; }
-        
+
         ulong IncrementId { get; set; }
     }
-    
+
 }

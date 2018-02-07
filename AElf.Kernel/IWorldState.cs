@@ -8,9 +8,9 @@ namespace AElf.Kernel
     public interface IWorldState
     {
         /// <summary>
-        /// Get a data provider for an account to do further data operation 
+        /// Get a data provider from the accounts address
         /// </summary>
-        /// <param name="account"></param>
+        /// <param name="address"></param>
         /// <returns></returns>
         IAccountDataProvider GetAccountDataProviderByAccount(IAccount account);
         
@@ -18,6 +18,6 @@ namespace AElf.Kernel
         /// The merkle tree root presents the world state of a chain
         /// </summary>
         /// <returns></returns>
-        Task<IHash<IMerkleTree<IHash>>> GetWordStateMerkleTreeRootAsync();
+        Task<IHash<IMerkleTree<IHash>>> GetWorldStateMerkleTreeRootAsync();
     }
 }

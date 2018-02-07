@@ -3,7 +3,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Account.cs" />
     <Compile Remove="MerkleNode.cs" />
     <Compile Remove="MerkleTree.cs" />
     <Compile Remove="Merkle\Node.cs" />
@@ -12,5 +11,11 @@
     <PackageReference Include="LiteDB" Version="4.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="QuickGraphCore" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Serialization\AElf.Serialization.csproj">
+      <Project>{13DC325F-B46C-4A90-A67E-785AE8D92640}</Project>
+      <Name>AElf.Serialization</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>
