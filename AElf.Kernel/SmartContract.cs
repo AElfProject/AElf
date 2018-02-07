@@ -15,7 +15,7 @@ namespace AElf.Kernel
             await Task.CompletedTask;
         }
 
-        public Task InvokeAsync(IHash<IAccount> caller, string methodname, params object[] objs)
+        public async Task InvokeAsync(IHash<IAccount> caller, string methodname, params object[] objs)
         {
             // get smartContractRegistration by accountDataProvider 
             var smartContractRegistration = (SmartContractRegistration) _accountDataProvider.GetDataProvider()
@@ -27,7 +27,7 @@ namespace AElf.Kernel
             Assembly assembly = Assembly.Load(smartContractRegistration.Bytes);
             Type type = assembly.GetTypes().ElementAt(0);
             var method = type.GetMethod(methodname);
-            method.Invoke(this, objs);
+            await (Task) method.Invoke(this, objs);
         }
     }
 }

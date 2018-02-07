@@ -14,6 +14,11 @@ namespace AElf.Kernel
             throw new System.NotImplementedException();
         }
 
+        /// <summary>
+        ///  Create account with smartContractContractRegistration
+        /// </summary>
+        /// <param name="accountCaller"></param>
+        /// <param name="smartContractContractRegistration"></param>
         public Task<IAccount> CreateAccount(IAccount accountCaller, SmartContractRegistration smartContractContractRegistration)
         {
             throw new System.NotImplementedException();
