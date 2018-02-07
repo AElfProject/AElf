@@ -25,9 +25,14 @@ namespace AElf.Kernel
             
             // load assembly with bytes
             Assembly assembly = Assembly.Load(smartContractRegistration.Bytes);
-            Type type = assembly.GetTypes().ElementAt(0);
+            var type = assembly.GetTypes().ElementAt(0);
             var method = type.GetMethod(methodname);
-            await (Task) method.Invoke(this, objs);
+            
+            if (type.GetConstructors().Length == 0)
+            {
+                // if contract is static, first param will be ignore
+                await (Task) method.Invoke(null, objs);
+            }
         }
     }
 }
