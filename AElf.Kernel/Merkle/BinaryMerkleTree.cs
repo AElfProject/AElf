@@ -1,4 +1,4 @@
-﻿using AElf.Kernel.Extensions;
+using AElf.Kernel.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +20,19 @@ namespace AElf.Kernel.Merkle
         {
             Nodes.Add(hash);
             ComputeRootHash();
+        }
+
+        public void AddNode(IHash<T> newHash, IHash<T> oldHash)
+        {
+            var oldOrder = FindLeaf(oldHash);
+            if (oldOrder != -1)
+            {
+                UpdateNode(oldOrder, newHash);
+            }
+            else
+            {
+                AddNode(newHash);
+            }
         }
 
         public BinaryMerkleTree<T> AddNodes(List<IHash<T>> hashes)
@@ -59,7 +72,27 @@ namespace AElf.Kernel.Merkle
             }
         }
 
-        public IHash<T> FindLeaf(IHash<T> leaf) => Nodes.FirstOrDefault(l => l == leaf);
+        /// <summary>
+        /// Find the order of a leaf,
+        /// return -1 if the leaf not exists.
+        /// </summary>
+        /// <param name="leaf"></param>
+        /// <returns></returns>
+        public int FindLeaf(IHash<T> leaf)
+        {
+            if (leaf == null)
+            {
+                return -1;
+            }
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                if (Nodes[i] == leaf)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
 
         public bool VerifyProofList(List<Hash<ITransaction>> hashlist)
         {
@@ -81,6 +114,24 @@ namespace AElf.Kernel.Merkle
                 hashlist.GetRange(2, hashlist.Count - 2).ForEach(h => list.Add(h));
 
             return ComputeProofHash(list);
+        }
+
+        public void UpdateNode(IHash<T> oldLeaf, IHash<T> newLeaf)
+        {
+            int order = FindLeaf(oldLeaf);
+            if (order == -1)
+            {
+                return;
+            }
+            UpdateNode(order, newLeaf);
+        }
+
+        public void UpdateNode(int oldLeafOrder, IHash<T> newLeaf)
+        {
+            Nodes[oldLeafOrder] = newLeaf;
+            // TODO:
+            // Make it quicker to compute root hash value.
+            ComputeRootHash();
         }
     }
 }

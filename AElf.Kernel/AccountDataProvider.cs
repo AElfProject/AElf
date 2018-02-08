@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 
 namespace AElf.Kernel
 {
     public class AccountDataProvider : IAccountDataProvider
     {
         private readonly IAccount _account;
-        private readonly IDataProvider _dataProvider;
+        private IDataProvider _dataProvider;
         
         public IAccountDataContext Context { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
