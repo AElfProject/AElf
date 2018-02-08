@@ -1,4 +1,4 @@
-﻿using AElf.Kernel.Extensions;
+using AElf.Kernel.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
