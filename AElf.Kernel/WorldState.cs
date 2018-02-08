@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
@@ -9,7 +10,7 @@ namespace AElf.Kernel
 {
     public class WorldState : IWorldState
     {
-        private Dictionary<byte[], IAccountDataProvider> _accountDataProviders;
+        private ConcurrentDictionary<IAccount, IAccountDataProvider> _accountDataProviders;
 
         // TODO:
         // Figure out how to update the merkle tree node automatically.
@@ -19,7 +20,7 @@ namespace AElf.Kernel
 
         public WorldState()
         {
-            _accountDataProviders = new Dictionary<byte[], IAccountDataProvider>();
+            _accountDataProviders = new ConcurrentDictionary<IAccount, IAccountDataProvider>();
             _merkleTree = new BinaryMerkleTree<IHash>();
         }
 
@@ -27,11 +28,11 @@ namespace AElf.Kernel
         /// If the given account address included in the world state, return the instance,
         /// otherwise create a new account data provider and return.
         /// </summary>
-        /// <param name="accountAddress"></param>
+        /// <param name="account"></param>
         /// <returns></returns>
         public IAccountDataProvider GetAccountDataProviderByAccount(IAccount account)
         {
-            return _accountDataProviders.TryGetValue(account.GetAddress().Value, out var accountDataProvider)
+            return _accountDataProviders.TryGetValue(account, out var accountDataProvider)
                 ? accountDataProvider
                 : AddAccountDataProvider(account);
         }
@@ -45,9 +46,9 @@ namespace AElf.Kernel
         {
             var accountDataProvider = new AccountDataProvider(account);
             //Add the address to dict.
-            _accountDataProviders[account.GetAddress().Value] = accountDataProvider;
+            _accountDataProviders[account] = accountDataProvider;
             //Add the hash of account data provider to merkle tree as a node.
-            _merkleTree.AddNode(new Hash<IHash>(accountDataProvider.CalculateHash()));
+            _merkleTree.AddNode(new Hash<IHash>(accountDataProvider.GetDataProvider().CalculateHash()));
 
             return accountDataProvider;
         }
