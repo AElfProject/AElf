@@ -1,9 +1,18 @@
 ﻿using System.Threading.Tasks;
+using AElf.Kernel.Extensions;
+using AElf.Kernel.KernelAccount;
 
 namespace AElf.Kernel
 {
     public class AccountManager : IAccountManager
     {
+        private WorldState _worldState;
+
+        public AccountManager(WorldState worldState)
+        {
+            _worldState = worldState;
+        }
+
         public Task ExecuteTransactionAsync(IAccount fromAccount, IAccount toAccount, ITransaction tx)
         {
             throw new System.NotImplementedException();
@@ -19,9 +28,17 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="accountCaller"></param>
         /// <param name="smartContractContractRegistration"></param>
-        public Task<IAccount> CreateAccount(IAccount accountCaller, SmartContractRegistration smartContractContractRegistration)
+        public async Task<IAccount> CreateAccount(IAccount accountCaller, SmartContractRegistration smartContractContractRegistration)
         {
-            throw new System.NotImplementedException();
+            var hash = new Hash<IAccount>(accountCaller.CalculateHashWith(smartContractContractRegistration));
+            var account = new Account(hash);
+            var accountDataProvider = _worldState.GetAccountDataProviderByAccount(account);
+            
+            // register smartcontract to the new contract
+            SmartContractZero smartContractZero = new SmartContractZero();
+            await smartContractZero.InititalizeAsync(accountDataProvider);
+            await smartContractZero.RegisterSmartContract(smartContractContractRegistration);
+            return account;
         }
     }
 }
