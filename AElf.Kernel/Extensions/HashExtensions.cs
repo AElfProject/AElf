@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
@@ -12,6 +12,10 @@ namespace AElf.Kernel.Extensions
         
         public static byte[] CalculateHash(this object obj)
         {
+            if (obj == null)
+            {
+                return null;
+            }
             return CalculateHash(
                 Encoding.UTF8.GetBytes(
                     JsonConvert.SerializeObject(obj)));
@@ -19,6 +23,10 @@ namespace AElf.Kernel.Extensions
         
         public static byte[] CalculateHashWith(this object obj, object another)
         {
+            if (obj == null || another == null)
+            {
+                return null;
+            }
             return CalculateHash(
                 Encoding.UTF8.GetBytes(
                     JsonConvert.SerializeObject(obj) + JsonConvert.SerializeObject(another)));
