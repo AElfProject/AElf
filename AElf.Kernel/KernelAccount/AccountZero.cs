@@ -24,6 +24,7 @@ namespace AElf.Kernel.KernelAccount
         private bool Inititalize()
         {
             if (_isInititalized) return false;
+            
             // get accountZeroDataProvider and set the "SmartContractMap" dataProvider
             var accountZeroDataProvider = _worldState.GetAccountDataProviderByAccount(this);
             accountZeroDataProvider.GetDataProvider().SetDataProvider("SmartContractMap", new DataProvider(this));
@@ -37,7 +38,7 @@ namespace AElf.Kernel.KernelAccount
         /// <param name="smartContractRegistrations"></param>
         public void DeployContractsInGenesinGenesisBlock(IEnumerable<SmartContractRegistration> smartContractRegistrations)
         {
-            if(Inititalize())
+            if(!Inititalize())
                 return;
             var tasks = new List<Task>();
             foreach (var sm in smartContractRegistrations)
