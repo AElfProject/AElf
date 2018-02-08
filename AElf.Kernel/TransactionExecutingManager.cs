@@ -36,7 +36,7 @@ namespace AElf.Kernel
             
             var task = Task.Factory.StartNew(() =>
             {
-                // TODO: execute tx. 
+                // TODO: execute tx and  exceptions handling
                 var method = tx.MethodName;
                 
                 switch (method)
@@ -81,7 +81,7 @@ namespace AElf.Kernel
             var toBalance = toBalanceDataProvider.GetAsync(toBalanceHash).Result;
 
            
-            // TODO: calculate with amount
+            // TODO: calculate with amount and  
             // 
 
             // TODO: serialize new Balances and uodate
@@ -102,12 +102,10 @@ namespace AElf.Kernel
         /// <returns></returns>
         private async Task InvokeMethod(IAccount accountFrom, IAccount accountTo, string method, object[] param)
         {
-        
             var accountToDaataProvider = _worldState.GetAccountDataProviderByAccount(accountTo);
             var smartConrtract = new SmartContract();
             await smartConrtract.InititalizeAsync(accountToDaataProvider);
             await smartConrtract.InvokeAsync(accountFrom.GetAddress(), method, param);
-            
         }
         
         
