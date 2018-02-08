@@ -1,7 +1,9 @@
 using AElf.Kernel.Extensions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace AElf.Kernel.Merkle
 {
@@ -10,7 +12,9 @@ namespace AElf.Kernel.Merkle
         /// <summary>
         /// Merkle nodes
         /// </summary>
-        private List<IHash<T>> Nodes { get; set; } = new List<IHash<T>>();
+        private ConcurrentStack<IHash<T>> Nodes { get; set; } = new ConcurrentStack<IHash<T>>();
+        
+        private ConcurrentDictionary<string, IHash<T>> _cache = new ConcurrentDictionary<string, IHash<T>>();
 
         /// <summary>
         /// Add a leaf node and compute root hash.
@@ -18,7 +22,7 @@ namespace AElf.Kernel.Merkle
         /// <param name="hash"></param>
         public void AddNode(IHash<T> hash)
         {
-            Nodes.Add(hash);
+            Nodes.Push(hash);
             ComputeRootHash();
         }
 
@@ -37,15 +41,20 @@ namespace AElf.Kernel.Merkle
 
         public BinaryMerkleTree<T> AddNodes(List<IHash<T>> hashes)
         {
-            hashes.ForEach(hash => Nodes.Add(hash));
+            hashes.ForEach(hash => Nodes.Push(hash));
 
             return this;
         }
 
         public IHash<IMerkleTree<T>> ComputeRootHash() => ComputeRootHash(Nodes);
 
-        public IHash<IMerkleTree<T>> ComputeRootHash(List<IHash<T>> hashes)
+        private IHash<IMerkleTree<T>> ComputeRootHash(ConcurrentStack<IHash<T>> hashesbag)
         {
+            //Just work around to use a list in this method.
+            var hashArray = new IHash<T>[hashesbag.Count];
+            hashesbag.CopyTo(hashArray, 0);
+            var hashes = hashArray.Reverse().ToList();
+            
             if (hashes.Count < 1)
             {
                 throw new InvalidOperationException("Cannot generate merkle tree without any nodes.");
@@ -58,14 +67,14 @@ namespace AElf.Kernel.Merkle
             else
             {
                 //Every time goes to a higher level.
-                List<IHash<T>> parents = new List<IHash<T>>();
+                ConcurrentStack<IHash<T>> parents = new ConcurrentStack<IHash<T>>();
 
                 for (int i = 0; i < hashes.Count; i += 2)
                 {
                     IHash<T> right = (i + 1 < hashes.Count) ? new Hash<T>(hashes[i + 1].Value) : null;
-                    IHash<T> parent = new Hash<T>((hashes[i].ToString() + right?.ToString()).CalculateHash());
+                    IHash<T> parent = FindCache(hashes[i], right);
 
-                    parents.Add(parent);
+                    parents.Push(parent);
                 }
 
                 return ComputeRootHash(parents);
@@ -86,7 +95,8 @@ namespace AElf.Kernel.Merkle
             }
             for (int i = 0; i < Nodes.Count; i++)
             {
-                if (Nodes[i] == leaf)
+                Nodes.TryPeek(out var node);
+                if (node == leaf)
                 {
                     return i;
                 }
@@ -94,20 +104,20 @@ namespace AElf.Kernel.Merkle
             return -1;
         }
 
-        public bool VerifyProofList(List<Hash<ITransaction>> hashlist)
+        public bool VerifyProofList(List<IHash<T>> hashlist)
         {
-            List<Hash<ITransaction>> list = ComputeProofHash(hashlist);
+            List<IHash<T>> list = ComputeProofHash(hashlist);
             return ComputeRootHash().ToString() == list[0].ToString();
         }
 
-        private List<Hash<ITransaction>> ComputeProofHash(List<Hash<ITransaction>> hashlist)
-        {
+        private List<IHash<T>> ComputeProofHash(List<IHash<T>> hashlist)
+        {            
             if (hashlist.Count < 2)
                 return hashlist;
 
-            List<Hash<ITransaction>> list = new List<Hash<ITransaction>>()
+            List<IHash<T>> list = new List<IHash<T>>()
             {
-                new Hash<ITransaction>((hashlist[0].ToString() + hashlist[1].ToString()).CalculateHash())
+                new Hash<T>(hashlist[0].CalculateHashWith(hashlist[1]))
             };
 
             if (hashlist.Count > 2)
@@ -128,10 +138,34 @@ namespace AElf.Kernel.Merkle
 
         public void UpdateNode(int oldLeafOrder, IHash<T> newLeaf)
         {
-            Nodes[oldLeafOrder] = newLeaf;
-            // TODO:
-            // Make it quicker to compute root hash value.
+            Queue<IHash<T>> temp = new Queue<IHash<T>>();
+            for (var i = 0; i < Nodes.Count - oldLeafOrder + 1; i++)
+            {
+                if (Nodes.TryPop(out var element))
+                {
+                    temp.Enqueue(element);
+                }
+            }
+            Nodes.Push(newLeaf);
+            for (int i = 0; i < temp.Count; i++)
+            {
+                Nodes.Push(temp.Dequeue());
+            }
             ComputeRootHash();
+        }
+
+        private IHash<T> FindCache(IHash<T> hash1, IHash<T> hash2)
+        {
+            var combineHash = hash1.Value.ToHex() + hash2.Value.ToHex();
+            return _cache.TryGetValue(combineHash, out var resultHash)
+                ? resultHash
+                : AddCache(combineHash, new Hash<T>(hash1.CalculateHashWith(hash2)));
+        }
+
+        private IHash<T> AddCache(string keyHash, IHash<T> valueHash)
+        {
+            _cache[keyHash] = valueHash;
+            return valueHash;
         }
     }
 }

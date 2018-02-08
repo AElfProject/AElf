@@ -18,7 +18,4 @@
       <Name>AElf.Serialization</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectCapability Include="CSharp;Managed;ClassDesigner" />
-  </ItemGroup>
 </Project>
