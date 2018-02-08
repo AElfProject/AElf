@@ -20,7 +20,7 @@ namespace AElf.Kernel
         /// <summary>
         /// ctor.
         /// </summary>
-        /// <param name="accountAddress"></param>
+        /// <param name="account"></param>
         public DataProvider(IAccount account)
         {
             _account = account;
@@ -69,6 +69,16 @@ namespace AElf.Kernel
             return _dataProviders.TryGetValue(name, out var dataProvider) ? dataProvider : AddDataProvider(name);
         }
 
+        /// <summary>
+        /// set dataProvider with name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="dataProvider"></param>
+        public void SetDataProvider(string name, IDataProvider dataProvider)
+        {
+            _dataProviders[name] = dataProvider;
+        }
+        
         /// <summary>
         /// Create a new data provider and add it to dict.
         /// </summary>
