@@ -13,9 +13,8 @@ namespace AElf.Kernel
         private Dictionary<string, IDataProvider> _dataProviders = new Dictionary<string, IDataProvider>();
         private Dictionary<IHash, IHash> _mapSerializedValue = new Dictionary<IHash, IHash>();
 
-        private IHash keyHash;
-        private IHash oldValueHash;
-        private IHash newValueHash;
+        private IHash _keyHash;
+        private IHash _newValueHash;
 
         /// <summary>
         /// ctor.
@@ -25,9 +24,8 @@ namespace AElf.Kernel
         {
             _account = account;
 
-            keyHash = default(IHash);
-            oldValueHash = default(IHash);
-            newValueHash = default(IHash);
+            _keyHash = default(IHash);
+            _newValueHash = default(IHash);
         }
 
         /// <summary>
@@ -79,6 +77,7 @@ namespace AElf.Kernel
             _dataProviders[name] = dataProvider;
         }
         
+        
         /// <summary>
         /// Create a new data provider and add it to dict.
         /// </summary>
@@ -90,6 +89,7 @@ namespace AElf.Kernel
             _dataProviders[name] = defaultDataProvider;
             return defaultDataProvider;
         }
+        
 
         /// <summary>
         /// Directly add a data to k-v database.
@@ -110,8 +110,8 @@ namespace AElf.Kernel
             var finalHash = new Hash<ISerializable>(key.CalculateHashWith(obj));
 
             #region Store the context
-            keyHash = key;
-            newValueHash = finalHash;
+            _keyHash = key;
+            _newValueHash = finalHash;
             #endregion
 
             return new Task(() => Database.Insert(finalHash, obj));
@@ -135,11 +135,11 @@ namespace AElf.Kernel
         /// </summary>
         public void Execute()
         {
-            if (keyHash == default(IHash) || newValueHash == default(IHash))
+            if (_keyHash == default(IHash) || _newValueHash == default(IHash))
             {
                 return;
             }
-            _mapSerializedValue[keyHash] = newValueHash;
+            _mapSerializedValue[_keyHash] = _newValueHash;
         }
     }
 }
