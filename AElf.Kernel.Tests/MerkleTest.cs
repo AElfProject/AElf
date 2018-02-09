@@ -1,3 +1,4 @@
+using System;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Merkle;
 using System.Collections.Generic;
@@ -27,10 +28,10 @@ namespace AElf.Kernel.Tests
 
             var hash_l = new Hash<ITransaction>("l".CalculateHash());
             var hash_f = new Hash<ITransaction>("f".CalculateHash());
-            var hash_l_f = new Hash<ITransaction>((hash_l.ToString() + hash_f.ToString()).CalculateHash());
+            var hash_l_f = new Hash<ITransaction>(hash_l.CalculateHashWith(hash_f));
             #endregion
 
-            List<Hash<ITransaction>> prooflist = new List<Hash<ITransaction>>
+            List<IHash<ITransaction>> prooflist = new List<IHash<ITransaction>>
             {
                 hash_a,
                 hash_e,
