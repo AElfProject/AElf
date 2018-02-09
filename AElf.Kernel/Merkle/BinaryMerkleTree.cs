@@ -26,19 +26,6 @@ namespace AElf.Kernel.Merkle
             ComputeRootHash();
         }
 
-        public void AddNode(IHash<T> newHash, IHash<T> oldHash)
-        {
-            var oldOrder = FindLeaf(oldHash);
-            if (oldOrder != -1)
-            {
-                UpdateNode(oldOrder, newHash);
-            }
-            else
-            {
-                AddNode(newHash);
-            }
-        }
-
         public BinaryMerkleTree<T> AddNodes(List<IHash<T>> hashes)
         {
             hashes.ForEach(hash => Nodes.Add(hash));

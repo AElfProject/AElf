@@ -68,7 +68,25 @@ namespace AElf.Kernel
         }
 
         /// <summary>
-        /// set dataProvider with name
+        /// Create a new data provider and add it to dict.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        private IDataProvider AddDataProvider(string name)
+        {
+            var beforeAdd = this;
+            
+            var defaultDataProvider = new DataProvider(_account);
+            _dataProviders[name] = defaultDataProvider;
+            
+            WorldState.Instance.AddDataProvider(defaultDataProvider);
+            WorldState.Instance.UpdateDataProvider(beforeAdd, this);
+            
+            return defaultDataProvider;
+        }
+        
+        /// <summary>
+        /// Set a data provider.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="dataProvider"></param>
@@ -76,20 +94,6 @@ namespace AElf.Kernel
         {
             _dataProviders[name] = dataProvider;
         }
-        
-        
-        /// <summary>
-        /// Create a new data provider and add it to dict.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        private IDataProvider AddDataProvider(string name)
-        {
-            var defaultDataProvider = new DataProvider(_account);
-            _dataProviders[name] = defaultDataProvider;
-            return defaultDataProvider;
-        }
-        
 
         /// <summary>
         /// Directly add a data to k-v database.
@@ -99,10 +103,12 @@ namespace AElf.Kernel
         /// <returns></returns>
         public Task SetAsync(IHash key, ISerializable obj)
         {
+            var beforeSet = this;
+            
             //Add the hash of value to merkle tree.
             var newMerkleNode = new Hash<ISerializable>(obj.CalculateHash());
             var oldMerkleNode = new Hash<ISerializable>(GetAsync(key).CalculateHash());
-            _dataMerkleTree.AddNode(newMerkleNode, oldMerkleNode);
+            _dataMerkleTree.UpdateNode(oldMerkleNode, newMerkleNode);
 
             //Re-calculate the hash with the value, 
             //and use _mapSerializedValue to map the key with the value's truely address in database.
@@ -113,6 +119,10 @@ namespace AElf.Kernel
             _keyHash = key;
             _newValueHash = finalHash;
             #endregion
+            
+            Execute();
+            
+            WorldState.Instance.UpdateDataProvider(beforeSet, this);
 
             return new Task(() => Database.Insert(finalHash, obj));
         }
