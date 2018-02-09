@@ -67,7 +67,7 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void SchedulerTest()
         {
-            var worldState = WorldState.Instance;
+            var worldState = new WorldState();
             var smartContractZero = new SmartContractZero();
             var accountZero = new AccountZero(smartContractZero);
             var accountManager = new AccountManager(worldState);
