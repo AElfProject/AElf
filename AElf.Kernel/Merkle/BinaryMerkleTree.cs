@@ -67,7 +67,7 @@ namespace AElf.Kernel.Merkle
                 for (int i = 0; i < hashes.Count; i += 2)
                 {
                     IHash<T> right = (i + 1 < hashes.Count) ? new Hash<T>(hashes[i + 1].Value) : null;
-                    IHash<T> parent = FindCache(hashes[0], right);
+                    IHash<T> parent = FindCache(hashes[i], right);
 
                     parents.Add(parent);
                 }
