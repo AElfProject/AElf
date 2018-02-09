@@ -1,7 +1,9 @@
-﻿using AElf.Kernel.Extensions;
+using AElf.Kernel.Extensions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace AElf.Kernel.Merkle
 {
@@ -11,6 +13,8 @@ namespace AElf.Kernel.Merkle
         /// Merkle nodes
         /// </summary>
         private List<IHash<T>> Nodes { get; set; } = new List<IHash<T>>();
+        
+        private Dictionary<string, IHash<T>> _cache = new Dictionary<string, IHash<T>>();
 
         /// <summary>
         /// Add a leaf node and compute root hash.
@@ -44,7 +48,7 @@ namespace AElf.Kernel.Merkle
 
         public IHash<IMerkleTree<T>> ComputeRootHash() => ComputeRootHash(Nodes);
 
-        public IHash<IMerkleTree<T>> ComputeRootHash(List<IHash<T>> hashes)
+        private IHash<IMerkleTree<T>> ComputeRootHash(List<IHash<T>> hashes)
         {
             if (hashes.Count < 1)
             {
@@ -63,7 +67,7 @@ namespace AElf.Kernel.Merkle
                 for (int i = 0; i < hashes.Count; i += 2)
                 {
                     IHash<T> right = (i + 1 < hashes.Count) ? new Hash<T>(hashes[i + 1].Value) : null;
-                    IHash<T> parent = new Hash<T>((hashes[i].ToString() + right?.ToString()).CalculateHash());
+                    IHash<T> parent = FindCache(hashes[0], right);
 
                     parents.Add(parent);
                 }
@@ -94,20 +98,20 @@ namespace AElf.Kernel.Merkle
             return -1;
         }
 
-        public bool VerifyProofList(List<Hash<ITransaction>> hashlist)
+        public bool VerifyProofList(List<IHash<T>> hashlist)
         {
-            List<Hash<ITransaction>> list = ComputeProofHash(hashlist);
+            List<IHash<T>> list = ComputeProofHash(hashlist);
             return ComputeRootHash().ToString() == list[0].ToString();
         }
 
-        private List<Hash<ITransaction>> ComputeProofHash(List<Hash<ITransaction>> hashlist)
+        private List<IHash<T>> ComputeProofHash(List<IHash<T>> hashlist)
         {
             if (hashlist.Count < 2)
                 return hashlist;
 
-            List<Hash<ITransaction>> list = new List<Hash<ITransaction>>()
+            List<IHash<T>> list = new List<IHash<T>>()
             {
-                new Hash<ITransaction>((hashlist[0].ToString() + hashlist[1].ToString()).CalculateHash())
+                FindCache(hashlist[0], hashlist[1])
             };
 
             if (hashlist.Count > 2)
@@ -129,9 +133,21 @@ namespace AElf.Kernel.Merkle
         public void UpdateNode(int oldLeafOrder, IHash<T> newLeaf)
         {
             Nodes[oldLeafOrder] = newLeaf;
-            // TODO:
-            // Make it quicker to compute root hash value.
             ComputeRootHash();
+        }
+
+        private IHash<T> FindCache(IHash<T> hash1, IHash<T> hash2)
+        {
+            var combineHash = hash1.Value.ToHex() + hash2.Value.ToHex();
+            return _cache.TryGetValue(combineHash, out var resultHash)
+                ? resultHash
+                : AddCache(combineHash, new Hash<T>(hash1.CalculateHashWith(hash2)));
+        }
+
+        private IHash<T> AddCache(string keyHash, IHash<T> valueHash)
+        {
+            _cache[keyHash] = valueHash;
+            return valueHash;
         }
     }
 }
