@@ -15,21 +15,7 @@ namespace AElf.Kernel
         private BinaryMerkleTree<IHash> _merkleTree;
         private List<IDataProvider> _dataProviders;
 
-        private static WorldState _instance = null;
-        private static readonly object SyncObject = new object();
-        
-        public static WorldState Instance
-        {
-            get
-            {
-                lock (SyncObject)
-                {
-                    return _instance ?? (_instance = new WorldState());
-                }
-            }
-        }
-
-        private WorldState()
+        public WorldState()
         {
             _accountDataProviders = new Dictionary<IAccount, IAccountDataProvider>();
             _merkleTree = new BinaryMerkleTree<IHash>();
@@ -56,7 +42,7 @@ namespace AElf.Kernel
 
         private IAccountDataProvider AddAccountDataProvider(IAccount account)
         {
-            var accountDataProvider = new AccountDataProvider(account);
+            var accountDataProvider = new AccountDataProvider(account, this);
             //Add the address to dict.
             _accountDataProviders[account] = accountDataProvider;
             
