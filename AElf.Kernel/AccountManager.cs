@@ -34,7 +34,7 @@ namespace AElf.Kernel
             var hash = new Hash<IAccount>(accountCaller.CalculateHashWith(smartContractContractRegistration));
             var account = new Account(hash);
             var accountDataProvider = _worldState.GetAccountDataProviderByAccount(account);
-            accountDataProvider.GetDataProvider().SetDataProvider("SmartContractMap", new DataProvider(account));
+            accountDataProvider.GetDataProvider().SetDataProvider("SmartContractMap", new DataProvider(account, _worldState));
             // register smartcontract to the new contract
             SmartContractZero smartContractZero = new SmartContractZero();
             await smartContractZero.InititalizeAsync(accountDataProvider);
