@@ -10,15 +10,9 @@ namespace AElf.Kernel
     {
         private readonly BlockHeader _blockHeader = new BlockHeader(Hash<IBlock>.Zero);
         private readonly BlockBody _blockBody = new BlockBody();
-        private AccountZero _accountZero;
-        private readonly WorldState _worldState;
+        public ITransaction Transaction { get; set; }
 
-        public GenesisBlock(WorldState worldState, AccountZero accountZero)
-        {
-            _worldState = worldState;
-            _accountZero = accountZero;
-        }
-
+        
         /// <summary>
         /// Returns the block hash.
         /// </summary>
@@ -28,14 +22,6 @@ namespace AElf.Kernel
             return new Hash<IBlock>(this.CalculateHash());
         }
 
-        /// <summary>
-        /// Deploy contracts in Genesis block
-        /// </summary>
-        /// <param name="smartContractRegistrations"></param>
-        public void DeployContracts(IEnumerable<SmartContractRegistration> smartContractRegistrations)
-        {
-            _accountZero.DeployContractsInGenesinGenesisBlock(smartContractRegistrations);
-        }
 
         public IBlockHeader GetHeader()
         {
@@ -47,10 +33,12 @@ namespace AElf.Kernel
             return _blockBody;
         }
 
-        // No Transaction in GenesisBlock
+        
         public bool AddTransaction(ITransaction tx)
         {
-            throw new System.NotImplementedException("No Transaction in GenesisBlock");
+            if (!_blockBody.AddTransaction(tx)) return false;
+            _blockHeader.AddTransaction(tx.GetHash());
+            return true;
         }
     }
 }
