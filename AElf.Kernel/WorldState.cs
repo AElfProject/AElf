@@ -10,17 +10,13 @@ namespace AElf.Kernel
 {
     public class WorldState : IWorldState
     {
-        private ConcurrentDictionary<IAccount, IAccountDataProvider> _accountDataProviders;
+        private Dictionary<IAccount, IAccountDataProvider> _accountDataProviders;
 
-        // TODO:
-        // Figure out how to update the merkle tree node automatically.
         private BinaryMerkleTree<IHash> _merkleTree;
-
-        //private Func<IMerkleNode>
 
         public WorldState()
         {
-            _accountDataProviders = new ConcurrentDictionary<IAccount, IAccountDataProvider>();
+            _accountDataProviders = new Dictionary<IAccount, IAccountDataProvider>();
             _merkleTree = new BinaryMerkleTree<IHash>();
         }
 
