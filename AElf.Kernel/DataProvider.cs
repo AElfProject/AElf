@@ -24,8 +24,8 @@ namespace AElf.Kernel
         {
             _account = account;
 
-            _keyHash = default(IHash);
-            _newValueHash = default(IHash);
+            _keyHash = null;
+            _newValueHash = null;
         }
 
         /// <summary>
