@@ -34,20 +34,29 @@ namespace AElf.Kernel
         public Task ExecuteAsync(ITransaction tx)
         {
             
-            var task = Task.Factory.StartNew(() =>
+            var task = Task.Factory.StartNew(async () =>
             {
-                // TODO: execute tx. 
+                // TODO: execute tx and  exceptions handling
                 var method = tx.MethodName;
+                var accountFrom = tx.From;
+                var accountTo = tx.To;
+                var param = tx.Params;
                 
                 switch (method)
                 {
                     case "transfer":
+                        await Transfer(accountFrom, accountTo, (decimal) param.ElementAt(0));
                         break;
                     case "CreatAccount":
+                        await CreateAccount(accountFrom, (string) param.ElementAt(0));
                         break;
                     case "InvokeMethod":
+                        await InvokeMethod(accountFrom, accountTo, (string) param.ElementAt(0),
+                            (object[]) param.ElementAt(1));
                         break;
                     case "DeployContract":
+                        await DeploySmartContract(accountFrom, (int) param.ElementAt(0), (string) param.ElementAt(1),
+                            (byte[]) param.ElementAt(2));
                         break;
                     default:
                         Console.WriteLine("Default case");
@@ -81,7 +90,7 @@ namespace AElf.Kernel
             var toBalance = toBalanceDataProvider.GetAsync(toBalanceHash).Result;
 
            
-            // TODO: calculate with amount
+            // TODO: calculate with amount and  
             // 
 
             // TODO: serialize new Balances and uodate
@@ -102,12 +111,10 @@ namespace AElf.Kernel
         /// <returns></returns>
         private async Task InvokeMethod(IAccount accountFrom, IAccount accountTo, string method, object[] param)
         {
-        
             var accountToDaataProvider = _worldState.GetAccountDataProviderByAccount(accountTo);
             var smartConrtract = new SmartContract();
             await smartConrtract.InititalizeAsync(accountToDaataProvider);
             await smartConrtract.InvokeAsync(accountFrom.GetAddress(), method, param);
-            
         }
         
         
@@ -142,7 +149,7 @@ namespace AElf.Kernel
         /// <param name="contractName"></param>
         /// <param name="smartContractCode"></param>
         /// <param name="category"> 1: C# bytes </param>
-        private async Task DeploySmartContract(IAccount accountFrom,  string contractName, byte[] smartContractCode, int category )
+        private async Task DeploySmartContract(IAccount accountFrom, int category, string contractName, byte[] smartContractCode)
         {
             
             var smartContractRegistration = new SmartContractRegistration

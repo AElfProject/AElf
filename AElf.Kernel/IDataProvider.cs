@@ -5,7 +5,14 @@ namespace AElf.Kernel
     public interface IDataProvider
     {
         IDataProvider GetDataProvider(string name);
-        
+
+
+        /// <summary>
+        /// set dataProvider with name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="dataProvider"></param>
+        void SetDataProvider(string name, IDataProvider dataProvider);
         
         /// <summary>
         /// 
