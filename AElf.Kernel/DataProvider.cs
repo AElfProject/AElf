@@ -16,16 +16,20 @@ namespace AElf.Kernel
         private IHash _keyHash;
         private IHash _newValueHash;
 
+        private WorldState _worldState;
+
         /// <summary>
         /// ctor.
         /// </summary>
         /// <param name="account"></param>
-        public DataProvider(IAccount account)
+        public DataProvider(IAccount account, WorldState worldState)
         {
             _account = account;
 
             _keyHash = null;
             _newValueHash = null;
+
+            _worldState = worldState;
         }
 
         /// <summary>
@@ -76,11 +80,11 @@ namespace AElf.Kernel
         {
             var beforeAdd = this;
             
-            var defaultDataProvider = new DataProvider(_account);
+            var defaultDataProvider = new DataProvider(_account, _worldState);
             _dataProviders[name] = defaultDataProvider;
             
-            WorldState.Instance.AddDataProvider(defaultDataProvider);
-            WorldState.Instance.UpdateDataProvider(beforeAdd, this);
+            _worldState.AddDataProvider(defaultDataProvider);
+            _worldState.UpdateDataProvider(beforeAdd, this);
             
             return defaultDataProvider;
         }
@@ -122,7 +126,7 @@ namespace AElf.Kernel
             
             Execute();
             
-            WorldState.Instance.UpdateDataProvider(beforeSet, this);
+            _worldState.UpdateDataProvider(beforeSet, this);
 
             return new Task(() => Database.Insert(finalHash, obj));
         }
