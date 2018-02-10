@@ -13,21 +13,23 @@ namespace AElf.Kernel
         private Dictionary<string, IDataProvider> _dataProviders = new Dictionary<string, IDataProvider>();
         private Dictionary<IHash, IHash> _mapSerializedValue = new Dictionary<IHash, IHash>();
 
-        private IHash keyHash;
-        private IHash oldValueHash;
-        private IHash newValueHash;
+        private IHash _keyHash;
+        private IHash _newValueHash;
+
+        private WorldState _worldState;
 
         /// <summary>
         /// ctor.
         /// </summary>
-        /// <param name="accountAddress"></param>
-        public DataProvider(IAccount account)
+        /// <param name="account"></param>
+        public DataProvider(IAccount account, WorldState worldState)
         {
             _account = account;
 
-            keyHash = default(IHash);
-            oldValueHash = default(IHash);
-            newValueHash = default(IHash);
+            _keyHash = null;
+            _newValueHash = null;
+
+            _worldState = worldState;
         }
 
         /// <summary>
@@ -76,9 +78,25 @@ namespace AElf.Kernel
         /// <returns></returns>
         private IDataProvider AddDataProvider(string name)
         {
-            var defaultDataProvider = new DataProvider(_account);
+            var beforeAdd = this;
+            
+            var defaultDataProvider = new DataProvider(_account, _worldState);
             _dataProviders[name] = defaultDataProvider;
+            
+            _worldState.AddDataProvider(defaultDataProvider);
+            _worldState.UpdateDataProvider(beforeAdd, this);
+            
             return defaultDataProvider;
+        }
+        
+        /// <summary>
+        /// Set a data provider.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="dataProvider"></param>
+        public void SetDataProvider(string name, IDataProvider dataProvider)
+        {
+            _dataProviders[name] = dataProvider;
         }
 
         /// <summary>
@@ -89,10 +107,12 @@ namespace AElf.Kernel
         /// <returns></returns>
         public Task SetAsync(IHash key, ISerializable obj)
         {
+            var beforeSet = this;
+            
             //Add the hash of value to merkle tree.
             var newMerkleNode = new Hash<ISerializable>(obj.CalculateHash());
             var oldMerkleNode = new Hash<ISerializable>(GetAsync(key).CalculateHash());
-            _dataMerkleTree.AddNode(newMerkleNode, oldMerkleNode);
+            _dataMerkleTree.UpdateNode(oldMerkleNode, newMerkleNode);
 
             //Re-calculate the hash with the value, 
             //and use _mapSerializedValue to map the key with the value's truely address in database.
@@ -100,9 +120,13 @@ namespace AElf.Kernel
             var finalHash = new Hash<ISerializable>(key.CalculateHashWith(obj));
 
             #region Store the context
-            keyHash = key;
-            newValueHash = finalHash;
+            _keyHash = key;
+            _newValueHash = finalHash;
             #endregion
+            
+            Execute();
+            
+            _worldState.UpdateDataProvider(beforeSet, this);
 
             return new Task(() => Database.Insert(finalHash, obj));
         }
@@ -125,11 +149,11 @@ namespace AElf.Kernel
         /// </summary>
         public void Execute()
         {
-            if (keyHash == default(IHash) || newValueHash == default(IHash))
+            if (_keyHash == default(IHash) || _newValueHash == default(IHash))
             {
                 return;
             }
-            _mapSerializedValue[keyHash] = newValueHash;
+            _mapSerializedValue[_keyHash] = _newValueHash;
         }
     }
 }

@@ -6,13 +6,13 @@ namespace AElf.Kernel
     {
         private readonly IAccount _account;
         private IDataProvider _dataProvider;
-        
+
         public IAccountDataContext Context { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public AccountDataProvider(IAccount account)
+        public AccountDataProvider(IAccount account, WorldState worldState)
         {
             _account = account;
-            _dataProvider = new DataProvider(account);
+            _dataProvider = new DataProvider(account, worldState);
         }
         
         public IHash<IAccount> GetAccountAddress()
