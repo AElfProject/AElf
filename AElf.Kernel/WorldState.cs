@@ -10,18 +10,16 @@ namespace AElf.Kernel
 {
     public class WorldState : IWorldState
     {
-        private ConcurrentDictionary<IAccount, IAccountDataProvider> _accountDataProviders;
+        private Dictionary<IAccount, IAccountDataProvider> _accountDataProviders;
 
-        // TODO:
-        // Figure out how to update the merkle tree node automatically.
         private BinaryMerkleTree<IHash> _merkleTree;
-
-        //private Func<IMerkleNode>
+        private List<IDataProvider> _dataProviders;
 
         public WorldState()
         {
-            _accountDataProviders = new ConcurrentDictionary<IAccount, IAccountDataProvider>();
+            _accountDataProviders = new Dictionary<IAccount, IAccountDataProvider>();
             _merkleTree = new BinaryMerkleTree<IHash>();
+            _dataProviders = new List<IDataProvider>();
         }
 
         /// <summary>
@@ -44,13 +42,28 @@ namespace AElf.Kernel
 
         private IAccountDataProvider AddAccountDataProvider(IAccount account)
         {
-            var accountDataProvider = new AccountDataProvider(account);
+            var accountDataProvider = new AccountDataProvider(account, this);
             //Add the address to dict.
             _accountDataProviders[account] = accountDataProvider;
-            //Add the hash of account data provider to merkle tree as a node.
-            _merkleTree.AddNode(new Hash<IHash>(accountDataProvider.GetDataProvider().CalculateHash()));
-
+            
+            AddDataProvider(accountDataProvider.GetDataProvider());
+            
             return accountDataProvider;
+        }
+
+        public void AddDataProvider(IDataProvider dataProvider)
+        {
+            _dataProviders.Add(dataProvider);
+            //Add the hash of account data provider to merkle tree as a node.
+            _merkleTree.AddNode(new Hash<IHash>(dataProvider.CalculateHash()));
+        }
+
+        public void UpdateDataProvider(IDataProvider oldDataProvider, IDataProvider newDataProvider)
+        {
+            var order = _dataProviders.IndexOf(oldDataProvider);
+            _dataProviders[order] = newDataProvider;
+            _merkleTree.UpdateNode(new Hash<IHash>(oldDataProvider.CalculateHash()), 
+                new Hash<IHash>(newDataProvider.CalculateHash()));
         }
     }
 }

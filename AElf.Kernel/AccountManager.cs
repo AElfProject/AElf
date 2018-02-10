@@ -30,10 +30,11 @@ namespace AElf.Kernel
         /// <param name="smartContractContractRegistration"></param>
         public async Task<IAccount> CreateAccount(IAccount accountCaller, SmartContractRegistration smartContractContractRegistration)
         {
+            // inittitalize the account and accountDataprovider
             var hash = new Hash<IAccount>(accountCaller.CalculateHashWith(smartContractContractRegistration));
             var account = new Account(hash);
             var accountDataProvider = _worldState.GetAccountDataProviderByAccount(account);
-            
+            accountDataProvider.GetDataProvider().SetDataProvider("SmartContractMap", new DataProvider(account, _worldState));
             // register smartcontract to the new contract
             SmartContractZero smartContractZero = new SmartContractZero();
             await smartContractZero.InititalizeAsync(accountDataProvider);

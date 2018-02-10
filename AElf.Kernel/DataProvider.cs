@@ -16,16 +16,20 @@ namespace AElf.Kernel
         private IHash _keyHash;
         private IHash _newValueHash;
 
+        private WorldState _worldState;
+
         /// <summary>
         /// ctor.
         /// </summary>
         /// <param name="account"></param>
-        public DataProvider(IAccount account)
+        public DataProvider(IAccount account, WorldState worldState)
         {
             _account = account;
 
-            _keyHash = default(IHash);
-            _newValueHash = default(IHash);
+            _keyHash = null;
+            _newValueHash = null;
+
+            _worldState = worldState;
         }
 
         /// <summary>
@@ -74,8 +78,14 @@ namespace AElf.Kernel
         /// <returns></returns>
         private IDataProvider AddDataProvider(string name)
         {
-            var defaultDataProvider = new DataProvider(_account);
+            var beforeAdd = this;
+            
+            var defaultDataProvider = new DataProvider(_account, _worldState);
             _dataProviders[name] = defaultDataProvider;
+            
+            _worldState.AddDataProvider(defaultDataProvider);
+            _worldState.UpdateDataProvider(beforeAdd, this);
+            
             return defaultDataProvider;
         }
         
@@ -97,10 +107,12 @@ namespace AElf.Kernel
         /// <returns></returns>
         public Task SetAsync(IHash key, ISerializable obj)
         {
+            var beforeSet = this;
+            
             //Add the hash of value to merkle tree.
             var newMerkleNode = new Hash<ISerializable>(obj.CalculateHash());
             var oldMerkleNode = new Hash<ISerializable>(GetAsync(key).CalculateHash());
-            _dataMerkleTree.AddNode(newMerkleNode, oldMerkleNode);
+            _dataMerkleTree.UpdateNode(oldMerkleNode, newMerkleNode);
 
             //Re-calculate the hash with the value, 
             //and use _mapSerializedValue to map the key with the value's truely address in database.
@@ -111,6 +123,10 @@ namespace AElf.Kernel
             _keyHash = key;
             _newValueHash = finalHash;
             #endregion
+            
+            Execute();
+            
+            _worldState.UpdateDataProvider(beforeSet, this);
 
             return new Task(() => Database.Insert(finalHash, obj));
         }
