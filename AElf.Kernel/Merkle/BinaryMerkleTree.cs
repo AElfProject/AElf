@@ -75,9 +75,9 @@ namespace AElf.Kernel.Merkle
             {
                 return -1;
             }
-            for (int i = 0; i < Nodes.Count; i++)
+            for (var i = 0; i < Nodes.Count; i++)
             {
-                if (Nodes[i] == leaf)
+                if (Nodes[i].Equals(leaf))
                 {
                     return i;
                 }
@@ -109,7 +109,7 @@ namespace AElf.Kernel.Merkle
 
         public void UpdateNode(IHash<T> oldLeaf, IHash<T> newLeaf)
         {
-            int order = FindLeaf(oldLeaf);
+            var order = FindLeaf(oldLeaf);
             if (order == -1)
             {
                 return;
