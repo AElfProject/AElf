@@ -80,7 +80,7 @@ namespace AElf.Kernel
             var order = _dataProviders.IndexOf(oldDataProvider);
             if (order == -1)
             {
-                throw  new InvalidOperationException("Caonnot find the data provider to update.");
+                return;
             }
             _dataProviders[order] = newDataProvider;
             
