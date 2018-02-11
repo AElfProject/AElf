@@ -46,13 +46,11 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="account"></param>
         /// <returns></returns>
-        private IAccountDataProvider AddAccountDataProvider(IAccount account)
+        public IAccountDataProvider AddAccountDataProvider(IAccount account)
         {
-            var accountDataProvider = new AccountDataProvider(account, this);
+            var accountDataProvider = new AccountDataProvider(account, this, true);
             //Add the address to dict.
             _accountDataProviders[account] = accountDataProvider;
-            
-            AddDataProvider(accountDataProvider.GetDataProvider());
             
             return accountDataProvider;
         }
@@ -64,6 +62,10 @@ namespace AElf.Kernel
         /// <param name="dataProvider"></param>
         public void AddDataProvider(IDataProvider dataProvider)
         {
+            if (_dataProviders.Contains(dataProvider))
+            {
+                return;
+            }
             _dataProviders.Add(dataProvider);
             //Add the hash of account data provider to merkle tree as a node.
             _merkleTree.AddNode(new Hash<IHash>(dataProvider.CalculateHash()));
@@ -77,11 +79,18 @@ namespace AElf.Kernel
         /// <param name="newDataProvider"></param>
         public void UpdateDataProvider(IDataProvider oldDataProvider, IDataProvider newDataProvider)
         {
+            if (oldDataProvider == null)
+            {
+                AddDataProvider(newDataProvider);
+                return;
+            }
+            
             var order = _dataProviders.IndexOf(oldDataProvider);
             if (order == -1)
             {
                 return;
             }
+            
             _dataProviders[order] = newDataProvider;
             
             _merkleTree.UpdateNode(new Hash<IHash>(oldDataProvider.CalculateHash()), 
