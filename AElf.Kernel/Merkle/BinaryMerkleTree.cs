@@ -123,9 +123,13 @@ namespace AElf.Kernel.Merkle
             ComputeRootHash();
         }
 
-        private IHash<T> FindCache(IHash<T> hash1, IHash<T> hash2)
+        private IHash<T> FindCache(IHash hash1, IHash hash2)
         {
-            var combineHash = hash1.Value.ToHex() + hash2.Value.ToHex();
+            var combineHash = 
+                hash2?.Value != null ? 
+                    hash1.Value.ToHex() + hash2.Value.ToHex() : 
+                    hash1.Value.ToHex();
+
             return _cache.TryGetValue(combineHash, out var resultHash)
                 ? resultHash
                 : AddCache(combineHash, new Hash<T>(hash1.CalculateHashWith(hash2)));

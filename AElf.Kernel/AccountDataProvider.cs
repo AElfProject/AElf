@@ -7,12 +7,17 @@ namespace AElf.Kernel
         private readonly IAccount _account;
         private IDataProvider _dataProvider;
 
-        public IAccountDataContext Context { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public IAccountDataContext Context { get; set; }
 
-        public AccountDataProvider(IAccount account, WorldState worldState)
+        public AccountDataProvider(IAccount account, WorldState worldState, bool addDataProviderToWorldState = false)
         {
             _account = account;
+            Context = new AccountDataContext();
             _dataProvider = new DataProvider(account, worldState);
+            if (addDataProviderToWorldState)
+            {
+                worldState.AddDataProvider(_dataProvider);
+            }
         }
         
         public IHash<IAccount> GetAccountAddress()
