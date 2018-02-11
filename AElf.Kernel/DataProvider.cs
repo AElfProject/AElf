@@ -22,6 +22,7 @@ namespace AElf.Kernel
         /// ctor.
         /// </summary>
         /// <param name="account"></param>
+        /// <param name="worldState"></param>
         public DataProvider(IAccount account, WorldState worldState)
         {
             _account = account;
@@ -128,7 +129,9 @@ namespace AElf.Kernel
             
             _worldState.UpdateDataProvider(beforeSet, this);
 
-            return new Task(() => Database.Insert(finalHash, obj));
+            Database.Insert(finalHash, obj);
+
+            return Task.CompletedTask;
         }
 
         /// <summary>

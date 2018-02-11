@@ -15,7 +15,7 @@ namespace AElf.Kernel
         #region Get
         public static ISerializable Select(IHash address)
         {
-            return Data.TryGetValue(address, out var result) ? result : null;
+            return address == null ? null : (Data.TryGetValue(address, out var result) ? result : null);
         }
         #endregion
 
