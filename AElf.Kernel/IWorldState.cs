@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using AElf.Kernel.Merkle;
+using System.Threading.Tasks;
 
 namespace AElf.Kernel
 {
@@ -10,7 +11,7 @@ namespace AElf.Kernel
         /// <summary>
         /// Get a data provider from the accounts address
         /// </summary>
-        /// <param name="address"></param>
+        /// <param name="account"></param>
         /// <returns></returns>
         IAccountDataProvider GetAccountDataProviderByAccount(IAccount account);
         

@@ -18,4 +18,10 @@
       <Name>AElf.Serialization</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Merkle\MerklePartriciaTree.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Merkle\MerklePartriciaNode.cs" />
+  </ItemGroup>
 </Project>
