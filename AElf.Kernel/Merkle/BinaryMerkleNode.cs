@@ -69,16 +69,11 @@ namespace AElf.Kernel.Merkle
         /// <summary>
         /// Compute hash value as well as update the merkle tree.
         /// </summary>
-        public void ComputeHash()
+        private void ComputeHash()
         {
-            if (RightNode == null)
-            {
-                Hash = LeftNode.Hash;
-            }
-            else
-            {
-                Hash = new Hash<IMerkleNode>((LeftNode.Hash.ToString() + RightNode.Hash.ToString()).CalculateHash());
-            }
+            Hash = RightNode == null ? 
+                LeftNode.Hash : 
+                new Hash<IMerkleNode>(LeftNode.Hash.CalculateHashWith(RightNode.Hash));
 
             ParentNode?.ComputeHash();//Recursely update the hash value of parent node
         }
@@ -90,26 +85,22 @@ namespace AElf.Kernel.Merkle
         public bool VerifyHash()
         {
             //Nothing to verify
-            if (LeftNode == null && RightNode == null) return true;
+            if (LeftNode == null) return true;
 
             //If right node is null, verify the left node.
             if (RightNode == null)
-                return Hash.Value.SequenceEqual(LeftNode.Hash.Value);
+                return LeftNode != null && Hash.Value.SequenceEqual(LeftNode.Hash.Value);
 
-            return Hash.Value.SequenceEqual(
+            return Hash.Equals(
                 new Hash<IMerkleNode>(
-                    SHA256.Create().ComputeHash(
-                        Encoding.UTF8.GetBytes(LeftNode.Hash.ToString() + RightNode.Hash.ToString()))).Value);
+                    LeftNode.Hash.CalculateHashWith(RightNode.Hash)));
         }
 
         #region Implementation of IEnumerable<MerkleNode>
 
-        public IEnumerator<BinaryMerkleNode> GetEnumerator() => GetEnumerator();
-
         IEnumerator<IMerkleNode> IEnumerable<IMerkleNode>.GetEnumerator()
         {
-            foreach (var n in Iterate(this))
-                yield return n;
+            return Iterate(this).GetEnumerator();
         }
 
         /// <summary>
@@ -117,7 +108,7 @@ namespace AElf.Kernel.Merkle
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        protected IEnumerable<IMerkleNode> Iterate(BinaryMerkleNode node)
+        private IEnumerable<IMerkleNode> Iterate(BinaryMerkleNode node)
         {
             if (node.LeftNode != null)
             {
@@ -136,15 +127,14 @@ namespace AElf.Kernel.Merkle
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            foreach (var n in Iterate(this))
-                yield return n;
+            return Iterate(this).GetEnumerator();
         }
 
+        #endregion
+        
         public byte[] Serialize()
         {
             throw new NotImplementedException();
         }
-
-        #endregion
     }
 }
