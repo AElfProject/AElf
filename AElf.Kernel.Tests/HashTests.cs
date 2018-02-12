@@ -1,4 +1,4 @@
-using System;
+using AElf.Kernel.Merkle;
 using System.Threading.Tasks;
 using Moq;
 using Shouldly;

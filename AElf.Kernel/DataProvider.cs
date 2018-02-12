@@ -98,6 +98,7 @@ namespace AElf.Kernel
         public void SetDataProvider(string name, IDataProvider dataProvider)
         {
             _dataProviders[name] = dataProvider;
+            _worldState.AddDataProvider(dataProvider);
         }
 
         /// <summary>
@@ -152,7 +153,7 @@ namespace AElf.Kernel
         /// </summary>
         public void Execute()
         {
-            if (_keyHash == default(IHash) || _newValueHash == default(IHash))
+            if (_keyHash == null || _newValueHash == null)
             {
                 return;
             }

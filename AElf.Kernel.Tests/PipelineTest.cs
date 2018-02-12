@@ -1,6 +1,5 @@
-﻿using System;
+﻿using AElf.Kernel.Merkle;
 using Moq;
-using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.Tests
