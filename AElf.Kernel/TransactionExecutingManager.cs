@@ -11,18 +11,21 @@ namespace AElf.Kernel
 {
     public class TransactionExecutingManager : ITransactionExecutingManager
     {
-        private WorldState _worldState;
-        private AccountZero _accountZero;
-        private AccountManager _accountManager;
+        private readonly WorldState _worldState;
+        private readonly AccountZero _accountZero;
+        private readonly IAccountManager _accountManager;
         public Dictionary<int, List<ITransaction>> ExecutingPlan { get; private set; }
         private Dictionary<IAccount, List<ITransaction>> _pending;
         private UndirectedGraph<ITransaction, Edge<ITransaction>> _graph;
+        private readonly ISmartContractManager _smartContractManager;
 
-        public TransactionExecutingManager(WorldState worldState, AccountZero accountZero, AccountManager accountManager)
+        public TransactionExecutingManager(WorldState worldState, AccountZero accountZero, 
+            IAccountManager accountManager, ISmartContractManager smartContractManager)
         {
             _worldState = worldState;
             _accountZero = accountZero;
             _accountManager = accountManager;
+            _smartContractManager = smartContractManager;
         }
         
         
@@ -31,42 +34,46 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns>The lf. kernel. IT ransaction executing manager. execute async.</returns>
         /// <param name="tx">Tx.</param>
-        public Task ExecuteAsync(ITransaction tx)
+        public async Task ExecuteAsync(ITransaction tx)
         {
+            var smartContract = await _smartContractManager.GetAsync(tx.To);
+
+            await smartContract.InvokeAsync(tx.From.GetAddress(),tx.MethodName,tx.Params);
             
-            var task = Task.Factory.StartNew(async () =>
-            {
-                // TODO: execute tx and  exceptions handling
-                var method = tx.MethodName;
-                var accountFrom = tx.From;
-                var accountTo = tx.To;
-                var param = tx.Params;
-                
-                switch (method)
-                {
-                    case "transfer":
-                        await Transfer(accountFrom, accountTo, (decimal) param.ElementAt(0));
-                        break;
-                    case "CreatAccount":
-                        await CreateAccount(accountFrom, (string) param.ElementAt(0));
-                        break;
-                    case "InvokeMethod":
-                        await InvokeMethod(accountFrom, accountTo, (string) param.ElementAt(0),
-                            (object[]) param.ElementAt(1));
-                        break;
-                    case "DeployContract":
-                        await DeploySmartContract(accountFrom, (int) param.ElementAt(0), (string) param.ElementAt(1),
-                            (byte[]) param.ElementAt(2));
-                        break;
-                    default:
-                        Console.WriteLine("Default case");
-                        break;
-                }
-            });
-            return task;
+            
+//            
+//            var task = Task.Factory.StartNew(async () =>
+//            {
+//                // TODO: execute tx and  exceptions handling
+//                var method = tx.MethodName;
+//                var accountFrom = tx.From;
+//                var accountTo = tx.To;
+//                var param = tx.Params;
+//                
+//                switch (method)
+//                {
+//                    case "transfer":
+//                        await Transfer(accountFrom, accountTo, (decimal) param.ElementAt(0));
+//                        break;
+//                    case "CreatAccount":
+//                        await CreateAccount(accountFrom, (string) param.ElementAt(0));
+//                        break;
+//                    case "InvokeMethod":
+//                        await InvokeMethod(accountFrom, accountTo, (string) param.ElementAt(0),
+//                            (object[]) param.ElementAt(1));
+//                        break;
+//                    case "DeployContract":
+//                        await DeploySmartContract(accountFrom, (int) param.ElementAt(0), (string) param.ElementAt(1),
+//                            (byte[]) param.ElementAt(2));
+//                        break;
+//                    default:
+//                        Console.WriteLine("Default case");
+//                        break;
+//                }
+//            });
         }
 
-        
+        /*
 
         /// <summary>
         /// transfer coins between accounts
@@ -170,7 +177,7 @@ namespace AElf.Kernel
             await _accountManager.CreateAccount(accountFrom, smartContractRegistration);
         }
 
-       
+       */
 
         /// <summary>
         /// Schedule execution of transaction
