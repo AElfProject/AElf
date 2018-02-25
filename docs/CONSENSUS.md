@@ -30,9 +30,9 @@ In ÆLF, is there a consensus algorithm which took the advantages of both Cooper
 
 The ideal features of the consensus algorithm we’re looking for should be:
 
-* permanent — it’s better not to be able to rollback a transaction, a fast confirmation is feasible.
-* scalability — anyone can participate in the consensus procedure.
-* green — no carbon dioxide.
+* Permanence — It is better not to be able to rollback a transaction, a fast confirmation is feasible.
+* Scalability — Anyone can participate in the consensus procedure.
+* Green — No carbon dioxide.
 
 The answer is [DPoS](https://bitshares.org/technology/delegated-proof-of-stake-consensus/) (thanks to BitShares)
 
