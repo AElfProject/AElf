@@ -1,5 +1,5 @@
 # Why we choose DPoS in ÆLF?
-With the prosperity of blockchain, several technologies have gained the attention of the public which previously used to be obscure and technical; one being cryptography and the other, consensus. Today I’m going to talk about the consensus algorithms used in ÆLF blockchain to answer the question people usually ask me:
+With the prosperity of blockchain, several technologies have gained the attention of the public which previously used to be obscure and technical - primarily cryptography and consensus. Today I’m going to talk about the consensus algorithms used in ÆLF blockchain to answer the question people usually ask me:
 
 **"Why DPoS?"**
 
