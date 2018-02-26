@@ -12,5 +12,12 @@ namespace AElf.Kernel
         /// <param name="tx"></param>
         /// <returns></returns>
         Task ExecuteTransactionAsync(IAccount fromAccount,IAccount toAccount, ITransaction tx);
+
+        /// <summary>
+        /// Create a account from smrat contract code
+        /// </summary>
+        /// <param name="smartContract"></param>
+        /// <returns></returns>
+        Task<IAccount> CreateAccount(byte[] smartContract);
     }
 }
