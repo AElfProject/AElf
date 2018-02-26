@@ -1,4 +1,6 @@
-﻿namespace AElf.Kernel
+﻿using AElf.Kernel.Merkle;
+
+namespace AElf.Kernel
 {
     public interface IBlockHeader
     {
