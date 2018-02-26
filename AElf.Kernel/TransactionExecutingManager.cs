@@ -47,7 +47,7 @@ namespace AElf.Kernel
                     case "transfer":
                         await Transfer(accountFrom, accountTo, (decimal) param.ElementAt(0));
                         break;
-                    case "CreatAccount":
+                    case "CreateAccount":
                         await CreateAccount(accountFrom, (string) param.ElementAt(0));
                         break;
                     case "InvokeMethod":
@@ -122,21 +122,14 @@ namespace AElf.Kernel
         /// <summary>
         /// Create a new account with old contract
         /// </summary>
-        /// <param name="accountFrom"></param>
+        /// <param name="callerAccount"></param>
         /// <param name="contractName"></param>
         /// <returns></returns>
-        private async Task CreateAccount(IAccount accountFrom, string contractName)
+        private async Task<IAccount> CreateAccount(IAccount callerAccount, string contractName)
         {
-            
-            // get the contract regiseter from dataProvider
-            var accountZeroDataProvider = _worldState.GetAccountDataProviderByAccount(_accountZero);
-            var smartContractRegistration = (SmartContractRegistration) accountZeroDataProvider.GetDataProvider()
-                .GetDataProvider("SmartContract")
-                .GetAsync(new Hash<SmartContractRegistration>(_accountZero.CalculateHashWith(contractName))).Result;
-
             // use contract to create new account
-            await _accountManager.CreateAccount(accountFrom, smartContractRegistration);
-            
+            var account = await _accountManager.CreateAccount(callerAccount, contractName);
+            return account;
         }
 
         
@@ -167,7 +160,7 @@ namespace AElf.Kernel
             await smartContractZero.RegisterSmartContract(smartContractRegistration);
             
             // TODO： create new account with contract registered
-            await _accountManager.CreateAccount(accountFrom, smartContractRegistration);
+            await _accountManager.CreateAccount(accountFrom, contractName);
         }
 
        
