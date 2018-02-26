@@ -30,9 +30,14 @@ namespace AElf.Kernel
         /// <returns></returns>
         public IAccountDataProvider GetAccountDataProviderByAccount(IAccount account)
         {
-            return _accountDataProviders.TryGetValue(account, out var accountDataProvider)
-                ? accountDataProvider
-                : AddAccountDataProvider(account);
+            foreach (var k in _accountDataProviders.Keys)
+            {
+                if (k.Equals(account))
+                {
+                    return _accountDataProviders[k];
+                }
+            }
+            return AddAccountDataProvider(account);
         }
 
         public Task<IHash<IMerkleTree<IHash>>> GetWorldStateMerkleTreeRootAsync()

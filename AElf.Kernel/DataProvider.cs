@@ -1,6 +1,7 @@
 using AElf.Kernel.Merkle;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 
@@ -51,9 +52,14 @@ namespace AElf.Kernel
         /// <returns></returns>
         public Task<ISerializable> GetAsync(IHash key)
         {
-            return _mapSerializedValue.TryGetValue(key, out var finalHash) ? 
-                Task.FromResult(Database.Select(finalHash)) :
-                Task.FromResult(Database.Select(null));
+            foreach (var k in _mapSerializedValue.Keys)
+            {
+                if (k.Equals(key))
+                {
+                    return Task.FromResult(Database.Select(_mapSerializedValue[k]));
+                }
+            }
+            return Task.FromResult(Database.Select(null));
         }
 
         public Task<IHash<IMerkleTree<ISerializable>>> GetDataMerkleTreeRootAsync()
@@ -110,7 +116,6 @@ namespace AElf.Kernel
         public Task SetAsync(IHash key, ISerializable obj)
         {
             var beforeSet = this;
-            
             //Add the hash of value to merkle tree.
             var newMerkleNode = new Hash<ISerializable>(obj.CalculateHash());
             var oldMerkleNode = new Hash<ISerializable>(GetAsync(key).CalculateHash());

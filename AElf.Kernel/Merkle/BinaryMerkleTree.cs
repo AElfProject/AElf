@@ -129,10 +129,15 @@ namespace AElf.Kernel.Merkle
 
         private IHash<T> FindCache(IHash hash1, IHash hash2)
         {
+            if (hash1.Value == null)
+            {
+                return new Hash<T>();
+            }
+            
             var combineHash = 
                 hash2?.Value != null ? 
-                    hash1.Value.ToHex() + hash2.Value.ToHex() : 
-                    hash1.Value.ToHex();
+                    hash1.ToString() + hash2 : 
+                    hash1.ToString();
 
             return _cache.TryGetValue(combineHash, out var resultHash)
                 ? resultHash
