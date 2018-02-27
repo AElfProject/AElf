@@ -1,13 +1,14 @@
-﻿using AElf.Kernel.Extensions;
+﻿using System;
+using AElf.Kernel.Extensions;
+using AElf.Kernel.KernelAccount;
 using Xunit;
 
 namespace AElf.Kernel.Tests
 {
     public class TransactionExecutingTest
     {
-        
         private readonly WorldState _worldState = new WorldState();
-
+        private const string SmartContractMapKey = "SmartContractMap";
         private IChain CreateChain(ITransaction transactionInGenesisBlock)
         {
             var genesisBlock = new GenesisBlock {Transaction = transactionInGenesisBlock};
@@ -55,19 +56,27 @@ namespace AElf.Kernel.Tests
             var accountZero = chain.AccountZero;
             
             // create a caller account
-            var callerAccount = accountManager.CreateAccount();
+            var callerAccount = new Account(new Hash<IAccount>(this.CalculateHashWith("account1")));
+            
             // create the new account
-            var newAccount = accountManager.CreateAccount(callerAccount, name).Result;
-
+            var newAccount = new Account(new Hash<IAccount>(this.CalculateHashWith("account2")));
+            
+            // initialize account 
+            var smartContractManager = new SmartContractManager(_worldState, accountManager);
             var accountDataProvider = _worldState.GetAccountDataProviderByAccount(newAccount);
+            
+            //deployment
+            var smartContract = smartContractManager.GetAsync(newAccount).Result;
+            smartContract.InititalizeAsync(accountDataProvider);
+            var param = new object[] {name};
+            smartContract.InvokeAsync(callerAccount.GetAddress(), "CreateAccount", param);
             Assert.NotNull(accountDataProvider);
             
-            const string smartContractMapKey = "SmartContractMap";
             var smartContractRegistration =
                 (SmartContractRegistration) accountDataProvider.GetDataProvider()
-                    .GetDataProvider(smartContractMapKey)
+                    .GetDataProvider(SmartContractMapKey)
                     .GetAsync(new Hash<SmartContractRegistration>(
-                        accountZero.CalculateHashWith(name)))
+                        Hash<IAccount>.Zero.CalculateHashWith(name)))
                     .Result;
             
             Assert.Equal(smartContractRegistration.Category, category);
