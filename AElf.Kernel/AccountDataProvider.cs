@@ -5,7 +5,8 @@ namespace AElf.Kernel
     public class AccountDataProvider : IAccountDataProvider
     {
         private readonly IAccount _account;
-        private IDataProvider _dataProvider;
+        private readonly IDataProvider _dataProvider;
+
 
         public IAccountDataContext Context { get; set; }
 
@@ -13,7 +14,7 @@ namespace AElf.Kernel
         {
             _account = account;
             Context = new AccountDataContext();
-            _dataProvider = new DataProvider(account, worldState);
+            _dataProvider = new DataProvider(worldState, GetAccountAddress());
             if (addDataProviderToWorldState)
             {
                 worldState.AddDataProvider(_dataProvider);

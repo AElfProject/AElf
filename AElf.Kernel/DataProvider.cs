@@ -9,10 +9,10 @@ namespace AElf.Kernel
 {
     public class DataProvider : IDataProvider
     {
-        private readonly IAccount _account;
-        private BinaryMerkleTree<ISerializable> _dataMerkleTree = new BinaryMerkleTree<ISerializable>();
-        private Dictionary<string, IDataProvider> _dataProviders = new Dictionary<string, IDataProvider>();
-        private Dictionary<IHash, IHash> _mapSerializedValue = new Dictionary<IHash, IHash>();
+        private readonly IHash<IAccount> _accountAddress;
+        private readonly BinaryMerkleTree<ISerializable> _dataMerkleTree = new BinaryMerkleTree<ISerializable>();
+        private readonly Dictionary<string, IDataProvider> _dataProviders = new Dictionary<string, IDataProvider>();
+        private readonly Dictionary<IHash, IHash> _mapSerializedValue = new Dictionary<IHash, IHash>();
 
         private IHash _keyHash;
         private IHash _newValueHash;
@@ -22,16 +22,15 @@ namespace AElf.Kernel
         /// <summary>
         /// ctor.
         /// </summary>
-        /// <param name="account"></param>
+        /// <param name="accountAddress"></param>
         /// <param name="worldState"></param>
-        public DataProvider(IAccount account, WorldState worldState)
+        public DataProvider( WorldState worldState, IHash<IAccount> accountAddress)
         {
-            _account = account;
-
             _keyHash = null;
             _newValueHash = null;
 
             _worldState = worldState;
+            _accountAddress = accountAddress;
         }
 
         /// <summary>
@@ -42,7 +41,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public Task<ISerializable> GetAsync(string key)
         {
-            return GetAsync(new Hash<string>(_account.GetAddress().CalculateHashWith(key)));
+            return GetAsync(new Hash<string>(_accountAddress.CalculateHashWith(key)));
         }
 
         /// <summary>
@@ -87,7 +86,7 @@ namespace AElf.Kernel
         {
             var beforeAdd = this;
             
-            var defaultDataProvider = new DataProvider(_account, _worldState);
+            var defaultDataProvider = new DataProvider(_worldState, _accountAddress);
             _dataProviders[name] = defaultDataProvider;
             
             _worldState.AddDataProvider(defaultDataProvider);
@@ -149,7 +148,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public Task SetAsync(string key, ISerializable obj)
         {
-            return SetAsync(new Hash<string>(_account.GetAddress().CalculateHashWith(key)), obj);
+            return SetAsync(new Hash<string>(_accountAddress.CalculateHashWith(key)), obj);
         }
         
         /// <summary>

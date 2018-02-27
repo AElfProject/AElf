@@ -73,7 +73,8 @@ namespace AElf.Kernel
                 
                 // create SmartContractMap dataProvider accountZeroDataProvider
                 const string smartContractMapKey = "SmartContractMap";
-                accountZeroDataProvider.GetDataProvider().SetDataProvider(smartContractMapKey, new DataProvider(AccountZero, _worldState));
+                accountZeroDataProvider.GetDataProvider().SetDataProvider(smartContractMapKey,
+                    new DataProvider(_worldState, Hash<IAccount>.Zero));
                 
                 // create SmartContractRegistration for accountZero
                 await smartContractZero.InititalizeAsync(accountZeroDataProvider);
@@ -81,11 +82,11 @@ namespace AElf.Kernel
                 var smartContractRegistration =
                     new SmartContractRegistration
                     {
-                        Category = (int) transaction.Params.ElementAt(0),
-                        Name = (string) transaction.Params.ElementAt(1),
-                        Bytes = (byte[]) transaction.Params.ElementAt(2),
+                        Category = (int) transaction.Params[0],
+                        Name = (string) transaction.Params[1],
+                        Bytes = (byte[]) transaction.Params[2],
                         Hash = new Hash<SmartContractRegistration>(
-                            AccountZero.CalculateHashWith((string) transaction.Params.ElementAt(1)))
+                            Hash<IAccount>.Zero.CalculateHashWith((string) transaction.Params.ElementAt(1)))
                     };
             
                 // register contracts on accountZero
