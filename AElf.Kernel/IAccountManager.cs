@@ -19,5 +19,12 @@ namespace AElf.Kernel
         /// <param name="smartContract"></param>
         /// <returns></returns>
         Task<IAccount> CreateAccount(byte[] smartContract);
+
+        /// <summary>
+        ///  Create account with smartContract in accountZero
+        /// </summary>
+        /// <param name="accountDataProvider"></param>
+        /// <param name="contractName"></param>
+        Task DeploySmartContractToAccount(IAccountDataProvider accountDataProvider, string contractName);
     }
 }

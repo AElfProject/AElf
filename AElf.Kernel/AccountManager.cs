@@ -7,15 +7,13 @@ namespace AElf.Kernel
 {
     public class AccountManager : IAccountManager
     {
-        private WorldState _worldState;
-        private AccountZero _accountZero;
-        private long _accountId;
-        private static object _obj = "lock";
-
-        public AccountManager(WorldState worldState, AccountZero accountZero)
+        private readonly WorldState _worldState;
+        private readonly AccountZero _accountZero;
+        private const string SmartContractMapKey = "SmartContractMap";
+        public AccountManager(WorldState worldState, AccountZero accounZero)
         {
             _worldState = worldState;
-            _accountZero = accountZero;
+            _accountZero = accounZero;
         }
 
         public Task ExecuteTransactionAsync(IAccount fromAccount, IAccount toAccount, ITransaction tx)
@@ -23,56 +21,50 @@ namespace AElf.Kernel
             throw new System.NotImplementedException();
         }
 
-        /// <summary>
-        /// Create normal Account without contract
-        /// </summary>
-        /// <returns></returns>
-        public IAccount CreateAccount()
-        {
-            Hash<IAccount> hash;
-            lock (_obj)
-            {
-                hash = new Hash<IAccount>(_accountZero.CalculateHashWith(_accountId++));
-            }
-            var account = new Account(hash);
-            _worldState.AddAccountDataProvider(account);
-            return account;
-        }
-        
         public Task<IAccount> CreateAccount(byte[] smartContract)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
+        }
+
+
+        /// <summary>
+        /// create accoutDataprovider for account
+        /// </summary>
+        /// <returns></returns>
+        private Task<IAccountDataProvider> InitializeAccount(IAccountDataProvider accountDataProvider)
+        {
+            accountDataProvider.GetDataProvider()
+                .SetDataProvider(SmartContractMapKey,
+                    new DataProvider(_worldState, accountDataProvider.GetAccountAddress()));
+                
+            return Task.FromResult(accountDataProvider);
         }
 
         /// <summary>
-        ///  Create account with smartContractRegistration
+        ///  deploy a contract to account
         /// </summary>
-        /// <param name="accountCaller"></param>
+        /// <param name="accountDataProvider"></param>
         /// <param name="contractName"></param>
-        public async Task<IAccount> CreateAccount(IAccount accountCaller, string contractName)
+        public async Task DeploySmartContractToAccount(IAccountDataProvider accountDataProvider, string contractName)
         {
-            const string smartContractMapKey = "SmartContractMap";
+            // initialize the account and accountDataprovider
+            await InitializeAccount(accountDataProvider);
 
-            // get the contract regiseter from dataProvider
-            var accountZeroDataProvider = _worldState.GetAccountDataProviderByAccount(_accountZero);
-            var smartContractMap = accountZeroDataProvider.GetDataProvider()
-                .GetDataProvider(smartContractMapKey);
+            // get smartContractRegistration from accountZeroDataProvider
+            var smartContractMap = _worldState.GetAccountDataProviderByAccount(_accountZero).GetDataProvider()
+                .GetDataProvider(SmartContractMapKey);
             var smartContractRegistration = (SmartContractRegistration)
                 smartContractMap
-                    .GetAsync(new Hash<SmartContractRegistration>(_accountZero.CalculateHashWith(contractName))).Result;
-
-            // inititalize the account and accountDataprovider
-            var hash = new Hash<IAccount>(accountCaller.CalculateHashWith(_accountId++));
-            var account = new Account(hash);
-            _worldState.AddAccountDataProvider(account);
-            var accountDataProvider = _worldState.GetAccountDataProviderByAccount(account);
-            accountDataProvider.GetDataProvider().SetDataProvider(smartContractMapKey, new DataProvider(account, _worldState));
+                    .GetAsync(new Hash<SmartContractRegistration>(Hash<IAccount>.Zero.CalculateHashWith(contractName)))
+                    .Result;
             
-            // register smartcontract to the new contract
+            // register smartcontract to the new account
             var smartContractZero = new SmartContractZero();
             await smartContractZero.InititalizeAsync(accountDataProvider);
             await smartContractZero.RegisterSmartContract(smartContractRegistration);
-            return account;
         }
+        
+        
+        
     }
 }
