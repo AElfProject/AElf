@@ -71,7 +71,8 @@ namespace AElf.Kernel.Tests
             var smartContractZero = new SmartContractZero();
             var accountZero = new AccountZero(smartContractZero);
             var accountManager = new AccountManager(worldState, accountZero);
-            var transactionExecutingManager = new TransactionExecutingManager(worldState, accountZero, accountManager);
+            var smartContractManager = new SmartContractManager(worldState, accountManager);
+            var transactionExecutingManager = new TransactionExecutingManager(smartContractManager);
             
             // simple demo cases
 
