@@ -25,10 +25,7 @@ namespace AElf.Kernel
         /// <param name="worldState"></param>
         public DataProvider(IAccount account, WorldState worldState)
         {
-            _account = account;
-
-            _keyHash = null;
-            _newValueHash = null;
+          
 
             _worldState = worldState;
         }
