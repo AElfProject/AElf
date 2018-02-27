@@ -59,7 +59,7 @@ namespace AElf.Kernel.Tests
 
             const string dataProviderName = "test";
             
-            var newDataProvider = new DataProvider(account, worldState);
+            var newDataProvider = new DataProvider(worldState, account.GetAddress());
             dataprovider.SetDataProvider(dataProviderName, newDataProvider);
 
             var hashNewDataProvider = new Hash<IDataProvider>(newDataProvider.CalculateHash());

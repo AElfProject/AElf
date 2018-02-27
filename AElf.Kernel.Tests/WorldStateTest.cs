@@ -42,15 +42,16 @@ namespace AElf.Kernel.Tests
 
             var merkleTreeRootHashBefore = worldState.GetWorldStateMerkleTreeRootAsync().Result;
 
-            var newDataProvider = new DataProvider(account, worldState);
+            var newDataProvider = new DataProvider(worldState, account.GetAddress());
             dataProvider.SetDataProvider("SubDataProviderForTest", newDataProvider);
 
             var merkleTreeRootHashAfter = worldState.GetWorldStateMerkleTreeRootAsync().Result;
             
             //See if the merkle tree root hash changed after set a new data provider.
             Assert.True(!merkleTreeRootHashAfter.Equals(merkleTreeRootHashBefore));
-            
-            newDataProvider.SetDataProvider("SubSubDataProviderForTest", new DataProvider(account, worldState));
+
+            newDataProvider.SetDataProvider("SubSubDataProviderForTest",
+                new DataProvider(worldState, account.GetAddress()));
             
             //See if the merkle tree root hash changed after set a new data provider again.
             Assert.True(!merkleTreeRootHashAfter.Equals(merkleTreeRootHashBefore));
