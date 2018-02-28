@@ -29,7 +29,7 @@ namespace AElf.Kernel
 
         private AccountZero AccountZero => _accountManager.AccountZero;
 
-        private SmartContractZero SmartContractZero => _accountManager.AccountZero.SmartContractZero;
+        private SmartContractZero SmartContractZero => AccountZero.SmartContractZero;
 
         /// <summary>
         /// Inititalize for accountZero
@@ -70,7 +70,7 @@ namespace AElf.Kernel
             return Task.Factory.StartNew(async () =>
             {
                 // get smartContractZero for accountZero
-                var accountZeroDataProvider = WorldState.GetAccountDataProviderByAccount(_accountManager.AccountZero);
+                var accountZeroDataProvider = WorldState.GetAccountDataProviderByAccount(AccountZero);
 
                 // inititalize
                 await SmartContractZero.InitializeAsync(accountZeroDataProvider);
