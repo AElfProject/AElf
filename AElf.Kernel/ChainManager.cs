@@ -1,10 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Storages;
 
 namespace AElf.Kernel
 {
     public class ChainManager : IChainManager
     {
+        private IChainBlockRelationStore _relationStore;
+
+        public ChainManager(IChainBlockRelationStore relationStore)
+        {
+            _relationStore = relationStore;
+        }
+
         /// <summary>
         /// Adds the block async, permanent storage is required
         /// for demoing purpose we just embed a List & Dictionary for 
@@ -13,10 +21,16 @@ namespace AElf.Kernel
         /// <returns>The block async.</returns>
         /// <param name="chain">Chain.</param>
         /// <param name="block">Block.</param>
-        public Task AddBlockAsync(IChain chain, IBlock block)
+        public async Task AddBlockAsync(IChain chain, IBlock block)
         {
-            return new Task(() =>(chain as Chain)?.Blocks.Add(block as Block));
+            chain.UpdateCurrentBlock(block);
+            await _relationStore.Insert(chain, block, chain.CurrentBlockHeight);
         }                                
 
+    }
+
+    public interface IBlockManager
+    {
+        Task<IBlock> StoreBlockAsync(IBlock block);
     }
 }

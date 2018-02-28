@@ -17,7 +17,7 @@ namespace AElf.Kernel
         /// Returns the block hash.
         /// </summary>
         /// <returns>The hash.</returns>
-        public IHash GetHash()
+        public IHash<IBlock> GetHash()
         {
             return new Hash<IBlock>(this.CalculateHash());
         }

@@ -18,14 +18,11 @@ namespace AElf.Kernel
             _accountZero = accountZero;
             _worldState = worldState;
             _genesisBlock = genesisBlock;
+            CurrentBlockHash = genesisBlock.GetHash();
+            CurrentBlockHeight = 0;
         }
 
-        /// <summary>
-        /// A memory based block storage
-        /// </summary>
-        /// <value>The blocks.</value>
-        public List<Block> Blocks { get; set; } = new List<Block>();
-
+       
         
         /// <summary>
         /// Inititalize for accountZero
@@ -57,9 +54,9 @@ namespace AElf.Kernel
                 var smartContractRegistration =
                     new SmartContractRegistration
                     {
-                        Category = (int) transaction.Params.ElementAt(0),
-                        Name = (string) transaction.Params.ElementAt(1),
-                        Bytes = (byte[]) transaction.Params.ElementAt(2)
+                        Category = (int) transaction.Params[0],
+                        Name = (string) transaction.Params[1],
+                        Bytes = (byte[]) transaction.Params[2]
                     };
             
                 // register contracts on accountZero
@@ -72,10 +69,14 @@ namespace AElf.Kernel
             }).Wait();
             
         }
-        
-        
-        public long CurrentBlockHeight => Blocks.Count;
 
-        public IHash<IBlock> CurrentBlockHash => new Hash<IBlock>(Blocks[Blocks.Count - 1].GetHeader().GetTransactionMerkleTreeRoot().Value);
+
+        public long CurrentBlockHeight { get; private set; }
+        public IHash<IBlock> CurrentBlockHash { get; private set; }
+        public void UpdateCurrentBlock(IBlock block)
+        {
+            CurrentBlockHeight += 1;
+            CurrentBlockHash = block.GetHash();
+        }
     }
 }

@@ -14,5 +14,7 @@
         /// Current block hash
         /// </summary>
         IHash<IBlock> CurrentBlockHash { get; }
+
+        void UpdateCurrentBlock(IBlock block);
     }
 }
