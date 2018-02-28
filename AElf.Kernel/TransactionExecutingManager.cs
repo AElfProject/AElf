@@ -31,7 +31,7 @@ namespace AElf.Kernel
         public async Task ExecuteAsync(ITransaction tx)
         {
             var smartContract = await _smartContractManager.GetAsync(tx.To);
-            await smartContract.InvokeAsync(tx.From.GetAddress(), tx.MethodName, tx.Params);
+            await smartContract.InvokeAsync(tx.From, tx.MethodName, tx.Params);
         }
         
         
@@ -101,8 +101,7 @@ namespace AElf.Kernel
                 
                 foreach (var h in r.Value)
                 {
-                    var task = ExecuteAsync(h);
-                    tasks.Add(task);
+                    // TODO: transaction executing 
                 }
                 Task.WaitAll(tasks.ToArray());
             }
