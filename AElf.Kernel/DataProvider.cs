@@ -24,7 +24,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="accountAddress"></param>
         /// <param name="worldState"></param>
-        public DataProvider( WorldState worldState, IHash<IAccount> accountAddress)
+        public DataProvider(WorldState worldState, IHash<IAccount> accountAddress)
         {
             _keyHash = null;
             _newValueHash = null;
@@ -155,7 +155,7 @@ namespace AElf.Kernel
         /// Call this method after sucessfully execute the related transaction.
         /// But in this way we can only set one k-v pair in one transaction.
         /// </summary>
-        public void Execute()
+        private void Execute()
         {
             if (_keyHash == null || _newValueHash == null)
             {
