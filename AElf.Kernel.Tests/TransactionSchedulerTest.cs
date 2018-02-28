@@ -70,13 +70,16 @@ namespace AElf.Kernel.Tests
             var worldState = new WorldState();
             var smartContractZero = new SmartContractZero();
             var accountZero = new AccountZero(smartContractZero);
-            var accountManager = new AccountManager(worldState);
-            var transactionExecutingManager = new TransactionExecutingManager(worldState, accountZero, accountManager);
+            var accountManager = new AccountManager(worldState, accountZero);
+            var smartContractManager = new SmartContractManager(accountManager);
+            var transactionExecutingManager = new TransactionExecutingManager(smartContractManager);
             
             // simple demo cases
 
-
             var accounts = CreateAccountList(10);
+            // add all the accounts' account data providers to world state
+            accounts.ForEach(acc => worldState.AddAccountDataProvider(new AccountDataProvider(acc, worldState)));
+            
             // one tx
             // A
             var tx1 = CreateTransaction((byte) 'A', accounts[0], accounts[1]);

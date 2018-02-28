@@ -14,10 +14,18 @@ namespace AElf.Kernel
         Task ExecuteTransactionAsync(IAccount fromAccount,IAccount toAccount, ITransaction tx);
 
         /// <summary>
-        /// Create a account from smrat contract code
+        /// register the contract to accountZero
         /// </summary>
-        /// <param name="smartContract"></param>
+        /// <param name="reg"></param>
         /// <returns></returns>
-        Task<IAccount> CreateAccount(byte[] smartContract);
+        Task RegisterSmartContract(SmartContractRegistration reg);
+          
+
+        /// <summary>
+        ///  Create account with smartContract in accountZero
+        /// </summary>
+        /// <param name="accountDataProvider"></param>
+        /// <param name="contractName"></param>
+        Task DeploySmartContract(IAccountDataProvider accountDataProvider, string contractName);
     }
 }

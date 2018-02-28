@@ -8,39 +8,55 @@ namespace AElf.Kernel
 {
     public class Chain : IChain
     {
-        private AccountZero _accountZero;
-        private readonly WorldState _worldState;
+        
         private bool _isInitialized;
         private readonly GenesisBlock _genesisBlock;
+        private readonly AccountManager _accountManager ;
 
-        public Chain(AccountZero accountZero, WorldState worldState, GenesisBlock genesisBlock)
+        public Chain(GenesisBlock genesisBlock, AccountManager accountManager)
         {
-            _accountZero = accountZero;
-            _worldState = worldState;
             _genesisBlock = genesisBlock;
+            _accountManager = accountManager;
         }
 
         /// <summary>
         /// A memory based block storage
         /// </summary>
         /// <value>The blocks.</value>
-        public List<Block> Blocks { get; set; } = new List<Block>();
+        public List<IBlock> Blocks { get;} = new List<IBlock>();
 
-        
+        private WorldState WorldState => _accountManager.WorldState;
+
+        private AccountZero AccountZero => _accountManager.AccountZero;
+
+        private SmartContractZero SmartContractZero => AccountZero.SmartContractZero;
+
         /// <summary>
         /// Inititalize for accountZero
         /// </summary>
         /// <returns></returns>
-        private bool Initialize()
+        public bool Initialize()
         {
             if(_isInitialized)
                 return false;
             _isInitialized = true;
+
+            var accountZeroDataProvider =
+                new AccountDataProvider(AccountZero, WorldState);
+            // create accountDataProvider for accountZero
+            WorldState.AddAccountDataProvider(accountZeroDataProvider);
             
-            // delply accountZero
-            DeployContractInAccountZero();
+            // create SmartContractMap dataProvider in accountZeroDataProvider
+            const string smartContractMapKey = "SmartContractMap";
+            accountZeroDataProvider.GetDataProvider().SetDataProvider(smartContractMapKey,
+                new DataProvider(WorldState, Hash<IAccount>.Zero));
+
+            // delploy accountZero
+            var task = DeployContractInAccountZero();
+            task.Wait();
             
             // TODO: add genesis to chain
+            Blocks.Add(_genesisBlock);
             return true;
             
         }
@@ -49,28 +65,33 @@ namespace AElf.Kernel
         /// <summary>
         /// deploy contracts for AccountZero
         /// </summary>
-        private void DeployContractInAccountZero()
+        private Task DeployContractInAccountZero()
         {
-            Task.Factory.StartNew(async () =>
+            return Task.Factory.StartNew(async () =>
             {
+                // get smartContractZero for accountZero
+                var accountZeroDataProvider = WorldState.GetAccountDataProviderByAccount(AccountZero);
+
+                // inititalize
+                await SmartContractZero.InitializeAsync(accountZeroDataProvider);
+                
+                
                 var transaction = _genesisBlock.Transaction;
+                var scrHash = new Hash<SmartContractRegistration>(
+                    Hash<IAccount>.Zero.CalculateHashWith((string) transaction.Params.ElementAt(1)));
                 var smartContractRegistration =
                     new SmartContractRegistration
                     {
-                        Category = (int) transaction.Params.ElementAt(0),
-                        Name = (string) transaction.Params.ElementAt(1),
-                        Bytes = (byte[]) transaction.Params.ElementAt(2)
+                        Category = (int) transaction.Params[0],
+                        Name = (string) transaction.Params[1],
+                        Bytes = (byte[]) transaction.Params[2],
+                        Hash = scrHash
                     };
-            
-                // register contracts on accountZero
-                var smartContractZero = new SmartContractZero();
-                _accountZero = new AccountZero(smartContractZero);
-                var accountZeroDataProvider = _worldState.GetAccountDataProviderByAccount(_accountZero);
-                await smartContractZero.InititalizeAsync(accountZeroDataProvider);
-                await smartContractZero.RegisterSmartContract(smartContractRegistration);
                 
-            }).Wait();
-            
+                // register contracts on accountZero
+                await SmartContractZero.RegisterSmartContract(smartContractRegistration);
+                
+            });
         }
         
         

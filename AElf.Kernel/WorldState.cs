@@ -30,9 +30,14 @@ namespace AElf.Kernel
         /// <returns></returns>
         public IAccountDataProvider GetAccountDataProviderByAccount(IAccount account)
         {
-            return _accountDataProviders.TryGetValue(account, out var accountDataProvider)
-                ? accountDataProvider
-                : AddAccountDataProvider(account);
+            foreach (var k in _accountDataProviders.Keys)
+            {
+                if (k.GetAddress().Equals(account.GetAddress()))
+                {
+                    return _accountDataProviders[k];
+                }
+            }
+            throw new InvalidOperationException("Must add the account data provider before.");
         }
 
         public Task<IHash<IMerkleTree<IHash>>> GetWorldStateMerkleTreeRootAsync()
@@ -44,15 +49,15 @@ namespace AElf.Kernel
         /// Add an account data provider,
         /// then add the corresponding data provider to data provider list and merkle tree.
         /// </summary>
-        /// <param name="account"></param>
+        /// <param name="accountDataProviderunt"></param>
         /// <returns></returns>
-        public IAccountDataProvider AddAccountDataProvider(IAccount account)
+        public void AddAccountDataProvider(IAccountDataProvider accountDataProviderunt)
         {
-            var accountDataProvider = new AccountDataProvider(account, this, true);
+            var accountDataProvider = accountDataProviderunt;
+            var address = accountDataProviderunt.GetAccountAddress();
+            AddDataProvider(new DataProvider(this, address));
             //Add the address to dict.
-            _accountDataProviders[account] = accountDataProvider;
-            
-            return accountDataProvider;
+            _accountDataProviders[new Account(address)] = accountDataProvider;
         }
         
         /// <summary>
