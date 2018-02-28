@@ -10,18 +10,16 @@ namespace AElf.Kernel
     public class SmartContract : ISmartContract
     {
         private IAccountDataProvider _accountDataProvider;
-        private readonly IAccountManager _accountManager;
-        private readonly WorldState _worldState;
+        private readonly SmartContractManager _smartContractManager;
 
-        public SmartContract(IAccountManager accountManager, WorldState worldState)
+        public SmartContract(SmartContractManager smartContractManager)
         {
-            _accountManager = accountManager;
-            _worldState = worldState;
+            _smartContractManager = smartContractManager;
         }
 
-        public async Task InititalizeAsync(IAccountDataProvider dataProvider)
+        public async Task InitializeAsync(IAccountDataProvider accountDataProvider)
         {
-            _accountDataProvider = dataProvider;
+            _accountDataProvider = accountDataProvider;
             await Task.CompletedTask;
         }
 
@@ -32,7 +30,7 @@ namespace AElf.Kernel
         /// <param name="methodName"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        public async Task InvokeAsync(IHash<IAccount> caller, string methodName, params object[] param)
+        public async Task InvokeAsync(IAccount caller, string methodName, params object[] param)
         {
             if (methodName == "Transfer" || methodName == "CreateAccount" || methodName == "DeploySmartContract")
             {
@@ -50,7 +48,7 @@ namespace AElf.Kernel
                 // get smartContractRegistration by accountDataProvider 
                 var smartContractRegistration = (SmartContractRegistration) _accountDataProvider.GetDataProvider()
                     .GetDataProvider("SmartContractMap")
-                    .GetAsync(new Hash<SmartContractRegistration>(_accountDataProvider.CalculateHashWith("SmartContract")))
+                    .GetAsync(new Hash<SmartContractRegistration>(_accountDataProvider.CalculateHashWith(param[0])))
                     .Result;
             
                 // load assembly with bytes
@@ -72,11 +70,11 @@ namespace AElf.Kernel
         /// deploy a new smartcontract with tx
         /// and accountTo is created associated with the new contract
         /// </summary>
-        /// <param name="accountFrom"></param>
+        /// <param name="caller"></param>
         /// <param name="contractName"></param>
         /// <param name="smartContractCode"></param>
         /// <param name="category"> 1: C# bytes </param>
-        private async Task DeploySmartContract(IAccount accountFrom, int category, string contractName, byte[] smartContractCode)
+        private async Task DeploySmartContract(IAccount caller, int category, string contractName, byte[] smartContractCode)
         {
             
             var smartContractRegistration = new SmartContractRegistration
@@ -88,11 +86,10 @@ namespace AElf.Kernel
             };
             
             // register contracts on accountZero
-            var smartContractZero = new SmartContractZero();
-            await smartContractZero.RegisterSmartContract(smartContractRegistration);
-            
-            // TODO： create new account with contract registered
-            await _accountManager.DeploySmartContractToAccount(_accountDataProvider, contractName);
+            await _smartContractManager.RegisterSmartContract(smartContractRegistration);
+
+            // deploy smart contract
+            await _smartContractManager.AccountManager.DeploySmartContract(caller, contractName);
         }
 
 
@@ -102,15 +99,11 @@ namespace AElf.Kernel
         /// <param name="caller"></param>
         /// <param name="contractName"></param>
         /// <returns></returns>
-        public Task CreateAccount(IHash<IAccount> caller, string contractName)
+        public async Task CreateAccount(IAccount caller, string contractName)
         {
             // create new account with a contract already in accountZero
-            Console.WriteLine("CreateAccount");
-            _accountManager.DeploySmartContractToAccount(_accountDataProvider, contractName);
-            Console.WriteLine("CreateAccount");
-            return Task.CompletedTask;
+            await _smartContractManager.AccountManager.DeploySmartContract(caller, contractName);
         }
-        
         
         
         /// <summary>
@@ -121,27 +114,28 @@ namespace AElf.Kernel
         private async Task Transfer(IAccount caller, object[] param)
         {
             // get accountDataProviders from WorldState
-            var accountFromDataProvider = _worldState.GetAccountDataProviderByAccount(caller);
+            var accountFromDataProvider =
+                _smartContractManager.AccountManager.WorldState.GetAccountDataProviderByAccount(caller);
             
-            // use dataProvider to get Serialized Balance obj
-            var fromBalanceHash = new Hash<decimal>(caller.CalculateHashWith("Balance"));
+            // use dataProvider to get Balance obj
+            var fromBalanceHash = new Hash<double>(caller.GetAddress().CalculateHashWith("Balance"));
             var fromBalanceDataProvider = accountFromDataProvider.GetDataProvider().GetDataProvider("Balance");
             var fromBalance = fromBalanceDataProvider.GetAsync(fromBalanceHash).Result;
 
-            var toBalanceHash = new Hash<decimal>(_accountDataProvider.CalculateHashWith("Balance"));
+            var toBalanceHash =
+                new Hash<double>(_accountDataProvider.GetAccountAddress().CalculateHashWith("Balance"));
             var toBalanceDataProvider = _accountDataProvider.GetDataProvider().GetDataProvider("Balance");
             var toBalance = toBalanceDataProvider.GetAsync(toBalanceHash).Result;
 
-           
-            // TODO: calculate with amount and  
-            // 
+            // TODO: calculate with amount 
+            
 
-            // TODO: serialize new Balances and uodate
-            await accountFromDataProvider.GetDataProvider().GetDataProvider("Balance")
-                .SetAsync(fromBalanceHash, fromBalance);
-            await _accountDataProvider.GetDataProvider().GetDataProvider("Balance").SetAsync(toBalanceHash, toBalance);
+            // TODO: uodate dataProvider
+            await fromBalanceDataProvider.SetAsync(fromBalanceHash, fromBalance);
+            await toBalanceDataProvider.SetAsync(toBalanceHash, toBalance);
             
         }
 
+        
     }
 }
