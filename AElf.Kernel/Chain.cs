@@ -9,33 +9,28 @@ namespace AElf.Kernel
     public class Chain : IChain
     {
         
-        private readonly WorldState _worldState;
         private bool _isInitialized;
         private readonly GenesisBlock _genesisBlock;
+        private readonly AccountManager _accountManager ;
 
-        public Chain(WorldState worldState, GenesisBlock genesisBlock)
+        public Chain(GenesisBlock genesisBlock, AccountManager accountManager)
         {
-            _worldState = worldState;
             _genesisBlock = genesisBlock;
+            _accountManager = accountManager;
         }
 
         /// <summary>
         /// A memory based block storage
         /// </summary>
         /// <value>The blocks.</value>
-        public List<IBlock> Blocks { get; set; } = new List<IBlock>();
+        public List<IBlock> Blocks { get;} = new List<IBlock>();
 
-        /// <summary>
-        /// AccountZero 
-        /// </summary>
-        public AccountZero AccountZero { get;  private set; }
-        
-        
-        /// <summary>
-        /// AccountManager
-        /// </summary>
-        public AccountManager AccountManager { get;  private set; }
-        
+        private WorldState WorldState => _accountManager.WorldState;
+
+        private AccountZero AccountZero => _accountManager.AccountZero;
+
+        private SmartContractZero SmartContractZero => _accountManager.AccountZero.SmartContractZero;
+
         /// <summary>
         /// Inititalize for accountZero
         /// </summary>
@@ -45,7 +40,17 @@ namespace AElf.Kernel
             if(_isInitialized)
                 return false;
             _isInitialized = true;
+
+            var accountZeroDataProvider =
+                new AccountDataProvider(AccountZero, WorldState);
+            // create accountDataProvider for accountZero
+            WorldState.AddAccountDataProvider(accountZeroDataProvider);
             
+            // create SmartContractMap dataProvider in accountZeroDataProvider
+            const string smartContractMapKey = "SmartContractMap";
+            accountZeroDataProvider.GetDataProvider().SetDataProvider(smartContractMapKey,
+                new DataProvider(WorldState, Hash<IAccount>.Zero));
+
             // delploy accountZero
             var task = DeployContractInAccountZero();
             task.Wait();
@@ -64,36 +69,28 @@ namespace AElf.Kernel
         {
             return Task.Factory.StartNew(async () =>
             {
-                var smartContractZero = new SmartContractZero();
-                AccountZero = new AccountZero(smartContractZero);
+                // get smartContractZero for accountZero
+                var accountZeroDataProvider = WorldState.GetAccountDataProviderByAccount(_accountManager.AccountZero);
+
+                // inititalize
+                await SmartContractZero.InitializeAsync(accountZeroDataProvider);
                 
-                // create accountDataProvider for accountZero
-                _worldState.AddAccountDataProvider(AccountZero);
-                var accountZeroDataProvider = _worldState.GetAccountDataProviderByAccount(AccountZero);
                 
-                // create SmartContractMap dataProvider accountZeroDataProvider
-                const string smartContractMapKey = "SmartContractMap";
-                accountZeroDataProvider.GetDataProvider().SetDataProvider(smartContractMapKey,
-                    new DataProvider(_worldState, Hash<IAccount>.Zero));
-                
-                // create SmartContractRegistration for accountZero
-                await smartContractZero.InititalizeAsync(accountZeroDataProvider);
                 var transaction = _genesisBlock.Transaction;
+                var scrHash = new Hash<SmartContractRegistration>(
+                    Hash<IAccount>.Zero.CalculateHashWith((string) transaction.Params.ElementAt(1)));
                 var smartContractRegistration =
                     new SmartContractRegistration
                     {
                         Category = (int) transaction.Params[0],
                         Name = (string) transaction.Params[1],
                         Bytes = (byte[]) transaction.Params[2],
-                        Hash = new Hash<SmartContractRegistration>(
-                            Hash<IAccount>.Zero.CalculateHashWith((string) transaction.Params.ElementAt(1)))
+                        Hash = scrHash
                     };
-            
-                // register contracts on accountZero
-                await smartContractZero.RegisterSmartContract(smartContractRegistration);
                 
-                // create accountManager
-                AccountManager = new AccountManager(_worldState, AccountZero);
+                // register contracts on accountZero
+                await SmartContractZero.RegisterSmartContract(smartContractRegistration);
+                
             });
         }
         

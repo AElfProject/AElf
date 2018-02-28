@@ -9,13 +9,13 @@ namespace AElf.Kernel.KernelAccount
         
         private IAccountDataProvider _accountDataProvider;
 
-        public async Task InititalizeAsync(IAccountDataProvider dataProvider)
+        public async Task InitializeAsync(IAccountDataProvider accountDataProvider)
         {
-            _accountDataProvider = dataProvider;
+            _accountDataProvider = accountDataProvider;
             await Task.CompletedTask;
         }
 
-        public async Task InvokeAsync(IHash<IAccount> caller, string methodname, params object[] objs)
+        public async Task InvokeAsync(IAccount caller, string methodname, params object[] objs)
         {
             var type = typeof(SmartContractZero);
             var member = type.GetMethod(methodname);
@@ -29,8 +29,5 @@ namespace AElf.Kernel.KernelAccount
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SmartContractMapKey);
             await smartContractMap.SetAsync(reg.Hash, reg);
         }
-        
-        
-
     }
 }

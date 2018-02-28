@@ -7,11 +7,11 @@ namespace AElf.Kernel.KernelAccount
 {
     public class AccountZero : IAccount
     {
-        private readonly SmartContractZero _smartContractZero;
+        public SmartContractZero SmartContractZero { get; }
 
         public AccountZero(SmartContractZero smartContractZero)
         {
-            _smartContractZero = smartContractZero;
+            SmartContractZero = smartContractZero;
         }
        
         public IHash<IAccount> GetAddress()
