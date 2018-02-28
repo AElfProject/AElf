@@ -9,10 +9,15 @@ namespace AElf.Kernel.Tests
     {
         private readonly WorldState _worldState = new WorldState();
         private const string SmartContractMapKey = "SmartContractMap";
-        private IChain CreateChain(ITransaction transactionInGenesisBlock)
+        private IChain CreateChain(ITransaction transactionInGenesisBlock, 
+            out AccountZero accountZero, out AccountManager accountManager)
         {
+            
+            var smartContractZero = new SmartContractZero();
+            accountZero = new AccountZero(smartContractZero);
+            accountManager = new AccountManager(_worldState, accountZero);
             var genesisBlock = new GenesisBlock {Transaction = transactionInGenesisBlock};
-            var chain = new Chain(_worldState, genesisBlock);
+            var chain = new Chain(genesisBlock, accountManager);
 
             return chain;
         }
@@ -30,7 +35,13 @@ namespace AElf.Kernel.Tests
 
             return transactionInGenesisBlock;
         }
-        
+
+
+        private IAccount CreateAccount(string str)
+        {
+            var callerAccount = new Account(new Hash<IAccount>(this.CalculateHashWith(str)));
+            return callerAccount;
+        }
         
         /// <summary>
         /// test case for creating account
@@ -48,41 +59,63 @@ namespace AElf.Kernel.Tests
 
             var transactionInGenesisBlock = CreateTransactionInGenesisBlock(category, name, out var data);
             // create chain 
-            var chain = (Chain)CreateChain(transactionInGenesisBlock);
+            var chain = (Chain)CreateChain(transactionInGenesisBlock, out var accountZero, out var accountManager);
             // accountZero deployment
             Assert.True(chain.Initialize());
             
-            var accountManager = chain.AccountManager;
-            var accountZero = chain.AccountZero;
-            
-            // create a caller account
-            var callerAccount = new Account(new Hash<IAccount>(this.CalculateHashWith("account1")));
+            // create a caller account, normal account
+            var callerAccount = CreateAccount("account1");
             
             // create the new account
-            var newAccount = new Account(new Hash<IAccount>(this.CalculateHashWith("account2")));
+            var newAccount = CreateAccount("account2");
+            
+            // add an account data provider to world state
+            _worldState.AddAccountDataProvider(new AccountDataProvider(callerAccount, _worldState));
+            _worldState.AddAccountDataProvider(new AccountDataProvider(newAccount, _worldState));
             
             // initialize account 
-            var smartContractManager = new SmartContractManager(_worldState, accountManager);
+            
+            var smartContractManager = new SmartContractManager(accountManager);
             var accountDataProvider = _worldState.GetAccountDataProviderByAccount(newAccount);
-            
-            //deployment
-            var smartContract = smartContractManager.GetAsync(newAccount).Result;
-            smartContract.InititalizeAsync(accountDataProvider);
-            var param = new object[] {name};
-            smartContract.InvokeAsync(callerAccount.GetAddress(), "CreateAccount", param);
             Assert.NotNull(accountDataProvider);
+
             
+            // deployment smartcontract in accountZero to new account
+            var smartContract = smartContractManager.GetAsync(newAccount).Result;
+            smartContract.InitializeAsync(accountDataProvider);
+            var param = new object[] {name};
+            smartContract.InvokeAsync(callerAccount, "CreateAccount", param);
+            
+            // get the smartcontract in new account to verify correctness
             var smartContractRegistration =
                 (SmartContractRegistration) accountDataProvider.GetDataProvider()
                     .GetDataProvider(SmartContractMapKey)
                     .GetAsync(new Hash<SmartContractRegistration>(
-                        Hash<IAccount>.Zero.CalculateHashWith(name)))
+                        newAccount.GetAddress().CalculateHashWith(name)))
                     .Result;
             
+            // type
             Assert.Equal(smartContractRegistration.Category, category);
+            // contract name
             Assert.Equal(smartContractRegistration.Name, name);
+            // contract data
             Assert.True(smartContractRegistration.Bytes == data);
 
+        }
+
+
+
+        [Fact]
+        public void TransferTest()
+        {
+            
+        }
+
+
+        [Fact]
+        public void DeployNewmrtContract()
+        {
+            
         }
         
     }
