@@ -104,19 +104,6 @@ namespace AElf.Kernel.Tests
         }
 
 
-
-        [Fact]
-        public void TransferTest()
-        {
-            
-        }
-
-
-        [Fact]
-        public void DeployNewmrtContract()
-        {
-            
-        }
         
     }
 }

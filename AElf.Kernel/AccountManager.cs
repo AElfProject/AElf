@@ -51,12 +51,11 @@ namespace AElf.Kernel
         /// <summary>
         ///  deploy a contract to account
         /// </summary>
-        /// <param name="account"></param>
+        /// <param name="accountDataProvider"></param>
         /// <param name="contractName"></param>
-        public async Task DeploySmartContract(IAccount account, string contractName)
+        public async Task DeploySmartContract(IAccountDataProvider accountDataProvider, string contractName)
         {
             // initialize the account and accountDataprovider
-            var accountDataProvider = WorldState.GetAccountDataProviderByAccount(account);
             await InitializeAccount(accountDataProvider);
 
             // get smartContractRegistration from accountZeroDataProvider
@@ -72,7 +71,7 @@ namespace AElf.Kernel
                 Category = smartContractRegistration.Category,
                 Name = smartContractRegistration.Name,
                 Bytes = smartContractRegistration.Bytes,
-                Hash = new Hash<SmartContractRegistration>(account.GetAddress().CalculateHashWith(contractName))
+                Hash = new Hash<SmartContractRegistration>(accountDataProvider.GetAccountAddress().CalculateHashWith(contractName))
             };
             
             // register smartcontract to the new account

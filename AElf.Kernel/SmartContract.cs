@@ -89,7 +89,7 @@ namespace AElf.Kernel
             await _smartContractManager.RegisterSmartContract(smartContractRegistration);
 
             // deploy smart contract
-            await _smartContractManager.AccountManager.DeploySmartContract(caller, contractName);
+            await _smartContractManager.AccountManager.DeploySmartContract(_accountDataProvider, contractName);
         }
 
 
@@ -102,7 +102,7 @@ namespace AElf.Kernel
         public async Task CreateAccount(IAccount caller, string contractName)
         {
             // create new account with a contract already in accountZero
-            await _smartContractManager.AccountManager.DeploySmartContract(caller, contractName);
+            await _smartContractManager.AccountManager.DeploySmartContract(_accountDataProvider, contractName);
         }
         
         
