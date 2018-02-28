@@ -83,7 +83,7 @@ namespace AElf.Kernel.Tests
             var dataprovider = accountDataProvider.GetDataProvider();
             
             //Add a data provider to world state merkle tree.
-            worldState.AddAccountDataProvider(account);
+            worldState.AddAccountDataProvider(accountDataProvider);
             
             //Merkle tree root hash before set:
             var merkleHashBefore = worldState.GetWorldStateMerkleTreeRootAsync();

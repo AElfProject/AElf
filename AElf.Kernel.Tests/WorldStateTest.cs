@@ -16,6 +16,7 @@ namespace AElf.Kernel.Tests
             var address = new Hash<IAccount>("aelf".CalculateHash());
             var account = new Account(address);
             var accountDataProvider = new AccountDataProvider(account, worldState);
+            worldState.AddAccountDataProvider(accountDataProvider);
 
             var hashOriginAccountDataProvider = new Hash<IAccount>(accountDataProvider.CalculateHash());
             var getAccountDataProvider = worldState.GetAccountDataProviderByAccount(account);
@@ -38,7 +39,7 @@ namespace AElf.Kernel.Tests
             var dataProvider = accountDataProvider.GetDataProvider();
             
             //Add a data provider to world state merkle tree.
-            worldState.AddAccountDataProvider(account);
+            worldState.AddAccountDataProvider(accountDataProvider);
 
             var merkleTreeRootHashBefore = worldState.GetWorldStateMerkleTreeRootAsync().Result;
 
