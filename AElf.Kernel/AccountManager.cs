@@ -7,13 +7,14 @@ namespace AElf.Kernel
 {
     public class AccountManager : IAccountManager
     {
-        private readonly WorldState _worldState;
-        private readonly AccountZero _accountZero;
+        public WorldState WorldState { get; }
+        public AccountZero AccountZero { get; }
         private const string SmartContractMapKey = "SmartContractMap";
-        public AccountManager(WorldState worldState, AccountZero accounZero)
+
+        public AccountManager(WorldState worldState, AccountZero accountZero)
         {
-            _worldState = worldState;
-            _accountZero = accounZero;
+            WorldState = worldState;
+            AccountZero = accountZero;
         }
 
         public Task ExecuteTransactionAsync(IAccount fromAccount, IAccount toAccount, ITransaction tx)
@@ -21,12 +22,19 @@ namespace AElf.Kernel
             throw new System.NotImplementedException();
         }
 
-        public Task<IAccount> CreateAccount(byte[] smartContract)
+
+       
+        /// <summary>
+        /// register the contract to accountZero
+        /// </summary>
+        /// <param name="reg"></param>
+        /// <returns></returns>
+        public async Task RegisterSmartContract(SmartContractRegistration reg)
         {
-            throw new NotImplementedException();
+             await AccountZero.SmartContractZero.RegisterSmartContract(reg);
         }
 
-
+        
         /// <summary>
         /// create accoutDataprovider for account
         /// </summary>
@@ -35,7 +43,7 @@ namespace AElf.Kernel
         {
             accountDataProvider.GetDataProvider()
                 .SetDataProvider(SmartContractMapKey,
-                    new DataProvider(_worldState, accountDataProvider.GetAccountAddress()));
+                    new DataProvider(WorldState, accountDataProvider.GetAccountAddress()));
                 
             return Task.FromResult(accountDataProvider);
         }
@@ -43,25 +51,35 @@ namespace AElf.Kernel
         /// <summary>
         ///  deploy a contract to account
         /// </summary>
-        /// <param name="accountDataProvider"></param>
+        /// <param name="account"></param>
         /// <param name="contractName"></param>
-        public async Task DeploySmartContractToAccount(IAccountDataProvider accountDataProvider, string contractName)
+        public async Task DeploySmartContract(IAccount account, string contractName)
         {
             // initialize the account and accountDataprovider
+            var accountDataProvider = WorldState.GetAccountDataProviderByAccount(account);
             await InitializeAccount(accountDataProvider);
 
             // get smartContractRegistration from accountZeroDataProvider
-            var smartContractMap = _worldState.GetAccountDataProviderByAccount(_accountZero).GetDataProvider()
+            var smartContractMap = WorldState.GetAccountDataProviderByAccount(AccountZero).GetDataProvider()
                 .GetDataProvider(SmartContractMapKey);
             var smartContractRegistration = (SmartContractRegistration)
                 smartContractMap
                     .GetAsync(new Hash<SmartContractRegistration>(Hash<IAccount>.Zero.CalculateHashWith(contractName)))
                     .Result;
+
+            var reg = new SmartContractRegistration
+            {
+                Category = smartContractRegistration.Category,
+                Name = smartContractRegistration.Name,
+                Bytes = smartContractRegistration.Bytes,
+                Hash = new Hash<SmartContractRegistration>(account.GetAddress().CalculateHashWith(contractName))
+            };
             
             // register smartcontract to the new account
             var smartContractZero = new SmartContractZero();
-            await smartContractZero.InititalizeAsync(accountDataProvider);
-            await smartContractZero.RegisterSmartContract(smartContractRegistration);
+            
+            await smartContractZero.InitializeAsync(accountDataProvider);
+            await smartContractZero.RegisterSmartContract(reg);
         }
         
         

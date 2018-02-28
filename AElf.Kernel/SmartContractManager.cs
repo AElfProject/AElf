@@ -4,22 +4,32 @@ namespace AElf.Kernel
 {
     public class SmartContractManager: ISmartContractManager
     {
-        private readonly WorldState _worldState;
-        private readonly IAccountManager _accountManager;
+        public AccountManager AccountManager { get; }
 
-        public SmartContractManager(WorldState worldState, IAccountManager accountManager)
+        public SmartContractManager(AccountManager accountManager)
         {
-            _worldState = worldState;
-            _accountManager = accountManager;
+            AccountManager = accountManager;
         }
 
         public async Task<ISmartContract> GetAsync(IAccount account)
         {
             // if new account, accountDataProvider will be automatically created and stored in worldstate 
-            var accoountDataProvider = _worldState.GetAccountDataProviderByAccount(account);
-            var smartContract = new SmartContract(_accountManager, _worldState);
-            await smartContract.InititalizeAsync(accoountDataProvider);
+            var accountDataProvider = AccountManager.WorldState.GetAccountDataProviderByAccount(account);
+            
+            return await CreateSmartContract(accountDataProvider);
+        }
+
+        private async Task<ISmartContract> CreateSmartContract(IAccountDataProvider accountDataProvider)
+        {
+            var smartContract = new SmartContract(this);
+            await smartContract.InitializeAsync(accountDataProvider);
             return smartContract;
+        }
+        
+        // Hard coded method in the kernel
+        public async Task RegisterSmartContract(SmartContractRegistration reg)
+        {
+            await AccountManager.AccountZero.SmartContractZero.RegisterSmartContract(reg);
         }
     }
 }
