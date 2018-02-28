@@ -28,9 +28,4 @@ namespace AElf.Kernel
         }                                
 
     }
-
-    public interface IBlockManager
-    {
-        Task<IBlock> StoreBlockAsync(IBlock block);
-    }
 }
