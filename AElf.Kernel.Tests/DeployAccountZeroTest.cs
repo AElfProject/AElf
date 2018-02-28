@@ -8,40 +8,61 @@ namespace AElf.Kernel.Tests
 {
     public class DeployAccountZeroTest
     {
-        [Fact]
-        public void DeployAccountZero()
+        
+        private readonly WorldState _worldState = new WorldState();
+        private const string SmartContractMapKey = "SmartContractMap";
+        private IChain CreateChain(ITransaction transactionInGenesisBlock, out AccountZero accountZero)
+        {
+            
+            var smartContractZero = new SmartContractZero();
+            accountZero = new AccountZero(smartContractZero);
+            var accountManager = new AccountManager(_worldState, accountZero);
+            var genesisBlock = new GenesisBlock {Transaction = transactionInGenesisBlock};
+            var chain = new Chain(genesisBlock, accountManager);
+
+            return chain;
+        }
+
+        private ITransaction CreateTransactionInGenesisBlock(int category, string name, out byte[] data)
         {
             var transactionInGenesisBlock = new Transaction {Params = new object[3]};
-            const int category = 0;
-            const string name = "SmartContractInitialization";
             transactionInGenesisBlock.Params[0] = category;
             transactionInGenesisBlock.Params[1] = name;
             
             // load assembly
             var path = @"/../../../Assembly/SimpleClass.dll";
-            var data = System.IO.File.ReadAllBytes(System.IO.Directory.GetCurrentDirectory() + path);
+            data = System.IO.File.ReadAllBytes(System.IO.Directory.GetCurrentDirectory() + path);
             transactionInGenesisBlock.Params[2] = data;
+
+            return transactionInGenesisBlock;
+        }
+        
+        [Fact]
+        public void DeployAccountZero()
+        {
+            const string name = "SmartContractInitialization";
+            const int category = 0;
+
+            var transactionInGenesisBlock = CreateTransactionInGenesisBlock(category, name, out var data);
+            // create chain 
+            var chain = (Chain)CreateChain(transactionInGenesisBlock, out var accountZero);
             
-            var genesisBlock = new GenesisBlock {Transaction = transactionInGenesisBlock};
-            var worldState = new WorldState();
-            var chain = new Chain(worldState, genesisBlock);
             
-            // deployment
+            // accountZero deployment
             Assert.True(chain.Initialize());
             // deployment only once
             Assert.False(chain.Initialize());
             // only genesis block in the chain
             Assert.Equal(chain.CurrentBlockHeight, 1);
             
-            const string smartContractMapKey = "SmartContractMap";
-            var accountZeroDataProvider = worldState.GetAccountDataProviderByAccount(chain.AccountZero);
+            var accountZeroDataProvider = _worldState.GetAccountDataProviderByAccount(accountZero);
             Assert.NotNull(accountZeroDataProvider);
 
+            var scrHash = new Hash<SmartContractRegistration>(Hash<IAccount>.Zero.CalculateHashWith(name));
             var smartContractRegistration =
                 (SmartContractRegistration) accountZeroDataProvider.GetDataProvider()
-                    .GetDataProvider(smartContractMapKey)
-                    .GetAsync(new Hash<SmartContractRegistration>(
-                        chain.AccountZero.CalculateHashWith(name)))
+                    .GetDataProvider(SmartContractMapKey)
+                    .GetAsync(scrHash)
                     .Result;
             
             Assert.Equal(smartContractRegistration.Category, category);
