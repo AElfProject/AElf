@@ -3,7 +3,6 @@ using System;
 
 namespace AElf.Kernel
 {
-    [Serializable]
     public class Block : IBlock
     {
         #region Private Fileds
@@ -16,7 +15,7 @@ namespace AElf.Kernel
         /// a previous block must be referred, except the genesis block.
         /// </summary>
         /// <param name="preBlockHash">Pre block hash.</param>
-        public Block(Hash<IBlock> preBlockHash)
+        public Block(IHash<IBlock> preBlockHash)
         {
             _blockHeader = new BlockHeader(preBlockHash);
             _blockBody = new BlockBody();

@@ -7,8 +7,6 @@ namespace AElf.Kernel
     {
         /// <summary>
         /// Adds the block async, permanent storage is required
-        /// for demoing purpose we just embed a List & Dictionary for 
-        /// store and query blocks
         /// </summary>
         /// <returns>The block async.</returns>
         /// <param name="chain">Chain.</param>

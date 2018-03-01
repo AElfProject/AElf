@@ -7,13 +7,11 @@ namespace AElf.Kernel
     {
         IDataProvider GetDataProvider(string name);
 
-
         /// <summary>
         /// set dataProvider with name
         /// </summary>
         /// <param name="name"></param>
-        /// <param name="dataProvider"></param>
-        void SetDataProvider(string name, IDataProvider dataProvider);
+        void SetDataProvider(string name);
         
         /// <summary>
         /// 

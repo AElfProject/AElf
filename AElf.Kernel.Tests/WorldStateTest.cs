@@ -16,6 +16,7 @@ namespace AElf.Kernel.Tests
             var address = new Hash<IAccount>("aelf".CalculateHash());
             var account = new Account(address);
             var accountDataProvider = new AccountDataProvider(account, worldState);
+            worldState.AddAccountDataProvider(accountDataProvider);
 
             var hashOriginAccountDataProvider = new Hash<IAccount>(accountDataProvider.CalculateHash());
             var getAccountDataProvider = worldState.GetAccountDataProviderByAccount(account);
@@ -38,19 +39,18 @@ namespace AElf.Kernel.Tests
             var dataProvider = accountDataProvider.GetDataProvider();
             
             //Add a data provider to world state merkle tree.
-            worldState.AddAccountDataProvider(account);
+            worldState.AddAccountDataProvider(accountDataProvider);
 
             var merkleTreeRootHashBefore = worldState.GetWorldStateMerkleTreeRootAsync().Result;
 
-            var newDataProvider = new DataProvider(account, worldState);
-            dataProvider.SetDataProvider("SubDataProviderForTest", newDataProvider);
+            dataProvider.SetDataProvider("SubDataProviderForTest");
 
             var merkleTreeRootHashAfter = worldState.GetWorldStateMerkleTreeRootAsync().Result;
             
             //See if the merkle tree root hash changed after set a new data provider.
             Assert.True(!merkleTreeRootHashAfter.Equals(merkleTreeRootHashBefore));
             
-            newDataProvider.SetDataProvider("SubSubDataProviderForTest", new DataProvider(account, worldState));
+            dataProvider.GetDataProvider("SubDataProviderForTest").SetDataProvider("SubSubDataProviderForTest");
             
             //See if the merkle tree root hash changed after set a new data provider again.
             Assert.True(!merkleTreeRootHashAfter.Equals(merkleTreeRootHashBefore));
