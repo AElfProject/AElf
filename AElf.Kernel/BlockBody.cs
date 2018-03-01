@@ -5,22 +5,22 @@ namespace AElf.Kernel
 {
     public class BlockBody : IBlockBody
     {
-        private List<ITransaction> _transactions = new List<ITransaction>();
+        private readonly List<IHash<ITransaction>> _transactions = new List<IHash<ITransaction>>();
 
-        
         public int TransactionsCount => _transactions.Count;
 
         public BlockBody() { }
 
-        public IQueryable<ITransaction> GetTransactions() => _transactions.AsQueryable();
 
-        public bool AddTransaction(ITransaction tx)
+        public IList<IHash<ITransaction>> GetTransactions()
         {
-            //Avoid duplication of addition.
-            if (_transactions.Exists(t => t.GetHash() == tx.GetHash()))
-            {
+            throw new System.NotImplementedException();
+        }
+
+        public bool AddTransaction(IHash<ITransaction> tx)
+        {
+            if (_transactions.Contains(tx))
                 return false;
-            }
             _transactions.Add(tx);
             return true;
         }
