@@ -83,5 +83,6 @@ namespace AElf.Kernel
         }
 
         public IHash<IChain> Id { get; private set; }
+        public IHash<IBlockHeader> GenesisBlockHash { get; }
     }
 }

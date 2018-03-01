@@ -6,18 +6,21 @@ namespace AElf.Kernel
     public class SmartContractManager:ISmartContractManager
     {
         private ISmartContractZero _smartContractZero;
-        private IWorldStateManager _worldStateManager;
 
-        public SmartContractManager(IWorldStateManager worldStateManager)
+        private IBlockManager _blockManager;
+        
+        public SmartContractManager(IBlockManager blockManager)
         {
-            _worldStateManager = worldStateManager;
-            
+            _blockManager = blockManager;
         }
 
 
-        public async Task<ISmartContract> GetAsync(IAccount account)
+        public async Task<ISmartContract> GetAsync(IAccount account,IChain chain)
         {
             var address = account.GetAddress();
+
+            _blockManager.GetBlockHeaderAsync(chain.GenesisBlockHash);
+            
             if (address == Hash<IAccount>.Zero)
             {
                 return _smartContractZero;

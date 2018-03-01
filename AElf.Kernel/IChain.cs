@@ -18,5 +18,7 @@
         void UpdateCurrentBlock(IBlock block);
         
         IHash<IChain> Id { get; }
+        
+        IHash<IBlockHeader> GenesisBlockHash { get; }
     }
 }

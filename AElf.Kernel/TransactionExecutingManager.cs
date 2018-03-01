@@ -34,9 +34,9 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns>The lf. kernel. IT ransaction executing manager. execute async.</returns>
         /// <param name="tx">Tx.</param>
-        public async Task ExecuteAsync(ITransaction tx)
+        public async Task ExecuteAsync(ITransaction tx,IChain chain)
         {
-            var smartContract = await _smartContractManager.GetAsync(tx.To);
+            var smartContract = await _smartContractManager.GetAsync(tx.To,chain);
 
             await smartContract.InvokeAsync(tx.From.GetAddress(),tx.MethodName,tx.Params);
             
@@ -182,7 +182,7 @@ namespace AElf.Kernel
         /// <summary>
         /// Schedule execution of transaction
         /// </summary>
-        public void Schedule(List<ITransaction> transactions)
+        public void Schedule(List<ITransaction> transactions, IChain chain)
         {
             // reset 
             _pending = new Dictionary<IAccount, List<ITransaction>>();
@@ -207,7 +207,7 @@ namespace AElf.Kernel
                     _pending[res].Add(tx);
                 }
             }
-            ColorGraph(transactions); 
+            ColorGraph(transactions, chain); 
         }
         
         
@@ -232,7 +232,7 @@ namespace AElf.Kernel
         /// <summary>
         /// use coloring algorithm to claasify txs
         /// </summary>
-        private void ColorGraph(List<ITransaction> transactions)
+        private void ColorGraph(List<ITransaction> transactions, IChain chain)
         {
             // color result for each vertex
             Dictionary<ITransaction, int> colorResult = new Dictionary<ITransaction, int>();
@@ -245,7 +245,7 @@ namespace AElf.Kernel
                 
                 foreach (var h in r.Value)
                 {
-                    var task = ExecuteAsync(h);
+                    var task = ExecuteAsync(h,chain);
                     tasks.Add(task);
                 }
                 Task.WaitAll(tasks.ToArray());
