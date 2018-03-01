@@ -7,6 +7,7 @@ namespace AElf.Kernel
     {
         private List<ITransaction> _transactions = new List<ITransaction>();
 
+        
         public int TransactionsCount => _transactions.Count;
 
         public BlockBody() { }
