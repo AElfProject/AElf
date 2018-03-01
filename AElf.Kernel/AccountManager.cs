@@ -23,23 +23,10 @@ namespace AElf.Kernel
             throw new System.NotImplementedException();
         }
 
-        /// <summary>
-        ///  Create account with smartContractContractRegistration
-        /// </summary>
-        /// <param name="accountCaller"></param>
-        /// <param name="smartContractContractRegistration"></param>
-        public async Task<IAccount> CreateAccount(IAccount accountCaller, SmartContractRegistration smartContractContractRegistration)
+        public IAccount GetAccountByHash(IHash<IAccount> hash)
         {
-            // inittitalize the account and accountDataprovider
-            var hash = new Hash<IAccount>(accountCaller.CalculateHashWith(smartContractContractRegistration));
-            var account = new Account(hash);
-            var accountDataProvider = _worldState.GetAccountDataProviderByAccount(account);
-            accountDataProvider.GetDataProvider().SetDataProvider("SmartContractMap", new DataProvider(account, _worldState));
-            // register smartcontract to the new contract
-            SmartContractZero smartContractZero = new SmartContractZero();
-            await smartContractZero.InititalizeAsync(accountDataProvider);
-            await smartContractZero.RegisterSmartContract(smartContractContractRegistration);
-            return account;
+            throw new System.NotImplementedException();
         }
+
     }
 }

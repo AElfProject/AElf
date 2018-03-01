@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
@@ -20,6 +21,7 @@ namespace AElf.Kernel
             _genesisBlock = genesisBlock;
             CurrentBlockHash = genesisBlock.GetHash();
             CurrentBlockHeight = 0;
+            Id = new Hash<IChain>(genesisBlock.GetHash().Value);
         }
 
        
@@ -48,7 +50,8 @@ namespace AElf.Kernel
         /// </summary>
         private void DeployContractInAccountZero()
         {
-            Task.Factory.StartNew(async () =>
+            throw new NotImplementedException();
+            /*Task.Factory.StartNew(async () =>
             {
                 var transaction = _genesisBlock.Transaction;
                 var smartContractRegistration =
@@ -66,7 +69,7 @@ namespace AElf.Kernel
                 await smartContractZero.InititalizeAsync(accountZeroDataProvider);
                 await smartContractZero.RegisterSmartContract(smartContractRegistration);
                 
-            }).Wait();
+            }).Wait();*/
             
         }
 
@@ -78,5 +81,7 @@ namespace AElf.Kernel
             CurrentBlockHeight += 1;
             CurrentBlockHash = block.GetHash();
         }
+
+        public IHash<IChain> Id { get; private set; }
     }
 }

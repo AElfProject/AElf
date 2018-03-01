@@ -16,5 +16,7 @@
         IHash<IBlock> CurrentBlockHash { get; }
 
         void UpdateCurrentBlock(IBlock block);
+        
+        IHash<IChain> Id { get; }
     }
 }
