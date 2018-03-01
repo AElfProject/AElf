@@ -48,7 +48,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public IAccountDataProvider AddAccountDataProvider(IAccount account)
         {
-            var accountDataProvider = new AccountDataProvider(account, this, true);
+            var accountDataProvider = new AccountDataProvider(account, this);
             //Add the address to dict.
             _accountDataProviders[account] = accountDataProvider;
             

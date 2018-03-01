@@ -19,5 +19,7 @@ namespace AElf.Kernel
         /// <param name="smartContract"></param>
         /// <returns></returns>
         Task<IAccount> CreateAccount(byte[] smartContract);
+
+        IAccount GetAccountByHash(IHash<IAccount> hash);
     }
 }

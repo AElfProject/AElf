@@ -11,6 +11,7 @@
     <PackageReference Include="LiteDB" Version="4.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="QuickGraphCore" Version="1.0.0" />
+    <PackageReference Include="SharpRepository.Repository" Version="2.0.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Serialization\AElf.Serialization.csproj">

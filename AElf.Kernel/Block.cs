@@ -16,7 +16,7 @@ namespace AElf.Kernel
         /// a previous block must be referred, except the genesis block.
         /// </summary>
         /// <param name="preBlockHash">Pre block hash.</param>
-        public Block(Hash<IBlock> preBlockHash)
+        public Block(IHash<IBlock> preBlockHash)
         {
             _blockHeader = new BlockHeader(preBlockHash);
             _blockBody = new BlockBody();
@@ -60,7 +60,7 @@ namespace AElf.Kernel
         /// Returns the block hash.
         /// </summary>
         /// <returns>The hash.</returns>
-        public IHash GetHash()
+        public IHash<IBlock> GetHash()
         {
             return new Hash<IBlock>(this.CalculateHash());
         }
