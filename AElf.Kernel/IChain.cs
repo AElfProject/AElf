@@ -17,8 +17,15 @@
 
         void UpdateCurrentBlock(IBlock block);
         
-        IHash<IChain> Id { get; }
+        IHash<string> Id { get; }
         
-        IHash<IBlockHeader> GenesisBlockHash { get; }
+        IHash<IBlock> GenesisBlockHash { get; }
+    }
+
+    public interface IChainBlock
+    {
+        IBlock Block { get; set; }
+        IHash<string> ChainId { get; set; }
+        long Height { get; set; }
     }
 }

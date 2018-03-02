@@ -19,7 +19,7 @@ namespace AElf.Kernel
         {
             var address = account.GetAddress();
 
-            _blockManager.GetBlockHeaderAsync(chain.GenesisBlockHash);
+            //await _blockManager.GetBlockHeaderAsync(chain.GenesisBlockHash);
             
             if (address == Hash<IAccount>.Zero)
             {

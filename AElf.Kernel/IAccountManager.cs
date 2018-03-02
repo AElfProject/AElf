@@ -8,8 +8,9 @@ namespace AElf.Kernel
         /// Create a account from smrat contract code
         /// </summary>
         /// <param name="smartContract"></param>
+        /// <param name="chain"></param>
         /// <returns></returns>
-        Task<IAccount> CreateAccount(byte[] smartContract);
+        Task<IAccount> CreateAccountAsync(byte[] smartContract,IChain chain);
 
         IAccount GetAccountByHash(IHash<IAccount> hash);
     }

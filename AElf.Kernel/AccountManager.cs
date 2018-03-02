@@ -6,14 +6,7 @@ namespace AElf.Kernel
 {
     public class AccountManager : IAccountManager
     {
-        private WorldState _worldState;
-
-        public AccountManager(WorldState worldState)
-        {
-            _worldState = worldState;
-        }
-
-        public Task<IAccount> CreateAccount(byte[] smartContract)
+        public Task<IAccount> CreateAccountAsync(byte[] smartContract, IChain chain)
         {
             throw new System.NotImplementedException();
         }

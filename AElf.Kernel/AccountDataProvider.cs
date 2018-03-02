@@ -5,7 +5,7 @@ namespace AElf.Kernel
     public class AccountDataProvider : IAccountDataProvider
     {
         private readonly IAccount _account;
-        private IDataProvider _dataProvider;
+        private readonly IDataProvider _dataProvider;
 
         public IAccountDataContext Context { get; set; }
 
