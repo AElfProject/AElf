@@ -6,7 +6,7 @@ using AElf.Kernel.KernelAccount;
 
 namespace AElf.Kernel
 {
-    public class GenesisBlock : Block
+    public class GenesisBlock : Block,IGenesisBlock
     {
         public GenesisBlock() : base(Hash<IBlock>.Zero)
         {
