@@ -21,7 +21,7 @@ namespace AElf.Kernel
             _genesisBlock = genesisBlock;
             CurrentBlockHash = genesisBlock.GetHash();
             CurrentBlockHeight = 0;
-            Id = new Hash<string>(genesisBlock.GetHash().Value);
+            Id = new Hash<IChain>(genesisBlock.GetHash().Value);
         }
 
        
@@ -82,7 +82,7 @@ namespace AElf.Kernel
             CurrentBlockHash = block.GetHash();
         }
 
-        public IHash<string> Id { get; private set; }
+        public IHash<IChain> Id { get; private set; }
         public IHash<IBlock> GenesisBlockHash { get; }
     }
 }

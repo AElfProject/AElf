@@ -27,14 +27,15 @@ namespace AElf.Kernel
             _accountManager = accountManager;
             _smartContractManager = smartContractManager;
         }
-        
-        
+
+
         /// <summary>
         /// AElf.kernel.ITransaction executing manager. execute async.
         /// </summary>
         /// <returns>The lf. kernel. IT ransaction executing manager. execute async.</returns>
         /// <param name="tx">Tx.</param>
-        public async Task ExecuteAsync(ITransaction tx,IChain chain)
+        /// <param name="chain"></param>
+        public async Task ExecuteAsync(ITransaction tx,IChainContext chain)
         {
             var smartContract = await _smartContractManager.GetAsync(tx.To,chain);
 
@@ -178,7 +179,7 @@ namespace AElf.Kernel
         }
 
        */
-
+        /*
         /// <summary>
         /// Schedule execution of transaction
         /// </summary>
@@ -298,7 +299,8 @@ namespace AElf.Kernel
                     available[j] = false;
                 }
             }
-        }
+            
+        }*/
         
     }
 }
