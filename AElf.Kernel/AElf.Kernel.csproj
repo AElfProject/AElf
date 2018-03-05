@@ -20,9 +20,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Merkle\MerklePartriciaTree.cs" />
+    <Compile Remove="Extensions\CommonExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Merkle\MerklePartriciaNode.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Merkle\MerklePartriciaTree.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Merkle\BinaryMerkleNode.cs" />
   </ItemGroup>
 </Project>

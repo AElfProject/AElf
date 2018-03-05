@@ -15,6 +15,5 @@ namespace AElf.Kernel
         {
             throw new System.NotImplementedException();
         }
-
     }
 }

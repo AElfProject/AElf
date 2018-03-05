@@ -8,15 +8,13 @@ namespace AElf.Kernel
     public class BlockHeader : IBlockHeader
     {
         /// <summary>
-        /// AELF version magic words
+        /// Blockchain version.
         /// </summary>
-        /// <value>The version.</value>
-        public const int Version = 0x1;
+        public const uint Version = 0x1;
 
         /// <summary>
-        /// points to previous block hash 
+        /// The pre block's hash value.
         /// </summary>
-        /// <value>The pre block hash.</value>
         private IHash<IBlock> _preBlockHash;
 
         /// <summary>
@@ -25,12 +23,11 @@ namespace AElf.Kernel
         public byte[] Signatures;
 
         /// <summary>
-        /// the merkle root hash
+        /// The merkle root hash of all the transactions in this block
         /// </summary>
-        /// <value>The merkle root hash.</value>
         public IHash<IMerkleTree<ITransaction>> MerkleRootHash => GetTransactionMerkleTreeRoot();
 
-        private readonly BinaryMerkleTree<ITransaction> _transactionMerkleTree = new BinaryMerkleTree<ITransaction>();
+        private BinaryMerkleTree<ITransaction> _transactionMerkleTree = new BinaryMerkleTree<ITransaction>();
 
         /// <summary>
         /// the timestamp of this block
@@ -61,13 +58,9 @@ namespace AElf.Kernel
             return _transactionMerkleTree.ComputeRootHash();
         }
 
-        /// <summary>
-        /// Gets the block hash.
-        /// </summary>
-        /// <returns>The hash.</returns>
-        public IHash<IBlockHeader> GetHash()
+        public byte[] Serialize()
         {
-            return new Hash<IBlockHeader>(this.CalculateHash());
+            throw new NotImplementedException();
         }
     }
 }

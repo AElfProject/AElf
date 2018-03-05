@@ -3,7 +3,6 @@ using System;
 
 namespace AElf.Kernel
 {
-    [Serializable]
     public class Block : IBlock
     {
         #region Private Fileds

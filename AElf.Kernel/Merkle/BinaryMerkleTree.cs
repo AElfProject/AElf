@@ -7,6 +7,10 @@ using System.Runtime.InteropServices.ComTypes;
 
 namespace AElf.Kernel.Merkle
 {
+    /// <summary>
+    /// This implementation of binary merkle tree only add hash values as its leaves.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class BinaryMerkleTree<T> : IMerkleTree<T>
     {
         /// <summary>
@@ -141,8 +145,7 @@ namespace AElf.Kernel.Merkle
 
         private IHash<T> AddCache(string keyHash, IHash<T> valueHash)
         {
-            _cache[keyHash] = valueHash;
-            return valueHash;
+            return _cache[keyHash] = valueHash;
         }
     }
 }

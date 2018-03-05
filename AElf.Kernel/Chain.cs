@@ -10,11 +10,11 @@ namespace AElf.Kernel
     public class Chain : IChain
     {
         private AccountZero _accountZero;
-        private readonly WorldState _worldState;
+        private readonly IWorldState _worldState;
         private bool _isInitialized;
         private readonly GenesisBlock _genesisBlock;
 
-        public Chain(AccountZero accountZero, WorldState worldState, GenesisBlock genesisBlock)
+        public Chain(AccountZero accountZero, IWorldState worldState, GenesisBlock genesisBlock)
         {
             _accountZero = accountZero;
             _worldState = worldState;
