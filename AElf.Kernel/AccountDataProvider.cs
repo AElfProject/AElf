@@ -5,19 +5,16 @@ namespace AElf.Kernel
     public class AccountDataProvider : IAccountDataProvider
     {
         private readonly IAccount _account;
-        private IDataProvider _dataProvider;
+        private readonly IDataProvider _dataProvider;
 
         public IAccountDataContext Context { get; set; }
 
-        public AccountDataProvider(IAccount account, WorldState worldState, bool addDataProviderToWorldState = false)
+
+        public AccountDataProvider(IAccount account, IWorldState worldState)
         {
             _account = account;
             Context = new AccountDataContext();
-            _dataProvider = new DataProvider(account, worldState);
-            if (addDataProviderToWorldState)
-            {
-                worldState.AddDataProvider(_dataProvider);
-            }
+            _dataProvider = new DataProvider(worldState, GetAccountAddress());
         }
         
         public IHash<IAccount> GetAccountAddress()

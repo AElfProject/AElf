@@ -8,8 +8,8 @@ namespace AElf.Kernel.Extensions
 {
     public static class HashExtensions
     {
-        public static int Length = 32;
-        
+        public const int Length = 32;
+
         public static byte[] CalculateHash(this object obj)
         {
             if (obj == null)
