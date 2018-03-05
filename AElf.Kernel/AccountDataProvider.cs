@@ -9,12 +9,12 @@ namespace AElf.Kernel
 
         public IAccountDataContext Context { get; set; }
 
+
         public AccountDataProvider(IAccount account, IWorldState worldState)
         {
             _account = account;
             Context = new AccountDataContext();
             _dataProvider = new DataProvider(worldState, GetAccountAddress());
-
         }
         
         public IHash<IAccount> GetAccountAddress()

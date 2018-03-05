@@ -26,14 +26,12 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns><c>true</c>, if transaction was added, <c>false</c> otherwise.</returns>
         /// <param name="tx">Tx.</param>
-        public bool AddTransaction(ITransaction tx)
+        public bool AddTransaction(IHash<ITransaction> tx)
         {
-            if (_blockBody.AddTransaction(tx))
-            {
-                _blockHeader.AddTransaction(tx.GetHash());
-                return true;
-            }
-            return false;
+            if (!_blockBody.AddTransaction(tx)) 
+                return false;
+            _blockHeader.AddTransaction(tx);
+            return true;
         }
 
         /// <summary>
@@ -59,7 +57,7 @@ namespace AElf.Kernel
         /// Returns the block hash.
         /// </summary>
         /// <returns>The hash.</returns>
-        public IHash GetHash()
+        public IHash<IBlock> GetHash()
         {
             return new Hash<IBlock>(this.CalculateHash());
         }

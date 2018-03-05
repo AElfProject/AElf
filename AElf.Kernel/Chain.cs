@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
@@ -18,14 +19,12 @@ namespace AElf.Kernel
             _accountZero = accountZero;
             _worldState = worldState;
             _genesisBlock = genesisBlock;
+            CurrentBlockHash = genesisBlock.GetHash();
+            CurrentBlockHeight = 0;
+            Id = new Hash<IChain>(genesisBlock.GetHash().Value);
         }
 
-        /// <summary>
-        /// A memory based block storage
-        /// </summary>
-        /// <value>The blocks.</value>
-        public List<Block> Blocks { get; set; } = new List<Block>();
-
+       
         
         /// <summary>
         /// Inititalize for accountZero
@@ -51,15 +50,16 @@ namespace AElf.Kernel
         /// </summary>
         private void DeployContractInAccountZero()
         {
-            Task.Factory.StartNew(async () =>
+            throw new NotImplementedException();
+            /*Task.Factory.StartNew(async () =>
             {
                 var transaction = _genesisBlock.Transaction;
                 var smartContractRegistration =
                     new SmartContractRegistration
                     {
-                        Category = (int) transaction.Params.ElementAt(0),
-                        Name = (string) transaction.Params.ElementAt(1),
-                        Bytes = (byte[]) transaction.Params.ElementAt(2)
+                        Category = (int) transaction.Params[0],
+                        Name = (string) transaction.Params[1],
+                        Bytes = (byte[]) transaction.Params[2]
                     };
             
                 // register contracts on accountZero
@@ -69,13 +69,20 @@ namespace AElf.Kernel
                 await smartContractZero.InititalizeAsync(accountZeroDataProvider);
                 await smartContractZero.RegisterSmartContract(smartContractRegistration);
                 
-            }).Wait();
+            }).Wait();*/
             
         }
-        
-        
-        public long CurrentBlockHeight => Blocks.Count;
 
-        public IHash<IBlock> CurrentBlockHash => new Hash<IBlock>(Blocks[Blocks.Count - 1].GetHeader().GetTransactionMerkleTreeRoot().Value);
+
+        public long CurrentBlockHeight { get; private set; }
+        public IHash<IBlock> CurrentBlockHash { get; private set; }
+        public void UpdateCurrentBlock(IBlock block)
+        {
+            CurrentBlockHeight += 1;
+            CurrentBlockHash = block.GetHash();
+        }
+
+        public IHash<IChain> Id { get; private set; }
+        public IHash<IBlock> GenesisBlockHash { get; }
     }
 }

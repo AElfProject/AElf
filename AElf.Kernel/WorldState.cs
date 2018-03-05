@@ -54,6 +54,7 @@ namespace AElf.Kernel
             var accountDataProvider = accountDataProviderunt;
             var address = accountDataProviderunt.GetAccountAddress();
             AddDataProvider(new DataProvider(this, address));
+            
             //Add the address to dict.
             _accountDataProviders[new Account(address)] = accountDataProvider;
         }
