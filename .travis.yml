@@ -2,9 +2,6 @@ language: csharp
 mono: none
 dotnet: 2.0.2
 dist: trusty
-branches:
-  only:
-  - master
 install:
  - dotnet restore -s "https://nuget.cdn.azure.cn/v3/index.json" -s "https://api.nuget.org/v3/index.json" "AElf.sln"
 before_script:

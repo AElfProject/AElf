@@ -1,37 +1,24 @@
-﻿using Newtonsoft.Json;
+﻿using AElf.Kernel.Extensions;
 using System;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace AElf.Kernel
 {
-    [Serializable]
     public class Block : IBlock
     {
-        public int MagicNumber => 0xAE1F;
-
-        /// <summary>
-        /// Magic Number: 4B
-        /// BlockSize: 4B
-        /// BlockHeader: 84B
-        /// </summary>
-        public int BlockSize => 92;
-
-        private BlockHeader BlockHeader { get; set; }
-
-        private BlockBody BlockBody { get; set; } = new BlockBody();
+        #region Private Fileds
+        private readonly BlockHeader _blockHeader;
+        private readonly BlockBody _blockBody;
+        #endregion
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AElf.Kernel.Block"/> class.
         /// a previous block must be referred, except the genesis block.
         /// </summary>
         /// <param name="preBlockHash">Pre block hash.</param>
-        public Block(Hash<IBlock> preBlockHash)
+        public Block(IHash<IBlock> preBlockHash)
         {
-            BlockHeader = new BlockHeader(preBlockHash);
+            _blockHeader = new BlockHeader(preBlockHash);
+            _blockBody = new BlockBody();
         }
 
         /// <summary>
@@ -39,14 +26,12 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns><c>true</c>, if transaction was added, <c>false</c> otherwise.</returns>
         /// <param name="tx">Tx.</param>
-        public bool AddTransaction(ITransaction tx)
+        public bool AddTransaction(IHash<ITransaction> tx)
         {
-            if (BlockBody.AddTransaction(tx))
-            {
-                BlockHeader.AddTransaction(tx.GetHash());
-                return true;
-            }
-            return false;
+            if (!_blockBody.AddTransaction(tx)) 
+                return false;
+            _blockHeader.AddTransaction(tx);
+            return true;
         }
 
         /// <summary>
@@ -55,7 +40,7 @@ namespace AElf.Kernel
         /// <returns>The body.</returns>
         public IBlockBody GetBody()
         {
-            return BlockBody;
+            return _blockBody;
         }
 
         /// <summary>
@@ -65,16 +50,16 @@ namespace AElf.Kernel
         /// <returns>The header.</returns>
         public IBlockHeader GetHeader()
         {
-            return BlockHeader;
+            return _blockHeader;
         }
 
         /// <summary>
         /// Returns the block hash.
         /// </summary>
         /// <returns>The hash.</returns>
-        public IHash GetHash()
+        public IHash<IBlock> GetHash()
         {
-            return new Hash<IBlock>(this.GetSHA256Hash());
+            return new Hash<IBlock>(this.CalculateHash());
         }
     }
 }
