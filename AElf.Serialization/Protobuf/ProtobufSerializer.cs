@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using AElfSerializer;
 using Google.Protobuf;
 
 namespace AElf.Serialization.Protobuf
