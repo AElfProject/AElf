@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.KernelAccount;
+﻿using System.Threading.Tasks;
+using AElf.Kernel.KernelAccount;
 
 namespace AElf.Kernel
 {
@@ -9,5 +10,6 @@ namespace AElf.Kernel
     {
         ISmartContractZero SmartContractZero { get; }
         IHash<IChain> ChainId { get; }
+        bool InitializeChain(IChain chain, AccountZero accountZero, ITransaction transaction);
     }
 }
