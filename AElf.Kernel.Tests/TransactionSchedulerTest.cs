@@ -63,17 +63,12 @@ namespace AElf.Kernel.Tests
             return transaction.Object;
         }
 
-        /*
-        [Fact]
+        
+        /*[Fact]
         public void SchedulerTest()
         {
             
-            var worldState = new WorldState();
-            var smartContractZero = new SmartContractZero();
-            var accountZero = new AccountZero(smartContractZero);
-            var accountManager = new AccountManager(worldState);
-            ISmartContractManager sm = null;
-            var transactionExecutingManager = new TransactionExecutingManager(worldState, accountZero, accountManager,sm);
+            var transactionExecutingManager = new TransactionExecutingManager();
             
             // simple demo cases
 
@@ -253,8 +248,8 @@ namespace AElf.Kernel.Tests
             Assert.Equal(67, plan[2].ElementAt(0).GetHash().GetHashBytes()[0]);
             Assert.Equal(68, plan[3].ElementAt(0).GetHash().GetHashBytes()[0]);
             
-        }
-*/
+        }*/
+
         
     }
 }
