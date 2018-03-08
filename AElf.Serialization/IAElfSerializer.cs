@@ -9,7 +9,7 @@ namespace AElf.Serialization
     {
         byte[] Serialize(object obj);
         
-        T Deserialize<T>(byte[] bytes);
+        T Deserialize<T>(byte[] bytes) where T : class;
         object Deserialize(byte[] bytes, Type type);
     }
 }

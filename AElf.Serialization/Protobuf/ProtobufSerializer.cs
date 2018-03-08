@@ -29,11 +29,13 @@ namespace AElf.Serialization.Protobuf
         }
 
         /// <summary>
-        /// Helper method to performs the cast.
+        /// Helper method to perform the cast. Note that you
+        /// cannot use this method to deserialize structs.
         /// </summary>
-        public T Deserialize<T>(byte[] bytes)
+        public T Deserialize<T>(byte[] bytes) where T : class
         {
-            return (T) Deserialize(bytes, typeof(T));
+            var data = Deserialize(bytes, typeof(T));
+            return data != null ? (T)data : null;
         }
 
         /// <summary>
@@ -52,15 +54,22 @@ namespace AElf.Serialization.Protobuf
                 return parser.ParseFrom(bytes);
             }
 
-            IMessage msg = Activator.CreateInstance(type) as IMessage;
+            parser = RegisterProtobufTypeParser(type);
+
+            return parser?.ParseFrom(bytes);
+        }
+
+        public MessageParser RegisterProtobufTypeParser(Type messageType)
+        {
+            IMessage msg = Activator.CreateInstance(messageType) as IMessage;
 
             if (msg?.Descriptor == null)
                 return null;
 
-            parser = msg.Descriptor.Parser;
-            TypeCache.TryAdd(type.FullName, parser);
+            var parser = msg.Descriptor.Parser;
+            TypeCache.TryAdd(messageType.FullName, parser);
 
-            return parser.ParseFrom(bytes);
+            return parser;
         }
     }
 }
