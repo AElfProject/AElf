@@ -10,7 +10,7 @@ namespace AElf.Kernel
         /// <param name="smartContract"></param>
         /// <param name="chain"></param>
         /// <returns></returns>
-        Task<IAccount> CreateAccountAsync(byte[] smartContract,IChain chain);
+        Task<IAccount> CreateAccountAsync(byte[] smartContract, IChain chain);
 
         IAccount GetAccountByHash(IHash<IAccount> hash);
     }

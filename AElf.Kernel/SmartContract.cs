@@ -24,7 +24,7 @@ namespace AElf.Kernel
                 .Result;
             
             // load assembly with bytes
-            Assembly assembly = Assembly.Load(smartContractRegistration.Bytes);
+            var assembly = Assembly.Load(smartContractRegistration.Bytes);
             var type = assembly.GetTypes().ElementAt(0);
             var method = type.GetMethod(methodname);
             
