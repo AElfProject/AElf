@@ -168,6 +168,8 @@ namespace AElf.Serialization.Protobuf.Generated {
 
   #endregion
 
+  
 }
 
 #endregion Designer generated code
+
