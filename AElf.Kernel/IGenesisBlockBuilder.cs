@@ -6,16 +6,4 @@ namespace AElf.Kernel
     {
         IGenesisBlock Build(IHash<IChain> chainId,ISmartContractZero smartContractZero);
     }
-
-    public class GenesisBlockBuilder : IGenesisBlockBuilder
-    {
-        
-        
-        public IGenesisBlock Build(IHash<IChain> chainId, ISmartContractZero smartContractZero)
-        {
-            GenesisBlock block=new GenesisBlock();
-            
-            throw new System.NotImplementedException();
-        }
-    }
 }

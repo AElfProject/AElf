@@ -9,6 +9,9 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void BasicPipeline()
         {
+            
+            
+            
             //TODO: finish the unit test
             /*var blkheader = new Mock<IBlockHeader>();
             var blk = new Mock<IBlock>();

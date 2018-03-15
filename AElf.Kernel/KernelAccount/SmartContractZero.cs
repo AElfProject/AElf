@@ -9,6 +9,7 @@ namespace AElf.Kernel.KernelAccount
     
     public class SmartContractZero: ISmartContractZero
     {
+        
         private const string SMART_CONTRACT_MAP_KEY = "SmartContractMap";
         
         private IAccountDataProvider _accountDataProvider;
