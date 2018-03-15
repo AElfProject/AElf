@@ -1,0 +1,52 @@
+
+
+syntax = "proto3";
+
+package AElf.RPC;
+
+// The greeting service definition.
+service AElfRPC{
+
+      // invoke SmartContract with rpc
+      // return something in string meaning result
+      rpc Invoke(InvokeOption) returns (Result){}
+
+      // A server-to-client streaming RPC.
+      //
+      // Results are streamed rather than returned at once 
+      rpc ListResults(InvokeOption) returns (stream Result) {}
+      
+}
+
+message InvokeOption{
+
+    SmartContractReg reg = 1;
+    string className = 2;
+    string methodName =3;
+    ParamList params = 4;
+    
+}
+
+message SmartContractReg{
+    
+    bytes byte = 1;
+    int32 catgory =2;
+    string name = 3;
+}
+
+message Result {
+    
+    string res = 1;
+}
+
+message ParamList
+{
+    repeated Parameter param = 1;
+}
+
+message Parameter {
+    
+    int32 type = 1;
+    bytes data = 2;
+    
+}
