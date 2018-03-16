@@ -59,10 +59,9 @@ namespace AElf.Kernel.Tests
 
             const string dataProviderName = "test";
             
-            var newDataProvider = new DataProvider(account, worldState);
-            dataprovider.SetDataProvider(dataProviderName, newDataProvider);
+            dataprovider.SetDataProvider(dataProviderName);
 
-            var hashNewDataProvider = new Hash<IDataProvider>(newDataProvider.CalculateHash());
+            var hashNewDataProvider = new Hash<IDataProvider>(new DataProvider(worldState, address).CalculateHash());
             var hashGetDataProvider = new Hash<IDataProvider>(dataprovider.GetDataProvider(dataProviderName).CalculateHash());
             
             //See if we can get the same data provider which set before by comparing their hashes.
@@ -83,7 +82,7 @@ namespace AElf.Kernel.Tests
             var dataprovider = accountDataProvider.GetDataProvider();
             
             //Add a data provider to world state merkle tree.
-            worldState.AddAccountDataProvider(account);
+            worldState.AddAccountDataProvider(accountDataProvider);
             
             //Merkle tree root hash before set:
             var merkleHashBefore = worldState.GetWorldStateMerkleTreeRootAsync();

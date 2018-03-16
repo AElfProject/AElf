@@ -13,6 +13,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AElf.OS.Tests", "AElf.OS.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Serialization", "AElf.Serialization\AElf.Serialization.csproj", "{13DC325F-B46C-4A90-A67E-785AE8D92640}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.RPC", "AElf.RPC\AElf.RPC.csproj", "{796C41F2-EDD1-4A63-BE52-2447C8596006}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.RPC.Test", "AElf.RPC.Test\AElf.RPC.Test.csproj", "{AEF6AB13-D1DC-4FE3-80DD-AFE9359D958A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{13DC325F-B46C-4A90-A67E-785AE8D92640}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13DC325F-B46C-4A90-A67E-785AE8D92640}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13DC325F-B46C-4A90-A67E-785AE8D92640}.Release|Any CPU.Build.0 = Release|Any CPU
+		{796C41F2-EDD1-4A63-BE52-2447C8596006}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{796C41F2-EDD1-4A63-BE52-2447C8596006}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{796C41F2-EDD1-4A63-BE52-2447C8596006}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{796C41F2-EDD1-4A63-BE52-2447C8596006}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEF6AB13-D1DC-4FE3-80DD-AFE9359D958A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEF6AB13-D1DC-4FE3-80DD-AFE9359D958A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEF6AB13-D1DC-4FE3-80DD-AFE9359D958A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEF6AB13-D1DC-4FE3-80DD-AFE9359D958A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

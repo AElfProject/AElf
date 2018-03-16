@@ -7,9 +7,9 @@ namespace AElf.Kernel
     /// </summary>
     public class Account : IAccount
     {
-        private readonly Hash<IAccount> _address;
+        private readonly IHash<IAccount> _address;
 
-        public Account(Hash<IAccount> address)
+        public Account(IHash<IAccount> address)
         {
             _address = address;
         }
