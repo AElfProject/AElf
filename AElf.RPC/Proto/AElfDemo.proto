@@ -12,9 +12,13 @@ service AElfRPC{
       rpc Invoke(InvokeOption) returns (Result){}
 
       // A server-to-client streaming RPC.
-      //
       // Results are streamed rather than returned at once 
       rpc ListResults(InvokeOption) returns (stream Result) {}
+
+
+      // A client-to-server streaming RPC
+      // request stream and return one result 
+      rpc ListInvoke(stream InvokeOption) returns (Result) {}
       
 }
 

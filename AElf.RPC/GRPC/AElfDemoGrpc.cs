@@ -35,6 +35,13 @@ namespace AElf.RPC {
         __Marshaller_InvokeOption,
         __Marshaller_Result);
 
+    static readonly grpc::Method<global::AElf.RPC.InvokeOption, global::AElf.RPC.Result> __Method_ListInvoke = new grpc::Method<global::AElf.RPC.InvokeOption, global::AElf.RPC.Result>(
+        grpc::MethodType.ClientStreaming,
+        __ServiceName,
+        "ListInvoke",
+        __Marshaller_InvokeOption,
+        __Marshaller_Result);
+
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
     {
@@ -58,7 +65,6 @@ namespace AElf.RPC {
 
       /// <summary>
       /// A server-to-client streaming RPC.
-      ///
       /// Results are streamed rather than returned at once 
       /// </summary>
       /// <param name="request">The request received from the client.</param>
@@ -66,6 +72,18 @@ namespace AElf.RPC {
       /// <param name="context">The context of the server-side call handler being invoked.</param>
       /// <returns>A task indicating completion of the handler.</returns>
       public virtual global::System.Threading.Tasks.Task ListResults(global::AElf.RPC.InvokeOption request, grpc::IServerStreamWriter<global::AElf.RPC.Result> responseStream, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
+      /// <summary>
+      /// A client-to-server streaming RPC
+      /// request stream and return one result 
+      /// </summary>
+      /// <param name="requestStream">Used for reading requests from the client.</param>
+      /// <param name="context">The context of the server-side call handler being invoked.</param>
+      /// <returns>The response to send back to the client (wrapped by a task).</returns>
+      public virtual global::System.Threading.Tasks.Task<global::AElf.RPC.Result> ListInvoke(grpc::IAsyncStreamReader<global::AElf.RPC.InvokeOption> requestStream, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
@@ -145,7 +163,6 @@ namespace AElf.RPC {
       }
       /// <summary>
       /// A server-to-client streaming RPC.
-      ///
       /// Results are streamed rather than returned at once 
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -159,7 +176,6 @@ namespace AElf.RPC {
       }
       /// <summary>
       /// A server-to-client streaming RPC.
-      ///
       /// Results are streamed rather than returned at once 
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
@@ -168,6 +184,28 @@ namespace AElf.RPC {
       public virtual grpc::AsyncServerStreamingCall<global::AElf.RPC.Result> ListResults(global::AElf.RPC.InvokeOption request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncServerStreamingCall(__Method_ListResults, null, options, request);
+      }
+      /// <summary>
+      /// A client-to-server streaming RPC
+      /// request stream and return one result 
+      /// </summary>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
+      public virtual grpc::AsyncClientStreamingCall<global::AElf.RPC.InvokeOption, global::AElf.RPC.Result> ListInvoke(grpc::Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default(CancellationToken))
+      {
+        return ListInvoke(new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      /// <summary>
+      /// A client-to-server streaming RPC
+      /// request stream and return one result 
+      /// </summary>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
+      public virtual grpc::AsyncClientStreamingCall<global::AElf.RPC.InvokeOption, global::AElf.RPC.Result> ListInvoke(grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncClientStreamingCall(__Method_ListInvoke, null, options);
       }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       protected override AElfRPCClient NewInstance(ClientBaseConfiguration configuration)
@@ -182,7 +220,8 @@ namespace AElf.RPC {
     {
       return grpc::ServerServiceDefinition.CreateBuilder()
           .AddMethod(__Method_Invoke, serviceImpl.Invoke)
-          .AddMethod(__Method_ListResults, serviceImpl.ListResults).Build();
+          .AddMethod(__Method_ListResults, serviceImpl.ListResults)
+          .AddMethod(__Method_ListInvoke, serviceImpl.ListInvoke).Build();
     }
 
   }

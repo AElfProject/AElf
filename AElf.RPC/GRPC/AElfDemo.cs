@@ -31,10 +31,11 @@ namespace AElf.RPC {
             "EgwKBGJ5dGUYASABKAwSDwoHY2F0Z29yeRgCIAEoBRIMCgRuYW1lGAMgASgJ",
             "IhUKBlJlc3VsdBILCgNyZXMYASABKAkiLwoJUGFyYW1MaXN0EiIKBXBhcmFt",
             "GAEgAygLMhMuQUVsZi5SUEMuUGFyYW1ldGVyIicKCVBhcmFtZXRlchIMCgR0",
-            "eXBlGAEgASgFEgwKBGRhdGEYAiABKAwyfAoHQUVsZlJQQxI0CgZJbnZva2US",
-            "Fi5BRWxmLlJQQy5JbnZva2VPcHRpb24aEC5BRWxmLlJQQy5SZXN1bHQiABI7",
-            "CgtMaXN0UmVzdWx0cxIWLkFFbGYuUlBDLkludm9rZU9wdGlvbhoQLkFFbGYu",
-            "UlBDLlJlc3VsdCIAMAFiBnByb3RvMw=="));
+            "eXBlGAEgASgFEgwKBGRhdGEYAiABKAwyuAEKB0FFbGZSUEMSNAoGSW52b2tl",
+            "EhYuQUVsZi5SUEMuSW52b2tlT3B0aW9uGhAuQUVsZi5SUEMuUmVzdWx0IgAS",
+            "OwoLTGlzdFJlc3VsdHMSFi5BRWxmLlJQQy5JbnZva2VPcHRpb24aEC5BRWxm",
+            "LlJQQy5SZXN1bHQiADABEjoKCkxpc3RJbnZva2USFi5BRWxmLlJQQy5JbnZv",
+            "a2VPcHRpb24aEC5BRWxmLlJQQy5SZXN1bHQiACgBYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
