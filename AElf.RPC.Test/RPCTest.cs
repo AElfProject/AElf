@@ -35,7 +35,7 @@ namespace AElf.RPC.Test
         public async Task ServerSideStream()
         {
             var smartContract = Client("Contract.ListContract").Result;
-            await smartContract.ListResults("WaitSeconds", 2);
+            await smartContract.ListResults("WaitSecondsTwice", 2);
         }
 
 
@@ -43,7 +43,14 @@ namespace AElf.RPC.Test
         public async Task ClientSideStream()
         {
             var smartContract = Client("Contract.ListContract").Result;
-            await smartContract.ListInvoke("WaitSeconds", 2);
+            await smartContract.ListInvoke("WaitSecondsTwice", 2);
+        }
+
+        [Fact]
+        public async Task BiDirectional()
+        {
+            var smartContract = Client("Contract.ListContract").Result;
+            await smartContract.BiDirectional("WaitSeconds", 2);
         }
     }
 }
