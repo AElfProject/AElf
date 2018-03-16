@@ -112,10 +112,46 @@ namespace AElf.RPC
                 await call.RequestStream.CompleteAsync();
                 
                 var summary = await call.ResponseAsync;
-            }
-            
-            
+            }   
         }
-        
+
+
+
+        public async Task BiDirectional(string methodName, params object[] objs)
+        {
+            using (var  call = _client.BiDirectional())
+            {
+                var responseReaderTask = Task.Run(async () =>
+                {
+                    while (call != null && await call.ResponseStream.MoveNext())
+                    {
+                        var res = call.ResponseStream.Current;
+                        Console.WriteLine("Elapsed time : {0} ms", res.Res);
+                    }
+                });
+                
+                
+                var paramList = new ParamList();
+                paramList.SetParam(objs);
+                
+                var options = new InvokeOption
+                {
+                    ClassName = _registration.Name,
+                    Reg = _registration,
+                    Params = paramList,
+                    MethodName = methodName
+                };
+                
+                for (var i = 1; i <= 3; i++)
+                {
+                    await call.RequestStream.WriteAsync(options);
+                    await Task.Delay(500);    
+                }
+
+                await call.RequestStream.CompleteAsync();
+                await responseReaderTask;
+                
+            }
+        }
     }
 }

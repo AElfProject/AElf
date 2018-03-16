@@ -120,5 +120,37 @@ namespace AElf.RPC
             return result;
         }
 
+
+        /// <summary>
+        /// BiDirectional stream rpc
+        /// </summary>
+        /// <param name="requestStream"></param>
+        /// <param name="responStream"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public override async Task BiDirectional(IAsyncStreamReader<InvokeOption> requestStream, 
+            IServerStreamWriter<Result> responStream, ServerCallContext context)
+        {
+            while (await requestStream.MoveNext())
+            {
+                var option = requestStream.Current;
+                var smartContracRegistration = option.Reg;
+                var bytecode = smartContracRegistration.Byte;
+                var assembly = Assembly.Load(bytecode.ToByteArray());
+                var type = assembly.GetType(option.ClassName);
+                var instance = assembly.CreateInstance(option.ClassName);
+                
+                var objs = TypeConverter.Convert(option.Params);
+                var method = type.GetMethod(option.MethodName);
+
+                var r = method.Invoke(instance, objs);
+                var res = new Result
+                {
+                    Res = r.ToString()
+                };
+                await responStream.WriteAsync(res);
+            }
+        }
+
     }
 }

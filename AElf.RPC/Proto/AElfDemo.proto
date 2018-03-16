@@ -19,6 +19,10 @@ service AElfRPC{
       // A client-to-server streaming RPC
       // request stream and return one result 
       rpc ListInvoke(stream InvokeOption) returns (Result) {}
+
+      // A BiDirectional streaming RPC
+      // request stream and return one result 
+      rpc BiDirectional(stream InvokeOption) returns (stream Result) {}
       
 }
 
