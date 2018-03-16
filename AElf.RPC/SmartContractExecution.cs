@@ -9,6 +9,12 @@ namespace AElf.RPC
 {
     public class SmartContractExecution : AElfRPC.AElfRPCBase
     {
+        /// <summary>
+        /// end-to-end simple rpc
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override Task<Result> Invoke(InvokeOption request, ServerCallContext context)
         {
             var res = new Result();
@@ -40,7 +46,13 @@ namespace AElf.RPC
 
         }
         
-        
+        /// <summary>
+        /// server side stream rpc
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="responseStream"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override async Task ListResults(InvokeOption request, IServerStreamWriter<Result> responseStream, ServerCallContext context)
         {
             try
@@ -72,10 +84,18 @@ namespace AElf.RPC
         }
 
 
+        /// <summary>
+        /// client side stream rpc
+        /// </summary>
+        /// <param name="requestStream"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public override async Task<Result> ListInvoke(IAsyncStreamReader<InvokeOption> requestStream, ServerCallContext context)
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
+            
+            // get options from request stream
             while (await requestStream.MoveNext())
             {
                 var option = requestStream.Current;
