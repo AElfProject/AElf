@@ -13,7 +13,13 @@ namespace AElf.Kernel
         }
 
 
-        public async Task<ISmartContract> GetAsync(IAccount account,IChainContext context)
+        /// <summary>
+        /// get smartcontract with account and chain context
+        /// </summary>
+        /// <param name="account"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public async Task<ISmartContract> GetAsync(IAccount account, IChainContext context)
         {
             var address = account.GetAddress();
 
