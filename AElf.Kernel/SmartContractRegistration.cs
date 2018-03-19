@@ -2,6 +2,16 @@
 {
     public class SmartContractRegistration : ISerializable
     {
+        public SmartContractRegistration(ISerializable serializable)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public SmartContractRegistration()
+        {
+            
+        }
+
         /// <summary>
         /// 0: Smart Contract Zero
         /// 1: C# bytes
