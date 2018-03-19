@@ -1,5 +1,5 @@
 # AElf Project Status
-[![Build Status][1]][2] 
+[![Build Status][1]][2]
 
 [1]: https://travis-ci.org/AElfProject/AElf.svg?branch=master
 [2]: https://travis-ci.org/AElfProject/AElf
@@ -14,7 +14,7 @@ Early stage, still under development.
 2. Tagged primitive resource Data-Structure (sstable a.k.a. sorted string table), the basic element for resource isolation, backed by distributed KV database. This structure is comparable to dataflow processing paradigm (e.g. mr/reactivex).
 3. In-cluster wire protocol (data/task marshal/unmarshal).
 4. Actor (e.g. akka) based task distribution inside a single cluster/ledger.
-5. Contract as demostration of concurrent execution.
+5. Contract as demonstration of concurrent execution.
 
 ## Phase 2 : A Tale Between Two Nodes (March 2018 - May 2018)
 
@@ -33,15 +33,10 @@ Early stage, still under development.
 ## Phase 4: Governance (May 2018 - August 2018)
 
 1. Voting mechanism for sidechain join/leave
-2. Voting mechanism for emergency treatment 
+2. Voting mechanism for emergency treatment
 
 ## Phase 5: Ready To Launch (August 2018 - January 2019)
 
 1. Code optimization before mainnet launching.
-2. Code review, pre-releases. 
+2. Code review, pre-releases.
 3. Business case battle test(public beta).
-
-
-
-
-

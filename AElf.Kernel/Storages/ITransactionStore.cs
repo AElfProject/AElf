@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using AElf.Kernel.Extensions;
 
 namespace AElf.Kernel.Storages
 {
@@ -8,16 +11,30 @@ namespace AElf.Kernel.Storages
         Task<ITransaction> GetAsync(IHash<ITransaction> hash);
     }
     
-    public class TransactionStore: ITransactionStore
+    /// <summary>
+    /// Simply use a dictionary to store transactions.
+    /// </summary>
+    public class TransactionStore : ITransactionStore
     {
+        private static readonly Dictionary<IHash, ITransaction> Transactions = new Dictionary<IHash, ITransaction>();
+        
         public Task InsertAsync(ITransaction tx)
         {
-            throw new System.NotImplementedException();
+            Transactions.Add(new Hash<ITransaction>(tx.CalculateHash()), tx);
+            return Task.CompletedTask;
         }
 
         public Task<ITransaction> GetAsync(IHash<ITransaction> hash)
         {
-            throw new System.NotImplementedException();
+            foreach (var k in Transactions.Keys)
+            {
+                if (k.Equals(hash))
+                {
+                    return Task.FromResult(Transactions[k]);
+                }
+            }
+            throw new InvalidOperationException("Cannot find corresponding transaction.");
         }
     }
+    
 }

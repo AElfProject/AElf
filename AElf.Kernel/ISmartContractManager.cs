@@ -4,6 +4,6 @@ namespace AElf.Kernel
 {
     public interface ISmartContractManager
     {
-        Task<ISmartContract> GetAsync(IAccount account,IChainContext context);
+        Task<ISmartContract> GetAsync(IAccount account, IChainContext context);
     }
 }

@@ -4,7 +4,6 @@ using System;
 
 namespace AElf.Kernel
 {
-    [Serializable]
     public class BlockHeader : IBlockHeader
     {
         /// <summary>
@@ -27,7 +26,7 @@ namespace AElf.Kernel
         /// </summary>
         public IHash<IMerkleTree<ITransaction>> MerkleRootHash => GetTransactionMerkleTreeRoot();
 
-        private BinaryMerkleTree<ITransaction> _transactionMerkleTree = new BinaryMerkleTree<ITransaction>();
+        private readonly BinaryMerkleTree<ITransaction> _transactionMerkleTree = new BinaryMerkleTree<ITransaction>();
 
         /// <summary>
         /// the timestamp of this block
