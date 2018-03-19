@@ -23,4 +23,22 @@ namespace AElf.Kernel.Storages
         /// <returns></returns>
         Task<IWorldState> GetAsync();
     }
+
+    public class WorldStateStore : IWorldStateStore
+    {
+        public Task SetWorldStateAsync()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<IWorldState> GetAsync(long height)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<IWorldState> GetAsync()
+        {
+            throw new System.NotImplementedException();
+        }
+    }
 }
