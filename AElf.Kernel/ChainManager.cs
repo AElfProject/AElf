@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
 
 namespace AElf.Kernel
@@ -22,7 +23,10 @@ namespace AElf.Kernel
         public async Task AddBlockAsync(IChain chain, IBlock block)
         {
             chain.UpdateCurrentBlock(block);
-            await _relationStore.Insert(chain, block, chain.CurrentBlockHeight);
+            await _relationStore.InsertAsync(
+                new Hash<IChain>(chain.CalculateHash()),
+                new Hash<IBlock>(block.CalculateHash()), 
+                chain.CurrentBlockHeight);
         }                                
 
     }
