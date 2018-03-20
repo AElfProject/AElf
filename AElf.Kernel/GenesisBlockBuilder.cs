@@ -9,7 +9,7 @@ namespace AElf.Kernel
         public Transaction Tx { get; set; }
 
 
-        public GenesisBlockBuilder Build(IHash<IChain> chainId, ISmartContractZero smartContractZero)
+        public GenesisBlockBuilder Build(ISmartContractZero smartContractZero)
         {
             var block = new GenesisBlock()
             {

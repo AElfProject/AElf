@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Merkle;
 using Moq;
 using Xunit;
@@ -14,9 +15,8 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void BasicPipelineTest()
         {
-
-            
-            //var builder = new GenesisBlockBuilder().Build();
+            var smartContract = new SmartContractZero();
+            var builder = new GenesisBlockBuilder().Build();
 
             //TODO: finish the unit test
             /*var blkheader = new Mock<IBlockHeader>();
