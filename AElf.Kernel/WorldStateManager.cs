@@ -21,17 +21,15 @@ namespace AElf.Kernel
             
         }
 
-        public Task<IWorldState> GetWorldStateAsync(IChain chain)
+
+        public Task<IWorldState> GetWorldStateAsync(IHash<IChain> chain)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public IAccountDataProvider GetAccountDataProvider(IChain chain, IAccount account)
+        public IAccountDataProvider GetAccountDataProvider(IHash<IChain> chain, IHash<IAccount> account)
         {
-            var p = _factory();
-            
-            
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
     

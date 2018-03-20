@@ -15,8 +15,8 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void BasicPipelineTest()
         {
-            var smartContract = new SmartContractZero();
-            var builder = new GenesisBlockBuilder().Build();
+            //var smartContract = new SmartContractZero();
+            //var builder = new GenesisBlockBuilder().Build();
 
             //TODO: finish the unit test
             /*var blkheader = new Mock<IBlockHeader>();

@@ -5,6 +5,6 @@ namespace AElf.Kernel.KernelAccount
     public interface ISmartContractZero : ISmartContract
     {
         Task RegisterSmartContract(SmartContractRegistration reg);
-        Task<ISmartContract> GetSmartContractAsync(IHash hash);
+        Task<ISmartContract> GetSmartContractAsync(IHash<IAccount> hash);
     }
 }

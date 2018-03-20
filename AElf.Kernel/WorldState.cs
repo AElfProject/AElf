@@ -52,7 +52,7 @@ namespace AElf.Kernel
         public void AddAccountDataProvider(IAccountDataProvider accountDataProviderunt)
         {
             var accountDataProvider = accountDataProviderunt;
-            var address = accountDataProviderunt.GetAccountAddress();
+            var address = accountDataProviderunt.Context.Address;
             AddDataProvider(new DataProvider(this, address));
             
             //Add the address to dict.

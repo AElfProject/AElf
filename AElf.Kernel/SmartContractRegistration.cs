@@ -1,4 +1,6 @@
-﻿namespace AElf.Kernel
+﻿using System.IO;
+
+namespace AElf.Kernel
 {
     public class SmartContractRegistration : ISerializable
     {
@@ -24,13 +26,21 @@
         /// </summary>
         //public string Name { get; set; }
 
-        public IHash Hash { get; set; }
+        public IHash<IAccount> Hash { get; set; }
 
         public byte[] Bytes { get; set; }
 
         public byte[] Serialize()
         {
+            var ms = new MemoryStream();
+            using (var sm = new BinaryWriter(ms))
+            {
+            }
             throw new System.NotImplementedException();
         }
+        
+        public ulong IncrementId { get; set; }
+        
+        public IHash<IAccount> BaseAccount { get; set; }
     }
 }

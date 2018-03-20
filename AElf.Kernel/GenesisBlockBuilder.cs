@@ -26,7 +26,6 @@ namespace AElf.Kernel
                     new SmartContractRegistration()
                     {
                         Category = 0,
-                        Hash = smartContractZero.GetHash(),
                     }
                 }
                 
@@ -34,6 +33,7 @@ namespace AElf.Kernel
             block.AddTransaction(tx.GetHash());
 
             Block = block;
+            
             Tx = tx;
 
             return this;
