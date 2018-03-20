@@ -8,8 +8,11 @@ namespace AElf.Kernel
 {
     public class GenesisBlock : Block,IGenesisBlock
     {
-        public GenesisBlock() : base(Hash<IBlock>.Zero)
+        public GenesisBlock(ITransaction transactionInit) : base(Hash<IBlock>.Zero)
         {
+            TransactionInit = transactionInit;
         }
+
+        public ITransaction TransactionInit { get; }
     }
 }

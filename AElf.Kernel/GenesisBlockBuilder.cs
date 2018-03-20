@@ -11,23 +11,23 @@ namespace AElf.Kernel
             _blockManager = blockManager;
         }
 
-        public IGenesisBlock Build(IHash<IChain> chainId, ISmartContractZero smartContractZero)
+        public IGenesisBlock Build(ISmartContractZero smartContractZero, SmartContractRegistration smartContractRegistration)
         {
-            var block = new GenesisBlock()
-            {
-
-            };
+            
             var tx = new Transaction
             {
                 From = new Account(Hash<IAccount>.Zero),
                 To = new Account(Hash<IAccount>.Zero),
                 IncrementId = 0,
+                Params = new object[]{smartContractRegistration},
                 MethodName = nameof(ISmartContractZero.RegisterSmartContract)
             };
+            
+            var block = new GenesisBlock(tx);
             block.AddTransaction(tx.GetHash());
-            
-            
-            throw new System.NotImplementedException();
+
+            _blockManager.AddBlockAsync(block);
+            return block;
         }
     }
 }

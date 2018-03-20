@@ -4,6 +4,7 @@ namespace AElf.Kernel
 {
     public interface IGenesisBlockBuilder
     {
-        IGenesisBlock Build(IHash<IChain> chainId,ISmartContractZero smartContractZero);
+        IGenesisBlock Build(ISmartContractZero smartContractZero,
+            SmartContractRegistration smartContractRegistration);
     }
 }

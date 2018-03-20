@@ -2,6 +2,6 @@
 {
     public interface IChainContextFactory
     {
-        IChainContext GetChainContext(IHash<IChain> chain);
+        IChainContext GetChainContext(IHash<IChain> chainId);
     }
 }
