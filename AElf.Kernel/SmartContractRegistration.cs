@@ -2,12 +2,8 @@
 
 namespace AElf.Kernel
 {
-    public class SmartContractRegistration : ISerializable
+    public class SmartContractRegistration 
     {
-        public SmartContractRegistration(ISerializable serializable)
-        {
-            throw new System.NotImplementedException();
-        }
 
         public SmartContractRegistration()
         {

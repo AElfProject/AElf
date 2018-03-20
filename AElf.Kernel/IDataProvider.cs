@@ -18,7 +18,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        Task<ISerializable> GetAsync(IHash key);
+        Task<byte[]> GetAsync(IHash key);
 
         /// <summary>
         /// 
@@ -26,13 +26,13 @@ namespace AElf.Kernel
         /// <param name="key"></param>
         /// <param name="obj"></param>
         /// <returns></returns>
-        Task SetAsync(IHash key, ISerializable obj);
+        Task SetAsync(IHash key, byte[] obj);
         
         /// <summary>
         /// Gets the data merkle tree root.
         /// </summary>
         /// <returns></returns>
-        Task<IHash<IMerkleTree<ISerializable>>> GetDataMerkleTreeRootAsync();
+        Task<IHash<IMerkleTree<byte[]>>> GetDataMerkleTreeRootAsync();
 
     }
 }

@@ -17,8 +17,8 @@ namespace AElf.Kernel
             };
             var tx = new Transaction
             {
-                From = new Account(Hash<IAccount>.Zero),
-                To = new Account(Hash<IAccount>.Zero),
+                //From = new Account(),
+                //To = new Account(),
                 IncrementId = 0,
                 MethodName = nameof(ISmartContractZero.RegisterSmartContract),
                 Params = new object[]

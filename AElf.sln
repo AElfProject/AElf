@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Serialization", "AElf.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Modules.AutofacModule", "AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj", "{C7B2F451-DF68-4FBB-AEA1-020F17BB6598}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Serialization.Tests", "AElf.Serialization.Tests\AElf.Serialization.Tests.csproj", "{B161E775-5AC7-4417-8C71-AE5C5557C98B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{C7B2F451-DF68-4FBB-AEA1-020F17BB6598}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C7B2F451-DF68-4FBB-AEA1-020F17BB6598}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C7B2F451-DF68-4FBB-AEA1-020F17BB6598}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B161E775-5AC7-4417-8C71-AE5C5557C98B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B161E775-5AC7-4417-8C71-AE5C5557C98B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B161E775-5AC7-4417-8C71-AE5C5557C98B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B161E775-5AC7-4417-8C71-AE5C5557C98B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

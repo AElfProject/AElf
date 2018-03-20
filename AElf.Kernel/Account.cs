@@ -7,21 +7,26 @@ namespace AElf.Kernel
     /// </summary>
     public class Account : IAccount
     {
-        private readonly IHash<IAccount> _address;
-
         public Account(IHash<IAccount> address)
         {
-            _address = address;
+            Address = address;
+        }  
+
+        public Account()
+        {
+            
         }
 
-        public byte[] Serialize()
+        public IHash<IAccount> Address { get; set; }
+
+        public virtual byte[] Serialize()
         {
             throw new NotImplementedException();
         }
 
         public IHash<IAccount> GetAddress()
         {
-            return _address;
+            return this.Address;
         }
     }
 }

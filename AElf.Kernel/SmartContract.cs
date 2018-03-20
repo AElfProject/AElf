@@ -9,6 +9,13 @@ namespace AElf.Kernel
     public abstract class SmartContract : ISmartContract
     {
         private IAccountDataProvider _accountDataProvider;
+        private ISerializer<SmartContractRegistration> _serializer;
+
+        protected SmartContract(ISerializer<SmartContractRegistration> serializer)
+        {
+            _serializer = serializer;
+        }
+
         public async Task InititalizeAsync(IAccountDataProvider dataProvider)
         {
             _accountDataProvider = dataProvider;
@@ -18,11 +25,10 @@ namespace AElf.Kernel
         public async Task InvokeAsync(IHash<IAccount> caller, string methodname, params object[] objs)
         {
             // get smartContractRegistration by accountDataProvider 
-            var smartContractRegistration = (SmartContractRegistration) _accountDataProvider.GetDataProvider()
+            var smartContractRegistrationBytes = await _accountDataProvider.GetDataProvider()
                 .GetDataProvider("SmartContract")
-                .GetAsync(new Hash<SmartContractRegistration>(_accountDataProvider.CalculateHashWith("SmartContract")))
-                .Result;
-            
+                .GetAsync(new Hash<SmartContractRegistration>(_accountDataProvider.CalculateHashWith("SmartContract")));
+            var smartContractRegistration = _serializer.Deserialize(smartContractRegistrationBytes);
             // load assembly with bytes
             Assembly assembly = Assembly.Load(smartContractRegistration.Bytes);
             var type = assembly.GetTypes().ElementAt(0);

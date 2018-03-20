@@ -10,7 +10,8 @@ namespace AElf.Kernel.KernelAccount
 
         private IAccountDataProvider _accountDataProvider;
 
-        private readonly IDictionary<IHash<IAccount>, ISmartContract> _smartContracts = new Dictionary<IHash<IAccount>, ISmartContract>();
+        private readonly IDictionary<IHash<IAccount>, ISmartContract> _smartContracts =
+            new Dictionary<IHash<IAccount>, ISmartContract>();
 
 
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
@@ -19,12 +20,16 @@ namespace AElf.Kernel.KernelAccount
 
         private IAccountManager _accountManager;
 
+        private ISerializer<SmartContractRegistration> _serializer;
+
         public SmartContractZero(ISmartContractRunnerFactory smartContractRunnerFactory,
-            IWorldStateManager worldStateManager, IAccountManager accountManager)
+            IWorldStateManager worldStateManager, IAccountManager accountManager,
+            ISerializer<SmartContractRegistration> serializer)
         {
             _smartContractRunnerFactory = smartContractRunnerFactory;
             _worldStateManager = worldStateManager;
             _accountManager = accountManager;
+            _serializer = serializer;
         }
 
         public async Task InititalizeAsync(IAccountDataProvider dataProvider)
@@ -45,7 +50,9 @@ namespace AElf.Kernel.KernelAccount
         public async Task RegisterSmartContract(SmartContractRegistration reg)
         {
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
-            await smartContractMap.SetAsync(reg.Hash, reg);
+            await smartContractMap.SetAsync(
+                reg.Hash, _serializer.Serialize(reg)
+            );
         }
 
         public async Task<ISmartContract> GetSmartContractAsync(IHash<IAccount> hash)
@@ -55,7 +62,7 @@ namespace AElf.Kernel.KernelAccount
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
             var obj = await smartContractMap.GetAsync(hash);
 
-            var reg = new SmartContractRegistration(obj);
+            var reg = _serializer.Deserialize(obj);
 
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
 
