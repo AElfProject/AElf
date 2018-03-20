@@ -7,10 +7,10 @@ namespace AElf.Kernel
     /// </summary>
     public interface IAccount : ISerializable
     {
-        /// <summary>
-        /// Get Account's Address, the address is the id for a account
-        /// </summary>
-        /// <returns></returns>
-        IHash<IAccount> GetAddress();
-    }
-}
+         /// <summary>
+         /// Get Account's Address, the address is the id for a account
+         /// </summary>
+         /// <returns></returns>
+         IHash<IAccount> GetAddress();
+     }
+ }

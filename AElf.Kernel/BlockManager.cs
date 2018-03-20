@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Kernel.Storages;
 
 namespace AElf.Kernel
@@ -6,18 +7,18 @@ namespace AElf.Kernel
     public class BlockManager: IBlockManager
     {
         private readonly IBlockStore _blockStore;
-        private readonly IChainBlockRelationStore _relationStore;
 
-        public BlockManager(IBlockStore blockStore, IChainBlockRelationStore _relationStore)
+        public BlockManager(IBlockStore blockStore)
         {
             _blockStore = blockStore;
-            // TODO:
-            // figure out where this should be.
-            _relationStore = _relationStore;
         }
 
         public Task<IBlock> AddBlockAsync(IBlock block)
         {
+            if (!Validation(block))
+            {
+                throw new InvalidOperationException("Invalide block.");
+            }
             _blockStore.Insert(block);
             return Task.FromResult(block);
         }
@@ -25,6 +26,18 @@ namespace AElf.Kernel
         public Task<IBlockHeader> GetBlockHeaderAsync(IHash<IBlock> chainGenesisBlockHash)
         {
             throw new System.NotImplementedException();
+        }
+        
+        /// <summary>
+        /// The validation should be done in manager instead of storage.
+        /// </summary>
+        /// <param name="block"></param>
+        /// <returns></returns>
+        private bool Validation(IBlock block)
+        {
+            // TODO:
+            // Do some check like duplication, 
+            return true;
         }
     }
 }

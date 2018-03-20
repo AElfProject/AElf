@@ -8,7 +8,7 @@ namespace AElf.Kernel.Storages
         /// Store current world state.
         /// </summary>
         /// <returns></returns>
-        Task SetWorldStateAsync();
+        Task SetWorldStateAsync(IChangesStore changesStore);
         
         /// <summary>
         /// Get the world state by corresponding block height.
@@ -26,7 +26,7 @@ namespace AElf.Kernel.Storages
 
     public class WorldStateStore : IWorldStateStore
     {
-        public Task SetWorldStateAsync()
+        public Task SetWorldStateAsync(IChangesStore changesStore)
         {
             throw new System.NotImplementedException();
         }

@@ -18,10 +18,6 @@ namespace AElf.Kernel.Storages
 
         public Task Insert(IBlock block)
         {
-            if (!Validation(block))
-            {
-                throw new InvalidOperationException("Invalide block.");
-            }
             Blocks.Add(new Hash<ITransaction>(block.CalculateHash()), block);
             return Task.CompletedTask;
         }
@@ -36,13 +32,6 @@ namespace AElf.Kernel.Storages
                 }
             }
             throw new InvalidOperationException("Cannot find corresponding transaction.");
-        }
-
-        private bool Validation(IBlock block)
-        {
-            // TODO:
-            // Do some check like duplication, 
-            return true;
         }
     }
 }

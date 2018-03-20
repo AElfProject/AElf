@@ -15,7 +15,8 @@ namespace AElf.Kernel.Storages
     /// </summary>
     public class ChainBlockRelationStore : IChainBlockRelationStore
     {
-        private static readonly Dictionary<IHash, List<IHash<IBlock>>> Relations = new Dictionary<IHash, List<IHash<IBlock>>>();
+        private static readonly Dictionary<IHash, List<IHash<IBlock>>> Relations = 
+            new Dictionary<IHash, List<IHash<IBlock>>>();
 
         public Task InsertAsync(IHash<IChain> chainHash, IHash<IBlock> blockHash, long height)
         {
