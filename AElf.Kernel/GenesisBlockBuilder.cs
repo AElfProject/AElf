@@ -2,16 +2,14 @@
 
 namespace AElf.Kernel
 {
-    public class GenesisBlockBuilder : IGenesisBlockBuilder
+    public class GenesisBlockBuilder 
     {
-        private IBlockManager _blockManager;
+        public GenesisBlock Block { get; set; }
+        
+        public Transaction Tx { get; set; }
 
-        public GenesisBlockBuilder(IBlockManager blockManager)
-        {
-            _blockManager = blockManager;
-        }
 
-        public IGenesisBlock Build(IHash<IChain> chainId, ISmartContractZero smartContractZero)
+        public GenesisBlockBuilder Build(IHash<IChain> chainId, ISmartContractZero smartContractZero)
         {
             var block = new GenesisBlock()
             {
@@ -22,12 +20,23 @@ namespace AElf.Kernel
                 From = new Account(Hash<IAccount>.Zero),
                 To = new Account(Hash<IAccount>.Zero),
                 IncrementId = 0,
-                MethodName = nameof(ISmartContractZero.RegisterSmartContract)
+                MethodName = nameof(ISmartContractZero.RegisterSmartContract),
+                Params = new object[]
+                {
+                    new SmartContractRegistration()
+                    {
+                        Category = 0,
+                        Hash = smartContractZero.GetHash(),
+                    }
+                }
+                
             };
             block.AddTransaction(tx.GetHash());
-            
-            
-            throw new System.NotImplementedException();
+
+            Block = block;
+            Tx = tx;
+
+            return this;
         }
     }
 }

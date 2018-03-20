@@ -6,7 +6,7 @@ using AElf.Kernel.Extensions;
 
 namespace AElf.Kernel
 {
-    public class SmartContract : ISmartContract
+    public abstract class SmartContract : ISmartContract
     {
         private IAccountDataProvider _accountDataProvider;
         public async Task InititalizeAsync(IAccountDataProvider dataProvider)
@@ -34,5 +34,7 @@ namespace AElf.Kernel
                 await (Task) method.Invoke(null, objs);
             }
         }
+
+        public abstract IHash<ISmartContract> GetHash();
     }
 }
