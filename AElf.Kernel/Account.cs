@@ -12,7 +12,7 @@ namespace AElf.Kernel
             Address = address;
         }  
 
-        public Account()
+        public Account():this(Hash<IAccount>.Zero)
         {
             
         }

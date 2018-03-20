@@ -7,18 +7,9 @@ namespace AElf.Kernel
     {
         private readonly Func<IAccountDataProvider> _factory;
 
-        public WorldStateManager(Func<IAccountDataProvider> factory,IAccountDataProvider p)
+        public WorldStateManager(Func<IAccountDataProvider> factory)
         {
             _factory = factory;
-
-            var a = factory();
-            var b = factory();
-            if (a != b)
-            {
-                //
-            }
-            
-            
         }
 
 

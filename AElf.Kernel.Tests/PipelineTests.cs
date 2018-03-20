@@ -10,13 +10,18 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class PipelineTests
     {
-        
+        private ISmartContractZero _smartContractZero;
+
+        public PipelineTests(ISmartContractZero smartContractZero)
+        {
+            _smartContractZero = smartContractZero;
+        }
 
         [Fact]
         public void BasicPipelineTest()
         {
             //var smartContract = new SmartContractZero();
-            //var builder = new GenesisBlockBuilder().Build();
+            var builder = new GenesisBlockBuilder().Build(_smartContractZero);
 
             //TODO: finish the unit test
             /*var blkheader = new Mock<IBlockHeader>();

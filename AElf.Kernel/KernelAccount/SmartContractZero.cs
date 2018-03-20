@@ -87,11 +87,6 @@ namespace AElf.Kernel.KernelAccount
         }
     }
 
-    public interface ISmartContractRunnerFactory
-    {
-        ISmartContractRunner GetRunner(int category);
-    }
-
     public interface ISmartContractRunner
     {
         Task<ISmartContract> RunAsync(SmartContractRegistration reg);
