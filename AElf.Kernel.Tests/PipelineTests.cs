@@ -1,17 +1,23 @@
-﻿using AElf.Kernel.Merkle;
+﻿using System;
+using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Merkle;
 using Moq;
 using Xunit;
+using Xunit.Frameworks.Autofac;
 
 namespace AElf.Kernel.Tests
 {
-    public class PipelineTest
+    [UseAutofacTestFramework]
+    public class PipelineTests
     {
+        
+
         [Fact]
-        public void BasicPipeline()
+        public void BasicPipelineTest()
         {
-            
-            
-            
+            var smartContract = new SmartContractZero();
+            var builder = new GenesisBlockBuilder().Build();
+
             //TODO: finish the unit test
             /*var blkheader = new Mock<IBlockHeader>();
             var blk = new Mock<IBlock>();

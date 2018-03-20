@@ -7,9 +7,18 @@ namespace AElf.Kernel
     {
         private readonly Func<IAccountDataProvider> _factory;
 
-        public WorldStateManager(Func<IAccountDataProvider> factory)
+        public WorldStateManager(Func<IAccountDataProvider> factory,IAccountDataProvider p)
         {
             _factory = factory;
+
+            var a = factory();
+            var b = factory();
+            if (a != b)
+            {
+                //
+            }
+            
+            
         }
 
         public Task<IWorldState> GetWorldStateAsync(IChain chain)
@@ -20,6 +29,7 @@ namespace AElf.Kernel
         public IAccountDataProvider GetAccountDataProvider(IChain chain, IAccount account)
         {
             var p = _factory();
+            
             
             throw new System.NotImplementedException();
         }

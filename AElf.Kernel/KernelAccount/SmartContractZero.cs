@@ -82,6 +82,11 @@ namespace AElf.Kernel.KernelAccount
             return smartContract;
 
         }
+
+        public IHash<ISmartContract> GetHash()
+        {
+            return Hash<ISmartContract>.Zero;
+        }
     }
 
     public interface ISmartContractRunnerFactory

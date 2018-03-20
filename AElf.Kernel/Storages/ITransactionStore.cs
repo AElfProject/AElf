@@ -12,6 +12,7 @@ namespace AElf.Kernel.Storages
     {
         public Task InsertAsync(ITransaction tx)
         {
+            //return Task.FromResult(0);
             throw new System.NotImplementedException();
         }
 
