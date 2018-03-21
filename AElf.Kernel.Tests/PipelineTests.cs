@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Merkle;
 using Moq;
@@ -11,17 +12,23 @@ namespace AElf.Kernel.Tests
     public class PipelineTests
     {
         private ISmartContractZero _smartContractZero;
+        private IChainManager _chainManager;
 
-        public PipelineTests(ISmartContractZero smartContractZero)
+        public PipelineTests(ISmartContractZero smartContractZero, IChainManager chainManager)
         {
             _smartContractZero = smartContractZero;
+            _chainManager = chainManager;
         }
 
         [Fact]
-        public void BasicPipelineTest()
+        public async Task BasicPipelineTest()
         {
+            var chainId = Hash.Generate();
             //var smartContract = new SmartContractZero();
             var builder = new GenesisBlockBuilder().Build(_smartContractZero);
+            var chain=new Chain(chainId);
+            await _chainManager.AddBlockAsync(chain, builder.Block);
+
 
             //TODO: finish the unit test
             /*var blkheader = new Mock<IBlockHeader>();

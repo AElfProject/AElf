@@ -19,7 +19,7 @@ namespace AElf.Kernel
 
             var sm = context.SmartContractZero;
             
-            if (address == Hash<IAccount>.Zero)
+            if (address == Hash.Zero)
             {
                 return sm;
             }

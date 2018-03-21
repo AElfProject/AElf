@@ -8,8 +8,8 @@ namespace AElf.Kernel
 {
     public class DataProvider : IDataProvider
     {
-        private readonly IHash<IAccount> _accountAddress;
-        private readonly BinaryMerkleTree<byte[]> _dataMerkleTree = new BinaryMerkleTree<byte[]>();
+        private readonly IHash _accountAddress;
+        private readonly BinaryMerkleTree _dataMerkleTree = new BinaryMerkleTree();
         private readonly Dictionary<string, IDataProvider> _dataProviders = new Dictionary<string, IDataProvider>();
         private readonly Dictionary<IHash, IHash> _mapSerializedValue = new Dictionary<IHash, IHash>();
 
@@ -20,7 +20,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="accountAddress"></param>
         /// <param name="worldState"></param>
-        public DataProvider(IWorldState worldState, IHash<IAccount> accountAddress)
+        public DataProvider(IWorldState worldState, IHash accountAddress)
         {
             _worldState = worldState;
             _accountAddress = accountAddress;
@@ -34,7 +34,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public Task<byte[]> GetAsync(string key)
         {
-            return GetAsync(new Hash<string>(_accountAddress.CalculateHashWith(key)));
+            return GetAsync(new Hash(_accountAddress.CalculateHashWith(key)));
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace AElf.Kernel
             return Task.FromResult(Database.Select(null));
         }
 
-        public Task<IHash<IMerkleTree<byte[]>>> GetDataMerkleTreeRootAsync()
+        public Task<Hash> GetDataMerkleTreeRootAsync()
         {
             return Task.FromResult(_dataMerkleTree.ComputeRootHash());
         }
@@ -110,14 +110,14 @@ namespace AElf.Kernel
             var beforeSet = this;
             
             //Add the hash of value to merkle tree.
-            var newMerkleNode = new Hash<byte[]>(obj.CalculateHash());
-            var oldMerkleNode = new Hash<byte[]>(GetAsync(key).CalculateHash());
+            var newMerkleNode = new Hash(obj.CalculateHash());
+            var oldMerkleNode = new Hash(GetAsync(key).CalculateHash());
             _dataMerkleTree.UpdateNode(oldMerkleNode, newMerkleNode);
 
             //Re-calculate the hash with the value, 
             //and use _mapSerializedValue to map the key with the value's truely address in database.
             //Thus we can use the same key to get it's value (after updated).
-            var finalHash = new Hash<byte[]>(key.CalculateHashWith(obj));
+            var finalHash = new Hash(key.CalculateHashWith(obj));
             
             _mapSerializedValue[key] = finalHash;
             
@@ -137,7 +137,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public Task SetAsync(string key, byte[] obj)
         {
-            return SetAsync(new Hash<string>(_accountAddress.CalculateHashWith(key)), obj);
+            return SetAsync(new Hash(_accountAddress.CalculateHashWith(key)), obj);
         }
     }
 }

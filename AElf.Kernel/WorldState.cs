@@ -12,12 +12,12 @@ namespace AElf.Kernel
     {
         private Dictionary<IAccount, IAccountDataProvider> _accountDataProviders;
 
-        private BinaryMerkleTree<IHash> _merkleTree;
+        private BinaryMerkleTree _merkleTree;
 
         public WorldState()
         {
             _accountDataProviders = new Dictionary<IAccount, IAccountDataProvider>();
-            _merkleTree = new BinaryMerkleTree<IHash>();
+            _merkleTree = new BinaryMerkleTree();
         }
 
         /// <summary>
@@ -38,9 +38,9 @@ namespace AElf.Kernel
             throw new InvalidOperationException("Must add the account data provider before.");
         }
 
-        public Task<IHash<IMerkleTree<IHash>>> GetWorldStateMerkleTreeRootAsync()
+        public Hash GetWorldStateMerkleTreeRoot()
         {
-            return Task.FromResult(_merkleTree.ComputeRootHash());
+            return _merkleTree.ComputeRootHash();
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace AElf.Kernel
         public void AddDataProvider(IDataProvider dataProvider)
         {
             //Add the hash of account data provider to merkle tree as a node.
-            _merkleTree.AddNode(new Hash<IHash>(dataProvider.CalculateHash()));
+            _merkleTree.AddNode(new Hash(dataProvider.CalculateHash()));
         }
         
         /// <summary>
@@ -84,8 +84,8 @@ namespace AElf.Kernel
                 return;
             }
 
-            _merkleTree.UpdateNode(new Hash<IHash>(oldDataProvider.CalculateHash()), 
-                new Hash<IHash>(newDataProvider.CalculateHash()));
+            _merkleTree.UpdateNode(new Hash(oldDataProvider.CalculateHash()), 
+                new Hash(newDataProvider.CalculateHash()));
         }
     }
 }

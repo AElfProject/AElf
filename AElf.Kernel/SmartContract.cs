@@ -22,12 +22,12 @@ namespace AElf.Kernel
             await Task.CompletedTask;
         }
 
-        public async Task InvokeAsync(IHash<IAccount> caller, string methodname, params object[] objs)
+        public async Task InvokeAsync(IHash caller, string methodname, params object[] objs)
         {
             // get smartContractRegistration by accountDataProvider 
             var smartContractRegistrationBytes = await _accountDataProvider.GetDataProvider()
                 .GetDataProvider("SmartContract")
-                .GetAsync(new Hash<SmartContractRegistration>(_accountDataProvider.CalculateHashWith("SmartContract")));
+                .GetAsync(new Hash(_accountDataProvider.CalculateHashWith("SmartContract")));
             var smartContractRegistration = _serializer.Deserialize(smartContractRegistrationBytes);
             // load assembly with bytes
             Assembly assembly = Assembly.Load(smartContractRegistration.Bytes);
@@ -41,6 +41,6 @@ namespace AElf.Kernel
             }
         }
 
-        public abstract IHash<ISmartContract> GetHash();
+        public abstract IHash GetHash();
     }
 }

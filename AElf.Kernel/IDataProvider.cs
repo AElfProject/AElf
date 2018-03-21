@@ -32,7 +32,7 @@ namespace AElf.Kernel
         /// Gets the data merkle tree root.
         /// </summary>
         /// <returns></returns>
-        Task<IHash<IMerkleTree<byte[]>>> GetDataMerkleTreeRootAsync();
+        Task<Hash> GetDataMerkleTreeRootAsync();
 
     }
 }

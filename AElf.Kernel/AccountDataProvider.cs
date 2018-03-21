@@ -17,7 +17,7 @@ namespace AElf.Kernel
             _dataProvider = new DataProvider(worldState, GetAccountAddress());
         }
         
-        public IHash<IAccount> GetAccountAddress()
+        public IHash GetAccountAddress()
         {
             return _account.GetAddress();
         }

@@ -14,9 +14,9 @@ namespace AElf.Kernel
     {
         public Transaction() { }
 
-        public IHash<ITransaction> GetHash()
+        public IHash GetHash()
         {
-            return new Hash<ITransaction>(this.CalculateHash());
+            return new Hash(this.CalculateHash());
         }
 
         public ITransactionParallelMetaData GetParallelMetaData()
@@ -30,14 +30,10 @@ namespace AElf.Kernel
         public IAccount To { get; set; }
         public ulong IncrementId { get; set; }
 
-        public IHash<IBlockHeader> LastBlockHashWhenCreating()
+        public IHash LastBlockHashWhenCreating()
         {
             throw new NotImplementedException();
         }
 
-        public byte[] Serialize()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

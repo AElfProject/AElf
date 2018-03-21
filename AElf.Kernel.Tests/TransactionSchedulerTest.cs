@@ -11,13 +11,13 @@ namespace AElf.Kernel.Tests
     public class TransactionSchedulerTest
     {
         
-        private Mock<IHash<IAccount>> CreateHash(byte b)
+        private Mock<Hash> CreateHash(byte b)
         {
-            Mock<IHash<IAccount>> hash = new Mock<IHash<IAccount>>();
+            Mock<Hash> hash = new Mock<Hash>();
             hash.Setup(h => h.GetHashBytes()).Returns(new[] {b});
             
-            Mock.Get(hash.Object).Setup(h => h.Equals(It.IsAny<IHash>()))
-                .Returns<IHash>(t => t?.GetHashBytes() == hash.Object.GetHashBytes());
+            Mock.Get(hash.Object).Setup(h => h.Equals(It.IsAny<Hash>()))
+                .Returns<Hash>(t => t?.GetHashBytes() == hash.Object.GetHashBytes());
             return hash;
         }
         
@@ -25,6 +25,7 @@ namespace AElf.Kernel.Tests
         private IAccount CreateAccount(byte b)
         {
             var hash = CreateHash(b);
+            
             
             Mock <IAccount> account=new Mock<IAccount>();
             account.Setup(a => a.GetAddress()).Returns( hash.Object );
@@ -47,7 +48,7 @@ namespace AElf.Kernel.Tests
         
         private ITransaction CreateTransaction(byte b, IAccount from, IAccount to)
         {
-            Mock<IHash<ITransaction>> hash = new Mock<IHash<ITransaction>>();
+            Mock<IHash> hash = new Mock<IHash>();
             hash.Setup(h => h.GetHashBytes()).Returns(new []{b});
             hash.Setup(h => h.Equals(It.IsAny<IHash>()))
                 .Returns<IHash>(t => t? .GetHashBytes() == t.GetHashBytes() );

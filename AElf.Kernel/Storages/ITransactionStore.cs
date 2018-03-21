@@ -5,7 +5,7 @@ namespace AElf.Kernel.Storages
     public interface ITransactionStore
     {
         Task InsertAsync(ITransaction tx);
-        Task<ITransaction> GetAsync(IHash<ITransaction> hash);
+        Task<ITransaction> GetAsync(IHash hash);
     }
     
     public class TransactionStore: ITransactionStore
@@ -16,7 +16,7 @@ namespace AElf.Kernel.Storages
             throw new System.NotImplementedException();
         }
 
-        public Task<ITransaction> GetAsync(IHash<ITransaction> hash)
+        public Task<ITransaction> GetAsync(IHash hash)
         {
             throw new System.NotImplementedException();
         }

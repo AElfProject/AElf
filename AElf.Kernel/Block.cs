@@ -15,7 +15,7 @@ namespace AElf.Kernel
         /// a previous block must be referred, except the genesis block.
         /// </summary>
         /// <param name="preBlockHash">Pre block hash.</param>
-        public Block(IHash<IBlock> preBlockHash)
+        public Block(IHash preBlockHash)
         {
             _blockHeader = new BlockHeader(preBlockHash);
             _blockBody = new BlockBody();
@@ -26,7 +26,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns><c>true</c>, if transaction was added, <c>false</c> otherwise.</returns>
         /// <param name="tx">Tx.</param>
-        public bool AddTransaction(IHash<ITransaction> tx)
+        public bool AddTransaction(IHash tx)
         {
             if (!_blockBody.AddTransaction(tx)) 
                 return false;
@@ -57,9 +57,9 @@ namespace AElf.Kernel
         /// Returns the block hash.
         /// </summary>
         /// <returns>The hash.</returns>
-        public IHash<IBlock> GetHash()
+        public Hash GetHash()
         {
-            return new Hash<IBlock>(this.CalculateHash());
+            return new Hash(this.CalculateHash());
         }
     }
 }

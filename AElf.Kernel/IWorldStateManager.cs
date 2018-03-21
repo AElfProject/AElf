@@ -9,8 +9,8 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="chain"></param>
         /// <returns></returns>
-        Task<IWorldState> GetWorldStateAsync(IHash<IChain> chain);
+        Task<IWorldState> GetWorldStateAsync(IHash chain);
 
-        IAccountDataProvider GetAccountDataProvider(IHash<IChain> chain, IHash<IAccount> account);
+        IAccountDataProvider GetAccountDataProvider(IHash chain, IHash account);
     }
 }

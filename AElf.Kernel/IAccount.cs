@@ -11,6 +11,6 @@ namespace AElf.Kernel
         /// Get Account's Address, the address is the id for a account
         /// </summary>
         /// <returns></returns>
-        IHash<IAccount> GetAddress();
+        Hash GetAddress();
     }
 }

@@ -12,6 +12,6 @@ namespace AElf.Kernel
         /// <returns></returns>
         Task<IAccount> CreateAccountAsync(byte[] smartContract,IChain chain);
 
-        IAccount GetAccountByHash(IHash<IAccount> hash);
+        IAccount GetAccountByHash(IHash hash);
     }
 }

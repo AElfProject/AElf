@@ -1,7 +1,7 @@
 ﻿namespace AElf.Kernel
 {
-    public interface IHashProvider<T>
+    public interface IHashProvider
     {
-        IHash<T> GetHash();
+        IHash GetHash();
     }
 }

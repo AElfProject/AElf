@@ -10,8 +10,8 @@ namespace AElf.Kernel.KernelAccount
 
         private IAccountDataProvider _accountDataProvider;
 
-        private readonly IDictionary<IHash<IAccount>, ISmartContract> _smartContracts =
-            new Dictionary<IHash<IAccount>, ISmartContract>();
+        private readonly IDictionary<IHash, ISmartContract> _smartContracts =
+            new Dictionary<IHash, ISmartContract>();
 
 
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
@@ -38,7 +38,7 @@ namespace AElf.Kernel.KernelAccount
             await Task.CompletedTask;
         }
 
-        public async Task InvokeAsync(IHash<IAccount> caller, string methodname, params object[] objs)
+        public async Task InvokeAsync(IHash caller, string methodname, params object[] objs)
         {
             var type = typeof(SmartContractZero);
             var member = type.GetMethod(methodname);
@@ -55,7 +55,7 @@ namespace AElf.Kernel.KernelAccount
             );
         }
 
-        public async Task<ISmartContract> GetSmartContractAsync(IHash<IAccount> hash)
+        public async Task<ISmartContract> GetSmartContractAsync(Hash hash)
         {
             if (_smartContracts.ContainsKey(hash))
                 return _smartContracts[hash];
@@ -68,7 +68,7 @@ namespace AElf.Kernel.KernelAccount
 
             var smartContract = await runner.RunAsync(reg);
 
-            var acc = _accountManager.GetAccountByHash(new Hash<IAccount>(reg.Hash.Value));
+            var acc = _accountManager.GetAccountByHash(new Hash(reg.Hash.Value));
 
             var dp = _worldStateManager.GetAccountDataProvider(_accountDataProvider.Context.ChainId, acc.GetAddress());
 
@@ -81,9 +81,9 @@ namespace AElf.Kernel.KernelAccount
             return smartContract;
         }
 
-        public IHash<ISmartContract> GetHash()
+        public IHash GetHash()
         {
-            return Hash<ISmartContract>.Zero;
+            return Hash.Zero;
         }
     }
 

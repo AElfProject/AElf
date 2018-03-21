@@ -17,7 +17,7 @@ namespace AElf.Kernel
             throw new System.NotImplementedException();
         }
 
-        public Task<IBlockHeader> GetBlockHeaderAsync(IHash<IBlock> chainGenesisBlockHash)
+        public Task<IBlockHeader> GetBlockHeaderAsync(IHash chainGenesisBlockHash)
         {
             throw new System.NotImplementedException();
         }

@@ -5,19 +5,19 @@ namespace AElf.Kernel
 {
     public class BlockBody : IBlockBody
     {
-        private readonly List<IHash<ITransaction>> _transactions = new List<IHash<ITransaction>>();
+        private readonly List<IHash> _transactions = new List<IHash>();
 
         public int TransactionsCount => _transactions.Count;
 
         public BlockBody() { }
 
 
-        public IList<IHash<ITransaction>> GetTransactions()
+        public IList<IHash> GetTransactions()
         {
             throw new System.NotImplementedException();
         }
 
-        public bool AddTransaction(IHash<ITransaction> tx)
+        public bool AddTransaction(IHash tx)
         {
             if (_transactions.Contains(tx))
                 return false;

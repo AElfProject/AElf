@@ -13,7 +13,7 @@ namespace AElf.Kernel.Tests
         {
             //Initialization.
             var worldState = new WorldState();
-            var address = new Hash<IAccount>("aelf".CalculateHash());
+            var address = new Hash("aelf".CalculateHash());
             var account = new Account(address);
             var accountDataProvider = new AccountDataProvider(account, worldState);
 
@@ -30,7 +30,7 @@ namespace AElf.Kernel.Tests
         public void GetDataProviderTest()
         {
             //Initialization.
-            var address = new Hash<IAccount>("aelf".CalculateHash());
+            var address = new Hash("aelf".CalculateHash());
             var accountDataProvider = CreateAccountDataProvider(address);
 
             var dataProviderFromAccountDataProvider = accountDataProvider.GetDataProvider();
@@ -52,7 +52,7 @@ namespace AElf.Kernel.Tests
         {
             //Initializaton.
             var worldState = new WorldState();
-            var address = new Hash<IAccount>("aelf".CalculateHash());
+            var address = new Hash("aelf".CalculateHash());
             var account = new Account(address);
             var accountDataProvider = new AccountDataProvider(account, worldState);
             var dataprovider = accountDataProvider.GetDataProvider();
@@ -61,8 +61,8 @@ namespace AElf.Kernel.Tests
             
             dataprovider.SetDataProvider(dataProviderName);
 
-            var hashNewDataProvider = new Hash<IDataProvider>(new DataProvider(worldState, address).CalculateHash());
-            var hashGetDataProvider = new Hash<IDataProvider>(dataprovider.GetDataProvider(dataProviderName).CalculateHash());
+            var hashNewDataProvider = new Hash(new DataProvider(worldState, address).CalculateHash());
+            var hashGetDataProvider = new Hash(dataprovider.GetDataProvider(dataProviderName).CalculateHash());
             
             //See if we can get the same data provider which set before by comparing their hashes.
             Assert.True(hashGetDataProvider.Equals(hashNewDataProvider));
@@ -76,7 +76,7 @@ namespace AElf.Kernel.Tests
         {
             //Initialization.
             var worldState = new WorldState();
-            var address = new Hash<IAccount>("aelf".CalculateHash());
+            var address = new Hash("aelf".CalculateHash());
             var account = new Account(address);
             var accountDataProvider = new AccountDataProvider(account, worldState);
             var dataprovider = accountDataProvider.GetDataProvider();
@@ -85,10 +85,10 @@ namespace AElf.Kernel.Tests
             worldState.AddAccountDataProvider(accountDataProvider);
             
             //Merkle tree root hash before set:
-            var merkleHashBefore = worldState.GetWorldStateMerkleTreeRootAsync();
+            var merkleHashBefore = worldState.GetWorldStateMerkleTreeRoot();
 
             //Set a data.
-            var hashKey = new Hash<string>(address.CalculateHashWith("AnySerializedData"));
+            var hashKey = new Hash(address.CalculateHashWith("AnySerializedData"));
             ITransaction obj = new Transaction()
             {
                 From = new Account(address),
@@ -113,7 +113,7 @@ namespace AElf.Kernel.Tests
         /// </summary>
         /// <param name="address"></param>
         /// <returns></returns>
-        private AccountDataProvider CreateAccountDataProvider(Hash<IAccount> address)
+        private AccountDataProvider CreateAccountDataProvider(Hash address)
         {
             var worldState = new WorldState();
             var account = new Account(address);

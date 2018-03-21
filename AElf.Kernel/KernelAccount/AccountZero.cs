@@ -14,9 +14,9 @@ namespace AElf.Kernel.KernelAccount
             _smartContractZero = smartContractZero;
         }
        
-        public IHash<IAccount> GetAddress()
+        public Hash GetAddress()
         {
-            return Hash<IAccount>.Zero;
+            return Hash.Zero;
         }
 
         public byte[] Serialize()
