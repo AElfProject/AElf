@@ -1,7 +1,9 @@
-﻿namespace AElf.Kernel
+﻿using System.Threading.Tasks;
+
+namespace AElf.Kernel
 {
     public interface IChainContextFactory
     {
-        IChainContext GetChainContext(IHash<IChain> chainId);
+        Task<IChainContext> GetChainContext(IHash<IChain> chainId);
     }
 }
