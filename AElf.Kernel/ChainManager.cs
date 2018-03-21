@@ -8,9 +8,12 @@ namespace AElf.Kernel
     {
         private IChainBlockRelationStore _relationStore;
 
-        public ChainManager(IChainBlockRelationStore relationStore)
+        private IChainStore _chainStore;
+
+        public ChainManager(IChainBlockRelationStore relationStore, IChainStore chainStore)
         {
             _relationStore = relationStore;
+            _chainStore = chainStore;
         }
 
         /// <summary>
@@ -23,7 +26,18 @@ namespace AElf.Kernel
         {
             chain.UpdateCurrentBlock(block);
             await _relationStore.Insert(chain, block, chain.CurrentBlockHeight);
-        }                                
+        }
+
+        /// <summary>
+        /// return chain by chainId
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <returns></returns>
+        public async Task<IChain> GetAsync(IHash<IChain> chainId)
+        {
+            var chain = await _chainStore.GetAsync(chainId);
+            return chain;
+        }
 
     }
 }
