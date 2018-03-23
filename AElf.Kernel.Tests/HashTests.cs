@@ -1,4 +1,4 @@
-using System;
+using AElf.Kernel.Merkle;
 using System.Threading.Tasks;
 using Moq;
 using Shouldly;
@@ -20,9 +20,9 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task MerkleTree()
         {
-            var mt = new Mock<IMerkleTree<ITransaction>>();
+            var mt = new Mock<IMerkleTree>();
 
-            mt.Setup(p => p.AddNode(It.IsAny<IHash<ITransaction>>()));
+            mt.Setup(p => p.AddNode(It.IsAny<IHash>()));
 
             await Task.Delay(1000);
             

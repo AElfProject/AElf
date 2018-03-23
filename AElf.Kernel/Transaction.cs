@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using AElf.Kernel.Extensions;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,9 +14,9 @@ namespace AElf.Kernel
     {
         public Transaction() { }
 
-        public IHash<ITransaction> GetHash()
+        public Hash GetHash()
         {
-            return new Hash<ITransaction>(this.GetSHA256Hash());
+            return new Hash(this.CalculateHash());
         }
 
         public ITransactionParallelMetaData GetParallelMetaData()
@@ -23,9 +24,16 @@ namespace AElf.Kernel
             throw new NotImplementedException();
         }
 
-        public IHash<IBlockHeader> LastBlockHashWhenCreating()
+        public string MethodName { get; set; }
+        public object[] Params { get; set; }
+        public IAccount From { get; set; }
+        public IAccount To { get; set; }
+        public ulong IncrementId { get; set; }
+
+        public Hash LastBlockHashWhenCreating()
         {
             throw new NotImplementedException();
         }
+
     }
 }

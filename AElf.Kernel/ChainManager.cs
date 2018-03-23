@@ -1,22 +1,38 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
+using AElf.Kernel.Storages;
 
 namespace AElf.Kernel
 {
     public class ChainManager : IChainManager
     {
-        /// <summary>
-        /// Adds the block async, permanent storage is required
-        /// for demoing purpose we just embed a List & Dictionary for 
-        /// store and query blocks
-        /// </summary>
-        /// <returns>The block async.</returns>
-        /// <param name="chain">Chain.</param>
-        /// <param name="block">Block.</param>
-        public Task AddBlockAsync(IChain chain, IBlock block)
+        private readonly IChainBlockRelationStore _relationStore;
+
+        private readonly IChainStore _chainStore;
+
+        public ChainManager(IChainBlockRelationStore relationStore, IChainStore chainStore)
         {
-            return new Task(() =>(chain as Chain).Blocks.Add(block as Block));
-                                
+            _relationStore = relationStore;
+            _chainStore = chainStore;
+        }
+
+
+        public async Task AppenBlockToChainAsync(Chain chain, Block block)
+        {
+            if (chain.CurrentBlockHash != block.Header.PreviousHash)
+            {
+                //Block is not connected
+            }
+            
+            chain.UpdateCurrentBlock(block);
+            await _relationStore.Insert(chain, block, chain.CurrentBlockHeight);
+            await _chainStore.UpdateAsync(chain);
+        }
+
+        public Task<Chain> GetChainAsync(Hash id)
+        {
+            return _chainStore.GetAsync(id);
         }
     }
 }
