@@ -17,10 +17,10 @@ namespace AElf.Kernel
         public Dictionary<int, List<ITransaction>> ExecutingPlan { get; private set; }
         private Dictionary<IAccount, List<ITransaction>> _pending;
         private UndirectedGraph<ITransaction, Edge<ITransaction>> _graph;
-        private readonly ISmartContractManager _smartContractManager;
+        private readonly ISmartContractService _smartContractManager;
 
         public TransactionExecutingManager(WorldState worldState, AccountZero accountZero, 
-            IAccountManager accountManager, ISmartContractManager smartContractManager)
+            IAccountManager accountManager, ISmartContractService smartContractManager)
         {
             _worldState = worldState;
             _accountZero = accountZero;

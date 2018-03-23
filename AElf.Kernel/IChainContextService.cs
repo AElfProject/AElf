@@ -1,6 +1,6 @@
 ﻿namespace AElf.Kernel
 {
-    public interface IChainContextFactory
+    public interface IChainContextService
     {
         IChainContext GetChainContext(IHash chainId);
     }
