@@ -12,20 +12,11 @@ namespace AElf.Kernel
         /// </summary>
         public const uint Version = 0x1;
 
-        /// <summary>
-        /// The pre block's hash value.
-        /// </summary>
-        private IHash _preBlockHash;
 
         /// <summary>
         /// The miner's signature.
         /// </summary>
         public byte[] Signatures;
-
-        /// <summary>
-        /// The merkle root hash of all the transactions in this block
-        /// </summary>
-        public IHash MerkleRootHash => GetTransactionMerkleTreeRoot();
 
         private BinaryMerkleTree _transactionMerkleTree = new BinaryMerkleTree();
 
@@ -35,25 +26,28 @@ namespace AElf.Kernel
         /// <value>The time stamp.</value>
         public long TimeStamp => (long)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds;
 
-        public BlockHeader(IHash preBlockHash)
+        public BlockHeader(Hash preBlockHash)
         {
-            _preBlockHash = preBlockHash;
+            PreviousHash = preBlockHash;
         }
 
         /// <summary>
         /// include transactions into the merkle tree
         /// </summary>
         /// <param name="hash">Hash.</param>
-        public void AddTransaction(IHash hash)
+        public void AddTransaction(Hash hash)
         {
             _transactionMerkleTree.AddNode(hash);
         }
+
+        public Hash PreviousHash { get; set; }
+        public Hash Hash { get; set; }
 
         /// <summary>
         /// Gets the transaction merkle tree root.
         /// </summary>
         /// <returns>The transaction merkle tree root.</returns>
-        public IHash GetTransactionMerkleTreeRoot()
+        public Hash GetTransactionMerkleTreeRoot()
         {
             return _transactionMerkleTree.ComputeRootHash();
         }

@@ -14,10 +14,16 @@ namespace AElf.Kernel.Tests
         private ISmartContractZero _smartContractZero;
         private IChainManager _chainManager;
 
-        public PipelineTests(ISmartContractZero smartContractZero, IChainManager chainManager)
+        private IBlockVaildationService _blockVaildationService;
+
+        private IChainContextFactory _chainContextFactory;
+        
+        public PipelineTests(ISmartContractZero smartContractZero, IChainManager chainManager, IBlockVaildationService blockVaildationService, IChainContextFactory chainContextFactory)
         {
             _smartContractZero = smartContractZero;
             _chainManager = chainManager;
+            _blockVaildationService = blockVaildationService;
+            _chainContextFactory = chainContextFactory;
         }
 
         [Fact]
@@ -27,7 +33,14 @@ namespace AElf.Kernel.Tests
             //var smartContract = new SmartContractZero();
             var builder = new GenesisBlockBuilder().Build(_smartContractZero);
             var chain = await _chainManager.GetChainAsync(chainId);
-            await _chainManager.AddBlockAsync(chain, builder.Block);
+
+            var context = _chainContextFactory.GetChainContext(chainId);
+
+            await _blockVaildationService.ValidateBlockAsync(builder.Block,context);
+            
+            await _chainManager.AppenBlockToChainAsync(chain, builder.Block);
+            
+            
 
 
             //TODO: finish the unit test

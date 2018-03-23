@@ -12,12 +12,12 @@ namespace AElf.Kernel
             _blockStore = blockStore;
         }
 
-        public Task<IBlock> AddBlockAsync(IBlock block)
+        public Task<Block> AddBlockAsync(Block block)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<IBlockHeader> GetBlockHeaderAsync(IHash chainGenesisBlockHash)
+        public Task<BlockHeader> GetBlockHeaderAsync(Hash chainGenesisBlockHash)
         {
             throw new System.NotImplementedException();
         }

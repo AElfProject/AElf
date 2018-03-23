@@ -18,8 +18,13 @@ namespace AElf.Kernel
         }
 
 
-        public async Task AddBlockAsync(Chain chain, Block block)
+        public async Task AppenBlockToChainAsync(Chain chain, Block block)
         {
+            if (chain.CurrentBlockHash != block.Header.PreviousHash)
+            {
+                //Block is not connected
+            }
+            
             chain.UpdateCurrentBlock(block);
             await _relationStore.Insert(chain, block, chain.CurrentBlockHeight);
             await _chainStore.UpdateAsync(chain);

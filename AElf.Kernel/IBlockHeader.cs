@@ -4,7 +4,11 @@ namespace AElf.Kernel
 {
     public interface IBlockHeader
     {
-        IHash GetTransactionMerkleTreeRoot();
-        void AddTransaction(IHash hash);
+        Hash GetTransactionMerkleTreeRoot();
+        void AddTransaction(Hash hash);
+
+        Hash PreviousHash { get; set; }
+        
+        Hash Hash { get; set; }
     }
 }

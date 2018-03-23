@@ -6,13 +6,13 @@
         /// Get hash of the transaction
         /// </summary>
         /// <returns></returns>
-        IHash GetHash();
+        Hash GetHash();
 
         /// <summary>
         /// When a transaction was created, it should record the last block on the blockchain.
         /// </summary>
         /// <returns></returns>
-        IHash LastBlockHashWhenCreating();
+        Hash LastBlockHashWhenCreating();
 
         /// <summary>
         /// Get parallel meta data

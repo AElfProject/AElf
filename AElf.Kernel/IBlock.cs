@@ -6,8 +6,10 @@
     public interface IBlock
     {
         Hash GetHash();
-        IBlockHeader GetHeader();
-        IBlockBody GetBody();
-        bool AddTransaction(IHash tx);
+        bool AddTransaction(Hash tx);
+        
+        IBlockHeader Header { get; set; }
+        
+        IBlockBody Body { get; set; }
     }
 }

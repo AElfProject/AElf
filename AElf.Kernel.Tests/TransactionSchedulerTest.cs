@@ -48,10 +48,10 @@ namespace AElf.Kernel.Tests
         
         private ITransaction CreateTransaction(byte b, IAccount from, IAccount to)
         {
-            Mock<IHash> hash = new Mock<IHash>();
+            Mock<Hash> hash = new Mock<Hash>();
             hash.Setup(h => h.GetHashBytes()).Returns(new []{b});
-            hash.Setup(h => h.Equals(It.IsAny<IHash>()))
-                .Returns<IHash>(t => t? .GetHashBytes() == t.GetHashBytes() );
+            hash.Setup(h => h.Equals(It.IsAny<Hash>()))
+                .Returns<Hash>(t => t? .GetHashBytes() == t.GetHashBytes() );
             
             Mock <ITransaction> transaction=new Mock<ITransaction>();
             transaction.Setup(t => t.GetHash()).Returns(hash.Object);

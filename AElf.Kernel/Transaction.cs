@@ -14,7 +14,7 @@ namespace AElf.Kernel
     {
         public Transaction() { }
 
-        public IHash GetHash()
+        public Hash GetHash()
         {
             return new Hash(this.CalculateHash());
         }
@@ -30,7 +30,7 @@ namespace AElf.Kernel
         public IAccount To { get; set; }
         public ulong IncrementId { get; set; }
 
-        public IHash LastBlockHashWhenCreating()
+        public Hash LastBlockHashWhenCreating()
         {
             throw new NotImplementedException();
         }
