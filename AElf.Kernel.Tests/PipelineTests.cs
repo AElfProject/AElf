@@ -26,7 +26,7 @@ namespace AElf.Kernel.Tests
             var chainId = Hash.Generate();
             //var smartContract = new SmartContractZero();
             var builder = new GenesisBlockBuilder().Build(_smartContractZero);
-            var chain=new Chain(chainId);
+            var chain = await _chainManager.GetChainAsync(chainId);
             await _chainManager.AddBlockAsync(chain, builder.Block);
 
 

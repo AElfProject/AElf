@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using AElf.Kernel.Storages;
 
@@ -6,24 +7,27 @@ namespace AElf.Kernel
 {
     public class ChainManager : IChainManager
     {
-        private IChainBlockRelationStore _relationStore;
+        private readonly IChainBlockRelationStore _relationStore;
 
-        public ChainManager(IChainBlockRelationStore relationStore)
+        private readonly IChainStore _chainStore;
+
+        public ChainManager(IChainBlockRelationStore relationStore, IChainStore chainStore)
         {
             _relationStore = relationStore;
+            _chainStore = chainStore;
         }
 
-        /// <summary>
-        /// Adds the block async, permanent storage is required
-        /// </summary>
-        /// <returns>The block async.</returns>
-        /// <param name="chain">Chain.</param>
-        /// <param name="block">Block.</param>
-        public async Task AddBlockAsync(IChain chain, IBlock block)
+
+        public async Task AddBlockAsync(Chain chain, Block block)
         {
             chain.UpdateCurrentBlock(block);
             await _relationStore.Insert(chain, block, chain.CurrentBlockHeight);
-        }                                
+            await _chainStore.UpdateAsync(chain);
+        }
 
+        public Task<Chain> GetChainAsync(Hash id)
+        {
+            return _chainStore.GetAsync(id);
+        }
     }
 }

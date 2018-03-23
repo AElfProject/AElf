@@ -38,7 +38,7 @@ namespace AElf.Kernel.Extensions
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        private static byte[] CalculateHash(byte[] bytes)
+        public static byte[] CalculateHash(byte[] bytes)
         {
             return SHA256.Create().ComputeHash(bytes);
         }

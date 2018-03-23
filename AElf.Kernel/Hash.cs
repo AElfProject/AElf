@@ -9,13 +9,8 @@ namespace AElf.Kernel
 
         public static Hash Generate()
         {
-
-            var bytes = new byte[HashExtensions.Length];
-            Guid.NewGuid().ToByteArray().CopyTo(bytes,0);
-            Guid.NewGuid().ToByteArray().CopyTo(bytes,16);
-            var t=new Hash(bytes);
-
-            return t;
+            return new Hash(
+                HashExtensions.CalculateHash(Guid.NewGuid().ToByteArray()));
         }
         
         public static readonly Hash Zero = new Hash();

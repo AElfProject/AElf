@@ -4,6 +4,7 @@ namespace AElf.Kernel
 {
     public interface IChainManager
     {
-        Task AddBlockAsync(IChain chain, IBlock block);
+        Task AddBlockAsync(Chain chain, Block block);
+        Task<Chain> GetChainAsync(Hash id);
     }
 }
