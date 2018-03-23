@@ -14,21 +14,21 @@ namespace AElf.Kernel.Storages
     
     public class BlockStore : IBlockStore
     {
-        private static readonly Dictionary<IHash, IBlock> Blocks = new Dictionary<IHash, IBlock>();
+        private readonly Dictionary<IHash, IBlock> _blocks = new Dictionary<IHash, IBlock>();
 
         public Task Insert(IBlock block)
         {
-            Blocks.Add(new Hash<ITransaction>(block.CalculateHash()), block);
+            _blocks.Add(new Hash<ITransaction>(block.CalculateHash()), block);
             return Task.CompletedTask;
         }
 
         public Task<IBlock> GetAsync(IHash<IBlock> blockHash)
         {
-            foreach (var k in Blocks.Keys)
+            foreach (var k in _blocks.Keys)
             {
                 if (k.Equals(blockHash))
                 {
-                    return Task.FromResult(Blocks[k]);
+                    return Task.FromResult(_blocks[k]);
                 }
             }
             throw new InvalidOperationException("Cannot find corresponding transaction.");

@@ -25,7 +25,7 @@ namespace AElf.Kernel
 
         public Task<IBlockHeader> GetBlockHeaderAsync(IHash<IBlock> chainGenesisBlockHash)
         {
-            throw new System.NotImplementedException();
+            return Task.FromResult(_blockStore.GetAsync(chainGenesisBlockHash).Result.GetHeader());
         }
         
         /// <summary>
@@ -36,7 +36,7 @@ namespace AElf.Kernel
         private bool Validation(IBlock block)
         {
             // TODO:
-            // Do some check like duplication, 
+            // Do some checks like duplication, 
             return true;
         }
     }

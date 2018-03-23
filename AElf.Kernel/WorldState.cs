@@ -11,6 +11,13 @@ namespace AElf.Kernel
 {
     public class WorldState : IWorldState
     {
+        private readonly List<IAccountDataProvider> _accountDataProviders;
+        
+        public WorldState(List<IAccountDataProvider> accountDataProviders)
+        {
+            _accountDataProviders = accountDataProviders;
+        }
+        
         public Task<IHash<IMerkleTree<IHash>>> GetWorldStateMerkleTreeRootAsync()
         {
             throw new NotImplementedException();
