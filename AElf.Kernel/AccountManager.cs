@@ -6,9 +6,10 @@ namespace AElf.Kernel
 {
     public class AccountManager : IAccountManager
     {
-        public Task<IAccount> CreateAccountAsync(byte[] smartContract, IChain chain)
+        public Task<IAccount> CreateAccountAsync(SmartContractRegistration registration, IChain chain)
         {
-            throw new System.NotImplementedException();
+            IAccount acc = new Account(new Hash<IAccount>(registration.Hash.Value));
+            return Task.FromResult(acc);
         }
 
         public IAccount GetAccountByHash(IHash hash)

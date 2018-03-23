@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
+using AElf.Kernel.Extensions;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace AElf.Kernel.KernelAccount
@@ -13,13 +15,12 @@ namespace AElf.Kernel.KernelAccount
         private readonly IDictionary<IHash, ISmartContract> _smartContracts =
             new Dictionary<IHash, ISmartContract>();
 
-
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
 
         private IWorldStateManager _worldStateManager;
 
         private IAccountManager _accountManager;
-
+        
         private ISerializer<SmartContractRegistration> _serializer;
 
         public SmartContractZero(ISmartContractRunnerFactory smartContractRunnerFactory,
@@ -59,13 +60,14 @@ namespace AElf.Kernel.KernelAccount
         {
             if (_smartContracts.ContainsKey(hash))
                 return _smartContracts[hash];
+            
+            // get SmartContractRegistration
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
+            //var regHash = _registeredContracts[hash];
             var obj = await smartContractMap.GetAsync(hash);
-
             var reg = _serializer.Deserialize(obj);
 
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
-
             var smartContract = await runner.RunAsync(reg);
 
             var acc = _accountManager.GetAccountByHash(new Hash(reg.Hash.Value));
@@ -84,6 +86,37 @@ namespace AElf.Kernel.KernelAccount
         public IHash GetHash()
         {
             return Hash.Zero;
+        }
+        
+        /// <summary>
+        /// deploy smartcontract
+        /// </summary>
+        /// <param name="caller"></param>
+        /// <param name="catagory"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public async Task Deploy(IHash<IAccount> caller, int catagory, byte[] data)
+        {
+            // caller account data context
+            var callerAccount = _accountManager.GetAccountByHash(caller);
+            var adp = _worldStateManager.GetAccountDataProvider(_chain, callerAccount);
+            var dataContext = adp.Context;
+            
+            // create registration
+            var smartContractRegistration = new SmartContractRegistration
+            {
+                Category = catagory,
+                Bytes = data,
+                Hash = new Hash<SmartContract>(dataContext.CalculateHashWith(data)) // temporary calculating for sm address
+            };
+            
+            dataContext.IncreasementId++;
+            
+            // create new account for this contract
+            var acc = await _accountManager.CreateAccountAsync(smartContractRegistration, _chain);
+            // register to smartContractZero
+            await RegisterSmartContract(smartContractRegistration);
+            
         }
     }
 

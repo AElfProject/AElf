@@ -1,17 +1,16 @@
 ﻿using AElf.Kernel.KernelAccount;
 
-namespace AElf.Kernel
-{
-    public class ChainContext : IChainContext
-    {
-        public ChainContext(ISmartContractZero smartContractZero, IHash chainId)
-        {
-            SmartContractZero = smartContractZero;
-            ChainId = chainId;
-        }
-
-        public ISmartContractZero SmartContractZero { get; }
-        public IHash ChainId { get; }
-        
-    }
-}
+ namespace AElf.Kernel
+ {
+     public class ChainContext : IChainContext
+     {
+         public void Initialize(IChain chain)
+         {
+             ChainId = chain.Id;
+             // TODO: initialize SmartContractZero
+         }
+ 
+         public ISmartContractZero SmartContractZero { get; }
+         public IHash<IChain> ChainId { get; private set; }
+     }
+ }
