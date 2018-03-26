@@ -4,13 +4,14 @@
  {
      public class ChainContext : IChainContext
      {
-         public void Initialize(IChain chain)
+         public ChainContext(ISmartContractZero smartContractZero, IHash chainId)
          {
-             ChainId = chain.Id;
-             // TODO: initialize SmartContractZero
+             SmartContractZero = smartContractZero;
+             ChainId = chainId;
          }
+
  
          public ISmartContractZero SmartContractZero { get; }
-         public IHash<IChain> ChainId { get; private set; }
+         public IHash ChainId { get; }
      }
  }

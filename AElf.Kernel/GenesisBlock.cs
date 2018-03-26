@@ -8,16 +8,9 @@ namespace AElf.Kernel
 {
     public class GenesisBlock : Block, IGenesisBlock
     {
-<<<<<<< HEAD
         public GenesisBlock() : base(Hash.Zero)
         {
 
         }
-
-=======
-        public GenesisBlock() : base(Hash<IBlock>.Zero)
-        {
-        }
->>>>>>> feature-object-manager-20180319
     }
 }
