@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AElf.Kernel.Extensions
 {
-    public static class SerializationExtensions
+    /*public static class SerializationExtensions
     {
         public static byte[] ToBytes(this ISerializable obj)
         {
@@ -19,5 +19,5 @@ namespace AElf.Kernel.Extensions
             // Use this extension method to make the specific serialize implementation easy to change.
             throw new NotImplementedException();
         }
-    }
+    }*/
 }

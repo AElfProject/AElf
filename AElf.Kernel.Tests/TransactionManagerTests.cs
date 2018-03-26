@@ -5,11 +5,11 @@ using Xunit.Frameworks.Autofac;
 namespace AElf.Kernel.Tests
 {
     [UseAutofacTestFramework]
-    public class TransactionManagerTest
+    public class TransactionManagerTests
     {
         private ITransactionManager _manager;
 
-        public TransactionManagerTest(ITransactionManager manager)
+        public TransactionManagerTests(ITransactionManager manager)
         {
             _manager = manager;
         }

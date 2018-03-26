@@ -3,13 +3,24 @@ using System;
 
 namespace AElf.Kernel
 {
-    public class Hash<T> : IHash<T>
+    public class Hash : IHash
     {
-        public static readonly Hash<T> Zero = new Hash<T>();
+
+
+        public static Hash Generate()
+        {
+            return new Hash(
+                HashExtensions.CalculateHash(Guid.NewGuid().ToByteArray()));
+        }
+        
+        public static readonly Hash Zero = new Hash();
 
         public byte[] Value { get; set; }
 
-        public Hash(byte[] buffer) => Value = buffer;
+        public Hash(byte[] buffer)
+        {
+            Value = buffer;
+        } 
 
         //TODO: define length in a static property
         // ReSharper disable once MemberCanBePrivate.Global

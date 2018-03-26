@@ -10,6 +10,9 @@ namespace AElf.Kernel.Modules.AutofacModule
             var assembly = typeof(AElf.Kernel.IAccount).Assembly;
             
             builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
+
+            builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
+            
             base.Load(builder);
         }
     }

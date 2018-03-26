@@ -18,22 +18,22 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void AddNodeTest()
         {
-            var tree = new BinaryMerkleTree<ITransaction>();
+            var tree = new BinaryMerkleTree();
             
             tree.AddNode(CreateLeaf("a"));
 
             //See if the hash of merkle tree is equal to the element’s hash.
             Assert.True(tree.ComputeRootHash().Equals(
-                        new Hash<IMerkleTree<ITransaction>>("a".CalculateHash())));
+                        new Hash("a".CalculateHash())));
             
             tree.AddNode(CreateLeaf("e"));
 
-            var hash_a = new Hash<ITransaction>("a".CalculateHash());
-            var hash_e = new Hash<ITransaction>("e".CalculateHash());
+            var hash_a = new Hash("a".CalculateHash());
+            var hash_e = new Hash("e".CalculateHash());
 
             //See if the hash of merkle tree is equal to the elements' hash.
             Assert.True(tree.ComputeRootHash().Equals(
-                        new Hash<IMerkleTree<ITransaction>>(hash_a.CalculateHashWith(hash_e))));
+                        new Hash(hash_a.CalculateHashWith(hash_e))));
         }
         
         /// <summary>
@@ -43,14 +43,14 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void UpdateNodeTest()
         {
-            var tree = new BinaryMerkleTree<ITransaction>();
+            var tree = new BinaryMerkleTree();
             
             tree.AddNodes(CreateLeaves(new[] { "a", "e", "l", "f" }));
 
             var hashBeforeUpdate = tree.ComputeRootHash();
             
-            var hash_l = new Hash<ITransaction>("l".CalculateHash());
-            var hash_1 = new Hash<ITransaction>("1".CalculateHash());
+            var hash_l = new Hash("l".CalculateHash());
+            var hash_1 = new Hash("1".CalculateHash());
 
             tree.UpdateNode(hash_l, hash_1);
 
@@ -65,12 +65,12 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void FindNodeTest()
         {
-            var tree = new BinaryMerkleTree<ITransaction>();
+            var tree = new BinaryMerkleTree();
             
             tree.AddNodes(CreateLeaves(new[] { "a", "e", "l", "f" }));
 
-            var hash_l = new Hash<ITransaction>("l".CalculateHash());
-            var hash_1 = new Hash<ITransaction>("1".CalculateHash());
+            var hash_l = new Hash("l".CalculateHash());
+            var hash_1 = new Hash("1".CalculateHash());
             
             Assert.True(tree.FindLeaf(hash_l) > -1);
             Assert.True(tree.FindLeaf(hash_1) == -1);
@@ -82,7 +82,7 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void VerifyProofListTest()
         {
-            var tree = new BinaryMerkleTree<ITransaction>();
+            var tree = new BinaryMerkleTree();
             
             tree.AddNodes(CreateLeaves(new[] { "a", "e", "l", "f" }));
 
@@ -94,17 +94,17 @@ namespace AElf.Kernel.Tests
              *      a        e          l           f
              */
             //Proof List: { hash(a), hash(e), hash(hash(l), hash(f)) }
-            var hash_a = new Hash<ITransaction>("a".CalculateHash());
+            var hash_a = new Hash("a".CalculateHash());
 
-            var hash_e = new Hash<ITransaction>("e".CalculateHash());
+            var hash_e = new Hash("e".CalculateHash());
 
-            var hash_l = new Hash<ITransaction>("l".CalculateHash());
-            var hash_f = new Hash<ITransaction>("f".CalculateHash());
-            var hash_l_f = new Hash<ITransaction>(hash_l.CalculateHashWith(hash_f));
+            var hash_l = new Hash("l".CalculateHash());
+            var hash_f = new Hash("f".CalculateHash());
+            var hash_l_f = new Hash(hash_l.CalculateHashWith(hash_f));
             #endregion
 
             //Construct a proof list.
-            var prooflist = new List<IHash<ITransaction>>
+            var prooflist = new List<IHash>
             {
                 hash_a,
                 hash_e,
@@ -116,14 +116,14 @@ namespace AElf.Kernel.Tests
         }
 
         #region Some useful methods
-        private List<IHash<ITransaction>> CreateLeaves(IEnumerable<string> buffers)
+        private List<IHash> CreateLeaves(IEnumerable<string> buffers)
         {
-            return buffers.Select(buffer => new Hash<ITransaction>(buffer.CalculateHash())).Cast<IHash<ITransaction>>().ToList();
+            return buffers.Select(buffer => new Hash(buffer.CalculateHash())).Cast<IHash>().ToList();
         }
 
-        private IHash<ITransaction> CreateLeaf(string buffer)
+        private IHash CreateLeaf(string buffer)
         {
-            return new Hash<ITransaction>(buffer.CalculateHash());
+            return new Hash(buffer.CalculateHash());
         }
         #endregion
     }
