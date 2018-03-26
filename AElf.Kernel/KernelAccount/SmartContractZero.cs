@@ -19,18 +19,18 @@ namespace AElf.Kernel.KernelAccount
 
         private IWorldStateManager _worldStateManager;
 
-        private IAccountManager _accountManager;
+        private readonly IAccountContextService _accountContextService;
         
         private ISerializer<SmartContractRegistration> _serializer;
 
         public SmartContractZero(ISmartContractRunnerFactory smartContractRunnerFactory,
-            IWorldStateManager worldStateManager, IAccountManager accountManager,
-            ISerializer<SmartContractRegistration> serializer)
+            IWorldStateManager worldStateManager, ISerializer<SmartContractRegistration> serializer, 
+            IAccountContextService accountContextService)
         {
             _smartContractRunnerFactory = smartContractRunnerFactory;
             _worldStateManager = worldStateManager;
-            _accountManager = accountManager;
             _serializer = serializer;
+            _accountContextService = accountContextService;
         }
 
         public async Task InititalizeAsync(IAccountDataProvider dataProvider)
@@ -70,7 +70,7 @@ namespace AElf.Kernel.KernelAccount
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
             var smartContract = await runner.RunAsync(reg);
 
-            var acc = _accountManager.GetAccountByHash(new Hash(reg.Hash.Value));
+            var acc = new Account(reg.Hash);
 
             var dp = _worldStateManager.GetAccountDataProvider(_accountDataProvider.Context.ChainId, acc.GetAddress());
 
@@ -87,36 +87,22 @@ namespace AElf.Kernel.KernelAccount
         {
             return Hash.Zero;
         }
-        
+
         /// <summary>
-        /// deploy smartcontract
+        /// deploy a contract account
         /// </summary>
         /// <param name="caller"></param>
-        /// <param name="catagory"></param>
-        /// <param name="data"></param>
+        /// <param name="smartContractRegistration"></param>
         /// <returns></returns>
-        public async Task Deploy(IHash<IAccount> caller, int catagory, byte[] data)
+        public IAccount DeployAccount(Hash caller, SmartContractRegistration smartContractRegistration)
         {
-            // caller account data context
-            var callerAccount = _accountManager.GetAccountByHash(caller);
-            var adp = _worldStateManager.GetAccountDataProvider(_chain, callerAccount);
-            var dataContext = adp.Context;
+            // create new account for the contract
+            var calllerContext =
+                _accountContextService.GetAccountDataContext(caller, _accountDataProvider.Context.ChainId);
             
-            // create registration
-            var smartContractRegistration = new SmartContractRegistration
-            {
-                Category = catagory,
-                Bytes = data,
-                Hash = new Hash<SmartContract>(dataContext.CalculateHashWith(data)) // temporary calculating for sm address
-            };
-            
-            dataContext.IncreasementId++;
-            
-            // create new account for this contract
-            var acc = await _accountManager.CreateAccountAsync(smartContractRegistration, _chain);
-            // register to smartContractZero
-            await RegisterSmartContract(smartContractRegistration);
-            
+            var hash = new Hash(calllerContext.CalculateHashWith(smartContractRegistration.Bytes));
+            _accountContextService.GetAccountDataContext(hash, _accountDataProvider.Context.ChainId);
+            return new Account(hash);
         }
     }
 
