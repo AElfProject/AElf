@@ -36,5 +36,4 @@ namespace AElf.Kernel.Storages
             throw new InvalidOperationException("Cannot find corresponding transaction.");
         }
     }
-    
 }

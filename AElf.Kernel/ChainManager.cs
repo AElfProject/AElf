@@ -7,11 +7,13 @@ namespace AElf.Kernel
 {
     public class ChainManager : IChainManager
     {
-        private IChainBlockRelationStore _relationStore;
+        private readonly IChainBlockRelationStore _relationStore;
+        private readonly BlockManager _blockManager;
 
-        public ChainManager(IChainBlockRelationStore relationStore)
+        public ChainManager(IChainBlockRelationStore relationStore, BlockManager blockManager)
         {
             _relationStore = relationStore;
+            _blockManager = blockManager;
         }
 
         /// <summary>
@@ -27,7 +29,7 @@ namespace AElf.Kernel
                 new Hash<IChain>(chain.CalculateHash()),
                 new Hash<IBlock>(block.CalculateHash()), 
                 chain.CurrentBlockHeight);
-        }                                
-
+            await _blockManager.AddBlockAsync(block);
+        }
     }
 }

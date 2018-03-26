@@ -24,8 +24,6 @@ namespace AElf.Kernel
             Id = new Hash<IChain>(genesisBlock.GetHash().Value);
         }
 
-       
-        
         /// <summary>
         /// Inititalize for accountZero
         /// </summary>
