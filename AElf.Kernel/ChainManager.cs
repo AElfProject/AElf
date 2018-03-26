@@ -38,5 +38,10 @@ namespace AElf.Kernel
         {
             return _chainStore.GetAsync(id);
         }
+
+        public Task<Chain> AddChainAsync(Hash chainId)
+        {
+            return _chainStore.InsertAsync(new Chain(chainId));
+        }
     }
 }
