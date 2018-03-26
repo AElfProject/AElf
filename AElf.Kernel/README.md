@@ -7,7 +7,7 @@
 
        +------------------+    +---------------+    +--------------+
        |                  |    |               |    |              +------+
-+--------+ TX Receiver <---------  TX Sender  <------+ Tranactions |------|
++--------+ TX Receiver <---------  TX Sender  <------+ Transactions|------|
 |      |                  |    |               |    |              +------+
 |      +------------------+    +---------------+    +--------------+
 |
@@ -38,12 +38,12 @@
 
 A builtin demo of minimal AELF blockchain contains:
 
-* A Tranaction implemented with dummy content.
+* A Transaction implemented with dummy content.
 * A PoW miner with nBits(difficulty) equal to 1.
 * A FIFO for TX sender & receiver
 * A FIFO for block sender & receiver
 * A scheduler makes the transaction execute asynchronously but locally.
 * A Reducer collects all the results from workers.
-* A worldstate built on memory key-value set(Dictionary).
+* A world-state built on memory key-value set(Dictionary).
 
 (working in progress).
