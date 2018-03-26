@@ -13,5 +13,7 @@ namespace AElf.Kernel
 
         }
 
+        public IBlockHeader Header { get; set; }
+        public IBlockBody Body { get; set; }
     }
 }

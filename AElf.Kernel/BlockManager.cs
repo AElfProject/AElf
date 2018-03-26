@@ -25,7 +25,7 @@ namespace AElf.Kernel
 
         public Task<BlockHeader> GetBlockHeaderAsync(Hash chainGenesisBlockHash)
         {
-            return Task.FromResult(_blockStore.GetAsync(chainGenesisBlockHash).Result.GetHeader());
+            return Task.FromResult(_blockStore.GetAsync(chainGenesisBlockHash).Result.Header);
         }
         
         /// <summary>
@@ -33,7 +33,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        private bool Validation(IBlock block)
+        private bool Validation(Block block)
         {
             // TODO:
             // Do some checks like duplication, 

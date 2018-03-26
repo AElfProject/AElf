@@ -10,7 +10,7 @@ namespace AElf.Kernel.Storages
         /// Store current world state.
         /// </summary>
         /// <returns></returns>
-        Task SetWorldStateAsync(IHash<IChain> chainHash, IChangesStore changesStore);
+        Task SetWorldStateAsync(IHash chainHash, IChangesStore changesStore);
 
         /// <summary>
         /// Get the world state by corresponding block height of corresponding chain.
@@ -18,24 +18,24 @@ namespace AElf.Kernel.Storages
         /// <param name="chainHash"></param>
         /// <param name="height"></param>
         /// <returns></returns>
-        Task<WorldState> GetAsync(IHash<IChain> chainHash, long height);
+        Task<WorldState> GetAsync(IHash chainHash, long height);
 
         /// <summary>
         /// Get latest world state of corresponding chain.
         /// </summary>
         /// <returns></returns>
-        Task<WorldState> GetAsync(IHash<IChain> chainHash);
+        Task<WorldState> GetAsync(IHash chainHash);
     }
 
     public class WorldStateStore : IWorldStateStore
     {
-        private readonly Dictionary<IHash<IChain>, List<IChangesStore>> _changesStores = 
-            new Dictionary<IHash<IChain>, List<IChangesStore>>();
+        private readonly Dictionary<IHash, List<IChangesStore>> _changesStores = 
+            new Dictionary<IHash, List<IChangesStore>>();
         
-        private Dictionary<IHash<IChain>, List<IAccountDataProvider>> _accountDataProviders =
-            new Dictionary<IHash<IChain>, List<IAccountDataProvider>>();
+        private Dictionary<IHash, List<IAccountDataProvider>> _accountDataProviders =
+            new Dictionary<IHash, List<IAccountDataProvider>>();
         
-        public Task SetWorldStateAsync(IHash<IChain> chainHash, IChangesStore changesStore)
+        public Task SetWorldStateAsync(IHash chainHash, IChangesStore changesStore)
         {
             if (!Validation(changesStore))
             {
@@ -46,12 +46,12 @@ namespace AElf.Kernel.Storages
             return Task.CompletedTask;
         }
 
-        public Task<WorldState> GetAsync(IHash<IChain> chainHash, long height)
+        public Task<WorldState> GetAsync(IHash chainHash, long height)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<WorldState> GetAsync(IHash<IChain> chainHash)
+        public Task<WorldState> GetAsync(IHash chainHash)
         {
             return Task.FromResult(CreateWorldState(chainHash));
         }
@@ -61,12 +61,12 @@ namespace AElf.Kernel.Storages
             return true;
         }
 
-        private List<IChangesStore> GetChangesList(IHash<IChain> chainHash)
+        private List<IChangesStore> GetChangesList(IHash chainHash)
         {
             return _changesStores[chainHash];
         }
 
-        private WorldState CreateWorldState(IHash<IChain> chainHash, long height = -1)
+        private WorldState CreateWorldState(IHash chainHash, long height = -1)
         {
             var currentWorldState = new WorldState(_accountDataProviders[chainHash]);
             if (height == -1)

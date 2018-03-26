@@ -18,19 +18,14 @@ namespace AElf.Kernel
             _factory = factory;
         }
 
-        /// <inheritdoc />
-        public Task<IWorldState> GetWorldStateAsync(IChain chain)
+        public Task<IWorldState> GetWorldStateAsync(IHash chain)
         {
             throw new NotImplementedException();
         }
 
-        public IAccountDataProvider GetAccountDataProvider(IChain chain, IAccount account)
+        public IAccountDataProvider GetAccountDataProvider(IHash chain, IHash account)
         {
-            var p = _factory();
-            
-            p.Context = new AccountDataContext();
-            
-            return p;
+            throw new NotImplementedException();
         }
     }
 }

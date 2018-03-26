@@ -7,22 +7,22 @@ namespace AElf.Kernel.Storages
 {
     public interface IBlockStore
     {
-        Task Insert(IBlock block);
+        Task Insert(Block block);
 
-        Task<IBlock> GetAsync(IHash<IBlock> blockHash);
+        Task<Block> GetAsync(IHash blockHash);
     }
     
     public class BlockStore : IBlockStore
     {
-        private readonly Dictionary<IHash, IBlock> _blocks = new Dictionary<IHash, IBlock>();
+        private readonly Dictionary<IHash, Block> _blocks = new Dictionary<IHash, Block>();
 
-        public Task Insert(IBlock block)
+        public Task Insert(Block block)
         {
-            _blocks.Add(new Hash<ITransaction>(block.CalculateHash()), block);
+            _blocks.Add(new Hash(block.CalculateHash()), block);
             return Task.CompletedTask;
         }
 
-        public Task<IBlock> GetAsync(IHash<IBlock> blockHash)
+        public Task<Block> GetAsync(IHash blockHash)
         {
             foreach (var k in _blocks.Keys)
             {

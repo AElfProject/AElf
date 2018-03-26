@@ -11,7 +11,7 @@ namespace AElf.Kernel
             throw new System.NotImplementedException();
         }
 
-        public IAccount GetAccountByHash(IHash hash)
+        public IAccount GetAccountByHash(Hash hash)
         {
             return new Account(hash);
         }

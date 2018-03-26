@@ -6,11 +6,11 @@
     /// </summary>
     public interface IPath
     {
-        Path SetChainHash(IHash<IChain> chainHash);
-        Path SetBlockHash(IHash<IBlock> blockHash);
-        Path SetAccount(IHash<IAccount> accountAddress);
+        Path SetChainHash(IHash chainHash);
+        Path SetBlockHash(IHash blockHash);
+        Path SetAccount(IHash accountAddress);
         Path SetItemName(string itemName);
-        IHash<IPath> GetPointerHash();
-        IHash<IPath> GetPathHash();
+        IHash GetPointerHash();
+        IHash GetPathHash();
     }
 }

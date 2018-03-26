@@ -6,22 +6,22 @@ namespace AElf.Kernel.Storages
 {
     public interface IPointerStore
     {
-        Task Insert(IHash<IPath> path, IHash<IPath> pointer);
+        Task Insert(IHash path, IHash pointer);
 
-        Task<IHash<IPath>> GetAsync(IHash<IPath> path);
+        Task<IHash> GetAsync(IHash path);
     }
     
     public class PointerStore : IPointerStore
     {
-        private static readonly Dictionary<IHash<IPath>, IHash<IPath>> Blocks = new Dictionary<IHash<IPath>, IHash<IPath>>();
+        private static readonly Dictionary<IHash, IHash> Blocks = new Dictionary<IHash, IHash>();
 
-        public Task Insert(IHash<IPath> path, IHash<IPath> pointer)
+        public Task Insert(IHash path, IHash pointer)
         {
             Blocks[path] = pointer;
             return Task.CompletedTask;
         }
 
-        public Task<IHash<IPath>> GetAsync(IHash<IPath> path)
+        public Task<IHash> GetAsync(IHash path)
         {
             foreach (var k in Blocks.Keys)
             {

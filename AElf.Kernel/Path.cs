@@ -7,25 +7,25 @@ namespace AElf.Kernel
     {
         private bool IsPointer { get; set; }
 
-        private IHash<IChain> _chainHash;
-        private IHash<IBlock> _blockHash;
-        private IHash<IAccount> _accountAddress;
+        private IHash _chainHash;
+        private IHash _blockHash;
+        private IHash _accountAddress;
         private string _itemName = "";
 
-        public Path SetChainHash(IHash<IChain> chainHash)
+        public Path SetChainHash(IHash chainHash)
         {
             _chainHash = chainHash;
             return this;
         }
         
-        public Path SetBlockHash(IHash<IBlock> blockHash)
+        public Path SetBlockHash(IHash blockHash)
         {
             _blockHash = blockHash;
             IsPointer = true;
             return this;
         }
         
-        public Path SetAccount(IHash<IAccount> accountAddress)
+        public Path SetAccount(IHash accountAddress)
         {
             _accountAddress = accountAddress;
             return this;
@@ -37,24 +37,24 @@ namespace AElf.Kernel
             return this;
         }
 
-        public IHash<IPath> GetPointerHash()
+        public IHash GetPointerHash()
         {
             if (!PointerValidation())
             {
                 throw new InvalidOperationException("Invalide pointer.");
             }
 
-            return new Hash<IPath>(this.CalculateHash());
+            return new Hash(this.CalculateHash());
         }
 
-        public IHash<IPath> GetPathHash()
+        public IHash GetPathHash()
         {
             if (!PathValidation())
             {
                 throw new InvalidOperationException("Invalide path.");
             }
 
-            return new Hash<IPath>(this.CalculateHash());
+            return new Hash(this.CalculateHash());
         }
 
         private bool PointerValidation()
