@@ -8,7 +8,7 @@ namespace AElf.Kernel.Storages
     public interface ITransactionStore
     {
         Task InsertAsync(ITransaction tx);
-        Task<ITransaction> GetAsync(IHash<ITransaction> hash);
+        Task<ITransaction> GetAsync(IHash hash);
     }
     
     /// <summary>
@@ -20,11 +20,11 @@ namespace AElf.Kernel.Storages
         
         public Task InsertAsync(ITransaction tx)
         {
-            Transactions.Add(new Hash<ITransaction>(tx.CalculateHash()), tx);
+            Transactions.Add(new Hash(tx.CalculateHash()), tx);
             return Task.CompletedTask;
         }
 
-        public Task<ITransaction> GetAsync(IHash<ITransaction> hash)
+        public Task<ITransaction> GetAsync(IHash hash)
         {
             foreach (var k in Transactions.Keys)
             {

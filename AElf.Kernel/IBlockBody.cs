@@ -5,8 +5,8 @@ namespace AElf.Kernel
 {
     public interface IBlockBody
     {
-        IList<IHash<ITransaction>> GetTransactions();
+        IList<IHash> GetTransactions();
 
-        bool AddTransaction(IHash<ITransaction> tx);
+        bool AddTransaction(IHash tx);
     }
 }

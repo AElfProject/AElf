@@ -6,7 +6,7 @@ namespace AElf.Kernel
     {
         public IAccountDataContext Context { get; set; }
         
-        public IHash<IAccount> GetAccountAddress()
+        public IHash GetAccountAddress()
         {
             throw new NotImplementedException();
         }

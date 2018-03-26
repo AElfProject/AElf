@@ -13,8 +13,4 @@ namespace AElf.Kernel
         byte[] GetHashBytes();
     }
 
-    public interface IHash<T> : IHash
-    {
-
-    }
 }

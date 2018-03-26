@@ -14,12 +14,6 @@
     <PackageReference Include="SharpRepository.Repository" Version="2.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Serialization\AElf.Serialization.csproj">
-      <Project>{13DC325F-B46C-4A90-A67E-785AE8D92640}</Project>
-      <Name>AElf.Serialization</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Remove="Extensions\CommonExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

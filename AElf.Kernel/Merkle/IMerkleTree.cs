@@ -1,8 +1,8 @@
 ﻿namespace AElf.Kernel.Merkle
  {
-     public interface IMerkleTree<T>
+     public interface IMerkleTree
      {
-         IHash<IMerkleTree<T>> ComputeRootHash();
-         void AddNode(IHash<T> hash);
+         Hash ComputeRootHash();
+         void AddNode(IHash hash);
      }
  }

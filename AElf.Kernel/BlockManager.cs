@@ -13,7 +13,7 @@ namespace AElf.Kernel
             _blockStore = blockStore;
         }
 
-        public Task<IBlock> AddBlockAsync(IBlock block)
+        public Task<Block> AddBlockAsync(Block block)
         {
             if (!Validation(block))
             {
@@ -23,7 +23,7 @@ namespace AElf.Kernel
             return Task.FromResult(block);
         }
 
-        public Task<IBlockHeader> GetBlockHeaderAsync(IHash<IBlock> chainGenesisBlockHash)
+        public Task<BlockHeader> GetBlockHeaderAsync(Hash chainGenesisBlockHash)
         {
             return Task.FromResult(_blockStore.GetAsync(chainGenesisBlockHash).Result.GetHeader());
         }

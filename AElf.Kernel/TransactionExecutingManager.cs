@@ -17,15 +17,15 @@ namespace AElf.Kernel
         public Dictionary<int, List<ITransaction>> ExecutingPlan { get; private set; }
         private Dictionary<IAccount, List<ITransaction>> _pending;
         private UndirectedGraph<ITransaction, Edge<ITransaction>> _graph;
-        private readonly ISmartContractManager _smartContractManager;
+        private readonly ISmartContractService _smartContractService;
 
         public TransactionExecutingManager(WorldState worldState, AccountZero accountZero, 
-            IAccountManager accountManager, ISmartContractManager smartContractManager)
+            IAccountManager accountManager, ISmartContractService smartContractManager)
         {
             _worldState = worldState;
             _accountZero = accountZero;
             _accountManager = accountManager;
-            _smartContractManager = smartContractManager;
+            _smartContractService = smartContractManager;
         }
 
 
@@ -37,7 +37,7 @@ namespace AElf.Kernel
         /// <param name="chain"></param>
         public async Task ExecuteAsync(ITransaction tx, IChainContext chain)
         {
-            var smartContract = await _smartContractManager.GetAsync(tx.To, chain);
+            var smartContract = await _smartContractService.GetAsync(tx.To.GetAddress(), chain);
 
             await smartContract.InvokeAsync(tx.From.GetAddress(), tx.MethodName, tx.Params);
         }
