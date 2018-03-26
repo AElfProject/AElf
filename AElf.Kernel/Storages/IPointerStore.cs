@@ -23,12 +23,9 @@ namespace AElf.Kernel.Storages
 
         public Task<IHash> GetAsync(IHash path)
         {
-            foreach (var k in Blocks.Keys)
+            if (Blocks.TryGetValue(path, out var h))
             {
-                if (k.Equals(path))
-                {
-                    return Task.FromResult(Blocks[k]);
-                }
+                return Task.FromResult(h);
             }
             throw new InvalidOperationException("Cannot find corresponding pointer.");
         }

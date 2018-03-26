@@ -26,13 +26,11 @@ namespace AElf.Kernel.Storages
 
         public Task<ITransaction> GetAsync(IHash hash)
         {
-            foreach (var k in Transactions.Keys)
+            if (Transactions.TryGetValue(hash, out var tx))
             {
-                if (k.Equals(hash))
-                {
-                    return Task.FromResult(Transactions[k]);
-                }
+                return Task.FromResult(tx);
             }
+
             throw new InvalidOperationException("Cannot find corresponding transaction.");
         }
     }

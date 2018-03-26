@@ -24,13 +24,11 @@ namespace AElf.Kernel.Storages
 
         public Task<Block> GetAsync(IHash blockHash)
         {
-            foreach (var k in _blocks.Keys)
+            if (_blocks.TryGetValue(blockHash, out var b))
             {
-                if (k.Equals(blockHash))
-                {
-                    return Task.FromResult(_blocks[k]);
-                }
+                return Task.FromResult(b);
             }
+            
             throw new InvalidOperationException("Cannot find corresponding transaction.");
         }
     }

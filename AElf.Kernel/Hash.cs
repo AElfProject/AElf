@@ -1,12 +1,11 @@
 using AElf.Kernel.Extensions;
 using System;
+using System.Data.Common;
 
 namespace AElf.Kernel
 {
     public class Hash : IHash
     {
-
-
         public static Hash Generate()
         {
             return new Hash(
@@ -67,6 +66,16 @@ namespace AElf.Kernel
             }
 
             return -1;
+        }
+
+        public static bool operator ==(Hash h1, Hash h2)
+        {
+            return h1 != null && h1.Equals(h2);
+        }
+
+        public static bool operator !=(Hash h1, Hash h2)
+        {
+            return !(h1 == h2);
         }
     }
 }
