@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
@@ -9,8 +10,7 @@ namespace AElf.Kernel
     /// </summary>
     public interface IHash : IEquatable<IHash>, IComparer<IHash>
     {
-        byte[] Value { get; set; }
-        byte[] GetHashBytes();
+        ByteString Value { get; set; }
     }
 
 }

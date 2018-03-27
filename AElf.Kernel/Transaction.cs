@@ -10,9 +10,8 @@ using System.Text;
 
 namespace AElf.Kernel
 {
-    public class Transaction : ITransaction
+    public partial class Transaction : ITransaction
     {
-        public Transaction() { }
 
         public Hash GetHash()
         {

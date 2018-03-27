@@ -2,10 +2,11 @@ using AElf.Kernel.Extensions;
 using System;
 using System.Data.Common;
 using System.Linq;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    public class Hash : IHash
+    public partial class Hash : IHash
     {
         public static Hash Generate()
         {
@@ -15,38 +16,23 @@ namespace AElf.Kernel
         
         public static readonly Hash Zero = new Hash();
 
-        public byte[] Value { get; set; }
-
         public Hash(byte[] buffer)
         {
-            Value = buffer;
-        } 
 
-        public Hash() : this(new byte[HashExtensions.Length])
-        {
-
+            Value = ByteString.CopyFrom(buffer);
         }
 
-        public override string ToString() => Value.ToHex();
+        public Hash(ByteString value)
+        {
+            Value = value;
+        }
 
-        public byte[] GetHashBytes() => Value;
+
+        public byte[] GetHashBytes() => Value.ToByteArray();
 
         public bool Equals(IHash other)
         {
-            var bytes = GetHashBytes();
-            var otherBytes = other.GetHashBytes();
-            if (bytes.Length != otherBytes.Length)
-            {
-                return false;
-            }
-            for (var i = 0; i < Math.Min(bytes.Length, otherBytes.Length); i++)
-            {
-                if (bytes[i] != otherBytes[i])
-                {
-                    return false;
-                }
-            }
-            return true;
+            return this.value_.Equals(other.Value);
         }
 
         public int Compare(IHash x, IHash y)
@@ -69,23 +55,12 @@ namespace AElf.Kernel
 
         public static bool operator ==(Hash h1, Hash h2)
         {
-            return h1.Equals(h2);
+            return h1 != null && h1.Equals(h2);
         }
 
         public static bool operator !=(Hash h1, Hash h2)
         {
-            return !h1.Equals(h2);
-        }
-
-        public override bool Equals(object obj)
-        {
-            var hex = obj.ToString();
-            return ToString().SequenceEqual(hex);
-        }
-
-        public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
+            return h1 != null && !h1.Equals(h2);
         }
 
     }
