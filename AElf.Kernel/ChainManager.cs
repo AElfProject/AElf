@@ -29,6 +29,7 @@ namespace AElf.Kernel
             chain.UpdateCurrentBlock(block);
             await _relationStore.InsertAsync(chain, block);
             await _chainStore.UpdateAsync(chain);
+
         }
 
         public Task<Chain> GetChainAsync(Hash id)
