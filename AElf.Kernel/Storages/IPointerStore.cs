@@ -6,28 +6,28 @@ namespace AElf.Kernel.Storages
 {
     public interface IPointerStore
     {
-        Task Insert(IHash path, IHash pointer);
+        Task InsertAsync(Hash path, Hash pointer);
 
-        Task<IHash> GetAsync(IHash path);
+        Task<Hash> GetAsync(Hash path);
     }
     
     public class PointerStore : IPointerStore
     {
-        private static readonly Dictionary<IHash, IHash> Blocks = new Dictionary<IHash, IHash>();
+        private readonly IKeyValueDatabase _keyValueDatabase;
 
-        public Task Insert(IHash path, IHash pointer)
+        public PointerStore(IKeyValueDatabase keyValueDatabase)
         {
-            Blocks[path] = pointer;
-            return Task.CompletedTask;
+            _keyValueDatabase = keyValueDatabase;
+        }
+        
+        public async Task InsertAsync(Hash path, Hash pointer)
+        {
+            await _keyValueDatabase.SetAsync(path, pointer);
         }
 
-        public Task<IHash> GetAsync(IHash path)
+        public async Task<Hash> GetAsync(Hash path)
         {
-            if (Blocks.TryGetValue(path, out var h))
-            {
-                return Task.FromResult(h);
-            }
-            throw new InvalidOperationException("Cannot find corresponding pointer.");
+            return (Hash) await _keyValueDatabase.GetAsync(path);
         }
     }
 }

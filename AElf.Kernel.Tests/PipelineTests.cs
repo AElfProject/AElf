@@ -12,6 +12,7 @@ namespace AElf.Kernel.Tests
     public class PipelineTests
     {
         private ISmartContractZero _smartContractZero;
+        
         private IChainManager _chainManager;
 
         private IBlockVaildationService _blockVaildationService;

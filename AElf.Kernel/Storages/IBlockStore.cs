@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 
 namespace AElf.Kernel.Storages
@@ -17,8 +14,6 @@ namespace AElf.Kernel.Storages
     {
         private readonly IKeyValueDatabase _keyValueDatabase;
         
-        private readonly Dictionary<IHash, Block> _blocks = new Dictionary<IHash, Block>();
-
         public BlockStore(IKeyValueDatabase keyValueDatabase)
         {
             _keyValueDatabase = keyValueDatabase;
@@ -26,12 +21,12 @@ namespace AElf.Kernel.Storages
 
         public async Task Insert(Block block)
         {
-            await _keyValueDatabase.SetAsync(block);
+            await _keyValueDatabase.SetAsync(block.GetHash(), block);
         }
 
         public async Task<Block> GetAsync(Hash blockHash)
         {
-            return (Block) await  _keyValueDatabase.GetAsync(blockHash);
+            return (Block) await _keyValueDatabase.GetAsync(blockHash);
         }
     }
     

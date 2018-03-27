@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Extensions;
 
 namespace AElf.Kernel.Storages
 {
     public interface IChainBlockRelationStore
     {
-        Task InsertAsync(IHash chainHash, IHash blockHash, long height);
+        Task InsertAsync(Chain chain, Block block);
 
-        Task<IHash> GetAsync(IHash chainHash, long height);
+        Task<Hash> GetAsync(Hash chainHash, long height);
     }
     
     /// <summary>
@@ -15,20 +16,21 @@ namespace AElf.Kernel.Storages
     /// </summary>
     public class ChainBlockRelationStore : IChainBlockRelationStore
     {
-        private static readonly Dictionary<IHash, List<IHash>> Relations = 
-            new Dictionary<IHash, List<IHash>>();
+        private readonly IKeyValueDatabase _keyValueDatabase;
 
-        public Task InsertAsync(IHash chainHash, IHash blockHash, long height)
+        public ChainBlockRelationStore(IKeyValueDatabase keyValueDatabase)
         {
-            //Temporary
-            Relations[chainHash][(int)height] = blockHash;
-            return Task.CompletedTask;
+            _keyValueDatabase = keyValueDatabase;
+        }
+        
+        public async Task InsertAsync(Chain chain, Block block)
+        {
+            await _keyValueDatabase.SetAsync(chain.NextBlockRelationHash, block.GetHash());
         }
 
-        public Task<IHash> GetAsync(IHash chainHash, long height)
+        public async Task<Hash> GetAsync(Hash chainHash, long height)
         {
-            //Temporary
-            return Task.FromResult(Relations[chainHash][(int) height]);
+            return (Hash) await _keyValueDatabase.GetAsync(new Hash(chainHash.CalculateHashWith(height)));
         }
     }
 }

@@ -27,10 +27,7 @@ namespace AElf.Kernel
             }
             
             chain.UpdateCurrentBlock(block);
-            await _relationStore.InsertAsync(
-                new Hash(chain.CalculateHash()), 
-                new Hash(block.CalculateHash()), 
-                chain.CurrentBlockHeight);
+            await _relationStore.InsertAsync(chain, block);
             await _chainStore.UpdateAsync(chain);
         }
 
