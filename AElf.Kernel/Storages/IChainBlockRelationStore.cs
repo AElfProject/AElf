@@ -28,9 +28,10 @@ namespace AElf.Kernel.Storages
             await _keyValueDatabase.SetAsync(chain.NextBlockRelationHash, block.GetHash());
         }
 
-        public async Task<Hash> GetAsync(Hash chainHash, long height)
+        public async Task<Hash> GetAsync(Hash chainId, long height)
         {
-            return (Hash) await _keyValueDatabase.GetAsync(new Hash(chainHash.CalculateHashWith(height)));
+            var hash = new Hash(chainId.CalculateHashWith(height));
+            return (Hash) await _keyValueDatabase.GetAsync(hash);
         }
     }
 }

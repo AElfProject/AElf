@@ -19,7 +19,7 @@ namespace AElf.Kernel
         }
 
 
-        public async Task AppenBlockToChainAsync(Chain chain, Block block)
+        public async Task AppendBlockToChainAsync(Chain chain, Block block)
         {
             if (chain.CurrentBlockHash != block.Header.PreviousHash)
             {

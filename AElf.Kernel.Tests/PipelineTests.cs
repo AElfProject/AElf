@@ -39,7 +39,7 @@ namespace AElf.Kernel.Tests
 
             //await _blockVaildationService.ValidateBlockAsync(builder.Block,context);
             
-            await _chainManager.AppenBlockToChainAsync(chain, builder.Block);
+            await _chainManager.AppendBlockToChainAsync(chain, builder.Block);
             
             
 
