@@ -6,6 +6,6 @@ namespace AElf.Kernel
     {
         Task AppenBlockToChainAsync(Chain chain, Block block);
         Task<Chain> GetChainAsync(Hash id);
-        Task InitializeChain(Chain chain, GenesisBlock genesisBlock);
+        Task<Chain> AddChainAsync(Hash chainId);
     }
 }

@@ -36,17 +36,9 @@ namespace AElf.Kernel
             return _chainStore.GetAsync(id);
         }
 
-        /// <summary>
-        /// chain initialization
-        /// </summary>
-        /// <param name="chain"></param>
-        /// <param name="genesisBlock"></param>
-        /// <returns></returns>
-        public async Task InitializeChain(Chain chain, GenesisBlock genesisBlock)
+        public Task<Chain> AddChainAsync(Hash chainId)
         {
-            chain.GenesisBlockHash = genesisBlock.GetHash();
-            chain.UpdateCurrentBlock(genesisBlock);
-            await _chainStore.UpdateAsync(chain);
+            return _chainStore.InsertAsync(new Chain(chainId));
         }
     }
 }
