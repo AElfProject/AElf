@@ -6,5 +6,6 @@ namespace AElf.Kernel.Storages
     {
         Task<Chain> GetAsync(Hash id);
         Task<Chain> UpdateAsync(Chain chain);
+        Task<Chain> InsertAsync(Chain chain);
     }
 }
