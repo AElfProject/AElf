@@ -4,11 +4,10 @@ using System.Threading.Tasks;
 namespace AElf.Kernel
 {
     
-    public interface ISmartContract
+    public interface ISmartContract :IHashProvider
     {
         Task InititalizeAsync(IAccountDataProvider dataProvider);
-        Task InvokeAsync(IHash<IAccount> caller, 
+        Task InvokeAsync(IHash caller, 
             string methodname, params object[] objs);
-    }    
-    
+    }
 }

@@ -4,6 +4,6 @@ namespace AElf.Kernel
 {
     public interface ITransactionExecutingManager
     {
-        Task ExecuteAsync(ITransaction tx);
+        Task ExecuteAsync(ITransaction tx, IChainContext chain);
     }
 }

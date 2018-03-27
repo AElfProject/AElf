@@ -7,36 +7,40 @@ using System.Runtime.InteropServices.ComTypes;
 
 namespace AElf.Kernel.Merkle
 {
-    public class BinaryMerkleTree<T> : IMerkleTree<T>
+    /// <summary>
+    /// This implementation of binary merkle tree only add hash values as its leaves.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class BinaryMerkleTree : IMerkleTree
     {
         /// <summary>
         /// Merkle nodes
         /// </summary>
-        private List<IHash<T>> Nodes { get; set; } = new List<IHash<T>>();
+        private List<IHash> Nodes { get; set; } = new List<IHash>();
         
         /// <summary>
         /// Use a cache to speed up the calculation of hash value.
         /// </summary>
-        private Dictionary<string, IHash<T>> _cache = new Dictionary<string, IHash<T>>();
+        private Dictionary<string, IHash> _cache = new Dictionary<string, IHash>();
 
         /// <summary>
         /// Add a leaf node and compute root hash.
         /// </summary>
         /// <param name="hash"></param>
-        public void AddNode(IHash<T> hash)
+        public void AddNode(IHash hash)
         {
             Nodes.Add(hash);
             ComputeRootHash();
         }
 
-        public void AddNodes(List<IHash<T>> hashes)
+        public void AddNodes(List<IHash> hashes)
         {
             hashes.ForEach(hash => Nodes.Add(hash));
         }
 
-        public IHash<IMerkleTree<T>> ComputeRootHash() => ComputeRootHash(Nodes);
+        public Hash ComputeRootHash() => ComputeRootHash(Nodes);
 
-        private IHash<IMerkleTree<T>> ComputeRootHash(List<IHash<T>> hashes)
+        private Hash ComputeRootHash(List<IHash> hashes)
         {
             while (true)
             {
@@ -47,15 +51,15 @@ namespace AElf.Kernel.Merkle
 
                 if (hashes.Count == 1) //Finally
                 {
-                    return new Hash<IMerkleTree<T>>(hashes[0].Value);
+                    return new Hash(hashes[0].Value);
                 }
 
                 //Every time goes to a higher level.
-                var parents = new List<IHash<T>>();
+                var parents = new List<IHash>();
 
                 for (var i = 0; i < hashes.Count; i += 2)
                 {
-                    IHash<T> right = (i + 1 < hashes.Count) ? new Hash<T>(hashes[i + 1].Value) : null;
+                    IHash right = (i + 1 < hashes.Count) ? new Hash(hashes[i + 1].Value) : null;
                     var parent = FindCache(hashes[i], right);
 
                     parents.Add(parent);
@@ -71,7 +75,7 @@ namespace AElf.Kernel.Merkle
         /// </summary>
         /// <param name="leaf"></param>
         /// <returns></returns>
-        public int FindLeaf(IHash<T> leaf)
+        public int FindLeaf(IHash leaf)
         {
             if (leaf == null)
             {
@@ -87,19 +91,19 @@ namespace AElf.Kernel.Merkle
             return -1;
         }
 
-        public bool VerifyProofList(List<IHash<T>> hashlist)
+        public bool VerifyProofList(List<IHash> hashlist)
         {
             var list = ComputeProofHash(hashlist);
             return ComputeRootHash().ToString() == list[0].ToString();
         }
 
-        private List<IHash<T>> ComputeProofHash(List<IHash<T>> hashlist)
+        private List<IHash> ComputeProofHash(List<IHash> hashlist)
         {
             while (true)
             {
                 if (hashlist.Count < 2) return hashlist;
 
-                var list = new List<IHash<T>>
+                var list = new List<IHash>
                 {
                     FindCache(hashlist[0], hashlist[1])
                 };
@@ -111,7 +115,7 @@ namespace AElf.Kernel.Merkle
             }
         }
 
-        public void UpdateNode(IHash<T> oldLeaf, IHash<T> newLeaf)
+        public void UpdateNode(IHash oldLeaf, IHash newLeaf)
         {
             var order = FindLeaf(oldLeaf);
             if (order == -1)
@@ -121,13 +125,13 @@ namespace AElf.Kernel.Merkle
             UpdateNode(order, newLeaf);
         }
 
-        public void UpdateNode(int oldLeafOrder, IHash<T> newLeaf)
+        public void UpdateNode(int oldLeafOrder, IHash newLeaf)
         {
             Nodes[oldLeafOrder] = newLeaf;
             ComputeRootHash();
         }
 
-        private IHash<T> FindCache(IHash hash1, IHash hash2)
+        private IHash FindCache(IHash hash1, IHash hash2)
         {
             var combineHash = 
                 hash2?.Value != null ? 
@@ -136,13 +140,12 @@ namespace AElf.Kernel.Merkle
 
             return _cache.TryGetValue(combineHash, out var resultHash)
                 ? resultHash
-                : AddCache(combineHash, new Hash<T>(hash1.CalculateHashWith(hash2)));
+                : AddCache(combineHash, new Hash(hash1.CalculateHashWith(hash2)));
         }
 
-        private IHash<T> AddCache(string keyHash, IHash<T> valueHash)
+        private IHash AddCache(string keyHash, IHash valueHash)
         {
-            _cache[keyHash] = valueHash;
-            return valueHash;
+            return _cache[keyHash] = valueHash;
         }
     }
 }
