@@ -94,7 +94,7 @@ namespace AElf.Kernel.KernelAccount
         /// <param name="caller"></param>
         /// <param name="smartContractRegistration"></param>
         /// <returns></returns>
-        public IAccount DeployAccount(Hash caller, SmartContractRegistration smartContractRegistration)
+        public Task<IAccount> DeployAccount(Hash caller, SmartContractRegistration smartContractRegistration)
         {
             // create new account for the contract
             var calllerContext =
@@ -102,7 +102,7 @@ namespace AElf.Kernel.KernelAccount
             
             var hash = new Hash(calllerContext.CalculateHashWith(smartContractRegistration.Bytes));
             _accountContextService.GetAccountDataContext(hash, _accountDataProvider.Context.ChainId);
-            return new Account(hash);
+            return Task.FromResult((IAccount) new Account(hash));
         }
     }
 
