@@ -7,11 +7,11 @@ using AElf.Kernel.KernelAccount;
 
 namespace AElf.Kernel
 {
-    public class Chain : IChain
+    public class Chain
     {
         public long CurrentBlockHeight { get; set; }
         public Hash CurrentBlockHash { get; set; }
-        public void UpdateCurrentBlock(IBlock block)
+        public void UpdateCurrentBlock(Block block)
         {
             CurrentBlockHeight += 1;
             CurrentBlockHash = block.GetHash();

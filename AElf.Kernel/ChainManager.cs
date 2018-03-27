@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
+using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
 
 namespace AElf.Kernel
@@ -26,7 +27,10 @@ namespace AElf.Kernel
             }
             
             chain.UpdateCurrentBlock(block);
-            await _relationStore.Insert(chain, block, chain.CurrentBlockHeight);
+            await _relationStore.InsertAsync(
+                new Hash(chain.CalculateHash()), 
+                new Hash(block.CalculateHash()), 
+                chain.CurrentBlockHeight);
             await _chainStore.UpdateAsync(chain);
 
         }

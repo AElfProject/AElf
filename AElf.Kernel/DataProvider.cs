@@ -8,6 +8,8 @@ namespace AElf.Kernel
 {
     public class DataProvider : IDataProvider
     {
+        
+        /*
         private readonly IHash _accountAddress;
         private readonly BinaryMerkleTree _dataMerkleTree = new BinaryMerkleTree();
         private readonly Dictionary<string, IDataProvider> _dataProviders = new Dictionary<string, IDataProvider>();
@@ -138,6 +140,31 @@ namespace AElf.Kernel
         public Task SetAsync(string key, byte[] obj)
         {
             return SetAsync(new Hash(_accountAddress.CalculateHashWith(key)), obj);
+        }
+        */
+        public IDataProvider GetDataProvider(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetDataProvider(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<byte[]> GetAsync(IHash key)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SetAsync(IHash key, byte[] obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Hash> GetDataMerkleTreeRootAsync()
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -26,7 +26,7 @@ namespace AElf.Kernel
 
         public Hash GetAddress()
         {
-            return this.Address;
+            return Address;
         }
     }
 }

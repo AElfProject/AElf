@@ -3,14 +3,14 @@ using System;
 
 namespace AElf.Kernel
 {
-    public class Block : IBlock
+    public class Block
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AElf.Kernel.Block"/> class.
         /// a previous block must be referred, except the genesis block.
         /// </summary>
         /// <param name="preBlockHash">Pre block hash.</param>
-        public Block(Hash preBlockHash)
+        protected Block(Hash preBlockHash)
         {
             Header = new BlockHeader(preBlockHash);
             Body = new BlockBody();
@@ -29,8 +29,8 @@ namespace AElf.Kernel
             return true;
         }
 
-        public IBlockHeader Header { get; set; }
-        public IBlockBody Body { get; set; }
+        public BlockHeader Header { get; set; }
+        public BlockBody Body { get; set; }
 
 
         /// <summary>

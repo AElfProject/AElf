@@ -11,10 +11,9 @@ namespace AElf.Kernel
 
         public BlockBody() { }
 
-
         public IList<IHash> GetTransactions()
         {
-            throw new System.NotImplementedException();
+            return _transactions;
         }
 
         public bool AddTransaction(IHash tx)
