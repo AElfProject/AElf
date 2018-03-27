@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 
@@ -9,27 +10,29 @@ namespace AElf.Kernel.Storages
     {
         Task Insert(Block block);
 
-        Task<Block> GetAsync(IHash blockHash);
+        Task<Block> GetAsync(Hash blockHash);
     }
     
     public class BlockStore : IBlockStore
     {
+        private readonly IKeyValueDatabase _keyValueDatabase;
+        
         private readonly Dictionary<IHash, Block> _blocks = new Dictionary<IHash, Block>();
 
-        public Task Insert(Block block)
+        public BlockStore(IKeyValueDatabase keyValueDatabase)
         {
-            _blocks.Add(new Hash(block.CalculateHash()), block);
-            return Task.CompletedTask;
+            _keyValueDatabase = keyValueDatabase;
         }
 
-        public Task<Block> GetAsync(IHash blockHash)
+        public async Task Insert(Block block)
         {
-            if (_blocks.TryGetValue(blockHash, out var b))
-            {
-                return Task.FromResult(b);
-            }
-            
-            throw new InvalidOperationException("Cannot find corresponding transaction.");
+            await _keyValueDatabase.SetAsync(block);
+        }
+
+        public async Task<Block> GetAsync(Hash blockHash)
+        {
+            return (Block) await  _keyValueDatabase.GetAsync(blockHash);
         }
     }
+    
 }
