@@ -12,7 +12,7 @@ namespace AElf.Kernel
             _transactionStore = transactionStore;
         }
 
-        public async Task AddTransactionAsync(ITransaction tx)
+        public async Task AddTransactionAsync(Transaction tx)
         {
             await _transactionStore.InsertAsync(tx);
         }

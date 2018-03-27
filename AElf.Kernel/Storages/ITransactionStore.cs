@@ -7,8 +7,8 @@ namespace AElf.Kernel.Storages
 {
     public interface ITransactionStore
     {
-        Task InsertAsync(ITransaction tx);
-        Task<ITransaction> GetAsync(IHash hash);
+        Task InsertAsync(Transaction tx);
+        Task<Transaction> GetAsync(Hash hash);
     }
     
     /// <summary>
@@ -16,24 +16,21 @@ namespace AElf.Kernel.Storages
     /// </summary>
     public class TransactionStore : ITransactionStore
     {
-        private static readonly Dictionary<IHash, ITransaction> Transactions = new Dictionary<IHash, ITransaction>();
-        
-        public Task InsertAsync(ITransaction tx)
+        private readonly IKeyValueDatabase _keyValueDatabase;
+
+        public TransactionStore(IKeyValueDatabase keyValueDatabase)
         {
-            Transactions.Add(new Hash(tx.CalculateHash()), tx);
-            return Task.CompletedTask;
+            _keyValueDatabase = keyValueDatabase;
         }
 
-        public Task<ITransaction> GetAsync(IHash hash)
+        public async Task InsertAsync(Transaction tx)
         {
-            foreach (var k in Transactions.Keys)
-            {
-                if (k.Equals(hash))
-                {
-                    return Task.FromResult(Transactions[k]);
-                }
-            }
-            throw new InvalidOperationException("Cannot find corresponding transaction.");
+            await _keyValueDatabase.SetAsync(tx.GetHash(), tx);
+        }
+
+        public async Task<Transaction> GetAsync(Hash hash)
+        {
+            return (Transaction) await _keyValueDatabase.GetAsync(hash);
         }
     }
 }

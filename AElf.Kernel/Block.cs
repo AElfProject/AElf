@@ -10,7 +10,7 @@ namespace AElf.Kernel
         /// a previous block must be referred, except the genesis block.
         /// </summary>
         /// <param name="preBlockHash">Pre block hash.</param>
-        protected Block(Hash preBlockHash)
+        public Block(Hash preBlockHash)
         {
             Header = new BlockHeader(preBlockHash);
             Body = new BlockBody();

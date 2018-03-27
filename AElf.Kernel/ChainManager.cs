@@ -19,7 +19,7 @@ namespace AElf.Kernel
         }
 
 
-        public async Task AppenBlockToChainAsync(Chain chain, Block block)
+        public async Task AppendBlockToChainAsync(Chain chain, Block block)
         {
             if (chain.CurrentBlockHash != block.Header.PreviousHash)
             {
@@ -27,10 +27,7 @@ namespace AElf.Kernel
             }
             
             chain.UpdateCurrentBlock(block);
-            await _relationStore.InsertAsync(
-                new Hash(chain.CalculateHash()), 
-                new Hash(block.CalculateHash()), 
-                chain.CurrentBlockHeight);
+            await _relationStore.InsertAsync(chain, block);
             await _chainStore.UpdateAsync(chain);
 
         }

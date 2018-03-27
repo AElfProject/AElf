@@ -29,7 +29,7 @@ namespace AElf.Kernel
             var builder= new GenesisBlockBuilder();
             builder.Build(smartContract);
             await _transactionManager.AddTransactionAsync(builder.Tx);
-            await _chainManager.AppenBlockToChainAsync(chain, builder.Block);
+            await _chainManager.AppendBlockToChainAsync(chain, builder.Block);
         }
     }
 }

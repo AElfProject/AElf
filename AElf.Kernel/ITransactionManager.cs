@@ -4,6 +4,6 @@ namespace AElf.Kernel
 {
     public interface ITransactionManager
     {
-        Task AddTransactionAsync(ITransaction tx);
+        Task AddTransactionAsync(Transaction tx);
     }
 }

@@ -1,23 +1,37 @@
 ﻿using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storages
 {
     public interface IChangesStore
     {
-        Task Insert(IHash path, IHash before, IHash after);
+        Task InsertAsync(Hash path, Change before);
     }
     
     public class ChangesStore : IChangesStore
     {
-        private static readonly Dictionary<IHash, List<IHash>> Changes = 
-            new Dictionary<IHash, List<IHash>>();
+        private readonly IKeyValueDatabase _keyValueDatabase;
 
-        public Task Insert(IHash path, IHash before, IHash after)
+        public ChangesStore(IKeyValueDatabase keyValueDatabase)
         {
-            Changes[path][0] = before;
-            Changes[path][1] = after;
-            return Task.CompletedTask;
+            _keyValueDatabase = keyValueDatabase;
         }
+        
+        public async Task InsertAsync(Hash path, Change change)
+        {
+            await _keyValueDatabase.SetAsync(path, change);
+        }
+
+        public async Task<Change> GetAsync(Hash path)
+        {
+            return (Change) await _keyValueDatabase.GetAsync(path);
+        }
+    }
+
+    public struct Change
+    {
+        public Path Before { get; set; }
+        public Path After { get; set; }
     }
 }
