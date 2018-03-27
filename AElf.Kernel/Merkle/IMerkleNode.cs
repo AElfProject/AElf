@@ -2,7 +2,7 @@
 
 namespace AElf.Kernel.Merkle
 {
-    public interface IMerkleNode : IEnumerable<IMerkleNode>, ISerializable
+    public interface IMerkleNode : IEnumerable<IMerkleNode>
     {
 
     }

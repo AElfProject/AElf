@@ -1,6 +1,4 @@
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -8,8 +6,8 @@ namespace AElf.Kernel.Extensions
 {
     public static class HashExtensions
     {
-        public static int Length = 32;
-        
+        public const int Length = 32;
+
         public static byte[] CalculateHash(this object obj)
         {
             if (obj == null)
@@ -38,7 +36,7 @@ namespace AElf.Kernel.Extensions
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        private static byte[] CalculateHash(byte[] bytes)
+        public static byte[] CalculateHash(byte[] bytes)
         {
             return SHA256.Create().ComputeHash(bytes);
         }

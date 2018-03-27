@@ -11,17 +11,18 @@
     <PackageReference Include="LiteDB" Version="4.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="QuickGraphCore" Version="1.0.0" />
+    <PackageReference Include="SharpRepository.Repository" Version="2.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Serialization\AElf.Serialization.csproj">
-      <Project>{13DC325F-B46C-4A90-A67E-785AE8D92640}</Project>
-      <Name>AElf.Serialization</Name>
-    </ProjectReference>
+    <Compile Remove="Extensions\CommonExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Merkle\MerklePartriciaNode.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Merkle\MerklePartriciaTree.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Merkle\MerklePartriciaNode.cs" />
+    <Compile Remove="Merkle\BinaryMerkleNode.cs" />
   </ItemGroup>
 </Project>
