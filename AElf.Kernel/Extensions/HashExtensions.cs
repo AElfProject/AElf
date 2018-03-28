@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Extensions
 {
@@ -8,26 +9,21 @@ namespace AElf.Kernel.Extensions
     {
         public const int Length = 32;
 
-        public static byte[] CalculateHash(this object obj)
+        
+
+        public static byte[] CalculateHash(this IMessage obj)
         {
-            if (obj == null)
-            {
-                return null;
-            }
-            return CalculateHash(
-                Encoding.UTF8.GetBytes(
-                    JsonConvert.SerializeObject(obj)));
+            return CalculateHash( obj.ToByteArray() );
+
         }
         
-        public static byte[] CalculateHashWith(this object obj, object another)
+        public static byte[] CalculateHashWith(this IMessage obj, IMessage another)
         {
-            if (obj == null || another == null)
-            {
-                return null;
-            }
-            return CalculateHash(
-                Encoding.UTF8.GetBytes(
-                    JsonConvert.SerializeObject(obj) + JsonConvert.SerializeObject(another)));
+            var bytes = new byte[obj.CalculateSize() + another.CalculateSize()];
+            var stream=new CodedOutputStream(bytes);
+            obj.WriteTo(stream);
+            another.WriteTo(stream);
+            return CalculateHash(bytes);
         }
 
         #region private methods
@@ -36,7 +32,7 @@ namespace AElf.Kernel.Extensions
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public static byte[] CalculateHash(byte[] bytes)
+        public static byte[] CalculateHash(this byte[] bytes)
         {
             return SHA256.Create().ComputeHash(bytes);
         }

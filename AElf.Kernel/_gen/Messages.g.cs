@@ -22,14 +22,16 @@ namespace AElf.Kernel {
     static MessagesReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Cg5tZXNzYWdlcy5wcm90byIiCgtUcmFuc2FjdGlvbhITCgRIYXNoGAEgASgL",
-            "MgUuSGFzaCIVCgRIYXNoEg0KBVZhbHVlGAEgASgMQg6qAgtBRWxmLktlcm5l",
-            "bGIGcHJvdG8z"));
+            "Cg5tZXNzYWdlcy5wcm90byI1CgtUcmFuc2FjdGlvbhITCgRGcm9tGAEgASgL",
+            "MgUuSGFzaBIRCgJUbxgCIAEoCzIFLkhhc2giFQoESGFzaBINCgVWYWx1ZRgB",
+            "IAEoDCIeCgtCbG9ja0hlYWRlchIPCgdWZXJzaW9uGAEgASgFQg6qAgtBRWxm",
+            "Lktlcm5lbGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "Hash" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Hash), global::AElf.Kernel.Hash.Parser, new[]{ "Value" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Hash), global::AElf.Kernel.Hash.Parser, new[]{ "Value" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version" }, null, null, null)
           }));
     }
     #endregion
@@ -60,7 +62,8 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public Transaction(Transaction other) : this() {
-      Hash = other.hash_ != null ? other.Hash.Clone() : null;
+      From = other.from_ != null ? other.From.Clone() : null;
+      To = other.to_ != null ? other.To.Clone() : null;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -68,18 +71,29 @@ namespace AElf.Kernel {
       return new Transaction(this);
     }
 
-    /// <summary>Field number for the "Hash" field.</summary>
-    public const int HashFieldNumber = 1;
-    private global::AElf.Kernel.Hash hash_;
+    /// <summary>Field number for the "From" field.</summary>
+    public const int FromFieldNumber = 1;
+    private global::AElf.Kernel.Hash from_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash From {
+      get { return from_; }
+      set {
+        from_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "To" field.</summary>
+    public const int ToFieldNumber = 2;
+    private global::AElf.Kernel.Hash to_;
     /// <summary>
     ///bytes From = 1;
     ///bytes To = 2;
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Hash Hash {
-      get { return hash_; }
+    public global::AElf.Kernel.Hash To {
+      get { return to_; }
       set {
-        hash_ = value;
+        to_ = value;
       }
     }
 
@@ -96,14 +110,16 @@ namespace AElf.Kernel {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (!object.Equals(Hash, other.Hash)) return false;
+      if (!object.Equals(From, other.From)) return false;
+      if (!object.Equals(To, other.To)) return false;
       return true;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (hash_ != null) hash ^= Hash.GetHashCode();
+      if (from_ != null) hash ^= From.GetHashCode();
+      if (to_ != null) hash ^= To.GetHashCode();
       return hash;
     }
 
@@ -114,17 +130,24 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (hash_ != null) {
+      if (from_ != null) {
         output.WriteRawTag(10);
-        output.WriteMessage(Hash);
+        output.WriteMessage(From);
+      }
+      if (to_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(To);
       }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (hash_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Hash);
+      if (from_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(From);
+      }
+      if (to_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(To);
       }
       return size;
     }
@@ -134,11 +157,17 @@ namespace AElf.Kernel {
       if (other == null) {
         return;
       }
-      if (other.hash_ != null) {
-        if (hash_ == null) {
-          hash_ = new global::AElf.Kernel.Hash();
+      if (other.from_ != null) {
+        if (from_ == null) {
+          from_ = new global::AElf.Kernel.Hash();
         }
-        Hash.MergeFrom(other.Hash);
+        From.MergeFrom(other.From);
+      }
+      if (other.to_ != null) {
+        if (to_ == null) {
+          to_ = new global::AElf.Kernel.Hash();
+        }
+        To.MergeFrom(other.To);
       }
     }
 
@@ -151,10 +180,17 @@ namespace AElf.Kernel {
             input.SkipLastField();
             break;
           case 10: {
-            if (hash_ == null) {
-              hash_ = new global::AElf.Kernel.Hash();
+            if (from_ == null) {
+              from_ = new global::AElf.Kernel.Hash();
             }
-            input.ReadMessage(hash_);
+            input.ReadMessage(from_);
+            break;
+          }
+          case 18: {
+            if (to_ == null) {
+              to_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(to_);
             break;
           }
         }
@@ -272,6 +308,123 @@ namespace AElf.Kernel {
             break;
           case 10: {
             Value = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class BlockHeader : pb::IMessage<BlockHeader> {
+    private static readonly pb::MessageParser<BlockHeader> _parser = new pb::MessageParser<BlockHeader>(() => new BlockHeader());
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<BlockHeader> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[2]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public BlockHeader() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public BlockHeader(BlockHeader other) : this() {
+      version_ = other.version_;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public BlockHeader Clone() {
+      return new BlockHeader(this);
+    }
+
+    /// <summary>Field number for the "Version" field.</summary>
+    public const int VersionFieldNumber = 1;
+    private int version_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int Version {
+      get { return version_; }
+      set {
+        version_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as BlockHeader);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(BlockHeader other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Version != other.Version) return false;
+      return true;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Version != 0) hash ^= Version.GetHashCode();
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Version != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Version);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Version != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Version);
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(BlockHeader other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Version != 0) {
+        Version = other.Version;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            input.SkipLastField();
+            break;
+          case 8: {
+            Version = input.ReadInt32();
             break;
           }
         }

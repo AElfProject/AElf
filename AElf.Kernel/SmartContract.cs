@@ -24,6 +24,8 @@ namespace AElf.Kernel
 
         public async Task InvokeAsync(IHash caller, string methodname, params object[] objs)
         {
+            throw new NotImplementedException();
+            /*
             // get smartContractRegistration by accountDataProvider 
             var smartContractRegistrationBytes = await _accountDataProvider.GetDataProvider()
                 .GetDataProvider("SmartContract")
@@ -38,7 +40,7 @@ namespace AElf.Kernel
             {
                 // if contract is static, first param will be ignore
                 await (Task) method.Invoke(null, objs);
-            }
+            }*/
         }
 
         public abstract IHash GetHash();
