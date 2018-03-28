@@ -135,8 +135,8 @@ namespace AElf.Kernel.Merkle
         {
             var combineHash = 
                 hash2?.Value != null ? 
-                    hash1.Value.ToHex() + hash2.Value.ToHex() : 
-                    hash1.Value.ToHex();
+                    hash1.Value.ToByteArray().ToHex() + hash2.Value.ToByteArray().ToHex() : 
+                    hash1.Value.ToByteArray().ToHex();
 
             return _cache.TryGetValue(combineHash, out var resultHash)
                 ? resultHash

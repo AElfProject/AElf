@@ -8,6 +8,7 @@
     <Compile Remove="Merkle\Node.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.5.1" />
     <PackageReference Include="LiteDB" Version="4.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="QuickGraphCore" Version="1.0.0" />
@@ -24,5 +25,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Merkle\BinaryMerkleNode.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="_gen" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Google.Protobuf, Version=3.5.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604">
+      <HintPath>..\..\..\..\.nuget\packages\google.protobuf\3.5.1\lib\netstandard1.0\Google.Protobuf.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

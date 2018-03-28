@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 
@@ -25,13 +26,15 @@ namespace AElf.Kernel.Storages
         
         public async Task InsertAsync(Chain chain, Block block)
         {
-            await _keyValueDatabase.SetAsync(chain.NextBlockRelationHash, block.GetHash());
+            throw new NotImplementedException();
+            //await _keyValueDatabase.SetAsync(chain.NextBlockRelationHash, block.GetHash());
         }
 
         public async Task<Hash> GetAsync(Hash chainId, long height)
         {
-            var hash = new Hash(chainId.CalculateHashWith(height));
-            return (Hash) await _keyValueDatabase.GetAsync(hash);
+            throw new NotImplementedException();
+            //var hash = new Hash(chainId.CalculateHashWith(height));
+            //return (Hash) await _keyValueDatabase.GetAsync(hash);
         }
     }
 }

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel";
+
+message Transaction
+{
+    Hash From = 1;
+    Hash To = 2;
+    //bytes From = 1;
+    //bytes To = 2;
+    
+    //string MethodName = 3;
+    /* public object[] Params { get; set; } */
+}
+
+message Hash{
+    bytes Value = 1;
+}
+
+message BlockHeader{
+    int32 Version = 1;
+}

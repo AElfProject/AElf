@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
@@ -99,10 +100,10 @@ namespace AElf.Kernel.KernelAccount
             // create new account for the contract
             var calllerContext =
                 _accountContextService.GetAccountDataContext(caller, _accountDataProvider.Context.ChainId);
-            
-            var hash = new Hash(calllerContext.CalculateHashWith(smartContractRegistration.Bytes));
-            _accountContextService.GetAccountDataContext(hash, _accountDataProvider.Context.ChainId);
-            return Task.FromResult((IAccount) new Account(hash));
+            throw new NotImplementedException();
+            //var hash = new Hash(calllerContext.CalculateHashWith(smartContractRegistration.Bytes));
+            //_accountContextService.GetAccountDataContext(hash, _accountDataProvider.Context.ChainId);
+            //return Task.FromResult((IAccount) new Account(hash));
         }
     }
 

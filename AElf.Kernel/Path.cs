@@ -39,22 +39,26 @@ namespace AElf.Kernel
 
         public IHash GetPointerHash()
         {
+            throw new NotImplementedException();
+            /*
             if (!PointerValidation())
             {
                 throw new InvalidOperationException("Invalide pointer.");
             }
 
-            return new Hash(this.CalculateHash());
+            return new Hash(this.CalculateHash());*/
         }
 
         public IHash GetPathHash()
         {
+            throw new NotImplementedException();
+            /*
             if (!PathValidation())
             {
                 throw new InvalidOperationException("Invalide path.");
             }
 
-            return new Hash(this.CalculateHash());
+            return new Hash(this.CalculateHash());*/
         }
 
         private bool PointerValidation()

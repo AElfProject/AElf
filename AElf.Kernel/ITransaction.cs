@@ -33,12 +33,12 @@
         /// <summary>
         /// The caller
         /// </summary>
-        IAccount From { get; set; }
+        Hash From { get; set; }
 
         /// <summary>
         /// The instrance of a smart contract
         /// </summary>
-        IAccount To { get; set; }
+        Hash To { get; set; }
 
         ulong IncrementId { get; set; }
     }
