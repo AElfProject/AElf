@@ -12,8 +12,6 @@ namespace AElf.Kernel
         public long CurrentBlockHeight { get; set; }
         public Hash CurrentBlockHash { get; set; }
         
-        public Hash NextBlockRelationHash => new Hash(Id.CalculateHashWith(CurrentBlockHeight));
-
         public void UpdateCurrentBlock(Block block)
         {
             CurrentBlockHeight += 1;

@@ -35,9 +35,9 @@ namespace AElf.Kernel
         /// <param name="chain"></param>
         public async Task ExecuteAsync(ITransaction tx, IChainContext chain)
         {
-            var smartContract = await _smartContractService.GetAsync(tx.To.GetAddress(), chain);
+            var smartContract = await _smartContractService.GetAsync(tx.To, chain);
 
-            await smartContract.InvokeAsync(tx.From.GetAddress(), tx.MethodName, tx.Params);
+            await smartContract.InvokeAsync(tx.From, tx.MethodName, tx.Params);
         }
 
 //            

@@ -11,6 +11,12 @@ namespace AElf.Kernel.Extensions
 
         
 
+        public static byte[] CalculateHash(this string obj)
+        {
+            return CalculateHash( Encoding.UTF8.GetBytes( obj ) );
+
+        }
+        
         public static byte[] CalculateHash(this IMessage obj)
         {
             return CalculateHash( obj.ToByteArray() );

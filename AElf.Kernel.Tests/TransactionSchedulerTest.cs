@@ -46,7 +46,7 @@ namespace AElf.Kernel.Tests
         }
         
         
-        private ITransaction CreateTransaction(byte b, IAccount from, IAccount to)
+        private ITransaction CreateTransaction(byte b, Hash from, Hash to)
         {
             Mock<Hash> hash = new Mock<Hash>();
             hash.Setup(h => h.GetHashBytes()).Returns(new []{b});
