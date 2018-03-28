@@ -10,19 +10,6 @@ namespace AElf.Kernel.Tests
 {
     public class HashTests
     {
-
-        [Fact]
-        public async Task MerkleTree()
-        {
-            var mt = new Mock<IMerkleTree>();
-
-            mt.Setup(p => p.AddNode(It.IsAny<IHash>()));
-
-            await Task.Delay(1000);
-            
-
-        }
-
         [Fact]
         public void BasicTest()
         {
@@ -42,6 +29,31 @@ namespace AElf.Kernel.Tests
             
             Assert.True(dict.TryGetValue(anotherHash, out var test));
             Assert.Equal(test, "test");
+        }
+
+        [Fact]
+        public void PathTest()
+        {
+            var path = new Path();
+            path.SetChainHash(Hash.Generate())
+                .SetAccount(Hash.Generate())
+                .SetDataProvider(Hash.Generate());
+            
+            Assert.False(path.IsPointer);
+            Assert.NotNull(path.GetPathHash());
+        }
+        
+        [Fact]
+        public void PointerTest()
+        {
+            var path = new Path();
+            path.SetChainHash(Hash.Generate())
+                .SetBlockHash(Hash.Generate())
+                .SetAccount(Hash.Generate())
+                .SetDataProvider(Hash.Generate());
+            
+            Assert.True(path.IsPointer);
+            Assert.NotNull(path.GetPointerHash());
         }
         
     }

@@ -7,10 +7,6 @@ namespace AElf.Kernel.Extensions
 {
     public static class HashExtensions
     {
-        public const int Length = 32;
-
-        
-
         public static byte[] CalculateHash(this string obj)
         {
             return CalculateHash( Encoding.UTF8.GetBytes( obj ) );
