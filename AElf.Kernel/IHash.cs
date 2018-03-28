@@ -1,19 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="" />
     /// <summary>
     /// Hash result
     /// </summary>
-    public interface IHash : IEquatable<IHash>
+    public interface IHash : IEquatable<IHash>, IComparer<IHash>
     {
-        byte[] Value { get; set; }
-        byte[] GetHashBytes();
+        ByteString Value { get; set; }
     }
 
-    public interface IHash<T> : IHash
-    {
-
-    }
 }

@@ -3,14 +3,35 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Account.cs" />
     <Compile Remove="MerkleNode.cs" />
     <Compile Remove="MerkleTree.cs" />
     <Compile Remove="Merkle\Node.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.5.1" />
     <PackageReference Include="LiteDB" Version="4.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="QuickGraph" Version="3.6.61119.7" />
+    <PackageReference Include="QuickGraphCore" Version="1.0.0" />
+    <PackageReference Include="SharpRepository.Repository" Version="2.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Extensions\CommonExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Merkle\MerklePartriciaNode.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Merkle\MerklePartriciaTree.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Merkle\BinaryMerkleNode.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="_gen" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Google.Protobuf, Version=3.5.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604">
+      <HintPath>..\..\..\..\.nuget\packages\google.protobuf\3.5.1\lib\netstandard1.0\Google.Protobuf.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
