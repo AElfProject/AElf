@@ -10,8 +10,7 @@ namespace AElf.Kernel.Merkle
     /// <summary>
     /// This implementation of binary merkle tree only add hash values as its leaves.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class BinaryMerkleTree : IMerkleTree
+    public class BinaryMerkleTree
     {
         /// <summary>
         /// Merkle nodes
