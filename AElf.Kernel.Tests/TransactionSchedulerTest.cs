@@ -35,18 +35,18 @@ namespace AElf.Kernel.Tests
             return account.Object;
         }
         
-        private List<IAccount> CreateAccountList(int accountCount)
+        private List<Hash> CreateHashList(int accountCount)
         {
-            List<IAccount> accounts = new List<IAccount>();
+            List<Hash> hashes = new List<Hash>();
             for (int j = 0; j < accountCount; j++)
             {
-                accounts.Add(CreateAccount((byte)(j + 'a')));
+                hashes.Add(CreateHash((byte)(j + 'a')).Object);
             }
-            return accounts;
+            return hashes;
         }
         
         
-        private ITransaction CreateTransaction(byte b, IAccount from, IAccount to)
+        private ITransaction CreateTransaction(byte b, Hash from, Hash to)
         {
             Mock<Hash> hash = new Mock<Hash>();
             hash.Setup(h => h.GetHashBytes()).Returns(new []{b});
@@ -64,29 +64,25 @@ namespace AElf.Kernel.Tests
             return transaction.Object;
         }
 
-        /*
+        
         [Fact]
         public void SchedulerTest()
         {
             
-            var worldState = new WorldState();
-            var smartContractZero = new SmartContractZero();
-            var accountZero = new AccountZero(smartContractZero);
-            var accountManager = new AccountManager(worldState);
-            ISmartContractManager sm = null;
-            var transactionExecutingManager = new TransactionExecutingManager(worldState, accountZero, accountManager,sm);
+            ISmartContractService sm = null;
+            IChainContext context = null;
+            var transactionExecutingManager = new TransactionExecutingManager(sm);
             
             // simple demo cases
 
-
-            var accounts = CreateAccountList(10);
+            var accounts = CreateHashList(10);
             // one tx
             // A
             var tx1 = CreateTransaction((byte) 'A', accounts[0], accounts[1]);
             
             var transactions = new List<ITransaction> {tx1};
             
-            transactionExecutingManager.Schedule(transactions);
+            transactionExecutingManager.Schedule(transactions, context);
 
             var plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(1, plan.Count);
@@ -98,7 +94,7 @@ namespace AElf.Kernel.Tests
             // A B
             var tx2 = CreateTransaction((byte) 'B', accounts[2], accounts[3] );
             transactions = new List<ITransaction>{tx1, tx2};
-            transactionExecutingManager.Schedule(transactions);
+            transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(1, plan.Count);
             Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
@@ -111,7 +107,7 @@ namespace AElf.Kernel.Tests
             // A-B
             tx2 = CreateTransaction((byte) 'B', accounts[0], accounts[1] );
             transactions = new List<ITransaction>{tx1, tx2};
-            transactionExecutingManager.Schedule(transactions);
+            transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
             Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
@@ -127,7 +123,7 @@ namespace AElf.Kernel.Tests
             // A-B C
             var tx3 = CreateTransaction((byte) 'C', accounts[2], accounts[3]);
             transactions = new List<ITransaction>{tx1, tx2, tx3};
-            transactionExecutingManager.Schedule(transactions);
+            transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
             Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
@@ -139,7 +135,7 @@ namespace AElf.Kernel.Tests
             tx2 = CreateTransaction((byte) 'B', accounts[1], accounts[2]);
             tx3 = CreateTransaction((byte) 'C', accounts[2], accounts[3]);
             transactions = new List<ITransaction>{tx1, tx2, tx3};
-            transactionExecutingManager.Schedule(transactions);
+            transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
             Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
@@ -153,7 +149,7 @@ namespace AElf.Kernel.Tests
             
             tx3 = CreateTransaction((byte) 'C', accounts[0], accounts[2]);
             transactions = new List<ITransaction>{tx1, tx2, tx3};
-            transactionExecutingManager.Schedule(transactions);
+            transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(3, plan.Count);
             Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
@@ -169,7 +165,7 @@ namespace AElf.Kernel.Tests
             tx3 = CreateTransaction((byte) 'C', accounts[3], accounts[4]);
             var tx4 = CreateTransaction((byte) 'D', accounts[5], accounts[6]);
             transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
-            transactionExecutingManager.Schedule(transactions);
+            transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
             Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
@@ -185,7 +181,7 @@ namespace AElf.Kernel.Tests
             tx4 = CreateTransaction((byte) 'D', accounts[4], accounts[5]);
 
             transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
-            transactionExecutingManager.Schedule(transactions);
+            transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
             Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
@@ -212,7 +208,7 @@ namespace AElf.Kernel.Tests
             tx4 = CreateTransaction((byte) 'D', accounts[3], accounts[0]);
 
             transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
-            transactionExecutingManager.Schedule(transactions);
+            transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
             Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
@@ -230,7 +226,7 @@ namespace AElf.Kernel.Tests
             tx4 = CreateTransaction((byte) 'D', accounts[3], accounts[0]);
 
             transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
-            transactionExecutingManager.Schedule(transactions);
+            transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(3, plan.Count);
             Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
@@ -246,7 +242,7 @@ namespace AElf.Kernel.Tests
             tx4 = CreateTransaction((byte) 'D', accounts[0], accounts[1]);
 
             transactions = new List<ITransaction>{tx1, tx2, tx3, tx4};
-            transactionExecutingManager.Schedule(transactions);
+            transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(4, plan.Count);
             Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
@@ -255,7 +251,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(68, plan[3].ElementAt(0).GetHash().GetHashBytes()[0]);
             
         }
-*/
+
         
     }
 }

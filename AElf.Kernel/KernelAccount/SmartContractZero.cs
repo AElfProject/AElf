@@ -70,9 +70,7 @@ namespace AElf.Kernel.KernelAccount
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
             var smartContract = await runner.RunAsync(reg);
 
-            var acc = new Account(reg.Hash);
-
-            var dp = _worldStateManager.GetAccountDataProvider(_accountDataProvider.Context.ChainId, acc.GetAddress());
+            var dp = _worldStateManager.GetAccountDataProvider(_accountDataProvider.Context.ChainId, reg.Hash);
 
             await smartContract.InititalizeAsync(dp);
 
@@ -94,7 +92,7 @@ namespace AElf.Kernel.KernelAccount
         /// <param name="caller"></param>
         /// <param name="smartContractRegistration"></param>
         /// <returns></returns>
-        public Task<IAccount> DeployAccount(Hash caller, SmartContractRegistration smartContractRegistration)
+        public Task<Hash> DeployAccount(Hash caller, SmartContractRegistration smartContractRegistration)
         {
             // create new account for the contract
             var calllerContext =
@@ -102,7 +100,7 @@ namespace AElf.Kernel.KernelAccount
             
             var hash = new Hash(calllerContext.CalculateHashWith(smartContractRegistration.Bytes));
             _accountContextService.GetAccountDataContext(hash, _accountDataProvider.Context.ChainId);
-            return Task.FromResult((IAccount) new Account(hash));
+            return Task.FromResult(hash);
         }
     }
 
