@@ -7,7 +7,7 @@ using AElf.Kernel.KernelAccount;
 
 namespace AElf.Kernel
 {
-    public class Chain
+    public class Chain : IChain
     {
         public long CurrentBlockHeight { get; set; }
         public Hash CurrentBlockHash { get; set; }
@@ -31,6 +31,8 @@ namespace AElf.Kernel
         public Chain(Hash id)
         {
             Id = id;
+            CurrentBlockHash = null;
+            CurrentBlockHeight = 0;
         }
     }
 }
