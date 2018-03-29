@@ -55,12 +55,17 @@ namespace AElf.Kernel
 
         public static bool operator ==(Hash h1, Hash h2)
         {
-            return h1 != null && h1.Equals(h2);
+            // ReSharper disable once ConvertIfStatementToReturnStatement
+            if (object.ReferenceEquals(h1, null))
+            {
+                return object.ReferenceEquals(h2, null);
+            }
+            return  h1.Equals(h2);
         }
 
         public static bool operator !=(Hash h1, Hash h2)
         {
-            return h1 != null && !h1.Equals(h2);
+            return !(h1 == h2);
         }
 
     }

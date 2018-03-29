@@ -4,14 +4,8 @@ using System;
 
 namespace AElf.Kernel
 {
-    public class BlockHeader : IBlockHeader
+    public partial class BlockHeader : IBlockHeader
     {
-        /// <summary>
-        /// Blockchain version.
-        /// </summary>
-        public const uint Version = 0x1;
-
-
         /// <summary>
         /// The miner's signature.
         /// </summary>

@@ -1,39 +1,41 @@
 ﻿using System;
+using System.Linq;
 using AElf.Kernel.Extensions;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
     public class Path : IPath
     {
-        private bool IsPointer { get; set; }
+        public bool IsPointer { get; private set; }
 
-        private IHash _chainHash;
-        private IHash _blockHash;
-        private IHash _accountAddress;
-        private string _itemName = "";
+        private Hash _chainHash;
+        private Hash _blockHash;
+        private Hash _accountAddress;
+        private Hash _dataProviderHash;
 
-        public Path SetChainHash(IHash chainHash)
+        public Path SetChainHash(Hash chainHash)
         {
             _chainHash = chainHash;
             return this;
         }
         
-        public Path SetBlockHash(IHash blockHash)
+        public Path SetBlockHash(Hash blockHash)
         {
             _blockHash = blockHash;
             IsPointer = true;
             return this;
         }
         
-        public Path SetAccount(IHash accountAddress)
+        public Path SetAccount(Hash accountAddress)
         {
             _accountAddress = accountAddress;
             return this;
         }
 
-        public Path SetItemName(string itemName)
+        public Path SetDataProvider(Hash dataProviderHash)
         {
-            _itemName = itemName;
+            _dataProviderHash = dataProviderHash;
             return this;
         }
 
@@ -44,7 +46,7 @@ namespace AElf.Kernel
                 throw new InvalidOperationException("Invalide pointer.");
             }
 
-            return new Hash(this.CalculateHash());
+            return CalculateListHash(_chainHash, _blockHash, _accountAddress, _dataProviderHash);
         }
 
         public IHash GetPathHash()
@@ -54,17 +56,27 @@ namespace AElf.Kernel
                 throw new InvalidOperationException("Invalide path.");
             }
 
-            return new Hash(this.CalculateHash());
+            return CalculateListHash(_chainHash, _accountAddress, _dataProviderHash);
         }
 
         private bool PointerValidation()
         {
-            return _chainHash != null && _blockHash != null && _accountAddress != null && _itemName != "";
+            return _chainHash != null && _blockHash != null && _accountAddress != null && _dataProviderHash != null;
         }
 
         private bool PathValidation()
         {
-            return !IsPointer && _chainHash != null && _accountAddress != null && _itemName != "";
+            return !IsPointer && _chainHash != null && _accountAddress != null && _dataProviderHash != null;
+        }
+
+        private Hash CalculateListHash(params Hash[] hashes)
+        {
+            if (hashes.Length == 1)
+            {
+                return hashes[0];
+            }
+            var remains = hashes.Skip(1).ToArray();
+            return new Hash(hashes[0].CalculateHashWith(CalculateListHash(remains)));
         }
     }
 }

@@ -8,7 +8,7 @@ namespace AElf.Kernel
     /// <summary>
     /// Hash result
     /// </summary>
-    public interface IHash : IEquatable<IHash>, IComparer<IHash>
+    public interface IHash : IEquatable<IHash>, IComparer<IHash>, IMessage
     {
         ByteString Value { get; set; }
     }

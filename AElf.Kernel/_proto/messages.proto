@@ -4,7 +4,8 @@ option csharp_namespace = "AElf.Kernel";
 
 message Transaction
 {
-    Hash Hash = 1;
+    Hash From = 1;
+    Hash To = 2;
     //bytes From = 1;
     //bytes To = 2;
     
@@ -14,4 +15,8 @@ message Transaction
 
 message Hash{
     bytes Value = 1;
+}
+
+message BlockHeader{
+    int32 Version = 1;
 }
