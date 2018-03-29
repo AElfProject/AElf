@@ -5,9 +5,11 @@
     /// </summary>
     public interface IBlock
     {
-        IHash GetHash();
-        IBlockHeader GetHeader();
-        IBlockBody GetBody();
-        bool AddTransaction(ITransaction tx);
+        Hash GetHash();
+        bool AddTransaction(Hash tx);
+        
+        IBlockHeader Header { get; set; }
+        
+        IBlockBody Body { get; set; }
     }
 }
