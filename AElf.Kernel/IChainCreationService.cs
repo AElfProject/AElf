@@ -8,7 +8,7 @@ namespace AElf.Kernel
     /// </summary>
     public interface IChainCreationService
     {
-        Task CreateNewChainAsync(Hash chainId,ISmartContractZero smartContract);
+        Task<IChain> CreateNewChainAsync(Hash chainId,ISmartContractZero smartContract);
     }
     
     public class ChainCreationService: IChainCreationService
@@ -23,13 +23,14 @@ namespace AElf.Kernel
         }
 
 
-        public async Task CreateNewChainAsync(Hash chainId, ISmartContractZero smartContract)
+        public async Task<IChain> CreateNewChainAsync(Hash chainId, ISmartContractZero smartContract)
         {
             var chain = await _chainManager.AddChainAsync(chainId);
             var builder= new GenesisBlockBuilder();
             builder.Build(smartContract);
             await _transactionManager.AddTransactionAsync(builder.Tx);
             await _chainManager.AppendBlockToChainAsync(chain, builder.Block);
+            return chain;
         }
     }
 }
