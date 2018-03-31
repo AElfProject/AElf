@@ -21,7 +21,8 @@ namespace AElf.Kernel
                 return sm;
             }
 
-            return await sm.GetSmartContractAsync(account);        }
+            return await sm.GetSmartContractAsync(account);        
+        }
     }
 
     public interface ISmartContractManager

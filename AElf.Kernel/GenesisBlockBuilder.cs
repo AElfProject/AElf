@@ -13,8 +13,7 @@ namespace AElf.Kernel
         {
             var block = new GenesisBlock
             {
-                Header = new BlockHeader(Hash.Zero),
-                Body = new BlockBody()
+                
             };
             var tx = new Transaction
             {

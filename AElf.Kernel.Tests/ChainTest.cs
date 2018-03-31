@@ -24,7 +24,7 @@ namespace AElf.Kernel.Tests
         }
 
         [Fact]
-        public async Task<IChain> CreateChain()
+        public async Task<Chain> CreateChain()
         {
             var chainId = Hash.Generate();
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, _smartContractZero);

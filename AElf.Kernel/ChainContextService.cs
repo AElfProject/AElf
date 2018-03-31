@@ -28,7 +28,7 @@ namespace AElf.Kernel
             var result= Task.Factory.StartNew(async () =>
             {
                 var zero = await _smartContractManager.GetAsync(Hash.Zero);
-                var smc =await _contractRunner.RunAsync(zero);
+                var smc = await _contractRunner.RunAsync(zero);
                 var context = new ChainContext((ISmartContractZero) smc, chainId);
                 _chainContexts[chainId] = context;
                 return context;

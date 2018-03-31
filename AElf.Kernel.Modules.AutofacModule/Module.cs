@@ -37,7 +37,7 @@ namespace AElf.Kernel.Modules.AutofacModule
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
             
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));
-            builder.RegisterType(typeof(SmartContractRunner)).As(typeof(ISmartContractRunner)).SingleInstance();
+            builder.RegisterType(typeof(CSharpSmartContractRunner)).SingleInstance();
 
             base.Load(builder);
         }

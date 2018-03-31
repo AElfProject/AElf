@@ -110,11 +110,5 @@ namespace AElf.Kernel.KernelAccount
         Task<ISmartContract> RunAsync(SmartContractRegistration reg);
     }
 
-    public class SmartContractRunner : ISmartContractRunner
-    {
-        public Task<ISmartContract> RunAsync(SmartContractRegistration reg)
-        {
-            throw new NotImplementedException();
-        }
-    }
+    
 }
