@@ -20,6 +20,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             builder.RegisterType(typeof(ChainManager)).As(typeof(IChainManager)).SingleInstance();
             builder.RegisterType(typeof(TransactionManager)).As(typeof(ITransactionManager)).SingleInstance();
             builder.RegisterType(typeof(WorldStateManager)).As(typeof(IWorldStateManager)).SingleInstance();
+            builder.RegisterType(typeof(SmartContractManager)).As(typeof(ISmartContractManager)).SingleInstance();
 
             builder.RegisterType(typeof(ChainStore)).As(typeof(IChainStore)).SingleInstance();            
             builder.RegisterType(typeof(ChainBlockRelationStore)).As(typeof(IChainBlockRelationStore)).SingleInstance();
@@ -28,10 +29,15 @@ namespace AElf.Kernel.Modules.AutofacModule
 
             builder.RegisterType(typeof(ChainCreationService)).As(typeof(IChainCreationService)).SingleInstance();
             builder.RegisterType(typeof(AccountContextService)).As(typeof(IAccountContextService)).SingleInstance();
-            builder.RegisterType(typeof(AccountDataProvider)).As(typeof(IAccountDataProvider)).PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies).SingleInstance();
+            builder.RegisterType(typeof(ChainContextService)).As(typeof(IChainContextService)).SingleInstance();
+            
+            builder.RegisterType(typeof(AccountDataProvider)).As(typeof(IAccountDataProvider))
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
             builder.RegisterType(typeof(AccountDataContext)).As(typeof(IAccountDataContext))
-                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies).InstancePerLifetimeScope();
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+            
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));
+            builder.RegisterType(typeof(SmartContractRunner)).As(typeof(ISmartContractRunner)).SingleInstance();
 
             base.Load(builder);
         }
