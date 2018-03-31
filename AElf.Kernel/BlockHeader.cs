@@ -40,6 +40,11 @@ namespace AElf.Kernel
 
         public Hash PreviousHash { get; set; }
         public Hash Hash { get; set; }
+        
+        // block index in chain
+        public ulong Index { get; set;}
+        
+        
 
         /// <summary>
         /// Gets the transaction merkle tree root.
