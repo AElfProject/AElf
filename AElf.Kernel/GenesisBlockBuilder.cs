@@ -11,7 +11,7 @@ namespace AElf.Kernel
 
         public GenesisBlockBuilder Build(ISmartContractZero smartContractZero)
         {
-            var block = new GenesisBlock()
+            var block = new GenesisBlock
             {
                 Header = new BlockHeader(Hash.Zero),
                 Body = new BlockBody()
@@ -22,9 +22,9 @@ namespace AElf.Kernel
                 MethodName = nameof(ISmartContractZero.RegisterSmartContract),
                 Params = new object[]
                 {
-                    new SmartContractRegistration()
+                    new SmartContractRegistration
                     {
-                        Category = 0,
+                        Category = 0
                     }
                 }
                 

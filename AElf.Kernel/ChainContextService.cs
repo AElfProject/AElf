@@ -18,7 +18,7 @@ namespace AElf.Kernel
             _smartContractManager = smartContractManager;
             _contractRunner = contractRunner;
         }
-
+    
 
         public IChainContext GetChainContext(IHash chainId)
         {
