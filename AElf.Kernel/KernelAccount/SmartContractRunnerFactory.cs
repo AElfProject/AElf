@@ -14,10 +14,11 @@ namespace AElf.Kernel.KernelAccount
             throw new NotImplementedException();
         }
     }
+
     
     public class CSharpSmartContractRunner : ISmartContractRunner
     {
-        private ISerializer<SmartContractRegistration> _serializer;
+        private readonly ISerializer<SmartContractRegistration> _serializer;
 
         public CSharpSmartContractRunner(ISerializer<SmartContractRegistration> serializer)
         {
@@ -27,6 +28,22 @@ namespace AElf.Kernel.KernelAccount
         public async Task<ISmartContract> RunAsync(SmartContractRegistration reg)
         {
             return await Task.FromResult(new CSharpSmartContract(_serializer, reg));
+        }
+    }
+
+    public class SmartContractZeroRunner : ISmartContractRunner
+    {
+        private readonly ISerializer<SmartContractZero> _serializer;
+
+        public SmartContractZeroRunner(ISerializer<SmartContractZero> serializer)
+        {
+            _serializer = serializer;
+        }
+
+        public Task<ISmartContract> RunAsync(SmartContractRegistration reg)
+        {
+            ISmartContract smartContract = _serializer.Deserialize(reg.Bytes);
+            return Task.FromResult(smartContract);
         }
     }
 }
