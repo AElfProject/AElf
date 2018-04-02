@@ -1,9 +1,10 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Storages;
 
 namespace AElf.Kernel
 {
-    public class SmartContractService:ISmartContractService
+    public class SmartContractService : ISmartContractService
     {
         private IBlockManager _blockManager;
         
@@ -27,20 +28,28 @@ namespace AElf.Kernel
 
     public interface ISmartContractManager
     {
-        Task<SmartContractRegistration> GetAsync(Hash account);
+        Task<SmartContractRegistration> GetAsync(Hash chainId, Hash account);
         Task<SmartContractRegistration> InsertAsync(SmartContractRegistration reg);
     }
 
     public class SmartContractManager : ISmartContractManager
     {
-        public Task<SmartContractRegistration> GetAsync(Hash account)
+        private readonly ISmartContractRegistrationStore _smartContractRegisterationStore;
+
+        public SmartContractManager(ISmartContractRegistrationStore smartContractRegisterationStore)
         {
-            throw new System.NotImplementedException();
+            _smartContractRegisterationStore = smartContractRegisterationStore;
+        }
+
+        public Task<SmartContractRegistration> GetAsync(Hash chainId, Hash account)
+        {
+            return _smartContractRegisterationStore.GetAsync(chainId, account);
         }
 
         public Task<SmartContractRegistration> InsertAsync(SmartContractRegistration reg)
         {
-            throw new System.NotImplementedException();
+            _smartContractRegisterationStore.InsertAsync(reg);
+            return Task.FromResult(reg);
         }
     }
 }
