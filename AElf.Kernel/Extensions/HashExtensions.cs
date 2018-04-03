@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
@@ -16,17 +17,19 @@ namespace AElf.Kernel.Extensions
         public static byte[] CalculateHash(this IMessage obj)
         {
             return CalculateHash( obj.ToByteArray() );
-
         }
         
         public static byte[] CalculateHashWith(this IMessage obj, IMessage another)
         {
             var bytes = new byte[obj.CalculateSize() + another.CalculateSize()];
-            var stream=new CodedOutputStream(bytes);
-            obj.WriteTo(stream);
-            another.WriteTo(stream);
-            return CalculateHash(bytes);
+            using (var stream = new CodedOutputStream(bytes))
+            {
+                obj.WriteTo(stream);
+                another.WriteTo(stream);
+                return CalculateHash(bytes);
+            }
         }
+        
 
         #region private methods
         /// <summary>

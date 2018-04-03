@@ -6,11 +6,9 @@ message Transaction
 {
     Hash From = 1;
     Hash To = 2;
-    //bytes From = 1;
-    //bytes To = 2;
-    
-    //string MethodName = 3;
-    /* public object[] Params { get; set; } */
+    uint64 IncrementId = 3;
+    string MethodName = 4;
+    bytes Params = 5;
 }
 
 message Hash{
@@ -19,4 +17,15 @@ message Hash{
 
 message BlockHeader{
     int32 Version = 1;
+    Hash PerviousBlock = 2;
+}
+
+message BlockBody{
+    Hash BlockHeader = 1;
+    repeated Hash Transactions =2;
+}
+
+message Block{
+    BlockHeader Header = 1;
+    BlockBody Body = 2;
 }

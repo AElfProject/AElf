@@ -2,6 +2,6 @@
 {
     public interface IHashProvider
     {
-        IHash GetHash();
+        Hash GetHash();
     }
 }
