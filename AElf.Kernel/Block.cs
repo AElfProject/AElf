@@ -3,7 +3,7 @@ using System;
 
 namespace AElf.Kernel
 {
-    public class Block
+    public partial class Block : IBlock
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AElf.Kernel.Block"/> class.
@@ -28,10 +28,6 @@ namespace AElf.Kernel
             Header.AddTransaction(tx);
             return true;
         }
-
-        public BlockHeader Header { get; set; }
-        public BlockBody Body { get; set; }
-
 
         /// <summary>
         /// Returns the block hash.

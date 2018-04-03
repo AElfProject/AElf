@@ -43,6 +43,6 @@ namespace AElf.Kernel
             }*/
         }
 
-        public abstract IHash GetHash();
+        public abstract Hash GetHash();
     }
 }
