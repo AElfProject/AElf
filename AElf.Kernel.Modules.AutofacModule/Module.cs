@@ -15,17 +15,19 @@ namespace AElf.Kernel.Modules.AutofacModule
             //builder.RegisterAssemblyTypes(dataAccess).Where(t=> t.Name.EndsWith("Service")|| t.Name.EndsWith("Manager")).AsImplementedInterfaces();
 
             builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
-            builder.RegisterType(typeof(SmartContractZero)).As(typeof(ISmartContractZero)).SingleInstance();
+            builder.RegisterType(typeof(SmartContractZero)).As(typeof(ISmartContractZero));
             builder.RegisterType(typeof(SmartContractRunnerFactory)).As(typeof(ISmartContractRunnerFactory)).SingleInstance();
             builder.RegisterType(typeof(ChainManager)).As(typeof(IChainManager)).SingleInstance();
             builder.RegisterType(typeof(TransactionManager)).As(typeof(ITransactionManager)).SingleInstance();
             builder.RegisterType(typeof(WorldStateManager)).As(typeof(IWorldStateManager)).SingleInstance();
             builder.RegisterType(typeof(SmartContractManager)).As(typeof(ISmartContractManager)).SingleInstance();
+            builder.RegisterType(typeof(BlockManager)).As(typeof(IBlockManager)).SingleInstance();
 
             builder.RegisterType(typeof(ChainStore)).As(typeof(IChainStore)).SingleInstance();            
             builder.RegisterType(typeof(ChainBlockRelationStore)).As(typeof(IChainBlockRelationStore)).SingleInstance();
-            builder.RegisterType(typeof(KeyValueDatabase)).As(typeof(IKeyValueDatabase)).SingleInstance();
             builder.RegisterType(typeof(TransactionStore)).As(typeof(ITransactionStore)).SingleInstance();            
+            builder.RegisterType(typeof(BlockStore)).As(typeof(IBlockStore)).SingleInstance();
+            builder.RegisterType(typeof(KeyValueDatabase)).As(typeof(IKeyValueDatabase)).SingleInstance();
 
             builder.RegisterType(typeof(ChainCreationService)).As(typeof(IChainCreationService)).SingleInstance();
             builder.RegisterType(typeof(AccountContextService)).As(typeof(IAccountContextService)).SingleInstance();
