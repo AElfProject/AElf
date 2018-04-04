@@ -37,7 +37,7 @@ namespace AElf.Kernel.Tests
                 }
             };
             await _smartContractZero.InititalizeAsync(adp);
-            Assert.Equal(1, chain.CurrentBlockHeight);
+            Assert.Equal(chain.CurrentBlockHeight, (ulong)1);
             return chain;
         }
 
@@ -57,13 +57,10 @@ namespace AElf.Kernel.Tests
             Assert.Equal(context.SmartContractZero, _smartContractZero);
         }
 
-        public async Task AppendBlock()
+        public async Task AppendBlock(Chain chain, Block block)
         {
-            var chain = await CreateChain();
-            Assert.Equal(chain.CurrentBlockHeight, 1);
-            var block = new Block(chain.CurrentBlockHash);
             await _chainManager.AppendBlockToChainAsync(chain, block);
-            Assert.Equal(chain.CurrentBlockHeight, 2);
+            Assert.Equal(chain.CurrentBlockHeight, (ulong)2);
             Assert.Equal(chain.CurrentBlockHash, block.GetHash());
         }
     }

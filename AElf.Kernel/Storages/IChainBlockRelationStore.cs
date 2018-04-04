@@ -9,7 +9,7 @@ namespace AElf.Kernel.Storages
     {
         Task InsertAsync(Chain chain, Block block);
 
-        Task<Hash> GetAsync(Hash chainHash, long height);
+        Task<Hash> GetAsync(Hash chainHash, ulong height);
     }
     
     /// <summary>
@@ -30,7 +30,7 @@ namespace AElf.Kernel.Storages
             //await _keyValueDatabase.SetAsync(chain.NextBlockRelationHash, block.GetHash());
         }
 
-        public async Task<Hash> GetAsync(Hash chainId, long height)
+        public async Task<Hash> GetAsync(Hash chainId, ulong height)
         {
             throw new NotImplementedException();
             //var hash = new Hash(chainId.CalculateHashWith(height));
