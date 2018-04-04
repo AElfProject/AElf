@@ -8,8 +8,8 @@
         Hash GetHash();
         bool AddTransaction(Hash tx);
         
-        IBlockHeader Header { get; set; }
+        BlockHeader Header { get; set; }
         
-        IBlockBody Body { get; set; }
+        BlockBody Body { get; set; }
     }
 }

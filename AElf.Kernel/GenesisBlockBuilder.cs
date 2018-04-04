@@ -4,16 +4,22 @@ namespace AElf.Kernel
 {
     public class GenesisBlockBuilder 
     {
-        public GenesisBlock Block { get; set; }
+        public GenesisBlock Block { get; private set; }
         
-        public Transaction Tx { get; set; }
+        public Transaction Tx { get; private set; }
 
 
         public GenesisBlockBuilder Build(ISmartContractZero smartContractZero)
         {
+            
             var block = new GenesisBlock
             {
-                
+                Header = new BlockHeader
+                {
+                    Index = 0,
+                    PreviousHash = Hash.Zero
+                },
+                Body = new BlockBody()
             };
             var tx = new Transaction
             {

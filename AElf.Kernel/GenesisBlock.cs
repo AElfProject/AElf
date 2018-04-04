@@ -6,14 +6,11 @@ using AElf.Kernel.KernelAccount;
 
 namespace AElf.Kernel
 {
-    public class GenesisBlock : Block,IGenesisBlock
+    public class GenesisBlock : Block, IGenesisBlock
     {
         public GenesisBlock() : base(Hash.Zero)
         {
 
         }
-
-        public IBlockHeader Header { get; set; }
-        public IBlockBody Body { get; set; }
     }
 }

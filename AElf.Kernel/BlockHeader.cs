@@ -39,9 +39,12 @@ namespace AElf.Kernel
         }
 
         public Hash PreviousHash { get; set; }
-        public Hash Hash { get; set; }
-        
-        // block index in chain
+
+        public Hash Hash => new Hash(this.CalculateHash());
+
+        /// <summary>
+        /// block index in chain
+        /// </summary>
         public ulong Index { get; set;}
         
         
