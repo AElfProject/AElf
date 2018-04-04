@@ -1,30 +1,34 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using AElf.Kernel.Extensions;
+using AElf.Kernel.KernelAccount;
 
 namespace AElf.Kernel
 {
-    public class Chain : IChain
+    public class Chain
     {
-        /// <summary>
-        /// A memory based block storage
-        /// </summary>
-        /// <value>The blocks.</value>
-        public List<Block> Blocks { get; set; } = new List<Block>();
-
-        public long CurrentBlockHeight
+        public long CurrentBlockHeight { get; set; }
+        public Hash CurrentBlockHash { get; set; }
+        
+        public void UpdateCurrentBlock(Block block)
         {
-            get
-            {
-                return Blocks.Count;
-            }
+            CurrentBlockHeight += 1;
+            CurrentBlockHash = block.GetHash();
         }
 
-        public IHash<IBlock> CurrentBlockHash
+        public Hash Id { get; set; }
+        public Hash GenesisBlockHash { get; set; }
+
+        public Chain():this(Hash.Zero)
         {
-            get
-            {
-                return new Hash<IBlock>(Blocks[Blocks.Count - 1].GetHeader().GetTransactionMerkleTreeRoot().Value);
-            }
+            
         }
 
+        public Chain(Hash id)
+        {
+            Id = id;
+        }
     }
 }
