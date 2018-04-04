@@ -119,7 +119,7 @@ namespace AElf.Kernel
         {
             var accountToDaataProvider = _worldState.GetAccountDataProviderByAccount(accountTo);
             var smartConrtract = new SmartContract();
-            await smartConrtract.InititalizeAsync(accountToDaataProvider);
+            await smartConrtract.InitializeAsync(accountToDaataProvider);
             await smartConrtract.InvokeAsync(accountFrom.GetAddress(), method, param);
         }
         
@@ -169,7 +169,7 @@ namespace AElf.Kernel
             // register contracts on accountZero
             var accountZeroDataProvider = _worldState.GetAccountDataProviderByAccount(_accountZero);
             var smartContractZero = new SmartContractZero();
-            await smartContractZero.InititalizeAsync(accountZeroDataProvider);
+            await smartContractZero.InitializeAsync(accountZeroDataProvider);
             await smartContractZero.RegisterSmartContract(smartContractRegistration);
             
             // TODO： create new account with contract registered
