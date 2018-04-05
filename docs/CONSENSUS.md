@@ -1,5 +1,5 @@
-# Why we choose DPoS in ÆLF?
-With the prosperity of blockchain, several technologies have gained the attention of the public which previously used to be obscure and technical - primarily cryptography and consensus. Today I’m going to talk about the consensus algorithms used in ÆLF blockchain to answer the question people usually ask me:
+# Why we choose DPoS in AElf?
+With the prosperity of blockchain, several technologies have gained the attention of the public which previously used to be obscure and technical - primarily cryptography and consensus. Today I’m going to talk about the consensus algorithms used in AElf blockchain to answer the question people usually ask me:
 
 **"Why DPoS?"**
 
@@ -26,7 +26,7 @@ The Proof of Stake consensus is an attempt to solve the problem of power consump
 
 Here is how we think:
 
-In ÆLF, is there a consensus algorithm which took the advantages of both Cooperative and Competitive consensus mechanism and got rid of the disadvantages?
+In AElf, is there a consensus algorithm which took the advantages of both Cooperative and Competitive consensus mechanism and got rid of the disadvantages?
 
 The ideal features of the consensus algorithm we’re looking for should be:
 
