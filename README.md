@@ -1,4 +1,4 @@
-# AElf Project Status
+# AElf.io - Decentralized Cloud Computing Blockchain Network
 [![Build Status][1]][2] 
 
 [1]: https://travis-ci.org/AElfProject/AElf.svg?branch=master
