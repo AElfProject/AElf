@@ -19,8 +19,6 @@ namespace AElf.Kernel
             {
                 IncrementId = 0,
                 MethodName = nameof(ISmartContractZero.RegisterSmartContract),
-                
-                
             };
             block.AddTransaction(tx.GetHash());
 

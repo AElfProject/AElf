@@ -53,7 +53,7 @@ namespace AElf.Kernel.KernelAccount
         {
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
             await smartContractMap.SetAsync(
-                reg.Hash, _serializer.Serialize(reg)
+                reg.ContractHash, _serializer.Serialize(reg)
             );
         }
 
@@ -71,7 +71,7 @@ namespace AElf.Kernel.KernelAccount
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
             var smartContract = await runner.RunAsync(reg);
 
-            var acc = new Account(reg.Hash);
+            var acc = new Account(reg.ContractHash);
 
             var dp = _worldStateManager.GetAccountDataProvider(_accountDataProvider.Context.ChainId, acc.GetAddress());
 

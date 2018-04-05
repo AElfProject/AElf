@@ -29,8 +29,10 @@ namespace AElf.Kernel {
             "ASgFEhwKDVBlcnZpb3VzQmxvY2sYAiABKAsyBS5IYXNoIkQKCUJsb2NrQm9k",
             "eRIaCgtCbG9ja0hlYWRlchgBIAEoCzIFLkhhc2gSGwoMVHJhbnNhY3Rpb25z",
             "GAIgAygLMgUuSGFzaCI/CgVCbG9jaxIcCgZIZWFkZXIYASABKAsyDC5CbG9j",
-            "a0hlYWRlchIYCgRCb2R5GAIgASgLMgouQmxvY2tCb2R5Qg6qAgtBRWxmLktl",
-            "cm5lbGIGcHJvdG8z"));
+            "a0hlYWRlchIYCgRCb2R5GAIgASgLMgouQmxvY2tCb2R5ImEKGVNtYXJ0Q29u",
+            "dHJhY3RSZWdpc3RyYXRpb24SEAoIQ2F0ZWdvcnkYASABKAUSGwoMQ29udHJh",
+            "Y3RIYXNoGAIgASgLMgUuSGFzaBIVCg1Db250cmFjdEJ5dGVzGAMgASgMQg6q",
+            "AgtBRWxmLktlcm5lbGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -38,7 +40,8 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Hash), global::AElf.Kernel.Hash.Parser, new[]{ "Value" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PerviousBlock" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockBody), global::AElf.Kernel.BlockBody.Parser, new[]{ "BlockHeader", "Transactions" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Block), global::AElf.Kernel.Block.Parser, new[]{ "Header", "Body" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Block), global::AElf.Kernel.Block.Parser, new[]{ "Header", "Body" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractRegistration), global::AElf.Kernel.SmartContractRegistration.Parser, new[]{ "Category", "ContractHash", "ContractBytes" }, null, null, null)
           }));
     }
     #endregion
@@ -846,6 +849,185 @@ namespace AElf.Kernel {
               body_ = new global::AElf.Kernel.BlockBody();
             }
             input.ReadMessage(body_);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SmartContractRegistration : pb::IMessage<SmartContractRegistration> {
+    private static readonly pb::MessageParser<SmartContractRegistration> _parser = new pb::MessageParser<SmartContractRegistration>(() => new SmartContractRegistration());
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SmartContractRegistration> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[5]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SmartContractRegistration() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SmartContractRegistration(SmartContractRegistration other) : this() {
+      category_ = other.category_;
+      ContractHash = other.contractHash_ != null ? other.ContractHash.Clone() : null;
+      contractBytes_ = other.contractBytes_;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SmartContractRegistration Clone() {
+      return new SmartContractRegistration(this);
+    }
+
+    /// <summary>Field number for the "Category" field.</summary>
+    public const int CategoryFieldNumber = 1;
+    private int category_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int Category {
+      get { return category_; }
+      set {
+        category_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "ContractHash" field.</summary>
+    public const int ContractHashFieldNumber = 2;
+    private global::AElf.Kernel.Hash contractHash_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash ContractHash {
+      get { return contractHash_; }
+      set {
+        contractHash_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "ContractBytes" field.</summary>
+    public const int ContractBytesFieldNumber = 3;
+    private pb::ByteString contractBytes_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString ContractBytes {
+      get { return contractBytes_; }
+      set {
+        contractBytes_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SmartContractRegistration);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SmartContractRegistration other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Category != other.Category) return false;
+      if (!object.Equals(ContractHash, other.ContractHash)) return false;
+      if (ContractBytes != other.ContractBytes) return false;
+      return true;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Category != 0) hash ^= Category.GetHashCode();
+      if (contractHash_ != null) hash ^= ContractHash.GetHashCode();
+      if (ContractBytes.Length != 0) hash ^= ContractBytes.GetHashCode();
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Category != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Category);
+      }
+      if (contractHash_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(ContractHash);
+      }
+      if (ContractBytes.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteBytes(ContractBytes);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Category != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Category);
+      }
+      if (contractHash_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(ContractHash);
+      }
+      if (ContractBytes.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ContractBytes);
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SmartContractRegistration other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Category != 0) {
+        Category = other.Category;
+      }
+      if (other.contractHash_ != null) {
+        if (contractHash_ == null) {
+          contractHash_ = new global::AElf.Kernel.Hash();
+        }
+        ContractHash.MergeFrom(other.ContractHash);
+      }
+      if (other.ContractBytes.Length != 0) {
+        ContractBytes = other.ContractBytes;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            input.SkipLastField();
+            break;
+          case 8: {
+            Category = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            if (contractHash_ == null) {
+              contractHash_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(contractHash_);
+            break;
+          }
+          case 26: {
+            ContractBytes = input.ReadBytes();
             break;
           }
         }

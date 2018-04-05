@@ -29,3 +29,12 @@ message Block{
     BlockHeader Header = 1;
     BlockBody Body = 2;
 }
+
+
+
+message SmartContractRegistration{
+    int32 Category = 1;
+    Hash ContractHash = 2;
+    bytes ContractBytes = 3;
+
+}
