@@ -34,7 +34,7 @@ namespace AElf.Kernel.KernelAccount
             _accountContextService = accountContextService;
         }
 
-        public async Task InititalizeAsync(IAccountDataProvider dataProvider)
+        public async Task InitializeAsync(IAccountDataProvider dataProvider)
         {
             _accountDataProvider = dataProvider;
             await Task.CompletedTask;
@@ -75,7 +75,7 @@ namespace AElf.Kernel.KernelAccount
 
             var dp = _worldStateManager.GetAccountDataProvider(_accountDataProvider.Context.ChainId, acc.GetAddress());
 
-            await smartContract.InititalizeAsync(dp);
+            await smartContract.InitializeAsync(dp);
 
             _smartContracts[hash] = smartContract;
 

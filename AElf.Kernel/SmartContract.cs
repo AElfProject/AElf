@@ -16,7 +16,7 @@ namespace AElf.Kernel
             _serializer = serializer;
         }
 
-        public async Task InititalizeAsync(IAccountDataProvider dataProvider)
+        public async Task InitializeAsync(IAccountDataProvider dataProvider)
         {
             _accountDataProvider = dataProvider;
             await Task.CompletedTask;
