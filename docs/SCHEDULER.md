@@ -1,6 +1,6 @@
 # A brief introduction to the AElf Scheduler
 
-When a block has been created by a miner and the block finally arrives at the ledger, how can we process the transactions as fast as possible? The idea behind ÆLF is **resource isolation** and **parallel processing**, from many aspects of the blockchain, e.g.,:
+When a block has been created by a miner and the block finally arrives at the ledger, how can we process the transactions as fast as possible? The idea behind AElf is **resource isolation** and **parallel processing**, from many aspects of the blockchain, e.g.,:
 
 1.	A dedicated chain (resource isolation) for a specialized Smart Contract (cryptokitties).
 2.	Concurrent execution for unrelated transactions.
@@ -59,4 +59,4 @@ S can be totally left to the contract designer. After all, it’s completely an 
 
 **S as document**: document, such as json/xml/struct, is one of the best representations of an account/user, and the frequency of interoperation between accounts is quite loose, especially for IM or personal evolving games.
 
-WRAP UP: The parallel execution scheduler is an important part of ÆLF, as an attempt to scale transaction computing power inside a single chain in the ÆLF ecology. If it works as planned, complex industry usage will be made possible on ÆLF.
+WRAP UP: The parallel execution scheduler is an important part of ÆLF, as an attempt to scale transaction computing power inside a single chain in the AElf ecology. If it works as planned, complex industry usage will be made possible on ÆLF.
