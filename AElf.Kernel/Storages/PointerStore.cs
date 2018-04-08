@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storages
 {
-    public interface IPointerStore
-    {
-        Task InsertAsync(Hash path, Hash pointer);
-
-        Task<Hash> GetAsync(Hash path);
-    }
-    
     public class PointerStore : IPointerStore
     {
         private readonly IKeyValueDatabase _keyValueDatabase;

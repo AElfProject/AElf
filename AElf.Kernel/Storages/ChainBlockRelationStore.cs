@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
 
 namespace AElf.Kernel.Storages
 {
-    public interface IChainBlockRelationStore
-    {
-        Task InsertAsync(Chain chain, Block block);
-
-        Task<Hash> GetAsync(Hash chainHash, long height);
-    }
-    
     /// <summary>
     /// Simply use a dictionary to store and get the relations.
     /// </summary>

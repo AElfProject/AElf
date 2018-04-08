@@ -1,14 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storages
 {
-    public interface IChangesStore
-    {
-        Task InsertAsync(Hash path, Change before);
-    }
-    
     public class ChangesStore : IChangesStore
     {
         private readonly IKeyValueDatabase _keyValueDatabase;
@@ -27,11 +20,5 @@ namespace AElf.Kernel.Storages
         {
             return (Change) await _keyValueDatabase.GetAsync(path,typeof(Change));
         }
-    }
-
-    public struct Change
-    {
-        public Path Before { get; set; }
-        public Path After { get; set; }
     }
 }

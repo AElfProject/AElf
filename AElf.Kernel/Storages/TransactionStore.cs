@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
+﻿using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storages
 {
-    public interface ITransactionStore
-    {
-        Task InsertAsync(Transaction tx);
-        Task<Transaction> GetAsync(Hash hash);
-    }
-    
     /// <summary>
     /// Simply use a dictionary to store transactions.
     /// </summary>

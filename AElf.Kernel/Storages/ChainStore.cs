@@ -2,14 +2,7 @@
 
 namespace AElf.Kernel.Storages
 {
-    public interface IChainStore
-    {
-        Task<Chain> GetAsync(Hash id);
-        Task<Chain> UpdateAsync(Chain chain);
-        Task<Chain> InsertAsync(Chain chain);
-    }
-
-    public class ChainStore : IChainStore
+    public class ChainStore
     {
         private readonly IKeyValueDatabase _keyValueDatabase;
 
@@ -17,7 +10,7 @@ namespace AElf.Kernel.Storages
         {
             _keyValueDatabase = keyValueDatabase;
         }
-        
+    
         public async Task<Chain> GetAsync(Hash id)
         {
             return (Chain) await _keyValueDatabase.GetAsync(id,typeof(Chain));
