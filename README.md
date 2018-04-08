@@ -4,7 +4,7 @@
 [1]: https://travis-ci.org/AElfProject/AElf.svg?branch=master
 [2]: https://travis-ci.org/AElfProject/AElf
 
-[![Waffle.io - Issues in progress](https://badge.waffle.io/AElfProject/AElf.png?label=in%20progress&title=In%20Progress)](http://waffle.io/AElfProject/AElf)
+[![Waffle.io - Issues in progress](https://badge.waffle.io/AElfProject/AElf.png?label=in%20progress&title=In%20Progress,https://badge.waffle.io/AElfProject/AElf.png?label=next&title=Next)}](http://waffle.io/AElfProject/AElf)
 
 Early stage, still under development.
 
