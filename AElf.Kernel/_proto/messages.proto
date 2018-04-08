@@ -18,6 +18,7 @@ message Hash{
 message BlockHeader{
     int32 Version = 1;
     Hash PerviousBlock = 2;
+    Hash MerkleTreeRootOfTransactions = 3;
 }
 
 message BlockBody{

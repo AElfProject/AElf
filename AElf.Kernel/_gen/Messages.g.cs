@@ -25,8 +25,9 @@ namespace AElf.Kernel {
             "Cg5tZXNzYWdlcy5wcm90byJuCgtUcmFuc2FjdGlvbhITCgRGcm9tGAEgASgL",
             "MgUuSGFzaBIRCgJUbxgCIAEoCzIFLkhhc2gSEwoLSW5jcmVtZW50SWQYAyAB",
             "KAQSEgoKTWV0aG9kTmFtZRgEIAEoCRIOCgZQYXJhbXMYBSABKAwiFQoESGFz",
-            "aBINCgVWYWx1ZRgBIAEoDCI8CgtCbG9ja0hlYWRlchIPCgdWZXJzaW9uGAEg",
-            "ASgFEhwKDVBlcnZpb3VzQmxvY2sYAiABKAsyBS5IYXNoIkQKCUJsb2NrQm9k",
+            "aBINCgVWYWx1ZRgBIAEoDCJpCgtCbG9ja0hlYWRlchIPCgdWZXJzaW9uGAEg",
+            "ASgFEhwKDVBlcnZpb3VzQmxvY2sYAiABKAsyBS5IYXNoEisKHE1lcmtsZVRy",
+            "ZWVSb290T2ZUcmFuc2FjdGlvbnMYAyABKAsyBS5IYXNoIkQKCUJsb2NrQm9k",
             "eRIaCgtCbG9ja0hlYWRlchgBIAEoCzIFLkhhc2gSGwoMVHJhbnNhY3Rpb25z",
             "GAIgAygLMgUuSGFzaCI/CgVCbG9jaxIcCgZIZWFkZXIYASABKAsyDC5CbG9j",
             "a0hlYWRlchIYCgRCb2R5GAIgASgLMgouQmxvY2tCb2R5ImEKGVNtYXJ0Q29u",
@@ -40,7 +41,7 @@ namespace AElf.Kernel {
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Hash), global::AElf.Kernel.Hash.Parser, new[]{ "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PerviousBlock" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PerviousBlock", "MerkleTreeRootOfTransactions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockBody), global::AElf.Kernel.BlockBody.Parser, new[]{ "BlockHeader", "Transactions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Block), global::AElf.Kernel.Block.Parser, new[]{ "Header", "Body" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractRegistration), global::AElf.Kernel.SmartContractRegistration.Parser, new[]{ "Category", "ContractHash", "ContractBytes" }, null, null, null),
@@ -435,6 +436,7 @@ namespace AElf.Kernel {
     public BlockHeader(BlockHeader other) : this() {
       version_ = other.version_;
       PerviousBlock = other.perviousBlock_ != null ? other.PerviousBlock.Clone() : null;
+      MerkleTreeRootOfTransactions = other.merkleTreeRootOfTransactions_ != null ? other.MerkleTreeRootOfTransactions.Clone() : null;
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -464,6 +466,17 @@ namespace AElf.Kernel {
       }
     }
 
+    /// <summary>Field number for the "MerkleTreeRootOfTransactions" field.</summary>
+    public const int MerkleTreeRootOfTransactionsFieldNumber = 3;
+    private global::AElf.Kernel.Hash merkleTreeRootOfTransactions_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash MerkleTreeRootOfTransactions {
+      get { return merkleTreeRootOfTransactions_; }
+      set {
+        merkleTreeRootOfTransactions_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as BlockHeader);
@@ -479,6 +492,7 @@ namespace AElf.Kernel {
       }
       if (Version != other.Version) return false;
       if (!object.Equals(PerviousBlock, other.PerviousBlock)) return false;
+      if (!object.Equals(MerkleTreeRootOfTransactions, other.MerkleTreeRootOfTransactions)) return false;
       return true;
     }
 
@@ -487,6 +501,7 @@ namespace AElf.Kernel {
       int hash = 1;
       if (Version != 0) hash ^= Version.GetHashCode();
       if (perviousBlock_ != null) hash ^= PerviousBlock.GetHashCode();
+      if (merkleTreeRootOfTransactions_ != null) hash ^= MerkleTreeRootOfTransactions.GetHashCode();
       return hash;
     }
 
@@ -505,6 +520,10 @@ namespace AElf.Kernel {
         output.WriteRawTag(18);
         output.WriteMessage(PerviousBlock);
       }
+      if (merkleTreeRootOfTransactions_ != null) {
+        output.WriteRawTag(26);
+        output.WriteMessage(MerkleTreeRootOfTransactions);
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -515,6 +534,9 @@ namespace AElf.Kernel {
       }
       if (perviousBlock_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(PerviousBlock);
+      }
+      if (merkleTreeRootOfTransactions_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(MerkleTreeRootOfTransactions);
       }
       return size;
     }
@@ -532,6 +554,12 @@ namespace AElf.Kernel {
           perviousBlock_ = new global::AElf.Kernel.Hash();
         }
         PerviousBlock.MergeFrom(other.PerviousBlock);
+      }
+      if (other.merkleTreeRootOfTransactions_ != null) {
+        if (merkleTreeRootOfTransactions_ == null) {
+          merkleTreeRootOfTransactions_ = new global::AElf.Kernel.Hash();
+        }
+        MerkleTreeRootOfTransactions.MergeFrom(other.MerkleTreeRootOfTransactions);
       }
     }
 
@@ -552,6 +580,13 @@ namespace AElf.Kernel {
               perviousBlock_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(perviousBlock_);
+            break;
+          }
+          case 26: {
+            if (merkleTreeRootOfTransactions_ == null) {
+              merkleTreeRootOfTransactions_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(merkleTreeRootOfTransactions_);
             break;
           }
         }

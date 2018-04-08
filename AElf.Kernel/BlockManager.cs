@@ -8,20 +8,24 @@ namespace AElf.Kernel
     {
         private readonly IBlockHeaderStore _blockHeaderStore;
 
-        public BlockManager(IBlockHeaderStore blockHeaderStore)
+        private readonly IBlockBodyStore _blockBodyStore;
+        
+        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore)
         {
             _blockHeaderStore = blockHeaderStore;
+            _blockBodyStore = blockBodyStore;
         }
 
-        public Task<Block> AddBlockAsync(Block block)
+        public async Task<Block> AddBlockAsync(Block block)
         {
             if (!Validation(block))
             {
                 throw new InvalidOperationException("Invalide block.");
             }
 
-            _blockHeaderStore.InsertAsync(block.Header);
-            return Task.FromResult(block);
+            await _blockHeaderStore.InsertAsync(block.Header);
+            await _blockBodyStore.InsertAsync(block.Header.MerkleTreeRootOfTransactions, block.Body);
+            return block;
         }
 
         public Task<BlockHeader> GetBlockHeaderAsync(Hash hash)

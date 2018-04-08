@@ -15,31 +15,34 @@ namespace AElf.Kernel.Merkle
         /// <summary>
         /// Merkle nodes
         /// </summary>
-        private List<IHash> Nodes { get; set; } = new List<IHash>();
+        private List<Hash> Nodes { get; set; } = new List<Hash>();
         
         /// <summary>
         /// Use a cache to speed up the calculation of hash value.
         /// </summary>
-        private Dictionary<string, IHash> _cache = new Dictionary<string, IHash>();
+        private Dictionary<string, Hash> _cache = new Dictionary<string, Hash>();
 
         /// <summary>
         /// Add a leaf node and compute root hash.
         /// </summary>
         /// <param name="hash"></param>
-        public void AddNode(IHash hash)
+        public void AddNode(Hash hash)
         {
             Nodes.Add(hash);
             ComputeRootHash();
         }
 
-        public void AddNodes(List<IHash> hashes)
+        public void AddNodes(IList<Hash> hashes)
         {
-            hashes.ForEach(hash => Nodes.Add(hash));
+            foreach (var hash in hashes)
+            {
+                Nodes.Add(hash);
+            }
         }
 
         public Hash ComputeRootHash() => ComputeRootHash(Nodes);
 
-        private Hash ComputeRootHash(List<IHash> hashes)
+        private Hash ComputeRootHash(IList<Hash> hashes)
         {
             while (true)
             {
@@ -54,11 +57,11 @@ namespace AElf.Kernel.Merkle
                 }
 
                 //Every time goes to a higher level.
-                var parents = new List<IHash>();
+                var parents = new List<Hash>();
 
                 for (var i = 0; i < hashes.Count; i += 2)
                 {
-                    IHash right = (i + 1 < hashes.Count) ? new Hash(hashes[i + 1].Value) : null;
+                    Hash right = (i + 1 < hashes.Count) ? new Hash(hashes[i + 1].Value) : null;
                     var parent = FindCache(hashes[i], right);
 
                     parents.Add(parent);
@@ -74,7 +77,7 @@ namespace AElf.Kernel.Merkle
         /// </summary>
         /// <param name="leaf"></param>
         /// <returns></returns>
-        public int FindLeaf(IHash leaf)
+        public int FindLeaf(Hash leaf)
         {
             if (leaf == null)
             {
@@ -90,19 +93,19 @@ namespace AElf.Kernel.Merkle
             return -1;
         }
 
-        public bool VerifyProofList(List<IHash> hashlist)
+        public bool VerifyProofList(List<Hash> hashlist)
         {
             var list = ComputeProofHash(hashlist);
             return ComputeRootHash().ToString() == list[0].ToString();
         }
 
-        private List<IHash> ComputeProofHash(List<IHash> hashlist)
+        private List<Hash> ComputeProofHash(List<Hash> hashlist)
         {
             while (true)
             {
                 if (hashlist.Count < 2) return hashlist;
 
-                var list = new List<IHash>
+                var list = new List<Hash>
                 {
                     FindCache(hashlist[0], hashlist[1])
                 };
@@ -114,7 +117,7 @@ namespace AElf.Kernel.Merkle
             }
         }
 
-        public void UpdateNode(IHash oldLeaf, IHash newLeaf)
+        public void UpdateNode(Hash oldLeaf, Hash newLeaf)
         {
             var order = FindLeaf(oldLeaf);
             if (order == -1)
@@ -124,13 +127,13 @@ namespace AElf.Kernel.Merkle
             UpdateNode(order, newLeaf);
         }
 
-        public void UpdateNode(int oldLeafOrder, IHash newLeaf)
+        public void UpdateNode(int oldLeafOrder, Hash newLeaf)
         {
             Nodes[oldLeafOrder] = newLeaf;
             ComputeRootHash();
         }
 
-        private IHash FindCache(IHash hash1, IHash hash2)
+        private Hash FindCache(Hash hash1, Hash hash2)
         {
             var combineHash = 
                 hash2?.Value != null ? 
@@ -142,7 +145,7 @@ namespace AElf.Kernel.Merkle
                 : AddCache(combineHash, new Hash(hash1.CalculateHashWith(hash2)));
         }
 
-        private IHash AddCache(string keyHash, IHash valueHash)
+        private Hash AddCache(string keyHash, Hash valueHash)
         {
             return _cache[keyHash] = valueHash;
         }

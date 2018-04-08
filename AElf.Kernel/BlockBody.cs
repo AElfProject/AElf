@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AElf.Kernel.Merkle;
 
 namespace AElf.Kernel
 {
@@ -16,6 +17,13 @@ namespace AElf.Kernel
                 return false;
             transactions_.Add(tx);
             return true;
+        }
+
+        public Hash CalculateMerkleTreeRoot()
+        {
+            Merkle.BinaryMerkleTree merkleTree=new BinaryMerkleTree();
+            merkleTree.AddNodes(transactions_);
+            return merkleTree.ComputeRootHash();
         }
     }
 }
