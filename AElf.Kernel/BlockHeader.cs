@@ -4,7 +4,7 @@ using System;
 
 namespace AElf.Kernel
 {
-    public partial class BlockHeader : IBlockHeader
+    public partial class BlockHeader : IBlockHeader, IHashProvider
     {
         /// <summary>
         /// The miner's signature.
@@ -39,7 +39,7 @@ namespace AElf.Kernel
         }
 
         public Hash PreviousHash { get; set; }
-        public Hash Hash { get; set; }
+        
 
         /// <summary>
         /// Gets the transaction merkle tree root.
@@ -50,9 +50,9 @@ namespace AElf.Kernel
             return _transactionMerkleTree.ComputeRootHash();
         }
 
-        public byte[] Serialize()
+        public Hash GetHash()
         {
-            throw new NotImplementedException();
+            return new Hash( this.CalculateHash() );
         }
     }
 }

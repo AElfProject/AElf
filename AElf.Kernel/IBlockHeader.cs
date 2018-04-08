@@ -9,6 +9,5 @@ namespace AElf.Kernel
 
         Hash PreviousHash { get; set; }
         
-        Hash Hash { get; set; }
     }
 }

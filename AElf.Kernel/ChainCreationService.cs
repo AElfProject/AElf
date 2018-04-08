@@ -8,11 +8,13 @@ namespace AElf.Kernel
     {
         private readonly IChainManager _chainManager;
         private readonly ITransactionManager _transactionManager;
+        private readonly IBlockManager _blockManager;
 
-        public ChainCreationService(IChainManager chainManager, ITransactionManager transactionManager)
+        public ChainCreationService(IChainManager chainManager, ITransactionManager transactionManager, IBlockManager blockManager)
         {
             _chainManager = chainManager;
             _transactionManager = transactionManager;
+            _blockManager = blockManager;
         }
 
 
@@ -26,6 +28,8 @@ namespace AElf.Kernel
             {
                 await _transactionManager.AddTransactionAsync(tx);
             }
+
+            await _blockManager.AddBlockAsync(builder.Block);
             await _chainManager.AppendBlockToChainAsync(chain, builder.Block);
         }
     }

@@ -7,7 +7,7 @@ namespace AElf.Kernel.Storages
 {
     public interface IKeyValueDatabase
     {
-        Task<object> GetAsync(Hash key);
+        Task<object> GetAsync(Hash key,Type type);
         Task SetAsync(Hash key, object bytes);
     }
 
@@ -15,7 +15,7 @@ namespace AElf.Kernel.Storages
     {
         private readonly Dictionary<Hash, object> _dictionary = new Dictionary<Hash, object>();
         
-        public Task<object> GetAsync(Hash key)
+        public Task<object> GetAsync(Hash key,Type type)
         {
             if (_dictionary.TryGetValue(key, out var value))
             {

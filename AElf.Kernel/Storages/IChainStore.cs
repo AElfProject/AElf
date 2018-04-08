@@ -20,7 +20,7 @@ namespace AElf.Kernel.Storages
         
         public async Task<Chain> GetAsync(Hash id)
         {
-            return (Chain) await _keyValueDatabase.GetAsync(id);
+            return (Chain) await _keyValueDatabase.GetAsync(id,typeof(Chain));
         }
 
         public async Task<Chain> UpdateAsync(Chain chain)
