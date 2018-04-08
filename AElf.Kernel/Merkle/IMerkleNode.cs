@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Merkle
 {
-    public interface IMerkleNode: IEnumerable<IMerkleNode>
+    public interface IMerkleNode : IEnumerable<IMerkleNode>
     {
-        void ComputeHash();
+
     }
 }
