@@ -42,7 +42,7 @@ namespace AElf.Kernel.KernelAccount
 
         public Task<ISmartContract> RunAsync(SmartContractRegistration reg)
         {
-            ISmartContract smartContract = _serializer.Deserialize(reg.Bytes);
+            ISmartContract smartContract = _serializer.Deserialize(reg.ContractBytes.ToByteArray());
             return Task.FromResult(smartContract);
         }
     }

@@ -25,18 +25,18 @@ namespace AElf.Kernel.Tests
        [Fact]
         public void GenesisBlockBuilderTest()
         {
-            var builder = new GenesisBlockBuilder().Build(_smartContractZero);
+            var builder = new GenesisBlockBuilder().Build(_smartContractZero.GetType());
             var genesisBlock = builder.Block;
-            var tx = builder.Tx;
+            var txs = builder.Txs;
             Assert.NotNull(genesisBlock);
             Assert.Equal(genesisBlock.Header.PreviousHash, Hash.Zero);
-            Assert.NotNull(tx);
+            Assert.NotNull(txs);
         }
 
         [Fact]
         public async Task BlockManagerTest()
         {
-            var builder = new GenesisBlockBuilder().Build(_smartContractZero);
+            var builder = new GenesisBlockBuilder().Build(_smartContractZero.GetType());
             var genesisBlock = builder.Block;
 
             await _blockManager.AddBlockAsync(genesisBlock);

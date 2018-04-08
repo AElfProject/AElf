@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
+using Google.Protobuf;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace AElf.Kernel.KernelAccount
@@ -34,18 +35,22 @@ namespace AElf.Kernel.KernelAccount
             _accountContextService = accountContextService;
         }
 
-        public async Task InititalizeAsync(IAccountDataProvider dataProvider)
+        public async Task InitializeAsync(IAccountDataProvider dataProvider)
         {
             _accountDataProvider = dataProvider;
             await Task.CompletedTask;
         }
 
-        public async Task InvokeAsync(IHash caller, string methodname, params object[] objs)
+        public async Task InvokeAsync(IHash caller, string methodname, ByteString bytes)
         {
             var type = typeof(SmartContractZero);
             var member = type.GetMethod(methodname);
-
-            await (Task) member.Invoke(this, objs);
+            var p = member.GetParameters()[0]; //first parameters
+            
+            ProtobufSerializer serializer=new ProtobufSerializer();
+            var obj = serializer.Deserialize(bytes.ToByteArray(), p.ParameterType.DeclaringType);
+            
+            await (Task) member.Invoke(this, new object[]{obj});
         }
 
         // Hard coded method in the kernel
@@ -53,9 +58,15 @@ namespace AElf.Kernel.KernelAccount
         {
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
             await smartContractMap.SetAsync(
-                reg.Hash, _serializer.Serialize(reg)
+                reg.ContractHash, _serializer.Serialize(reg)
             );
         }
+
+        public async Task DeploySmartContract(SmartContractDeployment smartContractRegister)
+        {
+            throw new NotImplementedException();
+        }
+
 
         public async Task<ISmartContract> GetSmartContractAsync(Hash hash)
         {
@@ -71,9 +82,14 @@ namespace AElf.Kernel.KernelAccount
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
             var smartContract = await runner.RunAsync(reg);
 
-            var dp = _worldStateManager.GetAccountDataProvider(_accountDataProvider.Context.ChainId, reg.Hash);
+               
+            // remove Account class
+            // TODO: define relation between ContractHash and account
+            // var acc = new Account(reg.ContractHash);
 
-            await smartContract.InititalizeAsync(dp);
+            var dp = _worldStateManager.GetAccountDataProvider(_accountDataProvider.Context.ChainId, reg.ContractHash);
+
+            await smartContract.InitializeAsync(dp);
 
             _smartContracts[hash] = smartContract;
 
@@ -82,7 +98,7 @@ namespace AElf.Kernel.KernelAccount
             return smartContract;
         }
 
-        public IHash GetHash()
+        public Hash GetHash()
         {
             return Hash.Zero;
         }

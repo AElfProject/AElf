@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
@@ -17,7 +18,7 @@ namespace AElf.Kernel
             _serializer = serializer;
         }
 
-        public async Task InititalizeAsync(IAccountDataProvider dataProvider)
+        public async Task InitializeAsync(IAccountDataProvider dataProvider)
         {
             _accountDataProvider = dataProvider;
             await Task.CompletedTask;
@@ -28,8 +29,8 @@ namespace AElf.Kernel
             Data = _serializer.Serialize(smartContractRegistration);
         }
 
-        public abstract Task InvokeAsync(IHash caller, string methodname, params object[] objs);
-        public abstract IHash GetHash();
+        public abstract Task InvokeAsync(IHash caller, string methodname, ByteString bytes);
+
     }
 
     public class CSharpSmartContract : SmartContract
@@ -39,12 +40,7 @@ namespace AElf.Kernel
             Resolve(smartContractRegistration);
         }
         
-        public override Task InvokeAsync(IHash caller, string methodname, params object[] objs)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IHash GetHash()        
+        public override Task InvokeAsync(IHash caller, string methodname, ByteString bytes)
         {
             throw new NotImplementedException();
         }

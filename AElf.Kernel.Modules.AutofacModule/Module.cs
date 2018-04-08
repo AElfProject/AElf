@@ -26,7 +26,9 @@ namespace AElf.Kernel.Modules.AutofacModule
             builder.RegisterType(typeof(ChainStore)).As(typeof(IChainStore)).SingleInstance();            
             builder.RegisterType(typeof(ChainBlockRelationStore)).As(typeof(IChainBlockRelationStore)).SingleInstance();
             builder.RegisterType(typeof(TransactionStore)).As(typeof(ITransactionStore)).SingleInstance();            
-            builder.RegisterType(typeof(BlockStore)).As(typeof(IBlockStore)).SingleInstance();
+            builder.RegisterType(typeof(BlockBodyStore)).As(typeof(IBlockBodyStore)).SingleInstance();
+            builder.RegisterType(typeof(BlockHeaderStore)).As(typeof(IBlockHeaderStore)).SingleInstance();
+
             builder.RegisterType(typeof(KeyValueDatabase)).As(typeof(IKeyValueDatabase)).SingleInstance();
 
             builder.RegisterType(typeof(ChainCreationService)).As(typeof(IChainCreationService)).SingleInstance();

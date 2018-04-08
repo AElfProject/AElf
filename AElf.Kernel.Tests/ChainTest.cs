@@ -27,7 +27,7 @@ namespace AElf.Kernel.Tests
         public async Task<Chain> CreateChain()
         {
             var chainId = Hash.Generate();
-            var chain = await _chainCreationService.CreateNewChainAsync(chainId, _smartContractZero);
+            var chain = await _chainCreationService.CreateNewChainAsync(chainId, _smartContractZero.GetType());
             var adp = new AccountDataProvider
             {
                 Context =
@@ -36,7 +36,7 @@ namespace AElf.Kernel.Tests
                     ChainId = chainId
                 }
             };
-            await _smartContractZero.InititalizeAsync(adp);
+            await _smartContractZero.InitializeAsync(adp);
             Assert.Equal(chain.CurrentBlockHeight, (ulong)1);
             return chain;
         }

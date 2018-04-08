@@ -104,7 +104,7 @@ namespace AElf.Kernel.Tests
             #endregion
 
             //Construct a proof list.
-            var prooflist = new List<IHash>
+            var prooflist = new List<Hash>
             {
                 hash_a,
                 hash_e,
@@ -116,12 +116,12 @@ namespace AElf.Kernel.Tests
         }
 
         #region Some useful methods
-        private List<IHash> CreateLeaves(IEnumerable<string> buffers)
+        private List<Hash> CreateLeaves(IEnumerable<string> buffers)
         {
-            return buffers.Select(buffer => new Hash(buffer.CalculateHash())).Cast<IHash>().ToList();
+            return buffers.Select(buffer => new Hash(buffer.CalculateHash())).Cast<Hash>().ToList();
         }
 
-        private IHash CreateLeaf(string buffer)
+        private Hash CreateLeaf(string buffer)
         {
             return new Hash(buffer.CalculateHash());
         }

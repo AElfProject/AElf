@@ -35,7 +35,7 @@ namespace AElf.Kernel
             await smartContract.InvokeAsync(tx.From, tx.MethodName, tx.Params);
         }
 
-
+        
         /// <summary>
         /// Schedule execution of transaction
         /// </summary>
