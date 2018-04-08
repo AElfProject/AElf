@@ -4,7 +4,7 @@
 [1]: https://travis-ci.org/AElfProject/AElf.svg?branch=master
 [2]: https://travis-ci.org/AElfProject/AElf
 
-[![Waffle.io - Columns and their card count](https://badge.waffle.io/AElfProject/AElf.svg?columns=next&in%20process)](https://waffle.io/AElfProject/AElf)
+[![Waffle.io - Columns and their card count](https://badge.waffle.io/AElfProject/AElf.svg?columns=In%20Process,next)](https://waffle.io/AElfProject/AElf)
 
 Early stage, still under development.
 
