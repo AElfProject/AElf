@@ -53,6 +53,9 @@ namespace AElf.Kernel
             };
             block.AddTransaction(deployTx.GetHash());
 
+            
+            block.FillTxsMerkleTreeRootInHeader();
+            
             Block = block;
 
             Txs.Add(registerTx);
