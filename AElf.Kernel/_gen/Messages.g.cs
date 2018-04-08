@@ -31,8 +31,10 @@ namespace AElf.Kernel {
             "GAIgAygLMgUuSGFzaCI/CgVCbG9jaxIcCgZIZWFkZXIYASABKAsyDC5CbG9j",
             "a0hlYWRlchIYCgRCb2R5GAIgASgLMgouQmxvY2tCb2R5ImEKGVNtYXJ0Q29u",
             "dHJhY3RSZWdpc3RyYXRpb24SEAoIQ2F0ZWdvcnkYASABKAUSGwoMQ29udHJh",
-            "Y3RIYXNoGAIgASgLMgUuSGFzaBIVCg1Db250cmFjdEJ5dGVzGAMgASgMQg6q",
-            "AgtBRWxmLktlcm5lbGIGcHJvdG8z"));
+            "Y3RIYXNoGAIgASgLMgUuSGFzaBIVCg1Db250cmFjdEJ5dGVzGAMgASgMIk8K",
+            "F1NtYXJ0Q29udHJhY3REZXBsb3ltZW50EhsKDENvbnRyYWN0SGFzaBgBIAEo",
+            "CzIFLkhhc2gSFwoPQ29uc3RydWN0UGFyYW1zGAIgASgMQg6qAgtBRWxmLktl",
+            "cm5lbGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -41,7 +43,8 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PerviousBlock" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockBody), global::AElf.Kernel.BlockBody.Parser, new[]{ "BlockHeader", "Transactions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Block), global::AElf.Kernel.Block.Parser, new[]{ "Header", "Body" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractRegistration), global::AElf.Kernel.SmartContractRegistration.Parser, new[]{ "Category", "ContractHash", "ContractBytes" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractRegistration), global::AElf.Kernel.SmartContractRegistration.Parser, new[]{ "Category", "ContractHash", "ContractBytes" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractDeployment), global::AElf.Kernel.SmartContractDeployment.Parser, new[]{ "ContractHash", "ConstructParams" }, null, null, null)
           }));
     }
     #endregion
@@ -1028,6 +1031,157 @@ namespace AElf.Kernel {
           }
           case 26: {
             ContractBytes = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SmartContractDeployment : pb::IMessage<SmartContractDeployment> {
+    private static readonly pb::MessageParser<SmartContractDeployment> _parser = new pb::MessageParser<SmartContractDeployment>(() => new SmartContractDeployment());
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SmartContractDeployment> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[6]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SmartContractDeployment() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SmartContractDeployment(SmartContractDeployment other) : this() {
+      ContractHash = other.contractHash_ != null ? other.ContractHash.Clone() : null;
+      constructParams_ = other.constructParams_;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SmartContractDeployment Clone() {
+      return new SmartContractDeployment(this);
+    }
+
+    /// <summary>Field number for the "ContractHash" field.</summary>
+    public const int ContractHashFieldNumber = 1;
+    private global::AElf.Kernel.Hash contractHash_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash ContractHash {
+      get { return contractHash_; }
+      set {
+        contractHash_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "ConstructParams" field.</summary>
+    public const int ConstructParamsFieldNumber = 2;
+    private pb::ByteString constructParams_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString ConstructParams {
+      get { return constructParams_; }
+      set {
+        constructParams_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SmartContractDeployment);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SmartContractDeployment other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(ContractHash, other.ContractHash)) return false;
+      if (ConstructParams != other.ConstructParams) return false;
+      return true;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (contractHash_ != null) hash ^= ContractHash.GetHashCode();
+      if (ConstructParams.Length != 0) hash ^= ConstructParams.GetHashCode();
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (contractHash_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(ContractHash);
+      }
+      if (ConstructParams.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteBytes(ConstructParams);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (contractHash_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(ContractHash);
+      }
+      if (ConstructParams.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConstructParams);
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SmartContractDeployment other) {
+      if (other == null) {
+        return;
+      }
+      if (other.contractHash_ != null) {
+        if (contractHash_ == null) {
+          contractHash_ = new global::AElf.Kernel.Hash();
+        }
+        ContractHash.MergeFrom(other.ContractHash);
+      }
+      if (other.ConstructParams.Length != 0) {
+        ConstructParams = other.ConstructParams;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            input.SkipLastField();
+            break;
+          case 10: {
+            if (contractHash_ == null) {
+              contractHash_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(contractHash_);
+            break;
+          }
+          case 18: {
+            ConstructParams = input.ReadBytes();
             break;
           }
         }

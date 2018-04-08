@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
 
 namespace AElf.Kernel
@@ -8,6 +9,6 @@ namespace AElf.Kernel
     /// </summary>
     public interface IChainCreationService
     {
-        Task CreateNewChainAsync(Hash chainId,ISmartContractZero smartContract);
+        Task CreateNewChainAsync(Hash chainId,Type smartContractType);
     }
 }

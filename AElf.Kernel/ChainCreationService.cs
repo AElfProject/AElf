@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
 
 namespace AElf.Kernel
@@ -15,12 +16,16 @@ namespace AElf.Kernel
         }
 
 
-        public async Task CreateNewChainAsync(Hash chainId, ISmartContractZero smartContract)
+        public async Task CreateNewChainAsync(Hash chainId,Type smartContract)
         {
             var chain = await _chainManager.AddChainAsync(chainId);
             var builder= new GenesisBlockBuilder();
             builder.Build(smartContract);
-            await _transactionManager.AddTransactionAsync(builder.Tx);
+            
+            foreach (var tx in builder.Txs)
+            {
+                await _transactionManager.AddTransactionAsync(tx);
+            }
             await _chainManager.AppendBlockToChainAsync(chain, builder.Block);
         }
     }
