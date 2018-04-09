@@ -1,48 +1,43 @@
 using AElf.Kernel.Extensions;
 using System;
+using System.Data.Common;
+using System.Linq;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    public class Hash<T> : IHash<T>
+    public partial class Hash : IHash
     {
-        public static readonly Hash<T> Zero = new Hash<T>();
+        public static Hash Generate()
+        {
+            return new Hash(
+                HashExtensions.CalculateHash(Guid.NewGuid().ToByteArray()));
+        }
+        
+        public static readonly Hash Zero = new Hash();
 
-        public byte[] Value { get; set; }
-
-        public Hash(byte[] buffer) => Value = buffer;
-
-        //TODO: define length in a static property
-        // ReSharper disable once MemberCanBePrivate.Global
-        public Hash() : this(new byte[HashExtensions.Length])
+        public Hash(byte[] buffer)
         {
 
+            Value = ByteString.CopyFrom(buffer);
         }
 
-        public override string ToString() => Value.ToHex();
+        public Hash(ByteString value)
+        {
+            Value = value;
+        }
 
-        public byte[] GetHashBytes() => Value;
+
+        public byte[] GetHashBytes() => Value.ToByteArray();
 
         public bool Equals(IHash other)
         {
-            var bytes = GetHashBytes();
-            var otherBytes = other.GetHashBytes();
-            if (bytes.Length != otherBytes.Length)
-            {
-                return false;
-            }
-            for (var i = 0; i < Math.Min(bytes.Length, otherBytes.Length); i++)
-            {
-                if (bytes[i] != otherBytes[i])
-                {
-                    return false;
-                }
-            }
-            return true;
+            return this.value_.Equals(other.Value);
         }
 
         public int Compare(IHash x, IHash y)
         {
-            if (x == y)
+            if (Equals(x, y))
                 return 0;
 
             var xValue = x.Value;
@@ -57,5 +52,21 @@ namespace AElf.Kernel
 
             return -1;
         }
+
+        public static bool operator ==(Hash h1, Hash h2)
+        {
+            // ReSharper disable once ConvertIfStatementToReturnStatement
+            if (object.ReferenceEquals(h1, null))
+            {
+                return object.ReferenceEquals(h2, null);
+            }
+            return  h1.Equals(h2);
+        }
+
+        public static bool operator !=(Hash h1, Hash h2)
+        {
+            return !(h1 == h2);
+        }
+
     }
 }

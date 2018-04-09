@@ -12,8 +12,8 @@ namespace AElf.Kernel
 
         public IEnumerable<IHash> GetDataConflict()
         {
-            IHash<IAccount> a = null;
-            IHash<IAccount> b = null;
+            IHash a = null;
+            IHash b = null;
 
             yield return a;
             yield return b;

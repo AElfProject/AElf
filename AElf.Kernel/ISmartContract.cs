@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
     
-    public interface ISmartContract
+    public interface ISmartContract 
     {
-        Task InititalizeAsync(IAccountDataProvider dataProvider);
-        Task InvokeAsync(IHash<IAccount> caller, 
-            string methodname, params object[] objs);
-    }    
-    
+        Task InitializeAsync(IAccountDataProvider dataProvider);
+        Task InvokeAsync(IHash caller, 
+            string methodname, ByteString bytes);
+    }
 }

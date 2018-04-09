@@ -13,6 +13,12 @@
         /// <summary>
         /// Current block hash
         /// </summary>
-        IHash<IBlock> CurrentBlockHash { get; }
+        Hash CurrentBlockHash { get; }
+
+        void UpdateCurrentBlock(IBlock block);
+        
+        Hash Id { get; }
+        
+        Hash GenesisBlockHash { get; }
     }
 }

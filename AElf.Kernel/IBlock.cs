@@ -5,9 +5,13 @@
     /// </summary>
     public interface IBlock
     {
-        IHash GetHash();
-        IBlockHeader GetHeader();
-        IBlockBody GetBody();
-        bool AddTransaction(ITransaction tx);
+        Hash GetHash();
+        bool AddTransaction(Hash tx);
+        
+        BlockHeader Header { get; set; }
+        
+        BlockBody Body { get; set; }
+
+        void FillTxsMerkleTreeRootInHeader();
     }
 }

@@ -11,62 +11,68 @@ namespace AElf.Kernel
 {
     public class TransactionExecutingManager : ITransactionExecutingManager
     {
-        private WorldState _worldState;
-        private AccountZero _accountZero;
-        private AccountManager _accountManager;
+        private readonly WorldState _worldState;
+        private readonly AccountZero _accountZero;
         public Dictionary<int, List<ITransaction>> ExecutingPlan { get; private set; }
         private Dictionary<IAccount, List<ITransaction>> _pending;
         private UndirectedGraph<ITransaction, Edge<ITransaction>> _graph;
+        private readonly ISmartContractService _smartContractService;
 
-        public TransactionExecutingManager(WorldState worldState, AccountZero accountZero, AccountManager accountManager)
+        public TransactionExecutingManager(WorldState worldState, AccountZero accountZero,
+            ISmartContractService smartContractManager)
         {
             _worldState = worldState;
             _accountZero = accountZero;
-            _accountManager = accountManager;
+            _smartContractService = smartContractManager;
         }
-        
-        
+
+
         /// <summary>
         /// AElf.kernel.ITransaction executing manager. execute async.
         /// </summary>
         /// <returns>The lf. kernel. IT ransaction executing manager. execute async.</returns>
         /// <param name="tx">Tx.</param>
-        public Task ExecuteAsync(ITransaction tx)
+        /// <param name="chain"></param>
+        public async Task ExecuteAsync(ITransaction tx, IChainContext chain)
         {
-            
-            var task = Task.Factory.StartNew(async () =>
-            {
-                // TODO: execute tx and  exceptions handling
-                var method = tx.MethodName;
-                var accountFrom = tx.From;
-                var accountTo = tx.To;
-                var param = tx.Params;
-                
-                switch (method)
-                {
-                    case "transfer":
-                        await Transfer(accountFrom, accountTo, (decimal) param.ElementAt(0));
-                        break;
-                    case "CreatAccount":
-                        await CreateAccount(accountFrom, (string) param.ElementAt(0));
-                        break;
-                    case "InvokeMethod":
-                        await InvokeMethod(accountFrom, accountTo, (string) param.ElementAt(0),
-                            (object[]) param.ElementAt(1));
-                        break;
-                    case "DeployContract":
-                        await DeploySmartContract(accountFrom, (int) param.ElementAt(0), (string) param.ElementAt(1),
-                            (byte[]) param.ElementAt(2));
-                        break;
-                    default:
-                        Console.WriteLine("Default case");
-                        break;
-                }
-            });
-            return task;
+            var smartContract = await _smartContractService.GetAsync(tx.To, chain);
+
+            await smartContract.InvokeAsync(tx.From, tx.MethodName, tx.Params);
         }
 
-        
+//            
+//            var task = Task.Factory.StartNew(async () =>
+//            {
+//                // TODO: execute tx and  exceptions handling
+//                var method = tx.MethodName;
+//                var accountFrom = tx.From;
+//                var accountTo = tx.To;
+//                var param = tx.Params;
+//                
+//                switch (method)
+//                {
+//                    case "transfer":
+//                        await Transfer(accountFrom, accountTo, (decimal) param.ElementAt(0));
+//                        break;
+//                    case "CreatAccount":
+//                        await CreateAccount(accountFrom, (string) param.ElementAt(0));
+//                        break;
+//                    case "InvokeMethod":
+//                        await InvokeMethod(accountFrom, accountTo, (string) param.ElementAt(0),
+//                            (object[]) param.ElementAt(1));
+//                        break;
+//                    case "DeployContract":
+//                        await DeploySmartContract(accountFrom, (int) param.ElementAt(0), (string) param.ElementAt(1),
+//                            (byte[]) param.ElementAt(2));
+//                        break;
+//                    default:
+//                        Console.WriteLine("Default case");
+//                        break;
+//                }
+//            });
+//        }
+
+        /*
 
         /// <summary>
         /// transfer coins between accounts
@@ -113,7 +119,7 @@ namespace AElf.Kernel
         {
             var accountToDaataProvider = _worldState.GetAccountDataProviderByAccount(accountTo);
             var smartConrtract = new SmartContract();
-            await smartConrtract.InititalizeAsync(accountToDaataProvider);
+            await smartConrtract.InitializeAsync(accountToDaataProvider);
             await smartConrtract.InvokeAsync(accountFrom.GetAddress(), method, param);
         }
         
@@ -163,19 +169,19 @@ namespace AElf.Kernel
             // register contracts on accountZero
             var accountZeroDataProvider = _worldState.GetAccountDataProviderByAccount(_accountZero);
             var smartContractZero = new SmartContractZero();
-            await smartContractZero.InititalizeAsync(accountZeroDataProvider);
+            await smartContractZero.InitializeAsync(accountZeroDataProvider);
             await smartContractZero.RegisterSmartContract(smartContractRegistration);
             
             // TODO： create new account with contract registered
             await _accountManager.CreateAccount(accountFrom, smartContractRegistration);
         }
 
-       
-
+       */
+        /*
         /// <summary>
         /// Schedule execution of transaction
         /// </summary>
-        public void Schedule(List<ITransaction> transactions)
+        public void Schedule(List<ITransaction> transactions, IChain chain)
         {
             // reset 
             _pending = new Dictionary<IAccount, List<ITransaction>>();
@@ -200,7 +206,7 @@ namespace AElf.Kernel
                     _pending[res].Add(tx);
                 }
             }
-            ColorGraph(transactions); 
+            ColorGraph(transactions, chain); 
         }
         
         
@@ -225,7 +231,7 @@ namespace AElf.Kernel
         /// <summary>
         /// use coloring algorithm to claasify txs
         /// </summary>
-        private void ColorGraph(List<ITransaction> transactions)
+        private void ColorGraph(List<ITransaction> transactions, IChain chain)
         {
             // color result for each vertex
             Dictionary<ITransaction, int> colorResult = new Dictionary<ITransaction, int>();
@@ -238,7 +244,7 @@ namespace AElf.Kernel
                 
                 foreach (var h in r.Value)
                 {
-                    var task = ExecuteAsync(h);
+                    var task = ExecuteAsync(h,chain);
                     tasks.Add(task);
                 }
                 Task.WaitAll(tasks.ToArray());
@@ -291,7 +297,8 @@ namespace AElf.Kernel
                     available[j] = false;
                 }
             }
-        }
+            
+        }*/
         
     }
 }

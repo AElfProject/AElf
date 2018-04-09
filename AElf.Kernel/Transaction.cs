@@ -10,13 +10,12 @@ using System.Text;
 
 namespace AElf.Kernel
 {
-    public class Transaction : ITransaction
+    public partial class Transaction : ITransaction
     {
-        public Transaction() { }
 
-        public IHash<ITransaction> GetHash()
+        public Hash GetHash()
         {
-            return new Hash<ITransaction>(this.CalculateHash());
+            return new Hash(this.CalculateHash());
         }
 
         public ITransactionParallelMetaData GetParallelMetaData()
@@ -24,20 +23,10 @@ namespace AElf.Kernel
             throw new NotImplementedException();
         }
 
-        public string MethodName { get; set; }
-        public object[] Params { get; set; }
-        public IAccount From { get; set; }
-        public IAccount To { get; set; }
-        public ulong IncrementId { get; set; }
-
-        public IHash<IBlockHeader> LastBlockHashWhenCreating()
+        public Hash LastBlockHashWhenCreating()
         {
             throw new NotImplementedException();
         }
 
-        public byte[] Serialize()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

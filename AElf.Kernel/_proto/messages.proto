@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel";
+
+message Transaction
+{
+    Hash From = 1;
+    Hash To = 2;
+    uint64 IncrementId = 3;
+    string MethodName = 4;
+    bytes Params = 5;
+}
+
+message Hash{
+    bytes Value = 1;
+}
+
+message BlockHeader{
+    int32 Version = 1;
+    Hash PerviousBlock = 2;
+    Hash MerkleTreeRootOfTransactions = 3;
+}
+
+message BlockBody{
+    Hash BlockHeader = 1;
+    repeated Hash Transactions =2;
+}
+
+message Block{
+    BlockHeader Header = 1;
+    BlockBody Body = 2;
+}
+
+message SmartContractRegistration{
+    int32 Category = 1;
+    Hash ContractHash = 2;
+    bytes ContractBytes = 3;
+
+}
+
+message SmartContractDeployment{
+    Hash ContractHash = 1;
+    bytes ConstructParams =2;
+}
+
