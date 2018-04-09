@@ -1,5 +1,5 @@
-# Why we choose DPoS in ÆLF?
-With the prosperity of blockchain, several technologies have gained the attention of the public which previously used to be obscure and technical - primarily cryptography and consensus. Today I’m going to talk about the consensus algorithms used in ÆLF blockchain to answer the question people usually ask me:
+# Why we choose DPoS in AElf?
+With the prosperity of blockchain, several technologies have gained the attention of the public which previously used to be obscure and technical - primarily cryptography and consensus. Today I’m going to talk about the consensus algorithms used in AElf blockchain to answer the question people usually ask me:
 
 **"Why DPoS?"**
 
@@ -7,7 +7,7 @@ There are quite a few consensus algorithms nowadays, Paxos, Raft, PBFT, PoW, PoS
 
 The most commonly used **Cooperative Consensus algorithm** is [Paxos](https://en.wikipedia.org/wiki/Paxos_(computer_science)) and its alternative [Raft](http://thesecretlivesofdata.com/raft/). Paxos is used by [Chubby](https://research.google.com/archive/chubby.html), which is now in production in Google, and Raft is implemented in [etcd](https://github.com/coreos/etcd) by [CoreOS](https://coreos.com/) for its highly reliable distributed key-value storage. The logic behind cooperative consensus is that, suppose we have a fixed number of members, and if the majority of the members agrees on the proposal, then good, the system goes well. After they’ve reached this agreement, we start over and deal with the next round of proposals. What we can tell from this scenario is that: the voters are fixed, we cannot join and leave in random behaviour, and the voters know each other (every voter has one and **only** one vote).
 
-The cooperative consensus algorithm is acting well on a private or safe environment because it is fast (tps > [30k](https://github.com/coreos/etcd/blob/master/Documentation/op-guide/performance.md)). The only limitation is the latency of network, and the voting result is **permanent**. Nobody can reverse the approved proposals. It has been widely used in distributed systems in large companies for high availability. However, the drawback of such a system is obvious too. Firstly, it is distributed, but not decentralized. The difference is that a distributed system is a **concept of architecture** of a software system, but a decentralized system is a **concept of organization**.  
+The cooperative consensus algorithm is acting well on a private or safe environment because it is fast (TPS > [30k](https://github.com/coreos/etcd/blob/master/Documentation/op-guide/performance.md)). The only limitation is the latency of network, and the voting result is **permanent**. Nobody can reverse the approved proposals. It has been widely used in distributed systems in large companies for high availability. However, the drawback of such a system is obvious too. Firstly, it is distributed, but not decentralized. The difference is that a distributed system is a **concept of architecture** of a software system, but a decentralized system is a **concept of organization**.  
 
 The voters in Paxos, generally, are controlled by a centralized authority, the peer nodes who are legitimate in the consortium are pre-configured statically by files (e.g. etcd config) or some kind of centralized certification system for voter issues. But if voters in the system are permitted to join and leave randomly without these controls, hackers can bring down the system easily by Sybil Attack, i.e. to fake the majority of the voters.
 
@@ -26,7 +26,7 @@ The Proof of Stake consensus is an attempt to solve the problem of power consump
 
 Here is how we think:
 
-In ÆLF, is there a consensus algorithm which took the advantages of both Cooperative and Competitive consensus mechanism and got rid of the disadvantages?
+In AElf, is there a consensus algorithm which took the advantages of both Cooperative and Competitive consensus mechanism and got rid of the disadvantages?
 
 The ideal features of the consensus algorithm we’re looking for should be:
 
