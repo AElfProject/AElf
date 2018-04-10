@@ -8,8 +8,11 @@
 
 Welcome to AElfs’ official GitHub repository. The code is still in its early stages and is under constant change to 
 improve its quality and functionality.
-You can find out more about AElf by reading the following 
-[White Paper](https://grid.hoopox.com/aelf_whitepaper_EN.pdf?v=1). And official website is [AElf](https://aelf.io).
+
+You can find out more about AElf by reading the 
+[White Paper](https://grid.hoopox.com/aelf_whitepaper_EN.pdf?v=1). 
+
+Official website: [AElf](https://aelf.io)
 
 
 ## Overview
