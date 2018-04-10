@@ -46,7 +46,7 @@ If you want to run the code you can clone the repository and open the project wi
 For now the solution includes the unit tests, you can run them and study them to get an idea as to how different parts 
 of the current system work and how they’re used.
 
-
+You will find some more in-depth technical documentation [here](/docs/README.md).
 
 ## How to Contribute
 
