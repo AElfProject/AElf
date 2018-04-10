@@ -34,7 +34,7 @@ namespace AElf.Kernel
                 To = Hash.Zero,
                 From = Hash.Zero,
                 Params = ByteString.CopyFrom(
-                    new SmartContractRegistration()
+                    new SmartContractRegistration
                         {
                             Category = 0,
                             ContractBytes = ByteString.CopyFromUtf8(smartContractZero.FullName),
@@ -52,9 +52,9 @@ namespace AElf.Kernel
                 From = Hash.Zero,
                 To = Hash.Zero,
                 Params = ByteString.CopyFrom(
-                    new SmartContractDeployment()
+                    new SmartContractDeployment
                     {
-                        ContractHash = Hash.Zero,
+                        ContractHash = Hash.Zero
                     }.ToByteArray()
                 )
             };
