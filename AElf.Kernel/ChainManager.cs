@@ -8,13 +8,10 @@ namespace AElf.Kernel
 {
     public class ChainManager : IChainManager
     {
-        private readonly IChainBlockRelationStore _relationStore;
-
         private readonly IChainStore _chainStore;
 
-        public ChainManager(IChainBlockRelationStore relationStore, IChainStore chainStore)
+        public ChainManager(IChainStore chainStore)
         {
-            _relationStore = relationStore;
             _chainStore = chainStore;
         }
 

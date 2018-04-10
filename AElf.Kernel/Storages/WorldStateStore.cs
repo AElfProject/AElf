@@ -1,65 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Extensions;
 
 namespace AElf.Kernel.Storages
 {
     public class WorldStateStore : IWorldStateStore
     {
-        private readonly Dictionary<IHash, List<IChangesStore>> _changesStores = 
-            new Dictionary<IHash, List<IChangesStore>>();
-        
-        private Dictionary<IHash, List<IAccountDataProvider>> _accountDataProviders =
-            new Dictionary<IHash, List<IAccountDataProvider>>();
-        
-        public Task SetWorldStateAsync(IHash chainHash, IChangesStore changesStore)
+        private readonly IKeyValueDatabase _keyValueDatabase;
+
+        private readonly Dictionary<Hash, IChangesStore> _worldStates;
+
+        public WorldStateStore(IKeyValueDatabase keyValueDatabase, Dictionary<Hash, IChangesStore> worldStates)
         {
-            if (!Validation(changesStore))
+            _keyValueDatabase = keyValueDatabase;
+            _worldStates = worldStates;
+        }
+
+        public async Task SetData(Hash pointerHash, byte[] data)
+        {
+            await _keyValueDatabase.SetAsync(pointerHash, data);
+        }
+
+        public async Task<byte[]> GetData(Hash pointerHash)
+        {
+            return (byte[]) await _keyValueDatabase.GetAsync(pointerHash, typeof(byte[]));
+        }
+
+        public void InsertWorldState(Hash chainId, Hash blockHash, IChangesStore changes)
+        {
+            _worldStates.Add(new Hash(chainId.CalculateHashWith(blockHash)), changes);
+        }
+
+        public WorldState GetWorldState(Hash chainId, Hash blockHash)
+        {
+            if (_worldStates.TryGetValue(new Hash(chainId.CalculateHashWith(blockHash)), out var changes))
             {
-                throw new InvalidOperationException("Invalide changes");
+                return new WorldState(changes);
             }
             
-            _changesStores[chainHash].Add(changesStore);
-            return Task.CompletedTask;
-        }
-
-        public Task<WorldState> GetAsync(IHash chainHash, long height)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<WorldState> GetAsync(IHash chainHash)
-        {
-            return Task.FromResult(CreateWorldState(chainHash));
-        }
-
-        private bool Validation(IChangesStore changesStore)
-        {
-            return true;
-        }
-
-        private List<IChangesStore> GetChangesList(IHash chainHash)
-        {
-            return _changesStores[chainHash];
-        }
-
-        private WorldState CreateWorldState(IHash chainHash, long height = -1)
-        {
-            var currentWorldState = new WorldState(_accountDataProviders[chainHash]);
-            if (height == -1)
-            {
-                return currentWorldState;
-            }
-
-            var changes = GetChangesList(chainHash);
-            var currentHeight = changes.Count;
-            var changesToRollback = changes.GetRange((int)height, (int)(currentHeight - height));
-            return Rollback(currentWorldState, changesToRollback);
-        }
-
-        private WorldState Rollback(WorldState worldState, List<IChangesStore> changes)
-        {
-            throw new NotImplementedException();
+            throw new InvalidOperationException();
         }
     }
 }
