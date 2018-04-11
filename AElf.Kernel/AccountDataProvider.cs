@@ -7,7 +7,6 @@ namespace AElf.Kernel
 {
     public class AccountDataProvider : IAccountDataProvider
     {
-        private readonly Dictionary<Hash, IChangesStore> _changesDictionary;
         private readonly IPointerStore _pointerStore;
         private readonly IWorldStateStore _worldStateStore;
         
@@ -15,9 +14,8 @@ namespace AElf.Kernel
 
         public AccountDataProvider(Hash accountHash, Hash chainId, 
             IAccountContextService accountContextService, IPointerStore pointerStore,
-            Dictionary<Hash, IChangesStore> changesDictionary, IWorldStateStore worldStateStore)
+            IWorldStateStore worldStateStore)
         {
-            _changesDictionary = changesDictionary;
             _worldStateStore = worldStateStore;
             _pointerStore = pointerStore;
             Context = accountContextService.GetAccountDataContext(accountHash, chainId, false);
@@ -30,7 +28,7 @@ namespace AElf.Kernel
 
         public IDataProvider GetDataProvider()
         {
-            return new DataProvider(Context, _pointerStore, _changesDictionary, _worldStateStore);
+            return new DataProvider(Context, _pointerStore, _worldStateStore);
         }
     }
 }

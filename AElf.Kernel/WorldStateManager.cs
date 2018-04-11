@@ -11,18 +11,16 @@ namespace AElf.Kernel
         private readonly IWorldStateStore _worldStateStore;
         private readonly IPointerStore _pointerStore;
         private readonly Hash _blockHash;
-        private readonly Dictionary<Hash, IChangesStore> _changesDictionary;
         private readonly IAccountContextService _accountContextService;
 
 
         public WorldStateManager(IWorldStateStore worldStateStore, Hash blockHash, 
-            IAccountContextService accountContextService, IPointerStore pointerStore, Dictionary<Hash, IChangesStore> changesDictionary)
+            IAccountContextService accountContextService, IPointerStore pointerStore)
         {
             _worldStateStore = worldStateStore;
             _blockHash = blockHash;
             _accountContextService = accountContextService;
             _pointerStore = pointerStore;
-            _changesDictionary = changesDictionary;
         }
 
         public Hash GenesisBlockHash { get; set; }
@@ -35,7 +33,7 @@ namespace AElf.Kernel
         public IAccountDataProvider GetAccountDataProvider(Hash chainId, Hash accountHash)
         {
             return new AccountDataProvider(accountHash, chainId, _accountContextService,
-                _pointerStore, _changesDictionary, _worldStateStore);
+                _pointerStore, _worldStateStore);
         }
     }
 }

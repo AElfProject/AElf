@@ -20,16 +20,19 @@ namespace AElf.Kernel.Tests
         
         private readonly IChainStore _chainStore;
 
-        private readonly Dictionary<Hash, IChangesStore> _changesList;
-        
         public StoragesTest(IBlockHeaderStore blockStore, IChainStore chainStore, 
-            IWorldStateStore worldStateStore, IPointerStore pointerStore, Dictionary<Hash, IChangesStore> changesList)
+            IWorldStateStore worldStateStore, IPointerStore pointerStore)
         {
             _blockStore = blockStore;
             _chainStore = chainStore;
             _worldStateStore = worldStateStore;
             _pointerStore = pointerStore;
-            _changesList = changesList;
+        }
+
+        [Fact]
+        public void Test()
+        {
+            Assert.True(true);
         }
         
         [Fact]
@@ -38,27 +41,14 @@ namespace AElf.Kernel.Tests
             var block = new Block(Hash.Generate());
             block.AddTransaction(Hash.Generate());
             
-            await _blockStore.InsertAsync(block.Header);
+            var blockStore = new BlockHeaderStore(new KeyValueDatabase());
+            
+            await blockStore.InsertAsync(block.Header);
 
             var hash = block.GetHash();
-            var getBlock = await _blockStore.GetAsync(hash);
+            var getBlock = await blockStore.GetAsync(hash);
             
             Assert.True(block.Header.GetHash() == getBlock.GetHash());
-        }
-
-        [Fact]
-        public async void ChainStoreTest()
-        {
-            var chain = new Chain();
-            
-            //Prepare
-            var preBlockHash = Hash.Generate();
-            var preBlock = new Block(preBlockHash);
-            preBlock.AddTransaction(Hash.Generate());
-            chain.UpdateCurrentBlock(preBlock);
-            
-            var chainManager = new ChainManager(_chainStore);
-            await chainManager.AppendBlockToChainAsync(chain, preBlock);
         }
 
         [Fact]
@@ -78,7 +68,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, preBlockHash, 
-                accountContextService, _pointerStore, _changesList);
+                accountContextService, _pointerStore);
             var worldState = worldStateManager.GetWorldStateAsync(chain.Id);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
 
@@ -93,6 +83,5 @@ namespace AElf.Kernel.Tests
             Assert.True(data == getData);
             
         }
-        
     }
 }

@@ -20,9 +20,8 @@ namespace AElf.Kernel
         private readonly Path _path;
         
         public DataProvider(IAccountDataContext accountDataContext, IPointerStore pointerStore, 
-            Dictionary<Hash, IChangesStore> changesDictionary, IWorldStateStore worldStateStore, string dataProviderKey = "aelf")
+            IWorldStateStore worldStateStore, string dataProviderKey = "aelf")
         {
-            _changesDictionary = changesDictionary;
             _worldStateStore = worldStateStore;
             _pointerStore = pointerStore;
             _accountDataContext = accountDataContext;
@@ -43,7 +42,7 @@ namespace AElf.Kernel
         
         public IDataProvider GetDataProvider(string name)
         {
-            return new DataProvider(_accountDataContext, _pointerStore, _changesDictionary, _worldStateStore, name);
+            return new DataProvider(_accountDataContext, _pointerStore, _worldStateStore, name);
         }
 
         /// <summary>
@@ -73,13 +72,9 @@ namespace AElf.Kernel
             
             await _pointerStore.InsertAsync(pathHash, pointerHash);
 
-            var change = new Change
-            {
-                Before = await hashBefore,
-                After = pointerHash
-            };
-            await _changesDictionary[_accountDataContext.ChainId].InsertAsync(pathHash, change);
-
+            var worldState = _worldStateStore.GetWorldState(_accountDataContext.ChainId, currentBlockHash);
+            await worldState.ChangePointer(_path, currentBlockHash);
+            
             await _worldStateStore.SetData(pointerHash, obj);
         }
     }
