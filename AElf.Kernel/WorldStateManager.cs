@@ -14,6 +14,7 @@ namespace AElf.Kernel
         private readonly Dictionary<Hash, IChangesStore> _changesDictionary;
         private readonly IAccountContextService _accountContextService;
 
+
         public WorldStateManager(IWorldStateStore worldStateStore, Hash blockHash, 
             IAccountContextService accountContextService, IPointerStore pointerStore, Dictionary<Hash, IChangesStore> changesDictionary)
         {
@@ -24,6 +25,8 @@ namespace AElf.Kernel
             _changesDictionary = changesDictionary;
         }
 
+        public Hash GenesisBlockHash { get; set; }
+
         public Task<WorldState> GetWorldStateAsync(Hash chainId)
         {
             return Task.FromResult(_worldStateStore.GetWorldState(chainId, _blockHash));
@@ -32,7 +35,7 @@ namespace AElf.Kernel
         public IAccountDataProvider GetAccountDataProvider(Hash chainId, Hash accountHash)
         {
             return new AccountDataProvider(accountHash, chainId, _accountContextService,
-                _pointerStore, _changesDictionary);
+                _pointerStore, _changesDictionary, _worldStateStore);
         }
     }
 }

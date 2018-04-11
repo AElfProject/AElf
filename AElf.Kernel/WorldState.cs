@@ -24,8 +24,8 @@ namespace AElf.Kernel
         {
             var change = new Change
             {
-                Before = pointer,
-                After = pointer.SetBlockHash(blockHash)
+                Before = pointer.GetPointerHash(),
+                After = pointer.SetBlockHash(blockHash).GetPointerHash()
             };
             _changes.Add(change);
 
@@ -37,7 +37,7 @@ namespace AElf.Kernel
         
         public Task<Hash> GetWorldStateMerkleTreeRootAsync()
         {
-            var pointerHashThatCanged = _changes.Select(ch => ch.Before.GetPointerHash());
+            var pointerHashThatCanged = _changes.Select(ch => ch.Before);
             var merkleTree = new BinaryMerkleTree();
             merkleTree.AddNodes(pointerHashThatCanged);
             return Task.FromResult(merkleTree.ComputeRootHash());

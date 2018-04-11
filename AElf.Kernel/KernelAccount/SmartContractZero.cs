@@ -19,11 +19,11 @@ namespace AElf.Kernel.KernelAccount
 
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        private IWorldStateManager _worldStateManager;
+        private readonly IWorldStateManager _worldStateManager;
 
         private readonly IAccountContextService _accountContextService;
         
-        private ISerializer<SmartContractRegistration> _serializer;
+        private readonly ISerializer<SmartContractRegistration> _serializer;
 
         public SmartContractZero(ISmartContractRunnerFactory smartContractRunnerFactory,
             IWorldStateManager worldStateManager, ISerializer<SmartContractRegistration> serializer, 
@@ -57,9 +57,7 @@ namespace AElf.Kernel.KernelAccount
         public async Task RegisterSmartContract(SmartContractRegistration reg)
         {
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
-            await smartContractMap.SetAsync(
-                reg.ContractHash, _serializer.Serialize(reg)
-            );
+            await smartContractMap.SetAsync(_worldStateManager.GenesisBlockHash, _serializer.Serialize(reg));
         }
 
         public async Task DeploySmartContract(SmartContractDeployment smartContractRegister)
@@ -76,7 +74,7 @@ namespace AElf.Kernel.KernelAccount
             // get SmartContractRegistration
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
             //var regHash = _registeredContracts[hash];
-            var obj = await smartContractMap.GetAsync(hash);
+            var obj = await smartContractMap.GetAsync(_worldStateManager.GenesisBlockHash);
             var reg = _serializer.Deserialize(obj);
 
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);

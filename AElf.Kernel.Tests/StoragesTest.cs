@@ -81,6 +81,17 @@ namespace AElf.Kernel.Tests
                 accountContextService, _pointerStore, _changesList);
             var worldState = worldStateManager.GetWorldStateAsync(chain.Id);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
+
+            var dataProvider = accountDataProvider.GetDataProvider();
+
+            var key = Hash.Generate();
+            
+            var data = new byte[] {1, 1, 1, 1};
+            await dataProvider.SetAsync(preBlockHash, data);
+            var getData = await dataProvider.GetAsync(preBlockHash);
+            
+            Assert.True(data == getData);
+            
         }
         
     }
