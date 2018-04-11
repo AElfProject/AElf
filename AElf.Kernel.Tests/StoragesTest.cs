@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
@@ -30,29 +30,23 @@ namespace AElf.Kernel.Tests
         }
 
         [Fact]
-        public void Test()
-        {
-            Assert.True(true);
-        }
-        
-        [Fact]
         public async Task BlockStoreTest()
         {
             var block = new Block(Hash.Generate());
             block.AddTransaction(Hash.Generate());
             
-            var blockStore = new BlockHeaderStore(new KeyValueDatabase());
+            var blockHeaderStore = new BlockHeaderStore(new KeyValueDatabase());
             
-            await blockStore.InsertAsync(block.Header);
+            await blockHeaderStore.InsertAsync(block.Header);
 
             var hash = block.GetHash();
-            var getBlock = await blockStore.GetAsync(hash);
+            var getBlock = await blockHeaderStore.GetAsync(hash);
             
             Assert.True(block.Header.GetHash() == getBlock.GetHash());
         }
 
         [Fact]
-        public async void AccountDataChangeTest()
+        public async Task AccountDataChangeTest()
         {
             #region Generate a chain with one block
             
@@ -74,14 +68,18 @@ namespace AElf.Kernel.Tests
 
             var dataProvider = accountDataProvider.GetDataProvider();
 
-            var key = Hash.Generate();
-            
             var data = new byte[] {1, 1, 1, 1};
             await dataProvider.SetAsync(preBlockHash, data);
             var getData = await dataProvider.GetAsync(preBlockHash);
             
             Assert.True(data == getData);
+
+            var data2 = new byte[] {1, 2, 3, 4};
+            var subDataProvider = dataProvider.GetDataProvider("test");
+            await subDataProvider.SetAsync(preBlockHash, data2);
+            var getData2 = await subDataProvider.GetAsync(preBlockHash);
             
+            Assert.True(data2 == getData2);
         }
     }
 }

@@ -9,12 +9,12 @@ namespace AElf.Kernel.Storages
     {
         private readonly IKeyValueDatabase _keyValueDatabase;
 
-        private readonly Dictionary<Hash, IChangesStore> _worldStates;
+        private readonly Dictionary<Hash, IChangesStore> _changesStoreCollection;
 
-        public WorldStateStore(IKeyValueDatabase keyValueDatabase, Dictionary<Hash, IChangesStore> worldStates)
+        public WorldStateStore(IKeyValueDatabase keyValueDatabase, Dictionary<Hash, IChangesStore> changesStoreCollection)
         {
             _keyValueDatabase = keyValueDatabase;
-            _worldStates = worldStates;
+            _changesStoreCollection = changesStoreCollection;
         }
 
         public async Task SetData(Hash pointerHash, byte[] data)
@@ -29,17 +29,20 @@ namespace AElf.Kernel.Storages
 
         public void InsertWorldState(Hash chainId, Hash blockHash, IChangesStore changes)
         {
-            _worldStates.Add(new Hash(chainId.CalculateHashWith(blockHash)), changes);
+            _changesStoreCollection.Add(new Hash(chainId.CalculateHashWith(blockHash)), changes);
         }
 
         public WorldState GetWorldState(Hash chainId, Hash blockHash)
         {
-            if (_worldStates.TryGetValue(new Hash(chainId.CalculateHashWith(blockHash)), out var changes))
+            var key = new Hash(chainId.CalculateHashWith(blockHash));
+            if (_changesStoreCollection.TryGetValue(key, out var changes))
             {
                 return new WorldState(changes);
             }
             
-            throw new InvalidOperationException();
+            var changesStore = new ChangesStore(new KeyValueDatabase());
+            _changesStoreCollection[key] = changesStore;
+            return new WorldState(changesStore);
         }
     }
 }
