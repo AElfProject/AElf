@@ -11,7 +11,6 @@ namespace AElf.Kernel
         /// </summary>
         public byte[] Signatures;
 
-
         /// <summary>
         /// the timestamp of this block
         /// </summary>
@@ -23,11 +22,8 @@ namespace AElf.Kernel
             PreviousHash = preBlockHash;
         }
 
-
         public Hash PreviousHash { get; set; }
         
-
-
         public Hash GetHash()
         {
             return new Hash( this.CalculateHash() );

@@ -12,7 +12,8 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class StoragesTest
     {
-        private readonly IBlockHeaderStore _blockStore;
+        private readonly IBlockHeaderStore _blockHeaderStore;
+        private readonly IBlockBodyStore _blockBodyStore;
 
         private readonly IWorldStateStore _worldStateStore;
 
@@ -20,11 +21,15 @@ namespace AElf.Kernel.Tests
         
         private readonly IChainStore _chainStore;
 
-        public StoragesTest(IBlockHeaderStore blockStore, IChainStore chainStore, 
+        public StoragesTest(IChainStore chainStore, 
+            IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
             IWorldStateStore worldStateStore, IPointerStore pointerStore)
         {
-            _blockStore = blockStore;
             _chainStore = chainStore;
+            
+            _blockHeaderStore = blockHeaderStore;
+            _blockBodyStore = blockBodyStore;
+            
             _worldStateStore = worldStateStore;
             _pointerStore = pointerStore;
         }
@@ -34,15 +39,31 @@ namespace AElf.Kernel.Tests
         {
             var block = new Block(Hash.Generate());
             block.AddTransaction(Hash.Generate());
-            
-            var blockHeaderStore = new BlockHeaderStore(new KeyValueDatabase());
+            block.AddTransaction(Hash.Generate());
+            block.AddTransaction(Hash.Generate());
+            block.AddTransaction(Hash.Generate());
+            block.FillTxsMerkleTreeRootInHeader();
+
+            var blockHeaderStore = _blockHeaderStore;
+            var blockBodyStore = _blockBodyStore;
             
             await blockHeaderStore.InsertAsync(block.Header);
+            await blockBodyStore.InsertAsync(block.Header.MerkleTreeRootOfTransactions, block.Body);
 
-            var hash = block.GetHash();
-            var getBlock = await blockHeaderStore.GetAsync(hash);
+            //block hash = block header hash
+            var blockHeaderHash = block.Header.GetHash();
+            var blockHash = block.GetHash();
+            Assert.True(blockHash == blockHeaderHash);
+            
+            var getBlock = await blockHeaderStore.GetAsync(blockHeaderHash);
             
             Assert.True(block.Header.GetHash() == getBlock.GetHash());
+            
+            //block body hash = transactions merkle tree root hash
+            var blockBodyHash = block.Header.MerkleTreeRootOfTransactions;
+            var getBlockBody = await blockBodyStore.GetAsync(blockBodyHash);
+            
+            Assert.True(Equals(block.Body, getBlockBody));
         }
         
         [Fact]
