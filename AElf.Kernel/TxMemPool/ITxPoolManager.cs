@@ -1,46 +1,48 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.TxMemPool
 {
-    public interface ITxPool
+    public interface ITxPoolManager
     {
-
+        
+        ///<summary>
         /// add tx
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        bool AddTx(ITransaction tx);
+        Task<bool> AddTransaction(ITransaction tx);
         
         /// <summary>
         /// add multi txs
         /// </summary>
         /// <param name="txs"></param>
         /// <returns></returns>
-        bool AddTxs(List<ITransaction> txs);
+        Task<bool> AddTransactions(List<ITransaction> txs);
         
         /// <summary>
         /// remove a tx
         /// </summary>
         /// <param name="txHash"></param>
-        void Remove(Hash txHash);
+        Task Remove(Hash txHash);
 
         /// <summary>
         /// remove tx with worst price
         /// </summary>
-        void RemoveTxAsWorstPrice();
-        
+        Task RemoveTxAsWorstPrice();
+
         /// <summary>
-        /// validate a tx before added to pool
+        /// Removes transactions from mempool already in block
         /// </summary>
-        /// <param name="tx"></param>
+        /// <param name="blockHeight"></param>
         /// <returns></returns>
-        bool Validate(ITransaction tx);
+        Task RemoveTxsInBlock(ulong blockHeight);
 
         /// <summary>
         /// return pool size
         /// </summary>
         /// <returns></returns>
-        ulong PoolSize();
+        Task<ulong> GetPoolSize();
 
         /// <summary>
         /// return a tx alread in pool
@@ -48,6 +50,18 @@ namespace AElf.Kernel
         /// <param name="txHash"></param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        bool GetTransaction(Hash txHash, out ITransaction tx);
+        Task<bool> GetTransaction(Hash txHash, out ITransaction tx);
+
+        /// <summary>
+        /// clear tx pool
+        /// </summary>
+        /// <returns></returns>
+        Task Clear();
+
+        /// <summary>
+        /// persistent Tx pool to storage
+        /// </summary>
+        /// <returns></returns>
+        Task SavePool();
     }
 }
