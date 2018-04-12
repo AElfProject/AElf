@@ -8,6 +8,6 @@ namespace AElf.Kernel
     public interface IChainContext
     {
         ISmartContractZero SmartContractZero { get; }
-        IHash ChainId { get; }
+        Hash ChainId { get; }
     }
 }
