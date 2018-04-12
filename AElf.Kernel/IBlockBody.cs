@@ -8,6 +8,6 @@ namespace AElf.Kernel
     {
         RepeatedField<Hash> Transactions { get; }
 
-        bool AddTransaction(IHash tx);
+        bool AddTransaction(Hash tx);
     }
 }

@@ -18,6 +18,7 @@ message Hash{
 message BlockHeader{
     int32 Version = 1;
     Hash PerviousBlock = 2;
+    Hash MerkleTreeRootOfTransactions = 3;
 }
 
 message BlockBody{
@@ -29,3 +30,16 @@ message Block{
     BlockHeader Header = 1;
     BlockBody Body = 2;
 }
+
+message SmartContractRegistration{
+    int32 Category = 1;
+    Hash ContractHash = 2;
+    bytes ContractBytes = 3;
+
+}
+
+message SmartContractDeployment{
+    Hash ContractHash = 1;
+    bytes ConstructParams =2;
+}
+

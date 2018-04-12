@@ -25,8 +25,12 @@ namespace AElf.Kernel
         {
             if (!Body.AddTransaction(tx)) 
                 return false;
-            Header.AddTransaction(tx);
             return true;
+        }
+
+        public void FillTxsMerkleTreeRootInHeader()
+        {
+            Header.MerkleTreeRootOfTransactions = Body.CalculateMerkleTreeRoot();
         }
 
         /// <summary>

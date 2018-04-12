@@ -1,32 +1,65 @@
-﻿using AElf.Kernel.KernelAccount;
+﻿using System;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
+using AElf.Kernel.Extensions;
+using AElf.Kernel.KernelAccount;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    public class GenesisBlockBuilder 
+    public class GenesisBlockBuilder
     {
         public Block Block { get; set; }
-        
-        public Transaction Tx { get; set; }
+
+        public List<Transaction> Txs { get; set; } =new List<Transaction>();
 
 
-        public GenesisBlockBuilder Build(ISmartContractZero smartContractZero)
+        public GenesisBlockBuilder Build(Type smartContractZero)
         {
-            var block = new Block()
+            var block = new Block(Hash.Zero)
             {
-
             };
-            var tx = new Transaction
+            var registerTx = new Transaction
             {
                 IncrementId = 0,
                 MethodName = nameof(ISmartContractZero.RegisterSmartContract),
-                
-                
+                To = Hash.Zero,
+                From = Hash.Zero,
+                Params = ByteString.CopyFrom(
+                    new SmartContractRegistration()
+                        {
+                            Category = 0,
+                            ContractBytes = ByteString.CopyFromUtf8(smartContractZero.FullName),
+                            ContractHash = Hash.Zero
+                        }
+                        .ToByteArray()
+                )
             };
-            block.AddTransaction(tx.GetHash());
+            block.AddTransaction(registerTx.GetHash());
 
-            Block = block;
+            var deployTx = new Transaction()
+            {
+                IncrementId = 1,
+                MethodName = nameof(ISmartContractZero.DeploySmartContract),
+                From = Hash.Zero,
+                To = Hash.Zero,
+                Params = ByteString.CopyFrom(
+                    new SmartContractDeployment()
+                    {
+                        ContractHash = Hash.Zero,
+                    }.ToByteArray()
+                )
+            };
+            block.AddTransaction(deployTx.GetHash());
+
             
-            Tx = tx;
+            block.FillTxsMerkleTreeRootInHeader();
+            
+            Block = block;
+
+            Txs.Add(registerTx);
+            Txs.Add(deployTx);
 
             return this;
         }

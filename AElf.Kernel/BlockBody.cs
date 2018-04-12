@@ -1,22 +1,29 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AElf.Kernel.Merkle;
 
 namespace AElf.Kernel
 {
     public partial class BlockBody : IBlockBody
     {
-        private readonly List<IHash> _transactions = new List<IHash>();
 
-        public int TransactionsCount => _transactions.Count;
+        public int TransactionsCount => transactions_.Count;
 
 
-        public bool AddTransaction(IHash tx)
+        public bool AddTransaction(Hash tx)
         {
             
-            if (_transactions.Contains(tx))
+            if (transactions_.Contains(tx))
                 return false;
-            _transactions.Add(tx);
+            transactions_.Add(tx);
             return true;
+        }
+
+        public Hash CalculateMerkleTreeRoot()
+        {
+            Merkle.BinaryMerkleTree merkleTree=new BinaryMerkleTree();
+            merkleTree.AddNodes(transactions_);
+            return merkleTree.ComputeRootHash();
         }
     }
 }

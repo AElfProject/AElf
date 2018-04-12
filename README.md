@@ -14,12 +14,11 @@ You can find out more about AElf by reading the
 
 Official website: [AElf](https://aelf.io)
 
-
 ## Overview
 
 AElfs main objective is to permit scalability and extensibility through a multi-layer branching structure formed by a 
 main chain and multiple levels of side-chains (a tree like structure). Each side-chain will be designed for one business 
-use case. We also plan to include communication with external blockchains like Bitcoin or Ethereum. 
+use case. We also plan to include communication with external blockchains like Bitcoin or Ethereum.
 
 AElf also aims to make it as easy as possible to extend/customize the system by providing easy to use tools and 
 frameworks in order to customize the chains and write smart contracts. AElf will support various languages that will let 
@@ -27,9 +26,6 @@ developers choose the one they are the most comfortable with.
 
 AElf will improve overall blockchain performance by executing transactions in parallel and isolating smart contracts in 
 their own side-chains in order to segregate the systems resources.
-
-
-
 
 ## Development
 
@@ -65,7 +61,6 @@ If the problem needs debating or you have questions on how to implement a featur
 [issue](https://github.com/AElfProject/AElf/issues). If you spotted a typo or a code formatting issue, just directly 
 opening a Pull Request is fine. 
 
-
-
 ## Supported Platforms
+
 Any platform that supports .NET Core is compatible.

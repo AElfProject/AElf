@@ -4,19 +4,13 @@ using System;
 
 namespace AElf.Kernel
 {
-    public partial class BlockHeader : IBlockHeader
+    public partial class BlockHeader : IBlockHeader, IHashProvider
     {
         /// <summary>
         /// The miner's signature.
         /// </summary>
         public byte[] Signatures;
 
-        /// <summary>
-        /// The merkle root hash of all the transactions in this block
-        /// </summary>
-        public IHash MerkleRootHash => GetTransactionMerkleTreeRoot();
-
-        private readonly BinaryMerkleTree _transactionMerkleTree = new BinaryMerkleTree();
 
         /// <summary>
         /// the timestamp of this block
@@ -29,30 +23,14 @@ namespace AElf.Kernel
             PreviousHash = preBlockHash;
         }
 
-        /// <summary>
-        /// include transactions into the merkle tree
-        /// </summary>
-        /// <param name="hash">Hash.</param>
-        public void AddTransaction(Hash hash)
-        {
-            _transactionMerkleTree.AddNode(hash);
-        }
 
         public Hash PreviousHash { get; set; }
-        public Hash Hash { get; set; }
+        
 
-        /// <summary>
-        /// Gets the transaction merkle tree root.
-        /// </summary>
-        /// <returns>The transaction merkle tree root.</returns>
-        public Hash GetTransactionMerkleTreeRoot()
-        {
-            return _transactionMerkleTree.ComputeRootHash();
-        }
 
-        public byte[] Serialize()
+        public Hash GetHash()
         {
-            throw new NotImplementedException();
+            return new Hash( this.CalculateHash() );
         }
     }
 }

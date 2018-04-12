@@ -6,26 +6,31 @@ namespace AElf.Kernel
 {
     public class BlockManager: IBlockManager
     {
-        private readonly IBlockStore _blockStore;
+        private readonly IBlockHeaderStore _blockHeaderStore;
 
-        public BlockManager(IBlockStore blockStore)
+        private readonly IBlockBodyStore _blockBodyStore;
+        
+        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore)
         {
-            _blockStore = blockStore;
+            _blockHeaderStore = blockHeaderStore;
+            _blockBodyStore = blockBodyStore;
         }
 
-        public Task<Block> AddBlockAsync(Block block)
+        public async Task<Block> AddBlockAsync(Block block)
         {
             if (!Validation(block))
             {
                 throw new InvalidOperationException("Invalide block.");
             }
-            _blockStore.Insert(block);
-            return Task.FromResult(block);
+
+            await _blockHeaderStore.InsertAsync(block.Header);
+            await _blockBodyStore.InsertAsync(block.Header.MerkleTreeRootOfTransactions, block.Body);
+            return block;
         }
 
-        public Task<BlockHeader> GetBlockHeaderAsync(Hash chainGenesisBlockHash)
+        public Task<BlockHeader> GetBlockHeaderAsync(Hash hash)
         {
-            return Task.FromResult(_blockStore.GetAsync(chainGenesisBlockHash).Result.Header);
+            return _blockHeaderStore.GetAsync(hash);
         }
         
         /// <summary>

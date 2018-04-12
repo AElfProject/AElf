@@ -10,8 +10,31 @@ As the whitepaper already states the AElf kernel will be built in a similar way 
 
 ## Data Structures
 
-## Components
+### **Account**
 
+Represents accounts in the system. The only field in account is a byte array (through IHash).
+
+### **Block**
+
+Composed of a Header and a Body. This structure is used as a container for transactions. Note that AElf blocks can reference an enormous amount of transactions (1 millions for example). It also contains the Merkle Tree (similar to BTCs one).
+
+### **Transaction**
+
+Represents a transaction in the AElf system. It is used to:
+* Transfer tokens 
+* Call a smart contract method
+* Deploy a smart contract
+
+### **SmartContractRegistration**
+
+This class represents the registration of a smart contract.
+The Hash of SmartContractRegistration is calculated with contract name and the address of caller account who deploy the contract. And the hash is also the address of new account who is  associated with this smart contract (updated on 3.8)
+
+### **Chains** 
+
+Chains in the kernel represent accounts (AccountManager) and block data.
+
+## Components
 
 This section describes the components implemented in the kernel. It clarifies the roles that they have in the system.
 
