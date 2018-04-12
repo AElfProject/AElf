@@ -13,16 +13,17 @@ namespace AElf.Kernel
         private readonly IAccountDataContext _accountDataContext;
         private readonly string _key;
         
-        private readonly Dictionary<Hash, IChangesStore> _changesDictionary;
         private readonly IPointerStore _pointerStore;
         private readonly IWorldStateStore _worldStateStore;
+        private readonly Hash _preBlockHash;
 
         private readonly Path _path;
         
         public DataProvider(IAccountDataContext accountDataContext, IPointerStore pointerStore, 
-            IWorldStateStore worldStateStore, string dataProviderKey = "aelf")
+            IWorldStateStore worldStateStore, Hash preBlockHash, string dataProviderKey = "aelf")
         {
             _worldStateStore = worldStateStore;
+            _preBlockHash = preBlockHash;
             _pointerStore = pointerStore;
             _accountDataContext = accountDataContext;
             _key = dataProviderKey;
@@ -42,7 +43,7 @@ namespace AElf.Kernel
         
         public IDataProvider GetDataProvider(string name)
         {
-            return new DataProvider(_accountDataContext, _pointerStore, _worldStateStore, name);
+            return new DataProvider(_accountDataContext, _pointerStore, _worldStateStore, _preBlockHash, name);
         }
 
         /// <summary>
@@ -50,7 +51,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="blockHash"></param>
         /// <returns></returns>
-        public async Task<byte[]> GetAsync(Hash blockHash = null)
+        public async Task<byte[]> GetAsync(Hash blockHash)
         {
             var pointerHash = blockHash == null
                 ? await _pointerStore.GetAsync(_path.GetPathHash())
@@ -59,21 +60,26 @@ namespace AElf.Kernel
             return await _worldStateStore.GetData(pointerHash);
         }
 
-        public async Task SetAsync(Hash currentBlockHash, byte[] obj)
+        public async Task<byte[]> GetAsync()
+        {
+            return await GetAsync(_preBlockHash);
+        }
+
+        public async Task SetAsync(byte[] obj)
         {
             //Clean the path.
             _path.SetBlockHashToNull();
             var pathHash = _path.GetPathHash();
 
-            _path.SetBlockHash(currentBlockHash);
+            _path.SetBlockHash(_preBlockHash);
             var pointerHash = _path.GetPointerHash();
 
             var hashBefore = _pointerStore.GetAsync(pathHash);
             
             await _pointerStore.InsertAsync(pathHash, pointerHash);
 
-            var worldState = _worldStateStore.GetWorldState(_accountDataContext.ChainId, currentBlockHash);
-            await worldState.ChangePointer(_path, currentBlockHash);
+            var worldState = _worldStateStore.GetWorldState(_accountDataContext.ChainId, _preBlockHash);
+            await worldState.ChangePointer(_path, _preBlockHash);
             
             await _worldStateStore.SetData(pointerHash, obj);
         }

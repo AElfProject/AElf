@@ -44,39 +44,42 @@ namespace AElf.Kernel.Tests
             
             Assert.True(block.Header.GetHash() == getBlock.GetHash());
         }
-
+        
         [Fact]
-        public async Task AccountDataChangeTest()
+        public async Task OneBlockDataProviderTest()
         {
-            #region Generate a chain with one block
-            
+            #region Prepare data
+            //Create a chain with one block.
             var chain = new Chain();
-            
             var preBlockHash = Hash.Generate();
             var preBlock = new Block(preBlockHash);
             preBlock.AddTransaction(Hash.Generate());
             chain.UpdateCurrentBlock(preBlock);
-            
-            #endregion
 
+            //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, preBlockHash, 
                 accountContextService, _pointerStore);
-            var worldState = worldStateManager.GetWorldStateAsync(chain.Id);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
-
+            #endregion
+            
+            //Get the DataProvider of the AccountDataProvider.
             var dataProvider = accountDataProvider.GetDataProvider();
 
+            //Set data to the DataProvider and get it.
             var data = new byte[] {1, 1, 1, 1};
-            await dataProvider.SetAsync(preBlockHash, data);
+            await dataProvider.SetAsync(data);
             var getData = await dataProvider.GetAsync(preBlockHash);
             
             Assert.True(data == getData);
 
-            var data2 = new byte[] {1, 2, 3, 4};
+            //Get a sub-DataProvider from aforementioned DataProvider.
             var subDataProvider = dataProvider.GetDataProvider("test");
-            await subDataProvider.SetAsync(preBlockHash, data2);
+
+            //Same as before.
+            var data2 = new byte[] {1, 2, 3, 4};
+            await subDataProvider.SetAsync(data2);
             var getData2 = await subDataProvider.GetAsync(preBlockHash);
             
             Assert.True(data2 == getData2);
