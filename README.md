@@ -12,7 +12,7 @@ improve its quality and functionality.
 You can find out more about AElf by reading the 
 [White Paper](https://grid.hoopox.com/aelf_whitepaper_EN.pdf?v=1). 
 
-Official website: [AElf](https://aelf.io)
+Official website: [aelf.io](https://aelf.io)
 
 ## Overview
 
