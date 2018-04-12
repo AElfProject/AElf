@@ -35,6 +35,15 @@ namespace AElf.Kernel.Tests
         }
 
         [Fact]
+        public async Task ChainStoreTest()
+        {
+            var chain = new Chain();
+            var chainManager = new ChainManager(_chainStore);
+            
+            await chainManager.AddChainAsync(chain.Id);
+        }
+
+        [Fact]
         public async Task BlockStoreTest()
         {
             var block = new Block(Hash.Generate());
@@ -93,17 +102,19 @@ namespace AElf.Kernel.Tests
             await dataProvider.SetAsync(data);
             var getData = await dataProvider.GetAsync(preBlockHash);
             
-            Assert.True(data == getData);
+            Assert.True(data.SequenceEqual(getData));
 
             //Get a sub-DataProvider from aforementioned DataProvider.
             var subDataProvider = dataProvider.GetDataProvider("test");
 
             //Same as before.
             var data2 = new byte[] {1, 2, 3, 4};
+
             await subDataProvider.SetAsync(data2);
             var getData2 = await subDataProvider.GetAsync(preBlockHash);
             
-            Assert.True(data2 == getData2);
+            Assert.True(data2.SequenceEqual(getData2));
+
         }
     }
 }
