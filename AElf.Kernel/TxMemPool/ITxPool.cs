@@ -23,7 +23,7 @@ namespace AElf.Kernel
         /// <param name="tx"></param>
         /// <param name="executable"></param>
         /// <returns></returns>
-        bool Validate(ITransaction tx, out bool executable);
+        bool ValidateTx(ITransaction tx);
 
         /// <summary>
         /// return pool size
