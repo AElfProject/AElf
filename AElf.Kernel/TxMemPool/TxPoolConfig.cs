@@ -4,13 +4,18 @@ namespace AElf.Kernel
 {
     public class TxPoolConfig : ITxPoolConfig
     {
-        public TxPoolConfig(ulong poolLimitSize, int txLimitSize)
+        
+        public TxPoolConfig(ulong poolLimitSize, ulong feeThreshold, ulong txLimitSize)
         {
             PoolLimitSize = poolLimitSize;
+            FeeThreshold = feeThreshold;
             TxLimitSize = txLimitSize;
         }
 
         public ulong PoolLimitSize { get; }
-        public int TxLimitSize { get; }
+
+        public ulong TxLimitSize { get; }
+
+        public ulong FeeThreshold { get; }
     }
 }

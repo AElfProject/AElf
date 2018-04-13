@@ -3,6 +3,7 @@
     public interface ITxPoolConfig
     {
         ulong PoolLimitSize { get; }
-        int TxLimitSize { get; }
+        ulong TxLimitSize { get; }
+        ulong FeeThreshold { get; }
     }
 }
