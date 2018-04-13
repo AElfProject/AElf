@@ -7,8 +7,11 @@ namespace AElf.Kernel.TxMemPool
 {
     public class TxPool :ITxPool
     {
-        private readonly Dictionary<Hash, SortedDictionary<ulong, ITransaction>> _executable = new Dictionary<Hash, SortedDictionary<ulong, ITransaction>>();
-        private readonly Dictionary<Hash, SortedDictionary<ulong, ITransaction>> _waiting = new Dictionary<Hash, SortedDictionary<ulong, ITransaction>>();
+        private readonly Dictionary<Hash, SortedDictionary<ulong, ITransaction>> _executable =
+            new Dictionary<Hash, SortedDictionary<ulong, ITransaction>>();
+
+        private readonly Dictionary<Hash, SortedDictionary<ulong, ITransaction>> _waiting =
+            new Dictionary<Hash, SortedDictionary<ulong, ITransaction>>();
 
         private readonly IAccountContextService _accountContextService;
         
@@ -25,52 +28,84 @@ namespace AElf.Kernel.TxMemPool
         
         public bool AddTx(ITransaction tx)
         {
+            // validate tx
             if (!ValidateTx(tx))
             {
                 return false;
             }
             
-            // validations success
-            var addr = tx.From;
-            
-            if (_executable.TryGetValue(addr, out var executableList) && executableList.Keys.Contains(tx.IncrementId))
-            {
-                // tx with the same IncrementId in executable list
-                // TODO: compare two tx's price, choose higher one
-                return true;
-            }
-            
-            // add to wainting queue
-            if (_waiting.TryGetValue(addr, out var waitingQueue))
-            {
-                if (waitingQueue.Keys.Contains(tx.IncrementId))
-                {
-                    // TODO: compare two tx's price, choose higher one
-                }
-            }
-            else
-            {
-                _waiting[addr] = new SortedDictionary<ulong, ITransaction> {{tx.IncrementId, tx}};
-            }
-            
+            // 1. try to 
+            // 2. if 1 failed, add to wainting List
             // TODO: more processings like pool expired checking, price compared
-            return true;
+            return ReplaceExecutableTx(tx) || AddWaitingTx(tx);
+            
         }
 
+        /// <summary>
+        /// replace tx in executable list with higher fee
+        /// </summary>
+        /// <param name="tx"></param>
+        /// <returns></returns>
+        private bool ReplaceExecutableTx(ITransaction tx)
+        {
+            var addr = tx.From;
+
+            if (!_executable.TryGetValue(addr, out var executableList) ||
+                !executableList.Keys.Contains(tx.IncrementId)) return false;
+            
+            // tx with the same IncrementId in executable list
+            // TODO: compare two tx's fee, choose higher one and disgard the lower 
+            return true;
+        }
+        
+        /// <summary>
+        /// add tx to waiting list
+        /// </summary>
+        /// <param name="tx"></param>
+        /// <returns></returns>
+        private bool AddWaitingTx(ITransaction tx)
+        {
+            if (!_waiting.TryGetValue(tx.From, out var waitingList))
+            {
+                _waiting[tx.From] = new SortedDictionary<ulong, ITransaction>();
+            }
+            
+            if (waitingList.Keys.Contains(tx.IncrementId))
+            {
+                // TODO: compare two tx's fee, choose higher one and disgard the lower 
+            }
+
+            return true;
+        }
+        
+        
         public void Remove(ITransaction tx)
         {
-            
+            // case 1: tx in executable list
             if (RemoveFromExecutable(tx, out var unValidTxList))
             {
-                // case 1: tx in executable list
-                // add unvalid tx to waiting queue
+                
+                // add unvalid tx to waiting List
+                foreach (var t in unValidTxList)
+                {
+                    AddWaitingTx(t);
+                }
+                
                 return;
             }
+            
             // case 2: tx in waiting list
             RemoveFromWaiting(tx);
         }
 
-        public bool RemoveFromExecutable(ITransaction tx, out List<ITransaction> unValidTxList)
+        
+        /// <summary>
+        /// remove tx from executable list
+        /// </summary>
+        /// <param name="tx"></param>
+        /// <param name="unValidTxList">unvalid txs because removing this tx</param>
+        /// <returns></returns>
+        private bool RemoveFromExecutable(ITransaction tx, out List<ITransaction> unValidTxList)
         {
             // remove the tx 
             var addr = tx.From;
@@ -79,13 +114,30 @@ namespace AElf.Kernel.TxMemPool
             if (!_executable.TryGetValue(addr, out var executableList) ||
                 !executableList.Keys.Contains(tx.IncrementId)) return false;
             
-            // remove the tx and return unvalid tx because removing 
+            // remove the tx 
             executableList.Remove(tx.IncrementId);
+            
+            // return unvalid tx because removing 
             unValidTxList = executableList.Values.Where(t => t.IncrementId > tx.IncrementId).ToList();
+            
+            // remove unvalid tx from executable list
+            foreach (var t in unValidTxList)
+            {
+                executableList.Remove(t.IncrementId);
+            }
+            
+            // remove the entry if empty
+            if (executableList.Count == 0)
+                _executable.Remove(addr);
             return true;
         }
 
-        public bool RemoveFromWaiting(ITransaction tx)
+        /// <summary>
+        /// remove tx from waiting list
+        /// </summary>
+        /// <param name="tx"></param>
+        /// <returns></returns>
+        private bool RemoveFromWaiting(ITransaction tx)
         {
             var addr = tx.From;
             if (!_waiting.TryGetValue(addr, out var waitingList) ||
@@ -93,6 +145,10 @@ namespace AElf.Kernel.TxMemPool
             
             // remove the tx
             waitingList.Remove(tx.IncrementId);
+            
+            // remove the entry if empty
+            if (waitingList.Count == 0)
+                _waiting.Remove(addr);
             return true;
         }
 
