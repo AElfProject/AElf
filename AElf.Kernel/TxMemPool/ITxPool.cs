@@ -4,7 +4,7 @@ namespace AElf.Kernel
 {
     public interface ITxPool
     {
-
+        /// <summary>
         /// add tx
         /// </summary>
         /// <param name="tx"></param>
@@ -15,7 +15,13 @@ namespace AElf.Kernel
         /// remove a tx
         /// </summary>
         /// <param name="tx"></param>
-        void Remove(ITransaction tx);
+        bool Remove(ITransaction tx);
+
+        /// <summary>
+        /// promote txs from waiting to executable
+        /// </summary>
+        /// <param name="addrs"></param>
+        void Promote(List<Hash> addrs);
 
         /// <summary>
         /// validate a tx before added to pool    

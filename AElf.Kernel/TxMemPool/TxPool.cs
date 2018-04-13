@@ -14,8 +14,6 @@ namespace AElf.Kernel.TxMemPool
             new Dictionary<Hash, SortedDictionary<ulong, ITransaction>>();
 
         private readonly IAccountContextService _accountContextService;
-        
-
         private readonly IChainContext _context;
         private readonly ITxPoolConfig _config;
 
@@ -79,26 +77,94 @@ namespace AElf.Kernel.TxMemPool
         }
         
         
-        public void Remove(ITransaction tx)
+        public bool Remove(ITransaction tx)
         {
             // case 1: tx in executable list
             if (RemoveFromExecutable(tx, out var unValidTxList))
             {
-                
                 // add unvalid tx to waiting List
                 foreach (var t in unValidTxList)
                 {
                     AddWaitingTx(t);
                 }
-                
-                return;
+                return true;
             }
             
             // case 2: tx in waiting list
-            RemoveFromWaiting(tx);
+            return RemoveFromWaiting(tx);
         }
 
         
+        /// <summary>
+        /// promote txs from waiting to executable list
+        /// </summary>
+        /// <param name="addrs"></param>
+        public void Promote(List<Hash> addrs = null)
+        {
+            if (addrs == null)
+            {
+                addrs = _waiting.Keys.ToList();
+            }
+
+            foreach (var addr in addrs)
+            {
+                var waitingList = _waiting[addr];
+                if (waitingList.Count == 0)
+                    continue;
+                
+                // discard too old txs
+                var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
+                var nonce = context.IncreasementId;
+                var oldList = _waiting[addr].Keys.Where(n => n < nonce);
+                foreach (var n in oldList)
+                {
+                    // TODO: log
+                    waitingList.Remove(n);
+                }
+
+                Promote(addr, nonce);
+
+            }
+        }
+
+        /// <summary>
+        /// promote ready txs
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <param name="nonce"></param>
+        private void Promote(Hash addr, ulong nonce)
+        {
+            var waitingList = _waiting[addr];
+            
+            // no tx left
+            if (waitingList.Count == 0)
+                return;
+            
+            var next = waitingList.First().Key;
+            
+            // no tx ready
+            if (next > nonce)
+                return;
+
+            if (!_executable.TryGetValue(addr, out var executableList))
+            {
+                _executable[addr] = new SortedDictionary<ulong, ITransaction>();
+            }
+            
+            do
+            {
+                // remove from waiting list
+                waitingList.Remove(next);
+                // add to executable list
+                executableList[next]=waitingList.First().Value;
+            } while (waitingList.Count > 0 && waitingList.First().Key == ++next);
+
+            if (waitingList.Count == 0)
+                _waiting.Remove(addr);
+
+        }
+
+
         /// <summary>
         /// remove tx from executable list
         /// </summary>
@@ -129,6 +195,11 @@ namespace AElf.Kernel.TxMemPool
             // remove the entry if empty
             if (executableList.Count == 0)
                 _executable.Remove(addr);
+            
+            // Update the account nonce if needed
+            var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
+            context.IncreasementId = Math.Min(context.IncreasementId, tx.IncrementId);
+
             return true;
         }
 
@@ -152,7 +223,7 @@ namespace AElf.Kernel.TxMemPool
             return true;
         }
 
-        private int GetTxSize(ITransaction tx)
+        private ulong GetTxSize(ITransaction tx)
         {
             throw new System.NotImplementedException();
         }
@@ -160,6 +231,8 @@ namespace AElf.Kernel.TxMemPool
         
         public bool ValidateTx(ITransaction tx)
         {
+            // fee check
+            
             // size check
             if (GetTxSize(tx) > _config.TxLimitSize)
             {
@@ -203,12 +276,12 @@ namespace AElf.Kernel.TxMemPool
 
         public ulong GetPoolSize()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public bool GetTransaction(Hash txHash, out ITransaction tx)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
     
