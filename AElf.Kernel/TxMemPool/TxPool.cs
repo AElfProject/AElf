@@ -122,6 +122,7 @@ namespace AElf.Kernel.TxMemPool
                     waitingList.Remove(n);
                 }
 
+                // promote ready txs
                 Promote(addr, nonce);
 
             }
@@ -274,11 +275,35 @@ namespace AElf.Kernel.TxMemPool
             throw new NotImplementedException();
         }
 
-        public ulong GetPoolSize()
+        public ulong GetPoolSize(out ulong exec, out ulong wait )
         {
-            throw new NotImplementedException();
+            exec = GetExecutableSize();
+            wait = GetWaitingSize();
+            return exec + wait;
         }
 
+        /// <summary>
+        /// return count of txs executable
+        /// </summary>
+        /// <returns></returns>
+        private ulong GetExecutableSize()
+        {
+            return _executable.Values.Aggregate<SortedDictionary<ulong, ITransaction>, ulong>(0,
+                (current, p) => current + (ulong) p.Count);
+        }
+
+        /// <summary>
+        /// return count of txs waiting
+        /// </summary>
+        /// <returns></returns>
+        private ulong GetWaitingSize()
+        {
+            return _waiting.Values.Aggregate<SortedDictionary<ulong, ITransaction>, ulong>(0,
+                (current, p) => current + (ulong) p.Count);
+        }
+        
+        
+        
         public bool GetTransaction(Hash txHash, out ITransaction tx)
         {
             throw new NotImplementedException();

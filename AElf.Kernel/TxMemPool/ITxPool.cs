@@ -27,7 +27,6 @@ namespace AElf.Kernel
         /// validate a tx before added to pool    
         /// </summary>
         /// <param name="tx"></param>
-        /// <param name="executable"></param>
         /// <returns></returns>
         bool ValidateTx(ITransaction tx);
 
@@ -35,7 +34,7 @@ namespace AElf.Kernel
         /// return pool size
         /// </summary>
         /// <returns></returns>
-        ulong GetPoolSize();
+        ulong GetPoolSize(out ulong exec, out ulong wait);
 
         /// <summary>
         /// return a tx alread in pool
