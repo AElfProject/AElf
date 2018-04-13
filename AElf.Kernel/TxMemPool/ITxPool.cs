@@ -10,12 +10,12 @@ namespace AElf.Kernel
         /// <param name="tx"></param>
         /// <returns></returns>
         bool AddTx(ITransaction tx);
-        
+
         /// <summary>
         /// remove a tx
         /// </summary>
-        /// <param name="txHash"></param>
-        void Remove(Hash txHash);
+        /// <param name="tx"></param>
+        void Remove(ITransaction tx);
 
         /// <summary>
         /// validate a tx before added to pool    

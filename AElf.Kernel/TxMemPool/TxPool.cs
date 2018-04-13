@@ -7,8 +7,8 @@ namespace AElf.Kernel.TxMemPool
 {
     public class TxPool :ITxPool
     {
-        private readonly Dictionary<Hash, HashSet<ITransaction>> _executable = new Dictionary<Hash, HashSet<ITransaction>>();
-        private readonly Dictionary<Hash, HashSet<ITransaction>> _waiting = new Dictionary<Hash, HashSet<ITransaction>>();
+        private readonly Dictionary<Hash, SortedDictionary<ulong, ITransaction>> _executable = new Dictionary<Hash, SortedDictionary<ulong, ITransaction>>();
+        private readonly Dictionary<Hash, SortedDictionary<ulong, ITransaction>> _waiting = new Dictionary<Hash, SortedDictionary<ulong, ITransaction>>();
 
         private readonly IAccountContextService _accountContextService;
         
@@ -33,40 +33,67 @@ namespace AElf.Kernel.TxMemPool
             // validations success
             var addr = tx.From;
             
-            if (_executable[addr].Contains(tx))
+            if (_executable.TryGetValue(addr, out var executableList) && executableList.Keys.Contains(tx.IncrementId))
             {
+                // tx with the same IncrementId in executable list
                 // TODO: compare two tx's price, choose higher one
                 return true;
             }
             
-            
-            if (_waiting.TryGetValue(addr, out var notExecutableList))
+            // add to wainting queue
+            if (_waiting.TryGetValue(addr, out var waitingQueue))
             {
-                notExecutableList.Add(tx);
+                if (waitingQueue.Keys.Contains(tx.IncrementId))
+                {
+                    // TODO: compare two tx's price, choose higher one
+                }
             }
             else
             {
-                _waiting[addr] = new HashSet<ITransaction> {tx};
+                _waiting[addr] = new SortedDictionary<ulong, ITransaction> {{tx.IncrementId, tx}};
             }
             
-            
-            // TODO: more processing like pool expired checking, price compared
+            // TODO: more processings like pool expired checking, price compared
             return true;
         }
 
-        public void Remove(Hash txHash)
+        public void Remove(ITransaction tx)
         {
-            throw new System.NotImplementedException();
+            
+            if (RemoveFromExecutable(tx, out var unValidTxList))
+            {
+                // case 1: tx in executable list
+                // add unvalid tx to waiting queue
+                return;
+            }
+            // case 2: tx in waiting list
+            RemoveFromWaiting(tx);
         }
 
-        public bool RemoveFromExecutable(Hash txHash)
+        public bool RemoveFromExecutable(ITransaction tx, out List<ITransaction> unValidTxList)
         {
-            throw new System.NotImplementedException();
+            // remove the tx 
+            var addr = tx.From;
+            unValidTxList = null;
+            
+            if (!_executable.TryGetValue(addr, out var executableList) ||
+                !executableList.Keys.Contains(tx.IncrementId)) return false;
+            
+            // remove the tx and return unvalid tx because removing 
+            executableList.Remove(tx.IncrementId);
+            unValidTxList = executableList.Values.Where(t => t.IncrementId > tx.IncrementId).ToList();
+            return true;
         }
 
-        public bool RemoveFromWaiting(Hash txHash)
+        public bool RemoveFromWaiting(ITransaction tx)
         {
-            throw new System.NotImplementedException();
+            var addr = tx.From;
+            if (!_waiting.TryGetValue(addr, out var waitingList) ||
+                !waitingList.Keys.Contains(tx.IncrementId)) return false;
+            
+            // remove the tx
+            waitingList.Remove(tx.IncrementId);
+            return true;
         }
 
         private int GetTxSize(ITransaction tx)
