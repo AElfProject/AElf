@@ -11,12 +11,12 @@ namespace AElf.Kernel
 
         private readonly ISmartContractManager _smartContractManager;
 
-        private readonly ISmartContractRunner _contractRunner;
+        private readonly ISmartContractRunnerFactory _contractRunnerFactory;
         
-        public ChainContextService(ISmartContractManager smartContractManager, ISmartContractRunner contractRunner)
+        public ChainContextService(ISmartContractManager smartContractManager, ISmartContractRunnerFactory contractRunnerFactory)
         {
             _smartContractManager = smartContractManager;
-            _contractRunner = contractRunner;
+            _contractRunnerFactory = contractRunnerFactory;
         }
     
 
@@ -27,8 +27,9 @@ namespace AElf.Kernel
             
             var result= Task.Factory.StartNew(async () =>
             {
-                var zero = await _smartContractManager.GetAsync(chainId, Hash.Zero);
-                var smc = await _contractRunner.RunAsync(zero);
+                var zero = await _smartContractManager.GetAsync(Hash.Zero);
+                var runner = _contractRunnerFactory.GetRunner(zero.Category);
+                var smc =await runner.RunAsync(zero);
                 var context = new ChainContext((ISmartContractZero) smc, chainId);
                 _chainContexts[chainId] = context;
                 return context;
