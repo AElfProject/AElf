@@ -30,12 +30,22 @@ namespace AElf.Kernel.TxMemPool
             throw new System.NotImplementedException();
         }
 
-        public Task RemoveTxAsWorstPrice()
+        public Task RemoveTxAsWorstFee()
         {
             throw new System.NotImplementedException();
         }
 
-        public Task RemoveTxsInBlock(ulong blockHeight)
+        public Task RemoveTxWithWorstFee()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task RemoveTxsExecuted(ulong blockHeight)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task RemoveTxsInValid()
         {
             throw new System.NotImplementedException();
         }

@@ -29,15 +29,22 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// remove tx with worst price
         /// </summary>
-        Task RemoveTxAsWorstPrice();
+        Task RemoveTxAsWorstFee();
 
         /// <summary>
-        /// Removes transactions from mempool already in block
+        /// Remove transactions from mempool already in block
         /// </summary>
         /// <param name="blockHeight"></param>
         /// <returns></returns>
-        Task RemoveTxsInBlock(ulong blockHeight);
+        Task RemoveTxsExecuted(ulong blockHeight);
 
+        /// <summary>
+        /// Remove invalid transactions from mempool
+        /// not in executable and waiting list 
+        /// </summary>
+        /// <returns></returns>
+        Task RemoveTxsInValid();
+        
         /// <summary>
         /// return pool size
         /// </summary>
