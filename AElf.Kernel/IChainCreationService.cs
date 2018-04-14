@@ -9,6 +9,6 @@ namespace AElf.Kernel
     /// </summary>
     public interface IChainCreationService
     {
-        Task CreateNewChainAsync(Hash chainId,Type smartContractType);
+        Task<Chain> CreateNewChainAsync(Hash chainId,Type smartContractType);
     }
 }

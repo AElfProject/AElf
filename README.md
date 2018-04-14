@@ -1,44 +1,66 @@
-# AElf - Decentralized Cloud Computing Blockchain Network
-[![Build Status][1]][2] 
+# AElf - A Decentralized Cloud Computing Blockchain Network
+[![Build Status][1]][2]
 
 [1]: https://travis-ci.org/AElfProject/AElf.svg?branch=master
 [2]: https://travis-ci.org/AElfProject/AElf
 
-[![Waffle.io - Issues in progress](https://badge.waffle.io/AElfProject/AElf.png?label=in%20progress&title=In%20Progress)](http://waffle.io/AElfProject/AElf)
+[![Waffle.io - Columns and their card count](https://badge.waffle.io/AElfProject/AElf.svg?columns=Next,In%20Progress,Done)](https://waffle.io/AElfProject/AElf)
 
-Early stages, still under development.
+Welcome to AElfs’ official GitHub repository. The code is still in its early stages and is under constant change to 
+improve its quality and functionality.
 
-# Development Roadmap
+You can find out more about AElf by reading the 
+[White Paper](https://grid.hoopox.com/aelf_whitepaper_EN.pdf?v=1). 
 
-## Phase 1: The Internal Affair Of The Wonderland (Nov 2017 - March 2018)
+Official website: [aelf.io](https://aelf.io)
 
-1. Graph-based scheduler algorithm implementation, see [INTRO SCHEDULER](docs/SCHEDULER.md).
-2. Tagged primitive resource Data-Structure (sstable, aka sorted string table); the basic element for resource isolation, backed by distributed KV database. This structure is comparable to dataflow processing paradigm (e.g., mr/reactivex).
-3. In-cluster wire protocol (data/task marshal/unmarshal).
-4. Actor (e.g., akka) based task distribution inside a single cluster/ledger.
-5. Contract as demostration of concurrent execution.
+## Overview
 
-## Phase 2: A Tale Between Two Nodes (March 2018 - May 2018)
+AElfs main objective is to permit scalability and extensibility through a multi-layer branching structure formed by a 
+main chain and multiple levels of side-chains (a tree like structure). Each side-chain will be designed for one business 
+use case. We also plan to include communication with external blockchains like Bitcoin or Ethereum.
 
-1. tx_pool/mem_pool design (unconfirmed tx).
-2. Basic block in-memory construct, e.g.,: merkletree, block header, transactions, statsdb, caching.
-3. Wire protocol for inter-ledger block/tx transferring.
-4. [DPoS](docs/CONSENSUS.md) implementation, hashing, mining.
-5. Block validator, crypto-related algorithms, e.g., signing, hmac.
-6. P2P discovery/communication.
+AElf also aims to make it as easy as possible to extend/customize the system by providing easy to use tools and 
+frameworks in order to customize the chains and write smart contracts. AElf will support various languages that will let 
+developers choose the one they are the most comfortable with.
 
-## Phase 3: The Main Chain (May 2018)
+AElf will improve overall blockchain performance by executing transactions in parallel and isolating smart contracts in 
+their own side-chains in order to segregate the systems resources.
 
-1. Cross-chain, two-way peg, merkle proofs.
-2. Event trigger from one sidechain to another aka cross-chain interoperability.
+## Development
 
-## Phase 4: Governance (May 2018 - August 2018)
+In these early stages, we want to concentrate on developing the kernel of the system. This corresponds to the most basic 
+building block of the system. Notably, structures like chain and storage will be implemented in it. The next step will 
+be to develop the networking and consensus layer used to create the network. The final step will be to work on AElfs 
+gouvernance system.
 
-1. Voting mechanism for sidechain join/leave.
-2. Voting mechanism for emergency treatment. 
+If you want to run the code you can clone the repository and open the project with any IDE that support C# and the 
+.NET core runtime (we would recommend either [Visual Studio](https://www.visualstudio.com/) on Windows or 
+[Rider](https://www.jetbrains.com/rider/) if you’re on a Mac). You will also need to have the 
+[.NET Core SDK](https://www.microsoft.com/net/learn/get-started/macos) installed.
 
-## Phase 5: Ready To Launch (August 2018 - January 2019)
+For now the solution includes the unit tests, you can run them and study them to get an idea as to how different parts 
+of the current system work and how they’re used.
 
-1. Code optimization before mainnet launching.
-2. Code review, pre-releases. 
-3. Business case battle test (public beta).
+You will find some more in-depth technical documentation [here](/docs/README.md).
+
+## How to Contribute
+
+If you have a reasonable understanding of blockchain technology and at least some notions of C# you can of course 
+contribute by using GitHub issues and Pull Requests. We also appreciate other types of contributions such as 
+documentation improvements or even correcting typos in the code if you spot any.
+
+The standard procedure is well documented on GitHub, for detailed explanation, especially if it’s the first time you’re 
+doing this, you can follow the procedure on the following links:
+[Working with forks](https://help.github.com/articles/working-with-forks/) and 
+[Pull Requests](https://help.github.com/articles/proposing-changes-to-your-work-with-pull-requests/).
+Basically, you fork the AElf repository, create a branch that clearly indicates the problem you’re solving. Later, when 
+you are happy with your work, you create a Pull Request so we can review and discuss your implementation.
+
+If the problem needs debating or you have questions on how to implement a feature, we would prefer you open a GitHub 
+[issue](https://github.com/AElfProject/AElf/issues). If you spotted a typo or a code formatting issue, just directly 
+opening a Pull Request is fine. 
+
+## Supported Platforms
+
+Any platform that supports .NET Core is compatible.

@@ -8,4 +8,4 @@ namespace AElf.Kernel
         Task<Chain> GetChainAsync(Hash id);
         Task<Chain> AddChainAsync(Hash chainId);
     }
-}
+} 

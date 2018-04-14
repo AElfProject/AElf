@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Storages;
 
 namespace AElf.Kernel
 {
@@ -22,6 +23,7 @@ namespace AElf.Kernel
             }
 
             return await sm.GetSmartContractAsync(account);
+
         }
     }
 }

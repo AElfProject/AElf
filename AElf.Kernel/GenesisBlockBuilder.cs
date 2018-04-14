@@ -19,7 +19,14 @@ namespace AElf.Kernel
         {
             var block = new Block(Hash.Zero)
             {
+                    Header = new BlockHeader
+                    {
+                    Index = 0,
+                    PreviousHash = Hash.Zero
+                },
+                Body = new BlockBody()
             };
+            
             var registerTx = new Transaction
             {
                 IncrementId = 0,
@@ -27,7 +34,7 @@ namespace AElf.Kernel
                 To = Hash.Zero,
                 From = Hash.Zero,
                 Params = ByteString.CopyFrom(
-                    new SmartContractRegistration()
+                    new SmartContractRegistration
                         {
                             Category = 0,
                             ContractBytes = ByteString.CopyFromUtf8(smartContractZero.FullName),
@@ -38,16 +45,16 @@ namespace AElf.Kernel
             };
             block.AddTransaction(registerTx.GetHash());
 
-            var deployTx = new Transaction()
+            var deployTx = new Transaction
             {
                 IncrementId = 1,
                 MethodName = nameof(ISmartContractZero.DeploySmartContract),
                 From = Hash.Zero,
                 To = Hash.Zero,
                 Params = ByteString.CopyFrom(
-                    new SmartContractDeployment()
+                    new SmartContractDeployment
                     {
-                        ContractHash = Hash.Zero,
+                        ContractHash = Hash.Zero
                     }.ToByteArray()
                 )
             };

@@ -15,7 +15,7 @@
         /// </summary>
         Hash CurrentBlockHash { get; }
 
-        void UpdateCurrentBlock(IBlock block);
+        void UpdateCurrentBlock(Block block);
         
         Hash Id { get; }
         

@@ -18,9 +18,9 @@ namespace AElf.Kernel
             _smartContractManager = smartContractManager;
             _contractRunnerFactory = contractRunnerFactory;
         }
+    
 
-
-        public IChainContext GetChainContext(IHash chainId)
+        public IChainContext GetChainContext(Hash chainId)
         {
             if (_chainContexts.TryGetValue(chainId, out var ctx))
                 return ctx;
