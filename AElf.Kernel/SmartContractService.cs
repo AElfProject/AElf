@@ -41,15 +41,15 @@ namespace AElf.Kernel
             _smartContractRegisterationStore = smartContractRegisterationStore;
         }
 
-        public Task<SmartContractRegistration> GetAsync(Hash chainId, Hash account)
+        public async Task<SmartContractRegistration> GetAsync(Hash chainId, Hash account)
         {
-            return _smartContractRegisterationStore.GetAsync(chainId, account);
+            return await _smartContractRegisterationStore.GetAsync(chainId, account);
         }
 
-        public Task<SmartContractRegistration> InsertAsync(SmartContractRegistration reg)
+        public async Task<SmartContractRegistration> InsertAsync(SmartContractRegistration reg)
         {
-            _smartContractRegisterationStore.InsertAsync(reg);
-            return Task.FromResult(reg);
+            await _smartContractRegisterationStore.InsertAsync(reg);
+            return reg;
         }
     }
 }

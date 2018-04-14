@@ -105,7 +105,7 @@ namespace AElf.Kernel.KernelAccount
         /// <param name="caller"></param>
         /// <param name="smartContractRegistration"></param>
         /// <returns></returns>
-        public Task<Hash> DeployAccount(Hash caller, SmartContractRegistration smartContractRegistration)
+        public Task<IAccount> DeployAccount(Hash caller, SmartContractRegistration smartContractRegistration)
         {
             // create new account for the contract
             var calllerContext =
@@ -121,6 +121,4 @@ namespace AElf.Kernel.KernelAccount
     {
         Task<ISmartContract> RunAsync(SmartContractRegistration reg);
     }
-
-    
 }

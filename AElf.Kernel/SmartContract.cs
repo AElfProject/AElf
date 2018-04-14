@@ -11,7 +11,6 @@ namespace AElf.Kernel
     {
         private IAccountDataProvider _accountDataProvider;
         private ISerializer<SmartContractRegistration> _serializer;
-        protected byte[] Data { get; set; }
 
         protected SmartContract(ISerializer<SmartContractRegistration> serializer)
         {
@@ -24,25 +23,7 @@ namespace AElf.Kernel
             await Task.CompletedTask;
         }
 
-        protected void Resolve(SmartContractRegistration smartContractRegistration)
-        {
-            Data = _serializer.Serialize(smartContractRegistration);
-        }
-
         public abstract Task InvokeAsync(IHash caller, string methodname, ByteString bytes);
 
-    }
-
-    public class CSharpSmartContract : SmartContract
-    {
-        public CSharpSmartContract(ISerializer<SmartContractRegistration> serializer, SmartContractRegistration smartContractRegistration) : base(serializer)
-        {
-            Resolve(smartContractRegistration);
-        }
-        
-        public override Task InvokeAsync(IHash caller, string methodname, ByteString bytes)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
