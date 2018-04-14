@@ -2,6 +2,6 @@
 {
     public interface IChainContextService
     {
-        IChainContext GetChainContext(IHash chainId);
+        IChainContext GetChainContext(Hash chainId);
     }
 }

@@ -11,19 +11,14 @@ namespace AElf.Kernel
 {
     public class TransactionExecutingManager : ITransactionExecutingManager
     {
-        private readonly WorldState _worldState;
-        private readonly AccountZero _accountZero;
         public Dictionary<int, List<ITransaction>> ExecutingPlan { get; private set; }
-        private Dictionary<IAccount, List<ITransaction>> _pending;
+        private Dictionary<Hash, List<ITransaction>> _pending;
         private UndirectedGraph<ITransaction, Edge<ITransaction>> _graph;
         private readonly ISmartContractService _smartContractService;
 
-        public TransactionExecutingManager(WorldState worldState, AccountZero accountZero,
-            ISmartContractService smartContractManager)
+        public TransactionExecutingManager(ISmartContractService smartContractService)
         {
-            _worldState = worldState;
-            _accountZero = accountZero;
-            _smartContractService = smartContractManager;
+            _smartContractService = smartContractService;
         }
 
 
@@ -40,157 +35,20 @@ namespace AElf.Kernel
             await smartContract.InvokeAsync(tx.From, tx.MethodName, tx.Params);
         }
 
-//            
-//            var task = Task.Factory.StartNew(async () =>
-//            {
-//                // TODO: execute tx and  exceptions handling
-//                var method = tx.MethodName;
-//                var accountFrom = tx.From;
-//                var accountTo = tx.To;
-//                var param = tx.Params;
-//                
-//                switch (method)
-//                {
-//                    case "transfer":
-//                        await Transfer(accountFrom, accountTo, (decimal) param.ElementAt(0));
-//                        break;
-//                    case "CreatAccount":
-//                        await CreateAccount(accountFrom, (string) param.ElementAt(0));
-//                        break;
-//                    case "InvokeMethod":
-//                        await InvokeMethod(accountFrom, accountTo, (string) param.ElementAt(0),
-//                            (object[]) param.ElementAt(1));
-//                        break;
-//                    case "DeployContract":
-//                        await DeploySmartContract(accountFrom, (int) param.ElementAt(0), (string) param.ElementAt(1),
-//                            (byte[]) param.ElementAt(2));
-//                        break;
-//                    default:
-//                        Console.WriteLine("Default case");
-//                        break;
-//                }
-//            });
-//        }
-
-        /*
-
-        /// <summary>
-        /// transfer coins between accounts
-        /// </summary>
-        /// <param name="accountFrom"></param>
-        /// <param name="accountTo"></param>
-        /// <param name="amount"></param>
-        private async Task Transfer(IAccount accountFrom, IAccount accountTo, decimal amount)
-        {
-            // get accountDataProviders from WorldState
-            var accountFromDataProvider = _worldState.GetAccountDataProviderByAccount(accountFrom);
-            var accountToDataProvider = _worldState.GetAccountDataProviderByAccount(accountTo);
-            
-            // use dataProvider to get Serialized Balance obj
-            var fromBalanceHash = new Hash<decimal>(accountFrom.CalculateHashWith("Balance"));
-            var fromBalanceDataProvider = accountFromDataProvider.GetDataProvider().GetDataProvider("Balance");
-            var fromBalance = fromBalanceDataProvider.GetAsync(fromBalanceHash).Result;
-
-            var toBalanceHash = new Hash<decimal>(accountTo.CalculateHashWith("Balance"));
-            var toBalanceDataProvider = accountToDataProvider.GetDataProvider().GetDataProvider("Balance");
-            var toBalance = toBalanceDataProvider.GetAsync(toBalanceHash).Result;
-
-           
-            // TODO: calculate with amount and  
-            // 
-
-            // TODO: serialize new Balances and uodate
-            await accountFromDataProvider.GetDataProvider().GetDataProvider("Balance")
-                .SetAsync(fromBalanceHash, fromBalance);
-            await accountToDataProvider.GetDataProvider().GetDataProvider("Balance").SetAsync(toBalanceHash, toBalance);
-            
-        }
-
         
-        /// <summary>
-        /// Invoke method in contract
-        /// </summary>
-        /// <param name="accountFrom"></param>
-        /// <param name="accountTo"></param>
-        /// <param name="method"></param>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        private async Task InvokeMethod(IAccount accountFrom, IAccount accountTo, string method, object[] param)
-        {
-            var accountToDaataProvider = _worldState.GetAccountDataProviderByAccount(accountTo);
-            var smartConrtract = new SmartContract();
-            await smartConrtract.InitializeAsync(accountToDaataProvider);
-            await smartConrtract.InvokeAsync(accountFrom.GetAddress(), method, param);
-        }
-        
-        
-
-        /// <summary>
-        /// Create a new account with old contract
-        /// </summary>
-        /// <param name="accountFrom"></param>
-        /// <param name="contractName"></param>
-        /// <returns></returns>
-        private async Task CreateAccount(IAccount accountFrom, string contractName)
-        {
-            
-            // get the contract regiseter from dataProvider
-            var accountZeroDataProvider = _worldState.GetAccountDataProviderByAccount(_accountZero);
-            var smartContractRegistration = (SmartContractRegistration) accountZeroDataProvider.GetDataProvider()
-                .GetDataProvider("SmartContract")
-                .GetAsync(new Hash<SmartContractRegistration>(_accountZero.CalculateHashWith(contractName))).Result;
-
-            // use contract to create new account
-            await _accountManager.CreateAccount(accountFrom, smartContractRegistration);
-            
-        }
-
-        
-
-        /// <summary>
-        /// deploy a new smartcontract with tx
-        /// and accountTo is created associated with the new contract
-        /// </summary>
-        /// <param name="accountFrom"></param>
-        /// <param name="contractName"></param>
-        /// <param name="smartContractCode"></param>
-        /// <param name="category"> 1: C# bytes </param>
-        private async Task DeploySmartContract(IAccount accountFrom, int category, string contractName, byte[] smartContractCode)
-        {
-            
-            var smartContractRegistration = new SmartContractRegistration
-            {
-                Name = contractName,
-                Bytes = smartContractCode,
-                Category = category,
-                Hash = new Hash<SmartContractRegistration>(_accountZero.CalculateHashWith(contractName))
-            };
-            
-            // register contracts on accountZero
-            var accountZeroDataProvider = _worldState.GetAccountDataProviderByAccount(_accountZero);
-            var smartContractZero = new SmartContractZero();
-            await smartContractZero.InitializeAsync(accountZeroDataProvider);
-            await smartContractZero.RegisterSmartContract(smartContractRegistration);
-            
-            // TODO： create new account with contract registered
-            await _accountManager.CreateAccount(accountFrom, smartContractRegistration);
-        }
-
-       */
-        /*
         /// <summary>
         /// Schedule execution of transaction
         /// </summary>
-        public void Schedule(List<ITransaction> transactions, IChain chain)
+        public void Schedule(List<ITransaction> transactions, IChainContext chainContext)
         {
             // reset 
-            _pending = new Dictionary<IAccount, List<ITransaction>>();
+            _pending = new Dictionary<Hash, List<ITransaction>>();
             ExecutingPlan = new Dictionary<int, List<ITransaction>>();
             _graph = new UndirectedGraph<ITransaction, Edge<ITransaction>>(false);
             
             foreach (var tx in transactions)
             {
-                var conflicts = new List<IAccount> {tx.From, tx.To};
+                var conflicts = new List<Hash> {tx.From, tx.To};
                 _graph.AddVertex(tx);
                 foreach (var res in conflicts)
                 {
@@ -206,7 +64,7 @@ namespace AElf.Kernel
                     _pending[res].Add(tx);
                 }
             }
-            ColorGraph(transactions, chain); 
+            ColorGraph(transactions, chainContext); 
         }
         
         
@@ -231,7 +89,7 @@ namespace AElf.Kernel
         /// <summary>
         /// use coloring algorithm to claasify txs
         /// </summary>
-        private void ColorGraph(List<ITransaction> transactions, IChain chain)
+        private void ColorGraph(List<ITransaction> transactions, IChainContext chainContext)
         {
             // color result for each vertex
             Dictionary<ITransaction, int> colorResult = new Dictionary<ITransaction, int>();
@@ -244,7 +102,7 @@ namespace AElf.Kernel
                 
                 foreach (var h in r.Value)
                 {
-                    var task = ExecuteAsync(h,chain);
+                    var task = ExecuteAsync(h, chainContext);
                     tasks.Add(task);
                 }
                 Task.WaitAll(tasks.ToArray());
@@ -298,7 +156,7 @@ namespace AElf.Kernel
                 }
             }
             
-        }*/
+        }
         
     }
 }

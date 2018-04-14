@@ -18,17 +18,17 @@ namespace AElf.Kernel
             _smartContractManager = smartContractManager;
             _contractRunner = contractRunner;
         }
+    
 
-
-        public IChainContext GetChainContext(IHash chainId)
+        public IChainContext GetChainContext(Hash chainId)
         {
             if (_chainContexts.TryGetValue(chainId, out var ctx))
                 return ctx;
             
             var result= Task.Factory.StartNew(async () =>
             {
-                var zero = await _smartContractManager.GetAsync(Hash.Zero);
-                var smc =await _contractRunner.RunAsync(zero);
+                var zero = await _smartContractManager.GetAsync(chainId, Hash.Zero);
+                var smc = await _contractRunner.RunAsync(zero);
                 var context = new ChainContext((ISmartContractZero) smc, chainId);
                 _chainContexts[chainId] = context;
                 return context;

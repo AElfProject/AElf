@@ -4,7 +4,7 @@
  {
      public class ChainContext : IChainContext
      {
-         public ChainContext(ISmartContractZero smartContractZero, IHash chainId)
+         public ChainContext(ISmartContractZero smartContractZero, Hash chainId)
          {
              SmartContractZero = smartContractZero;
              ChainId = chainId;
@@ -12,6 +12,6 @@
 
  
          public ISmartContractZero SmartContractZero { get; }
-         public IHash ChainId { get; }
+         public Hash ChainId { get; }
      }
  }

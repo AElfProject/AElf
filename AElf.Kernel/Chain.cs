@@ -9,11 +9,12 @@ namespace AElf.Kernel
 {
     public class Chain
     {
-        public long CurrentBlockHeight { get; set; }
+        public ulong CurrentBlockHeight { get; set; }
         public Hash CurrentBlockHash { get; set; }
         
         public void UpdateCurrentBlock(Block block)
         {
+            block.Header.Index = CurrentBlockHeight;
             CurrentBlockHeight += 1;
             CurrentBlockHash = block.GetHash();
         }
@@ -29,6 +30,8 @@ namespace AElf.Kernel
         public Chain(Hash id)
         {
             Id = id;
+            CurrentBlockHash = null;
+            CurrentBlockHeight = 0;
         }
     }
 }
