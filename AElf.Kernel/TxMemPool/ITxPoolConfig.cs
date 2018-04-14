@@ -15,6 +15,6 @@
         /// <summary>
         /// minimal tx fee 
         /// </summary>
-        ulong FeeThreshold { get; }
+        Fee FeeThreshold { get; }
     }
 }

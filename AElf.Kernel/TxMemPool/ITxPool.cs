@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AElf.Kernel.TxMemPool;
 
 namespace AElf.Kernel
 {
@@ -36,6 +37,11 @@ namespace AElf.Kernel
         /// <returns></returns>
         int GetPoolSize();
 
+        /// <summary>
+        /// minimal fee needed
+        /// </summary>
+        /// <returns></returns>
+        Fee MinimalFee();
         
         /// <summary>
         /// return a tx alread in pool

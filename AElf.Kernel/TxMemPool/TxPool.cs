@@ -24,7 +24,12 @@ namespace AElf.Kernel.TxMemPool
             _config = config;
             _accountContextService = accountContextService;
         }
-        
+
+        public Fee MinimalFee()
+        {
+            return _config.FeeThreshold;
+        }
+
         public bool GetTransaction(Hash txHash, out ITransaction tx)
         {
             return _pool.TryGetValue(txHash, out tx);
