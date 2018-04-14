@@ -13,12 +13,13 @@ namespace AElf.Kernel.Tests
 {
     public class SerializationTests
     {
+        /*
         [Fact]
         public void Test()
         {
-            object[] objs = new object[] {(int) 0, (byte) 1, false, "str"};
-            var bytes = ZeroFormatterSerializer.Serialize(objs);
-            object[] objsRevert = ZeroFormatterSerializer.Deserialize<object[]>(bytes);
+            //object[] objs = new object[] {(int) 0, (byte) 1, false, "str"};
+            //var bytes = ZeroFormatterSerializer.Serialize(objs);
+            //object[] objsRevert = ZeroFormatterSerializer.Deserialize<object[]>(bytes);
             //Expression<> exp = (ISmartContractZero o) => o.GetSmartContractAsync(Hash<IAccount>.Zero);
         }
 
@@ -26,7 +27,7 @@ namespace AElf.Kernel.Tests
         public void Test2()
         {
 
-        }
+        }*/
     }
 
     public enum ParamType

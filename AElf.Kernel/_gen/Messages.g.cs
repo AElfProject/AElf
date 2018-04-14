@@ -34,8 +34,9 @@ namespace AElf.Kernel {
             "dHJhY3RSZWdpc3RyYXRpb24SEAoIQ2F0ZWdvcnkYASABKAUSGwoMQ29udHJh",
             "Y3RIYXNoGAIgASgLMgUuSGFzaBIVCg1Db250cmFjdEJ5dGVzGAMgASgMIk8K",
             "F1NtYXJ0Q29udHJhY3REZXBsb3ltZW50EhsKDENvbnRyYWN0SGFzaBgBIAEo",
-            "CzIFLkhhc2gSFwoPQ29uc3RydWN0UGFyYW1zGAIgASgMQg6qAgtBRWxmLktl",
-            "cm5lbGIGcHJvdG8z"));
+            "CzIFLkhhc2gSFwoPQ29uc3RydWN0UGFyYW1zGAIgASgMIkgKGlNtYXJ0Q29u",
+            "dHJhY3RJbnZva2VDb250ZXh0EhUKBkNhbGxlchgBIAEoCzIFLkhhc2gSEwoL",
+            "SW5jcmVtZW50SWQYAiABKARCDqoCC0FFbGYuS2VybmVsYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -45,7 +46,8 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockBody), global::AElf.Kernel.BlockBody.Parser, new[]{ "BlockHeader", "Transactions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Block), global::AElf.Kernel.Block.Parser, new[]{ "Header", "Body" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractRegistration), global::AElf.Kernel.SmartContractRegistration.Parser, new[]{ "Category", "ContractHash", "ContractBytes" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractDeployment), global::AElf.Kernel.SmartContractDeployment.Parser, new[]{ "ContractHash", "ConstructParams" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractDeployment), global::AElf.Kernel.SmartContractDeployment.Parser, new[]{ "ContractHash", "ConstructParams" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractInvokeContext), global::AElf.Kernel.SmartContractInvokeContext.Parser, new[]{ "Caller", "IncrementId" }, null, null, null)
           }));
     }
     #endregion
@@ -1217,6 +1219,157 @@ namespace AElf.Kernel {
           }
           case 18: {
             ConstructParams = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SmartContractInvokeContext : pb::IMessage<SmartContractInvokeContext> {
+    private static readonly pb::MessageParser<SmartContractInvokeContext> _parser = new pb::MessageParser<SmartContractInvokeContext>(() => new SmartContractInvokeContext());
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SmartContractInvokeContext> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[7]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SmartContractInvokeContext() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SmartContractInvokeContext(SmartContractInvokeContext other) : this() {
+      Caller = other.caller_ != null ? other.Caller.Clone() : null;
+      incrementId_ = other.incrementId_;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SmartContractInvokeContext Clone() {
+      return new SmartContractInvokeContext(this);
+    }
+
+    /// <summary>Field number for the "Caller" field.</summary>
+    public const int CallerFieldNumber = 1;
+    private global::AElf.Kernel.Hash caller_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash Caller {
+      get { return caller_; }
+      set {
+        caller_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "IncrementId" field.</summary>
+    public const int IncrementIdFieldNumber = 2;
+    private ulong incrementId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ulong IncrementId {
+      get { return incrementId_; }
+      set {
+        incrementId_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SmartContractInvokeContext);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SmartContractInvokeContext other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Caller, other.Caller)) return false;
+      if (IncrementId != other.IncrementId) return false;
+      return true;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (caller_ != null) hash ^= Caller.GetHashCode();
+      if (IncrementId != 0UL) hash ^= IncrementId.GetHashCode();
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (caller_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Caller);
+      }
+      if (IncrementId != 0UL) {
+        output.WriteRawTag(16);
+        output.WriteUInt64(IncrementId);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (caller_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Caller);
+      }
+      if (IncrementId != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(IncrementId);
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SmartContractInvokeContext other) {
+      if (other == null) {
+        return;
+      }
+      if (other.caller_ != null) {
+        if (caller_ == null) {
+          caller_ = new global::AElf.Kernel.Hash();
+        }
+        Caller.MergeFrom(other.Caller);
+      }
+      if (other.IncrementId != 0UL) {
+        IncrementId = other.IncrementId;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            input.SkipLastField();
+            break;
+          case 10: {
+            if (caller_ == null) {
+              caller_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(caller_);
+            break;
+          }
+          case 16: {
+            IncrementId = input.ReadUInt64();
             break;
           }
         }
