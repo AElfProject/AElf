@@ -44,8 +44,8 @@ namespace AElf.Kernel.Tests
 
             var block = new Block(genesisBlock.GetHash());
 
-            var chain = await _chainTest.CreateChain();
-            await _chainTest.AppendBlock(chain, block);
+            var chain = await _chainTest.CreateChainTest();
+            await _chainTest.AppendBlockTest(chain, block);
             Assert.Equal(blockHeader, genesisBlock.Header);
         }
         

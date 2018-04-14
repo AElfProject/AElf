@@ -1,40 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
+﻿using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storages
 {
     public interface IChainBlockRelationStore
     {
         Task InsertAsync(Chain chain, Block block);
-
         Task<Hash> GetAsync(Hash chainHash, ulong height);
-    }
-    
-    /// <summary>
-    /// Simply use a dictionary to store and get the relations.
-    /// </summary>
-    public class ChainBlockRelationStore : IChainBlockRelationStore
-    {
-        private readonly IKeyValueDatabase _keyValueDatabase;
-
-        public ChainBlockRelationStore(IKeyValueDatabase keyValueDatabase)
-        {
-            _keyValueDatabase = keyValueDatabase;
-        }
-        
-        public async Task InsertAsync(Chain chain, Block block)
-        {
-            throw new NotImplementedException();
-            //await _keyValueDatabase.SetAsync(chain.NextBlockRelationHash, block.GetHash());
-        }
-
-        public async Task<Hash> GetAsync(Hash chainId, ulong height)
-        {
-            throw new NotImplementedException();
-            //var hash = new Hash(chainId.CalculateHashWith(height));
-            //return (Hash) await _keyValueDatabase.GetAsync(hash);
-        }
     }
 }

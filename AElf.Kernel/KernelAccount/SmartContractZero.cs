@@ -81,13 +81,9 @@ namespace AElf.Kernel.KernelAccount
 
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
             var smartContract = await runner.RunAsync(reg);
-
-               
-            // remove Account class
-            // TODO: define relation between ContractHash and account
-            // var acc = new Account(reg.ContractHash);
-
-            var dp = _worldStateManager.GetAccountDataProvider(_accountDataProvider.Context.ChainId, reg.ContractHash);
+             
+            var acc = new Account(reg.ContractHash);
+            var dp = _worldStateManager.GetAccountDataProvider(_accountDataProvider.Context.ChainId, acc.GetAddress());
 
             await smartContract.InitializeAsync(dp);
 
