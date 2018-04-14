@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
@@ -7,11 +8,11 @@ namespace AElf.Kernel.TxMemPool
 {
     public class TxPool :ITxPool
     {
-        private readonly Dictionary<Hash, SortedDictionary<ulong, ITransaction>> _executable =
-            new Dictionary<Hash, SortedDictionary<ulong, ITransaction>>();
+        private readonly ConcurrentDictionary<Hash, SortedDictionary<ulong, ITransaction>> _executable =
+            new ConcurrentDictionary<Hash, SortedDictionary<ulong, ITransaction>>();
 
-        private readonly Dictionary<Hash, SortedDictionary<ulong, ITransaction>> _waiting =
-            new Dictionary<Hash, SortedDictionary<ulong, ITransaction>>();
+        private readonly ConcurrentDictionary<Hash, SortedDictionary<ulong, ITransaction>> _waiting =
+            new ConcurrentDictionary<Hash, SortedDictionary<ulong, ITransaction>>();
 
         private readonly IAccountContextService _accountContextService;
         private readonly IChainContext _context;
@@ -161,7 +162,7 @@ namespace AElf.Kernel.TxMemPool
             } while (waitingList.Count > 0 && waitingList.First().Key == ++next);
 
             if (waitingList.Count == 0)
-                _waiting.Remove(addr);
+                _waiting.TryRemove(addr, out var list);
 
         }
 
@@ -195,7 +196,7 @@ namespace AElf.Kernel.TxMemPool
             
             // remove the entry if empty
             if (executableList.Count == 0)
-                _executable.Remove(addr);
+                _executable.TryRemove(addr, out var list);
             
             // Update the account nonce if needed
             var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
@@ -220,7 +221,7 @@ namespace AElf.Kernel.TxMemPool
             
             // remove the entry if empty
             if (waitingList.Count == 0)
-                _waiting.Remove(addr);
+                _waiting.TryRemove(addr, out var list);
             return true;
         }
 
@@ -306,6 +307,7 @@ namespace AElf.Kernel.TxMemPool
         
         public bool GetTransaction(Hash txHash, out ITransaction tx)
         {
+            if(_executable.Keys.Contains())
             throw new NotImplementedException();
         }
     }
