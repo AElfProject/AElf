@@ -11,9 +11,9 @@ namespace AElf.Kernel
 
         private readonly ISmartContractManager _smartContractManager;
 
-        private readonly SmartContractZeroRunner _contractRunner;
+        private readonly ISmartContractRunner _contractRunner;
         
-        public ChainContextService(ISmartContractManager smartContractManager, SmartContractZeroRunner contractRunner)
+        public ChainContextService(ISmartContractManager smartContractManager, ISmartContractRunner contractRunner)
         {
             _smartContractManager = smartContractManager;
             _contractRunner = contractRunner;

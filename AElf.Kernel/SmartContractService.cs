@@ -29,7 +29,7 @@ namespace AElf.Kernel
     public interface ISmartContractManager
     {
         Task<SmartContractRegistration> GetAsync(Hash chainId, Hash account);
-        Task<SmartContractRegistration> InsertAsync(SmartContractRegistration reg);
+        Task InsertAsync(SmartContractRegistration reg);
     }
 
     public class SmartContractManager : ISmartContractManager
@@ -46,10 +46,9 @@ namespace AElf.Kernel
             return await _smartContractRegisterationStore.GetAsync(chainId, account);
         }
 
-        public async Task<SmartContractRegistration> InsertAsync(SmartContractRegistration reg)
+        public async Task InsertAsync(SmartContractRegistration reg)
         {
             await _smartContractRegisterationStore.InsertAsync(reg);
-            return reg;
         }
     }
 }
