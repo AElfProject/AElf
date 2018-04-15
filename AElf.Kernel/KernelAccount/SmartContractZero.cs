@@ -12,7 +12,7 @@ namespace AElf.Kernel.KernelAccount
     {
         private const string SMART_CONTRACT_MAP_KEY = "SmartContractMap";
 
-        private const string SMART_CONTRACT_INSTANCES = "SmartContractInstrances";
+        private const string SMART_CONTRACT_INSTANCES = "SmartContractInstances";
 
         private IAccountDataProvider _accountDataProvider;
 
