@@ -8,10 +8,10 @@ namespace AElf.Kernel.TxMemPool
 {
     public class TxPool :ITxPool
     {
-        private readonly ConcurrentDictionary<Hash, SortedDictionary<ulong, Hash>> _executable =
-            new ConcurrentDictionary<Hash, SortedDictionary<ulong, Hash>>();
-        private readonly ConcurrentDictionary<Hash, SortedDictionary<ulong, Hash>> _waiting =
-            new ConcurrentDictionary<Hash, SortedDictionary<ulong, Hash>>();
+        private readonly Dictionary<Hash, SortedDictionary<ulong, Hash>> _executable =
+            new Dictionary<Hash, SortedDictionary<ulong, Hash>>();
+        private readonly Dictionary<Hash, SortedDictionary<ulong, Hash>> _waiting =
+            new Dictionary<Hash, SortedDictionary<ulong, Hash>>();
         private readonly Dictionary<Hash, ITransaction> _pool = new Dictionary<Hash, ITransaction>();
         
         private readonly IAccountContextService _accountContextService;
@@ -184,7 +184,7 @@ namespace AElf.Kernel.TxMemPool
             
             // remove the entry if empty
             if (executableList.Count == 0)
-                _executable.TryRemove(addr, out var list);
+                _executable.Remove(addr);
             
             // Update the account nonce if needed
             var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
@@ -210,7 +210,7 @@ namespace AElf.Kernel.TxMemPool
             
             // remove the entry if empty
             if (waitingList.Count == 0)
-                _waiting.TryRemove(addr, out var list);
+                _waiting.Remove(addr);
             return true;
         }
         
@@ -282,7 +282,7 @@ namespace AElf.Kernel.TxMemPool
             } while (waitingList.Count > 0 && waitingList.First().Key == ++next);
 
             if (waitingList.Count == 0)
-                _waiting.TryRemove(addr, out var list);
+                _waiting.Remove(addr);
 
         }
       
