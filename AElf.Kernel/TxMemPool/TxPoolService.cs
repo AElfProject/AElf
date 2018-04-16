@@ -65,7 +65,7 @@ namespace AElf.Kernel.TxMemPool
         {
             if (!GetTransaction(txHash, out var tx).Result)
             {
-                // TODO: log error
+                // TODO: tx not found, log error
             }
             else
             {

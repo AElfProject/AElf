@@ -10,7 +10,7 @@
         /// <summary>
         /// tx size limit
         /// </summary>
-        ulong TxLimitSize { get; }
+        int TxLimitSize { get; }
         
         /// <summary>
         /// minimal tx fee 
