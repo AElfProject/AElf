@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Lock;
 using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.TxMemPool
@@ -9,11 +10,14 @@ namespace AElf.Kernel.TxMemPool
         private ITxPool _txPool;
         private ITransactionStore _transactionStore;
 
-        public TxPoolManager(ITxPool txPool, ITransactionStore transactionStore)
+        public TxPoolManager(ITxPool txPool, ITransactionStore transactionStore, TxPoolSchedulerLock @lock)
         {
             _txPool = txPool;
             _transactionStore = transactionStore;
+            Lock = @lock;
         }
+        
+        public TxPoolSchedulerLock Lock { get; }
 
         public Task<bool> AddTransaction(ITransaction tx)
         {
@@ -69,5 +73,12 @@ namespace AElf.Kernel.TxMemPool
         {
             throw new System.NotImplementedException();
         }
+    }
+    
+    /// <summary>
+    /// A lock for managing asynchronous access to memory pool.
+    /// </summary>
+    public class TxPoolSchedulerLock : ReaderWriterLock
+    {
     }
 }
