@@ -1,5 +1,4 @@
 ﻿using AElf.Kernel.Extensions;
-using System;
 
 namespace AElf.Kernel
 {
@@ -7,7 +6,7 @@ namespace AElf.Kernel
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AElf.Kernel.Block"/> class.
-        /// a previous block must be referred, except the genesis block.
+        /// A previous block must be referred, except for the genesis block.
         /// </summary>
         /// <param name="preBlockHash">Pre block hash.</param>
         public Block(Hash preBlockHash)
@@ -17,16 +16,16 @@ namespace AElf.Kernel
         }
 
         /// <summary>
-        /// Adds the transaction to the block and wait for transaction execution
+        /// Adds the transactions Hash to the block
         /// </summary>
-        /// <returns><c>true</c>, if transaction was added, <c>false</c> otherwise.</returns>
-        /// <param name="tx">Tx.</param>
-        public bool AddTransaction(Hash tx)
+        /// <returns><c>true</c>, if the hash was added, <c>false</c> otherwise.</returns>
+        /// <param name="txHash">the transactions hash</param>
+        public bool AddTransaction(Hash txHash)
         {
             if (Body == null)
                 Body = new BlockBody();
             
-            return Body.AddTransaction(tx);
+            return Body.AddTransaction(txHash);
         }
 
         public void FillTxsMerkleTreeRootInHeader()

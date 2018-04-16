@@ -17,8 +17,8 @@ namespace AElf.Kernel.Tests.Crypto.ECDSA
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
         
             Transaction tx = new Transaction();
-            tx.From = new Hash(ByteArrayHelpers.RandomFill(ADR_LENGTH));
-            tx.To = new Hash(ByteArrayHelpers.RandomFill(ADR_LENGTH));
+            tx.From = new Hash(CryptoHelpers.RandomFill(ADR_LENGTH));
+            tx.To = new Hash(CryptoHelpers.RandomFill(ADR_LENGTH));
             
             Block block = new Block();
             block.AddTransaction(tx.GetHash());

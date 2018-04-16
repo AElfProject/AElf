@@ -2,7 +2,7 @@
 
 namespace AElf.Kernel.Crypto
 {
-    public static class ByteArrayHelpers
+    public static class CryptoHelpers
     {
         /// <summary>
         /// Returns a byte array of the specified length, filled with random bytes.
