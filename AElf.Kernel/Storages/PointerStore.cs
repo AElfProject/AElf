@@ -1,24 +1,27 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storages
 {
     public class PointerStore : IPointerStore
     {
-        private readonly IKeyValueDatabase _keyValueDatabase;
-
-        public PointerStore(IKeyValueDatabase keyValueDatabase)
-        {
-            _keyValueDatabase = keyValueDatabase;
-        }
+        private readonly Dictionary<Hash, Hash> _dictionary = new Dictionary<Hash, Hash>();
         
-        public async Task InsertAsync(Hash path, Hash pointer)
+        public Task UpdateAsync(Hash pathHash, Hash pointerHash)
         {
-            await _keyValueDatabase.SetAsync(path, pointer);
+            _dictionary[pathHash] = pointerHash;
+            return Task.CompletedTask;
         }
 
-        public async Task<Hash> GetAsync(Hash path)
+        public Task<Hash> GetAsync(Hash pathHash)
         {
-            return (Hash) await _keyValueDatabase.GetAsync(path, typeof(Hash));
+            if (_dictionary.TryGetValue(pathHash, out var pointerHash))
+            {
+                return Task.FromResult(pointerHash);
+            }
+
+            UpdateAsync(pathHash, Hash.Zero);
+            return Task.FromResult(Hash.Zero);
         }
     }
 }

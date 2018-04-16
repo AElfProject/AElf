@@ -10,27 +10,35 @@ namespace AElf.Kernel
     {
         private readonly IWorldStateStore _worldStateStore;
         private readonly IPointerStore _pointerStore;
-        private readonly Hash _preBlockHash;
+        private Hash _preBlockHash;
         private readonly IAccountContextService _accountContextService;
+        private readonly IChangesStore _changesStore;
 
         public WorldStateManager(IWorldStateStore worldStateStore, Hash preBlockHash, 
-            IAccountContextService accountContextService, IPointerStore pointerStore)
+            IAccountContextService accountContextService, IPointerStore pointerStore, IChangesStore changesStore)
         {
             _worldStateStore = worldStateStore;
             _preBlockHash = preBlockHash;
             _accountContextService = accountContextService;
             _pointerStore = pointerStore;
+            _changesStore = changesStore;
         }
 
-        public Task<WorldState> GetWorldStateAsync(Hash chainId)
+        public async Task<WorldState> GetWorldStateAsync(Hash chainId)
         {
-            return Task.FromResult(_worldStateStore.GetWorldState(chainId, _preBlockHash));
+            return await _worldStateStore.GetWorldState(chainId, _preBlockHash);
         }
 
         public IAccountDataProvider GetAccountDataProvider(Hash chainId, Hash accountHash)
         {
             return new AccountDataProvider(accountHash, chainId, _accountContextService,
-                _pointerStore, _worldStateStore, _preBlockHash);
+                _pointerStore, _worldStateStore, _preBlockHash, _changesStore);
+        }
+
+        public async Task SetWorldStateToCurrentState(Hash chainId, Hash newBlockHash)
+        {
+            await _worldStateStore.InsertWorldState(chainId, _preBlockHash, _changesStore);
+            _preBlockHash = newBlockHash;
         }
     }
 }

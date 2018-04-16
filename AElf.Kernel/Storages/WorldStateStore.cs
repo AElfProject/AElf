@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 
@@ -27,22 +28,24 @@ namespace AElf.Kernel.Storages
             return (byte[]) await _keyValueDatabase.GetAsync(pointerHash, typeof(byte[]));
         }
 
-        public void InsertWorldState(Hash chainId, Hash blockHash, IChangesStore changes)
+        public Task InsertWorldState(Hash chainId, Hash blockHash, IChangesStore changes)
         {
-            _changesStoreCollection.Add(new Hash(chainId.CalculateHashWith(blockHash)), changes);
+            var wsKey = new Hash(chainId.CalculateHashWith(blockHash));
+            _changesStoreCollection[wsKey] = changes;
+            return Task.CompletedTask;
         }
 
-        public WorldState GetWorldState(Hash chainId, Hash blockHash)
+        public Task<WorldState> GetWorldState(Hash chainId, Hash blockHash)
         {
-            var key = new Hash(chainId.CalculateHashWith(blockHash));
-            if (_changesStoreCollection.TryGetValue(key, out var changes))
+            var wsKey = new Hash(chainId.CalculateHashWith(blockHash));
+            if (_changesStoreCollection.TryGetValue(wsKey, out var changes))
             {
-                return new WorldState(changes);
+                return Task.FromResult(new WorldState(changes));
             }
             
             var changesStore = new ChangesStore(new KeyValueDatabase());
-            _changesStoreCollection[key] = changesStore;
-            return new WorldState(changesStore);
+            _changesStoreCollection[wsKey] = changesStore;
+            return Task.FromResult(new WorldState(changesStore));
         }
     }
 }

@@ -8,7 +8,7 @@ namespace AElf.Kernel.Storages
     {
         private readonly Dictionary<Hash, object> _dictionary = new Dictionary<Hash, object>();
         
-        public Task<object> GetAsync(Hash key,Type type)
+        public Task<object> GetAsync(Hash key, Type type)
         {
             return _dictionary.TryGetValue(key, out var value) ? Task.FromResult(value) : null;
         }

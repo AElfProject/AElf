@@ -61,7 +61,7 @@ namespace AElf.Kernel.Merkle
 
                 for (var i = 0; i < hashes.Count; i += 2)
                 {
-                    Hash right = (i + 1 < hashes.Count) ? new Hash(hashes[i + 1].Value) : null;
+                    var right = i + 1 < hashes.Count ? new Hash(hashes[i + 1].Value) : null;
                     var parent = FindCache(hashes[i], right);
 
                     parents.Add(parent);

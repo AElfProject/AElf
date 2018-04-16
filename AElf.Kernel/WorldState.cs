@@ -20,7 +20,7 @@ namespace AElf.Kernel
             _changesStore = changesStore;
         }
 
-        public Task ChangePointer(Path pointer, Hash blockHash)
+        public async Task ChangePointer(Path pointer, Hash blockHash)
         {
             var change = new Change
             {
@@ -30,9 +30,12 @@ namespace AElf.Kernel
             _changes.Add(change);
 
             var path = pointer.SetBlockHashToNull();
-            _changesStore.InsertAsync(path.GetPathHash(), change);
-            
-            return Task.CompletedTask;
+            await _changesStore.InsertAsync(path.GetPathHash(), change);
+        }
+
+        public async Task<Change> GetChange(Hash pathHash)
+        {
+            return await _changesStore.GetAsync(pathHash);
         }
         
         public Task<Hash> GetWorldStateMerkleTreeRootAsync()

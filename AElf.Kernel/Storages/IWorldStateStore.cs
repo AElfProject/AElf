@@ -8,7 +8,7 @@ namespace AElf.Kernel.Storages
     {
         Task SetData(Hash pointerHash, byte[] data);
         Task<byte[]> GetData(Hash pointerHash);
-        void InsertWorldState(Hash chainId, Hash blockHash, IChangesStore changesStore);
-        WorldState GetWorldState(Hash chainId, Hash blockHash);
+        Task InsertWorldState(Hash chainId, Hash blockHash, IChangesStore changesStore);
+        Task<WorldState> GetWorldState(Hash chainId, Hash blockHash);
     }
 }

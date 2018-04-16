@@ -77,7 +77,7 @@ namespace AElf.Kernel
 
         private bool PathValidation()
         {
-            return !IsPointer && _chainHash != null && _accountAddress != null && _dataProviderHash != null;
+            return _chainHash != null && _accountAddress != null && _dataProviderHash != null;
         }
 
         private Hash CalculateListHash(params Hash[] hashes)
