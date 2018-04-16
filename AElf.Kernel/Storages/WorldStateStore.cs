@@ -31,7 +31,8 @@ namespace AElf.Kernel.Storages
         public Task InsertWorldState(Hash chainId, Hash blockHash, IChangesStore changes)
         {
             var wsKey = new Hash(chainId.CalculateHashWith(blockHash));
-            _changesStoreCollection[wsKey] = changes;
+            var changesStore = (ChangesStore)changes.Clone();
+            _changesStoreCollection[wsKey] = changesStore;
             return Task.CompletedTask;
         }
 

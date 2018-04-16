@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storages
 {
@@ -19,6 +20,12 @@ namespace AElf.Kernel.Storages
         public async Task<Change> GetAsync(Hash path)
         {
             return (Change) await _keyValueDatabase.GetAsync(path, typeof(Change));
+        }
+
+        public object Clone()
+        {
+            var kvDatabase = (IKeyValueDatabase)_keyValueDatabase.Clone();
+            return new ChangesStore(kvDatabase);
         }
     }
 }

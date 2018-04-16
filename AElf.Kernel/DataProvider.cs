@@ -57,9 +57,9 @@ namespace AElf.Kernel
         public async Task<byte[]> GetAsync(Hash blockHash)
         {
             var worldState = await _worldStateStore.GetWorldState(_accountDataContext.ChainId, blockHash);
-            var pathHash = _path.GetPathHash();
+            var pathHash = _path.SetBlockHashToNull().GetPathHash();
             var change = await worldState.GetChange(pathHash);
-            return await _worldStateStore.GetData(change.Before);
+            return await _worldStateStore.GetData(change.After);
         }
 
         public async Task<byte[]> GetAsync()
@@ -84,9 +84,6 @@ namespace AElf.Kernel
             
             await _pointerStore.UpdateAsync(pathHash, pointerHash);
 
-            var worldState = await _worldStateStore.GetWorldState(_accountDataContext.ChainId, _preBlockHash);
-            await worldState.ChangePointer(_path, _preBlockHash);
-            
             await _worldStateStore.SetData(pointerHash, obj);
         }
     }

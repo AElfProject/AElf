@@ -20,19 +20,6 @@ namespace AElf.Kernel
             _changesStore = changesStore;
         }
 
-        public async Task ChangePointer(Path pointer, Hash blockHash)
-        {
-            var change = new Change
-            {
-                Before = pointer.GetPointerHash(),
-                After = pointer.SetBlockHash(blockHash).GetPointerHash()
-            };
-            _changes.Add(change);
-
-            var path = pointer.SetBlockHashToNull();
-            await _changesStore.InsertAsync(path.GetPathHash(), change);
-        }
-
         public async Task<Change> GetChange(Hash pathHash)
         {
             return await _changesStore.GetAsync(pathHash);

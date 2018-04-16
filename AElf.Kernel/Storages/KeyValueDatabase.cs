@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storages
@@ -17,6 +18,16 @@ namespace AElf.Kernel.Storages
         {
             _dictionary[key] = bytes;
             return Task.CompletedTask;
+        }
+
+        public object Clone()
+        {
+            var kvDatabase = new KeyValueDatabase();
+            foreach (var key in _dictionary.Keys)
+            {
+                kvDatabase.SetAsync(key, _dictionary[key]);
+            }
+            return kvDatabase;
         }
     }
 }
