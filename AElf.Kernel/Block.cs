@@ -23,9 +23,10 @@ namespace AElf.Kernel
         /// <param name="tx">Tx.</param>
         public bool AddTransaction(Hash tx)
         {
-            if (!Body.AddTransaction(tx)) 
-                return false;
-            return true;
+            if (Body == null)
+                Body = new BlockBody();
+            
+            return Body.AddTransaction(tx);
         }
 
         public void FillTxsMerkleTreeRootInHeader()
@@ -33,13 +34,9 @@ namespace AElf.Kernel
             Header.MerkleTreeRootOfTransactions = Body.CalculateMerkleTreeRoot();
         }
 
-        /// <summary>
-        /// Returns the block hash.
-        /// </summary>
-        /// <returns>The hash.</returns>
         public Hash GetHash()
         {
-            return Header.Hash;
+            return new Hash(this.CalculateHash());
         }
     }
 }

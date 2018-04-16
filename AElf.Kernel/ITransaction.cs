@@ -5,12 +5,6 @@ namespace AElf.Kernel
     public interface ITransaction : IHashProvider
     {
         /// <summary>
-        /// Get parallel meta data
-        /// </summary>
-        /// <returns></returns>
-        ITransactionParallelMetaData GetParallelMetaData();
-
-        /// <summary>
         /// Method name
         /// </summary>
         string MethodName { get; set; }
@@ -31,6 +25,8 @@ namespace AElf.Kernel
         Hash To { get; set; }
 
         ulong IncrementId { get; set; }
+        
+        ITransactionParallelMetaData GetParallelMetaData();
     }
 
 }

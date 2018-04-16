@@ -1,17 +1,11 @@
 ﻿namespace AElf.Kernel
 {
-    /// <summary>
-    /// Define block, it cointains all transactions in memory
-    /// </summary>
-    public interface IBlock
+    public interface IBlock : IHashProvider
     {
         Hash GetHash();
         bool AddTransaction(Hash tx);
-        
         BlockHeader Header { get; set; }
-        
         BlockBody Body { get; set; }
-        
         void FillTxsMerkleTreeRootInHeader();
     }
 }
