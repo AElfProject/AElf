@@ -25,10 +25,8 @@ namespace AElf.Kernel.Tests
             IWorldStateStore worldStateStore, IPointerStore pointerStore, IChangesStore changesStore)
         {
             _chainStore = chainStore;
-            
             _blockHeaderStore = blockHeaderStore;
             _blockBodyStore = blockBodyStore;
-            
             _worldStateStore = worldStateStore;
             _pointerStore = pointerStore;
             _changesStore = changesStore;
@@ -208,10 +206,6 @@ namespace AElf.Kernel.Tests
             var block2 = CreateBlock();
             var block3 = CreateBlock();
 
-            var key1 = new Hash(chain.Id.CalculateHashWith(block1.GetHash()));
-            var key2 = new Hash(chain.Id.CalculateHashWith(block2.GetHash()));
-            var key3 = new Hash(chain.Id.CalculateHashWith(block3.GetHash()));
-
             //Add first block.
             await chainManager.AddChainAsync(chain.Id);
             await chainManager.AppendBlockToChainAsync(chain, block1);
@@ -275,10 +269,14 @@ namespace AElf.Kernel.Tests
             //See the ability to get data of first WorldState.
             getData1 = await subDataProvider.GetAsync(block1.GetHash());
             Assert.True(data1.SequenceEqual(getData1));
+            //And second WorldState.
+            getData2 = await subDataProvider.GetAsync(block2.GetHash());
+            Assert.True(data2.SequenceEqual(getData2));
             //And the ability to get data of current WorldState.(not equal to previous data)
             var getData3 = await subDataProvider.GetAsync();
             Assert.False(data1.SequenceEqual(getData3));
-            
+            Assert.False(data2.SequenceEqual(getData3));
+            Assert.True(data3.SequenceEqual(getData3));
         }
 
         private Block CreateBlock()

@@ -28,6 +28,11 @@ namespace AElf.Kernel
         {
             return await _worldStateStore.GetWorldState(chainId, _preBlockHash);
         }
+        
+        public async Task<WorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)
+        {
+            return await _worldStateStore.GetWorldState(chainId, blockHash);
+        }
 
         public IAccountDataProvider GetAccountDataProvider(Hash chainId, Hash accountHash)
         {

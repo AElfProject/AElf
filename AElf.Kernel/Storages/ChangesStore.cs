@@ -1,31 +1,44 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storages
 {
     public class ChangesStore : IChangesStore
     {
-        private readonly IKeyValueDatabase _keyValueDatabase;
+        private readonly Dictionary<Hash, Change> _dictionary =
+            new Dictionary<Hash, Change>();
 
-        public ChangesStore(IKeyValueDatabase keyValueDatabase)
+        public Task InsertAsync(Hash pathHash, Change change)
         {
-            _keyValueDatabase = keyValueDatabase;
-        }
-        
-        public async Task InsertAsync(Hash path, Change change)
-        {
-            await _keyValueDatabase.SetAsync(path, change);
+            _dictionary[pathHash] = change;
+            return Task.CompletedTask;
         }
 
-        public async Task<Change> GetAsync(Hash path)
+        public Task<Change> GetAsync(Hash pathHash)
         {
-            return (Change) await _keyValueDatabase.GetAsync(path, typeof(Change));
+            return _dictionary.TryGetValue(pathHash, out var change) ? Task.FromResult(change) : null;
+        }
+
+        public Task<List<Change>> GetChangesAsync()
+        {
+            return Task.FromResult(_dictionary.Values.ToList());
+        }
+
+        public Task<List<Hash>> GetChangedPathsAsync()
+        {
+            return Task.FromResult(_dictionary.Keys.ToList());
         }
 
         public object Clone()
         {
-            var kvDatabase = (IKeyValueDatabase)_keyValueDatabase.Clone();
-            return new ChangesStore(kvDatabase);
+            var changesStore = new ChangesStore();
+            foreach (var key in _dictionary.Keys)
+            {
+                changesStore.InsertAsync(key, _dictionary[key]);
+            }
+            return changesStore;
         }
     }
 }

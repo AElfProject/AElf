@@ -44,7 +44,7 @@ namespace AElf.Kernel.Storages
                 return Task.FromResult(new WorldState(changes));
             }
             
-            var changesStore = new ChangesStore(new KeyValueDatabase());
+            var changesStore = new ChangesStore();
             _changesStoreCollection[wsKey] = changesStore;
             return Task.FromResult(new WorldState(changesStore));
         }

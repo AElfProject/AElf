@@ -12,7 +12,6 @@ namespace AElf.Kernel
 {
     public class WorldState : IWorldState
     {
-        private readonly List<Change> _changes = new List<Change>();
         private readonly IChangesStore _changesStore;
 
         public WorldState(IChangesStore changesStore)
@@ -25,12 +24,12 @@ namespace AElf.Kernel
             return await _changesStore.GetAsync(pathHash);
         }
         
-        public Task<Hash> GetWorldStateMerkleTreeRootAsync()
+        public async Task<Hash> GetWorldStateMerkleTreeRootAsync()
         {
-            var pointerHashThatCanged = _changes.Select(ch => ch.Before);
+            var changes = await _changesStore.GetChangedPathsAsync();
             var merkleTree = new BinaryMerkleTree();
-            merkleTree.AddNodes(pointerHashThatCanged);
-            return Task.FromResult(merkleTree.ComputeRootHash());
+            merkleTree.AddNodes(changes);
+            return await Task.FromResult(merkleTree.ComputeRootHash());
         }
     }
 }

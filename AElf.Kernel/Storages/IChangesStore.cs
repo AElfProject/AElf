@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storages
@@ -8,5 +9,9 @@ namespace AElf.Kernel.Storages
         Task InsertAsync(Hash path, Change change);
 
         Task<Change> GetAsync(Hash path);
+
+        Task<List<Change>> GetChangesAsync();
+
+        Task<List<Hash>> GetChangedPathsAsync();
     }
 }
