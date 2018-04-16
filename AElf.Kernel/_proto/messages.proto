@@ -43,3 +43,7 @@ message SmartContractDeployment{
     bytes ConstructParams =2;
 }
 
+message SmartContractInvokeContext{
+    Hash Caller = 1;
+    uint64 IncrementId = 2;
+}
