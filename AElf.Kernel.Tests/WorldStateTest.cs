@@ -12,20 +12,15 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class WorldStateTest
     {
-        private readonly IBlockHeaderStore _blockHeaderStore;
-        private readonly IBlockBodyStore _blockBodyStore;
         private readonly IWorldStateStore _worldStateStore;
         private readonly IPointerStore _pointerStore;
         private readonly IChainStore _chainStore;
         private readonly IChangesStore _changesStore;
 
-        public WorldStateTest(IChainStore chainStore,
-            IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
-            IWorldStateStore worldStateStore, IPointerStore pointerStore, IChangesStore changesStore)
+        public WorldStateTest(IChainStore chainStore, IWorldStateStore worldStateStore, 
+            IPointerStore pointerStore, IChangesStore changesStore)
         {
             _chainStore = chainStore;
-            _blockHeaderStore = blockHeaderStore;
-            _blockBodyStore = blockBodyStore;
             _worldStateStore = worldStateStore;
             _pointerStore = pointerStore;
             _changesStore = changesStore;

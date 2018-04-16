@@ -25,11 +25,6 @@ namespace AElf.Kernel
             _pointerStore = pointerStore;
             Context = accountContextService.GetAccountDataContext(accountHash, chainId, false);
         }
-        
-        public IHash GetAccountAddress()
-        {
-            return Context.Address;
-        }
 
         public IDataProvider GetDataProvider()
         {
