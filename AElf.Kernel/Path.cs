@@ -26,6 +26,17 @@ namespace AElf.Kernel
             IsPointer = true;
             return this;
         }
+
+        /// <summary>
+        /// Change a pointer to a path.
+        /// </summary>
+        /// <returns></returns>
+        public Path SetBlockHashToNull()
+        {
+            _blockHash = null;
+            IsPointer = false;
+            return this;
+        }
         
         public Path SetAccount(Hash accountAddress)
         {
@@ -39,7 +50,7 @@ namespace AElf.Kernel
             return this;
         }
 
-        public IHash GetPointerHash()
+        public Hash GetPointerHash()
         {
             if (!PointerValidation())
             {
@@ -49,7 +60,7 @@ namespace AElf.Kernel
             return CalculateListHash(_chainHash, _blockHash, _accountAddress, _dataProviderHash);
         }
 
-        public IHash GetPathHash()
+        public Hash GetPathHash()
         {
             if (!PathValidation())
             {

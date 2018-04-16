@@ -10,12 +10,7 @@ namespace AElf.Kernel.Storages
         
         public Task<object> GetAsync(Hash key,Type type)
         {
-            if (_dictionary.TryGetValue(key, out var value))
-            {
-                return Task.FromResult(value);
-            }
-
-            throw new InvalidOperationException("Cannot find related value.");
+            return _dictionary.TryGetValue(key, out var value) ? Task.FromResult(value) : null;
         }
 
         public Task SetAsync(Hash key, object bytes)

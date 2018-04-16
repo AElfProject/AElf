@@ -18,7 +18,7 @@ namespace AElf.Kernel.Storages
 
         public async Task<Hash> GetAsync(Hash path)
         {
-            return (Hash) await _keyValueDatabase.GetAsync(path,typeof(Hash));
+            return (Hash) await _keyValueDatabase.GetAsync(path, typeof(Hash));
         }
     }
 }

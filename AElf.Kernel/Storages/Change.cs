@@ -2,7 +2,7 @@
 {
     public struct Change
     {
-        public Path Before { get; set; }
-        public Path After { get; set; }
+        public Hash Before { get; set; }
+        public Hash After { get; set; }
     }
 }

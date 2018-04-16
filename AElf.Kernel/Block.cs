@@ -39,7 +39,7 @@ namespace AElf.Kernel
         /// <returns>The hash.</returns>
         public Hash GetHash()
         {
-            return Header.Hash;
+            return new Hash(this.Header.CalculateHash());
         }
     }
 }

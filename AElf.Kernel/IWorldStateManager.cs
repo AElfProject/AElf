@@ -7,10 +7,10 @@ namespace AElf.Kernel
         /// <summary>
         /// Get the world state of a chain
         /// </summary>
-        /// <param name="chain"></param>
+        /// <param name="chainId"></param>
         /// <returns></returns>
-        Task<IWorldState> GetWorldStateAsync(IHash chain);
+        Task<WorldState> GetWorldStateAsync(Hash chainId);
 
-        IAccountDataProvider GetAccountDataProvider(IHash chain, IHash account);
+        IAccountDataProvider GetAccountDataProvider(Hash chain, Hash account);
     }
 }

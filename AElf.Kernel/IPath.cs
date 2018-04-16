@@ -10,7 +10,7 @@
         Path SetBlockHash(Hash blockHash);
         Path SetAccount(Hash accountAddress);
         Path SetDataProvider(Hash dataProvider);
-        IHash GetPointerHash();
-        IHash GetPathHash();
+        Hash GetPointerHash();
+        Hash GetPathHash();
     }
 }

@@ -7,32 +7,10 @@ namespace AElf.Kernel
     {
         IDataProvider GetDataProvider(string name);
 
-        /// <summary>
-        /// set dataProvider with name
-        /// </summary>
-        /// <param name="name"></param>
-        void SetDataProvider(string name);
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        Task<byte[]> GetAsync(IHash key);
+        Task SetAsync(byte[] obj);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        Task SetAsync(IHash key, byte[] obj);
+        Task<byte[]> GetAsync(Hash blockHash);
         
-        /// <summary>
-        /// Gets the data merkle tree root.
-        /// </summary>
-        /// <returns></returns>
-        Task<Hash> GetDataMerkleTreeRootAsync();
-
+        Task<byte[]> GetAsync();
     }
 }

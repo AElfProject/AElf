@@ -2,7 +2,7 @@
 
 namespace AElf.Kernel.Storages
 {
-    public class ChainStore
+    public class ChainStore: IChainStore
     {
         private readonly IKeyValueDatabase _keyValueDatabase;
 

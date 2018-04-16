@@ -32,7 +32,7 @@ namespace AElf.Kernel.Merkle
             ComputeRootHash();
         }
 
-        public void AddNodes(IList<Hash> hashes)
+        public void AddNodes(IEnumerable<Hash> hashes)
         {
             foreach (var hash in hashes)
             {
