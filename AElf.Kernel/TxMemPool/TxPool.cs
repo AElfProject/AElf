@@ -25,16 +25,39 @@ namespace AElf.Kernel.TxMemPool
             _accountContextService = accountContextService;
         }
 
-        public Fee MinimalFee()
+        public List<ITransaction> Ready
         {
-            return _config.FeeThreshold;
+            get
+            {
+                var list = new List<ITransaction>();
+                foreach (var p in _executable)
+                {
+                    foreach (var item in p.Value)
+                    {
+                        if(_pool.TryGetValue(item.Value, out var tx))
+                            list.Add(tx);
+                    }
+                }
+                return list;
+            }
         }
 
+        public Fee MinimalFee => _config.FeeThreshold;
+
+        
+        /// <inheritdoc/>
         public bool GetTransaction(Hash txHash, out ITransaction tx)
         {
             return _pool.TryGetValue(txHash, out tx);
         }
         
+        /// <inheritdoc/>
+        public ITransaction GetTransaction(Hash txHash)
+        {
+            return GetTransaction(txHash, out var tx) ? tx : null;
+        }
+
+        /// <inheritdoc/>
         public bool AddTx(ITransaction tx)
         {
             // validate tx
@@ -50,8 +73,14 @@ namespace AElf.Kernel.TxMemPool
             
         }
 
-        public bool DisgardTx(ITransaction tx)
+        /// <inheritdoc/>
+        public bool DisgardTx(Hash txHash)
         {
+            if (!GetTransaction(txHash, out var tx))
+            {
+                return false;
+            }
+            
             if (RemoveFromExecutable(tx, out var unValidTxList))
             {
                 // case 1: tx in executable list
@@ -74,6 +103,7 @@ namespace AElf.Kernel.TxMemPool
         public bool ValidateTx(ITransaction tx)
         {
             // fee check
+            
             
             // size check
             if (GetTxSize(tx) > _config.TxLimitSize)
@@ -106,12 +136,9 @@ namespace AElf.Kernel.TxMemPool
             // TODO : more validations
         }
         
-        public int GetPoolSize()
-        {
-            return _pool.Count;
-        }
-        
-        
+        public ulong Size => (ulong) _pool.Count;
+
+
         /// <summary>
         /// replace tx in executable list with higher fee
         /// </summary>
@@ -304,7 +331,7 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="tx"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        private ulong GetTxSize(ITransaction tx)
+        private int GetTxSize(ITransaction tx)
         {
             throw new System.NotImplementedException();
         }

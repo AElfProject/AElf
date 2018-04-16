@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using AElf.Kernel.TxMemPool;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.TxMemPool
 {
     public interface ITxPool
     {
@@ -16,7 +16,7 @@ namespace AElf.Kernel
         /// remove a tx
         /// </summary>
         /// <param name="tx"></param>
-        bool DisgardTx(ITransaction tx);
+        bool DisgardTx(Hash txHash);
 
         /// <summary>
         /// promote txs from waiting to executable
@@ -35,14 +35,16 @@ namespace AElf.Kernel
         /// return pool size
         /// </summary>
         /// <returns></returns>
-        int GetPoolSize();
+        ulong Size { get; }
+        
+        List<ITransaction> Ready { get; }
 
         /// <summary>
         /// minimal fee needed
         /// </summary>
         /// <returns></returns>
-        Fee MinimalFee();
-        
+        Fee MinimalFee { get; }
+
         /// <summary>
         /// return a tx alread in pool
         /// </summary>
@@ -50,5 +52,12 @@ namespace AElf.Kernel
         /// <param name="tx"></param>
         /// <returns></returns>
         bool GetTransaction(Hash txHash, out ITransaction tx);
+
+        /// <summary>
+        /// return a tx alread in pool
+        /// </summary>
+        /// <param name="txHash"></param>
+        /// <returns></returns>
+        ITransaction GetTransaction(Hash txHash);
     }
 }
