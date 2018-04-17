@@ -70,13 +70,13 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <returns></returns>
         Task Clear();
-        
+
         /// <summary>
         /// add txs to storage
         /// </summary>
         /// <param name="txHashes"></param>
         /// <returns></returns>
-        Task PersistTxs(IEnumerable<Hash> txHashes)
+        Task PersistTxs(IEnumerable<Hash> txHashes);
 
         /// <summary>
         /// persistent Tx pool to storage
