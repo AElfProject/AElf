@@ -34,16 +34,9 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// Remove transactions from mempool already in block
         /// </summary>
-        /// <param name="blockHeight"></param>
+        /// <param name="block"></param>
         /// <returns></returns>
-        Task RemoveTxsExecuted(ulong blockHeight);
-
-        /// <summary>
-        /// Remove invalid transactions from mempool
-        /// not in executable and waiting list 
-        /// </summary>
-        /// <returns></returns>
-        Task RemoveTxsInValid();
+        Task RemoveTxsExecuted(Block block);
 
         /// <summary>
         /// return ready txs can be executed 

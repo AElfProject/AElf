@@ -18,7 +18,7 @@ namespace AElf.Kernel.TxMemPool
             _transactionManager = transactionManager;
         }
         
-        public TxPoolSchedulerLock Lock { get; }
+        private TxPoolSchedulerLock Lock { get; }
 
         public Task<bool> AddTransaction(ITransaction tx)
         {
@@ -48,9 +48,13 @@ namespace AElf.Kernel.TxMemPool
             throw new System.NotImplementedException();
         }
 
-        public Task RemoveTxsExecuted(ulong blockHeight)
+        public async Task RemoveTxsExecuted(Block block)
         {
-            throw new System.NotImplementedException();
+            var txHashes = block.Body.Transactions;
+            foreach (var hash in txHashes)
+            {
+                await Remove(hash);
+            }       
         }
 
         public async Task PersistTxs(IEnumerable<Hash> txHashes)
@@ -63,7 +67,7 @@ namespace AElf.Kernel.TxMemPool
 
         private async Task Persist(Hash txHash)
         {
-            if (!GetTransaction(txHash, out var tx).Result)
+            if (!await GetTransaction(txHash, out var tx))
             {
                 // TODO: tx not found, log error
             }
@@ -73,11 +77,6 @@ namespace AElf.Kernel.TxMemPool
             }
         }
         
-        public Task RemoveTxsInValid()
-        {
-            throw new System.NotImplementedException();
-        }
-
         public Task<List<ITransaction>> GetReadyTxs()
         {
             return Lock.ReadAsync(() => _txPool.Ready);
