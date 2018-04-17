@@ -26,7 +26,7 @@ namespace AElf.Kernel
 
         public async Task<WorldState> GetWorldStateAsync(Hash chainId)
         {
-            return await _worldStateStore.GetWorldState(chainId, _preBlockHash);
+            return await GetWorldStateAsync(chainId, _preBlockHash);
         }
         
         public async Task<WorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)
@@ -37,7 +37,19 @@ namespace AElf.Kernel
         public IAccountDataProvider GetAccountDataProvider(Hash chainId, Hash accountHash)
         {
             return new AccountDataProvider(accountHash, chainId, _accountContextService,
-                _pointerCollection, _worldStateStore, _preBlockHash, _changesCollection);
+                _pointerCollection, this, _preBlockHash, _changesCollection);
+        }
+        
+        public async Task SetData(Hash pointerHash, byte[] data)
+        {
+            //TODO: Maybe not proper to save data to WorldStateStore
+            await _worldStateStore.SetData(pointerHash, data);
+        }
+
+        public async Task<byte[]> GetData(Hash pointerHash)
+        {
+            //TODO: Same as above
+            return await _worldStateStore.GetData(pointerHash);
         }
 
         public async Task SetWorldStateToCurrentState(Hash chainId, Hash newBlockHash)

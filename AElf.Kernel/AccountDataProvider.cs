@@ -9,7 +9,7 @@ namespace AElf.Kernel
     public class AccountDataProvider : IAccountDataProvider
     {
         private readonly IPointerCollection _pointerCollection;
-        private readonly IWorldStateStore _worldStateStore;
+        private readonly IWorldStateManager _worldStateManager;
         private readonly Hash _preBlockHash;
         private readonly IChangesCollection _changesCollection;
         
@@ -17,9 +17,9 @@ namespace AElf.Kernel
 
         public AccountDataProvider(Hash accountHash, Hash chainId, 
             IAccountContextService accountContextService, IPointerCollection pointerCollection,
-            IWorldStateStore worldStateStore, Hash preBlockHash, IChangesCollection changesCollection)
+            IWorldStateManager worldStateManager, Hash preBlockHash, IChangesCollection changesCollection)
         {
-            _worldStateStore = worldStateStore;
+            _worldStateManager = worldStateManager;
             _preBlockHash = preBlockHash;
             _changesCollection = changesCollection;
             _pointerCollection = pointerCollection;
@@ -28,7 +28,7 @@ namespace AElf.Kernel
 
         public IDataProvider GetDataProvider()
         {
-            return new DataProvider(Context, _pointerCollection, _worldStateStore, _preBlockHash, _changesCollection);
+            return new DataProvider(Context, _pointerCollection, _worldStateManager, _preBlockHash, _changesCollection);
         }
     }
 }

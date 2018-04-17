@@ -26,7 +26,7 @@ namespace AElf.Kernel
             return Task.FromResult(_dictionary.Values.ToList());
         }
 
-        public Task<List<Hash>> GetChangedPathsAsync()
+        public Task<List<Hash>> GetChangedPathHashesAsync()
         {
             return Task.FromResult(_dictionary.Keys.ToList());
         }

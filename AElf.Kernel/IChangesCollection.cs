@@ -12,6 +12,6 @@ namespace AElf.Kernel
 
         Task<List<Change>> GetChangesAsync();
 
-        Task<List<Hash>> GetChangedPathsAsync();
+        Task<List<Hash>> GetChangedPathHashesAsync();
     }
 }
