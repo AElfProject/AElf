@@ -5,13 +5,6 @@ namespace AElf.Kernel
     public interface IWorldStateManager
     {
         /// <summary>
-        /// Get the current world state of a chain.
-        /// </summary>
-        /// <param name="chainId"></param>
-        /// <returns></returns>
-        Task<WorldState> GetWorldStateAsync(Hash chainId);
-
-        /// <summary>
         /// Get the world state of specific block.
         /// </summary>
         /// <param name="chainId"></param>

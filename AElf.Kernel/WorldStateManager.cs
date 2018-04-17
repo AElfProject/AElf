@@ -23,12 +23,13 @@ namespace AElf.Kernel
             _pointerCollection = pointerCollection;
             _changesCollection = changesCollection;
         }
-
-        public async Task<WorldState> GetWorldStateAsync(Hash chainId)
-        {
-            return await GetWorldStateAsync(chainId, _preBlockHash);
-        }
         
+        /// <summary>
+        /// Get any previous WorldState
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="blockHash"></param>
+        /// <returns></returns>
         public async Task<WorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)
         {
             return await _worldStateStore.GetWorldState(chainId, blockHash);
@@ -42,13 +43,11 @@ namespace AElf.Kernel
         
         public async Task SetData(Hash pointerHash, byte[] data)
         {
-            //TODO: Maybe not proper to save data to WorldStateStore
             await _worldStateStore.SetData(pointerHash, data);
         }
 
         public async Task<byte[]> GetData(Hash pointerHash)
         {
-            //TODO: Same as above
             return await _worldStateStore.GetData(pointerHash);
         }
 
