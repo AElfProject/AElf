@@ -54,6 +54,7 @@ namespace AElf.Kernel
         public async Task SetWorldStateToCurrentState(Hash chainId, Hash newBlockHash)
         {
             await _worldStateStore.InsertWorldState(chainId, _preBlockHash, _changesCollection);
+            await _changesCollection.Clear();
             _preBlockHash = newBlockHash;
         }
     }

@@ -94,9 +94,6 @@ namespace AElf.Kernel.Tests
             var data7= Hash.Generate().Value.ToArray();
             subDataProvider3 = dataProvider.GetDataProvider("test3");
             await subDataProvider3.SetAsync(data7);
-            var data8 = Hash.Generate().Value.ToArray();
-            subDataProvider4 = dataProvider.GetDataProvider("test4");
-            await subDataProvider4.SetAsync(data8);
             
             var block2 = CreateBlock();
             await worldStateManager.SetWorldStateToCurrentState(chain.Id, block2.GetHash());
@@ -114,7 +111,42 @@ namespace AElf.Kernel.Tests
             Assert.True(changes1[0].After == changes2[0].Before);
             Assert.True(changes1[1].After == changes2[1].Before);
             Assert.True(changes1[2].After == changes2[2].Before);
-            Assert.True(changes1[3].After == changes2[3].Before);
+
+            var getData1InHeight1 = await subDataProvider1.GetAsync(block0.GetHash());
+            var getData1InHeight2 = await subDataProvider1.GetAsync(block1.GetHash());
+            var getData1 = await subDataProvider1.GetAsync();
+            Assert.True(data1.SequenceEqual(getData1InHeight1));
+            Assert.False(data1.SequenceEqual(getData1InHeight2));
+            Assert.True(data5.SequenceEqual(getData1InHeight2));
+            Assert.True(getData1InHeight2.SequenceEqual(getData1));
+
+            Assert.True(changes2.Count == 3);
+            
+            var block3 = CreateBlock();
+            await worldStateManager.SetWorldStateToCurrentState(chain.Id, block3.GetHash());
+            await chainManger.AppendBlockToChainAsync(chain, block3);
+
+            var worldState3 = await worldStateManager.GetWorldStateAsync(chain.Id, block2.GetHash());
+            var changes3 = await worldState3.GetChangesAsync();
+            
+            Assert.True(changes3.Count == 0);
+            
+            accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
+            dataProvider = accountDataProvider.GetDataProvider();
+            var data8 = Hash.Generate().Value.ToArray();
+            var subDataProvider5 = dataProvider.GetDataProvider("test5");
+            await subDataProvider5.SetAsync(data8);
+            
+            var block4 = CreateBlock();
+            await worldStateManager.SetWorldStateToCurrentState(chain.Id, block4.GetHash());
+            await chainManger.AppendBlockToChainAsync(chain, block4);
+
+            var worldState4 = await worldStateManager.GetWorldStateAsync(chain.Id, block3.GetHash());
+            var changes4 = await worldState4.GetChangesAsync();
+            
+            Assert.True(changes4.Count == 1);
+            var getData8 = await subDataProvider5.GetAsync();
+            Assert.True(data8.SequenceEqual(getData8));
         }
         
         private Block CreateBlock()

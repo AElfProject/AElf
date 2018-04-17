@@ -31,6 +31,12 @@ namespace AElf.Kernel
             return Task.FromResult(_dictionary.Keys.ToList());
         }
 
+        public Task Clear()
+        {
+            _dictionary.Clear();
+            return Task.CompletedTask;
+        }
+
         public object Clone()
         {
             var changesStore = new ChangesCollection();
