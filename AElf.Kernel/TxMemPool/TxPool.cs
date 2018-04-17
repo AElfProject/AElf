@@ -8,10 +8,10 @@ namespace AElf.Kernel.TxMemPool
 {
     public class TxPool :ITxPool
     {
-        private readonly Dictionary<Hash, SortedDictionary<ulong, Hash>> _executable =
-            new Dictionary<Hash, SortedDictionary<ulong, Hash>>();
-        private readonly Dictionary<Hash, SortedDictionary<ulong, Hash>> _waiting =
-            new Dictionary<Hash, SortedDictionary<ulong, Hash>>();
+        private readonly Dictionary<Hash, Dictionary<ulong, Hash>> _executable =
+            new Dictionary<Hash, Dictionary<ulong, Hash>>();
+        private readonly Dictionary<Hash, Dictionary<ulong, Hash>> _waiting =
+            new Dictionary<Hash, Dictionary<ulong, Hash>>();
         private readonly Dictionary<Hash, ITransaction> _pool = new Dictionary<Hash, ITransaction>();
         
         private readonly IAccountContextService _accountContextService;
@@ -166,7 +166,7 @@ namespace AElf.Kernel.TxMemPool
         {
             if (!_waiting.TryGetValue(tx.From, out var waitingList))
             {
-                _waiting[tx.From] = new SortedDictionary<ulong, Hash>();
+                _waiting[tx.From] = new Dictionary<ulong, Hash>();
             }
             
             if (waitingList.Keys.Contains(tx.IncrementId))
@@ -178,11 +178,11 @@ namespace AElf.Kernel.TxMemPool
         }
         
         
-         /// <summary>
+        /// <summary>
         /// remove tx from executable list
         /// </summary>
         /// <param name="tx"></param>
-        /// <param name="unValidTxList">unvalid txs because removing this tx</param>
+        /// <param name="unValidTxList">invalid txs because removing this tx</param>
         /// <returns></returns>
         private bool RemoveFromExecutable(ITransaction tx, out List<ITransaction> unValidTxList)
         {
@@ -216,6 +216,28 @@ namespace AElf.Kernel.TxMemPool
             // Update the account nonce if needed
             var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
             context.IncreasementId = Math.Min(context.IncreasementId, tx.IncrementId);
+
+            return true;
+        }
+
+        /// <summary>
+        /// remove unvalid txs from executable list, like too old tx
+        /// </summary>
+        /// <returns></returns>
+        public bool RemoveFromExecutable(Hash addr)
+        {
+            var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
+            var nonce = context.IncreasementId;
+            var list = _executable[addr];
+            
+            var hashesToRemove = list.Where(p => p.Key < nonce).Select(k => k.Value).ToList();
+            foreach (var hash in hashesToRemove)
+            {
+                if (!_pool.Remove(hash))
+                {
+                    // TODO: log error
+                }
+            }
 
             return true;
         }
@@ -263,6 +285,7 @@ namespace AElf.Kernel.TxMemPool
                 var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
                 var nonce = context.IncreasementId;
                 var oldList = _waiting[addr].Keys.Where(n => n < nonce);
+                
                 foreach (var n in oldList)
                 {
                     // TODO: log
@@ -271,7 +294,6 @@ namespace AElf.Kernel.TxMemPool
 
                 // promote ready txs
                 Promote(addr, nonce);
-
             }
         }
 
@@ -297,7 +319,7 @@ namespace AElf.Kernel.TxMemPool
 
             if (!_executable.TryGetValue(addr, out var executableList))
             {
-                _executable[addr] = new SortedDictionary<ulong, Hash>();
+                _executable[addr] = new Dictionary<ulong, Hash>();
             }
             
             do
@@ -305,7 +327,7 @@ namespace AElf.Kernel.TxMemPool
                 // remove from waiting list
                 waitingList.Remove(next);
                 // add to executable list
-                executableList[next]=waitingList.First().Value;
+                executableList[next] = waitingList.First().Value;
             } while (waitingList.Count > 0 && waitingList.First().Key == ++next);
 
             if (waitingList.Count == 0)
@@ -343,7 +365,7 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         private ulong GetExecutableSize()
         {
-            return _executable.Values.Aggregate<SortedDictionary<ulong, Hash>, ulong>(0,
+            return _executable.Values.Aggregate<Dictionary<ulong, Hash>, ulong>(0,
                 (current, p) => current + (ulong) p.Count);
         }
 
@@ -353,7 +375,7 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         private ulong GetWaitingSize()
         {
-            return _waiting.Values.Aggregate<SortedDictionary<ulong, Hash>, ulong>(0,
+            return _waiting.Values.Aggregate<Dictionary<ulong, Hash>, ulong>(0,
                 (current, p) => current + (ulong) p.Count);
         }
         
