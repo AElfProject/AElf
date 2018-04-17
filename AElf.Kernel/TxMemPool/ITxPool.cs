@@ -10,7 +10,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        bool AddTx(ITransaction tx);
+        bool AddTx(Transaction tx);
 
         /// <summary>
         /// remove a tx
@@ -29,7 +29,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        bool ValidateTx(ITransaction tx);
+        bool ValidateTx(Transaction tx);
 
         /// <summary>
         /// return pool size
@@ -37,7 +37,7 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         ulong Size { get; }
         
-        List<ITransaction> Ready { get; }
+        List<Transaction> Ready { get; }
 
         /// <summary>
         /// minimal fee needed
@@ -51,14 +51,14 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="txHash"></param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        bool GetTransaction(Hash txHash, out ITransaction tx);
+        bool GetTransaction(Hash txHash, out Transaction tx);
 
         /// <summary>
         /// return a tx alread in pool
         /// </summary>
         /// <param name="txHash"></param>
         /// <returns></returns>
-        ITransaction GetTransaction(Hash txHash);
+        Transaction GetTransaction(Hash txHash);
 
         /// <summary>
         /// clear all txs in pool

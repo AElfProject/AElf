@@ -12,7 +12,7 @@ namespace AElf.Kernel.TxMemPool
             new Dictionary<Hash, Dictionary<ulong, Hash>>();
         private readonly Dictionary<Hash, Dictionary<ulong, Hash>> _waiting =
             new Dictionary<Hash, Dictionary<ulong, Hash>>();
-        private readonly Dictionary<Hash, ITransaction> _pool = new Dictionary<Hash, ITransaction>();
+        private readonly Dictionary<Hash, Transaction> _pool = new Dictionary<Hash, Transaction>();
         
         private readonly IAccountContextService _accountContextService;
         private readonly IChainContext _context;
@@ -25,11 +25,11 @@ namespace AElf.Kernel.TxMemPool
             _accountContextService = accountContextService;
         }
 
-        public List<ITransaction> Ready
+        public List<Transaction> Ready
         {
             get
             {
-                var list = new List<ITransaction>();
+                var list = new List<Transaction>();
                 foreach (var p in _executable)
                 {
                     var nonce = _accountContextService.GetAccountDataContext(p.Key, _context.ChainId).IncreasementId;
@@ -52,13 +52,13 @@ namespace AElf.Kernel.TxMemPool
 
         
         /// <inheritdoc/>
-        public bool GetTransaction(Hash txHash, out ITransaction tx)
+        public bool GetTransaction(Hash txHash, out Transaction tx)
         {
             return _pool.TryGetValue(txHash, out tx);
         }
         
         /// <inheritdoc/>
-        public ITransaction GetTransaction(Hash txHash)
+        public Transaction GetTransaction(Hash txHash)
         {
             return GetTransaction(txHash, out var tx) ? tx : null;
         }
@@ -81,7 +81,7 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public bool AddTx(ITransaction tx)
+        public bool AddTx(Transaction tx)
         {
             // validate tx
             if (!ValidateTx(tx))
@@ -124,7 +124,7 @@ namespace AElf.Kernel.TxMemPool
         }
         
         /// <inheritdoc/>
-        public bool ValidateTx(ITransaction tx)
+        public bool ValidateTx(Transaction tx)
         {
             // fee check
             
@@ -168,7 +168,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private bool ReplaceExecutableTx(ITransaction tx)
+        private bool ReplaceExecutableTx(Transaction tx)
         {
             var addr = tx.From;
 
@@ -186,7 +186,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private bool AddWaitingTx(ITransaction tx)
+        private bool AddWaitingTx(Transaction tx)
         {
             if (!_waiting.TryGetValue(tx.From, out var waitingList))
             {
@@ -208,7 +208,7 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="tx"></param>
         /// <param name="unValidTxList">invalid txs because removing this tx</param>
         /// <returns></returns>
-        private bool RemoveFromExecutable(ITransaction tx, out List<ITransaction> unValidTxList)
+        private bool RemoveFromExecutable(Transaction tx, out List<Transaction> unValidTxList)
         {
             // remove the tx 
             var addr = tx.From;
@@ -274,7 +274,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private bool RemoveFromWaiting(ITransaction tx)
+        private bool RemoveFromWaiting(Transaction tx)
         {
             var addr = tx.From;
             if (!_waiting.TryGetValue(addr, out var waitingList) ||
@@ -379,7 +379,7 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="tx"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        private int GetTxSize(ITransaction tx)
+        private int GetTxSize(Transaction tx)
         {
             throw new System.NotImplementedException();
         }
@@ -409,9 +409,9 @@ namespace AElf.Kernel.TxMemPool
     
    /* // Defines a comparer to create a sorted set
     // that is sorted by the file extensions.
-    public class TxSortedOption : IComparer<ITransaction>
+    public class TxSortedOption : IComparer<Transaction>
     {
-        public int Compare(ITransaction t1, ITransaction t2)
+        public int Compare(Transaction t1, Transaction t2)
         {
             return (int)(t1.IncrementId - t2.IncrementId);
         }
