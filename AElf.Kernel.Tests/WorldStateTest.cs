@@ -13,17 +13,17 @@ namespace AElf.Kernel.Tests
     public class WorldStateTest
     {
         private readonly IWorldStateStore _worldStateStore;
-        private readonly IPointerStore _pointerStore;
+        private readonly IPointerCollection _pointerCollection;
         private readonly IChainStore _chainStore;
-        private readonly IChangesStore _changesStore;
+        private readonly IChangesCollection _changesCollection;
 
         public WorldStateTest(IChainStore chainStore, IWorldStateStore worldStateStore, 
-            IPointerStore pointerStore, IChangesStore changesStore)
+            IPointerCollection pointerCollection, IChangesCollection changesCollection)
         {
             _chainStore = chainStore;
             _worldStateStore = worldStateStore;
-            _pointerStore = pointerStore;
-            _changesStore = changesStore;
+            _pointerCollection = pointerCollection;
+            _changesCollection = changesCollection;
         }
         
         [Fact]
@@ -39,7 +39,7 @@ namespace AElf.Kernel.Tests
             var hash = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, hash, 
-                accountContextService, _pointerStore, _changesStore);
+                accountContextService, _pointerCollection, _changesCollection);
 
             var worldState = await worldStateManager.GetWorldStateAsync(chain.Id);
             

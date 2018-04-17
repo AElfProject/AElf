@@ -1,4 +1,4 @@
-﻿namespace AElf.Kernel.Storages
+﻿namespace AElf.Kernel
 {
     public struct Change
     {

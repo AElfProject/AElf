@@ -12,21 +12,21 @@ namespace AElf.Kernel
 {
     public class WorldState : IWorldState
     {
-        private readonly IChangesStore _changesStore;
+        private readonly IChangesCollection _changesCollection;
 
-        public WorldState(IChangesStore changesStore)
+        public WorldState(IChangesCollection changesCollection)
         {
-            _changesStore = changesStore;
+            _changesCollection = changesCollection;
         }
 
         public async Task<Change> GetChange(Hash pathHash)
         {
-            return await _changesStore.GetAsync(pathHash);
+            return await _changesCollection.GetAsync(pathHash);
         }
         
         public async Task<Hash> GetWorldStateMerkleTreeRootAsync()
         {
-            var changes = await _changesStore.GetChangedPathsAsync();
+            var changes = await _changesCollection.GetChangedPathsAsync();
             var merkleTree = new BinaryMerkleTree();
             merkleTree.AddNodes(changes);
             return await Task.FromResult(merkleTree.ComputeRootHash());
