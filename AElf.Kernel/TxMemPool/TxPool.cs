@@ -32,8 +32,14 @@ namespace AElf.Kernel.TxMemPool
                 var list = new List<ITransaction>();
                 foreach (var p in _executable)
                 {
+                    var nonce = _accountContextService.GetAccountDataContext(p.Key, _context.ChainId).IncreasementId;
+                    
                     foreach (var item in p.Value)
                     {
+                        if (item.Key < nonce)
+                        {
+                            continue;
+                        }
                         if(_pool.TryGetValue(item.Value, out var tx))
                             list.Add(tx);
                     }
@@ -55,6 +61,23 @@ namespace AElf.Kernel.TxMemPool
         public ITransaction GetTransaction(Hash txHash)
         {
             return GetTransaction(txHash, out var tx) ? tx : null;
+        }
+
+        public void ClearAll()
+        {
+            ClearWaiting();
+            ClearWaiting();
+            _pool.Clear();
+        }
+
+        public void ClearWaiting()
+        {
+            _waiting.Clear();
+        }
+
+        public void ClearExecutable()
+        {
+            _executable.Clear();
         }
 
         /// <inheritdoc/>
@@ -100,6 +123,7 @@ namespace AElf.Kernel.TxMemPool
 
         }
         
+        /// <inheritdoc/>
         public bool ValidateTx(ITransaction tx)
         {
             // fee check
@@ -221,14 +245,16 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <summary>
-        /// remove unvalid txs from executable list, like too old tx
+        /// remove unvalid txs sent by account address addr, from executable list, like too old tx
         /// </summary>
+        /// <param name="accountHash"></param>
         /// <returns></returns>
-        public bool RemoveFromExecutable(Hash addr)
+        public bool RemoveExecutedTx(Hash accountHash)
         {
-            var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
+            
+            var context = _accountContextService.GetAccountDataContext(accountHash, _context.ChainId);
             var nonce = context.IncreasementId;
-            var list = _executable[addr];
+            var list = _executable[accountHash];
             
             var hashesToRemove = list.Where(p => p.Key < nonce).Select(k => k.Value).ToList();
             foreach (var hash in hashesToRemove)
@@ -241,7 +267,7 @@ namespace AElf.Kernel.TxMemPool
 
             return true;
         }
-
+        
         
         /// <summary>
         /// remove tx from waiting list
@@ -378,10 +404,6 @@ namespace AElf.Kernel.TxMemPool
             return _waiting.Values.Aggregate<Dictionary<ulong, Hash>, ulong>(0,
                 (current, p) => current + (ulong) p.Count);
         }
-        
-        
-        
-        
     }
     
     

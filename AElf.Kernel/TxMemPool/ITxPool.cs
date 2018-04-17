@@ -59,5 +59,20 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="txHash"></param>
         /// <returns></returns>
         ITransaction GetTransaction(Hash txHash);
+
+        /// <summary>
+        /// clear all txs in pool
+        /// </summary>
+        void ClearAll();
+
+        /// <summary>
+        /// clear all txs in waiting list
+        /// </summary>
+        void ClearWaiting();
+
+        /// <summary>
+        /// clear all txs in executable list
+        /// </summary>
+        void ClearExecutable();
     }
 }

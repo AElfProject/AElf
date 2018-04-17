@@ -95,7 +95,11 @@ namespace AElf.Kernel.TxMemPool
 
         public Task Clear()
         {
-            throw new System.NotImplementedException();
+            return Lock.WriteAsync(()=>
+            {
+                _txPool.ClearAll();
+                return Task.CompletedTask;
+            });
         }
 
         public Task SavePool()
