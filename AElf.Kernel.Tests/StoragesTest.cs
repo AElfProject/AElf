@@ -20,8 +20,7 @@ namespace AElf.Kernel.Tests
         private readonly IChainStore _chainStore;
         private readonly IChangesCollection _changesCollection;
 
-        public StoragesTest(IChainStore chainStore, 
-            IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
+        public StoragesTest(IChainStore chainStore, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
             IWorldStateStore worldStateStore, IPointerCollection pointerCollection, IChangesCollection changesCollection)
         {
             _chainStore = chainStore;
