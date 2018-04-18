@@ -14,18 +14,18 @@ namespace AElf.Kernel.Tests
     public class WorldStateTest
     {
         private readonly IWorldStateStore _worldStateStore;
-        private readonly IPointerCollection _pointerCollection;
+        private readonly IPointerStore _pointerStore;
         private readonly IChainStore _chainStore;
-        private readonly IChangesCollection _changesCollection;
+        private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
 
         public WorldStateTest(IChainStore chainStore, IWorldStateStore worldStateStore, 
-            IPointerCollection pointerCollection, IChangesCollection changesCollection, IDataStore dataStore)
+            IPointerStore pointerStore, IChangesStore changesStore, IDataStore dataStore)
         {
             _chainStore = chainStore;
             _worldStateStore = worldStateStore;
-            _pointerCollection = pointerCollection;
-            _changesCollection = changesCollection;
+            _pointerStore = pointerStore;
+            _changesStore = changesStore;
             _dataStore = dataStore;
         }
         
@@ -39,7 +39,7 @@ namespace AElf.Kernel.Tests
 
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, block0.GetHash(), 
-                accountContextService, _pointerCollection, _changesCollection, _dataStore);
+                accountContextService, _pointerStore, _changesStore, _dataStore);
 
             await chainManger.AddChainAsync(chain.Id);
             await chainManger.AppendBlockToChainAsync(chain, block0);
@@ -66,7 +66,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, block0.GetHash(), 
-                accountContextService, _pointerCollection, _changesCollection, _dataStore);
+                accountContextService, _pointerStore, _changesStore, _dataStore);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
             var dataProvider = accountDataProvider.GetDataProvider();
             

@@ -13,10 +13,10 @@ namespace AElf.Kernel.Tests
 
         private readonly Hash _genesisBlockHash = Hash.Zero;
         
-        public WorldStateManagerTest(IWorldStateStore worldStateStore, IPointerCollection pointerCollection, IAccountContextService accountContextService, IChangesCollection changesCollection, IDataStore dataStore)
+        public WorldStateManagerTest(IWorldStateStore worldStateStore, IPointerStore pointerStore, IAccountContextService accountContextService, IChangesStore changesStore, IDataStore dataStore)
         {
             _worldStateManager = new WorldStateManager(worldStateStore, _genesisBlockHash, 
-                accountContextService, pointerCollection, changesCollection, dataStore);
+                accountContextService, pointerStore, changesStore, dataStore);
         }
 
         [Fact]

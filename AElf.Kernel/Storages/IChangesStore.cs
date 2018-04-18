@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Storages
 {
-    public interface IChangesCollection : ICloneable
+    public interface IChangesStore
     {
         Task InsertAsync(Hash path, Change change);
 
@@ -15,7 +15,5 @@ namespace AElf.Kernel
         Task<List<Hash>> GetChangedPathHashesAsync();
 
         Task<Dictionary<Hash, Change>> GetChangesDictionary();
-
-        Task Clear();
     }
 }

@@ -15,20 +15,20 @@ namespace AElf.Kernel.Tests
         private readonly IChainManager _chainManager;
         private readonly IChainContextService _chainContextService;
         private readonly IWorldStateStore _worldStateStore;
-        private readonly IPointerCollection _pointerCollection;
-        private readonly IChangesCollection _changesCollection;
+        private readonly IPointerStore _pointerStore;
+        private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
 
         public ChainTest(ISmartContractZero smartContractZero, IChainCreationService chainCreationService,
-            IChainManager chainManager, IChainContextService chainContextService, IWorldStateStore worldStateStore, IPointerCollection pointerCollection, IChangesCollection changesCollection, IDataStore dataStore)
+            IChainManager chainManager, IChainContextService chainContextService, IWorldStateStore worldStateStore, IPointerStore pointerStore, IChangesStore changesStore, IDataStore dataStore)
         {
             _smartContractZero = smartContractZero;
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
             _chainContextService = chainContextService;
             _worldStateStore = worldStateStore;
-            _pointerCollection = pointerCollection;
-            _changesCollection = changesCollection;
+            _pointerStore = pointerStore;
+            _changesStore = changesStore;
             _dataStore = dataStore;
         }
 
@@ -43,7 +43,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, Hash.Generate(), 
-                accountContextService, _pointerCollection, _changesCollection, _dataStore);
+                accountContextService, _pointerStore, _changesStore, _dataStore);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chainId, address);
             
             await _smartContractZero.InitializeAsync(accountDataProvider);

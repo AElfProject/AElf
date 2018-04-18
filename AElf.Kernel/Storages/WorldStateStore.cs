@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 
@@ -15,17 +13,16 @@ namespace AElf.Kernel.Storages
             _keyValueDatabase = keyValueDatabase;
         }
 
-        public async Task InsertWorldState(Hash chainId, Hash blockHash, IChangesCollection changes)
+        public async Task InsertWorldState(Hash chainId, Hash blockHash, IChangesStore changes)
         {
             var wsKey = new Hash(chainId.CalculateHashWith(blockHash));
-            var changesCollection = (ChangesCollection)changes.Clone();
-            await _keyValueDatabase.SetAsync(wsKey, changesCollection);
+            await _keyValueDatabase.SetAsync(wsKey, changes);
         }
 
         public async Task<WorldState> GetWorldState(Hash chainId, Hash blockHash)
         {
             var wsKey = new Hash(chainId.CalculateHashWith(blockHash));
-            var changesCollection = (ChangesCollection) await _keyValueDatabase.GetAsync(wsKey, typeof(ChangesCollection));
+            var changesCollection = (ChangesStore) await _keyValueDatabase.GetAsync(wsKey, typeof(ChangesStore));
             return await Task.FromResult(new WorldState(changesCollection));
         }
     }

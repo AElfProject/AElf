@@ -9,20 +9,20 @@ namespace AElf.Kernel
     public class WorldStateManager: IWorldStateManager
     {
         private readonly IWorldStateStore _worldStateStore;
-        private readonly IPointerCollection _pointerCollection;
+        private readonly IPointerStore _pointerStore;
         private Hash _preBlockHash;
         private readonly IAccountContextService _accountContextService;
-        private readonly IChangesCollection _changesCollection;
+        private IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
 
         public WorldStateManager(IWorldStateStore worldStateStore, Hash preBlockHash, 
-            IAccountContextService accountContextService, IPointerCollection pointerCollection, IChangesCollection changesCollection, IDataStore dataStore)
+            IAccountContextService accountContextService, IPointerStore pointerStore, IChangesStore changesStore, IDataStore dataStore)
         {
             _worldStateStore = worldStateStore;
             _preBlockHash = preBlockHash;
             _accountContextService = accountContextService;
-            _pointerCollection = pointerCollection;
-            _changesCollection = changesCollection;
+            _pointerStore = pointerStore;
+            _changesStore = changesStore;
             _dataStore = dataStore;
         }
         
@@ -35,18 +35,18 @@ namespace AElf.Kernel
         /// <inheritdoc />
         public async Task SetWorldStateToCurrentState(Hash chainId, Hash currentBlockHash)
         {
-            await _worldStateStore.InsertWorldState(chainId, _preBlockHash, _changesCollection);
-            await _changesCollection.Clear();
+            await _worldStateStore.InsertWorldState(chainId, _preBlockHash, _changesStore);
+            _changesStore = new ChangesStore(new KeyValueDatabase());
             _preBlockHash = currentBlockHash;
         }
 
         /// <inheritdoc />
         public async Task RollbackDataToPreviousWorldState()
         {
-            var dict = await _changesCollection.GetChangesDictionary();
+            var dict = await _changesStore.GetChangesDictionary();
             foreach (var pair in dict)
             {
-                await _pointerCollection.UpdateAsync(pair.Key, pair.Value.Before);
+                await _pointerStore.UpdateAsync(pair.Key, pair.Value.Before);
             }
         }
 
@@ -54,7 +54,7 @@ namespace AElf.Kernel
         public IAccountDataProvider GetAccountDataProvider(Hash chainId, Hash accountHash)
         {
             return new AccountDataProvider(accountHash, chainId, _accountContextService,
-                _pointerCollection, this, _preBlockHash, _changesCollection);
+                _pointerStore, this, _preBlockHash, _changesStore);
         }
         
         public async Task SetData(Hash pointerHash, byte[] data)

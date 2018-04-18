@@ -11,23 +11,13 @@ namespace AElf.Kernel.Storages
         
         public Task<object> GetAsync(Hash key, Type type)
         {
-            return _dictionary.TryGetValue(key, out var value) ? Task.FromResult(value) : null;
+            return _dictionary.TryGetValue(key, out var value) ? Task.FromResult(value) : Task.FromResult<object>(null);
         }
 
         public Task SetAsync(Hash key, object bytes)
         {
             _dictionary[key] = bytes;
             return Task.CompletedTask;
-        }
-
-        public object Clone()
-        {
-            var kvDatabase = new KeyValueDatabase();
-            foreach (var key in _dictionary.Keys)
-            {
-                kvDatabase.SetAsync(key, _dictionary[key]);
-            }
-            return kvDatabase;
         }
     }
 }

@@ -16,20 +16,20 @@ namespace AElf.Kernel.Tests
         private readonly IBlockHeaderStore _blockHeaderStore;
         private readonly IBlockBodyStore _blockBodyStore;
         private readonly IWorldStateStore _worldStateStore;
-        private readonly IPointerCollection _pointerCollection;
+        private readonly IPointerStore _pointerStore;
         private readonly IChainStore _chainStore;
-        private readonly IChangesCollection _changesCollection;
+        private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
 
         public StoragesTest(IChainStore chainStore, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
-            IWorldStateStore worldStateStore, IPointerCollection pointerCollection, IChangesCollection changesCollection, IDataStore dataStore)
+            IWorldStateStore worldStateStore, IPointerStore pointerStore, IChangesStore changesStore, IDataStore dataStore)
         {
             _chainStore = chainStore;
             _blockHeaderStore = blockHeaderStore;
             _blockBodyStore = blockBodyStore;
             _worldStateStore = worldStateStore;
-            _pointerCollection = pointerCollection;
-            _changesCollection = changesCollection;
+            _pointerStore = pointerStore;
+            _changesStore = changesStore;
             _dataStore = dataStore;
         }
 
@@ -107,7 +107,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, blockHash, 
-                accountContextService, _pointerCollection, _changesCollection, _dataStore);
+                accountContextService, _pointerStore, _changesStore, _dataStore);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
             
             //Get the DataProvider of the AccountDataProvider.
@@ -156,7 +156,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, block1.GetHash(), 
-                accountContextService, _pointerCollection, _changesCollection, _dataStore);
+                accountContextService, _pointerStore, _changesStore, _dataStore);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
 
             var dataProvider = accountDataProvider.GetDataProvider();
@@ -216,7 +216,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, block1.GetHash(), 
-                accountContextService, _pointerCollection, _changesCollection, _dataStore);
+                accountContextService, _pointerStore, _changesStore, _dataStore);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
 
             //Set data to one sub DataProvider("test").
