@@ -9,7 +9,7 @@ namespace AElf.Kernel.TxMemPool
     public class TxPoolService : ITxPoolService
     {
         private readonly ITxPool _txPool;
-        private ITransactionManager _transactionManager;
+        private readonly ITransactionManager _transactionManager;
 
         public TxPoolService(ITxPool txPool, TxPoolSchedulerLock @lock, ITransactionManager transactionManager)
         {
@@ -73,7 +73,7 @@ namespace AElf.Kernel.TxMemPool
             }
             else
             {
-                await _transactionManager.AddTransactionAsync((Transaction)tx);
+                await _transactionManager.AddTransactionAsync(tx);
             }
         }
         
