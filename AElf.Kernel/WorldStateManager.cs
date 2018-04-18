@@ -53,11 +53,17 @@ namespace AElf.Kernel
             return await _dataStore.GetData(pointerHash);
         }
 
-        public async Task SetWorldStateToCurrentState(Hash chainId, Hash newBlockHash)
+        /// <summary>
+        /// The currentBlockHash set to _preBlockHash
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="currentBlockHash"></param>
+        /// <returns></returns>
+        public async Task SetWorldStateToCurrentState(Hash chainId, Hash currentBlockHash)
         {
             await _worldStateStore.InsertWorldState(chainId, _preBlockHash, _changesCollection);
             await _changesCollection.Clear();
-            _preBlockHash = newBlockHash;
+            _preBlockHash = currentBlockHash;
         }
     }
 }

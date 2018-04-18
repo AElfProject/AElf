@@ -8,33 +8,25 @@ namespace AElf.Kernel.Storages
 {
     public class WorldStateStore : IWorldStateStore
     {
-
-        private readonly Dictionary<Hash, IChangesCollection> _changesCollectionDict;
-
-        public WorldStateStore(Dictionary<Hash, IChangesCollection> changesCollectionDict)
+        private readonly KeyValueDatabase _keyValueDatabase;
+        
+        public WorldStateStore(KeyValueDatabase keyValueDatabase)
         {
-            _changesCollectionDict = changesCollectionDict;
+            _keyValueDatabase = keyValueDatabase;
         }
 
-        public Task InsertWorldState(Hash chainId, Hash blockHash, IChangesCollection changes)
+        public async Task InsertWorldState(Hash chainId, Hash blockHash, IChangesCollection changes)
         {
             var wsKey = new Hash(chainId.CalculateHashWith(blockHash));
-            var changesStore = (ChangesCollection)changes.Clone();
-            _changesCollectionDict[wsKey] = changesStore;
-            return Task.CompletedTask;
+            var changesCollection = (ChangesCollection)changes.Clone();
+            await _keyValueDatabase.SetAsync(wsKey, changesCollection);
         }
 
-        public Task<WorldState> GetWorldState(Hash chainId, Hash blockHash)
+        public async Task<WorldState> GetWorldState(Hash chainId, Hash blockHash)
         {
             var wsKey = new Hash(chainId.CalculateHashWith(blockHash));
-            if (_changesCollectionDict.TryGetValue(wsKey, out var changes))
-            {
-                return Task.FromResult(new WorldState(changes));
-            }
-            
-            var changesStore = new ChangesCollection();
-            _changesCollectionDict[wsKey] = changesStore;
-            return Task.FromResult(new WorldState(changesStore));
+            var changesCollection = (ChangesCollection) await _keyValueDatabase.GetAsync(wsKey, typeof(ChangesCollection));
+            return await Task.FromResult(new WorldState(changesCollection));
         }
     }
 }
