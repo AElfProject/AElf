@@ -36,7 +36,7 @@ namespace AElf.Kernel
         public async Task SetWorldStateToCurrentState(Hash chainId, Hash currentBlockHash)
         {
             await _worldStateStore.InsertWorldState(chainId, _preBlockHash, _changesStore);
-            _changesStore = new ChangesStore(new KeyValueDatabase());
+            _changesStore = new ChangesStore(new KeyValueDatabase(), new KeyValueDatabase());
             _preBlockHash = currentBlockHash;
         }
 
@@ -54,7 +54,7 @@ namespace AElf.Kernel
         public IAccountDataProvider GetAccountDataProvider(Hash chainId, Hash accountHash)
         {
             return new AccountDataProvider(accountHash, chainId, _accountContextService,
-                _pointerStore, this, _preBlockHash, _changesStore);
+                _pointerStore, this, _preBlockHash, ref _changesStore);
         }
         
         public async Task SetData(Hash pointerHash, byte[] data)

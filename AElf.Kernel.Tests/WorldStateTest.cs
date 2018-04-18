@@ -67,11 +67,11 @@ namespace AElf.Kernel.Tests
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, block0.GetHash(), 
                 accountContextService, _pointerStore, _changesStore, _dataStore);
-            var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
-            var dataProvider = accountDataProvider.GetDataProvider();
             
             await worldStateManager.SetWorldStateToCurrentState(chain.Id, block0.GetHash());
 
+            var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
+            var dataProvider = accountDataProvider.GetDataProvider();
             var data1 = Hash.Generate().Value.ToArray();
             var subDataProvider1 = dataProvider.GetDataProvider("test1");
             await subDataProvider1.SetAsync(data1);

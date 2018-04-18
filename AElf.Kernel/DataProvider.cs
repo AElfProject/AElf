@@ -15,13 +15,13 @@ namespace AElf.Kernel
         
         private readonly IPointerStore _pointerStore;
         private readonly IWorldStateManager _worldStateManager;
-        private readonly IChangesStore _changesStore;
+        private IChangesStore _changesStore;
         private readonly Hash _preBlockHash;
 
         private readonly Path _path;
         
         public DataProvider(IAccountDataContext accountDataContext, IPointerStore pointerStore, 
-            IWorldStateManager worldStateManager, Hash preBlockHash, IChangesStore changesStore, 
+            IWorldStateManager worldStateManager, Hash preBlockHash, ref IChangesStore changesStore, 
             string dataProviderKey = "")
         {
             _worldStateManager = worldStateManager;
@@ -46,7 +46,7 @@ namespace AElf.Kernel
         
         public IDataProvider GetDataProvider(string name)
         {
-            return new DataProvider(_accountDataContext, _pointerStore, _worldStateManager, _preBlockHash, _changesStore, name);
+            return new DataProvider(_accountDataContext, _pointerStore, _worldStateManager, _preBlockHash, ref _changesStore, name);
         }
 
         /// <summary>

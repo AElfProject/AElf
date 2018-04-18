@@ -1,26 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Extensions;
 
 namespace AElf.Kernel.Storages
 {
     public class ChangesStore : IChangesStore
     {
-        private readonly Dictionary<Hash, Change> _dictionary =
-            new Dictionary<Hash, Change>();
-
         private readonly KeyValueDatabase _keyValueDatabase;
+        private readonly KeyValueDatabase _keyValueDatabaseForPaths;
 
-        public ChangesStore(KeyValueDatabase keyValueDatabase)
+        private static readonly Hash HashToGetPaths = new Hash("paths".CalculateHash());
+
+        public ChangesStore(KeyValueDatabase keyValueDatabase, KeyValueDatabase keyValueDatabaseForPaths)
         {
             _keyValueDatabase = keyValueDatabase;
+            _keyValueDatabaseForPaths = keyValueDatabaseForPaths;
+            _keyValueDatabaseForPaths.SetAsync(HashToGetPaths, new List<Hash>());
         }
 
         public async Task InsertAsync(Hash pathHash, Change change)
         {
             await _keyValueDatabase.SetAsync(pathHash, change);
+            
+            var paths = (List<Hash>)await _keyValueDatabaseForPaths.GetAsync(HashToGetPaths, typeof(List<Hash>));
+            paths.Add(pathHash);
+            await _keyValueDatabaseForPaths.SetAsync(HashToGetPaths, paths);
         }
 
         public async Task<Change> GetAsync(Hash pathHash)
@@ -28,19 +32,33 @@ namespace AElf.Kernel.Storages
             return (Change) await _keyValueDatabase.GetAsync(pathHash, typeof(Change));
         }
 
-        public Task<List<Change>> GetChangesAsync()
+        public async Task<List<Change>> GetChangesAsync()
         {
-            return Task.FromResult(_dictionary.Values.ToList());
+            var changes = new List<Change>();
+            var paths = (List<Hash>)await _keyValueDatabaseForPaths.GetAsync(HashToGetPaths, typeof(List<Hash>));
+            foreach (var path in paths)
+            {
+                var change = (Change) await _keyValueDatabase.GetAsync(path, typeof(Change));
+                changes.Add(change);
+            }
+            return changes;
         }
 
-        public Task<List<Hash>> GetChangedPathHashesAsync()
+        public async Task<List<Hash>> GetChangedPathHashesAsync()
         {
-            return Task.FromResult(_dictionary.Keys.ToList());
+            return (List<Hash>) await _keyValueDatabaseForPaths.GetAsync(HashToGetPaths, typeof(List<Hash>));
         }
 
-        public Task<Dictionary<Hash, Change>> GetChangesDictionary()
+        public async Task<Dictionary<Hash, Change>> GetChangesDictionary()
         {
-            return Task.FromResult(_dictionary);
+            var dict = new Dictionary<Hash, Change>();
+            var paths = (List<Hash>)await _keyValueDatabaseForPaths.GetAsync(HashToGetPaths, typeof(List<Hash>));
+            foreach (var path in paths)
+            {
+                var change = (Change) await _keyValueDatabase.GetAsync(path, typeof(Change));
+                dict.Add(path, change);
+            }
+            return dict;
         }
     }
 }
