@@ -11,14 +11,14 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        Task<bool> AddTransaction(ITransaction tx);
+        Task<bool> AddTransaction(Transaction tx);
         
         /// <summary>
         /// add multi txs
         /// </summary>
         /// <param name="txs"></param>
         /// <returns></returns>
-        Task AddTransactions(List<ITransaction> txs);
+        Task AddTransactions(List<Transaction> txs);
         
         /// <summary>
         /// remove a tx
@@ -42,7 +42,7 @@ namespace AElf.Kernel.TxMemPool
         /// return ready txs can be executed 
         /// </summary>
         /// <returns></returns>
-        Task<List<ITransaction>> GetReadyTxs();
+        Task<List<Transaction>> GetReadyTxs();
         
         /// <summary>
         /// return pool size
@@ -56,7 +56,7 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="txHash"></param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        Task<bool> GetTransaction(Hash txHash, out ITransaction tx);
+        Task<bool> GetTransaction(Hash txHash, out Transaction tx);
 
         /// <summary>
         /// clear tx pool

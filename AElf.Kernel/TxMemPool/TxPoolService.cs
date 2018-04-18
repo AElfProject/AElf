@@ -20,12 +20,12 @@ namespace AElf.Kernel.TxMemPool
         
         private TxPoolSchedulerLock Lock { get; }
 
-        public Task<bool> AddTransaction(ITransaction tx)
+        public Task<bool> AddTransaction(Transaction tx)
         {
             return Lock.WriteAsync(() => _txPool.AddTx(tx));
         }
         
-        public Task AddTransactions(List<ITransaction> txs)
+        public Task AddTransactions(List<Transaction> txs)
         {
             return Lock.WriteAsync(() =>
             {
@@ -77,7 +77,7 @@ namespace AElf.Kernel.TxMemPool
             }
         }
         
-        public Task<List<ITransaction>> GetReadyTxs()
+        public Task<List<Transaction>> GetReadyTxs()
         {
             return Lock.ReadAsync(() => _txPool.Ready);
         }
@@ -87,7 +87,7 @@ namespace AElf.Kernel.TxMemPool
             return Lock.ReadAsync(() => _txPool.Size);
         }
 
-        public Task<bool> GetTransaction(Hash txHash, out ITransaction tx)
+        public Task<bool> GetTransaction(Hash txHash, out Transaction tx)
         {
             tx = Lock.ReadAsync(() => _txPool.GetTransaction(txHash)).Result;
             return Task.FromResult(tx != null);
