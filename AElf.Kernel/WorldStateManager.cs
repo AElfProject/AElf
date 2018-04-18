@@ -26,17 +26,21 @@ namespace AElf.Kernel
             _dataStore = dataStore;
         }
         
-        /// <summary>
-        /// Get any previous WorldState
-        /// </summary>
-        /// <param name="chainId"></param>
-        /// <param name="blockHash"></param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<WorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)
         {
             return await _worldStateStore.GetWorldState(chainId, blockHash);
         }
-
+        
+        /// <inheritdoc />
+        public async Task SetWorldStateToCurrentState(Hash chainId, Hash currentBlockHash)
+        {
+            await _worldStateStore.InsertWorldState(chainId, _preBlockHash, _changesCollection);
+            await _changesCollection.Clear();
+            _preBlockHash = currentBlockHash;
+        }
+        
+        /// <inheritdoc />
         public IAccountDataProvider GetAccountDataProvider(Hash chainId, Hash accountHash)
         {
             return new AccountDataProvider(accountHash, chainId, _accountContextService,
@@ -53,17 +57,5 @@ namespace AElf.Kernel
             return await _dataStore.GetData(pointerHash);
         }
 
-        /// <summary>
-        /// The currentBlockHash set to _preBlockHash
-        /// </summary>
-        /// <param name="chainId"></param>
-        /// <param name="currentBlockHash"></param>
-        /// <returns></returns>
-        public async Task SetWorldStateToCurrentState(Hash chainId, Hash currentBlockHash)
-        {
-            await _worldStateStore.InsertWorldState(chainId, _preBlockHash, _changesCollection);
-            await _changesCollection.Clear();
-            _preBlockHash = currentBlockHash;
-        }
     }
 }
