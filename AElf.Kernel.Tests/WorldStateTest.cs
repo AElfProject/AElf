@@ -154,6 +154,18 @@ namespace AElf.Kernel.Tests
             Assert.True(changes4.Count == 1);
             var getData8 = await subDataProvider5.GetAsync();
             Assert.True(data8.SequenceEqual(getData8));
+            
+            accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
+            dataProvider = accountDataProvider.GetDataProvider();
+            var data9 = Hash.Generate().Value.ToArray();
+            subDataProvider5 = dataProvider.GetDataProvider("test5");
+            await subDataProvider5.SetAsync(data9);
+            
+            await worldStateManager.RollbackDataToPreviousWorldState();
+            
+            var getData9 = await subDataProvider5.GetAsync();
+            Assert.False(data9.SequenceEqual(getData9));
+            Assert.True(data8.SequenceEqual(getData9));
         }
         
         private Block CreateBlock()

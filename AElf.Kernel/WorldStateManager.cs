@@ -39,7 +39,17 @@ namespace AElf.Kernel
             await _changesCollection.Clear();
             _preBlockHash = currentBlockHash;
         }
-        
+
+        /// <inheritdoc />
+        public async Task RollbackDataToPreviousWorldState()
+        {
+            var dict = await _changesCollection.GetChangesDictionary();
+            foreach (var pair in dict)
+            {
+                await _pointerCollection.UpdateAsync(pair.Key, pair.Value.Before);
+            }
+        }
+
         /// <inheritdoc />
         public IAccountDataProvider GetAccountDataProvider(Hash chainId, Hash accountHash)
         {

@@ -20,6 +20,12 @@ namespace AElf.Kernel
         /// <param name="currentBlockHash"></param>
         /// <returns></returns>
         Task SetWorldStateToCurrentState(Hash chainId, Hash currentBlockHash);
+
+        /// <summary>
+        /// Rollback to previous world state.
+        /// </summary>
+        /// <returns></returns>
+        Task RollbackDataToPreviousWorldState();
         
         IAccountDataProvider GetAccountDataProvider(Hash chain, Hash account);
 

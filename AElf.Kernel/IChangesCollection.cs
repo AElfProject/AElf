@@ -14,6 +14,8 @@ namespace AElf.Kernel
 
         Task<List<Hash>> GetChangedPathHashesAsync();
 
+        Task<Dictionary<Hash, Change>> GetChangesDictionary();
+
         Task Clear();
     }
 }

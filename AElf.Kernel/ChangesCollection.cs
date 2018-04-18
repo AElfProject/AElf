@@ -31,6 +31,11 @@ namespace AElf.Kernel
             return Task.FromResult(_dictionary.Keys.ToList());
         }
 
+        public Task<Dictionary<Hash, Change>> GetChangesDictionary()
+        {
+            return Task.FromResult(_dictionary);
+        }
+
         public Task Clear()
         {
             _dictionary.Clear();
