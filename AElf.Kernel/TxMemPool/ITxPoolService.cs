@@ -7,14 +7,14 @@ namespace AElf.Kernel.TxMemPool
     {
         
         ///<summary>
-        /// add tx
+        /// add tx to tmp pool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
         Task<bool> AddTransaction(Transaction tx);
         
         /// <summary>
-        /// add multi txs
+        /// add multi txs to tx pool
         /// </summary>
         /// <param name="txs"></param>
         /// <returns></returns>

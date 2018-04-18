@@ -80,6 +80,11 @@ namespace AElf.Kernel.TxMemPool
             _executable.Clear();
         }
 
+        public bool Contains(Hash txHash)
+        {
+            return _pool.ContainsKey(txHash);
+        }
+
         /// <inheritdoc/>
         public bool AddTx(Transaction tx)
         {

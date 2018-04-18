@@ -74,5 +74,11 @@ namespace AElf.Kernel.TxMemPool
         /// clear all txs in executable list
         /// </summary>
         void ClearExecutable();
+
+        /// <summary>
+        /// return true if contained in pool, otherwise false
+        /// </summary>
+        /// <param name="txHash"></param>
+        bool Contains(Hash txHash);
     }
 }
