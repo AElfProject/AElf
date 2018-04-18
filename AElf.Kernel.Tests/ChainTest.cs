@@ -17,9 +17,10 @@ namespace AElf.Kernel.Tests
         private readonly IWorldStateStore _worldStateStore;
         private readonly IPointerCollection _pointerCollection;
         private readonly IChangesCollection _changesCollection;
+        private readonly IDataStore _dataStore;
 
         public ChainTest(ISmartContractZero smartContractZero, IChainCreationService chainCreationService,
-            IChainManager chainManager, IChainContextService chainContextService, IWorldStateStore worldStateStore, IPointerCollection pointerCollection, IChangesCollection changesCollection)
+            IChainManager chainManager, IChainContextService chainContextService, IWorldStateStore worldStateStore, IPointerCollection pointerCollection, IChangesCollection changesCollection, IDataStore dataStore)
         {
             _smartContractZero = smartContractZero;
             _chainCreationService = chainCreationService;
@@ -28,6 +29,7 @@ namespace AElf.Kernel.Tests
             _worldStateStore = worldStateStore;
             _pointerCollection = pointerCollection;
             _changesCollection = changesCollection;
+            _dataStore = dataStore;
         }
 
         [Fact]
@@ -41,7 +43,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, Hash.Generate(), 
-                accountContextService, _pointerCollection, _changesCollection);
+                accountContextService, _pointerCollection, _changesCollection, _dataStore);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chainId, address);
             
             await _smartContractZero.InitializeAsync(accountDataProvider);

@@ -8,44 +8,32 @@ namespace AElf.Kernel.Storages
 {
     public class WorldStateStore : IWorldStateStore
     {
-        private readonly IKeyValueDatabase _keyValueDatabase;
 
-        private readonly Dictionary<Hash, IChangesCollection> _changesStoreCollection;
+        private readonly Dictionary<Hash, IChangesCollection> _changesCollectionDict;
 
-        public WorldStateStore(IKeyValueDatabase keyValueDatabase, Dictionary<Hash, IChangesCollection> changesStoreCollection)
+        public WorldStateStore(Dictionary<Hash, IChangesCollection> changesCollectionDict)
         {
-            _keyValueDatabase = keyValueDatabase;
-            _changesStoreCollection = changesStoreCollection;
-        }
-
-        public async Task SetData(Hash pointerHash, byte[] data)
-        {
-            await _keyValueDatabase.SetAsync(pointerHash, data);
-        }
-
-        public async Task<byte[]> GetData(Hash pointerHash)
-        {
-            return (byte[]) await _keyValueDatabase.GetAsync(pointerHash, typeof(byte[]));
+            _changesCollectionDict = changesCollectionDict;
         }
 
         public Task InsertWorldState(Hash chainId, Hash blockHash, IChangesCollection changes)
         {
             var wsKey = new Hash(chainId.CalculateHashWith(blockHash));
             var changesStore = (ChangesCollection)changes.Clone();
-            _changesStoreCollection[wsKey] = changesStore;
+            _changesCollectionDict[wsKey] = changesStore;
             return Task.CompletedTask;
         }
 
         public Task<WorldState> GetWorldState(Hash chainId, Hash blockHash)
         {
             var wsKey = new Hash(chainId.CalculateHashWith(blockHash));
-            if (_changesStoreCollection.TryGetValue(wsKey, out var changes))
+            if (_changesCollectionDict.TryGetValue(wsKey, out var changes))
             {
                 return Task.FromResult(new WorldState(changes));
             }
             
             var changesStore = new ChangesCollection();
-            _changesStoreCollection[wsKey] = changesStore;
+            _changesCollectionDict[wsKey] = changesStore;
             return Task.FromResult(new WorldState(changesStore));
         }
     }
