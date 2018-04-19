@@ -11,14 +11,14 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        Task<bool> AddTransaction(Transaction tx);
+        Task AddTransaction(Transaction tx);
         
         /// <summary>
         /// add multi txs to tx pool
         /// </summary>
         /// <param name="txs"></param>
         /// <returns></returns>
-        Task AddTransactions(List<Transaction> txs);
+        Task AddTxsToPool(List<Transaction> txs);
         
         /// <summary>
         /// remove a tx

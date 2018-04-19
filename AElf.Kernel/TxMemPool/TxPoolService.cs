@@ -12,8 +12,7 @@ namespace AElf.Kernel.TxMemPool
         private readonly ITxPool _txPool;
         private readonly ITransactionManager _transactionManager;
 
-        private readonly HashSet<Transaction> tmp = new HashSet<Transaction>();
-        
+
         public TxPoolService(ITxPool txPool, TxPoolSchedulerLock @lock, ITransactionManager transactionManager)
         {
             _txPool = txPool;
@@ -21,21 +20,29 @@ namespace AElf.Kernel.TxMemPool
             _transactionManager = transactionManager;
         }
 
-
-        public AutoResetEvent ARE { get; } = new AutoResetEvent(false);
+        /// <summary>
+        /// signal event for multi-thread
+        /// </summary>
+        private AutoResetEvent Are { get; } = new AutoResetEvent(false);
+        
+        private HashSet<Transaction> Tmp { get; } = new HashSet<Transaction>();
 
         private TxPoolSchedulerLock Lock { get; }
 
         /// <inheritdoc/>
-        public Task<bool> AddTransaction(Transaction tx)
+        public Task AddTransaction(Transaction tx)
         {
-            return Lock.WriteAsync(() => tmp.Add(tx));
+            return Lock.WriteLock(() =>
+            {
+                Tmp.Add(tx);
+                return Task.CompletedTask;
+            });
         }
         
         /// <inheritdoc/>
-        public Task AddTransactions(List<Transaction> txs)
+        public Task AddTxsToPool(List<Transaction> txs)
         {
-            return Lock.WriteAsync(() =>
+            return Lock.WriteLock(() =>
             {
                 foreach (var tx in txs)
                 {
@@ -48,7 +55,7 @@ namespace AElf.Kernel.TxMemPool
         
         /// <summary>
         /// wait new tx
-        /// </summary>
+        /// </summary> 
         /// <returns></returns>
         public async Task WaitTx()
         {
@@ -56,27 +63,27 @@ namespace AElf.Kernel.TxMemPool
             while (true)
             {
                 // wait for signal
-                ARE.WaitOne();
+                Are.WaitOne();
 
-                List<Transaction> txs;
-                lock (tmp)
+                var transactions = await Lock.WriteLock(() =>
                 {
-                    txs = tmp.AsParallel().Where(p => !_txPool.Contains(p.From)).ToList();
+                    var txs = Tmp.Where(t => !_txPool.Contains(t.From)).ToList();
                     // clear tmp txs
-                    tmp.Clear();
-                }
+                    Tmp.Clear();
+                    return txs;
+                });
                 
-                if(txs.Count == 0)
+                if(transactions.Count == 0)
                     continue;
                 
-                await AddTransactions(txs);
+                await AddTxsToPool(transactions);
             }
         }
 
         /// <inheritdoc/>
         public Task Remove(Hash txHash)
         {
-            Lock.WriteAsync(() => _txPool.DisgardTx(txHash));
+            Lock.WriteLock(() => _txPool.DisgardTx(txHash));
             return Task.CompletedTask;
         }
 
@@ -96,7 +103,7 @@ namespace AElf.Kernel.TxMemPool
             }
 
             // Sets the state of the event to signaled, allowing one or more waiting threads to proceed
-            ARE.Set();
+            Are.Set();
         }
 
         /// <inheritdoc/>
@@ -123,26 +130,26 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task<List<Transaction>> GetReadyTxs()
         {
-            return Lock.ReadAsync(() => _txPool.Ready);
+            return Lock.ReadLock(() => _txPool.Ready);
         }
 
         /// <inheritdoc/>
         public Task<ulong> GetPoolSize()
         {
-            return Lock.ReadAsync(() => _txPool.Size);
+            return Lock.ReadLock(() => _txPool.Size);
         }
 
         /// <inheritdoc/>
         public Task<bool> GetTransaction(Hash txHash, out Transaction tx)
         {
-            tx = Lock.ReadAsync(() => _txPool.GetTransaction(txHash)).Result;
+            tx = Lock.ReadLock(() => _txPool.GetTransaction(txHash)).Result;
             return Task.FromResult(tx != null);
         }
 
         /// <inheritdoc/>
         public Task Clear()
         {
-            return Lock.WriteAsync(()=>
+            return Lock.WriteLock(()=>
             {
                 _txPool.ClearAll();
                 return Task.CompletedTask;

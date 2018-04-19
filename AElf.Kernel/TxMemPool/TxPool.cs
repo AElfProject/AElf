@@ -63,6 +63,7 @@ namespace AElf.Kernel.TxMemPool
             return GetTransaction(txHash, out var tx) ? tx : null;
         }
 
+        /// <inheritdoc/>
         public void ClearAll()
         {
             ClearWaiting();
@@ -70,16 +71,19 @@ namespace AElf.Kernel.TxMemPool
             _pool.Clear();
         }
 
+        /// <inheritdoc/>
         public void ClearWaiting()
         {
             _waiting.Clear();
         }
 
+        /// <inheritdoc/>
         public void ClearExecutable()
         {
             _executable.Clear();
         }
 
+        /// <inheritdoc/>
         public bool Contains(Hash txHash)
         {
             return _pool.ContainsKey(txHash);
@@ -89,16 +93,14 @@ namespace AElf.Kernel.TxMemPool
         public bool AddTx(Transaction tx)
         {
             // validate tx
-            if (!ValidateTx(tx))
+            if (Contains(tx.GetHash())||!ValidateTx(tx))
             {
                 return false;
             }
             
-            // 1' try to add to replace one tx in executable
-            // 2' if 1' failed, add to wainting List
-            // TODO: more processings like pool expired checking, price compared
-            return ReplaceExecutableTx(tx) || AddWaitingTx(tx);
-            
+            _pool.Add(tx.From, tx);
+            AddWaitingTx(tx);
+            return true;
         }
 
         /// <inheritdoc/>
@@ -112,7 +114,7 @@ namespace AElf.Kernel.TxMemPool
             if (RemoveFromExecutable(tx, out var unValidTxList))
             {
                 // case 1: tx in executable list
-                // add unvalid tx to waiting List
+                // move unvalid txs to waiting List
                 foreach (var t in unValidTxList)
                 {
                     AddWaitingTx(t);
@@ -122,6 +124,9 @@ namespace AElf.Kernel.TxMemPool
             {
                 // case 2: tx in waiting list
                 RemoveFromWaiting(tx);
+                
+                // remove from pool
+                _pool.Remove(tx.GetHash());
             }
 
             return _pool.Remove(tx.GetHash());
@@ -193,16 +198,22 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         private bool AddWaitingTx(Transaction tx)
         {
+            // disgard the tx if too old
+            if (tx.IncrementId < _accountContextService.GetAccountDataContext(tx.From, _context.ChainId).IncreasementId)
+                return false;
+            
             if (!_waiting.TryGetValue(tx.From, out var waitingList))
             {
                 _waiting[tx.From] = new Dictionary<ulong, Hash>();
             }
             
-            if (waitingList.Keys.Contains(tx.IncrementId))
+            // add to waiting list
+            _waiting[tx.From].Add(tx.IncrementId, tx.GetHash());
+            
+            /*if (waitingList.Keys.Contains(tx.IncrementId))
             {
                 // TODO: compare two tx's fee, choose higher one and disgard the lower 
-            }
-
+            }*/
             return true;
         }
         
@@ -213,7 +224,7 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="tx"></param>
         /// <param name="unValidTxList">invalid txs because removing this tx</param>
         /// <returns></returns>
-        private bool RemoveFromExecutable(Transaction tx, out List<Transaction> unValidTxList)
+        private bool RemoveFromExecutable(Transaction tx, out IEnumerable<Transaction> unValidTxList)
         {
             // remove the tx 
             var addr = tx.From;
@@ -243,9 +254,9 @@ namespace AElf.Kernel.TxMemPool
                 _executable.Remove(addr);
             
             // Update the account nonce if needed
-            var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
+            /*var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
             context.IncreasementId = Math.Min(context.IncreasementId, tx.IncrementId);
-
+            */
             return true;
         }
 
@@ -285,8 +296,11 @@ namespace AElf.Kernel.TxMemPool
             if (!_waiting.TryGetValue(addr, out var waitingList) ||
                 !waitingList.Keys.Contains(tx.IncrementId)) return false;
             
-            // remove the tx
+            // remove the tx from waiting list
             waitingList.Remove(tx.IncrementId);
+            
+            // remove from pool
+            //_pool.Remove(tx.GetHash());
             
             // remove the entry if empty
             if (waitingList.Count == 0)
@@ -308,35 +322,30 @@ namespace AElf.Kernel.TxMemPool
 
             foreach (var addr in addrs)
             {
-                var waitingList = _waiting[addr];
-                if (waitingList.Count == 0)
-                    continue;
-                
-                // discard too old txs
-                var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
-                var nonce = context.IncreasementId;
-                var oldList = _waiting[addr].Keys.Where(n => n < nonce);
-                
-                foreach (var n in oldList)
-                {
-                    // TODO: log
-                    waitingList.Remove(n);
-                }
-
-                // promote ready txs
-                Promote(addr, nonce);
+                Promote(addr);
             }
         }
 
         
         /// <summary>
-        /// promote ready txs
+        /// promote ready txs from waiting to exectuable
         /// </summary>
         /// <param name="addr"></param>
-        /// <param name="nonce"></param>
-        private void Promote(Hash addr, ulong nonce)
+        private void Promote(Hash addr)
         {
             var waitingList = _waiting[addr];
+            
+            // discard too old txs
+            // old txs
+            var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
+            var nonce = context.IncreasementId;
+            var oldList = waitingList.Keys.Where(n => n < nonce).Select(n => waitingList[n]);
+            
+            // disgard
+            foreach (var h in oldList)
+            {
+                RemoveFromWaiting(_pool[h]);
+            }
             
             // no tx left
             if (waitingList.Count == 0)
@@ -356,6 +365,7 @@ namespace AElf.Kernel.TxMemPool
             do
             {
                 // remove from waiting list
+                _pool.Remove(waitingList[next]);
                 waitingList.Remove(next);
                 // add to executable list
                 executableList[next] = waitingList.First().Value;
