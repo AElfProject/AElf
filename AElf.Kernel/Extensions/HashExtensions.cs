@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Linq;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
@@ -10,13 +11,12 @@ namespace AElf.Kernel.Extensions
     {
         public static byte[] CalculateHash(this string obj)
         {
-            return CalculateHash( Encoding.UTF8.GetBytes( obj ) );
-
+            return CalculateHash(Encoding.UTF8.GetBytes(obj));
         }
         
         public static byte[] CalculateHash(this IMessage obj)
         {
-            return CalculateHash( obj.ToByteArray() );
+            return CalculateHash(obj.ToByteArray());
         }
         
         public static byte[] CalculateHashWith(this IMessage obj, IMessage another)
@@ -28,6 +28,19 @@ namespace AElf.Kernel.Extensions
                 another.WriteTo(stream);
                 return CalculateHash(bytes);
             }
+        }
+
+        /// <summary>
+        /// Use to calculate sub-DataProvider hash value.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static byte[] CalculateHashWith(this IMessage obj, string str)
+        {
+            var saltHash = CalculateHash(str);
+            var bytes = obj.CalculateHash().Concat(saltHash).ToArray();
+            return CalculateHash(bytes);
         }
         
 

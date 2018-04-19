@@ -1,170 +1,90 @@
 using AElf.Kernel.Merkle;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
+using AElf.Kernel.Storages;
 
 namespace AElf.Kernel
 {
     public class DataProvider : IDataProvider
     {
+        private readonly IAccountDataContext _accountDataContext;
+        private readonly string _key;
         
-        /*
-        private readonly IHash _accountAddress;
-        private readonly BinaryMerkleTree _dataMerkleTree = new BinaryMerkleTree();
-        private readonly Dictionary<string, IDataProvider> _dataProviders = new Dictionary<string, IDataProvider>();
-        private readonly Dictionary<IHash, IHash> _mapSerializedValue = new Dictionary<IHash, IHash>();
+        private readonly IPointerStore _pointerStore;
+        private readonly IWorldStateManager _worldStateManager;
+        private IChangesStore _changesStore;
+        private readonly Hash _preBlockHash;
 
-        private readonly IWorldState _worldState;
-
-        /// <summary>
-        /// ctor.
-        /// </summary>
-        /// <param name="accountAddress"></param>
-        /// <param name="worldState"></param>
-        public DataProvider(IWorldState worldState, IHash accountAddress)
+        private readonly Path _path;
+        
+        public DataProvider(IAccountDataContext accountDataContext, IPointerStore pointerStore, 
+            IWorldStateManager worldStateManager, Hash preBlockHash, ref IChangesStore changesStore, 
+            string dataProviderKey = "")
         {
-            _worldState = worldState;
-            _accountAddress = accountAddress;
+            _worldStateManager = worldStateManager;
+            _preBlockHash = preBlockHash;
+            _changesStore = changesStore;
+            _pointerStore = pointerStore;
+            _accountDataContext = accountDataContext;
+            _key = dataProviderKey;
+            
+            _path = new Path()
+                .SetChainHash(_accountDataContext.ChainId)
+                .SetAccount(_accountDataContext.Address)
+                .SetDataProvider(GetHash());
+
+        }
+
+        private Hash GetHash()
+        {
+            return new Hash(new Hash(_accountDataContext.ChainId.CalculateHashWith(_accountDataContext.Address))
+                .CalculateHashWith(_key));
+        }
+        
+        public IDataProvider GetDataProvider(string name)
+        {
+            return new DataProvider(_accountDataContext, _pointerStore, _worldStateManager, _preBlockHash, ref _changesStore, name);
         }
 
         /// <summary>
-        /// Directly fetch a data from k-v database.
-        /// We will use the key to calculate a hash to act as the address.
+        /// If blockHash is null, return data of current block height.
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="blockHash"></param>
         /// <returns></returns>
-        public Task<byte[]> GetAsync(string key)
+        public async Task<byte[]> GetAsync(Hash blockHash)
         {
-            return GetAsync(new Hash(_accountAddress.CalculateHashWith(key)));
+            var worldState = await _worldStateManager.GetWorldStateAsync(_accountDataContext.ChainId, blockHash);
+            var pathHash = _path.SetBlockHashToNull().GetPathHash();
+            var change = await worldState.GetChange(pathHash);
+            return await _worldStateManager.GetData(change.After);
         }
 
-        /// <summary>
-        /// Directly fetch a data from k-v database.
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public Task<byte[]> GetAsync(IHash key)
+        public async Task<byte[]> GetAsync()
         {
-            foreach (var k in _mapSerializedValue.Keys)
+            var pointerHash = await _pointerStore.GetAsync(_path.GetPathHash());
+            return await _worldStateManager.GetData(pointerHash);
+        }
+
+        public async Task SetAsync(byte[] obj)
+        {
+            //Clean the path.
+            _path.SetBlockHashToNull();
+            var pathHash = _path.GetPathHash();
+            var pointerHash = _path.SetBlockHash(_preBlockHash).GetPointerHash();
+            var hashBefore = await _pointerStore.GetAsync(pathHash);
+            
+            await _pointerStore.UpdateAsync(pathHash, pointerHash);
+            
+            await _changesStore.InsertAsync(pathHash, new Change()
             {
-                if (k.Equals(key))
-                {
-                    return Task.FromResult(Database.Select(_mapSerializedValue[k]));
-                }
-            }
-            return Task.FromResult(Database.Select(null));
-        }
-
-        public Task<Hash> GetDataMerkleTreeRootAsync()
-        {
-            return Task.FromResult(_dataMerkleTree.ComputeRootHash());
-        }
-
-        /// <summary>
-        /// If the data provider of given name is exists, then return the data provider,
-        /// otherwise create a new one and return.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public IDataProvider GetDataProvider(string name)
-        {
-            return _dataProviders.TryGetValue(name, out var dataProvider) ? dataProvider : AddDataProvider(name);
-        }
-
-        /// <summary>
-        /// Create a new data provider and add it to dict.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        private IDataProvider AddDataProvider(string name)
-        {
-            var beforeAdd = this;
+                Before = hashBefore,
+                After = pointerHash
+            });
             
-            var defaultDataProvider = new DataProvider(_worldState, _accountAddress);
-            _dataProviders[name] = defaultDataProvider;
-            
-            _worldState.AddDataProvider(defaultDataProvider);
-            _worldState.UpdateDataProvider(beforeAdd, this);
-            
-            return defaultDataProvider;
-        }
-        
-        /// <summary>
-        /// Set a data provider.
-        /// </summary>
-        /// <param name="name"></param>
-        public void SetDataProvider(string name)
-        {
-            var dataProvider = new DataProvider(_worldState, _accountAddress);
-            _dataProviders[name] = dataProvider;
-            _worldState.AddDataProvider(dataProvider);
-        }
-
-        /// <summary>
-        /// Directly add a data to k-v database.
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public Task SetAsync(IHash key, byte[] obj)
-        {
-            var beforeSet = this;
-            
-            //Add the hash of value to merkle tree.
-            var newMerkleNode = new Hash(obj.CalculateHash());
-            var oldMerkleNode = new Hash(GetAsync(key).CalculateHash());
-            _dataMerkleTree.UpdateNode(oldMerkleNode, newMerkleNode);
-
-            //Re-calculate the hash with the value, 
-            //and use _mapSerializedValue to map the key with the value's truely address in database.
-            //Thus we can use the same key to get it's value (after updated).
-            var finalHash = new Hash(key.CalculateHashWith(obj));
-            
-            _mapSerializedValue[key] = finalHash;
-            
-            _worldState.UpdateDataProvider(beforeSet, this);
-
-            Database.Insert(finalHash, obj);
-
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Directly add a data to k-v database.
-        /// We will use the key to calculate a hash to act as the address.
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public Task SetAsync(string key, byte[] obj)
-        {
-            return SetAsync(new Hash(_accountAddress.CalculateHashWith(key)), obj);
-        }
-        */
-        public IDataProvider GetDataProvider(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SetDataProvider(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<byte[]> GetAsync(IHash key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task SetAsync(IHash key, byte[] obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Hash> GetDataMerkleTreeRootAsync()
-        {
-            throw new NotImplementedException();
+            await _worldStateManager.SetData(pointerHash, obj);
         }
     }
 }

@@ -21,11 +21,11 @@ namespace AElf.Kernel.KernelAccount
 
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        private IWorldStateManager _worldStateManager;
+        private readonly IWorldStateManager _worldStateManager;
 
         private readonly IAccountContextService _accountContextService;
         
-        private ISerializer<SmartContractRegistration> _serializer;
+        private readonly ISerializer<SmartContractRegistration> _serializer;
 
         public SmartContractZero(ISmartContractRunnerFactory smartContractRunnerFactory,
             IWorldStateManager worldStateManager, ISerializer<SmartContractRegistration> serializer, 
@@ -59,10 +59,7 @@ namespace AElf.Kernel.KernelAccount
         public async Task RegisterSmartContract(Hash caller, SmartContractRegistration reg)
         {
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
-            await smartContractMap.SetAsync(
-                reg.ContractHash, _serializer.Serialize(reg)
-            );
-            
+            await smartContractMap.SetAsync(_serializer.Serialize(reg));
         }
 
         public async Task DeploySmartContract(Hash caller, SmartContractDeployment smartContractRegister)
@@ -90,7 +87,7 @@ namespace AElf.Kernel.KernelAccount
             // get SmartContractRegistration
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
             //var regHash = _registeredContracts[hash];
-            var obj = await smartContractMap.GetAsync(hash);
+            var obj = await smartContractMap.GetAsync();
             var reg = _serializer.Deserialize(obj);
 
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
@@ -123,7 +120,7 @@ namespace AElf.Kernel.KernelAccount
         {
             // create new account for the contract
             var calllerContext =
-                _accountContextService.GetAccountDataContext(caller, _accountDataProvider.Context.ChainId);
+                _accountContextService.GetAccountDataContext(caller, _accountDataProvider.Context.ChainId, false);
             throw new NotImplementedException();
             //var hash = new Hash(calllerContext.CalculateHashWith(smartContractRegistration.Bytes));
             //_accountContextService.GetAccountDataContext(hash, _accountDataProvider.Context.ChainId);

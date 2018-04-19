@@ -11,11 +11,22 @@ namespace AElf.Kernel.Tests
     public class HashTests
     {
         [Fact]
-        public void BasicTest()
+        public void EqualTest()
         {
             var hash1 = new Hash(new byte[] {10, 14, 1, 15});
             var hash2 = new Hash(new byte[] {10, 14, 1, 15});
+            var hash3 = new Hash(new byte[] {15, 1, 14, 10});
             Assert.True(hash1 == hash2);
+            Assert.False(hash1 == hash3);
+        }
+
+        [Fact]
+        public void CompareTest()
+        {
+            var hash1 = new Hash(new byte[] {10, 14, 1, 15});
+            var hash2 = new Hash(new byte[] {15, 1, 14, 10});
+            
+            Assert.True(new Hash().Compare(hash1, hash2) == 1);
         }
 
         [Fact]
@@ -29,6 +40,15 @@ namespace AElf.Kernel.Tests
             
             Assert.True(dict.TryGetValue(anotherHash, out var test));
             Assert.Equal(test, "test");
+        }
+
+        [Fact]
+        public void RandomHashTest()
+        {
+            var hash1 = Hash.Generate();
+            var hash2 = Hash.Generate();
+            
+            Assert.False(hash1 == hash2);
         }
 
         [Fact]

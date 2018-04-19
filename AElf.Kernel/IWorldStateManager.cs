@@ -5,12 +5,32 @@ namespace AElf.Kernel
     public interface IWorldStateManager
     {
         /// <summary>
-        /// Get the world state of a chain
+        /// Get the world state of specific previous block.
         /// </summary>
-        /// <param name="chain"></param>
+        /// <param name="chainId"></param>
+        /// <param name="blockHash"></param>
         /// <returns></returns>
-        Task<IWorldState> GetWorldStateAsync(IHash chain);
+        Task<WorldState> GetWorldStateAsync(Hash chainId, Hash blockHash);
 
-        IAccountDataProvider GetAccountDataProvider(IHash chain, IHash account);
+        /// <summary>
+        /// Set the world state.
+        /// The currentBlockHash is next _preBlockHash.
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="currentBlockHash"></param>
+        /// <returns></returns>
+        Task SetWorldStateToCurrentState(Hash chainId, Hash currentBlockHash);
+
+        /// <summary>
+        /// Rollback to previous world state.
+        /// </summary>
+        /// <returns></returns>
+        Task RollbackDataToPreviousWorldState();
+        
+        IAccountDataProvider GetAccountDataProvider(Hash chain, Hash account);
+
+        Task SetData(Hash pointerHash, byte[] data);
+
+        Task<byte[]> GetData(Hash pointerHash);
     }
 }

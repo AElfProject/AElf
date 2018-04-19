@@ -23,9 +23,7 @@ namespace AElf.Kernel
         /// <param name="tx">Tx.</param>
         public bool AddTransaction(Hash tx)
         {
-            if (!Body.AddTransaction(tx)) 
-                return false;
-            return true;
+            return Body.AddTransaction(tx);
         }
 
         public void FillTxsMerkleTreeRootInHeader()

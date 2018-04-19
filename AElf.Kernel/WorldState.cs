@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
@@ -11,18 +12,34 @@ namespace AElf.Kernel
 {
     public class WorldState : IWorldState
     {
-        private readonly List<IAccountDataProvider> _accountDataProviders;
+        private readonly IChangesStore _changesStore;
 
-        
-        public WorldState(List<IAccountDataProvider> accountDataProviders)
+        public WorldState(IChangesStore changesStore)
         {
-            _accountDataProviders = accountDataProviders;
+            _changesStore = changesStore;
+        }
 
+        public async Task<Change> GetChange(Hash pathHash)
+        {
+            return await _changesStore.GetAsync(pathHash);
+        }
+
+        public async Task<List<Hash>> GetChangedPathHashesAsync()
+        {
+            return await _changesStore.GetChangedPathHashesAsync();
+        }
+
+        public async Task<List<Change>> GetChangesAsync()
+        {
+            return await _changesStore.GetChangesAsync();
         }
         
-        public Task<IHash> GetWorldStateMerkleTreeRootAsync()
+        public async Task<Hash> GetWorldStateMerkleTreeRootAsync()
         {
-            throw new NotImplementedException();
+            var changes = await _changesStore.GetChangedPathHashesAsync();
+            var merkleTree = new BinaryMerkleTree();
+            merkleTree.AddNodes(changes);
+            return await Task.FromResult(merkleTree.ComputeRootHash());
         }
     }
 }
