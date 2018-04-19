@@ -11,7 +11,11 @@ namespace AElf.Kernel.TxMemPool
     {
         private readonly ITxPool _txPool;
         private readonly ITransactionManager _transactionManager;
-
+        
+        /// <summary>
+        /// Signals to a CancellationToken that it should be canceled
+        /// </summary>
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
         public TxPoolService(ITxPool txPool, TxPoolSchedulerLock @lock, ITransactionManager transactionManager)
         {
@@ -57,10 +61,10 @@ namespace AElf.Kernel.TxMemPool
         /// wait new tx
         /// </summary> 
         /// <returns></returns>
-        public async Task WaitTx()
+        public async Task Receive()
         {
             // TODO: need interupt waiting 
-            while (true)
+            while (!_cts.IsCancellationRequested)
             {
                 // wait for signal
                 Are.WaitOne();
@@ -79,6 +83,7 @@ namespace AElf.Kernel.TxMemPool
                 await AddTxsToPool(transactions);
             }
         }
+        
 
         /// <inheritdoc/>
         public Task Remove(Hash txHash)
@@ -160,6 +165,15 @@ namespace AElf.Kernel.TxMemPool
         public Task SavePool()
         {
             throw new System.NotImplementedException();
+        }
+
+        /// <summary>
+        /// close transaction pool
+        /// </summary>
+        public void Stop()
+        {
+            // TODO: release resources
+            _cts.Cancel();
         }
     }
     
