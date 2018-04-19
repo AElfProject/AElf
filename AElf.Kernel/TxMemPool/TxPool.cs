@@ -89,6 +89,12 @@ namespace AElf.Kernel.TxMemPool
             return _pool.ContainsKey(txHash);
         }
 
+        public void GetPoolStates(out ulong executable, out ulong waiting)
+        {
+            executable = GetExecutableSize();
+            waiting = GetWaitingSize();
+        }
+
         /// <inheritdoc/>
         public bool AddTx(Transaction tx)
         {
@@ -173,24 +179,6 @@ namespace AElf.Kernel.TxMemPool
         public ulong Size => (ulong) _pool.Count;
 
 
-        /// <summary>
-        /// replace tx in executable list with higher fee
-        /// </summary>
-        /// <param name="tx"></param>
-        /// <returns></returns>
-        private bool ReplaceExecutableTx(Transaction tx)
-        {
-            var addr = tx.From;
-
-            if (!_executable.TryGetValue(addr, out var executableList) ||
-                !executableList.Keys.Contains(tx.IncrementId)) return false;
-            
-            // tx with the same IncrementId in executable list
-            // TODO: compare two tx's fee, choose higher one and disgard the lower 
-            return true;
-        }
-        
-        
         /// <summary>
         /// add tx to waiting list
         /// </summary>

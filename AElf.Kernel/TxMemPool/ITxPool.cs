@@ -80,5 +80,13 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="txHash"></param>
         bool Contains(Hash txHash);
+        
+        /// <summary>
+        /// return current pool state: executable count, waiting count
+        /// </summary>
+        /// <param name="executable">executable count</param>
+        /// <param name="waiting">waiting count</param>
+        /// <returns></returns>
+        void GetPoolStates(out ulong executable, out ulong waiting);
     }
 }

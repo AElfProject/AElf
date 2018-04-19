@@ -61,7 +61,7 @@ namespace AElf.Kernel.TxMemPool
         /// wait new tx
         /// </summary> 
         /// <returns></returns>
-        public async Task Receive()
+        private async Task Receive()
         {
             // TODO: need interupt waiting 
             while (!_cts.IsCancellationRequested)
@@ -167,6 +167,9 @@ namespace AElf.Kernel.TxMemPool
             throw new System.NotImplementedException();
         }
 
+
+        
+
         /// <summary>
         /// close transaction pool
         /// </summary>
@@ -174,6 +177,7 @@ namespace AElf.Kernel.TxMemPool
         {
             // TODO: release resources
             _cts.Cancel();
+            Are.Dispose();
         }
     }
     
