@@ -168,7 +168,14 @@ namespace AElf.Kernel.TxMemPool
         }
 
 
-        
+        /// <summary>
+        /// open transaction pool
+        /// </summary>
+        public void Start()
+        {
+            // TODO: more initialization
+            Task.Factory.StartNew(async () => await Receive());
+        }
 
         /// <summary>
         /// close transaction pool
