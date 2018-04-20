@@ -46,4 +46,6 @@ message SmartContractDeployment{
 message SmartContractInvokeContext{
     Hash Caller = 1;
     uint64 IncrementId = 2;
+    string MethodName = 3;
+    bytes Params = 4;
 }

@@ -43,16 +43,16 @@ namespace AElf.Kernel.KernelAccount
             await Task.CompletedTask;
         }
 
-        public async Task InvokeAsync(IHash caller, string methodname, ByteString bytes)
+        public async Task InvokeAsync(SmartContractInvokeContext context)
         {
             var type = typeof(SmartContractZero);
-            var member = type.GetMethod(methodname);
+            var member = type.GetMethod(context.MethodName);
             var p = member.GetParameters()[0]; //first parameters
             
             ProtobufSerializer serializer=new ProtobufSerializer();
-            var obj = serializer.Deserialize(bytes.ToByteArray(), p.ParameterType.DeclaringType);
+            var obj = serializer.Deserialize(context.Params.ToByteArray(), p.ParameterType.DeclaringType);
             
-            await (Task) member.Invoke(this, new object[]{caller, obj});
+            await (Task) member.Invoke(this, new object[]{context.Caller, obj});
         }
 
         // Hard coded method in the kernel

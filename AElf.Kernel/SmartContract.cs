@@ -23,7 +23,7 @@ namespace AElf.Kernel
             await Task.CompletedTask;
         }
 
-        public abstract Task InvokeAsync(IHash caller, string methodname, ByteString bytes);
+        public abstract Task InvokeAsync(SmartContractInvokeContext context);
 
     }
 }
