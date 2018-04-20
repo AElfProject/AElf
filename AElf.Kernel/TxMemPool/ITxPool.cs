@@ -23,14 +23,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="addrs"></param>
         void Promote(List<Hash> addrs);
-
-        /// <summary>
-        /// validate a tx before added to pool    
-        /// </summary>
-        /// <param name="tx"></param>
-        /// <returns></returns>
-        bool ValidateTx(Transaction tx);
-
+        
         /// <summary>
         /// return pool size
         /// </summary>
