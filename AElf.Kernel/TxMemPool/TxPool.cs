@@ -15,10 +15,10 @@ namespace AElf.Kernel.TxMemPool
         private readonly Dictionary<Hash, Transaction> _pool = new Dictionary<Hash, Transaction>();
         
         private readonly IAccountContextService _accountContextService;
-        private readonly IChainContext _context;
+        private readonly ChainContext _context;
         private readonly ITxPoolConfig _config;
 
-        public TxPool(IChainContext context, ITxPoolConfig config, IAccountContextService accountContextService)
+        public TxPool(ChainContext context, ITxPoolConfig config, IAccountContextService accountContextService)
         {
             _context = context;
             _config = config;

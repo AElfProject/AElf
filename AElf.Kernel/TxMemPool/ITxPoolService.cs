@@ -11,7 +11,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        Task AddTransaction(Transaction tx);
+        Task<bool> AddTransaction(Transaction tx);
         
         /// <summary>
         /// add multi txs to tx pool
@@ -77,6 +77,14 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         Task SavePool();
 
-        
+        /// <summary>
+        /// open transaction pool
+        /// </summary>
+        void Start();
+
+        /// <summary>
+        /// close transaction pool
+        /// </summary>
+        void Stop();
     }
 }

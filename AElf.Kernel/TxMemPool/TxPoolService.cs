@@ -11,16 +11,10 @@ namespace AElf.Kernel.TxMemPool
     {
         private readonly ITxPool _txPool;
         private readonly ITransactionManager _transactionManager;
-        
-        /// <summary>
-        /// Signals to a CancellationToken that it should be canceled
-        /// </summary>
-        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
-        public TxPoolService(ITxPool txPool, TxPoolSchedulerLock @lock, ITransactionManager transactionManager)
+        public TxPoolService(ITxPool txPool, ITransactionManager transactionManager)
         {
             _txPool = txPool;
-            Lock = @lock;
             _transactionManager = transactionManager;
         }
 
@@ -29,18 +23,19 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         private AutoResetEvent Are { get; } = new AutoResetEvent(false);
         
+        /// <summary>
+        /// Signals to a CancellationToken that it should be canceled
+        /// </summary>
+        private CancellationTokenSource Cts { get; } = new CancellationTokenSource();
+        
         private HashSet<Transaction> Tmp { get; } = new HashSet<Transaction>();
 
-        private TxPoolSchedulerLock Lock { get; }
+        private TxPoolSchedulerLock Lock { get; } = new TxPoolSchedulerLock();
 
         /// <inheritdoc/>
-        public Task AddTransaction(Transaction tx)
+        public Task<bool> AddTransaction(Transaction tx)
         {
-            return Lock.WriteLock(() =>
-            {
-                Tmp.Add(tx);
-                return Task.CompletedTask;
-            });
+            return Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() => Tmp.Add(tx));
         }
         
         /// <inheritdoc/>
@@ -64,7 +59,7 @@ namespace AElf.Kernel.TxMemPool
         private async Task Receive()
         {
             // TODO: need interupt waiting 
-            while (!_cts.IsCancellationRequested)
+            while (!Cts.IsCancellationRequested)
             {
                 // wait for signal
                 Are.WaitOne();
@@ -167,23 +162,19 @@ namespace AElf.Kernel.TxMemPool
             throw new System.NotImplementedException();
         }
 
-
-        /// <summary>
-        /// open transaction pool
-        /// </summary>
+        /// <inheritdoc/>
         public void Start()
         {
             // TODO: more initialization
+            Tmp.Clear();
             Task.Factory.StartNew(async () => await Receive());
         }
 
-        /// <summary>
-        /// close transaction pool
-        /// </summary>
+        /// <inheritdoc/>
         public void Stop()
         {
             // TODO: release resources
-            _cts.Cancel();
+            Cts.Cancel();
             Are.Dispose();
         }
     }
