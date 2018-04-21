@@ -12,12 +12,28 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// amount 
         /// </summary>
-        public ulong Amount;
-
-        public Fee(FeeUnit unit, ulong amount)
+        public ulong Amount{
+            get;
+        }
+        
+        public static bool operator <(Fee left, Fee right)
         {
-            Unit = unit;
-            Amount = amount;
+            if (left == null)
+                throw new ArgumentNullException("left");
+            if (right == null)
+                throw new ArgumentNullException("right");
+            // TODO: need compare unit
+            return left.Amount < right.Amount;
+        }
+
+        public static bool operator >(Fee left, Fee right)
+        {
+            if (left == null)
+                throw new ArgumentNullException("left");
+            if (right == null)
+                throw new ArgumentNullException("right");
+            // TODO: need compare unit
+            return left.Amount > right.Amount;
         }
 
         public bool Equals(Fee other)
