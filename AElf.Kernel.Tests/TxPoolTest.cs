@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices.ComTypes;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.TxMemPool;
@@ -187,14 +188,94 @@ namespace AElf.Kernel.Tests
                 To = addr12,
                 IncrementId = 0
             };
-
             var res = await poolService.AddTransaction(tx1);
-            Assert.True(res);
             
-            poolService.
+            Assert.True(res);
+            Assert.Equal(1, poolService.GetTmpPoolSize().Result);
+            pool.GetPoolStates(out var executable, out var waiting);
+            Assert.Equal(0, (int)waiting);
+            Assert.Equal(0, (int)executable);
+            Assert.Equal(0, (int)pool.Size);
+            
+            var addr21 = Hash.Generate();
+            var addr22 = Hash.Generate();
+            var tx2 = new Transaction
+            {
+                From = addr21,
+                To = addr22,
+                IncrementId = 0
+            };
+            res = await poolService.AddTransaction(tx2);
+            
+            Assert.True(res);
+            Assert.Equal(2, poolService.GetTmpPoolSize().Result);
+            pool.GetPoolStates(out executable, out waiting);
+            Assert.Equal(0, (int)waiting);
+            Assert.Equal(0, (int)executable);
+            Assert.Equal(0, (int)pool.Size);
+            
+            
+            var tx3 = new Transaction
+            {
+                From = addr11,
+                To = Hash.Generate(),
+                IncrementId = 0
+            };
+            res = await poolService.AddTransaction(tx3);
+            
+            Assert.True(res);
+            Assert.Equal(3, poolService.GetTmpPoolSize().Result);
+            pool.GetPoolStates(out executable, out waiting);
+            Assert.Equal(0, (int)waiting);
+            Assert.Equal(0, (int)executable);
+            Assert.Equal(0, (int)pool.Size);
+            
+            
+            var tx4 = new Transaction
+            {
+                From = addr11,
+                To = Hash.Generate(),
+                IncrementId = 1
+            };
+            res = await poolService.AddTransaction(tx4);
+            Assert.True(res);
+            Assert.Equal(4, poolService.GetTmpPoolSize().Result);
+            pool.GetPoolStates(out executable, out waiting);
+            Assert.Equal(0, (int)waiting);
+            Assert.Equal(0, (int)executable);
+            Assert.Equal(0, (int)pool.Size);
+            
+            var tx5 = new Transaction
+            {
+                From = addr11,
+                To = Hash.Generate(),
+                IncrementId = 2
+            };
+            res = await poolService.AddTransaction(tx5);
+            Assert.True(res);
+            Thread.Sleep(3000);
+            Assert.Equal(0, poolService.GetTmpPoolSize().Result);
+            Assert.Equal(5, (int) poolService.GetPoolSize().Result);
+            pool.GetPoolStates(out executable, out waiting);
+            Assert.Equal(4, (int)waiting);
+            Assert.Equal(0, (int)executable);
+            
+            var tx6 = new Transaction
+            {
+                From = addr11,
+                To = Hash.Generate(),
+                IncrementId = 2
+            };
+            res = await poolService.AddTransaction(tx6);
+            Assert.True(res);
+            Thread.Sleep(3000);
+            Assert.Equal(1, poolService.GetTmpPoolSize().Result);
+            pool.GetPoolStates(out executable, out waiting);
+            Assert.Equal(4, (int)waiting);
+            Assert.Equal(0, (int)executable);
+            
+            
         }
-        
-        
         
     }
 }
