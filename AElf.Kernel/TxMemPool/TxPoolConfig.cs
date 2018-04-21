@@ -8,6 +8,7 @@ namespace AElf.Kernel
         {
             PoolLimitSize = 10000,
             TxLimitSize = 10000,
+            EntryThreshold = 5,
             FeeThreshold = new Fee()
         };
 
@@ -16,6 +17,7 @@ namespace AElf.Kernel
         public int TxLimitSize { get; set; }
 
         public Fee FeeThreshold { get; set; }
-    
+       
+        public int EntryThreshold { get; set; }
     }
 }

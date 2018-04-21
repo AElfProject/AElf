@@ -16,5 +16,10 @@
         /// minimal tx fee 
         /// </summary>
         Fee FeeThreshold { get; }
+        
+        /// <summary>
+        /// minimal number of txs for entering pool
+        /// </summary>
+        int EntryThreshold { get; }
     }
 }
