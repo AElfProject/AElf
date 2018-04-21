@@ -34,11 +34,15 @@ The Hash of SmartContractRegistration is calculated with contract name and the a
 
 Chains in the kernel represent accounts (AccountManager) and block data.
 
+## **Serialization**
+
+To learn more about how we organize serialization please check out [this page](serialization.md).
+
 ## Components
 
 This section describes the components implemented in the kernel. It clarifies the roles that they have in the system.
 
-### **Smart Contracts**
+## **Smart Contracts**
 
   A `Smart Contract` can be seen as a protocol. It’s implemented as a service (micro-service). 
   For example, this means that since the **Consensus Protocol** is defined as a `Smart Contract`, it is in fact a service. 
