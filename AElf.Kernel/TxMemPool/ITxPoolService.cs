@@ -13,12 +13,6 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         Task<bool> AddTransaction(Transaction tx);
         
-        /// <summary>
-        /// add multi txs to tx pool
-        /// </summary>
-        /// <param name="txs"></param>
-        /// <returns></returns>
-        Task AddTxsToPool(List<Transaction> txs);
         
         /// <summary>
         /// remove a tx
@@ -76,6 +70,20 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <returns></returns>
         Task SavePool();
+
+        /// <summary>
+        /// return tmp pool size
+        /// </summary>
+        /// <returns></returns>
+        Task<int> GetTmpPoolSize();
+        
+        /*
+        /// <summary>
+        /// return waiting list size
+        /// </summary>
+        /// <returns></returns>
+        Task<int> GetWaitableSize();*/
+
 
         /// <summary>
         /// open transaction pool
