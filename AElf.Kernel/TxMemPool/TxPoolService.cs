@@ -35,11 +35,23 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task<bool> AddTransaction(Transaction tx)
         {
-            return Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() => Tmp.Add(tx));
+            return Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
+            {
+                var res = Tmp.Add(tx);
+                if (Tmp.Count >= _txPool.EntryThreshold)
+                {
+                    Are.Set();
+                }
+                return res;
+            });
         }
         
-        /// <inheritdoc/>
-        public Task AddTxsToPool(List<Transaction> txs)
+        /// <summary>
+        /// add multi txs to tx pool
+        /// </summary>
+        /// <param name="txs"></param>
+        /// <returns></returns>
+        private Task AddTxsToPool(List<Transaction> txs)
         {
             return Lock.WriteLock(() =>
             {
@@ -66,12 +78,13 @@ namespace AElf.Kernel.TxMemPool
 
                 var transactions = await Lock.WriteLock(() =>
                 {
-                    var txs = Tmp.Where(t => !_txPool.Contains(t.From)).ToList();
+                    var txs = Tmp.Where(t => !_txPool.Contains(t.GetHash())).ToList();
                     // clear tmp txs
                     Tmp.Clear();
                     return txs;
                 });
                 
+                Tmp.Clear();
                 if(transactions.Count == 0)
                     continue;
                 
@@ -161,6 +174,13 @@ namespace AElf.Kernel.TxMemPool
         {
             throw new System.NotImplementedException();
         }
+
+        public Task<int> GetTmpPoolSize()
+        {
+            return Lock.ReadLock(() => Tmp.Count);
+        }
+
+        
 
         /// <inheritdoc/>
         public void Start()

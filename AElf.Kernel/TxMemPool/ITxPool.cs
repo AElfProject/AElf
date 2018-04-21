@@ -15,7 +15,7 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// remove a tx
         /// </summary>
-        /// <param name="tx"></param>
+        /// <param name="txHash"></param>
         bool DisgardTx(Hash txHash);
 
         /// <summary>
@@ -30,8 +30,16 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         ulong Size { get; }
         
+        /// <summary>
+        /// return tx list can be executed
+        /// </summary>
         List<Transaction> Ready { get; }
 
+        /// <summary>
+        /// threshold for entering pool
+        /// </summary>
+        int EntryThreshold { get; }
+        
         /// <summary>
         /// minimal fee needed
         /// </summary>

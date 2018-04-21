@@ -57,6 +57,10 @@ namespace AElf.Kernel.TxMemPool
             }
         }
 
+
+        /// <inheritdoc />
+        public int EntryThreshold => _config.EntryThreshold;
+
         /// <inheritdoc />
         public Fee MinimalFee => _config.FeeThreshold;
 
@@ -117,9 +121,10 @@ namespace AElf.Kernel.TxMemPool
             {
                 return false;
             }
-            
             _pool.Add(txHash, tx);
-            return AddWaitingTx(tx.GetHash());
+            var hash = tx.GetHash();
+
+            return ReplaceTx(hash)||AddWaitingTx(hash);
         }
 
         /// <inheritdoc/>
@@ -189,23 +194,26 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// replace tx in pool with higher fee
         /// </summary>
-        /// <param name="tx"></param>
+        /// <param name="txHash"></param>
         /// <returns></returns>
-        private bool ReplaceTx(Transaction tx)
+        private bool ReplaceTx(Hash txHash)
         {
+            if (!_pool.TryGetValue(txHash, out var tx)||!ValidateTx(tx))
+                return false;
             var addr = tx.From;
-
-            if (!_pool.TryGetValue(tx.GetHash(), out var transaction) || !ValidateTx(tx))
+            var nonce = _accountContextService.GetAccountDataContext(tx.From, _context.ChainId).IncreasementId;
+            if (!_executable.TryGetValue(addr, out var executableList) || executableList.Count == 0 
+                || tx.IncrementId < nonce || (int)(tx.IncrementId - nonce) >= executableList.Count)
                 return false;
             
-            // TODO: compare two tx's fee, choose higher one and disgard the lower 
+            // TODO: compare two tx's fee, choose higher one and disgard the lower
+            /*var transaction = _pool[executableList[(int) (tx.IncrementId - nonce)]];
+            if (tx.Fee < transaction.Fee)
+            {
+                
+            }*/
+            return false;
             
-            /*if (tx.Fee < transaction.Fee)
-                return false;*/
-            
-            _pool[tx.GetHash()] = tx;
-            // tx with the same IncrementId in executable list
-            return true;
         }
 
         /// <summary>
@@ -222,19 +230,25 @@ namespace AElf.Kernel.TxMemPool
             // disgard the tx if too old
             if (tx.IncrementId < _accountContextService.GetAccountDataContext(tx.From, _context.ChainId).IncreasementId)
                 return false;
-            
+            var addr = tx.From;
+            if (_executable.TryGetValue(addr, out var executableList) && executableList.Count > 0 &&
+                _pool[executableList.Last()].IncrementId > tx.IncrementId)
+                return false;
             if (!_waiting.TryGetValue(tx.From, out var waitingList))
             {
-                _waiting[tx.From] = new Dictionary<ulong, Hash>();
+                waitingList = _waiting[tx.From] = new Dictionary<ulong, Hash>();
             }
-            
-            // add to waiting list
-            _waiting[tx.From].Add(tx.IncrementId, tx.GetHash());
-            
-            /*if (waitingList.Keys.Contains(tx.IncrementId))
+
+            if (waitingList.ContainsKey(tx.IncrementId))
             {
                 // TODO: compare two tx's fee, choose higher one and disgard the lower 
-            }*/
+            }
+            else
+            {
+                // add to waiting list
+                _waiting[tx.From].Add(tx.IncrementId, tx.GetHash());
+            }
+            
             return true;
         }
         
@@ -262,11 +276,10 @@ namespace AElf.Kernel.TxMemPool
             // return unvalid tx because removing 
             unValidTxList = executableList.GetRange((int) (tx.IncrementId - nonce),
                 executableList.Count - (int) (tx.IncrementId - nonce));
+            // remove
+            executableList.RemoveRange((int) (tx.IncrementId - nonce),
+                executableList.Count - (int) (tx.IncrementId - nonce));
             
-            
-            
-            
-
             // remove the entry if empty
             if (executableList.Count == 0)
                 _executable.Remove(addr);
