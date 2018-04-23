@@ -18,6 +18,6 @@ namespace AElf.Kernel
 
         public Fee FeeThreshold { get; set; }
        
-        public int EntryThreshold { get; set; }
+        public ulong EntryThreshold { get; set; }
     }
 }
