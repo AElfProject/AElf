@@ -25,6 +25,8 @@ namespace AElf.Kernel.TxMemPool
             _accountContextService = accountContextService;
         }
 
+        private HashSet<Hash> Tmp { get; } = new HashSet<Hash>();
+
         public List<Transaction> Ready
         {
             get
@@ -59,7 +61,7 @@ namespace AElf.Kernel.TxMemPool
 
 
         /// <inheritdoc />
-        public int EntryThreshold => _config.EntryThreshold;
+        public ulong EntryThreshold => _config.EntryThreshold;
 
         /// <inheritdoc />
         public Fee MinimalFee => _config.FeeThreshold;
@@ -69,15 +71,15 @@ namespace AElf.Kernel.TxMemPool
 
         
         /// <inheritdoc/>
-        public bool GetTransaction(Hash txHash, out Transaction tx)
+        public bool GetTx(Hash txHash, out Transaction tx)
         {
             return _pool.TryGetValue(txHash, out tx);
         }
         
         /// <inheritdoc/>
-        public Transaction GetTransaction(Hash txHash)
+        public Transaction GetTx(Hash txHash)
         {
-            return GetTransaction(txHash, out var tx) ? tx : null;
+            return GetTx(txHash, out var tx) ? tx : null;
         }
 
         /// <inheritdoc/>
@@ -85,6 +87,7 @@ namespace AElf.Kernel.TxMemPool
         {
             ClearWaiting();
             ClearWaiting();
+            Tmp.Clear();
             _pool.Clear();
         }
 
@@ -105,11 +108,14 @@ namespace AElf.Kernel.TxMemPool
         {
             return _pool.ContainsKey(txHash);
         }
-
-        public void GetPoolStates(out ulong executable, out ulong waiting)
+        
+        
+        /// <inheritdoc/>
+        public void GetPoolStates(out ulong executable, out ulong waiting, out ulong tmp)
         {
             executable = GetExecutableSize();
             waiting = GetWaitingSize();
+            tmp = (ulong)Tmp.Count;
         }
 
         /// <inheritdoc/>
@@ -122,20 +128,36 @@ namespace AElf.Kernel.TxMemPool
                 return false;
             }
             _pool.Add(txHash, tx);
-            var hash = tx.GetHash();
+            Tmp.Add(txHash);
+            return true;
+        }
 
-            return ReplaceTx(hash)||AddWaitingTx(hash);
+        public void QueueTxs()
+        {
+            foreach (var txHash in Tmp)
+            {
+                if (!Tmp.Contains(txHash)||!Contains(txHash))
+                    continue;
+                // validate tx
+                if (!ValidateTx(_pool[txHash]))
+                {
+                    continue;
+                }
+                if(!ReplaceTx(txHash))
+                    AddWaitingTx(txHash);
+            }
+            Tmp.Clear();
         }
 
         /// <inheritdoc/>
         public bool DisgardTx(Hash txHash)
         {
-            if (!GetTransaction(txHash, out var tx))
+            if (!GetTx(txHash, out var tx))
             {
                 return false;
             }
             
-            if (RemoveFromExecutable(tx, out var unValidTxList))
+            if (RemoveFromExecutable(txHash, out var unValidTxList))
             {
                 // case 1: tx in executable list
                 // move unvalid txs to waiting List
@@ -144,15 +166,33 @@ namespace AElf.Kernel.TxMemPool
                     AddWaitingTx(hash);
                 }
             }
-            else
+            else if(!RemoveFromWaiting(txHash))
             {
-                // case 2: tx in waiting list
-                RemoveFromWaiting(tx);
-                
+                Tmp.Remove(txHash);
             }
 
             return _pool.Remove(tx.GetHash());
 
+        }
+        
+        /// <inheritdoc/>
+        public ulong GetExecutableSize()
+        {
+            return _executable.Values.Aggregate<List<Hash>, ulong>(0,
+                (current, p) => current + (ulong) p.Count);
+        }
+
+        /// <inheritdoc/>
+        public ulong GetWaitingSize()
+        {
+            return _waiting.Values.Aggregate<Dictionary<ulong, Hash>, ulong>(0,
+                (current, p) => current + (ulong) p.Count);
+        }
+
+        /// <inheritdoc/>
+        public ulong GetTmpSize()
+        {
+            return (ulong)Tmp.Count;
         }
         
         private bool ValidateTx(Transaction tx)
@@ -230,10 +270,13 @@ namespace AElf.Kernel.TxMemPool
             // disgard the tx if too old
             if (tx.IncrementId < _accountContextService.GetAccountDataContext(tx.From, _context.ChainId).IncreasementId)
                 return false;
+            
             var addr = tx.From;
+            // disgard it if already pushed to exectuable list
             if (_executable.TryGetValue(addr, out var executableList) && executableList.Count > 0 &&
-                _pool[executableList.Last()].IncrementId > tx.IncrementId)
+                _pool[executableList.Last()].IncrementId >= tx.IncrementId)
                 return false;
+            
             if (!_waiting.TryGetValue(tx.From, out var waitingList))
             {
                 waitingList = _waiting[tx.From] = new Dictionary<ulong, Hash>();
@@ -256,26 +299,32 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// remove tx from executable list
         /// </summary>
-        /// <param name="tx"></param>
+        /// <param name="hash"></param>
         /// <param name="unValidTxList">invalid txs because removing this tx</param>
         /// <returns></returns>
-        private bool RemoveFromExecutable(Transaction tx, out IEnumerable<Hash> unValidTxList)
+        private bool RemoveFromExecutable(Hash hash, out IEnumerable<Hash> unValidTxList)
         {
+            unValidTxList = null;
+
+            if (!Contains(hash))
+            {
+                return false;
+            }
+            var tx = _pool[hash];
             // remove the tx 
             var addr = tx.From;
             var nonce = _accountContextService.GetAccountDataContext(addr, _context.ChainId).IncreasementId;
 
-            unValidTxList = null;
 
             // fail if not exist
-            if (!Contains(tx.GetHash()) || !_executable.TryGetValue(addr, out var executableList) ||
+            if (!_executable.TryGetValue(addr, out var executableList) ||
                 executableList.Count <= (int)(tx.IncrementId - nonce) || 
                 !executableList[(int)(tx.IncrementId - nonce)].Equals(tx.GetHash())) 
                 return false;
             
             // return unvalid tx because removing 
-            unValidTxList = executableList.GetRange((int) (tx.IncrementId - nonce),
-                executableList.Count - (int) (tx.IncrementId - nonce));
+            unValidTxList = executableList.GetRange((int) (tx.IncrementId - nonce + 1),
+                executableList.Count - (int) (tx.IncrementId - nonce + 1));
             // remove
             executableList.RemoveRange((int) (tx.IncrementId - nonce),
                 executableList.Count - (int) (tx.IncrementId - nonce));
@@ -298,7 +347,6 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         public bool RemoveExecutedTx(Hash accountHash)
         {
-            
             var context = _accountContextService.GetAccountDataContext(accountHash, _context.ChainId);
             var nonce = context.IncreasementId;
             if (!_executable.TryGetValue(accountHash, out var list) || list.Count ==0)
@@ -323,10 +371,11 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// remove tx from waiting list
         /// </summary>
-        /// <param name="tx"></param>
+        /// <param name="hash"></param>
         /// <returns></returns>
-        private bool RemoveFromWaiting(Transaction tx)
+        private bool RemoveFromWaiting(Hash hash)
         {
+            var tx = _pool[hash];
             var addr = tx.From;
             if (!_waiting.TryGetValue(addr, out var waitingList) ||
                 !waitingList.Keys.Contains(tx.IncrementId)) return false;
@@ -359,6 +408,7 @@ namespace AElf.Kernel.TxMemPool
             {
                 Promote(addr);
             }
+            
         }
 
         
@@ -372,42 +422,47 @@ namespace AElf.Kernel.TxMemPool
             
             // discard too old txs
             // old txs
-            var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
-            var nonce = context.IncreasementId;
-            var oldList = waitingList.Keys.Where(n => n < nonce).Select(n => waitingList[n]);
+            /*var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
+            var nonce = context.IncreasementId;*/
+            
+            ulong w = 0;
+            if (!_executable.TryGetValue(addr, out var executableList))
+            {
+                _executable[addr] = executableList = new List<Hash>();
+            }
+            else
+            {
+                w = _pool[executableList.Last()].IncrementId + 1;
+            }
+            
+            var oldList = waitingList.Keys.Where(n => n < w).Select(n => waitingList[n]);
             
             // disgard
             foreach (var h in oldList)
             {
-                RemoveFromWaiting(_pool[h]);
+                RemoveFromWaiting(h);
             }
             
             // no tx left
             if (waitingList.Count == 0)
                 return;
-            
-            var next = waitingList.First().Key;
+            var next = waitingList.Keys.Min();
             
             // no tx ready
-            if (next > nonce)
+            if (next != w)
                 return;
 
-            if (!_executable.TryGetValue(addr, out var executableList))
-            {
-                _executable[addr] = executableList = new List<Hash>();
-            }
             
             do
             {
+                var hash = waitingList[next];
                 // add to executable list
-                executableList.Add(waitingList.First().Value);
+                executableList.Add(hash);
                 // remove from waiting list
                 waitingList.Remove(next);
                
             } while (waitingList.Count > 0 && waitingList.First().Key == ++next);
 
-            if (waitingList.Count == 0)
-                _waiting.Remove(addr);
 
         }
       
@@ -432,27 +487,6 @@ namespace AElf.Kernel.TxMemPool
         private int GetTxSize(Transaction tx)
         {
             throw new System.NotImplementedException();
-        }
-        
-
-        /// <summary>
-        /// return count of txs executable
-        /// </summary>
-        /// <returns></returns>
-        private ulong GetExecutableSize()
-        {
-            return _executable.Values.Aggregate<List<Hash>, ulong>(0,
-                (current, p) => current + (ulong) p.Count);
-        }
-
-        /// <summary>
-        /// return count of txs waiting
-        /// </summary>
-        /// <returns></returns>
-        private ulong GetWaitingSize()
-        {
-            return _waiting.Values.Aggregate<Dictionary<ulong, Hash>, ulong>(0,
-                (current, p) => current + (ulong) p.Count);
         }
     }
     

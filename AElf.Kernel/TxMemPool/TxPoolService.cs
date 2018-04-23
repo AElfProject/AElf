@@ -28,37 +28,32 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         private CancellationTokenSource Cts { get; } = new CancellationTokenSource();
         
-        private HashSet<Transaction> Tmp { get; } = new HashSet<Transaction>();
-
         private TxPoolSchedulerLock Lock { get; } = new TxPoolSchedulerLock();
 
         /// <inheritdoc/>
-        public Task<bool> AddTransaction(Transaction tx)
+        public Task<bool> AddTxAsync(Transaction tx)
         {
             return Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
             {
-                var res = Tmp.Add(tx);
-                if (Tmp.Count >= _txPool.EntryThreshold)
+                var res = _txPool.AddTx(tx);
+                if (_txPool.GetTmpSize() >= _txPool.EntryThreshold)
                 {
                     Are.Set();
                 }
                 return res;
             });
+            
         }
         
         /// <summary>
         /// add multi txs to tx pool
         /// </summary>
-        /// <param name="txs"></param>
         /// <returns></returns>
-        private Task AddTxsToPool(List<Transaction> txs)
+        private Task QueueTxsAsync()
         {
             return Lock.WriteLock(() =>
             {
-                foreach (var tx in txs)
-                {
-                    _txPool.AddTx(tx);
-                }
+                _txPool.QueueTxs();
                 return Task.CompletedTask;
             });
         }
@@ -75,20 +70,7 @@ namespace AElf.Kernel.TxMemPool
             {
                 // wait for signal
                 Are.WaitOne();
-
-                var transactions = await Lock.WriteLock(() =>
-                {
-                    var txs = Tmp.Where(t => !_txPool.Contains(t.GetHash())).ToList();
-                    // clear tmp txs
-                    Tmp.Clear();
-                    return txs;
-                });
-                
-                Tmp.Clear();
-                if(transactions.Count == 0)
-                    continue;
-                
-                await AddTxsToPool(transactions);
+                await QueueTxsAsync();
             }
         }
         
@@ -130,7 +112,7 @@ namespace AElf.Kernel.TxMemPool
 
         private async Task Persist(Hash txHash)
         {
-            if (!await GetTransaction(txHash, out var tx))
+            if (!await GetTxAsync(txHash, out var tx))
             {
                 // TODO: tx not found, log error
             }
@@ -153,9 +135,9 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task<bool> GetTransaction(Hash txHash, out Transaction tx)
+        public Task<bool> GetTxAsync(Hash txHash, out Transaction tx)
         {
-            tx = Lock.ReadLock(() => _txPool.GetTransaction(txHash)).Result;
+            tx = Lock.ReadLock(() => _txPool.GetTx(txHash)).Result;
             return Task.FromResult(tx != null);
         }
 
@@ -175,18 +157,29 @@ namespace AElf.Kernel.TxMemPool
             throw new System.NotImplementedException();
         }
 
-        public Task<int> GetTmpPoolSize()
+        /// <inheritdoc/>
+        public Task<ulong> GetWaitingSizeAsync()
         {
-            return Lock.ReadLock(() => Tmp.Count);
+            return Lock.ReadLock(() => _txPool.GetWaitingSize());
         }
 
+        /// <inheritdoc/>
+        public Task<ulong> GetExecutableSizeAsync()
+        {
+            return Lock.ReadLock(() => _txPool.GetExecutableSize());
+        }
+        
+        /// <inheritdoc/>
+        public Task<ulong> GetTmpSizeAsync()
+        {
+            return Lock.ReadLock(() => _txPool.GetTmpSize());
+        }
         
 
         /// <inheritdoc/>
         public void Start()
         {
             // TODO: more initialization
-            Tmp.Clear();
             Task.Factory.StartNew(async () => await Receive());
         }
 
