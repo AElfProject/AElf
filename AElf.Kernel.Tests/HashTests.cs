@@ -57,7 +57,8 @@ namespace AElf.Kernel.Tests
             var path = new Path();
             path.SetChainHash(Hash.Generate())
                 .SetAccount(Hash.Generate())
-                .SetDataProvider(Hash.Generate());
+                .SetDataProvider(Hash.Generate())
+                .SetDataKey(Hash.Generate());
             
             Assert.False(path.IsPointer);
             Assert.NotNull(path.GetPathHash());
@@ -70,8 +71,9 @@ namespace AElf.Kernel.Tests
             path.SetChainHash(Hash.Generate())
                 .SetBlockHash(Hash.Generate())
                 .SetAccount(Hash.Generate())
-                .SetDataProvider(Hash.Generate());
-            
+                .SetDataProvider(Hash.Generate())
+                .SetDataKey(Hash.Generate());
+
             Assert.True(path.IsPointer);
             Assert.NotNull(path.GetPointerHash());
         }

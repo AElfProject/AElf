@@ -7,10 +7,8 @@ namespace AElf.Kernel
     {
         IDataProvider GetDataProvider(string name);
 
-        Task SetAsync(byte[] obj);
+        Task SetAsync(Hash key, byte[] obj);
 
-        Task<byte[]> GetAsync(Hash blockHash);
-        
-        Task<byte[]> GetAsync();
+        Task<byte[]> GetAsync(Hash key);
     }
 }

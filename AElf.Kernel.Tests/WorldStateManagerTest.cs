@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -44,8 +45,9 @@ namespace AElf.Kernel.Tests
             
             var dataProvider = accountDataProvider.GetDataProvider();
             var data = Hash.Generate().Value.ToArray();
-            await dataProvider.SetAsync(data);
-            var getData = await dataProvider.GetAsync();
+            var key = new Hash("testkey".CalculateHash());
+            await dataProvider.SetAsync(key, data);
+            var getData = await dataProvider.GetAsync(key);
             
             Assert.True(data.SequenceEqual(getData));
         }

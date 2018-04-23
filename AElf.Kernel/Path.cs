@@ -13,6 +13,7 @@ namespace AElf.Kernel
         private Hash _blockHash;
         private Hash _accountAddress;
         private Hash _dataProviderHash;
+        private Hash _keyHash;
 
         public Path SetChainHash(Hash chainHash)
         {
@@ -50,6 +51,12 @@ namespace AElf.Kernel
             return this;
         }
 
+        public Path SetDataKey(Hash keyHash)
+        {
+            _keyHash = keyHash;
+            return this;
+        }
+            
         public Hash GetPointerHash()
         {
             if (!PointerValidation())
@@ -57,7 +64,7 @@ namespace AElf.Kernel
                 throw new InvalidOperationException("Invalide pointer.");
             }
 
-            return CalculateListHash(_chainHash, _blockHash, _accountAddress, _dataProviderHash);
+            return CalculateListHash(_chainHash, _blockHash, _accountAddress, _dataProviderHash, _keyHash);
         }
 
         public Hash GetPathHash()
@@ -67,17 +74,18 @@ namespace AElf.Kernel
                 throw new InvalidOperationException("Invalide path.");
             }
 
-            return CalculateListHash(_chainHash, _accountAddress, _dataProviderHash);
+            return CalculateListHash(_chainHash, _accountAddress, _dataProviderHash, _keyHash);
         }
-
+        
         private bool PointerValidation()
         {
-            return _chainHash != null && _blockHash != null && _accountAddress != null && _dataProviderHash != null;
+            return _chainHash != null && _blockHash != null && _accountAddress != null && _dataProviderHash != null &&
+                   _keyHash != null;
         }
 
         private bool PathValidation()
         {
-            return _chainHash != null && _accountAddress != null && _dataProviderHash != null;
+            return _chainHash != null && _accountAddress != null && _dataProviderHash != null && _keyHash != null;
         }
 
         private Hash CalculateListHash(params Hash[] hashes)
@@ -87,7 +95,19 @@ namespace AElf.Kernel
                 return hashes[0];
             }
             var remains = hashes.Skip(1).ToArray();
-            return new Hash(hashes[0].CalculateHashWith(CalculateListHash(remains)));
+            return CombineHash(hashes[0], CalculateListHash(remains));
+        }
+
+        private Hash CombineHash(Hash hash1, Hash hash2)
+        {
+            var arr1 = hash1.Value.ToArray();
+            var arr2 = hash2.Value.ToArray();
+            var arr = new byte[arr1.Length];
+            for (var i = 0; i < arr1.Length; i++)
+            {
+                arr[i] = arr1[i] ^= arr2[i];
+            }
+            return new Hash(arr);
         }
     }
 }

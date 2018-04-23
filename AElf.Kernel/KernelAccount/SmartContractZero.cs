@@ -59,7 +59,7 @@ namespace AElf.Kernel.KernelAccount
         public async Task RegisterSmartContract(Hash caller, SmartContractRegistration reg)
         {
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
-            await smartContractMap.SetAsync(_serializer.Serialize(reg));
+            await smartContractMap.SetAsync(reg.ContractHash, _serializer.Serialize(reg));
         }
 
         public async Task DeploySmartContract(Hash caller, SmartContractDeployment smartContractRegister)
@@ -87,7 +87,7 @@ namespace AElf.Kernel.KernelAccount
             // get SmartContractRegistration
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
             //var regHash = _registeredContracts[hash];
-            var obj = await smartContractMap.GetAsync();
+            var obj = await smartContractMap.GetAsync(hash);
             var reg = _serializer.Deserialize(obj);
 
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
