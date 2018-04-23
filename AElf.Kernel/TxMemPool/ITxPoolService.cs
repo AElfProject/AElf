@@ -11,7 +11,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        Task<bool> AddTransaction(Transaction tx);
+        Task<bool> AddTxAsync(Transaction tx);
         
         
         /// <summary>
@@ -50,7 +50,7 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="txHash"></param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        Task<bool> GetTransaction(Hash txHash, out Transaction tx);
+        Task<bool> GetTxAsync(Hash txHash, out Transaction tx);
 
         /// <summary>
         /// clear tx pool
@@ -71,20 +71,16 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         Task SavePool();
 
+        Task<ulong> GetWaitingSizeAsync();
+
+        Task<ulong> GetExecutableSizeAsync();
+        
         /// <summary>
         /// return tmp pool size
         /// </summary>
         /// <returns></returns>
-        Task<int> GetTmpPoolSize();
+        Task<ulong> GetTmpSizeAsync();
         
-        /*
-        /// <summary>
-        /// return waiting list size
-        /// </summary>
-        /// <returns></returns>
-        Task<int> GetWaitableSize();*/
-
-
         /// <summary>
         /// open transaction pool
         /// </summary>

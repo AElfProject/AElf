@@ -13,6 +13,11 @@ namespace AElf.Kernel.TxMemPool
         bool AddTx(Transaction tx);
 
         /// <summary>
+        /// queue txs from tmp to waiting
+        /// </summary>
+        void QueueTxs();
+        
+        /// <summary>
         /// remove a tx
         /// </summary>
         /// <param name="txHash"></param>
@@ -38,7 +43,7 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// threshold for entering pool
         /// </summary>
-        int EntryThreshold { get; }
+        ulong EntryThreshold { get; }
         
         /// <summary>
         /// minimal fee needed
@@ -52,14 +57,14 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="txHash"></param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        bool GetTransaction(Hash txHash, out Transaction tx);
+        bool GetTx(Hash txHash, out Transaction tx);
 
         /// <summary>
         /// return a tx alread in pool
         /// </summary>
         /// <param name="txHash"></param>
         /// <returns></returns>
-        Transaction GetTransaction(Hash txHash);
+        Transaction GetTx(Hash txHash);
 
         /// <summary>
         /// clear all txs in pool
@@ -83,11 +88,22 @@ namespace AElf.Kernel.TxMemPool
         bool Contains(Hash txHash);
         
         /// <summary>
-        /// return current pool state: executable count, waiting count
+        /// return waiting list size
         /// </summary>
-        /// <param name="executable">executable count</param>
-        /// <param name="waiting">waiting count</param>
         /// <returns></returns>
-        void GetPoolStates(out ulong executable, out ulong waiting);
+        ulong GetWaitingSize();
+        
+        /// <summary>
+        /// return Executable list size
+        /// </summary>
+        /// <returns></returns>
+        ulong GetExecutableSize();
+        
+        
+        /// <summary>
+        /// return Tmp list size
+        /// </summary>
+        /// <returns></returns>
+        ulong GetTmpSize();
     }
 }
