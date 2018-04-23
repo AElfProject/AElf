@@ -103,7 +103,7 @@ namespace AElf.Kernel
             var arr1 = hash1.Value.ToArray();
             var arr2 = hash2.Value.ToArray();
             var arr = new byte[arr1.Length];
-            for (var i = 0; i < arr1.Length; i++)
+            for (var i = 0; i < Math.Min(arr1.Length, arr2.Length); i++)
             {
                 arr[i] = arr1[i] ^= arr2[i];
             }

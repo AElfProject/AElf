@@ -121,8 +121,8 @@ namespace AElf.Kernel.Tests
             Assert.True(changes1[1].After == changes2[1].Before);
             Assert.True(changes1[2].After == changes2[2].Before);
 
-            var getData1InHeight1 = await subDataProvider1.GetAsync(block0.GetHash());
-            var getData1InHeight2 = await subDataProvider1.GetAsync(block1.GetHash());
+            var getData1InHeight1 = await subDataProvider1.GetAsync(key, block0.GetHash());
+            var getData1InHeight2 = await subDataProvider1.GetAsync(key, block1.GetHash());
             var getData1 = await subDataProvider1.GetAsync(key);
             Assert.True(data1.SequenceEqual(getData1InHeight1));
             Assert.False(data1.SequenceEqual(getData1InHeight2));

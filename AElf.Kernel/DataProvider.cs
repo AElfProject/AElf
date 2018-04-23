@@ -54,18 +54,19 @@ namespace AElf.Kernel
         /// If blockHash is null, return data of current block height.
         /// </summary>
         /// <param name="keyHash"></param>
-        /// <param name="blockHash"></param>
+        /// <param name="preBlockHash"></param>
         /// <returns></returns>
-        public async Task<byte[]> GetAsync(Hash keyHash, Hash blockHash)
+        public async Task<byte[]> GetAsync(Hash keyHash, Hash preBlockHash)
         {
-            var worldState = await _worldStateManager.GetWorldStateAsync(_accountDataContext.ChainId, blockHash);
+            var worldState = await _worldStateManager.GetWorldStateAsync(_accountDataContext.ChainId, preBlockHash);
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
             var change = await worldState.GetChange(pathHash);
             return await _worldStateManager.GetData(change.After);
         }
 
-        public async Task<byte[]> GetAsync(Hash key)
+        public async Task<byte[]> GetAsync(Hash keyHash)
         {
+            _path.SetDataKey(keyHash);
             var pointerHash = await _pointerStore.GetAsync(_path.GetPathHash());
             return await _worldStateManager.GetData(pointerHash);
         }
