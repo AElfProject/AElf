@@ -1,5 +1,10 @@
-﻿using AElf.Kernel.Crypto;
+﻿using System;
+using System.Globalization;
+using AElf.Kernel.Crypto;
 using AElf.Kernel.Crypto.ECDSA;
+using Google.Protobuf;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
 using Xunit;
 
 namespace AElf.Kernel.Tests.Crypto.ECDSA
@@ -13,12 +18,16 @@ namespace AElf.Kernel.Tests.Crypto.ECDSA
         [Fact]
         public void SignAndVerifyTransaction()
         {
+            byte[] fromAdress = CryptoHelpers.RandomFill(ADR_LENGTH);
+            byte[] toAdress = CryptoHelpers.RandomFill(ADR_LENGTH);
+            
             // Generate the key pair 
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
             
             Transaction tx = new Transaction();
-            tx.From = new Hash(CryptoHelpers.RandomFill(ADR_LENGTH));
-            tx.To = new Hash(CryptoHelpers.RandomFill(ADR_LENGTH));
+            tx.From = new Hash(fromAdress);
+            tx.To = new Hash(toAdress);
+            tx.P =  ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             
             // Serialize and hash the transaction
             Hash hash = tx.GetHash();
@@ -27,9 +36,26 @@ namespace AElf.Kernel.Tests.Crypto.ECDSA
             ECSigner signer = new ECSigner();
             ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
             
-            ECVerifier verifier = new ECVerifier(keyPair);
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
             
-            Assert.True(verifier.Verify(signature, hash.GetHashBytes()));
+            // Serialize as for sending over the network
+            byte[] serializedTx = tx.Serialize();
+            
+            /**** broadcast/receive *****/
+            
+            Transaction dTx = Transaction.Parser.ParseFrom(serializedTx);
+            
+            // Serialize and hash the transaction
+            Hash dHash = dTx.GetHash();
+            
+            byte[] uncompressedPrivKey = tx.P.ToByteArray();
+
+            ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
+            ECVerifier verifier = new ECVerifier(recipientKeyPair);
+            
+            Assert.True(verifier.Verify(dTx.GetSignature(), dHash.GetHashBytes()));
         }
     }
 }

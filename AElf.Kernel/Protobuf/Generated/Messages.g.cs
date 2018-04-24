@@ -24,25 +24,26 @@ namespace AElf.Kernel {
     static MessagesReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Cg5tZXNzYWdlcy5wcm90byJuCgtUcmFuc2FjdGlvbhITCgRGcm9tGAEgASgL",
-            "MgUuSGFzaBIRCgJUbxgCIAEoCzIFLkhhc2gSEwoLSW5jcmVtZW50SWQYAyAB",
-            "KAQSEgoKTWV0aG9kTmFtZRgEIAEoCRIOCgZQYXJhbXMYBSABKAwiFQoESGFz",
-            "aBINCgVWYWx1ZRgBIAEoDCJpCgtCbG9ja0hlYWRlchIPCgdWZXJzaW9uGAEg",
-            "ASgFEhwKDVBlcnZpb3VzQmxvY2sYAiABKAsyBS5IYXNoEisKHE1lcmtsZVRy",
-            "ZWVSb290T2ZUcmFuc2FjdGlvbnMYAyABKAsyBS5IYXNoIkQKCUJsb2NrQm9k",
-            "eRIaCgtCbG9ja0hlYWRlchgBIAEoCzIFLkhhc2gSGwoMVHJhbnNhY3Rpb25z",
-            "GAIgAygLMgUuSGFzaCI/CgVCbG9jaxIcCgZIZWFkZXIYASABKAsyDC5CbG9j",
-            "a0hlYWRlchIYCgRCb2R5GAIgASgLMgouQmxvY2tCb2R5ImEKGVNtYXJ0Q29u",
-            "dHJhY3RSZWdpc3RyYXRpb24SEAoIQ2F0ZWdvcnkYASABKAUSGwoMQ29udHJh",
-            "Y3RIYXNoGAIgASgLMgUuSGFzaBIVCg1Db250cmFjdEJ5dGVzGAMgASgMIk8K",
-            "F1NtYXJ0Q29udHJhY3REZXBsb3ltZW50EhsKDENvbnRyYWN0SGFzaBgBIAEo",
-            "CzIFLkhhc2gSFwoPQ29uc3RydWN0UGFyYW1zGAIgASgMIkgKGlNtYXJ0Q29u",
-            "dHJhY3RJbnZva2VDb250ZXh0EhUKBkNhbGxlchgBIAEoCzIFLkhhc2gSEwoL",
-            "SW5jcmVtZW50SWQYAiABKARCDqoCC0FFbGYuS2VybmVsYgZwcm90bzM="));
+            "Cg5tZXNzYWdlcy5wcm90byKcAQoLVHJhbnNhY3Rpb24SEwoERnJvbRgBIAEo",
+            "CzIFLkhhc2gSEQoCVG8YAiABKAsyBS5IYXNoEhMKC0luY3JlbWVudElkGAMg",
+            "ASgEEhIKCk1ldGhvZE5hbWUYBCABKAkSDgoGUGFyYW1zGAUgASgMEgkKAVIY",
+            "BiABKAwSCQoBUxgHIAEoDBIJCgFQGAggASgMEgsKA0tleRgJIAEoDCIVCgRI",
+            "YXNoEg0KBVZhbHVlGAEgASgMImkKC0Jsb2NrSGVhZGVyEg8KB1ZlcnNpb24Y",
+            "ASABKAUSHAoNUGVydmlvdXNCbG9jaxgCIAEoCzIFLkhhc2gSKwocTWVya2xl",
+            "VHJlZVJvb3RPZlRyYW5zYWN0aW9ucxgDIAEoCzIFLkhhc2giRAoJQmxvY2tC",
+            "b2R5EhoKC0Jsb2NrSGVhZGVyGAEgASgLMgUuSGFzaBIbCgxUcmFuc2FjdGlv",
+            "bnMYAiADKAsyBS5IYXNoIj8KBUJsb2NrEhwKBkhlYWRlchgBIAEoCzIMLkJs",
+            "b2NrSGVhZGVyEhgKBEJvZHkYAiABKAsyCi5CbG9ja0JvZHkiYQoZU21hcnRD",
+            "b250cmFjdFJlZ2lzdHJhdGlvbhIQCghDYXRlZ29yeRgBIAEoBRIbCgxDb250",
+            "cmFjdEhhc2gYAiABKAsyBS5IYXNoEhUKDUNvbnRyYWN0Qnl0ZXMYAyABKAwi",
+            "TwoXU21hcnRDb250cmFjdERlcGxveW1lbnQSGwoMQ29udHJhY3RIYXNoGAEg",
+            "ASgLMgUuSGFzaBIXCg9Db25zdHJ1Y3RQYXJhbXMYAiABKAwiSAoaU21hcnRD",
+            "b250cmFjdEludm9rZUNvbnRleHQSFQoGQ2FsbGVyGAEgASgLMgUuSGFzaBIT",
+            "CgtJbmNyZW1lbnRJZBgCIAEoBEIOqgILQUVsZi5LZXJuZWxiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params", "R", "S", "P", "Key" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Hash), global::AElf.Kernel.Hash.Parser, new[]{ "Value" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PerviousBlock", "MerkleTreeRootOfTransactions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockBody), global::AElf.Kernel.BlockBody.Parser, new[]{ "BlockHeader", "Transactions" }, null, null, null),
@@ -86,6 +87,10 @@ namespace AElf.Kernel {
       incrementId_ = other.incrementId_;
       methodName_ = other.methodName_;
       params_ = other.params_;
+      r_ = other.r_;
+      s_ = other.s_;
+      p_ = other.p_;
+      key_ = other.key_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -149,6 +154,53 @@ namespace AElf.Kernel {
       }
     }
 
+    /// <summary>Field number for the "R" field.</summary>
+    public const int RFieldNumber = 6;
+    private pb::ByteString r_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString R {
+      get { return r_; }
+      set {
+        r_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "S" field.</summary>
+    public const int SFieldNumber = 7;
+    private pb::ByteString s_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString S {
+      get { return s_; }
+      set {
+        s_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "P" field.</summary>
+    public const int PFieldNumber = 8;
+    private pb::ByteString p_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString P {
+      get { return p_; }
+      set {
+        p_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Key" field.</summary>
+    public const int KeyFieldNumber = 9;
+    private pb::ByteString key_ = pb::ByteString.Empty;
+    /// <summary>
+    /// This will be retrievable from the from adress
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString Key {
+      get { return key_; }
+      set {
+        key_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as Transaction);
@@ -167,6 +219,10 @@ namespace AElf.Kernel {
       if (IncrementId != other.IncrementId) return false;
       if (MethodName != other.MethodName) return false;
       if (Params != other.Params) return false;
+      if (R != other.R) return false;
+      if (S != other.S) return false;
+      if (P != other.P) return false;
+      if (Key != other.Key) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -178,6 +234,10 @@ namespace AElf.Kernel {
       if (IncrementId != 0UL) hash ^= IncrementId.GetHashCode();
       if (MethodName.Length != 0) hash ^= MethodName.GetHashCode();
       if (Params.Length != 0) hash ^= Params.GetHashCode();
+      if (R.Length != 0) hash ^= R.GetHashCode();
+      if (S.Length != 0) hash ^= S.GetHashCode();
+      if (P.Length != 0) hash ^= P.GetHashCode();
+      if (Key.Length != 0) hash ^= Key.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -211,6 +271,22 @@ namespace AElf.Kernel {
         output.WriteRawTag(42);
         output.WriteBytes(Params);
       }
+      if (R.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(R);
+      }
+      if (S.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteBytes(S);
+      }
+      if (P.Length != 0) {
+        output.WriteRawTag(66);
+        output.WriteBytes(P);
+      }
+      if (Key.Length != 0) {
+        output.WriteRawTag(74);
+        output.WriteBytes(Key);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -233,6 +309,18 @@ namespace AElf.Kernel {
       }
       if (Params.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(Params);
+      }
+      if (R.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(R);
+      }
+      if (S.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(S);
+      }
+      if (P.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(P);
+      }
+      if (Key.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Key);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -265,6 +353,18 @@ namespace AElf.Kernel {
       }
       if (other.Params.Length != 0) {
         Params = other.Params;
+      }
+      if (other.R.Length != 0) {
+        R = other.R;
+      }
+      if (other.S.Length != 0) {
+        S = other.S;
+      }
+      if (other.P.Length != 0) {
+        P = other.P;
+      }
+      if (other.Key.Length != 0) {
+        Key = other.Key;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -301,6 +401,22 @@ namespace AElf.Kernel {
           }
           case 42: {
             Params = input.ReadBytes();
+            break;
+          }
+          case 50: {
+            R = input.ReadBytes();
+            break;
+          }
+          case 58: {
+            S = input.ReadBytes();
+            break;
+          }
+          case 66: {
+            P = input.ReadBytes();
+            break;
+          }
+          case 74: {
+            Key = input.ReadBytes();
             break;
           }
         }

@@ -1,21 +1,20 @@
-﻿using AElf.Kernel.Extensions;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System;
+using AElf.Kernel.Crypto.ECDSA;
+using Google.Protobuf;
+using Org.BouncyCastle.Math;
 
 namespace AElf.Kernel
 {
     public partial class Transaction : ITransaction
     {
-
         public Hash GetHash()
         {
-            return new Hash(this.CalculateHash());
+            return new Hash(GetSignatureData());
+        }
+
+        public byte[] Serialize()
+        {
+            return this.ToByteArray();
         }
 
         public ITransactionParallelMetaData GetParallelMetaData()
@@ -28,5 +27,22 @@ namespace AElf.Kernel
             throw new NotImplementedException();
         }
 
+        public ECSignature GetSignature()
+        {
+            BigInteger[] sig = new BigInteger[2];
+            sig[0] = new BigInteger(R.ToByteArray());
+            sig[1] = new BigInteger(S.ToByteArray());
+            
+            return new ECSignature(sig);
+        }
+
+        public byte[] GetSignatureData()
+        {
+            Transaction txData = new Transaction();
+            txData.From = From.Clone();
+            txData.To = To.Clone();
+
+            return txData.ToByteArray();
+        }
     }
 }

@@ -4,11 +4,23 @@ namespace AElf.Kernel.Crypto.ECDSA
 {
     public class ECSignature
     {
-        public BigInteger[] Signature { get; private set; }
+        public BigInteger[] Signature { get; }
 
         public ECSignature(BigInteger[] signature)
         {
             Signature = signature;
+        }
+
+        public byte[] Encoded()
+        {
+            byte[] x = Signature[0].ToByteArrayUnsigned();
+            byte[] y = Signature[1].ToByteArrayUnsigned();
+            
+            byte[] enc = new byte[x.Length + y.Length];
+            x.CopyTo(enc, 0);
+            y.CopyTo(enc, x.Length);
+            
+            return enc;
         }
 
         public byte[] R
