@@ -16,7 +16,8 @@ namespace AElf.Kernel
         private readonly IDataStore _dataStore;
 
         public WorldStateManager(IWorldStateStore worldStateStore, Hash preBlockHash, 
-            IAccountContextService accountContextService, IPointerStore pointerStore, IChangesStore changesStore, IDataStore dataStore)
+            IAccountContextService accountContextService, IPointerStore pointerStore, 
+            IChangesStore changesStore, IDataStore dataStore)
         {
             _worldStateStore = worldStateStore;
             _preBlockHash = preBlockHash;
