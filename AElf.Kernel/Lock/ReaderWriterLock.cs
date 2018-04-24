@@ -34,9 +34,9 @@ namespace AElf.Kernel.Lock
             new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default, Environment.ProcessorCount);
 
         
-        private TaskFactory ExclusiveWritrer { get; } = new TaskFactory(SchedulerPair.ConcurrentScheduler);
+        private TaskFactory ConcurrentReader { get; } = new TaskFactory(SchedulerPair.ConcurrentScheduler);
 
-        private TaskFactory ConcurrentReader { get; } = new TaskFactory(SchedulerPair.ExclusiveScheduler);
+        private TaskFactory ExclusiveWritrer { get; } = new TaskFactory(SchedulerPair.ExclusiveScheduler);
 
         /// <inheritdoc />
         public Task<T> ReadLock<T>(Func<T> func)

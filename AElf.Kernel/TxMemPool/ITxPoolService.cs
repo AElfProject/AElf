@@ -18,25 +18,31 @@ namespace AElf.Kernel.TxMemPool
         /// remove a tx
         /// </summary>
         /// <param name="txHash"></param>
-        Task Remove(Hash txHash);
+        Task RemoveAsync(Hash txHash);
 
         /// <summary>
         /// remove tx with worst price
         /// </summary>
-        Task RemoveTxWithWorstFee();
+        Task RemoveTxWithWorstFeeAsync();
 
         /// <summary>
         /// Remove transactions from mempool already in block
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        Task RemoveTxsExecuted(Block block);
+        Task RemoveTxsExecutedAsync(Block block);
 
         /// <summary>
         /// return ready txs can be executed 
         /// </summary>
         /// <returns></returns>
-        Task<List<Transaction>> GetReadyTxs();
+        Task<List<Transaction>> GetReadyTxsAsync();
+
+        /// <summary>
+        /// promote txs from waiting list to executable
+        /// </summary>
+        /// <returns></returns>
+        Task PromoteAsync();
         
         /// <summary>
         /// return pool size
@@ -56,7 +62,7 @@ namespace AElf.Kernel.TxMemPool
         /// clear tx pool
         /// </summary>
         /// <returns></returns>
-        Task Clear();
+        Task ClearAsync();
 
         /// <summary>
         /// add txs to storage
@@ -69,7 +75,7 @@ namespace AElf.Kernel.TxMemPool
         /// persistent Tx pool to storage
         /// </summary>
         /// <returns></returns>
-        Task SavePool();
+        Task SavePoolAsync();
 
         Task<ulong> GetWaitingSizeAsync();
 

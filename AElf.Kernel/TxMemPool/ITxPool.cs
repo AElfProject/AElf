@@ -27,7 +27,7 @@ namespace AElf.Kernel.TxMemPool
         /// promote txs from waiting to executable
         /// </summary>
         /// <param name="addrs"></param>
-        void Promote(List<Hash> addrs);
+        void Promote(List<Hash> addrs = null);
         
         /// <summary>
         /// return pool size

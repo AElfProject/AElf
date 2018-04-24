@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,12 +22,12 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// signal event for multi-thread
         /// </summary>
-        private AutoResetEvent Are { get; } = new AutoResetEvent(false);
+        private AutoResetEvent Are { get; set; } 
         
         /// <summary>
         /// Signals to a CancellationToken that it should be canceled
         /// </summary>
-        private CancellationTokenSource Cts { get; } = new CancellationTokenSource();
+        private CancellationTokenSource Cts { get; set; } 
         
         private TxPoolSchedulerLock Lock { get; } = new TxPoolSchedulerLock();
 
@@ -45,18 +46,14 @@ namespace AElf.Kernel.TxMemPool
             
         }
         
-        /// <summary>
+        /*/// <summary>
         /// add multi txs to tx pool
         /// </summary>
         /// <returns></returns>
         private Task QueueTxsAsync()
         {
-            return Lock.WriteLock(() =>
-            {
-                _txPool.QueueTxs();
-                return Task.CompletedTask;
-            });
-        }
+            
+        }*/
 
         
         /// <summary>
@@ -70,31 +67,35 @@ namespace AElf.Kernel.TxMemPool
             {
                 // wait for signal
                 Are.WaitOne();
-                await QueueTxsAsync();
+                await Lock.WriteLock(() =>
+                {
+                    _txPool.QueueTxs();
+                    return Task.CompletedTask;
+                });
             }
         }
         
 
         /// <inheritdoc/>
-        public Task Remove(Hash txHash)
+        public Task RemoveAsync(Hash txHash)
         {
             Lock.WriteLock(() => _txPool.DisgardTx(txHash));
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
-        public Task RemoveTxWithWorstFee()
+        public Task RemoveTxWithWorstFeeAsync()
         {
             throw new System.NotImplementedException();
         }
 
         /// <inheritdoc/>
-        public async Task RemoveTxsExecuted(Block block)
+        public async Task RemoveTxsExecutedAsync(Block block)
         {
             var txHashes = block.Body.Transactions;
             foreach (var hash in txHashes)
             {
-                await Remove(hash);
+                await RemoveAsync(hash);
             }
 
             // Sets the state of the event to signaled, allowing one or more waiting threads to proceed
@@ -123,9 +124,19 @@ namespace AElf.Kernel.TxMemPool
         }
         
         /// <inheritdoc/>
-        public Task<List<Transaction>> GetReadyTxs()
+        public Task<List<Transaction>> GetReadyTxsAsync()
         {
             return Lock.ReadLock(() => _txPool.Ready);
+        }
+
+        /// <inheritdoc/>
+        public Task PromoteAsync()
+        {
+            return Lock.WriteLock(() =>
+            {
+                _txPool.Promote();
+                return Task.CompletedTask;
+            });
         }
 
         /// <inheritdoc/>
@@ -142,7 +153,7 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task Clear()
+        public Task ClearAsync()
         {
             return Lock.WriteLock(()=>
             {
@@ -152,7 +163,7 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task SavePool()
+        public Task SavePoolAsync()
         {
             throw new System.NotImplementedException();
         }
@@ -180,6 +191,8 @@ namespace AElf.Kernel.TxMemPool
         public void Start()
         {
             // TODO: more initialization
+            Cts = new CancellationTokenSource();
+            Are = new AutoResetEvent(false);
             Task.Factory.StartNew(async () => await Receive());
         }
 

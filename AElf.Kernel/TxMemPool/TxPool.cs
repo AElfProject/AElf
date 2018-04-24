@@ -86,7 +86,7 @@ namespace AElf.Kernel.TxMemPool
         public void ClearAll()
         {
             ClearWaiting();
-            ClearWaiting();
+            ClearExecutable();
             Tmp.Clear();
             _pool.Clear();
         }
@@ -110,7 +110,6 @@ namespace AElf.Kernel.TxMemPool
         }
         
         
-        /// <inheritdoc/>
         public void GetPoolStates(out ulong executable, out ulong waiting, out ulong tmp)
         {
             executable = GetExecutableSize();
@@ -136,15 +135,9 @@ namespace AElf.Kernel.TxMemPool
         {
             foreach (var txHash in Tmp)
             {
-                if (!Tmp.Contains(txHash)||!Contains(txHash))
+                if (!Tmp.Contains(txHash)||!Contains(txHash)||ReplaceTx(txHash))
                     continue;
-                // validate tx
-                if (!ValidateTx(_pool[txHash]))
-                {
-                    continue;
-                }
-                if(!ReplaceTx(txHash))
-                    AddWaitingTx(txHash);
+                AddWaitingTx(txHash);
             }
             Tmp.Clear();
         }
@@ -292,7 +285,7 @@ namespace AElf.Kernel.TxMemPool
                 _waiting[tx.From].Add(tx.IncrementId, tx.GetHash());
             }
             
-            return true;
+                return true;
         }
         
         
@@ -426,11 +419,7 @@ namespace AElf.Kernel.TxMemPool
             var nonce = context.IncreasementId;*/
             
             ulong w = 0;
-            if (!_executable.TryGetValue(addr, out var executableList))
-            {
-                _executable[addr] = executableList = new List<Hash>();
-            }
-            else
+            if (_executable.TryGetValue(addr, out var executableList))
             {
                 w = _pool[executableList.Last()].IncrementId + 1;
             }
@@ -452,16 +441,21 @@ namespace AElf.Kernel.TxMemPool
             if (next != w)
                 return;
 
+            if (w == 0)
+            {
+                _executable[addr] = executableList = new List<Hash>();
+            }
             
             do
             {
                 var hash = waitingList[next];
+                var tx = _pool[hash];
                 // add to executable list
                 executableList.Add(hash);
                 // remove from waiting list
                 waitingList.Remove(next);
                
-            } while (waitingList.Count > 0 && waitingList.First().Key == ++next);
+            } while (waitingList.Count > 0 && waitingList.Keys.Contains(++next));
 
 
         }

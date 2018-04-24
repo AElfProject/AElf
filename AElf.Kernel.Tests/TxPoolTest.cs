@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -278,6 +279,9 @@ namespace AElf.Kernel.Tests
            
             var addr11 = Hash.Generate();
             var addr12 = Hash.Generate();
+            var addr21 = Hash.Generate();
+            var addr22 = Hash.Generate();
+            
             var tx1 = new Transaction
             {
                 From = addr11,
@@ -292,8 +296,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(0, (int)poolService.GetExecutableSizeAsync().Result);
             Assert.Equal(1, (int)pool.Size);
             
-            var addr21 = Hash.Generate();
-            var addr22 = Hash.Generate();
+            
             var tx2 = new Transaction
             {
                 From = addr21,
@@ -345,7 +348,7 @@ namespace AElf.Kernel.Tests
             };
             res = await poolService.AddTxAsync(tx5);
             Assert.True(res);
-            Thread.Sleep(3000);
+            Thread.Sleep(1000);
             Assert.Equal(0, (int)poolService.GetTmpSizeAsync().Result);
             Assert.Equal(5, (int) poolService.GetPoolSize().Result);
             Assert.Equal(4, (int)poolService.GetWaitingSizeAsync().Result);
@@ -359,7 +362,6 @@ namespace AElf.Kernel.Tests
             };
             res = await poolService.AddTxAsync(tx6);
             Assert.True(res);
-            Thread.Sleep(3000);
             Assert.Equal(1, (int)poolService.GetTmpSizeAsync().Result);
             Assert.Equal(4, (int)poolService.GetWaitingSizeAsync().Result);
             Assert.Equal(0, (int)poolService.GetExecutableSizeAsync().Result);
@@ -375,44 +377,70 @@ namespace AElf.Kernel.Tests
             res = await poolService.AddTxAsync(tx7);
             Assert.False(res);
             
+        }
+
+        
+        
+        [Fact]
+        public async Task IntergrationTest()
+        {
+            
+            
+            var pool = new TxPool(new ChainContext(_smartContractZero, Hash.Generate()), TxPoolConfig.Default,
+                _accountContextService);
+            
+            var poolService = new TxPoolService(pool, _transactionManager);
             poolService.Start();
-            res = await poolService.AddTxAsync(tx7);
-            Assert.False(res);
-            await poolService.Clear();
-
-            var c = 0;
-            var i = 0;
-            while (i++ < 10)
+            ulong queued = 0;
+            ulong exec = 0;
+            var tasks = new List<Task>();
+            int k = 0;
+            var threadNum = 10;
+            for (var j = 0; j < 10; j++)
             {
-                var tx = new Transaction
+                var task = Task.Run(async () =>
                 {
-                    From = addr11,
-                    To = Hash.Generate(),
-                    IncrementId = (ulong)new Random().Next(10)
-                };
+                    var sortedSet = new SortedSet<ulong>();
+                    var addr = Hash.Generate();
+                    var i = 0;
+                    while (i++ < 500)
+                    {
+                        var id = (ulong) new Random().Next(100);
+                        sortedSet.Add(id);
+                        var tx = new Transaction
+                        {
+                            From = addr,
+                            To = Hash.Generate(),
+                            IncrementId = id
+                        };
 
-                res = await poolService.AddTxAsync(tx);
-                if (res)
-                    c++;
+                        await poolService.AddTxAsync(tx);
+                    }
+
+                    ulong c = 0;
+                    foreach (var t in sortedSet)
+                    {
+                        if (t != c)
+                            break;
+                        c++;
+                    }
+                    
+                    lock (this)
+                    {
+                        queued += (ulong) sortedSet.Count;
+                        exec += c;
+                        k++;
+                    }
+                });
+                tasks.Add(task);
             }
 
-            while (i-- > 0)
-            {
-                var tx = new Transaction
-                {
-                    From = addr21,
-                    To = Hash.Generate(),
-                    IncrementId = (ulong)new Random().Next(10)
-                };
-
-                res = await poolService.AddTxAsync(tx);
-                if (res)
-                    c++;
-            }
-            Thread.Sleep(3000);
-            Assert.Equal(c, (int)poolService.GetPoolSize().Result);
-            poolService
-            Console.WriteLine();
+            Task.WaitAll(tasks.ToArray());
+            pool.QueueTxs();
+            await poolService.PromoteAsync();
+            Assert.Equal(k, threadNum);
+            Assert.Equal(exec, poolService.GetExecutableSizeAsync().Result);
+            Assert.Equal(queued - exec, poolService.GetWaitingSizeAsync().Result);
             
         }
         
