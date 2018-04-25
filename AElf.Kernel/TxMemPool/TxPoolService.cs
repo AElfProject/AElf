@@ -48,18 +48,7 @@ namespace AElf.Kernel.TxMemPool
                 }
                 return res;
             });
-            
         }
-        
-        /*/// <summary>
-        /// add multi txs to tx pool
-        /// </summary>
-        /// <returns></returns>
-        private Task QueueTxsAsync()
-        {
-            
-        }*/
-
         
         /// <summary>
         /// wait new tx
@@ -75,13 +64,12 @@ namespace AElf.Kernel.TxMemPool
                 await Lock.WriteLock(() =>
                 {
                     _txPool.QueueTxs();
-                    return Task.CompletedTask;
                 });
             }
         }
         
         /// <summary>
-        /// main loop for tx pool
+        /// wait signal to demote txs
         /// </summary>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
@@ -92,8 +80,8 @@ namespace AElf.Kernel.TxMemPool
                 DemoteEvent.WaitOne();
                 await Lock.WriteLock(() =>
                 {
-                    _txPool.RemoveExecutedTxs();
-                    return Task.CompletedTask;
+                    var res = _txPool.RemoveExecutedTxs();
+                    PersistTxs(res);
                 });
             }
         }
@@ -102,54 +90,34 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task RemoveAsync(Hash txHash)
         {
-            Lock.WriteLock(() => _txPool.DisgardTx(txHash));
-            return Task.CompletedTask;
+            return Lock.WriteLock(() => _txPool.DisgardTx(txHash));
         }
 
         /// <inheritdoc/>
         public Task RemoveTxWithWorstFeeAsync()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        /// <inheritdoc/>
-        public async Task RemoveTxsExecutedAsync(Block block)
-        {
-            var txHashes = block.Body.Transactions;
-            foreach (var hash in txHashes)
-            {
-                await RemoveAsync(hash);
-            }
-
-            // Sets the state of the event to signaled, allowing one or more waiting threads to proceed
-            EnqueueEvent.Set();
-        }
-
-        /// <inheritdoc/>
-        public async Task PersistTxs(IEnumerable<Hash> txHashes)
-        {
-            foreach (var h in txHashes)
-            {
-                await Persist(h);
-            }
-        }
-
-        private async Task Persist(Hash txHash)
-        {
-            if (!await GetTxAsync(txHash, out var tx))
-            {
-                // TODO: tx not found, log error
-            }
-            else
-            {
-                await _transactionManager.AddTransactionAsync(tx);
-            }
-        }
         
+        /// <summary>
+        /// persist txs with storage
+        /// </summary>
+        /// <param name="txs"></param>
+        /// <returns></returns>
+        private void PersistTxs(IEnumerable<Transaction> txs)
+        {
+            foreach (var t in txs)
+            {
+                // TODO: persist tx
+                //await _transactionManager.AddTransactionAsync(tx);
+            }
+        }
+
         /// <inheritdoc/>
         public Task<List<Transaction>> GetReadyTxsAsync()
         {
-            return Lock.ReadLock(() => _txPool.Ready);
+            return Lock.ReadLock(() => _txPool.ReadyTxs());
         }
 
         /// <inheritdoc/>
@@ -158,7 +126,6 @@ namespace AElf.Kernel.TxMemPool
             return Lock.WriteLock(() =>
             {
                 _txPool.Promote();
-                return Task.CompletedTask;
             });
         }
 
@@ -169,10 +136,9 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task<bool> GetTxAsync(Hash txHash, out Transaction tx)
+        public Task<Transaction> GetTxAsync(Hash txHash)
         {
-            tx = Lock.ReadLock(() => _txPool.GetTx(txHash)).Result;
-            return Task.FromResult(tx != null);
+            return Lock.ReadLock(() => _txPool.GetTx(txHash));
         }
 
         /// <inheritdoc/>
@@ -181,7 +147,6 @@ namespace AElf.Kernel.TxMemPool
             return Lock.WriteLock(()=>
             {
                 _txPool.ClearAll();
-                return Task.CompletedTask;
             });
         }
 
@@ -225,16 +190,20 @@ namespace AElf.Kernel.TxMemPool
         }
 
         
-
         /// <inheritdoc/>
-        public void Stop()
+        public async Task Stop()
         {
-            // TODO: release resources
-            Cts.Cancel();
-            EnqueueEvent.Dispose();
+            await Lock.WriteLock(() =>
+            {
+                // TODO: release resources
+                Cts.Cancel();
+                EnqueueEvent.Dispose();
+                DemoteEvent.Dispose();
+            });
         }
     }
     
+    /// <inheritdoc />
     /// <summary>
     /// A lock for managing asynchronous access to memory pool.
     /// </summary>

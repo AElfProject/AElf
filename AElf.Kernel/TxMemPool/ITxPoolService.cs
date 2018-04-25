@@ -5,14 +5,12 @@ namespace AElf.Kernel.TxMemPool
 {
     public interface ITxPoolService
     {
-        
         ///<summary>
         /// add tx to tmp pool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
         Task<bool> AddTxAsync(Transaction tx);
-        
         
         /// <summary>
         /// remove a tx
@@ -24,13 +22,6 @@ namespace AElf.Kernel.TxMemPool
         /// remove tx with worst price
         /// </summary>
         Task RemoveTxWithWorstFeeAsync();
-
-        /// <summary>
-        /// Remove transactions from mempool already in block
-        /// </summary>
-        /// <param name="block"></param>
-        /// <returns></returns>
-        Task RemoveTxsExecutedAsync(Block block);
 
         /// <summary>
         /// return ready txs can be executed 
@@ -54,9 +45,8 @@ namespace AElf.Kernel.TxMemPool
         /// return a tx alread in pool
         /// </summary>
         /// <param name="txHash"></param>
-        /// <param name="tx"></param>
         /// <returns></returns>
-        Task<bool> GetTxAsync(Hash txHash, out Transaction tx);
+        Task<Transaction> GetTxAsync(Hash txHash);
 
         /// <summary>
         /// clear tx pool
@@ -65,20 +55,21 @@ namespace AElf.Kernel.TxMemPool
         Task ClearAsync();
 
         /// <summary>
-        /// add txs to storage
-        /// </summary>
-        /// <param name="txHashes"></param>
-        /// <returns></returns>
-        Task PersistTxs(IEnumerable<Hash> txHashes);
-
-        /// <summary>
         /// persistent Tx pool to storage
         /// </summary>
         /// <returns></returns>
         Task SavePoolAsync();
 
+        /// <summary>
+        /// return size of waiting list
+        /// </summary>
+        /// <returns></returns>
         Task<ulong> GetWaitingSizeAsync();
 
+        /// <summary>
+        /// return size of executable list
+        /// </summary>
+        /// <returns></returns>
         Task<ulong> GetExecutableSizeAsync();
         
         /// <summary>
@@ -95,6 +86,6 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// close transaction pool
         /// </summary>
-        void Stop();
+        Task Stop();
     }
 }
