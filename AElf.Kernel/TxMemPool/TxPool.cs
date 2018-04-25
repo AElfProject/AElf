@@ -137,7 +137,8 @@ namespace AElf.Kernel.TxMemPool
             {
                 if (!Tmp.Contains(txHash)||!Contains(txHash)||ReplaceTx(txHash))
                     continue;
-                AddWaitingTx(txHash);
+                if (!AddWaitingTx(txHash))
+                    _pool.Remove(txHash);
             }
             Tmp.Clear();
         }
@@ -167,7 +168,9 @@ namespace AElf.Kernel.TxMemPool
             return _pool.Remove(tx.GetHash());
 
         }
+
         
+
         /// <inheritdoc/>
         public ulong GetExecutableSize()
         {
@@ -285,7 +288,7 @@ namespace AElf.Kernel.TxMemPool
                 _waiting[tx.From].Add(tx.IncrementId, tx.GetHash());
             }
             
-                return true;
+            return true;
         }
         
         
@@ -338,7 +341,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="accountHash"></param>
         /// <returns></returns>
-        public bool RemoveExecutedTx(Hash accountHash)
+        private bool RemoveExecutedTxs(Hash accountHash)
         {
             var context = _accountContextService.GetAccountDataContext(accountHash, _context.ChainId);
             var nonce = context.IncreasementId;
@@ -358,6 +361,15 @@ namespace AElf.Kernel.TxMemPool
                 }
             }
             return true;
+        }
+        
+        /// <inheritdoc/>
+        public void RemoveExecutedTxs()
+        {
+            foreach (var addr in _executable.Keys)
+            {
+                RemoveExecutedTxs(addr);
+            }
         }
         
         

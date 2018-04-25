@@ -24,6 +24,11 @@ namespace AElf.Kernel.TxMemPool
         bool DisgardTx(Hash txHash);
 
         /// <summary>
+        /// remove executed txs from executable
+        /// </summary>
+        void RemoveExecutedTxs();
+
+        /// <summary>
         /// promote txs from waiting to executable
         /// </summary>
         /// <param name="addrs"></param>
