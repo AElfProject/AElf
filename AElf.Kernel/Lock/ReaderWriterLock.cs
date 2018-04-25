@@ -21,6 +21,14 @@ namespace AElf.Kernel.Lock
         /// <param name="func"></param>
         /// <returns></returns>
         Task<T> WriteLock<T>(Func<T> func);
+
+
+        /// <summary>
+        /// for delegate calling without return type
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        Task WriteLock(Action action);
     }
 
     
@@ -43,11 +51,17 @@ namespace AElf.Kernel.Lock
         {
             return ConcurrentReader.StartNew(func);
         }
-
+        
         /// <inheritdoc />
         public Task<T> WriteLock<T>(Func<T> func)
         {
             return ExclusiveWritrer.StartNew(func);
+        }
+        
+        /// <inheritdoc />
+        public Task WriteLock(Action action)
+        {
+            return ExclusiveWritrer.StartNew(action);
         }
     }
     
