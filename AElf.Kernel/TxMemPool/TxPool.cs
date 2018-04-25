@@ -27,39 +27,6 @@ namespace AElf.Kernel.TxMemPool
 
         private HashSet<Hash> Tmp { get; } = new HashSet<Hash>();
 
-        public List<Transaction> Ready
-        {
-            get
-            {
-                var list = new List<Transaction>();
-                /*foreach (var p in _executable)
-                {
-                    var nonce = _accountContextService.GetAccountDataContext(p.Key, _context.ChainId).IncreasementId;
-                    
-                    foreach (var item in p.Value)
-                    {
-                        if (item.Key < nonce)
-                        {
-                            continue;
-                        }
-                        if(_pool.TryGetValue(item.Value, out var tx))
-                            list.Add(tx);
-                    }
-                }*/
-                foreach (var p in _executable)
-                {
-                    var nonce = _accountContextService.GetAccountDataContext(p.Key, _context.ChainId).IncreasementId;
-                    foreach (var hash in p.Value)
-                    {
-                        if(_pool.TryGetValue(hash, out var tx) && tx.IncrementId >= nonce)
-                            list.Add(tx);
-                    }
-                }
-                return list;
-            }
-        }
-
-
         /// <inheritdoc />
         public ulong EntryThreshold => _config.EntryThreshold;
 
@@ -121,16 +88,33 @@ namespace AElf.Kernel.TxMemPool
         public bool AddTx(Transaction tx)
         {
             var txHash = tx.GetHash();
+            
             // validate tx
-            if (Contains(txHash)||!ValidateTx(tx))
-            {
+            if (Contains(txHash)||!tx.ValidateTx()||GetNonce(tx.From)>tx.IncrementId)
                 return false;
-            }
+            
             _pool.Add(txHash, tx);
             Tmp.Add(txHash);
             return true;
         }
 
+        /// <inheritdoc/>
+        public List<Transaction> ReadyTxs()
+        {
+            var list = new List<Transaction>();
+            foreach (var p in _executable)
+            {
+                var nonce = _accountContextService.GetAccountDataContext(p.Key, _context.ChainId).IncreasementId;
+                foreach (var hash in p.Value)
+                {
+                    if(_pool.TryGetValue(hash, out var tx) && tx.IncrementId >= nonce)
+                        list.Add(tx);
+                }
+            }
+            return list;
+        }
+        
+        /// <inheritdoc/>
         public void QueueTxs()
         {
             foreach (var txHash in Tmp)
@@ -169,8 +153,6 @@ namespace AElf.Kernel.TxMemPool
 
         }
 
-        
-
         /// <inheritdoc/>
         public ulong GetExecutableSize()
         {
@@ -191,41 +173,6 @@ namespace AElf.Kernel.TxMemPool
             return (ulong)Tmp.Count;
         }
         
-        private bool ValidateTx(Transaction tx)
-        {
-            // fee check
-            
-            
-            // size check
-            /*if (GetTxSize(tx) > _config.TxLimitSize)
-            {
-                // TODO: log errors 
-                return false;
-            }*/
-            
-            // tx data validation
-            /*if (tx.IncrementId < 0 || tx.MethodName == null || tx.From == null)
-            {                
-                // TODO: log errors 
-                return false;
-            }*/
-            
-            // TODO: signature validation
-            
-            
-            // account address validation
-           /* if (tx.From == null || !CheckAddress(tx.From) || !CheckAddress(tx.To))
-            {
-                // TODO: log errors 
-                return false;
-            }*/
-
-            // tx overdue validation
-            var acc = _accountContextService.GetAccountDataContext(tx.From, _context.ChainId);
-            return acc.IncreasementId <= tx.IncrementId;
-
-            // TODO : more validations
-        }
         
         /// <summary>
         /// replace tx in pool with higher fee
@@ -234,10 +181,10 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         private bool ReplaceTx(Hash txHash)
         {
-            if (!_pool.TryGetValue(txHash, out var tx)||!ValidateTx(tx))
+            if (!_pool.TryGetValue(txHash, out var tx)||tx.ValidateTx())
                 return false;
             var addr = tx.From;
-            var nonce = _accountContextService.GetAccountDataContext(tx.From, _context.ChainId).IncreasementId;
+            var nonce = GetNonce(addr);
             if (!_executable.TryGetValue(addr, out var executableList) || executableList.Count == 0 
                 || tx.IncrementId < nonce || (int)(tx.IncrementId - nonce) >= executableList.Count)
                 return false;
@@ -249,7 +196,6 @@ namespace AElf.Kernel.TxMemPool
                 
             }*/
             return false;
-            
         }
 
         /// <summary>
@@ -336,40 +282,51 @@ namespace AElf.Kernel.TxMemPool
             return true;
         }
 
+        /// <inheritdoc/>
+        public List<Transaction> RemoveExecutedTxs()
+        {
+            var res = new List<Transaction>();
+            foreach (var addr in _executable.Keys)
+            {
+                var list = RemoveExecutedTxs(addr);
+                if(list != null)
+                    res.Concat(list);
+            }
+            return res;
+        }
+        
+        
         /// <summary>
         /// remove unvalid txs sent by account address addr, from executable list, like too old tx
         /// </summary>
         /// <param name="accountHash"></param>
         /// <returns></returns>
-        private bool RemoveExecutedTxs(Hash accountHash)
+        private List<Transaction> RemoveExecutedTxs(Hash accountHash)
         {
             var context = _accountContextService.GetAccountDataContext(accountHash, _context.ChainId);
             var nonce = context.IncreasementId;
             if (!_executable.TryGetValue(accountHash, out var list) || list.Count ==0)
-                return false;
+                return null;
 
             // remove and return executed txs
             var hashesToRemove = list.GetRange(0, Math.Max(0, (int)(nonce - _pool[list[0]].IncrementId)));
             list.RemoveRange(0, Math.Max(0, (int)(nonce - _pool[list[0]].IncrementId)));
-            
+            var res = new List<Transaction>();
             // remove executed from pool
             foreach (var hash in hashesToRemove)
             {
-                if (!_pool.Remove(hash))
+                if (Contains(hash))
                 {
-                    // TODO: log error
+                    res.Add(_pool[hash]);
+                    _pool.Remove(hash);
                 }
+                else
+                {
+                    // Todo : Log errors
+                }
+                
             }
-            return true;
-        }
-        
-        /// <inheritdoc/>
-        public void RemoveExecutedTxs()
-        {
-            foreach (var addr in _executable.Keys)
-            {
-                RemoveExecutedTxs(addr);
-            }
+            return res;
         }
         
         
@@ -416,7 +373,6 @@ namespace AElf.Kernel.TxMemPool
             
         }
 
-        
         /// <summary>
         /// promote ready txs from waiting to exectuable
         /// </summary>
@@ -469,31 +425,18 @@ namespace AElf.Kernel.TxMemPool
                
             } while (waitingList.Count > 0 && waitingList.Keys.Contains(++next));
 
+        }
 
+        /// <summary>
+        /// return incrementId of account
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <returns></returns>
+        private ulong GetNonce(Hash addr)
+        {
+            return _accountContextService.GetAccountDataContext(addr, _context.ChainId).IncreasementId;
         }
       
-        
-        /// <summary>
-        /// check validity of address
-        /// </summary>
-        /// <param name="accountHash"></param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        private bool CheckAddress(Hash accountHash)
-        {
-            throw new NotImplementedException();
-        }
-        
-        /// <summary>
-        /// return size of given tx
-        /// </summary>
-        /// <param name="tx"></param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        private int GetTxSize(Transaction tx)
-        {
-            throw new System.NotImplementedException();
-        }
     }
     
     

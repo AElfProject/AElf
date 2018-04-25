@@ -68,7 +68,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(1, (int)executable);
             
             
-            var ready = pool.Ready;
+            var ready = pool.ReadyTxs();
             Assert.Equal(1, ready.Count);
             Assert.True(ready.Contains(tx));
 
@@ -102,6 +102,8 @@ namespace AElf.Kernel.Tests
             Assert.Equal(1, (int)tmp);
             Assert.Equal(0, (int)waiting);
             Assert.Equal(1, (int)executable);
+            Assert.Equal(2, (int)pool.Size);
+
             
             var tx3 = new Transaction
             {
@@ -117,12 +119,14 @@ namespace AElf.Kernel.Tests
             Assert.Equal(2, (int)tmp);
             Assert.Equal(0, (int)waiting);
             Assert.Equal(1, (int)executable);
+            Assert.Equal(3, (int)pool.Size);
             
             pool.QueueTxs();
             pool.GetPoolStates(out executable, out waiting, out tmp);
             Assert.Equal(0, (int)tmp);
             Assert.Equal(1, (int)waiting);
             Assert.Equal(1, (int)executable);
+            Assert.Equal(2, (int)pool.Size);
             
             var tx4 = new Transaction
             {
@@ -138,7 +142,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(1, (int)tmp);
             Assert.Equal(1, (int)waiting);
             Assert.Equal(1, (int)executable);
-            Assert.Equal(4, (int)pool.Size);
+            Assert.Equal(3, (int)pool.Size);
             
             pool.QueueTxs();
             pool.GetPoolStates(out executable, out waiting, out tmp);
@@ -151,7 +155,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(0, (int)tmp);
             Assert.Equal(1, (int)waiting);
             Assert.Equal(2, (int)executable);
-            Assert.Equal(4, (int)pool.Size);
+            Assert.Equal(3, (int)pool.Size);
 
             
             var tx5 = new Transaction
@@ -166,7 +170,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(1, (int)tmp);
             Assert.Equal(1, (int)waiting);
             Assert.Equal(2, (int)executable);
-            Assert.Equal(5, (int)pool.Size);
+            Assert.Equal(4, (int)pool.Size);
             
             pool.QueueTxs();
             pool.GetPoolStates(out executable, out waiting, out tmp);
@@ -179,7 +183,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(0, (int)tmp);
             Assert.Equal(0, (int)waiting);
             Assert.Equal(4, (int)executable);
-            Assert.Equal(5, (int)pool.Size);
+            Assert.Equal(4, (int)pool.Size);
             
             var tx6 = new Transaction
             {
@@ -193,28 +197,28 @@ namespace AElf.Kernel.Tests
             Assert.Equal(1, (int)tmp);
             Assert.Equal(0, (int)waiting);
             Assert.Equal(4, (int)executable);
-            Assert.Equal(6, (int)pool.Size);
+            Assert.Equal(5, (int)pool.Size);
             
             pool.QueueTxs();
             pool.GetPoolStates(out executable, out waiting, out tmp);
             Assert.Equal(0, (int)tmp);
             Assert.Equal(0, (int)waiting);
             Assert.Equal(4, (int)executable);
-            Assert.Equal(6, (int)pool.Size);
+            Assert.Equal(4, (int)pool.Size);
 
             res = pool.DisgardTx(tx6.GetHash());
-            Assert.True(res);
+            Assert.False(res);
             pool.GetPoolStates(out executable, out waiting, out tmp);
             Assert.Equal(0, (int)waiting);
             Assert.Equal(4, (int)executable);
-            Assert.Equal(5, (int)pool.Size);
+            Assert.Equal(4, (int)pool.Size);
 
             res = pool.DisgardTx(tx.GetHash());
             Assert.True(res);
             pool.GetPoolStates(out executable, out waiting, out tmp);
             Assert.Equal(2, (int)waiting);
             Assert.Equal(1, (int)executable);
-            Assert.Equal(4, (int)pool.Size);
+            Assert.Equal(3, (int)pool.Size);
 
             
             res = pool.AddTx(tx);
@@ -223,7 +227,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(1, (int)tmp);
             Assert.Equal(2, (int)waiting);
             Assert.Equal(1, (int)executable);
-            Assert.Equal(5, (int)pool.Size);
+            Assert.Equal(4, (int)pool.Size);
             
             
             var tx7 = new Transaction
@@ -238,21 +242,21 @@ namespace AElf.Kernel.Tests
             Assert.Equal(2, (int)tmp);
             Assert.Equal(2, (int)waiting);
             Assert.Equal(1, (int)executable);
-            Assert.Equal(6, (int)pool.Size);
+            Assert.Equal(5, (int)pool.Size);
             
             pool.QueueTxs();
             pool.GetPoolStates(out executable, out waiting, out tmp);
             Assert.Equal(0, (int)tmp);
             Assert.Equal(4, (int)waiting);
             Assert.Equal(1, (int)executable);
-            Assert.Equal(6, (int)pool.Size);
+            Assert.Equal(5, (int)pool.Size);
             
             pool.Promote();
             pool.GetPoolStates(out executable, out waiting, out tmp);
             Assert.Equal(0, (int)tmp);
             Assert.Equal(0, (int)waiting);
             Assert.Equal(5, (int)executable);
-            Assert.Equal(6, (int)pool.Size);
+            Assert.Equal(5, (int)pool.Size);
             
             res = pool.DisgardTx(tx7.GetHash());
             Assert.True(res);
@@ -260,7 +264,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(0, (int)tmp);
             Assert.Equal(0, (int)waiting);
             Assert.Equal(4, (int)executable);
-            Assert.Equal(5, (int)pool.Size);
+            Assert.Equal(4, (int)pool.Size);
             
             pool.ClearAll();
             Assert.Equal(0, (int)pool.Size);
@@ -366,7 +370,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(4, (int)poolService.GetWaitingSizeAsync().Result);
             Assert.Equal(0, (int)poolService.GetExecutableSizeAsync().Result);
             
-            poolService.Stop();
+            await poolService.Stop();
             
             var tx7 = new Transaction
             {
@@ -384,8 +388,6 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task IntergrationTest()
         {
-            
-            
             var pool = new TxPool(new ChainContext(_smartContractZero, Hash.Generate()), TxPoolConfig.Default,
                 _accountContextService);
             

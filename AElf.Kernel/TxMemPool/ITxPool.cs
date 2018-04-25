@@ -26,7 +26,7 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// remove executed txs from executable
         /// </summary>
-        void RemoveExecutedTxs();
+        List<Transaction> RemoveExecutedTxs();
 
         /// <summary>
         /// promote txs from waiting to executable
@@ -39,11 +39,11 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <returns></returns>
         ulong Size { get; }
-        
+
         /// <summary>
         /// return tx list can be executed
         /// </summary>
-        List<Transaction> Ready { get; }
+        List<Transaction> ReadyTxs();
 
         /// <summary>
         /// threshold for entering pool
