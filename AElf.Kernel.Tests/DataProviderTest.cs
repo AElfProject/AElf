@@ -37,12 +37,12 @@ namespace AElf.Kernel.Tests
             var chain = new Chain(Hash.Generate());
             var chainManager = new ChainManager(_chainStore);
             await chainManager.AddChainAsync(chain.Id);
-            var hash = Hash.Generate();
 
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
-            var worldStateManager = new WorldStateManager(_worldStateStore, hash, accountContextService,
+            var worldStateManager = new WorldStateManager(_worldStateStore, accountContextService,
                 _pointerStore, _changesStore, _dataStore);
+            await worldStateManager.SetWorldStateToCurrentState(chain.Id, Hash.Generate());
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
             var dataProvider = accountDataProvider.GetDataProvider();
 
@@ -55,6 +55,12 @@ namespace AElf.Kernel.Tests
             {
                 var getData = await dataProvider.GetAsync(keys[i]);
                 Assert.True(getData.SequenceEqual(setList[i]));
+            }
+
+            for (var i = 0; i < count - 1; i++)
+            {
+                var getData = await dataProvider.GetAsync(keys[i]);
+                Assert.False(getData.SequenceEqual(setList[i + 1]));
             }
         }
 

@@ -10,21 +10,22 @@ namespace AElf.Kernel
     {
         private readonly IWorldStateStore _worldStateStore;
         private readonly IPointerStore _pointerStore;
-        private Hash _preBlockHash;
         private readonly IAccountContextService _accountContextService;
         private IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
+        private Hash _preBlockHash;
 
-        public WorldStateManager(IWorldStateStore worldStateStore, Hash preBlockHash, 
+        public WorldStateManager(IWorldStateStore worldStateStore,
             IAccountContextService accountContextService, IPointerStore pointerStore, 
             IChangesStore changesStore, IDataStore dataStore)
         {
             _worldStateStore = worldStateStore;
-            _preBlockHash = preBlockHash;
             _accountContextService = accountContextService;
             _pointerStore = pointerStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
+
+            _preBlockHash = Hash.Zero;
         }
         
         /// <inheritdoc />
@@ -34,11 +35,11 @@ namespace AElf.Kernel
         }
         
         /// <inheritdoc />
-        public async Task SetWorldStateToCurrentState(Hash chainId, Hash currentBlockHash)
+        public async Task SetWorldStateToCurrentState(Hash chainId, Hash preBlockHash)
         {
-            await _worldStateStore.InsertWorldState(chainId, _preBlockHash, _changesStore);
+            await _worldStateStore.InsertWorldState(chainId, preBlockHash, _changesStore);
             _changesStore = new ChangesStore(new KeyValueDatabase(), new KeyValueDatabase());
-            _preBlockHash = currentBlockHash;
+            _preBlockHash = preBlockHash;
         }
 
         /// <inheritdoc />

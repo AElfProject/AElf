@@ -16,7 +16,7 @@ namespace AElf.Kernel.Tests
         
         public WorldStateManagerTest(IWorldStateStore worldStateStore, IPointerStore pointerStore, IAccountContextService accountContextService, IChangesStore changesStore, IDataStore dataStore)
         {
-            _worldStateManager = new WorldStateManager(worldStateStore, _genesisBlockHash, 
+            _worldStateManager = new WorldStateManager(worldStateStore, 
                 accountContextService, pointerStore, changesStore, dataStore);
         }
 
@@ -38,6 +38,8 @@ namespace AElf.Kernel.Tests
             var chain = new Chain(Hash.Generate());
             var address = Hash.Generate();
 
+            await _worldStateManager.SetWorldStateToCurrentState(chain.Id, _genesisBlockHash);
+
             var accountDataProvider = _worldStateManager.GetAccountDataProvider(chain.Id, address);
             
             Assert.True(accountDataProvider.Context.Address == address);
@@ -57,7 +59,7 @@ namespace AElf.Kernel.Tests
         {
             var chain = new Chain(Hash.Generate());
             var block = new Block(Hash.Generate());
-            await _worldStateManager.SetWorldStateToCurrentState(chain.Id, block.GetHash());
+            await _worldStateManager.SetWorldStateToCurrentState(chain.Id, _genesisBlockHash);
 
             var genesisWorldState = await _worldStateManager.GetWorldStateAsync(chain.Id, _genesisBlockHash);
             var changes = await genesisWorldState.GetChangesAsync();

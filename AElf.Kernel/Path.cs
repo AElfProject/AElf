@@ -100,14 +100,27 @@ namespace AElf.Kernel
 
         private Hash CombineHash(Hash hash1, Hash hash2)
         {
+            if (hash1.Value.Length == 0)
+            {
+                return hash2;
+            }
+
+            if (hash2.Value.Length == 0)
+            {
+                return hash1;
+            }
+            
             var arr1 = hash1.Value.ToArray();
             var arr2 = hash2.Value.ToArray();
-            var arr = new byte[arr1.Length];
-            for (var i = 0; i < Math.Min(arr1.Length, arr2.Length); i++)
+            var length = Math.Min(arr1.Length, arr2.Length);
+            var arr = new byte[length];
+            for (var i = 0; i < length; i++)
             {
-                arr[i] = arr1[i] ^= arr2[i];
+                arr[i] = (byte) ((arr1[i] + arr2[i]) % 256);
             }
-            return new Hash(arr);
+
+            var hash = new Hash(arr);
+            return hash;
         }
     }
 }

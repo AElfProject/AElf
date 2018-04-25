@@ -42,7 +42,7 @@ namespace AElf.Kernel.Tests
             
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
-            var worldStateManager = new WorldStateManager(_worldStateStore, Hash.Generate(), 
+            var worldStateManager = new WorldStateManager(_worldStateStore, 
                 accountContextService, _pointerStore, _changesStore, _dataStore);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chainId, address);
             
