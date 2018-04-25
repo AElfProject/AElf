@@ -20,9 +20,14 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <summary>
-        /// signal event for multi-thread
+        /// signal event for enqueue txs
         /// </summary>
-        private AutoResetEvent Are { get; set; } 
+        private AutoResetEvent EnqueueEvent { get; set; }
+        
+        /// <summary>
+        /// signal event for demote executed txs
+        /// </summary>
+        private AutoResetEvent DemoteEvent { get; set; }
         
         /// <summary>
         /// Signals to a CancellationToken that it should be canceled
@@ -39,7 +44,7 @@ namespace AElf.Kernel.TxMemPool
                 var res = _txPool.AddTx(tx);
                 if (_txPool.GetTmpSize() >= _txPool.EntryThreshold)
                 {
-                    Are.Set();
+                    EnqueueEvent.Set();
                 }
                 return res;
             });
@@ -66,10 +71,28 @@ namespace AElf.Kernel.TxMemPool
             while (!Cts.IsCancellationRequested)
             {
                 // wait for signal
-                Are.WaitOne();
+                EnqueueEvent.WaitOne();
                 await Lock.WriteLock(() =>
                 {
                     _txPool.QueueTxs();
+                    return Task.CompletedTask;
+                });
+            }
+        }
+        
+        /// <summary>
+        /// main loop for tx pool
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        private async Task Demote()
+        {
+            while (!Cts.IsCancellationRequested)
+            {
+                DemoteEvent.WaitOne();
+                await Lock.WriteLock(() =>
+                {
+                    _txPool.RemoveExecutedTxs();
                     return Task.CompletedTask;
                 });
             }
@@ -99,7 +122,7 @@ namespace AElf.Kernel.TxMemPool
             }
 
             // Sets the state of the event to signaled, allowing one or more waiting threads to proceed
-            Are.Set();
+            EnqueueEvent.Set();
         }
 
         /// <inheritdoc/>
@@ -191,17 +214,24 @@ namespace AElf.Kernel.TxMemPool
         public void Start()
         {
             // TODO: more initialization
+            EnqueueEvent = new AutoResetEvent(false);
+            DemoteEvent = new AutoResetEvent(false);
             Cts = new CancellationTokenSource();
-            Are = new AutoResetEvent(false);
+            
+            // waiting enqueue tx
             Task.Factory.StartNew(async () => await Receive());
+            // waiting demote txs
+            Task.Factory.StartNew(async () => await Demote());
         }
+
+        
 
         /// <inheritdoc/>
         public void Stop()
         {
             // TODO: release resources
             Cts.Cancel();
-            Are.Dispose();
+            EnqueueEvent.Dispose();
         }
     }
     
