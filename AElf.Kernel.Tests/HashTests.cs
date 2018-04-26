@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.ComTypes;
 using AElf.Kernel.Merkle;
@@ -77,6 +78,5 @@ namespace AElf.Kernel.Tests
             Assert.True(path.IsPointer);
             Assert.NotNull(path.GetPointerHash());
         }
-        
     }
 }
