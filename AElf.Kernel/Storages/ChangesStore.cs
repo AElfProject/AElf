@@ -7,6 +7,12 @@ namespace AElf.Kernel.Storages
     public class ChangesStore : IChangesStore
     {
         private readonly IKeyValueDatabase _keyValueDatabase;
+        
+        /// <summary>
+        /// Use another KeyValueDatabase to store all the changed paths of current world state.
+        /// This KeyValueDatabase just have one key-value pair, the key is HashToGetPaths,
+        /// and the value is a list of hashes which contains all the paths changed in current world state.
+        /// </summary>
         private readonly IKeyValueDatabase _keyValueDatabaseForPaths;
 
         private static readonly Hash HashToGetPaths = Hash.Zero;
@@ -32,6 +38,10 @@ namespace AElf.Kernel.Storages
             return (Change) await _keyValueDatabase.GetAsync(pathHash, typeof(Change));
         }
 
+        /// <summary>
+        /// Use all the changed paths to get all the relative Changes.
+        /// </summary>
+        /// <returns></returns>
         public async Task<List<Change>> GetChangesAsync()
         {
             var changes = new List<Change>();
@@ -44,6 +54,10 @@ namespace AElf.Kernel.Storages
             return changes;
         }
 
+        /// <summary>
+        /// Simply return all the changed paths.
+        /// </summary>
+        /// <returns></returns>
         public async Task<List<Hash>> GetChangedPathHashesAsync()
         {
             return (List<Hash>) await _keyValueDatabaseForPaths.GetAsync(HashToGetPaths, typeof(List<Hash>));
