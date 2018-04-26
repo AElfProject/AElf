@@ -11,10 +11,11 @@ namespace AElf.Kernel.Storages
         
         /// <summary>
         /// Use another KeyValueDatabase to store all the changed paths of current world state.
+        /// Use HashToGetPathsCount to get the count of changed paths.
         /// </summary>
         private readonly IKeyValueDatabase _keyValueDatabaseForPaths;
 
-        private static readonly Hash HashToGetPathsCount = Hash.Generate();
+        private static readonly Hash HashToGetPathsCount = Hash.Zero;
 
         public ChangesStore(IKeyValueDatabase keyValueDatabase, IKeyValueDatabase keyValueDatabaseForPaths)
         {
