@@ -6,12 +6,12 @@ namespace AElf.Kernel.Storages
 {
     public class ChangesStore : IChangesStore
     {
-        private readonly KeyValueDatabase _keyValueDatabase;
-        private readonly KeyValueDatabase _keyValueDatabaseForPaths;
+        private readonly IKeyValueDatabase _keyValueDatabase;
+        private readonly IKeyValueDatabase _keyValueDatabaseForPaths;
 
-        private static readonly Hash HashToGetPaths = new Hash("paths".CalculateHash());
+        private static readonly Hash HashToGetPaths = Hash.Zero;
 
-        public ChangesStore(KeyValueDatabase keyValueDatabase, KeyValueDatabase keyValueDatabaseForPaths)
+        public ChangesStore(IKeyValueDatabase keyValueDatabase, IKeyValueDatabase keyValueDatabaseForPaths)
         {
             _keyValueDatabase = keyValueDatabase;
             _keyValueDatabaseForPaths = keyValueDatabaseForPaths;
