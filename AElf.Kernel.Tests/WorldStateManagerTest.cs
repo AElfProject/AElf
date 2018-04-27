@@ -58,7 +58,6 @@ namespace AElf.Kernel.Tests
         public async Task WorldStateTest()
         {
             var chain = new Chain(Hash.Generate());
-            var block = new Block(Hash.Generate());
             await _worldStateManager.SetWorldStateToCurrentState(chain.Id, _genesisBlockHash);
 
             var genesisWorldState = await _worldStateManager.GetWorldStateAsync(chain.Id, _genesisBlockHash);

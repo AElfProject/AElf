@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storages
 {
@@ -11,14 +12,21 @@ namespace AElf.Kernel.Storages
             _keyValueDatabase = keyValueDatabase;
         }
         
-        public Task<SmartContractRegistration> GetAsync(Hash chainId, Hash account)
+        public async Task<SmartContractRegistration> GetAsync(Hash chainId, Hash account)
         {
-            throw new System.NotImplementedException();
+            return (SmartContractRegistration) await _keyValueDatabase.GetAsync(CalculateContactHash(chainId, account),
+                typeof(SmartContractRegistration));
         }
 
-        public Task InsertAsync(SmartContractRegistration reg)
+        public async Task InsertAsync(SmartContractRegistration reg)
         {
-            throw new System.NotImplementedException();
+            await _keyValueDatabase.SetAsync(reg.ContractHash, reg);
+        }
+
+        private Hash CalculateContactHash(Hash chainId, Hash accountHash)
+        {
+            //TODO: The way to calculate ContractHash by chainId and accountHash
+            throw new NotImplementedException();
         }
     }
 }
