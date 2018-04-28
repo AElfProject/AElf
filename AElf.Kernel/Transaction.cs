@@ -19,7 +19,7 @@ namespace AElf.Kernel
 
         public Hash GetHash()
         {
-            return new Hash(this.CalculateHash());
+            return this.CalculateHash();
         }
 
         public ITransactionParallelMetaData GetParallelMetaData()

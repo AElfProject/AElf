@@ -96,7 +96,7 @@ namespace AElf.Kernel.Storages
                 newHashValue[i] = (byte) ((number >> (8 * i)) & 0xff);
             }
 
-            return new Hash(newHashValue);
+            return newHashValue;
         }
     }
 }

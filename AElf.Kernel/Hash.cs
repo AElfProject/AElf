@@ -18,7 +18,6 @@ namespace AElf.Kernel
 
         public Hash(byte[] buffer)
         {
-
             Value = ByteString.CopyFrom(buffer);
         }
 
@@ -60,6 +59,11 @@ namespace AElf.Kernel
         public static bool operator !=(Hash h1, Hash h2)
         {
             return !(h1 == h2);
+        }
+        
+        public static implicit operator Hash(byte[] value)
+        {
+            return new Hash(value);
         }
     }
 }

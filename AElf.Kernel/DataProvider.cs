@@ -40,8 +40,7 @@ namespace AElf.Kernel
 
         private Hash GetHash()
         {
-            return new Hash(new Hash(_accountDataContext.ChainId.CalculateHashWith(_accountDataContext.Address))
-                .CalculateHashWith(_dataProviderKey));
+            return _accountDataContext.GetHash().CalculateHashWith(_dataProviderKey);
         }
         
         public IDataProvider GetDataProvider(string name)

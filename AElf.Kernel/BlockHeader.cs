@@ -24,7 +24,7 @@ namespace AElf.Kernel
 
         public Hash PreviousHash { get; set; }
 
-        public Hash Hash => new Hash(this.CalculateHash());
+        public Hash Hash => this.CalculateHash();
 
         /// <summary>
         /// block index in chain
@@ -34,7 +34,7 @@ namespace AElf.Kernel
         
         public Hash GetHash()
         {
-            return new Hash(this.CalculateHash());
+            return this.CalculateHash();
         }
     }
 }

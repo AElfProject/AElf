@@ -19,7 +19,7 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task Test()
         {
-            await _service.CreateNewChainAsync(new Hash("Hello".CalculateHash()), typeof(SmartContractZero));
+            await _service.CreateNewChainAsync("Hello".CalculateHash(), typeof(SmartContractZero));
         }
     }
 }
