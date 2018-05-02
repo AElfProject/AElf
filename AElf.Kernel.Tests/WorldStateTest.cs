@@ -65,7 +65,7 @@ namespace AElf.Kernel.Tests
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, 
                 accountContextService, _pointerStore, _changesStore, _dataStore);
-            //await worldStateManager.SetWorldStateToCurrentState(chain.Id, Hash.Generate());
+            await worldStateManager.SetWorldStateToCurrentState(chain.Id, Hash.Generate());
             
             var key = new Hash("testkey".CalculateHash());
 

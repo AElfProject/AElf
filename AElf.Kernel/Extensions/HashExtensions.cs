@@ -31,7 +31,7 @@ namespace AElf.Kernel.Extensions
         }
 
         /// <summary>
-        /// Use to calculate sub-DataProvider hash value.
+        /// Calculate hash value with a string.
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="str"></param>
@@ -42,7 +42,29 @@ namespace AElf.Kernel.Extensions
             var bytes = obj.CalculateHash().Concat(saltHash).ToArray();
             return CalculateHash(bytes);
         }
-        
+
+        /// <summary>
+        /// Quickly combine two hash values.
+        /// </summary>
+        /// <param name="hash"></param>
+        /// <param name="another"></param>
+        /// <returns></returns>
+        public static Hash CombineHash(this Hash hash, Hash another)
+        {
+            if (another.Value.Length == 0)
+            {
+                return hash;
+            }
+
+            var length = hash.Value.Length;
+            var newHashByte = new byte[length];
+            for (var i = 0; i < length; i++)
+            {
+                newHashByte[i] = (byte) (hash.Value[i] ^ another.Value[i]);
+            }
+
+            return newHashByte;
+        }
 
         #region private methods
         /// <summary>

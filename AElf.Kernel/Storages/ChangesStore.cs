@@ -31,7 +31,7 @@ namespace AElf.Kernel.Storages
             var count = (long)await _keyValueDatabaseForPaths.GetAsync(HashToGetPathsCount, typeof(long));
             count++;
             await _keyValueDatabaseForPaths.SetAsync(HashToGetPathsCount, count);
-            await _keyValueDatabaseForPaths.SetAsync(IntToHash(count), pathHash);
+            await _keyValueDatabaseForPaths.SetAsync(LongToHash(count), pathHash);
         }
 
         public async Task<Change> GetAsync(Hash pathHash)
@@ -49,7 +49,7 @@ namespace AElf.Kernel.Storages
             var count = (long)await _keyValueDatabaseForPaths.GetAsync(HashToGetPathsCount, typeof(long));
             for (long i = 1; i < count + 1; i++)
             {
-                var changedPathHash = (Hash)await _keyValueDatabaseForPaths.GetAsync(IntToHash(i), typeof(Hash));
+                var changedPathHash = (Hash)await _keyValueDatabaseForPaths.GetAsync(LongToHash(i), typeof(Hash));
                 var change = (Change) await _keyValueDatabase.GetAsync(changedPathHash, typeof(Change));
                 changes.Add(change);
             }
@@ -58,7 +58,7 @@ namespace AElf.Kernel.Storages
         }
 
         /// <summary>
-        /// Simply return all the changed paths.
+        /// Return all the changed paths.
         /// </summary>
         /// <returns></returns>
         public async Task<List<Hash>> GetChangedPathHashesAsync()
@@ -67,20 +67,25 @@ namespace AElf.Kernel.Storages
             var paths = new List<Hash>();
             for (long i = 1; i < count + 1; i++)
             {
-                var changedPathHash = (Hash)await _keyValueDatabaseForPaths.GetAsync(IntToHash(i), typeof(Hash));
+                var changedPathHash = (Hash)await _keyValueDatabaseForPaths.GetAsync(LongToHash(i), typeof(Hash));
                 paths.Add(changedPathHash);
             }
 
             return paths;
         }
 
+        /// <summary>
+        /// Get dictionary of 
+        /// Changed Path Hash - Change instance.
+        /// </summary>
+        /// <returns></returns>
         public async Task<Dictionary<Hash, Change>> GetChangesDictionary()
         {
             var dict = new Dictionary<Hash, Change>();
             var count = (long)await _keyValueDatabaseForPaths.GetAsync(HashToGetPathsCount, typeof(long));
             for (long i = 1; i < count + 1; i++)
             {
-                var changedPathHash = (Hash)await _keyValueDatabaseForPaths.GetAsync(IntToHash(i), typeof(Hash));
+                var changedPathHash = (Hash)await _keyValueDatabaseForPaths.GetAsync(LongToHash(i), typeof(Hash));
                 var change = (Change) await _keyValueDatabase.GetAsync(changedPathHash, typeof(Change));
                 dict[changedPathHash] = change;
             }
@@ -88,7 +93,7 @@ namespace AElf.Kernel.Storages
             return dict;
         }
 
-        private Hash IntToHash(long number)
+        private Hash LongToHash(long number)
         {
             var newHashValue = new byte[32];
             for (var i = 0; i < 8; i++)

@@ -64,7 +64,7 @@ namespace AElf.Kernel
                 throw new InvalidOperationException("Invalide pointer.");
             }
 
-            return CalculateListHash(_chainHash, _blockHash, _accountAddress, _dataProviderHash, _keyHash);
+            return CalculateListHash(_chainHash, _accountAddress, _dataProviderHash, _keyHash, _blockHash);
         }
 
         public Hash GetPathHash()
@@ -95,32 +95,7 @@ namespace AElf.Kernel
                 return hashes[0];
             }
             var remains = hashes.Skip(1).ToArray();
-            return CombineHash(hashes[0], CalculateListHash(remains));
-        }
-
-        private Hash CombineHash(Hash hash1, Hash hash2)
-        {
-            if (hash1.Value.Length == 0)
-            {
-                return hash2;
-            }
-
-            if (hash2.Value.Length == 0)
-            {
-                return hash1;
-            }
-            
-            var arr1 = hash1.Value.ToArray();
-            var arr2 = hash2.Value.ToArray();
-            var length = Math.Min(arr1.Length, arr2.Length);
-            var arr = new byte[length];
-            for (var i = 0; i < length; i++)
-            {
-                arr[i] = (byte) ((arr1[i] + arr2[i]) % 256);
-            }
-
-            var hash = new Hash(arr);
-            return hash;
+            return hashes[0].CombineHash(CalculateListHash(remains));
         }
     }
 }
