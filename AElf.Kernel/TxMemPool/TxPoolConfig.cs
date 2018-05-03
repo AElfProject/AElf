@@ -1,10 +1,8 @@
-﻿using AElf.Kernel.TxMemPool;
-
-namespace AElf.Kernel
+﻿namespace AElf.Kernel.TxMemPool
 {
     public class TxPoolConfig : ITxPoolConfig
     {
-        public static readonly TxPoolConfig Default = new TxPoolConfig()
+        public static readonly TxPoolConfig Default = new TxPoolConfig
         {
             PoolLimitSize = 10000,
             TxLimitSize = 10000,
