@@ -27,7 +27,7 @@ namespace AElf.Kernel
         Task<Hash> GetPointer(Hash pathHash);
         Hash GetPointer(Path path);
         
-        Task InsertChange(Hash pathHash, Hash hashBefore, Hash pointerHash);
+        Task<long> InsertChange(Hash pathHash, Hash hashBefore, Hash pointerHash);
         
         /// <summary>
         /// Rollback to previous world state.

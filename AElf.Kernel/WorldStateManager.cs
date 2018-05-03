@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
+using Org.BouncyCastle.Crypto.Modes;
 
 namespace AElf.Kernel
 {
@@ -100,7 +101,7 @@ namespace AElf.Kernel
         /// <param name="hashBefore"></param>
         /// <param name="pointerHash"></param>
         /// <returns></returns>
-        public async Task InsertChange(Hash pathHash, Hash hashBefore, Hash pointerHash)
+        public async Task<long> InsertChange(Hash pathHash, Hash hashBefore, Hash pointerHash)
         {
             await _changesStore.InsertAsync(pathHash, new Change()
             {
@@ -116,6 +117,8 @@ namespace AElf.Kernel
             await _dataStore.SetData(key, pathHash.Value.ToByteArray());
             count++;
             await _dataStore.SetData(GetHashToGetPathsCount(), LongToBytes(count));
+
+            return count;
         }
 
         /// <summary>
@@ -253,6 +256,57 @@ namespace AElf.Kernel
             }
 
             return changes;
+        }
+
+        public async Task<List<Change>> GetChangesAsync(long start, int count)
+        {
+            var changes = new List<Change>();
+            for (var i = 0; i < count; i++)
+            {
+                var key = _preBlockHash.CombineHashReverse(LongToBytes(start));
+                var path = await _dataStore.GetData(key);
+                var change = await _changesStore.GetAsync(path);
+                changes.Add(change);
+                start++;
+            }
+
+            return changes;
+        }
+
+        public async Task<List<Hash>> GetPathsAsync(long start, int count)
+        {
+            var paths = new List<Hash>();
+            for (var i = 0; i < count; i++)
+            {
+                var key = _preBlockHash.CombineHashReverse(LongToBytes(start));
+                var path = await _dataStore.GetData(key);
+                paths.Add(path);
+                start++;
+            }
+
+            return paths;
+        }
+
+        public async Task<Dictionary<Hash, Change>> GetChangesDictionaryAsync(long start, int count)
+        {
+            var paths = await GetPathsAsync(start, count);
+            var dict = new Dictionary<Hash, Change>();
+            foreach (var path in paths)
+            {
+                var change = await _changesStore.GetAsync(path);
+                dict[path] = change;
+            }
+
+            return dict;
+        }
+
+        public async Task RollbackSeveralChanges(long start, int count)
+        {
+            var dict = await GetChangesDictionaryAsync(start, count);
+            foreach (var pair in dict)
+            {
+                await _pointerStore.UpdateAsync(pair.Key, pair.Value.Before);
+            }
         }
         
         /// <summary>
