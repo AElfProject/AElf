@@ -13,5 +13,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns></returns>
         Task<Hash> GetWorldStateMerkleTreeRootAsync();
+
+        Task<Change> GetChangeAsync(Hash pathHash);
     }
 }

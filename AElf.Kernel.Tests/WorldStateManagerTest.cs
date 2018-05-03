@@ -53,17 +53,5 @@ namespace AElf.Kernel.Tests
             
             Assert.True(data.SequenceEqual(getData));
         }
-
-        [Fact]
-        public async Task WorldStateTest()
-        {
-            var chain = new Chain(Hash.Generate());
-            await _worldStateManager.SetWorldStateToCurrentState(chain.Id, _genesisBlockHash);
-
-            var genesisWorldState = await _worldStateManager.GetWorldStateAsync(chain.Id, _genesisBlockHash);
-            var changes = await genesisWorldState.GetChangesAsync();
-            
-            Assert.True(changes.Count == 0);
-        }
     }
 }

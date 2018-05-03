@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AElf.Kernel
 {
@@ -10,7 +11,7 @@ namespace AElf.Kernel
         /// <param name="chainId"></param>
         /// <param name="blockHash"></param>
         /// <returns></returns>
-        Task<WorldState> GetWorldStateAsync(Hash chainId, Hash blockHash);
+        Task<IWorldState> GetWorldStateAsync(Hash chainId, Hash blockHash);
 
         /// <summary>
         /// Set the world state.
@@ -21,11 +22,26 @@ namespace AElf.Kernel
         /// <returns></returns>
         Task SetWorldStateToCurrentState(Hash chainId, Hash currentBlockHash);
 
+        Task UpdatePointer(Hash pathHash, Hash pointerHash);
+        
+        Task<Hash> GetPointer(Hash pathHash);
+        Hash GetPointer(Path path);
+        
+        Task InsertChange(Hash pathHash, Hash hashBefore, Hash pointerHash);
+        
         /// <summary>
         /// Rollback to previous world state.
         /// </summary>
         /// <returns></returns>
         Task RollbackDataToPreviousWorldState();
+
+        Task<List<Hash>> GetFixedPathsAsync(Hash blockHash = null);
+
+        Task<List<Change>> GetChangesAsync(Hash chainId, Hash blockHash);
+
+        Task<List<Change>> GetChangesAsync();
+
+        Task<Dictionary<Hash, Change>> GetChangesDictionaryAsync();
         
         IAccountDataProvider GetAccountDataProvider(Hash chain, Hash account);
 

@@ -10,10 +10,6 @@ namespace AElf.Kernel.Storages
 
         Task<Change> GetAsync(Hash path);
 
-        Task<List<Change>> GetChangesAsync();
 
-        Task<List<Hash>> GetChangedPathHashesAsync();
-
-        Task<Dictionary<Hash, Change>> GetChangesDictionary();
     }
 }

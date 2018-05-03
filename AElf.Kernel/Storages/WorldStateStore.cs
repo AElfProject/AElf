@@ -19,11 +19,10 @@ namespace AElf.Kernel.Storages
             await _keyValueDatabase.SetAsync(wsKey, changesStore);
         }
 
-        public async Task<WorldState> GetWorldState(Hash chainId, Hash blockHash)
+        public async Task<IChangesStore> GetWorldState(Hash chainId, Hash blockHash)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
-            var changesStore = (ChangesStore) await _keyValueDatabase.GetAsync(wsKey, typeof(ChangesStore));
-            return await Task.FromResult(new WorldState(changesStore));
+            return (IChangesStore) await _keyValueDatabase.GetAsync(wsKey, typeof(IChangesStore));
         }
     }
 }

@@ -13,21 +13,15 @@ namespace AElf.Kernel
         private readonly IAccountDataContext _accountDataContext;
         private readonly string _dataProviderKey;
         
-        private readonly IPointerStore _pointerStore;
         private readonly IWorldStateManager _worldStateManager;
-        private IChangesStore _changesStore;
-        private readonly Hash _preBlockHash;
 
         private readonly Path _path;
         
-        public DataProvider(IAccountDataContext accountDataContext, IPointerStore pointerStore, 
-            IWorldStateManager worldStateManager, Hash preBlockHash, ref IChangesStore changesStore, 
+        public DataProvider(IAccountDataContext accountDataContext,
+            IWorldStateManager worldStateManager,
             string dataProviderKey = "")
         {
             _worldStateManager = worldStateManager;
-            _preBlockHash = preBlockHash;
-            _changesStore = changesStore;
-            _pointerStore = pointerStore;
             _accountDataContext = accountDataContext;
             _dataProviderKey = dataProviderKey;
 
@@ -45,8 +39,7 @@ namespace AElf.Kernel
         
         public IDataProvider GetDataProvider(string name)
         {
-            return new DataProvider(_accountDataContext, _pointerStore, _worldStateManager, 
-                _preBlockHash, ref _changesStore, name);
+            return new DataProvider(_accountDataContext, _worldStateManager, name);
         }
 
         /// <summary>
@@ -59,14 +52,13 @@ namespace AElf.Kernel
         {
             var worldState = await _worldStateManager.GetWorldStateAsync(_accountDataContext.ChainId, preBlockHash);
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
-            var change = await worldState.GetChange(pathHash);
+            var change = await worldState.GetChangeAsync(pathHash);
             return await _worldStateManager.GetData(change.After);
         }
 
         public async Task<byte[]> GetAsync(Hash keyHash)
         {
-            _path.SetDataKey(keyHash);
-            var pointerHash = await _pointerStore.GetAsync(_path.GetPathHash());
+            var pointerHash = await _worldStateManager.GetPointer(_path.SetDataKey(keyHash).GetPathHash());
             return await _worldStateManager.GetData(pointerHash);
         }
 
@@ -74,18 +66,13 @@ namespace AElf.Kernel
         {
             //Clean the path.
             _path.SetBlockHashToNull();
+            
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
-            var pointerHash = _path.SetBlockHash(_preBlockHash).GetPointerHash();
-            var hashBefore = await _pointerStore.GetAsync(pathHash);
-            
-            await _pointerStore.UpdateAsync(pathHash, pointerHash);
-            
-            await _changesStore.InsertAsync(pathHash, new Change()
-            {
-                Before = hashBefore,
-                After = pointerHash
-            });
-            
+            var pointerHash = _worldStateManager.GetPointer(_path);
+            var hashBefore = await _worldStateManager.GetPointer(pathHash);
+
+            await _worldStateManager.UpdatePointer(pathHash, pointerHash);
+            await _worldStateManager.InsertChange(pathHash, hashBefore, pointerHash);
             await _worldStateManager.SetData(pointerHash, obj);
         }
     }

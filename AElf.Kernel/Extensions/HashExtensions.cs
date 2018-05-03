@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Linq;
 using Newtonsoft.Json;
@@ -57,13 +58,36 @@ namespace AElf.Kernel.Extensions
             }
 
             var length = hash.Value.Length;
-            var newHashByte = new byte[length];
+            var newHashBytes = new byte[length];
             for (var i = 0; i < length; i++)
             {
-                newHashByte[i] = (byte) (hash.Value[i] ^ another.Value[i]);
+                newHashBytes[i] = (byte) (hash.Value[i] ^ another.Value[i]);
             }
 
-            return newHashByte;
+            return newHashBytes;
+        }
+
+        public static Hash CombineHashReverse(this Hash hash, Hash another)
+        {
+            var reverse = hash.Value.Reverse().ToArray();
+            if (another == null || another.Value.Length == 0)
+            {
+                return reverse;
+            }
+
+            if (hash.Value.Length == 0)
+            {
+                return another;
+            }
+
+            var length = Math.Min(reverse.Length, another.Value.Length);
+            var newHashBytes = new byte[length];
+            for (var i = 0; i < length; i++)
+            {
+                newHashBytes[i] = (byte) (reverse[i] ^ another.Value[i]);
+            }
+
+            return newHashBytes;
         }
 
         #region private methods
