@@ -24,9 +24,10 @@ namespace AElf.Kernel {
     static MessagesReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Cg5tZXNzYWdlcy5wcm90byJuCgtUcmFuc2FjdGlvbhITCgRGcm9tGAEgASgL",
-            "MgUuSGFzaBIRCgJUbxgCIAEoCzIFLkhhc2gSEwoLSW5jcmVtZW50SWQYAyAB",
-            "KAQSEgoKTWV0aG9kTmFtZRgEIAEoCRIOCgZQYXJhbXMYBSABKAwiFQoESGFz",
+            "Cg5tZXNzYWdlcy5wcm90byKDAQoLVHJhbnNhY3Rpb24SEwoERnJvbRgBIAEo",
+            "CzIFLkhhc2gSEQoCVG8YAiABKAsyBS5IYXNoEhMKC0luY3JlbWVudElkGAMg",
+            "ASgEEhIKCk1ldGhvZE5hbWUYBCABKAkSDgoGUGFyYW1zGAUgASgMEhMKBVBy",
+            "aWNlGAYgASgLMgQuRmVlIhUKA0ZlZRIOCgZBbW91bnQYASABKAQiFQoESGFz",
             "aBINCgVWYWx1ZRgBIAEoDCJpCgtCbG9ja0hlYWRlchIPCgdWZXJzaW9uGAEg",
             "ASgFEhwKDVBlcnZpb3VzQmxvY2sYAiABKAsyBS5IYXNoEisKHE1lcmtsZVRy",
             "ZWVSb290T2ZUcmFuc2FjdGlvbnMYAyABKAsyBS5IYXNoIkQKCUJsb2NrQm9k",
@@ -42,7 +43,8 @@ namespace AElf.Kernel {
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params", "Price" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Fee), global::AElf.Kernel.Fee.Parser, new[]{ "Amount" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Hash), global::AElf.Kernel.Hash.Parser, new[]{ "Value" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PerviousBlock", "MerkleTreeRootOfTransactions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockBody), global::AElf.Kernel.BlockBody.Parser, new[]{ "BlockHeader", "Transactions" }, null, null, null),
@@ -86,6 +88,7 @@ namespace AElf.Kernel {
       incrementId_ = other.incrementId_;
       methodName_ = other.methodName_;
       params_ = other.params_;
+      Price = other.price_ != null ? other.Price.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -149,6 +152,17 @@ namespace AElf.Kernel {
       }
     }
 
+    /// <summary>Field number for the "Price" field.</summary>
+    public const int PriceFieldNumber = 6;
+    private global::AElf.Kernel.Fee price_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Fee Price {
+      get { return price_; }
+      set {
+        price_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as Transaction);
@@ -167,6 +181,7 @@ namespace AElf.Kernel {
       if (IncrementId != other.IncrementId) return false;
       if (MethodName != other.MethodName) return false;
       if (Params != other.Params) return false;
+      if (!object.Equals(Price, other.Price)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -178,6 +193,7 @@ namespace AElf.Kernel {
       if (IncrementId != 0UL) hash ^= IncrementId.GetHashCode();
       if (MethodName.Length != 0) hash ^= MethodName.GetHashCode();
       if (Params.Length != 0) hash ^= Params.GetHashCode();
+      if (price_ != null) hash ^= Price.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -211,6 +227,10 @@ namespace AElf.Kernel {
         output.WriteRawTag(42);
         output.WriteBytes(Params);
       }
+      if (price_ != null) {
+        output.WriteRawTag(50);
+        output.WriteMessage(Price);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -233,6 +253,9 @@ namespace AElf.Kernel {
       }
       if (Params.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(Params);
+      }
+      if (price_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Price);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -265,6 +288,12 @@ namespace AElf.Kernel {
       }
       if (other.Params.Length != 0) {
         Params = other.Params;
+      }
+      if (other.price_ != null) {
+        if (price_ == null) {
+          price_ = new global::AElf.Kernel.Fee();
+        }
+        Price.MergeFrom(other.Price);
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -303,6 +332,142 @@ namespace AElf.Kernel {
             Params = input.ReadBytes();
             break;
           }
+          case 50: {
+            if (price_ == null) {
+              price_ = new global::AElf.Kernel.Fee();
+            }
+            input.ReadMessage(price_);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class Fee : pb::IMessage<Fee> {
+    private static readonly pb::MessageParser<Fee> _parser = new pb::MessageParser<Fee>(() => new Fee());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<Fee> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[1]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Fee() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Fee(Fee other) : this() {
+      amount_ = other.amount_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Fee Clone() {
+      return new Fee(this);
+    }
+
+    /// <summary>Field number for the "Amount" field.</summary>
+    public const int AmountFieldNumber = 1;
+    private ulong amount_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ulong Amount {
+      get { return amount_; }
+      set {
+        amount_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as Fee);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(Fee other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Amount != other.Amount) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Amount != 0UL) hash ^= Amount.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Amount != 0UL) {
+        output.WriteRawTag(8);
+        output.WriteUInt64(Amount);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Amount != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(Amount);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(Fee other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Amount != 0UL) {
+        Amount = other.Amount;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            Amount = input.ReadUInt64();
+            break;
+          }
         }
       }
     }
@@ -317,7 +482,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[1]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[2]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -446,7 +611,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[2]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -643,7 +808,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[3]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[4]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -798,7 +963,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[4]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -967,7 +1132,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[5]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1158,7 +1323,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[6]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[7]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1321,7 +1486,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[7]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[8]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

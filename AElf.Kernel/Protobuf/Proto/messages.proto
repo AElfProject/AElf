@@ -9,6 +9,11 @@ message Transaction
     uint64 IncrementId = 3;
     string MethodName = 4;
     bytes Params = 5;
+    Fee Price = 6;    
+}
+
+message Fee{
+    uint64 Amount = 1;
 }
 
 message Hash{
