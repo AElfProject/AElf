@@ -11,12 +11,10 @@ namespace AElf.Kernel.TxMemPool
     public class TxPoolService : ITxPoolService
     {
         private readonly ITxPool _txPool;
-        private readonly ITransactionManager _transactionManager;
 
-        public TxPoolService(ITxPool txPool, ITransactionManager transactionManager)
+        public TxPoolService(ITxPool txPool)
         {
             _txPool = txPool;
-            _transactionManager = transactionManager;
         }
 
         /// <summary>

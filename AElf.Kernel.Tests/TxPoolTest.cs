@@ -13,16 +13,11 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class TxPoolTest
     {
-        private readonly IChainContextService _chainContextService;
-        private readonly ITransactionManager _transactionManager;
         private readonly IAccountContextService _accountContextService;
         private readonly ISmartContractZero _smartContractZero;
         
-        public TxPoolTest(IChainContextService chainContextService, ITransactionManager transactionManager, 
-            IAccountContextService accountContextService, ISmartContractZero smartContractZero)
+        public TxPoolTest(IAccountContextService accountContextService, ISmartContractZero smartContractZero)
         {
-            _chainContextService = chainContextService;
-            _transactionManager = transactionManager;
             _accountContextService = accountContextService;
             _smartContractZero = smartContractZero;
         }
@@ -278,7 +273,7 @@ namespace AElf.Kernel.Tests
             var pool = new TxPool(new ChainContext(_smartContractZero, Hash.Generate()), TxPoolConfig.Default,
                 _accountContextService);
             
-            var poolService = new TxPoolService(pool, _transactionManager);
+            var poolService = new TxPoolService(pool);
             poolService.Start();
            
             var addr11 = Hash.Generate();
@@ -391,7 +386,7 @@ namespace AElf.Kernel.Tests
             var pool = new TxPool(new ChainContext(_smartContractZero, Hash.Generate()), TxPoolConfig.Default,
                 _accountContextService);
             
-            var poolService = new TxPoolService(pool, _transactionManager);
+            var poolService = new TxPoolService(pool);
             poolService.Start();
             ulong queued = 0;
             ulong exec = 0;

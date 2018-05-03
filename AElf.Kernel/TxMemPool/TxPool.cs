@@ -31,7 +31,7 @@ namespace AElf.Kernel.TxMemPool
         public ulong EntryThreshold => _config.EntryThreshold;
 
         /// <inheritdoc />
-        public Fee MinimalFee => _config.FeeThreshold;
+        //public Fee MinimalFee => _config.FeeThreshold;
 
         /// <inheritdoc />
         public ulong Size => (ulong) _pool.Count;
@@ -89,8 +89,9 @@ namespace AElf.Kernel.TxMemPool
         {
             var txHash = tx.GetHash();
             
-            // validate tx
-            if (Contains(txHash)||!tx.ValidateTx()||GetNonce(tx.From)>tx.IncrementId)
+            // TODO: validate tx
+            
+            if (Contains(txHash)||GetNonce(tx.From)>tx.IncrementId)
                 return false;
             
             _pool.Add(txHash, tx);
@@ -181,7 +182,9 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         private bool ReplaceTx(Hash txHash)
         {
-            if (!_pool.TryGetValue(txHash, out var tx)||tx.ValidateTx())
+            // TODO: validate tx
+
+            if (!_pool.TryGetValue(txHash, out var tx))
                 return false;
             var addr = tx.From;
             var nonce = GetNonce(addr);

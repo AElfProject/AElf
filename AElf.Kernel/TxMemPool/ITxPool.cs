@@ -54,7 +54,7 @@ namespace AElf.Kernel.TxMemPool
         /// minimal fee needed
         /// </summary>
         /// <returns></returns>
-        Fee MinimalFee { get; }
+        //Fee MinimalFee { get; }
 
         /// <summary>
         /// return a tx alread in pool
