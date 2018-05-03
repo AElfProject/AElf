@@ -90,7 +90,7 @@ namespace AElf.Kernel.TxMemPool
             var txHash = tx.GetHash();
             
             // validate tx
-            if (Contains(txHash)||!tx.ValidateTx()||GetNonce(tx.From)>tx.IncrementId)
+            if (Contains(txHash)||!_config.ValidateTx(tx)||GetNonce(tx.From)>tx.IncrementId)
                 return false;
             
             _pool.Add(txHash, tx);
@@ -181,7 +181,7 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         private bool ReplaceTx(Hash txHash)
         {
-            if (!_pool.TryGetValue(txHash, out var tx)||tx.ValidateTx())
+            if (!_pool.TryGetValue(txHash, out var tx)||_config.ValidateTx(tx))
                 return false;
             var addr = tx.From;
             var nonce = GetNonce(addr);

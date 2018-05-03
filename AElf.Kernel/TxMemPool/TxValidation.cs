@@ -5,46 +5,42 @@ namespace AElf.Kernel.TxMemPool
     public static class TxValidation
     {
         
-        public static bool ValidateTx(this Transaction tx)
+        public static bool ValidateTx(this ITxPoolConfig config, Transaction tx)
         {
-            // fee check
-            
-            
-            // size check
-            /*if (GetTxSize(tx) > _config.TxLimitSize)
+            // size validation
+            if (GetTxSize(tx) > config.TxLimitSize)
             {
                 // TODO: log errors 
                 return false;
-            }*/
-            
-            // tx data validation
-            /*if (tx.IncrementId < 0 || tx.MethodName == null || tx.From == null)
-            {                
-                // TODO: log errors 
-                return false;
-            }*/
+            }
             
             // TODO: signature validation
             
-            
             // account address validation
-            /* if (tx.From == null || !CheckAddress(tx.From) || !CheckAddress(tx.To))
-             {
-                 // TODO: log errors 
-                 return false;
-             }*/
-
+            if (!tx.CheckAddress(out var addr))
+            {
+                // TODO: log errors, address error 
+                return false;
+            }
+            // fee validation
+            if (tx.Price < config.FeeThreshold)
+            {
+                // TODO: log errors, not enough Fee error 
+                return false;
+            }
+           
             // TODO : more validations
             return true;
         }
-        
+
         /// <summary>
         /// check validity of address
         /// </summary>
-        /// <param name="accountHash"></param>
+        /// <param name="tx"></param>
+        /// <param name="accAddress"></param>
         /// <returns></returns>    
         /// <exception cref="NotImplementedException"></exception>
-        private static bool CheckAddress(Hash accountHash)
+        private static bool CheckAddress(this Transaction tx, out Hash accAddress)
         {
             throw new NotImplementedException();
         }
