@@ -9,7 +9,5 @@ namespace AElf.Kernel.Storages
         Task InsertAsync(Hash path, Change change);
 
         Task<Change> GetAsync(Hash path);
-
-
     }
 }

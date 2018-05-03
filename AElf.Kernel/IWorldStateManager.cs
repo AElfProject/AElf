@@ -35,7 +35,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         Task RollbackDataToPreviousWorldState();
 
-        Task<List<Hash>> GetFixedPathsAsync(Hash blockHash = null);
+        Task<List<Hash>> GetPathsAsync(Hash blockHash = null);
 
         Task<List<Change>> GetChangesAsync(Hash chainId, Hash blockHash);
 
