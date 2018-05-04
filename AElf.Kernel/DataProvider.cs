@@ -62,7 +62,7 @@ namespace AElf.Kernel
             return await _worldStateManager.GetData(pointerHash);
         }
 
-        public async Task SetAsync(Hash keyHash, byte[] obj)
+        public async Task<long> SetAsync(Hash keyHash, byte[] obj)
         {
             //Clean the path.
             _path.SetBlockHashToNull();
@@ -72,8 +72,10 @@ namespace AElf.Kernel
             var hashBefore = await _worldStateManager.GetPointer(pathHash);
 
             await _worldStateManager.UpdatePointer(pathHash, pointerHash);
-            await _worldStateManager.InsertChange(pathHash, hashBefore, pointerHash);
+            var order = await _worldStateManager.InsertChange(pathHash, hashBefore, pointerHash);
             await _worldStateManager.SetData(pointerHash, obj);
+            
+            return order;
         }
     }
 }

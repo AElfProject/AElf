@@ -50,8 +50,8 @@ namespace AElf.Kernel
         public async Task<IWorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)
         {
             var changesStore =  await _worldStateStore.GetWorldState(chainId, blockHash);
-            var paths = await GetPathsAsync(blockHash);
-            return new WorldState(changesStore, paths);
+            var changes = await GetChangesAsync(chainId, blockHash);
+            return new WorldState(changesStore, changes.Select(c => c.After));
         }
         
         /// <summary>
@@ -64,6 +64,7 @@ namespace AElf.Kernel
         public async Task SetWorldStateToCurrentState(Hash chainId, Hash preBlockHash)
         {
             await _worldStateStore.InsertWorldState(chainId, _preBlockHash, _changesStore);
+            //TODO: ChangesStore -> WorldState
             _changesStore = new ChangesStore(new KeyValueDatabase());
             _preBlockHash = preBlockHash;
             await _dataStore.SetData(HashToGetPreBlockHash, preBlockHash.Value.ToByteArray());
@@ -280,6 +281,11 @@ namespace AElf.Kernel
             {
                 var key = _preBlockHash.CombineHashReverse(LongToBytes(start));
                 var path = await _dataStore.GetData(key);
+                if (path == null)
+                {
+                    return paths;
+                }
+                
                 paths.Add(path);
                 start++;
             }

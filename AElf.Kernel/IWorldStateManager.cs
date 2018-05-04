@@ -42,6 +42,8 @@ namespace AElf.Kernel
         Task<List<Change>> GetChangesAsync();
 
         Task<Dictionary<Hash, Change>> GetChangesDictionaryAsync();
+
+        Task RollbackSeveralChanges(long start, int count);
         
         IAccountDataProvider GetAccountDataProvider(Hash chain, Hash account);
 

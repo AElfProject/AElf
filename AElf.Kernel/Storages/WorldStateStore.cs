@@ -13,12 +13,14 @@ namespace AElf.Kernel.Storages
             _keyValueDatabase = keyValueDatabase;
         }
 
+        //TODO: value should be WorldState which can be serialized.
         public async Task InsertWorldState(Hash chainId, Hash blockHash, IChangesStore changesStore)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
             await _keyValueDatabase.SetAsync(wsKey, changesStore);
         }
 
+        //TODO: Same as above.
         public async Task<IChangesStore> GetWorldState(Hash chainId, Hash blockHash)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);

@@ -10,6 +10,9 @@ using AElf.Kernel.Storages;
 
 namespace AElf.Kernel
 {
+    /// <summary>
+    /// TODO: Refactor needed. Make WorldState serializable.
+    /// </summary>
     public class WorldState : IWorldState
     {
         private readonly IChangesStore _changesStore;
