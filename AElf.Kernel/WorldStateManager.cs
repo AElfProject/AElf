@@ -49,8 +49,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public async Task<IWorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)
         {
-            var changesStore =  await _worldStateStore.GetWorldState(chainId, blockHash);
-            return new WorldState(changesStore);
+            return await _worldStateStore.GetWorldState(chainId, blockHash);
         }
         
         /// <summary>
@@ -66,7 +65,7 @@ namespace AElf.Kernel
             var dict = new ChangesDict();
             foreach (var pair in changes)
             {
-                var pairHashChange = new Pair_Hash_Change
+                var pairHashChange = new PairHashChange
                 {
                     Key = pair.Key,
                     Value = pair.Value

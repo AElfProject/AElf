@@ -59,10 +59,10 @@ message Change{
 }
 
 message ChangesDict{
-    repeated Pair_Hash_Change Dict = 1;
+    repeated PairHashChange Dict = 1;
 }
 
-message Pair_Hash_Change{
+message PairHashChange{
     Hash Key = 1;
     Change Value = 2;
 }

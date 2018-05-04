@@ -41,10 +41,10 @@ namespace AElf.Kernel {
             "SW5jcmVtZW50SWQYAiABKAQiUgoKV29ybGRTdGF0ZRIhCgtDaGFuZ2VzRGlj",
             "dBgBIAEoCzIMLkNoYW5nZXNEaWN0EiEKEk1lcmtsZVRyZWVSb290SGFzaBgC",
             "IAEoCzIFLkhhc2giNQoGQ2hhbmdlEhUKBkJlZm9yZRgBIAEoCzIFLkhhc2gS",
-            "FAoFQWZ0ZXIYAiABKAsyBS5IYXNoIi4KC0NoYW5nZXNEaWN0Eh8KBERpY3QY",
-            "ASADKAsyES5QYWlyX0hhc2hfQ2hhbmdlIj4KEFBhaXJfSGFzaF9DaGFuZ2US",
-            "EgoDS2V5GAEgASgLMgUuSGFzaBIWCgVWYWx1ZRgCIAEoCzIHLkNoYW5nZUIO",
-            "qgILQUVsZi5LZXJuZWxiBnByb3RvMw=="));
+            "FAoFQWZ0ZXIYAiABKAsyBS5IYXNoIiwKC0NoYW5nZXNEaWN0Eh0KBERpY3QY",
+            "ASADKAsyDy5QYWlySGFzaENoYW5nZSI8Cg5QYWlySGFzaENoYW5nZRISCgNL",
+            "ZXkYASABKAsyBS5IYXNoEhYKBVZhbHVlGAIgASgLMgcuQ2hhbmdlQg6qAgtB",
+            "RWxmLktlcm5lbGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -59,7 +59,7 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.WorldState), global::AElf.Kernel.WorldState.Parser, new[]{ "ChangesDict", "MerkleTreeRootHash" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Change), global::AElf.Kernel.Change.Parser, new[]{ "Before", "After" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.ChangesDict), global::AElf.Kernel.ChangesDict.Parser, new[]{ "Dict" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Pair_Hash_Change), global::AElf.Kernel.Pair_Hash_Change.Parser, new[]{ "Key", "Value" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.PairHashChange), global::AElf.Kernel.PairHashChange.Parser, new[]{ "Key", "Value" }, null, null, null)
           }));
     }
     #endregion
@@ -1860,11 +1860,11 @@ namespace AElf.Kernel {
 
     /// <summary>Field number for the "Dict" field.</summary>
     public const int DictFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Pair_Hash_Change> _repeated_dict_codec
-        = pb::FieldCodec.ForMessage(10, global::AElf.Kernel.Pair_Hash_Change.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Pair_Hash_Change> dict_ = new pbc::RepeatedField<global::AElf.Kernel.Pair_Hash_Change>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.PairHashChange> _repeated_dict_codec
+        = pb::FieldCodec.ForMessage(10, global::AElf.Kernel.PairHashChange.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.PairHashChange> dict_ = new pbc::RepeatedField<global::AElf.Kernel.PairHashChange>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Pair_Hash_Change> Dict {
+    public pbc::RepeatedField<global::AElf.Kernel.PairHashChange> Dict {
       get { return dict_; }
     }
 
@@ -1945,11 +1945,11 @@ namespace AElf.Kernel {
 
   }
 
-  public sealed partial class Pair_Hash_Change : pb::IMessage<Pair_Hash_Change> {
-    private static readonly pb::MessageParser<Pair_Hash_Change> _parser = new pb::MessageParser<Pair_Hash_Change>(() => new Pair_Hash_Change());
+  public sealed partial class PairHashChange : pb::IMessage<PairHashChange> {
+    private static readonly pb::MessageParser<PairHashChange> _parser = new pb::MessageParser<PairHashChange>(() => new PairHashChange());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<Pair_Hash_Change> Parser { get { return _parser; } }
+    public static pb::MessageParser<PairHashChange> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
@@ -1962,22 +1962,22 @@ namespace AElf.Kernel {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Pair_Hash_Change() {
+    public PairHashChange() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Pair_Hash_Change(Pair_Hash_Change other) : this() {
+    public PairHashChange(PairHashChange other) : this() {
       Key = other.key_ != null ? other.Key.Clone() : null;
       Value = other.value_ != null ? other.Value.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Pair_Hash_Change Clone() {
-      return new Pair_Hash_Change(this);
+    public PairHashChange Clone() {
+      return new PairHashChange(this);
     }
 
     /// <summary>Field number for the "Key" field.</summary>
@@ -2004,11 +2004,11 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
-      return Equals(other as Pair_Hash_Change);
+      return Equals(other as PairHashChange);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(Pair_Hash_Change other) {
+    public bool Equals(PairHashChange other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -2067,7 +2067,7 @@ namespace AElf.Kernel {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(Pair_Hash_Change other) {
+    public void MergeFrom(PairHashChange other) {
       if (other == null) {
         return;
       }
