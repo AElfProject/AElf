@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
-using Org.BouncyCastle.Crypto.Modes;
 
 namespace AElf.Kernel
 {
@@ -17,9 +14,9 @@ namespace AElf.Kernel
         private readonly IPointerStore _pointerStore;
         private readonly IAccountContextService _accountContextService;
         private readonly IDataStore _dataStore;
-        
+        private readonly IChangesStore _changesStore;
+
         private Hash _preBlockHash;
-        private IChangesStore _changesStore;
 
         /// <summary>
         /// A specific key to store previous block hash value.
@@ -53,8 +50,8 @@ namespace AElf.Kernel
         }
         
         /// <summary>
-        /// Capture a ChangesStore instance and set it to WorldStateStore,
-        /// then renew _changesStore to collect next block's changes.
+        /// Capture a ChangesStore instance and generate a ChangesDict,
+        /// then set the ChangesDict to WorldStateStore.
         /// </summary>
         /// <param name="chainId"></param>
         /// <param name="preBlockHash">At last set preBlockHash to a specific key</param>
@@ -73,10 +70,10 @@ namespace AElf.Kernel
                 dict.Dict.Add(pairHashChange);
             }
             await _worldStateStore.InsertWorldState(chainId, _preBlockHash, dict);
-            
-            _changesStore = new ChangesStore(new KeyValueDatabase());
-            _preBlockHash = preBlockHash;
             await _dataStore.SetData(HashToGetPreBlockHash, preBlockHash.Value.ToByteArray());
+
+            //Refresh _preBlockHash after setting WorldState.
+            _preBlockHash = preBlockHash;
         }
 
         /// <summary>
@@ -113,7 +110,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public async Task<long> InsertChange(Hash pathHash, Hash hashBefore, Hash pointerHash)
         {
-            await _changesStore.InsertAsync(pathHash, new Change()
+            await _changesStore.InsertAsync(pathHash, new Change
             {
                 Before = hashBefore,
                 After = pointerHash
