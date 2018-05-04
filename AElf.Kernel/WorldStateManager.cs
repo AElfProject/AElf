@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
@@ -35,7 +33,7 @@ namespace AElf.Kernel
 
             _preBlockHash = _dataStore.GetData(HashToGetPreBlockHash).Result ?? Hash.Zero;
 
-            _dataStore.SetData(GetHashToGetPathsCount(), LongToBytes(0));
+            _dataStore.SetData(GetHashToGetPathsCount(), ((long)0).ToBytes());
         }
         
         /// <summary>
@@ -117,13 +115,13 @@ namespace AElf.Kernel
             });
             
             var countBytes = await _dataStore.GetData(GetHashToGetPathsCount());
-            countBytes = countBytes ?? LongToBytes(0);
-            var count = BytesToLong(countBytes);
+            countBytes = countBytes ??  ((long)0).ToBytes();
+            var count = countBytes.ToInt64();
             //Kind of important.
             var key = _preBlockHash.CombineHashReverse(countBytes);
             await _dataStore.SetData(key, pathHash.Value.ToByteArray());
             count++;
-            await _dataStore.SetData(GetHashToGetPathsCount(), LongToBytes(count));
+            await _dataStore.SetData(GetHashToGetPathsCount(), count.ToBytes());
 
             return count;
         }
@@ -213,11 +211,11 @@ namespace AElf.Kernel
             {
                 return null;
             }
-            
-            var changedPathsCount = BytesToLong(changedPathsCountBytes);
-            for (var i = 0; i < changedPathsCount; i++)
+
+            var changedPathsCount = changedPathsCountBytes.ToInt64();
+            for (long i = 0; i < changedPathsCount; i++)
             {
-                var key = blockHash.CombineHashReverse(LongToBytes(i));
+                var key = blockHash.CombineHashReverse(i.ToBytes());
                 var path = await _dataStore.GetData(key);
                 fixedPaths.Add(path);
             }
@@ -270,7 +268,7 @@ namespace AElf.Kernel
             var changes = new List<Change>();
             for (var i = 0; i < count; i++)
             {
-                var key = _preBlockHash.CombineHashReverse(LongToBytes(start));
+                var key = _preBlockHash.CombineHashReverse(start.ToBytes());
                 var path = await _dataStore.GetData(key);
                 var change = await _changesStore.GetAsync(path);
                 changes.Add(change);
@@ -285,7 +283,7 @@ namespace AElf.Kernel
             var paths = new List<Hash>();
             for (var i = 0; i < count; i++)
             {
-                var key = _preBlockHash.CombineHashReverse(LongToBytes(start));
+                var key = _preBlockHash.CombineHashReverse(start.ToBytes());
                 var path = await _dataStore.GetData(key);
                 if (path == null)
                 {
@@ -341,21 +339,6 @@ namespace AElf.Kernel
             }
 
             return dict;
-        }
-
-        private byte[] LongToBytes(long number)
-        {
-            return BitConverter.IsLittleEndian ? 
-                BitConverter.GetBytes(number).Reverse().ToArray() : 
-                BitConverter.GetBytes(number);
-        }
-
-        private long BytesToLong(byte[] bytes)
-        {
-            return BitConverter.ToInt64(
-                BitConverter.IsLittleEndian ? 
-                bytes.Reverse().ToArray() : 
-                bytes, 0);
         }
     }
 }
