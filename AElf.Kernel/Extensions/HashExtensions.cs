@@ -50,7 +50,7 @@ namespace AElf.Kernel.Extensions
         /// <param name="hash"></param>
         /// <param name="another"></param>
         /// <returns></returns>
-        public static Hash CombineHash(this Hash hash, Hash another)
+        public static Hash CombineHashWith(this Hash hash, Hash another)
         {
             if (another.Value.Length == 0)
             {
@@ -67,7 +67,13 @@ namespace AElf.Kernel.Extensions
             return newHashBytes;
         }
 
-        public static Hash CombineHashReverse(this Hash hash, Hash another)
+        /// <summary>
+        /// Provide another way to combine hash.
+        /// </summary>
+        /// <param name="hash"></param>
+        /// <param name="another"></param>
+        /// <returns></returns>
+        public static Hash CombineReverseHashWith(this Hash hash, Hash another)
         {
             var reverse = hash.Value.Reverse().ToArray();
             if (another == null || another.Value.Length == 0)

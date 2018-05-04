@@ -80,7 +80,7 @@ namespace AElf.Kernel
         /// <param name="pathHash"></param>
         /// <param name="pointerHash"></param>
         /// <returns></returns>
-        public async Task UpdatePointer(Hash pathHash, Hash pointerHash)
+        public async Task UpdatePointerToPointerStore(Hash pathHash, Hash pointerHash)
         {
             await _pointerStore.UpdateAsync(pathHash, pointerHash);
         }
@@ -91,13 +91,13 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="pathHash"></param>
         /// <returns></returns>
-        public async Task<Hash> GetPointer(Hash pathHash)
+        public async Task<Hash> GetPointerFromPointerStore(Hash pathHash)
         {
             return await _pointerStore.GetAsync(pathHash);
         }
 
         /// <summary>
-        /// Insert a Change to current ChangesStore.
+        /// Insert a Change to ChangesStore.
         /// And refresh the paths count of current world state,
         /// as well as insert a changed path to DataStore.
         /// The key to get the changed path can be calculated by _preBlockHash and the order.
@@ -118,7 +118,7 @@ namespace AElf.Kernel
             countBytes = countBytes ??  ((long)0).ToBytes();
             var count = countBytes.ToInt64();
             //Kind of important.
-            var key = _preBlockHash.CombineHashReverse(countBytes);
+            var key = _preBlockHash.CombineReverseHashWith(countBytes);
             await _dataStore.SetData(key, pathHash.Value.ToByteArray());
             count++;
             await _dataStore.SetData(GetHashToGetPathsCount(), count.ToBytes());
@@ -131,7 +131,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public Hash GetPointer(Path path)
+        public Hash CalculatePointerHashOfCurrentHeight(Path path)
         {
             return path.SetBlockHash(_preBlockHash).GetPointerHash();
         }
@@ -192,7 +192,7 @@ namespace AElf.Kernel
         {
             Interlocked.CompareExchange(ref blockHash, _preBlockHash, null);
             Hash origin = "paths".CalculateHash();
-            return origin.CombineHash(blockHash);
+            return origin.CombineHashWith(blockHash);
         }
 
         /// <summary>
@@ -215,7 +215,7 @@ namespace AElf.Kernel
             var changedPathsCount = changedPathsCountBytes.ToInt64();
             for (long i = 0; i < changedPathsCount; i++)
             {
-                var key = blockHash.CombineHashReverse(i.ToBytes());
+                var key = blockHash.CombineReverseHashWith(i.ToBytes());
                 var path = await _dataStore.GetData(key);
                 fixedPaths.Add(path);
             }
@@ -268,7 +268,7 @@ namespace AElf.Kernel
             var changes = new List<Change>();
             for (var i = 0; i < count; i++)
             {
-                var key = _preBlockHash.CombineHashReverse(start.ToBytes());
+                var key = _preBlockHash.CombineReverseHashWith(start.ToBytes());
                 var path = await _dataStore.GetData(key);
                 var change = await _changesStore.GetAsync(path);
                 changes.Add(change);
@@ -283,7 +283,7 @@ namespace AElf.Kernel
             var paths = new List<Hash>();
             for (var i = 0; i < count; i++)
             {
-                var key = _preBlockHash.CombineHashReverse(start.ToBytes());
+                var key = _preBlockHash.CombineReverseHashWith(start.ToBytes());
                 var path = await _dataStore.GetData(key);
                 if (path == null)
                 {

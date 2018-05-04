@@ -11,14 +11,14 @@ namespace AElf.Kernel
     public class DataProvider : IDataProvider
     {
         private readonly IAccountDataContext _accountDataContext;
-        private readonly string _dataProviderKey;
-        
         private readonly IWorldStateManager _worldStateManager;
-
+        /// <summary>
+        /// To dictinct DataProviders of same account and same level.
+        /// </summary>
+        private readonly string _dataProviderKey;
         private readonly Path _path;
         
-        public DataProvider(IAccountDataContext accountDataContext,
-            IWorldStateManager worldStateManager,
+        public DataProvider(IAccountDataContext accountDataContext, IWorldStateManager worldStateManager, 
             string dataProviderKey = "")
         {
             _worldStateManager = worldStateManager;
@@ -29,7 +29,6 @@ namespace AElf.Kernel
                 .SetChainHash(_accountDataContext.ChainId)
                 .SetAccount(_accountDataContext.Address)
                 .SetDataProvider(GetHash());
-
         }
 
         private Hash GetHash()
@@ -37,28 +36,42 @@ namespace AElf.Kernel
             return _accountDataContext.GetHash().CalculateHashWith(_dataProviderKey);
         }
         
+        /// <summary>
+        /// Get a sub-level DataProvider.
+        /// </summary>
+        /// <param name="name">sub-level DataProvider's name</param>
+        /// <returns></returns>
         public IDataProvider GetDataProvider(string name)
         {
             return new DataProvider(_accountDataContext, _worldStateManager, name);
         }
 
         /// <summary>
-        /// If blockHash is null, return data of current block height.
+        /// Get data of specifix block by corresponding block hash.
         /// </summary>
         /// <param name="keyHash"></param>
         /// <param name="preBlockHash"></param>
         /// <returns></returns>
         public async Task<byte[]> GetAsync(Hash keyHash, Hash preBlockHash)
         {
+            //Get correspoding WorldState instance
             var worldState = await _worldStateManager.GetWorldStateAsync(_accountDataContext.ChainId, preBlockHash);
+            //Get corresponding path hash
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
+            //Using path hash to get Change from WorldState
             var change = await worldState.GetChangeAsync(pathHash);
+            
             return await _worldStateManager.GetData(change.After);
         }
 
+        /// <summary>
+        /// Get data from current maybe-not-setted-yet "WorldState"
+        /// </summary>
+        /// <param name="keyHash"></param>
+        /// <returns></returns>
         public async Task<byte[]> GetAsync(Hash keyHash)
         {
-            var pointerHash = await _worldStateManager.GetPointer(_path.SetDataKey(keyHash).GetPathHash());
+            var pointerHash = await _worldStateManager.GetPointerFromPointerStore(_path.SetDataKey(keyHash).GetPathHash());
             return await _worldStateManager.GetData(pointerHash);
         }
 
@@ -68,12 +81,12 @@ namespace AElf.Kernel
             _path.SetBlockHashToNull();
             
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
-            var pointerHash = _worldStateManager.GetPointer(_path);
-            var hashBefore = await _worldStateManager.GetPointer(pathHash);
+            var pointerHashBefore = await _worldStateManager.GetPointerFromPointerStore(pathHash);
+            var pointerHashAfter = _worldStateManager.CalculatePointerHashOfCurrentHeight(_path);
 
-            await _worldStateManager.UpdatePointer(pathHash, pointerHash);
-            var order = await _worldStateManager.InsertChange(pathHash, hashBefore, pointerHash);
-            await _worldStateManager.SetData(pointerHash, obj);
+            await _worldStateManager.UpdatePointerToPointerStore(pathHash, pointerHashAfter);
+            var order = await _worldStateManager.InsertChange(pathHash, pointerHashBefore, pointerHashAfter);
+            await _worldStateManager.SetData(pointerHashAfter, obj);
             
             return order;
         }

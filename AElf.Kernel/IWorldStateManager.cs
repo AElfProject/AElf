@@ -22,10 +22,10 @@ namespace AElf.Kernel
         /// <returns></returns>
         Task SetWorldStateToCurrentState(Hash chainId, Hash currentBlockHash);
 
-        Task UpdatePointer(Hash pathHash, Hash pointerHash);
+        Task UpdatePointerToPointerStore(Hash pathHash, Hash pointerHash);
         
-        Task<Hash> GetPointer(Hash pathHash);
-        Hash GetPointer(Path path);
+        Task<Hash> GetPointerFromPointerStore(Hash pathHash);
+        Hash CalculatePointerHashOfCurrentHeight(Path path);
         
         Task<long> InsertChange(Hash pathHash, Hash hashBefore, Hash pointerHash);
         

@@ -95,7 +95,7 @@ namespace AElf.Kernel
                 return hashes[0];
             }
             var remains = hashes.Skip(1).ToArray();
-            return hashes[0].CombineHash(CalculateListHash(remains));
+            return hashes[0].CombineHashWith(CalculateListHash(remains));
         }
     }
 }
