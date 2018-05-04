@@ -1,8 +1,7 @@
 ﻿namespace AElf.Kernel
 {
-    public struct Change
+    public partial class Change
     {
-        public Hash Before { get; set; }
-        public Hash After { get; set; }
+        
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 
@@ -13,18 +14,17 @@ namespace AElf.Kernel.Storages
             _keyValueDatabase = keyValueDatabase;
         }
 
-        //TODO: value should be WorldState which can be serialized.
-        public async Task InsertWorldState(Hash chainId, Hash blockHash, IChangesStore changesStore)
+        public async Task InsertWorldState(Hash chainId, Hash blockHash, ChangesDict changes)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
-            await _keyValueDatabase.SetAsync(wsKey, changesStore);
+            await _keyValueDatabase.SetAsync(wsKey, changes);
         }
 
-        //TODO: Same as above.
-        public async Task<IChangesStore> GetWorldState(Hash chainId, Hash blockHash)
+        public async Task<WorldState> GetWorldState(Hash chainId, Hash blockHash)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
-            return (IChangesStore) await _keyValueDatabase.GetAsync(wsKey, typeof(IChangesStore));
+            var changesDict = (ChangesDict) await _keyValueDatabase.GetAsync(wsKey, typeof(ChangesDict));
+            return new WorldState(changesDict);
         }
     }
 }

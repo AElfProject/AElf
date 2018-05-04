@@ -47,3 +47,22 @@ message SmartContractInvokeContext{
     Hash Caller = 1;
     uint64 IncrementId = 2;
 }
+
+message WorldState{
+    ChangesDict ChangesDict = 1;
+    Hash MerkleTreeRootHash = 2;
+}
+
+message Change{
+    Hash Before = 1;
+    Hash After = 2;
+}
+
+message ChangesDict{
+    repeated Pair_Hash_Change Dict = 1;
+}
+
+message Pair_Hash_Change{
+    Hash Key = 1;
+    Change Value = 2;
+}

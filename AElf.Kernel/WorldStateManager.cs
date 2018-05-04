@@ -50,8 +50,7 @@ namespace AElf.Kernel
         public async Task<IWorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)
         {
             var changesStore =  await _worldStateStore.GetWorldState(chainId, blockHash);
-            var changes = await GetChangesAsync(chainId, blockHash);
-            return new WorldState(changesStore, changes.Select(c => c.After));
+            return new WorldState(changesStore);
         }
         
         /// <summary>
@@ -63,8 +62,19 @@ namespace AElf.Kernel
         /// <returns></returns>
         public async Task SetWorldStateToCurrentState(Hash chainId, Hash preBlockHash)
         {
-            await _worldStateStore.InsertWorldState(chainId, _preBlockHash, _changesStore);
-            //TODO: ChangesStore -> WorldState
+            var changes = await GetChangesDictionaryAsync();
+            var dict = new ChangesDict();
+            foreach (var pair in changes)
+            {
+                var pairHashChange = new Pair_Hash_Change
+                {
+                    Key = pair.Key,
+                    Value = pair.Value
+                };
+                dict.Dict.Add(pairHashChange);
+            }
+            await _worldStateStore.InsertWorldState(chainId, _preBlockHash, dict);
+            
             _changesStore = new ChangesStore(new KeyValueDatabase());
             _preBlockHash = preBlockHash;
             await _dataStore.SetData(HashToGetPreBlockHash, preBlockHash.Value.ToByteArray());
@@ -228,11 +238,11 @@ namespace AElf.Kernel
         public async Task<List<Change>> GetChangesAsync(Hash chainId, Hash blockHash)
         {
             var paths = await GetPathsAsync(blockHash);
-            var changesStore = await _worldStateStore.GetWorldState(chainId, blockHash);
+            var worldState = await _worldStateStore.GetWorldState(chainId, blockHash);
             var changes = new List<Change>();
             foreach (var path in paths)
             {
-                var change = await changesStore.GetAsync(path);
+                var change = await worldState.GetChangeAsync(path);
                 changes.Add(change);
             }
 
@@ -323,6 +333,11 @@ namespace AElf.Kernel
         {
             var paths = await GetPathsAsync();
             var dict = new Dictionary<Hash, Change>();
+            if (paths == null)
+            {
+                return dict;
+            }
+            
             foreach (var path in paths)
             {
                 var change = await _changesStore.GetAsync(path);

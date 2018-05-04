@@ -10,29 +10,26 @@ using AElf.Kernel.Storages;
 
 namespace AElf.Kernel
 {
-    /// <summary>
-    /// TODO: Refactor needed. Make WorldState serializable.
-    /// </summary>
-    public class WorldState : IWorldState
+    public partial class WorldState : IWorldState
     {
-        private readonly IChangesStore _changesStore;
-        private readonly IEnumerable<Hash> _merkleTreeNodes;
-
-        public WorldState(IChangesStore changesStore, IEnumerable<Hash> merkleTreeNodes)
+        public WorldState(ChangesDict changesDict)
         {
-            _changesStore = changesStore;
-            _merkleTreeNodes = merkleTreeNodes;
+            changesDict_ = changesDict;
         }
 
         public async Task<Change> GetChangeAsync(Hash pathHash)
         {
-            return await _changesStore.GetAsync(pathHash);
+            return await Task.FromResult(changesDict_.Dict.First(i => i.Key == pathHash).Value);
         }
 
         public async Task<Hash> GetWorldStateMerkleTreeRootAsync()
         {
             var merkleTree = new BinaryMerkleTree();
-            merkleTree.AddNodes(_merkleTreeNodes);
+            foreach (var pair in changesDict_.Dict)
+            {
+                merkleTree.AddNode(pair.Key);
+            }
+
             return await Task.FromResult(merkleTree.ComputeRootHash());
         }
     }
