@@ -38,7 +38,6 @@ namespace AElf.Kernel.Tests
             tx.From = addr11;
             tx.To = addr12;
             tx.IncrementId = 0;
-            // 1 tx
             var res = pool.AddTx(tx);
             Assert.True(res);
             
@@ -53,6 +52,63 @@ namespace AElf.Kernel.Tests
             Assert.Equal(0, (int)waiting);
             Assert.Equal(0, (int)executable);
         }
+
+
+        [Fact]
+        public void QueueTxTest()
+        {
+            var pool = GetPool();
+            var tx = new Transaction();
+            var addr11 = Hash.Generate();
+            var addr12 = Hash.Generate();
+            tx.From = addr11;
+            tx.To = addr12;
+            tx.IncrementId = 0;
+            var res = pool.AddTx(tx);
+            Assert.True(res);
+            
+            pool.QueueTxs();
+            pool.GetPoolStates(out var executable, out var waiting, out var tmp);
+            Assert.Equal(0, (int)tmp);
+            Assert.Equal(1, (int)waiting);
+            Assert.Equal(0, (int)executable);
+        }
+
+
+        [Fact]
+        public void PromoteTest()
+        {
+            var pool = GetPool();
+            var tx = new Transaction();
+            var addr11 = Hash.Generate();
+            var addr12 = Hash.Generate();
+            tx.From = addr11;
+            tx.To = addr12;
+            tx.IncrementId = 0;
+            pool.QueueTxs();
+            pool.Promote();
+            pool.GetPoolStates(out var executable, out var waiting, out var tmp);
+            Assert.Equal(0, (int)tmp);
+            Assert.Equal(0, (int)waiting);
+            Assert.Equal(1, (int)executable);
+        }
+
+        [Fact]
+        public void ReadyTxsTest()
+        {
+            var pool = GetPool();
+            var tx = new Transaction();
+            var addr11 = Hash.Generate();
+            var addr12 = Hash.Generate();
+            tx.From = addr11;
+            tx.To = addr12;
+            tx.IncrementId = 0;
+            pool.QueueTxs();
+            pool.Promote();
+            var ready = pool.ReadyTxs();
+            Assert.Equal(1, ready.Count);
+            Assert.True(ready.Contains(tx));
+        }
         
         
         
@@ -66,23 +122,7 @@ namespace AElf.Kernel.Tests
             tx.IncrementId = 0;
             
             
-             
-            pool.QueueTxs();
-            pool.GetPoolStates(out executable, out waiting, out tmp);
-            Assert.Equal(0, (int)tmp);
-            Assert.Equal(1, (int)waiting);
-            Assert.Equal(0, (int)executable);
-
-            pool.Promote();
-            pool.GetPoolStates(out executable, out waiting, out tmp);
-            Assert.Equal(0, (int)tmp);
-            Assert.Equal(0, (int)waiting);
-            Assert.Equal(1, (int)executable);
             
-            
-            var ready = pool.ReadyTxs();
-            Assert.Equal(1, ready.Count);
-            Assert.True(ready.Contains(tx));
 
             var t = pool.GetTx(tx.GetHash());
             Assert.Equal(tx, t);
