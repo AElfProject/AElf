@@ -17,7 +17,6 @@ namespace AElf.Kernel
         public WorldState(List<IAccountDataProvider> accountDataProviders)
         {
             _accountDataProviders = accountDataProviders;
-
         }
         
         public Task<IHash> GetWorldStateMerkleTreeRootAsync()
