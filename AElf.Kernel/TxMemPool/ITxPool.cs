@@ -21,7 +21,7 @@ namespace AElf.Kernel.TxMemPool
         /// remove a tx
         /// </summary>
         /// <param name="txHash"></param>
-        bool DisgardTx(Hash txHash);
+        bool DiscardTx(Hash txHash);
 
         /// <summary>
         /// remove executed txs from executable

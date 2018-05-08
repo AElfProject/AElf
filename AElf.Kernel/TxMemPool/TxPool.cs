@@ -129,7 +129,7 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public bool DisgardTx(Hash txHash)
+        public bool DiscardTx(Hash txHash)
         {
             if (!GetTx(txHash, out var tx))
             {

@@ -88,7 +88,7 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task RemoveAsync(Hash txHash)
         {
-            return Lock.WriteLock(() => _txPool.DisgardTx(txHash));
+            return Lock.WriteLock(() => _txPool.DiscardTx(txHash));
         }
 
         /// <inheritdoc/>

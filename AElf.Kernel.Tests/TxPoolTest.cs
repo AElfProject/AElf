@@ -201,14 +201,14 @@ namespace AElf.Kernel.Tests
             Assert.Equal(4, (int)executable);
             Assert.Equal(4, (int)pool.Size);
 
-            res = pool.DisgardTx(tx6.GetHash());
+            res = pool.DiscardTx(tx6.GetHash());
             Assert.False(res);
             pool.GetPoolStates(out executable, out waiting, out tmp);
             Assert.Equal(0, (int)waiting);
             Assert.Equal(4, (int)executable);
             Assert.Equal(4, (int)pool.Size);
 
-            res = pool.DisgardTx(tx.GetHash());
+            res = pool.DiscardTx(tx.GetHash());
             Assert.True(res);
             pool.GetPoolStates(out executable, out waiting, out tmp);
             Assert.Equal(2, (int)waiting);
@@ -253,7 +253,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(5, (int)executable);
             Assert.Equal(5, (int)pool.Size);
             
-            res = pool.DisgardTx(tx7.GetHash());
+            res = pool.DiscardTx(tx7.GetHash());
             Assert.True(res);
             pool.GetPoolStates(out executable, out waiting, out tmp);
             Assert.Equal(0, (int)tmp);
