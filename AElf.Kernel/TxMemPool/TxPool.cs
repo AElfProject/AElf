@@ -306,8 +306,7 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         private List<Transaction> RemoveExecutedTxs(Hash accountHash)
         {
-            var context = _accountContextService.GetAccountDataContext(accountHash, _context.ChainId);
-            var nonce = context.IncreasementId;
+            var nonce = _accountContextService.GetAccountDataContext(accountHash, _context.ChainId).IncreasementId;
             if (!_executable.TryGetValue(accountHash, out var list) || list.Count ==0)
                 return null;
 
