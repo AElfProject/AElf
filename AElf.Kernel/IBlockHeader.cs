@@ -3,12 +3,11 @@ using AElf.Kernel.Merkle;
 
 namespace AElf.Kernel
 {
-    public interface IBlockHeader
+    public interface IBlockHeader :  IHashProvider
     {
-
-        Hash PreviousHash { get; set; }
-        Hash Hash { get;}
         Int32 Version { get; set; }
+        
+        Hash PreviousHash { get; set; }
         Hash MerkleTreeRootOfTransactions { get; set; }
     }
 }
