@@ -22,7 +22,40 @@ namespace AElf.Kernel.Tests
             _smartContractZero = smartContractZero;
         }
 
+        private TxPool GetPool()
+        {
+            return new TxPool(new ChainContext(_smartContractZero, Hash.Generate()), TxPoolConfig.Default,
+                _accountContextService);
+        }
+
         [Fact]
+        public void AddTxTest()
+        {
+            var pool = GetPool();
+            var tx = new Transaction();
+            var addr11 = Hash.Generate();
+            var addr12 = Hash.Generate();
+            tx.From = addr11;
+            tx.To = addr12;
+            tx.IncrementId = 0;
+            // 1 tx
+            var res = pool.AddTx(tx);
+            Assert.True(res);
+            
+            res = pool.AddTx(tx);
+            Assert.False(res);
+            Assert.Equal(1, (int)pool.Size);
+            res = pool.Contains(tx.GetHash());
+            Assert.True(res);
+            
+            pool.GetPoolStates(out var executable, out var waiting, out var tmp);
+            Assert.Equal(1, (int)tmp);
+            Assert.Equal(0, (int)waiting);
+            Assert.Equal(0, (int)executable);
+        }
+        
+        
+        
         public void PoolTest()
         {
             var tx = new Transaction();
@@ -31,25 +64,9 @@ namespace AElf.Kernel.Tests
             tx.From = addr11;
             tx.To = addr12;
             tx.IncrementId = 0;
-            var pool = new TxPool(new ChainContext(_smartContractZero, Hash.Generate()), TxPoolConfig.Default,
-                _accountContextService);
             
-            // 1 tx
-            var res = pool.AddTx(tx);
-            Assert.True(res);
-
-            res = pool.AddTx(tx);
-            Assert.False(res);
-            Assert.Equal(1, (int)pool.Size);
             
-            res = pool.Contains(tx.GetHash());
-            Assert.True(res);
-            
-            pool.GetPoolStates(out var executable, out var waiting, out var tmp);
-            Assert.Equal(1, (int)tmp);
-            Assert.Equal(0, (int)waiting);
-            Assert.Equal(0, (int)executable);
-            
+             
             pool.QueueTxs();
             pool.GetPoolStates(out executable, out waiting, out tmp);
             Assert.Equal(0, (int)tmp);
@@ -279,7 +296,7 @@ namespace AElf.Kernel.Tests
             var addr11 = Hash.Generate();
             var addr12 = Hash.Generate();
             var addr21 = Hash.Generate();
-            var addr22 = Hash.Generate();
+             var addr22 = Hash.Generate();
             
             var tx1 = new Transaction
             {
