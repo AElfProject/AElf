@@ -160,6 +160,60 @@ namespace AElf.Kernel.Tests
             Assert.False(data9.SequenceEqual(getData9));
             Assert.True(data8.SequenceEqual(getData9));
         }
+
+        [Fact]
+        public async Task RollbackToPreviousWorldStateTest()
+        {
+            var chain = new Chain(Hash.Generate());
+            var genesisBlockHash = Hash.Generate();
+            var block1 = CreateBlock();
+            var chainManger = new ChainManager(_chainStore);
+            await chainManger.AddChainAsync(chain.Id);
+            
+            var address = Hash.Generate();
+            var accountContextService = new AccountContextService();
+            var worldStateManager = new WorldStateManager(_worldStateStore, 
+                accountContextService, _pointerStore, _changesStore, _dataStore);
+            await worldStateManager.SetWorldStateToCurrentState(chain.Id, genesisBlockHash);
+            
+            var key1 = new Hash("testkey1".CalculateHash());
+            var key2 = new Hash("testkey2".CalculateHash());
+
+            var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
+            var dataProvider = accountDataProvider.GetDataProvider();
+            var data1 = Hash.Generate().Value.ToArray();
+            var data2 = Hash.Generate().Value.ToArray();
+            var subDataProvider = dataProvider.GetDataProvider("test1");
+            await subDataProvider.SetAsync(key1, data1);
+            await subDataProvider.SetAsync(key2, data2);
+            
+            await worldStateManager.SetWorldStateToCurrentState(chain.Id, block1.GetHash());
+            await chainManger.AppendBlockToChainAsync(chain, block1);
+            
+            accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
+            dataProvider = accountDataProvider.GetDataProvider();
+            var data3 = Hash.Generate().Value.ToArray();
+            var data4 = Hash.Generate().Value.ToArray();
+            subDataProvider = dataProvider.GetDataProvider("test1");
+            await subDataProvider.SetAsync(key1, data3);
+            await subDataProvider.SetAsync(key2, data4);
+
+            var getData3 = await subDataProvider.GetAsync(key1);
+            Assert.True(data3.SequenceEqual(getData3));
+            var getData4 = await subDataProvider.GetAsync(key2);
+            Assert.True(data4.SequenceEqual(getData4));
+
+            //Do the rollback
+            await worldStateManager.RollbackDataToPreviousWorldState();
+
+            //Now the "key"'s value of subDataProvider rollback to previous data.
+            var getData1 = await subDataProvider.GetAsync(key1);
+            var getData2 = await subDataProvider.GetAsync(key2);
+            Assert.False(data3.SequenceEqual(getData1));
+            Assert.False(data4.SequenceEqual(getData2));
+            Assert.True(data1.SequenceEqual(getData1));
+            Assert.True(data2.SequenceEqual(getData2));
+        }
         
         private Block CreateBlock()
         {
