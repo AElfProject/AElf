@@ -87,8 +87,11 @@ namespace AElf.Kernel
             //Clean the path.
             _path.SetBlockHashToNull();
             
+            //Generate the path hash.
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
+            //Get current pointer hash from PointerStore.
             var pointerHashBefore = await _worldStateManager.GetPointerFromPointerStore(pathHash);
+            //Generate the new pointer hash (using previous block hash)
             var pointerHashAfter = _worldStateManager.CalculatePointerHashOfCurrentHeight(_path);
 
             var change = new Change

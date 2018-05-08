@@ -9,6 +9,6 @@
         /// <param name="chainId"></param>
         /// <param name="plusIncreasmentId"></param>
         /// <returns></returns>
-        IAccountDataContext GetAccountDataContext(Hash accountHash, Hash chainId, bool plusIncreasmentId);
+        IAccountDataContext GetAccountDataContext(Hash accountHash, Hash chainId);
     }
 }

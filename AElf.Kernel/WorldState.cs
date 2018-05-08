@@ -4,22 +4,24 @@ using AElf.Kernel.Merkle;
 
 namespace AElf.Kernel
 {
-    public partial class WorldState : IWorldState
+    public class WorldState : IWorldState
     {
+        private readonly ChangesDict _changesDict;
+        
         public WorldState(ChangesDict changesDict)
         {
-            changesDict_ = changesDict;
+            _changesDict = changesDict;
         }
 
         public async Task<Change> GetChangeAsync(Hash pathHash)
         {
-            return await Task.FromResult(changesDict_.Dict.First(i => i.Key == pathHash).Value);
+            return await Task.FromResult(_changesDict.Dict.FirstOrDefault(i => i.Key == pathHash)?.Value);
         }
 
         public async Task<Hash> GetWorldStateMerkleTreeRootAsync()
         {
             var merkleTree = new BinaryMerkleTree();
-            foreach (var pair in changesDict_.Dict)
+            foreach (var pair in _changesDict.Dict)
             {
                 merkleTree.AddNode(pair.Key);
             }

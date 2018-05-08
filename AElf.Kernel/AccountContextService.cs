@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿﻿using System.Collections.Generic;
 
 namespace AElf.Kernel
 {
@@ -8,17 +7,11 @@ namespace AElf.Kernel
         private readonly Dictionary<Hash, IAccountDataContext> _accountDataContexts =
             new Dictionary<Hash, IAccountDataContext>();
         
-        public IAccountDataContext GetAccountDataContext(Hash accountHash, Hash chainId, bool plusIncreasmentId = false)
+        public IAccountDataContext GetAccountDataContext(Hash accountHash, Hash chainId)
         {
+            
             if (_accountDataContexts.TryGetValue(accountHash, out var ctx))
             {
-                if (!plusIncreasmentId) 
-                    return ctx;
-                
-                var newCtx = ctx;
-                newCtx.IncreasementId++;
-                _accountDataContexts[accountHash] = newCtx;
-                
                 return ctx;
             }
 

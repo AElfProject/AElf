@@ -17,7 +17,7 @@ namespace AElf.Kernel
             IWorldStateManager worldStateManager)
         {
             _worldStateManager = worldStateManager;
-            Context = accountContextService.GetAccountDataContext(accountHash, chainId, false);
+            Context = accountContextService.GetAccountDataContext(accountHash, chainId);
         }
 
         public IDataProvider GetDataProvider()

@@ -51,7 +51,7 @@ message SmartContractInvokeContext{
 message Change{
     Hash Before = 1;
     Hash After = 2;
-    Hash TransactionId = 3;//TBD
+    Hash TransactionId = 3;
 }
 
 message PairHashChange{
@@ -61,9 +61,4 @@ message PairHashChange{
 
 message ChangesDict{
     repeated PairHashChange Dict = 1;
-}
-
-message WorldState{
-    ChangesDict ChangesDict = 1;
-    Hash MerkleTreeRootHash = 2;
 }

@@ -121,7 +121,7 @@ namespace AElf.Kernel.KernelAccount
         {
             // create new account for the contract
             var calllerContext =
-                _accountContextService.GetAccountDataContext(caller, _accountDataProvider.Context.ChainId, false);
+                _accountContextService.GetAccountDataContext(caller, _accountDataProvider.Context.ChainId);
             throw new NotImplementedException();
             //var hash = new Hash(calllerContext.CalculateHashWith(smartContractRegistration.Bytes));
             //_accountContextService.GetAccountDataContext(hash, _accountDataProvider.Context.ChainId);

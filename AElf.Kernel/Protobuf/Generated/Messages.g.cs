@@ -42,10 +42,8 @@ namespace AElf.Kernel {
             "Lkhhc2gSFAoFQWZ0ZXIYAiABKAsyBS5IYXNoEhwKDVRyYW5zYWN0aW9uSWQY",
             "AyABKAsyBS5IYXNoIjwKDlBhaXJIYXNoQ2hhbmdlEhIKA0tleRgBIAEoCzIF",
             "Lkhhc2gSFgoFVmFsdWUYAiABKAsyBy5DaGFuZ2UiLAoLQ2hhbmdlc0RpY3QS",
-            "HQoERGljdBgBIAMoCzIPLlBhaXJIYXNoQ2hhbmdlIlIKCldvcmxkU3RhdGUS",
-            "IQoLQ2hhbmdlc0RpY3QYASABKAsyDC5DaGFuZ2VzRGljdBIhChJNZXJrbGVU",
-            "cmVlUm9vdEhhc2gYAiABKAsyBS5IYXNoQg6qAgtBRWxmLktlcm5lbGIGcHJv",
-            "dG8z"));
+            "HQoERGljdBgBIAMoCzIPLlBhaXJIYXNoQ2hhbmdlQg6qAgtBRWxmLktlcm5l",
+            "bGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -59,8 +57,7 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractInvokeContext), global::AElf.Kernel.SmartContractInvokeContext.Parser, new[]{ "Caller", "IncrementId" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Change), global::AElf.Kernel.Change.Parser, new[]{ "Before", "After", "TransactionId" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.PairHashChange), global::AElf.Kernel.PairHashChange.Parser, new[]{ "Key", "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.ChangesDict), global::AElf.Kernel.ChangesDict.Parser, new[]{ "Dict" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.WorldState), global::AElf.Kernel.WorldState.Parser, new[]{ "ChangesDict", "MerkleTreeRootHash" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.ChangesDict), global::AElf.Kernel.ChangesDict.Parser, new[]{ "Dict" }, null, null, null)
           }));
     }
     #endregion
@@ -1975,175 +1972,6 @@ namespace AElf.Kernel {
             break;
           case 10: {
             dict_.AddEntriesFrom(input, _repeated_dict_codec);
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class WorldState : pb::IMessage<WorldState> {
-    private static readonly pb::MessageParser<WorldState> _parser = new pb::MessageParser<WorldState>(() => new WorldState());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<WorldState> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[11]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public WorldState() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public WorldState(WorldState other) : this() {
-      ChangesDict = other.changesDict_ != null ? other.ChangesDict.Clone() : null;
-      MerkleTreeRootHash = other.merkleTreeRootHash_ != null ? other.MerkleTreeRootHash.Clone() : null;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public WorldState Clone() {
-      return new WorldState(this);
-    }
-
-    /// <summary>Field number for the "ChangesDict" field.</summary>
-    public const int ChangesDictFieldNumber = 1;
-    private global::AElf.Kernel.ChangesDict changesDict_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.ChangesDict ChangesDict {
-      get { return changesDict_; }
-      set {
-        changesDict_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "MerkleTreeRootHash" field.</summary>
-    public const int MerkleTreeRootHashFieldNumber = 2;
-    private global::AElf.Kernel.Hash merkleTreeRootHash_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Hash MerkleTreeRootHash {
-      get { return merkleTreeRootHash_; }
-      set {
-        merkleTreeRootHash_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as WorldState);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(WorldState other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (!object.Equals(ChangesDict, other.ChangesDict)) return false;
-      if (!object.Equals(MerkleTreeRootHash, other.MerkleTreeRootHash)) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (changesDict_ != null) hash ^= ChangesDict.GetHashCode();
-      if (merkleTreeRootHash_ != null) hash ^= MerkleTreeRootHash.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (changesDict_ != null) {
-        output.WriteRawTag(10);
-        output.WriteMessage(ChangesDict);
-      }
-      if (merkleTreeRootHash_ != null) {
-        output.WriteRawTag(18);
-        output.WriteMessage(MerkleTreeRootHash);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (changesDict_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(ChangesDict);
-      }
-      if (merkleTreeRootHash_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(MerkleTreeRootHash);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(WorldState other) {
-      if (other == null) {
-        return;
-      }
-      if (other.changesDict_ != null) {
-        if (changesDict_ == null) {
-          changesDict_ = new global::AElf.Kernel.ChangesDict();
-        }
-        ChangesDict.MergeFrom(other.ChangesDict);
-      }
-      if (other.merkleTreeRootHash_ != null) {
-        if (merkleTreeRootHash_ == null) {
-          merkleTreeRootHash_ = new global::AElf.Kernel.Hash();
-        }
-        MerkleTreeRootHash.MergeFrom(other.MerkleTreeRootHash);
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            if (changesDict_ == null) {
-              changesDict_ = new global::AElf.Kernel.ChangesDict();
-            }
-            input.ReadMessage(changesDict_);
-            break;
-          }
-          case 18: {
-            if (merkleTreeRootHash_ == null) {
-              merkleTreeRootHash_ = new global::AElf.Kernel.Hash();
-            }
-            input.ReadMessage(merkleTreeRootHash_);
             break;
           }
         }

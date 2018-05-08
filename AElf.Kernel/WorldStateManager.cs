@@ -187,7 +187,7 @@ namespace AElf.Kernel
         {
             Interlocked.CompareExchange(ref blockHash, _preBlockHash, null);
             
-            var fixedPaths = new List<Hash>();
+            var paths = new List<Hash>();
 
             var changedPathsCount = await GetChangedPathsCount(blockHash);
             
@@ -195,10 +195,10 @@ namespace AElf.Kernel
             {
                 var key = CalculateHashToGetPath(blockHash, i.ToBytes());
                 var path = await _dataStore.GetData(key);
-                fixedPaths.Add(path);
+                paths.Add(path);
             }
 
-            return fixedPaths;
+            return paths;
         }
         #endregion
 
