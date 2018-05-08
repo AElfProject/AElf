@@ -59,6 +59,7 @@ namespace AElf.Kernel.KernelAccount
         public async Task RegisterSmartContract(Hash caller, SmartContractRegistration reg)
         {
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
+            //TODO: For now just hard coded to Hash.Zero
             await smartContractMap.SetAsync(reg.ContractHash, _serializer.Serialize(reg));
         }
 

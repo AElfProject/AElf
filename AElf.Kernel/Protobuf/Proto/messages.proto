@@ -48,25 +48,22 @@ message SmartContractInvokeContext{
     uint64 IncrementId = 2;
 }
 
-message WorldState{
-    ChangesDict ChangesDict = 1;
-    Hash MerkleTreeRootHash = 2;
-}
-
 message Change{
     Hash Before = 1;
     Hash After = 2;
-}
-
-message TransactionResult{
-    repeated PairHashChange Dict = 1;
-}
-
-message ChangesDict{
-    repeated TransactionResult TXResult = 1;
+    Hash TransactionId = 3;//TBD
 }
 
 message PairHashChange{
-    Hash Key = 1;
+    Hash Key = 1;//Fixed-Path hash - to avoid conflicts between each height.
     Change Value = 2;
+}
+
+message ChangesDict{
+    repeated PairHashChange Dict = 1;
+}
+
+message WorldState{
+    ChangesDict ChangesDict = 1;
+    Hash MerkleTreeRootHash = 2;
 }
