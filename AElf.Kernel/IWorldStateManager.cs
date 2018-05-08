@@ -25,9 +25,10 @@ namespace AElf.Kernel
         Task UpdatePointerToPointerStore(Hash pathHash, Hash pointerHash);
         
         Task<Hash> GetPointerFromPointerStore(Hash pathHash);
+        
         Hash CalculatePointerHashOfCurrentHeight(Path path);
         
-        Task<long> InsertChange(Hash pathHash, Hash hashBefore, Hash pointerHash);
+        Task InsertChange(Hash pathHash, Change change);
         
         /// <summary>
         /// Rollback to previous world state.

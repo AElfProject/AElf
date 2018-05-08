@@ -14,6 +14,9 @@ namespace AElf.Kernel
         private readonly IDataStore _dataStore;
         private readonly IChangesStore _changesStore;
 
+        /// <summary>
+        /// To avoid to access DataStore frequetly.
+        /// </summary>
         private Hash _preBlockHash;
 
         /// <summary>
@@ -103,16 +106,11 @@ namespace AElf.Kernel
         /// The key to get the changed path can be calculated by _preBlockHash and the order.
         /// </summary>
         /// <param name="pathHash"></param>
-        /// <param name="hashBefore"></param>
-        /// <param name="pointerHash"></param>
+        /// <param name="change"></param>
         /// <returns></returns>
-        public async Task<long> InsertChange(Hash pathHash, Hash hashBefore, Hash pointerHash)
+        public async Task InsertChange(Hash pathHash, Change change)
         {
-            await _changesStore.InsertAsync(pathHash, new Change
-            {
-                Before = hashBefore,
-                After = pointerHash
-            });
+            await _changesStore.InsertAsync(pathHash, change);
             
             var countBytes = await _dataStore.GetData(GetHashToGetPathsCount());
             countBytes = countBytes ??  ((long)0).ToBytes();
@@ -122,8 +120,6 @@ namespace AElf.Kernel
             await _dataStore.SetData(key, pathHash.Value.ToByteArray());
             count++;
             await _dataStore.SetData(GetHashToGetPathsCount(), count.ToBytes());
-
-            return count;
         }
 
         /// <summary>

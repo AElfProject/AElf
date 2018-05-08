@@ -58,8 +58,12 @@ message Change{
     Hash After = 2;
 }
 
-message ChangesDict{
+message TransactionResult{
     repeated PairHashChange Dict = 1;
+}
+
+message ChangesDict{
+    repeated TransactionResult TXResult = 1;
 }
 
 message PairHashChange{
