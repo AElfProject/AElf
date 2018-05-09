@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Driver", "AElf.Driver\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContracts.CSharpSmartContract", "AElf.Kernel.SmartContracts.CSharpSmartContract\AElf.Kernel.SmartContracts.CSharpSmartContract.csproj", "{96F32D3F-4291-476C-A01C-9551E9CA22E8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Launcher", "AElf.Launcher\AElf.Launcher.csproj", "{3CC5FAC1-D988-4176-869B-0B5903E98644}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{96F32D3F-4291-476C-A01C-9551E9CA22E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96F32D3F-4291-476C-A01C-9551E9CA22E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96F32D3F-4291-476C-A01C-9551E9CA22E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CC5FAC1-D988-4176-869B-0B5903E98644}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CC5FAC1-D988-4176-869B-0B5903E98644}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CC5FAC1-D988-4176-869B-0B5903E98644}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CC5FAC1-D988-4176-869B-0B5903E98644}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
