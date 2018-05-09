@@ -50,3 +50,18 @@ message SmartContractInvokeContext{
     Hash Caller = 1;
     uint64 IncrementId = 2;
 }
+
+message Change{
+    Hash Before = 1;
+    Hash After = 2;
+    Hash TransactionId = 3;
+}
+
+message PairHashChange{
+    Hash Key = 1;
+    Change Value = 2;
+}
+
+message ChangesDict{
+    repeated PairHashChange Dict = 1;
+}

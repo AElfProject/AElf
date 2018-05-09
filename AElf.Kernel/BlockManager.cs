@@ -41,7 +41,7 @@ namespace AElf.Kernel
         private bool Validation(Block block)
         {
             // TODO:
-            // Do some checks like duplication, 
+            // Do some checks like duplication
             return true;
         }
     }

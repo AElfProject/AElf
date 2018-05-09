@@ -1,9 +1,6 @@
 using AElf.Kernel.Extensions;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 
 namespace AElf.Kernel.Merkle
 {
@@ -20,7 +17,7 @@ namespace AElf.Kernel.Merkle
         /// <summary>
         /// Use a cache to speed up the calculation of hash value.
         /// </summary>
-        private Dictionary<string, Hash> _cache = new Dictionary<string, Hash>();
+        private readonly Dictionary<string, Hash> _cache = new Dictionary<string, Hash>();
 
         /// <summary>
         /// Add a leaf node and compute root hash.
@@ -32,7 +29,7 @@ namespace AElf.Kernel.Merkle
             ComputeRootHash();
         }
 
-        public void AddNodes(IList<Hash> hashes)
+        public void AddNodes(IEnumerable<Hash> hashes)
         {
             foreach (var hash in hashes)
             {
@@ -61,7 +58,7 @@ namespace AElf.Kernel.Merkle
 
                 for (var i = 0; i < hashes.Count; i += 2)
                 {
-                    Hash right = (i + 1 < hashes.Count) ? new Hash(hashes[i + 1].Value) : null;
+                    var right = i + 1 < hashes.Count ? new Hash(hashes[i + 1].Value) : null;
                     var parent = FindCache(hashes[i], right);
 
                     parents.Add(parent);

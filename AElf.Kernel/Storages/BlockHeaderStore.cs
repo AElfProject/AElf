@@ -18,7 +18,7 @@ namespace AElf.Kernel.Storages
 
         public async Task<BlockHeader> GetAsync(Hash blockHash)
         {
-            return (BlockHeader) await _keyValueDatabase.GetAsync(blockHash,typeof(BlockHeader));
+            return (BlockHeader) await _keyValueDatabase.GetAsync(blockHash, typeof(BlockHeader));
         }
     }
 }

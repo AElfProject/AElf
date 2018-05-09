@@ -1,16 +1,36 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AElf.Kernel
 {
     public interface IWorldStateManager
     {
-        /// <summary>
-        /// Get the world state of a chain
-        /// </summary>
-        /// <param name="chain"></param>
-        /// <returns></returns>
-        Task<IWorldState> GetWorldStateAsync(IHash chain);
+        Task<IWorldState> GetWorldStateAsync(Hash chainId, Hash blockHash);
 
-        IAccountDataProvider GetAccountDataProvider(IHash chain, IHash account);
+        Task SetWorldStateToCurrentStateAsync(Hash chainId, Hash currentBlockHash);
+
+        Task UpdatePointerToPointerStoreAsync(Hash pathHash, Hash pointerHash);
+        
+        Task<Hash> GetPointerFromPointerStoreAsync(Hash pathHash);
+        
+        Hash CalculatePointerHashOfCurrentHeight(Path path);
+        
+        Task InsertChangeAsync(Hash pathHash, Change change);
+        
+        Task RollbackDataToPreviousWorldStateAsync();
+
+        Task<List<Hash>> GetPathsAsync(Hash blockHash = null);
+
+        Task<List<Change>> GetChangesAsync(Hash chainId, Hash blockHash);
+
+        Task<List<Change>> GetChangesAsync();
+
+        Task<Dictionary<Hash, Change>> GetChangesDictionaryAsync();
+
+        IAccountDataProvider GetAccountDataProvider(Hash chain, Hash account);
+
+        Task SetDataAsync(Hash pointerHash, byte[] data);
+
+        Task<byte[]> GetDataAsync(Hash pointerHash);
     }
 }

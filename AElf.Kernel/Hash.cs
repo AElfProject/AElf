@@ -11,7 +11,7 @@ namespace AElf.Kernel
         public static Hash Generate()
         {
             return new Hash(
-                HashExtensions.CalculateHash(Guid.NewGuid().ToByteArray()));
+                Guid.NewGuid().ToByteArray().CalculateHash());
         }
         
         public static readonly Hash Zero = new Hash();
@@ -26,12 +26,11 @@ namespace AElf.Kernel
             Value = value;
         }
 
-
         public byte[] GetHashBytes() => Value.ToByteArray();
 
         public bool Equals(IHash other)
         {
-            return this.value_.Equals(other.Value);
+            return value_.Equals(other.Value);
         }
 
         public int Compare(IHash x, IHash y)
@@ -54,18 +53,17 @@ namespace AElf.Kernel
 
         public static bool operator ==(Hash h1, Hash h2)
         {
-            // ReSharper disable once ConvertIfStatementToReturnStatement
-            if (object.ReferenceEquals(h1, null))
-            {
-                return object.ReferenceEquals(h2, null);
-            }
-            return  h1.Equals(h2);
+            return h1?.Equals(h2) ?? ReferenceEquals(h2, null);
         }
 
         public static bool operator !=(Hash h1, Hash h2)
         {
             return !(h1 == h2);
         }
-
+        
+        public static implicit operator Hash(byte[] value)
+        {
+            return new Hash(value);
+        }
     }
 }

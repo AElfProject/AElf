@@ -4,19 +4,27 @@ using System;
 
 namespace AElf.Kernel
 {
-    public partial class BlockHeader : IBlockHeader
+    public partial class BlockHeader : IBlockHeader, IHashProvider
     {
-        public BlockHeader(Hash preBlockHash)
-        {
-            PreviousHash = preBlockHash;
-        }
-        
         /// <summary>
         /// The miner's signature.
         /// </summary>
         public byte[] Signatures;
-        
+
+        /// <summary>
+        /// the timestamp of this block
+        /// </summary>
+        /// <value>The time stamp.</value>
+        public long TimeStamp => (long)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds;
+
+        public BlockHeader(Hash preBlockHash)
+        {
+            PreviousHash = preBlockHash;
+        }
+
         public Hash PreviousHash { get; set; }
+
+        public Hash Hash => this.CalculateHash();
 
         /// <summary>
         /// block index in chain
@@ -25,7 +33,7 @@ namespace AElf.Kernel
         
         public Hash GetHash()
         {
-            return new Hash(this.CalculateHash());
+            return this.CalculateHash();
         }
     }
 }

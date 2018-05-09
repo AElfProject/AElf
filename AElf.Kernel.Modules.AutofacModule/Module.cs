@@ -1,4 +1,7 @@
-﻿using Autofac;
+using System;
+using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Storages;
+using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
@@ -10,8 +13,8 @@ namespace AElf.Kernel.Modules.AutofacModule
             
             builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
 
-            builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
-            
+            builder.RegisterType(typeof(Hash)).As(typeof(IHash));
+
             base.Load(builder);
         }
     }

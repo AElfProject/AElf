@@ -1,28 +1,32 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
-using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Merkle;
-using AElf.Kernel.Storages;
 
 namespace AElf.Kernel
 {
     public class WorldState : IWorldState
     {
-        private readonly List<IAccountDataProvider> _accountDataProviders;
-
+        private readonly ChangesDict _changesDict;
         
-        public WorldState(List<IAccountDataProvider> accountDataProviders)
+        public WorldState(ChangesDict changesDict)
         {
-            _accountDataProviders = accountDataProviders;
-
+            _changesDict = changesDict;
         }
-        
-        public Task<IHash> GetWorldStateMerkleTreeRootAsync()
+
+        public async Task<Change> GetChangeAsync(Hash pathHash)
         {
-            throw new NotImplementedException();
+            return await Task.FromResult(_changesDict.Dict.FirstOrDefault(i => i.Key == pathHash)?.Value);
+        }
+
+        public async Task<Hash> GetWorldStateMerkleTreeRootAsync()
+        {
+            var merkleTree = new BinaryMerkleTree();
+            foreach (var pair in _changesDict.Dict)
+            {
+                merkleTree.AddNode(pair.Key);
+            }
+
+            return await Task.FromResult(merkleTree.ComputeRootHash());
         }
     }
 }
