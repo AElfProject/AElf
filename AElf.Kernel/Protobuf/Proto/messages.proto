@@ -10,6 +10,9 @@ message Transaction
     string MethodName = 4;
     bytes Params = 5;
     uint64 Fee = 6;
+    bytes R = 7;
+    bytes S = 8;
+    bytes P = 9;
 }
 
 message Hash{

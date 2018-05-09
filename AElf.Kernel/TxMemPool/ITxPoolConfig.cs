@@ -16,6 +16,7 @@
         /// minimal tx fee 
         /// </summary>
         ulong FeeThreshold { get; }
+
         
         /// <summary>
         /// minimal number of txs for entering pool

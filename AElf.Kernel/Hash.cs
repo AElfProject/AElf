@@ -18,7 +18,6 @@ namespace AElf.Kernel
 
         public Hash(byte[] buffer)
         {
-
             Value = ByteString.CopyFrom(buffer);
         }
 
