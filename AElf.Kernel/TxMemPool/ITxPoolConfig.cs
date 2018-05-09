@@ -10,7 +10,7 @@
         /// <summary>
         /// tx size limit
         /// </summary>
-        int TxLimitSize { get; }
+        uint TxLimitSize { get; }
         
         /// <summary>
         /// minimal tx fee 
