@@ -13,18 +13,15 @@ namespace AElf.Kernel.Tests.TxMemPool
     public class TxPoolServiceTest
     {
         private readonly IAccountContextService _accountContextService;
-        private readonly ISmartContractZero _smartContractZero;
         
         public TxPoolServiceTest(IAccountContextService accountContextService, ISmartContractZero smartContractZero)
         {
             _accountContextService = accountContextService;
-            _smartContractZero = smartContractZero;
         }
 
         private TxPool GetPool()
         {
-            return new TxPool(new ChainContext(_smartContractZero, Hash.Generate()), TxPoolConfig.Default,
-                _accountContextService);
+            return new TxPool(Hash.Generate(), TxPoolConfig.Default, _accountContextService);
         }
         
         [Fact]

@@ -9,18 +9,15 @@ namespace AElf.Kernel.Tests.TxMemPool
     public class TxPoolTest
     {
         private readonly IAccountContextService _accountContextService;
-        private readonly ISmartContractZero _smartContractZero;
         
-        public TxPoolTest(IAccountContextService accountContextService, ISmartContractZero smartContractZero)
+        public TxPoolTest(IAccountContextService accountContextService)
         {
             _accountContextService = accountContextService;
-            _smartContractZero = smartContractZero;
         }
 
         private TxPool GetPool()
         {
-            return new TxPool(new ChainContext(_smartContractZero, Hash.Generate()), TxPoolConfig.Default,
-                _accountContextService);
+            return new TxPool( Hash.Generate(), TxPoolConfig.Default, _accountContextService);
         }
 
         private Transaction BuildTransaction(Hash adrFrom = null, Hash adrTo = null, ulong nonce = 0)
@@ -41,7 +38,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             TxPoolConfig conf = TxPoolConfig.Default;
             conf.EntryThreshold = 1;
 
-            var pool = new TxPool(new ChainContext(_smartContractZero, Hash.Generate()), conf, _accountContextService);
+            var pool = new TxPool(Hash.Generate(), conf, _accountContextService);
             
             // Add a valid transaction
             var tx = BuildTransaction();

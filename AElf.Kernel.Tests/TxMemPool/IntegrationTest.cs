@@ -12,17 +12,15 @@ namespace AElf.Kernel.Tests.TxMemPool
     public class IntegrationTest
     {
         private readonly IAccountContextService _accountContextService;
-        private readonly ISmartContractZero _smartContractZero;
 
-        public IntegrationTest(IAccountContextService accountContextService, ISmartContractZero smartContractZero)
+        public IntegrationTest(IAccountContextService accountContextService)
         {
             _accountContextService = accountContextService;
-            _smartContractZero = smartContractZero;
         }
         
         private TxPool GetPool()
         {
-            return new TxPool(new ChainContext(_smartContractZero, Hash.Generate()), TxPoolConfig.Default,
+            return new TxPool(Hash.Generate(), TxPoolConfig.Default,
                 _accountContextService);
         }
 
