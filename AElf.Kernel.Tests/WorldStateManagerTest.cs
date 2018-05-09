@@ -42,7 +42,7 @@ namespace AElf.Kernel.Tests
             var chain = new Chain(Hash.Generate());
             var address = Hash.Generate();
 
-            await _worldStateManager.SetWorldStateToCurrentStateAsync(chain.Id, _genesisBlockHash);
+            await _worldStateManager.SetWorldStateAsync(chain.Id, _genesisBlockHash);
 
             var accountDataProvider = _worldStateManager.GetAccountDataProvider(chain.Id, address);
             

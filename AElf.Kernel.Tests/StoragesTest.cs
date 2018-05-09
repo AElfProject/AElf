@@ -161,7 +161,7 @@ namespace AElf.Kernel.Tests
                 accountContextService, _pointerStore, _changesStore, _dataStore);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
 
-            await worldStateManager.SetWorldStateToCurrentStateAsync(chain.Id, genesisBlockHash);
+            await worldStateManager.SetWorldStateAsync(chain.Id, genesisBlockHash);
 
             var dataProvider = accountDataProvider.GetDataProvider();
             var subDataProvider = dataProvider.GetDataProvider("test");
@@ -175,7 +175,7 @@ namespace AElf.Kernel.Tests
             
             Assert.True(data.SequenceEqual(getDataFromHeight1));
 
-            await worldStateManager.SetWorldStateToCurrentStateAsync(chain.Id, block1.GetHash());
+            await worldStateManager.SetWorldStateAsync(chain.Id, block1.GetHash());
             await chainManager.AppendBlockToChainAsync(chain, block2);
             
             Assert.True(chain.CurrentBlockHeight == 2);
@@ -224,7 +224,7 @@ namespace AElf.Kernel.Tests
                 accountContextService, _pointerStore, _changesStore, _dataStore);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
             
-            await worldStateManager.SetWorldStateToCurrentStateAsync(chain.Id, genesisBlockHash);
+            await worldStateManager.SetWorldStateAsync(chain.Id, genesisBlockHash);
 
             //Set data to one sub DataProvider("test").
             var dataProvider = accountDataProvider.GetDataProvider();
@@ -238,7 +238,7 @@ namespace AElf.Kernel.Tests
             Assert.True(chain.CurrentBlockHash == block1.GetHash());
             
             //Set WorldState and add a new block.
-            await worldStateManager.SetWorldStateToCurrentStateAsync(chain.Id, block1.GetHash());
+            await worldStateManager.SetWorldStateAsync(chain.Id, block1.GetHash());
             await chainManager.AppendBlockToChainAsync(chain, block2);
             //Now block1.Header.Hash is current WorldState's preBlockHash.
 
@@ -263,7 +263,7 @@ namespace AElf.Kernel.Tests
             Assert.False(data1.SequenceEqual(getData2));
             
             //Now set WorldState again and add a third block.
-            await worldStateManager.SetWorldStateToCurrentStateAsync(chain.Id, block2.GetHash());
+            await worldStateManager.SetWorldStateAsync(chain.Id, block2.GetHash());
             await chainManager.AppendBlockToChainAsync(chain, block3);
             
             accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);

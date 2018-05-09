@@ -42,7 +42,7 @@ namespace AElf.Kernel.Tests
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, accountContextService,
                 _pointerStore, _changesStore, _dataStore);
-            await worldStateManager.SetWorldStateToCurrentStateAsync(chain.Id, Hash.Generate());
+            await worldStateManager.SetWorldStateAsync(chain.Id, Hash.Generate());
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
             var dataProvider = accountDataProvider.GetDataProvider();
 

@@ -65,11 +65,11 @@ namespace AElf.Kernel
         }
         
         /// <summary>
-        /// Rollback data to previous set world state
+        /// Rollback changes of executed transactions
         /// by rollback the PointerStore.
         /// </summary>
         /// <returns></returns>
-        public async Task RollbackDataToPreviousWorldStateAsync()
+        public async Task RollbackCurrentChangesAsync()
         {
             var dict = await GetChangesDictionaryAsync();
             foreach (var pair in dict)
@@ -108,7 +108,7 @@ namespace AElf.Kernel
         /// <param name="chainId"></param>
         /// <param name="preBlockHash">At last set preBlockHash to a specific key</param>
         /// <returns></returns>
-        public async Task SetWorldStateToCurrentStateAsync(Hash chainId, Hash preBlockHash)
+        public async Task SetWorldStateAsync(Hash chainId, Hash preBlockHash)
         {
             var changes = await GetChangesDictionaryAsync();
             var dict = new ChangesDict();
@@ -136,7 +136,7 @@ namespace AElf.Kernel
         /// <param name="pathHash"></param>
         /// <param name="pointerHash"></param>
         /// <returns></returns>
-        public async Task UpdatePointerToPointerStoreAsync(Hash pathHash, Hash pointerHash)
+        public async Task UpdatePointerAsync(Hash pathHash, Hash pointerHash)
         {
             await _pointerStore.UpdateAsync(pathHash, pointerHash);
         }
@@ -147,7 +147,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="pathHash"></param>
         /// <returns></returns>
-        public async Task<Hash> GetPointerFromPointerStoreAsync(Hash pathHash)
+        public async Task<Hash> GetPointerAsync(Hash pathHash)
         {
             return await _pointerStore.GetAsync(pathHash);
         }
