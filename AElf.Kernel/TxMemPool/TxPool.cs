@@ -6,7 +6,7 @@ using System.Runtime.InteropServices.ComTypes;
 
 namespace AElf.Kernel.TxMemPool
 {
-    public class TxPool :ITxPool
+    public class TxPool : ITxPool
     {
         private readonly Dictionary<Hash, List<Hash>> _executable =
             new Dictionary<Hash, List<Hash>>();
@@ -91,11 +91,12 @@ namespace AElf.Kernel.TxMemPool
             
             // TODO: validate tx
             
-            if (Contains(txHash)||GetNonce(tx.From)>tx.IncrementId)
+            if (Contains(txHash) || GetNonce(tx.From) > tx.IncrementId)
                 return false;
             
             _pool.Add(txHash, tx);
             Tmp.Add(txHash);
+            
             return true;
         }
 
@@ -120,11 +121,13 @@ namespace AElf.Kernel.TxMemPool
         {
             foreach (var txHash in Tmp)
             {
-                if (!Tmp.Contains(txHash)||!Contains(txHash)||ReplaceTx(txHash))
+                if (!Tmp.Contains(txHash) || !Contains(txHash) || ReplaceTx(txHash))
                     continue;
+                
                 if (!AddWaitingTx(txHash))
                     _pool.Remove(txHash);
             }
+            
             Tmp.Clear();
         }
 
@@ -372,60 +375,84 @@ namespace AElf.Kernel.TxMemPool
             {
                 Promote(addr);
             }
-            
         }
 
-        /// <summary>
-        /// promote ready txs from waiting to exectuable
-        /// </summary>
-        /// <param name="addr"></param>
-        private void Promote(Hash addr)
+        public ulong? GetNextPromotableTxId(Hash addr)
         {
-            var waitingList = _waiting[addr];
-            
-            // discard too old txs
-            // old txs
-            /*var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
-            var nonce = context.IncreasementId;*/
+            if (_waiting == null)
+                return null;
+
+            Dictionary<ulong, Hash> waitingDict = null;
+            if (!_waiting.TryGetValue(addr, out var waitingList))
+            {
+                return null;
+            }
             
             ulong w = 0;
+            
             if (_executable.TryGetValue(addr, out var executableList))
             {
                 w = _pool[executableList.Last()].IncrementId + 1;
             }
             
+            // no tx left
+            if (waitingList.Count <= 0)
+                return null;
+
+            ulong next = waitingList.Keys.Min();
+            
+            if (next != w)
+                return null;
+            
+            if(executableList == null)
+                _executable[addr] = new List<Hash>();
+            
+            return next;
+        }
+
+        public void DiscardOldTransaction(Hash addr, ulong w)
+        {
+            var waitingList = _waiting[addr];
+            
             var oldList = waitingList.Keys.Where(n => n < w).Select(n => waitingList[n]);
             
-            // disgard
+            // discard
             foreach (var h in oldList)
             {
                 RemoveFromWaiting(h);
             }
-            
-            // no tx left
-            if (waitingList.Count == 0)
-                return;
-            var next = waitingList.Keys.Min();
-            
-            // no tx ready
-            if (next != w)
+        }
+
+        /// <summary>
+        /// promote ready txs from waiting to exectuable
+        /// </summary>
+        /// <param name="addr">From account addr</param>
+        public void Promote(Hash addr)
+        {
+            ulong? next = GetNextPromotableTxId(addr);
+
+            if (!next.HasValue)
                 return;
 
-            if (w == 0)
+            DiscardOldTransaction(addr, next.Value);
+
+            if (!_executable.TryGetValue(addr, out var executableList) || !_waiting.TryGetValue(addr, out var waitingList))
             {
-                _executable[addr] = executableList = new List<Hash>();
+                return;
             }
+
+            ulong incr = next.Value;
             
             do
             {
-                var hash = waitingList[next];
-                var tx = _pool[hash];
+                var hash = waitingList[incr];
+                
                 // add to executable list
                 executableList.Add(hash);
                 // remove from waiting list
-                waitingList.Remove(next);
-               
-            } while (waitingList.Count > 0 && waitingList.Keys.Contains(++next));
+                waitingList.Remove(incr);
+
+            } while (waitingList.Count > 0 && waitingList.Keys.Contains(++incr));
 
         }
 
