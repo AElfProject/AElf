@@ -29,9 +29,9 @@ namespace AElf.Kernel.Tests
         {
             var key = Hash.Generate();
             var data = Hash.Generate().Value.ToArray();
-            await _worldStateManager.SetData(key, data);
+            await _worldStateManager.SetDataAsync(key, data);
 
-            var getData = await _worldStateManager.GetData(key);
+            var getData = await _worldStateManager.GetDataAsync(key);
             
             Assert.True(data.SequenceEqual(getData));
         }
@@ -42,7 +42,7 @@ namespace AElf.Kernel.Tests
             var chain = new Chain(Hash.Generate());
             var address = Hash.Generate();
 
-            await _worldStateManager.SetWorldStateToCurrentState(chain.Id, _genesisBlockHash);
+            await _worldStateManager.SetWorldStateToCurrentStateAsync(chain.Id, _genesisBlockHash);
 
             var accountDataProvider = _worldStateManager.GetAccountDataProvider(chain.Id, address);
             

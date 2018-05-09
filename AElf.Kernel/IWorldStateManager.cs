@@ -7,17 +7,17 @@ namespace AElf.Kernel
     {
         Task<IWorldState> GetWorldStateAsync(Hash chainId, Hash blockHash);
 
-        Task SetWorldStateToCurrentState(Hash chainId, Hash currentBlockHash);
+        Task SetWorldStateToCurrentStateAsync(Hash chainId, Hash currentBlockHash);
 
-        Task UpdatePointerToPointerStore(Hash pathHash, Hash pointerHash);
+        Task UpdatePointerToPointerStoreAsync(Hash pathHash, Hash pointerHash);
         
-        Task<Hash> GetPointerFromPointerStore(Hash pathHash);
+        Task<Hash> GetPointerFromPointerStoreAsync(Hash pathHash);
         
         Hash CalculatePointerHashOfCurrentHeight(Path path);
         
-        Task InsertChange(Hash pathHash, Change change);
+        Task InsertChangeAsync(Hash pathHash, Change change);
         
-        Task RollbackDataToPreviousWorldState();
+        Task RollbackDataToPreviousWorldStateAsync();
 
         Task<List<Hash>> GetPathsAsync(Hash blockHash = null);
 
@@ -29,8 +29,8 @@ namespace AElf.Kernel
 
         IAccountDataProvider GetAccountDataProvider(Hash chain, Hash account);
 
-        Task SetData(Hash pointerHash, byte[] data);
+        Task SetDataAsync(Hash pointerHash, byte[] data);
 
-        Task<byte[]> GetData(Hash pointerHash);
+        Task<byte[]> GetDataAsync(Hash pointerHash);
     }
 }

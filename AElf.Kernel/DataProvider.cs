@@ -61,7 +61,7 @@ namespace AElf.Kernel
             //Using path hash to get Change from WorldState
             var change = await worldState.GetChangeAsync(pathHash);
             
-            return await _worldStateManager.GetData(change.After);
+            return await _worldStateManager.GetDataAsync(change.After);
         }
 
         /// <summary>
@@ -71,8 +71,8 @@ namespace AElf.Kernel
         /// <returns></returns>
         public async Task<byte[]> GetAsync(Hash keyHash)
         {
-            var pointerHash = await _worldStateManager.GetPointerFromPointerStore(_path.SetDataKey(keyHash).GetPathHash());
-            return await _worldStateManager.GetData(pointerHash);
+            var pointerHash = await _worldStateManager.GetPointerFromPointerStoreAsync(_path.SetDataKey(keyHash).GetPathHash());
+            return await _worldStateManager.GetDataAsync(pointerHash);
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace AElf.Kernel
             //Generate the path hash.
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
             //Get current pointer hash from PointerStore.
-            var pointerHashBefore = await _worldStateManager.GetPointerFromPointerStore(pathHash);
+            var pointerHashBefore = await _worldStateManager.GetPointerFromPointerStoreAsync(pathHash);
             //Generate the new pointer hash (using previous block hash)
             var pointerHashAfter = _worldStateManager.CalculatePointerHashOfCurrentHeight(_path);
 
@@ -99,9 +99,9 @@ namespace AElf.Kernel
                 After = pointerHashAfter,
             };
 
-            await _worldStateManager.UpdatePointerToPointerStore(pathHash, pointerHashAfter);
-            await _worldStateManager.InsertChange(pathHash, change);
-            await _worldStateManager.SetData(pointerHashAfter, obj);
+            await _worldStateManager.UpdatePointerToPointerStoreAsync(pathHash, pointerHashAfter);
+            await _worldStateManager.InsertChangeAsync(pathHash, change);
+            await _worldStateManager.SetDataAsync(pointerHashAfter, obj);
             
             return change;
         }

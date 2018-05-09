@@ -14,13 +14,13 @@ namespace AElf.Kernel.Storages
             _keyValueDatabase = keyValueDatabase;
         }
 
-        public async Task InsertWorldState(Hash chainId, Hash blockHash, ChangesDict changes)
+        public async Task InsertWorldStateAsync(Hash chainId, Hash blockHash, ChangesDict changes)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
             await _keyValueDatabase.SetAsync(wsKey, changes);
         }
 
-        public async Task<WorldState> GetWorldState(Hash chainId, Hash blockHash)
+        public async Task<WorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
             var changesDict = (ChangesDict) await _keyValueDatabase.GetAsync(wsKey, typeof(ChangesDict));

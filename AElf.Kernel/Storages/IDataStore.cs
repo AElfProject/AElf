@@ -4,7 +4,7 @@ namespace AElf.Kernel.Storages
 {
     public interface IDataStore
     {
-        Task SetData(Hash pointerHash, byte[] data);
-        Task<byte[]> GetData(Hash pointerHash);
+        Task SetDataAsync(Hash pointerHash, byte[] data);
+        Task<byte[]> GetDataAsync(Hash pointerHash);
     }
 }

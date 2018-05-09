@@ -11,12 +11,12 @@ namespace AElf.Kernel.Storages
             _keyValueDatabase = keyValueDatabase;
         }
 
-        public async Task SetData(Hash pointerHash, byte[] data)
+        public async Task SetDataAsync(Hash pointerHash, byte[] data)
         {
             await _keyValueDatabase.SetAsync(pointerHash, data);
         }
 
-        public async Task<byte[]> GetData(Hash pointerHash)
+        public async Task<byte[]> GetDataAsync(Hash pointerHash)
         {
             return (byte[]) await _keyValueDatabase.GetAsync(pointerHash, typeof(byte[]));
         }
