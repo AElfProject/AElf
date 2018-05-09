@@ -12,5 +12,7 @@ namespace AElf.Kernel
         Task<byte[]> GetAsync(Hash keyHash);
         
         Task<byte[]> GetAsync(Hash keyHash, Hash preBlockHash);
+
+        Hash GetHash();
     }
 }

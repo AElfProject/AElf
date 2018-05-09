@@ -55,7 +55,7 @@ message Change{
 }
 
 message PairHashChange{
-    Hash Key = 1;//Fixed-Path hash - to avoid conflicts between each height.
+    Hash Key = 1;
     Change Value = 2;
 }
 

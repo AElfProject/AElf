@@ -38,7 +38,6 @@ namespace AElf.Kernel
             _dataStore = dataStore;
 
             _preBlockHash = _dataStore.GetData(HashToGetPreBlockHash).Result ?? Hash.Zero;
-
             
             _dataStore.SetData(GetHashToGetPathsCount(), ((long)0).ToBytes());
         }
@@ -265,7 +264,7 @@ namespace AElf.Kernel
             return dict;
         }
         #endregion
-        
+
         /// <summary>
         /// The normal way to get a pointer hash value from a Path instance.
         /// </summary>
@@ -286,8 +285,8 @@ namespace AElf.Kernel
         private Hash GetHashToGetPathsCount(Hash blockHash = null)
         {
             Interlocked.CompareExchange(ref blockHash, _preBlockHash, null);
-            Hash origin = "paths".CalculateHash();
-            return origin.CombineHashWith(blockHash);
+            Hash foo = "paths".CalculateHash();
+            return foo.CombineHashWith(blockHash);
         }
 
         /// <summary>

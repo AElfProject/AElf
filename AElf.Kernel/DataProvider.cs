@@ -31,7 +31,7 @@ namespace AElf.Kernel
                 .SetDataProvider(GetHash());
         }
 
-        private Hash GetHash()
+        public Hash GetHash()
         {
             return _accountDataContext.GetHash().CalculateHashWith(_dataProviderKey);
         }
@@ -80,7 +80,6 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="keyHash"></param>
         /// <param name="obj"></param>
-        /// <param name="transactionHash"></param>
         /// <returns></returns>
         public async Task<Change> SetAsync(Hash keyHash, byte[] obj)
         {
