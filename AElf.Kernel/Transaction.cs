@@ -1,24 +1,48 @@
 ﻿using System;
-using AElf.Kernel.Extensions;
+using AElf.Kernel.Crypto.ECDSA;
 using Google.Protobuf;
+using Org.BouncyCastle.Math;
 
 namespace AElf.Kernel
 {
     public partial class Transaction : ITransaction
     {
-        /// <summary>
-        /// Use timestamp to prevent a over-time tx received by a block.
-        /// </summary>
-        public long TimeStamp => (long)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds;
-
         public Hash GetHash()
         {
-            return this.CalculateHash();
+            return new Hash(GetSignatureData());
+        }
+
+        public byte[] Serialize()
+        {
+            return this.ToByteArray();
         }
 
         public ITransactionParallelMetaData GetParallelMetaData()
         {
             throw new NotImplementedException();
+        }
+
+        public Hash LastBlockHashWhenCreating()
+        {
+            throw new NotImplementedException();
+        }
+
+        public ECSignature GetSignature()
+        {
+            BigInteger[] sig = new BigInteger[2];
+            sig[0] = new BigInteger(R.ToByteArray());
+            sig[1] = new BigInteger(S.ToByteArray());
+            
+            return new ECSignature(sig);
+        }
+
+        public byte[] GetSignatureData()
+        {
+            Transaction txData = new Transaction();
+            txData.From = From.Clone();
+            txData.To = To.Clone();
+
+            return txData.ToByteArray();
         }
     }
 }

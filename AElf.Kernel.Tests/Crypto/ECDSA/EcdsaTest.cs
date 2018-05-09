@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.Crypto.ECDSA;
+﻿using System.Linq;
+using AElf.Kernel.Crypto.ECDSA;
 using Org.BouncyCastle.Math;
 using Xunit;
 
@@ -37,6 +38,22 @@ namespace AElf.Kernel.Tests.Crypto.ECDSA
             ECVerifier verifier = new ECVerifier(keyPair);
             
             Assert.True(verifier.Verify(signature, message));
+        }
+        
+        [Fact]
+        public void SignatureDecoding_Decode_ShouldBeEqualToOriginal()
+        {
+            // GenerareceivedKeyte the key pair 
+            ECKeyPair keyPair = new KeyPairGenerator().Generate();
+            
+            // Get its byte array representation
+            byte[] initialPublicKey = keyPair.GetPublicKey(compressed: true);
+            
+            // Reconstruct it and check if the key is the same
+            ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(initialPublicKey);
+            byte[] receivedKey = recipientKeyPair.GetPublicKey(true);
+            
+            Assert.True(receivedKey.SequenceEqual(initialPublicKey));
         }
     }
 }
