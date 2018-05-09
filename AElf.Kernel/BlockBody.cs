@@ -1,18 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using AElf.Kernel.Merkle;
+﻿using AElf.Kernel.Merkle;
 
 namespace AElf.Kernel
 {
     public partial class BlockBody : IBlockBody
     {
-        public int TransactionsCount => transactions_.Count;
+        public int TransactionsCount => Transactions.Count;
 
         public bool AddTransaction(Hash tx)
         {
-            if (transactions_.Contains(tx))
+            if (Transactions.Contains(tx))
                 return false;
-            transactions_.Add(tx);
+            
+            Transactions.Add(tx);
+            
             return true;
         }
 
@@ -20,6 +20,7 @@ namespace AElf.Kernel
         {
             var merkleTree = new BinaryMerkleTree();
             merkleTree.AddNodes(transactions_);
+            
             return merkleTree.ComputeRootHash();
         }
     }

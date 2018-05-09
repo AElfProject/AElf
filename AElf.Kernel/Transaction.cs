@@ -1,12 +1,6 @@
-﻿using AElf.Kernel.Extensions;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System;
+using AElf.Kernel.Extensions;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
@@ -26,11 +20,5 @@ namespace AElf.Kernel
         {
             throw new NotImplementedException();
         }
-
-        public Hash LastBlockHashWhenCreating()
-        {
-            throw new NotImplementedException();
-        }
-
     }
 }

@@ -31,7 +31,6 @@ namespace AElf.Kernel
         /// </summary>
         public ulong Index { get; set;}
         
-        
         public Hash GetHash()
         {
             return this.CalculateHash();
