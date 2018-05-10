@@ -17,6 +17,10 @@
         /// </summary>
         ulong FeeThreshold { get; }
 
+        /// <summary>
+        /// chain id 
+        /// </summary>
+        Hash ChainId { get;} 
         
         /// <summary>
         /// minimal number of txs for entering pool

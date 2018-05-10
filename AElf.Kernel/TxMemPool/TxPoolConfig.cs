@@ -6,8 +6,11 @@
         {
             PoolLimitSize = 1024 * 1024,
             TxLimitSize = 1024 * 1,
-            EntryThreshold = 5
+            EntryThreshold = 5,
+            ChainId = Hash.Generate()
         };
+        
+        public Hash ChainId { get; set; }
 
         public ulong PoolLimitSize { get; set; }
 
