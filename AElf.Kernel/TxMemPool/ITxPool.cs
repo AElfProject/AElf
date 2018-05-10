@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using AElf.Kernel.TxMemPool;
 
 namespace AElf.Kernel.TxMemPool
 {
@@ -49,12 +48,22 @@ namespace AElf.Kernel.TxMemPool
         /// threshold for entering pool
         /// </summary>
         ulong EntryThreshold { get; }
+
+        /// <summary>
+        /// return chain id for this pool
+        /// </summary>
+        Hash ChainId { get; }
+
+        /// <summary>
+        /// limit size for tx
+        /// </summary>
+        uint TxLimitSize { get; }
         
         /// <summary>
         /// minimal fee needed
         /// </summary>
         /// <returns></returns>
-        //Fee MinimalFee { get; }
+        ulong  MinimalFee { get; }
 
         /// <summary>
         /// return a tx alread in pool
@@ -109,6 +118,6 @@ namespace AElf.Kernel.TxMemPool
         /// return Tmp list size
         /// </summary>
         /// <returns></returns>
-        ulong GetTmpSize();
+        ulong TmpSize { get; }
     }
 }

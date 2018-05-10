@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.Storages;
 using ReaderWriterLock = AElf.Kernel.Lock.ReaderWriterLock;
 
 namespace AElf.Kernel.TxMemPool
@@ -40,7 +38,7 @@ namespace AElf.Kernel.TxMemPool
             return Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
             {
                 var res = _txPool.AddTx(tx);
-                if (_txPool.GetTmpSize() >= _txPool.EntryThreshold)
+                if (_txPool.TmpSize >= _txPool.EntryThreshold)
                 {
                     EnqueueEvent.Set();
                 }
@@ -169,7 +167,7 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task<ulong> GetTmpSizeAsync()
         {
-            return Lock.ReadLock(() => _txPool.GetTmpSize());
+            return Lock.ReadLock(() => _txPool.TmpSize);
         }
         
 

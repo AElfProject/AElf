@@ -4,17 +4,19 @@
     {
         public static readonly TxPoolConfig Default = new TxPoolConfig
         {
-            PoolLimitSize = 10000,
-            TxLimitSize = 10000,
+            PoolLimitSize = 1024 * 1024,
+            TxLimitSize = 1024 * 1,
             EntryThreshold = 5,
-            //FeeThreshold = new Fee()
+            ChainId = Hash.Generate()
         };
+        
+        public Hash ChainId { get; set; }
 
         public ulong PoolLimitSize { get; set; }
 
-        public int TxLimitSize { get; set; }
+        public uint TxLimitSize { get; set; }
 
-        //public Fee FeeThreshold { get; set; }
+        public ulong FeeThreshold { get; set; }
        
         public ulong EntryThreshold { get; set; }
     }

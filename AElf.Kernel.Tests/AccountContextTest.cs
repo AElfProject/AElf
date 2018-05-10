@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using AElf.Kernel.Services;
+using Xunit;
 using Xunit.Frameworks.Autofac;
 
 namespace AElf.Kernel.Tests

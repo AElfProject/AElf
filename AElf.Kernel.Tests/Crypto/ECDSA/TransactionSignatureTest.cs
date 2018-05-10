@@ -1,10 +1,6 @@
-﻿using System;
-using System.Globalization;
-using AElf.Kernel.Crypto;
+﻿using AElf.Kernel.Crypto;
 using AElf.Kernel.Crypto.ECDSA;
 using Google.Protobuf;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
 using Xunit;
 
 namespace AElf.Kernel.Tests.Crypto.ECDSA
