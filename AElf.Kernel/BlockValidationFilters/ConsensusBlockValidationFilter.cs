@@ -7,7 +7,6 @@ namespace AElf.Kernel.BlockValidationFilters
         public Task<bool> ValidateBlockAsync(Block block, IChainContext context)
         {
             return Task.FromResult(true);
-
         }
     }
 }
