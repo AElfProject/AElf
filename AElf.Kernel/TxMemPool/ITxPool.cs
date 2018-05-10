@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using AElf.Kernel.TxMemPool;
 
 namespace AElf.Kernel.TxMemPool
 {

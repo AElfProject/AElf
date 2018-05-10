@@ -1,6 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Managers;
+using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
 using Xunit;
 using Xunit.Frameworks.Autofac;
