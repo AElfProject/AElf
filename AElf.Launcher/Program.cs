@@ -1,30 +1,26 @@
 ﻿using System;
 using AElf.Kernel;
-using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Modules.AutofacModule;
+using AElf.Kernel.Node;
 using AElf.Kernel.TxMemPool;
 using Autofac;
-using Org.BouncyCastle.Bcpg;
 
 namespace AElf.Launcher
 {
     class Program
     {
-        private AElfNode _aelf;  
-        
         static void Main(string[] args)
         {
             // Parse options
             TxPoolConfig tc = new TxPoolConfig();
-            tc.EntryThreshold = 666;
             
             // Setup ioc 
             IContainer container = SetupIocContainer(tc);
 
             using(var scope = container.BeginLifetimeScope())
             {
-                ITxPool pool = scope.Resolve<ITxPool>();
-                Console.WriteLine(pool.EntryThreshold);
+                IAElfNode node = scope.Resolve<IAElfNode>();
+                node.Start();
 
                 Console.ReadLine();
             }
@@ -37,7 +33,10 @@ namespace AElf.Launcher
             // Registrations
             builder.RegisterModule(new MainModule());
             builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
-            builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
+            builder.RegisterModule(new TransactionManagerModule());
+            
+            // Node registration
+            builder.RegisterType<MainChainNode>().As<IAElfNode>();
 
             IContainer container = null;
             
