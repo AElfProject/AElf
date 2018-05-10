@@ -95,6 +95,7 @@ namespace AElf.Kernel.Tests
             //Create a chain with one block.
             var chain = new Chain();
             var chainManager = new ChainManager(_chainStore);
+            var genesisBlockHash = Hash.Generate();
             var blockHash = Hash.Generate();
             var block = new Block(blockHash);
             block.AddTransaction(Hash.Generate());
@@ -107,6 +108,7 @@ namespace AElf.Kernel.Tests
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, 
                 accountContextService, _pointerStore, _changesStore, _dataStore);
+            await worldStateManager.SetWorldStateAsync(chain.Id, genesisBlockHash);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
             
             //Get the DataProvider of the AccountDataProvider.

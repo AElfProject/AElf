@@ -5,6 +5,8 @@ namespace AElf.Kernel.Managers
 {
     public interface IWorldStateManager
     {
+        Hash HashToGetPreBlockHash { get; }
+
         Task<IWorldState> GetWorldStateAsync(Hash chainId, Hash blockHash);
 
         Task SetWorldStateAsync(Hash chainId, Hash currentBlockHash);
@@ -16,6 +18,8 @@ namespace AElf.Kernel.Managers
         Hash CalculatePointerHashOfCurrentHeight(Path path);
         
         Task InsertChangeAsync(Hash pathHash, Change change);
+
+        Task<Change> GetChangeAsync(Hash pathHash);
         
         Task RollbackCurrentChangesAsync();
 

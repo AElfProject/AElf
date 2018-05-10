@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
@@ -25,7 +26,7 @@ namespace AElf.Kernel.Managers
         /// <summary>
         /// A specific key to store previous block hash value.
         /// </summary>
-        private static readonly Hash HashToGetPreBlockHash = "PreviousBlockHash".CalculateHash();
+        public Hash HashToGetPreBlockHash => "PreviousBlockHash".CalculateHash();
         #endregion
 
         public WorldStateManager(IWorldStateStore worldStateStore,
@@ -64,6 +65,11 @@ namespace AElf.Kernel.Managers
             count++;
             await _dataStore.SetDataAsync(GetHashToGetPathsCount(), count.ToBytes());
         }
+
+        public async Task<Change> GetChangeAsync(Hash pathHash)
+        {
+            return await _changesStore.GetAsync(pathHash);
+        }
         
         /// <summary>
         /// Rollback changes of executed transactions
@@ -75,7 +81,7 @@ namespace AElf.Kernel.Managers
             var dict = await GetChangesDictionaryAsync();
             foreach (var pair in dict)
             {
-                await _pointerStore.UpdateAsync(pair.Key, pair.Value.Before);
+                await _pointerStore.UpdateAsync(pair.Key, pair.Value.Befores[0]);
             }
         }
 
@@ -91,6 +97,7 @@ namespace AElf.Kernel.Managers
         }
 
         #region Methods about WorldState
+
         /// <summary>
         /// Get a WorldState instance.
         /// </summary>
@@ -117,13 +124,13 @@ namespace AElf.Kernel.Managers
             {
                 var pairHashChange = new PairHashChange
                 {
-                    Key = pair.Key,
-                    Value = pair.Value
+                    Key = pair.Key.Clone(),
+                    Value = pair.Value.Clone()
                 };
                 dict.Dict.Add(pairHashChange);
             }
             await _worldStateStore.InsertWorldStateAsync(chainId, _preBlockHash, dict);
-            await _dataStore.SetDataAsync(HashToGetPreBlockHash, preBlockHash.Value.ToByteArray());
+            await _dataStore.SetDataAsync(HashToGetPreBlockHash, preBlockHash.Value.ToArray());
 
             //Refresh _preBlockHash after setting WorldState.
             _preBlockHash = preBlockHash;

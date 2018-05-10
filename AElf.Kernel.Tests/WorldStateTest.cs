@@ -110,9 +110,9 @@ namespace AElf.Kernel.Tests
             Assert.True(changes1.Count == getChanges1.Count);
             Assert.True(changes1[0].After == getChanges1[0].After);
             Assert.True(changes1[3].After == getChanges1[3].After);
-            Assert.True(changes1[0].After == changes2[0].Before);
-            Assert.True(changes1[1].After == changes2[1].Before);
-            Assert.True(changes1[2].After == changes2[2].Before);
+            Assert.True(changes1[0].After == changes2[0].GetLastHashBefore());
+            Assert.True(changes1[1].After == changes2[1].GetLastHashBefore());
+            Assert.True(changes1[2].After == changes2[2].GetLastHashBefore());
 
             //Test the equality of pointer transfered from path and get from world state.
             var path = new Path()
@@ -122,7 +122,7 @@ namespace AElf.Kernel.Tests
                 .SetDataKey(key);
             var pointerHash1 = path.SetBlockHash(genesisBlockHash).GetPointerHash();
             var pointerHash2 = path.SetBlockHash(block1.GetHash()).GetPointerHash();
-            Assert.True(changes2[0].Before == pointerHash1);
+            Assert.True(changes2[0].GetLastHashBefore() == pointerHash1);
             Assert.True(changes2[0].After == pointerHash2);
 
             //Test data equal or not equal from different world states.
@@ -240,7 +240,9 @@ namespace AElf.Kernel.Tests
             accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
             dataProvider = accountDataProvider.GetDataProvider();
             var data5 = Hash.Generate().Value.ToArray();
+            var data6 = Hash.Generate().Value.ToArray();
             subDataProvider = dataProvider.GetDataProvider("test");
+            await subDataProvider.SetAsync(key1, data6);
             await subDataProvider.SetAsync(key1, data5);
 
             var getData5 = await subDataProvider.GetAsync(key1);

@@ -13,7 +13,14 @@ namespace AElf.Kernel
         /// </summary>
         private readonly string _dataProviderKey;
         private readonly Path _path;
-        
+
+        private Hash _preBlockHash;
+
+        public Hash PreBlockHash
+        {
+            get => _preBlockHash;
+        }
+
         public DataProvider(IAccountDataContext accountDataContext, IWorldStateManager worldStateManager, 
             string dataProviderKey = "")
         {
@@ -84,17 +91,39 @@ namespace AElf.Kernel
             
             //Generate the path hash.
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
-            //Get current pointer hash from PointerStore.
-            var pointerHashBefore = await _worldStateManager.GetPointerAsync(pathHash);
+
             //Generate the new pointer hash (using previous block hash)
             var pointerHashAfter = _worldStateManager.CalculatePointerHashOfCurrentHeight(_path);
 
-            var change = new Change
+            var preBlockHash = PreBlockHash;
+            if (preBlockHash == null)
             {
-                Before = pointerHashBefore,
-                After = pointerHashAfter,
-            };
-
+                _preBlockHash = await _worldStateManager.GetDataAsync(_worldStateManager.HashToGetPreBlockHash);
+                preBlockHash = _preBlockHash;
+            }
+            
+            var change = await _worldStateManager.GetChangeAsync(pathHash);
+            if (change == null)
+            {
+                change = new Change
+                {
+                    After = pointerHashAfter
+                };
+            }
+            else
+            {
+                //See whether the latest changes of this Change happened in this height,
+                //If not, clear the change, because this Change is too old to support rollback.
+                if (preBlockHash != change.LatestChangedBlockHash)
+                {
+                    change.ClearChangeBefores();
+                }
+                
+                change.UpdateHashAfter(pointerHashAfter);
+            }
+            
+            change.LatestChangedBlockHash = preBlockHash;
+            
             await _worldStateManager.UpdatePointerAsync(pathHash, pointerHashAfter);
             await _worldStateManager.InsertChangeAsync(pathHash, change);
             await _worldStateManager.SetDataAsync(pointerHashAfter, obj);
