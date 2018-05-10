@@ -54,7 +54,7 @@ message SmartContractInvokeContext{
 message Change{
     repeated Hash Befores = 1;
     Hash After = 2;
-    repeated Hash TransactionIds = 3;
+    Hash TransactionIds = 3;
     Hash LatestChangedBlockHash = 4;
 }
 
