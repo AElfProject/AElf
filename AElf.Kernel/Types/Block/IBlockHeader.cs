@@ -1,5 +1,4 @@
 ﻿using System;
-using AElf.Kernel.Merkle;
 
 namespace AElf.Kernel
 {

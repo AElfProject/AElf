@@ -1,6 +1,6 @@
 ﻿﻿using System.Collections.Generic;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Services
 {
     public class AccountContextService : IAccountContextService
     {

@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
 using Google.Protobuf;
 

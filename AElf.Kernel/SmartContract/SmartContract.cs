@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
+﻿using System.Threading.Tasks;
 using Google.Protobuf;
 
 namespace AElf.Kernel

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using AElf.Kernel.Extensions;
-using Google.Protobuf;
 
 namespace AElf.Kernel
 {

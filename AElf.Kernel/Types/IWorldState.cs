@@ -1,5 +1,4 @@
-﻿using AElf.Kernel.Merkle;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace AElf.Kernel
 {

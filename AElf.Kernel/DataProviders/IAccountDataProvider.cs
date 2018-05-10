@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace AElf.Kernel
+﻿namespace AElf.Kernel
 {
     /// <summary>
     /// Data is stored associated with Account

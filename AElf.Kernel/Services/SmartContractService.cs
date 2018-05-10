@@ -1,8 +1,7 @@
 ﻿using System.Threading.Tasks;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Managers;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Services
 {
     public class SmartContractService : ISmartContractService
     {

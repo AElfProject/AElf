@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Storages;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Managers
 {
-    public class BlockManager: IBlockManager
+    public class BlockManager : IBlockManager
     {
         private readonly IBlockHeaderStore _blockHeaderStore;
 

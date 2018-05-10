@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Kernel.KernelAccount;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Services
 {
     /// <summary>
     /// Create a new chain never existing

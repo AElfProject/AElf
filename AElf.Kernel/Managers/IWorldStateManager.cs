@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Managers
 {
     public interface IWorldStateManager
     {

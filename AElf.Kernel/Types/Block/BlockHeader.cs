@@ -1,5 +1,4 @@
 ﻿using AElf.Kernel.Extensions;
-using AElf.Kernel.Merkle;
 using System;
 
 namespace AElf.Kernel

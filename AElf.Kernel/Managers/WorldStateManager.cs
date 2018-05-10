@@ -2,9 +2,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
+using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Managers
 {
     public class WorldStateManager: IWorldStateManager
     {

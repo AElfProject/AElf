@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Managers;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Services
 {
     public class ChainCreationService: IChainCreationService
     {

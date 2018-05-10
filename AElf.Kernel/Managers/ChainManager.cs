@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
-using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
+﻿using System.Threading.Tasks;
 using AElf.Kernel.Storages;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Managers
 {
     public class ChainManager : IChainManager
     {
@@ -14,7 +11,6 @@ namespace AElf.Kernel
         {
             _chainStore = chainStore;
         }
-
 
         public async Task AppendBlockToChainAsync(Chain chain, Block block)
         {
@@ -31,7 +27,6 @@ namespace AElf.Kernel
             chain.UpdateCurrentBlock(block);
             //await _relationStore.InsertAsync(chain, block);
             await _chainStore.UpdateAsync(chain);
-
         }
 
         public Task<Chain> GetChainAsync(Hash id)

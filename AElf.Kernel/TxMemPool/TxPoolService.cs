@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.Storages;
 using ReaderWriterLock = AElf.Kernel.Lock.ReaderWriterLock;
 
 namespace AElf.Kernel.TxMemPool

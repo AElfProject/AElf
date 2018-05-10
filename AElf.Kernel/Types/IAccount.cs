@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace AElf.Kernel
+﻿namespace AElf.Kernel
 {
     /// <summary>
     /// Every smart contract was an account
