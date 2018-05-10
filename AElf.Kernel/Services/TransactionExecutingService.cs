@@ -5,16 +5,16 @@ using AElf.Kernel.Services;
 using QuickGraph;
 
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Services
 {
-    public class TransactionExecutingManager : ITransactionExecutingManager
+    public class TransactionExecutingService : ITransactionExecutingService
     {
         public Dictionary<int, List<ITransaction>> ExecutingPlan { get; private set; }
         private Dictionary<Hash, List<ITransaction>> _pending;
         private UndirectedGraph<ITransaction, Edge<ITransaction>> _graph;
         private readonly ISmartContractService _smartContractService;
 
-        public TransactionExecutingManager(ISmartContractService smartContractService)
+        public TransactionExecutingService(ISmartContractService smartContractService)
         {
             _smartContractService = smartContractService;
         }

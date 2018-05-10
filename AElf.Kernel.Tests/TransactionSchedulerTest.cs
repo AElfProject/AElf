@@ -69,7 +69,7 @@ namespace AElf.Kernel.Tests
             
             ISmartContractService sm = null;
             IChainContext context = null;
-            var transactionExecutingManager = new TransactionExecutingManager(sm);
+            var transactionExecutingManager = new TransactionExecutingService(sm);
             
             // simple demo cases
 
