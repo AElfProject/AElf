@@ -18,7 +18,7 @@ namespace AElf.Kernel
 
         public Hash CalculateMerkleTreeRoot()
         {
-            BinaryMerkleTree merkleTree=new BinaryMerkleTree();
+            var merkleTree = new BinaryMerkleTree();
             merkleTree.AddNodes(transactions_);
             
             return merkleTree.ComputeRootHash();

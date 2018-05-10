@@ -8,10 +8,9 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class BlockTest
     {
-        private IBlockManager _blockManager;
-        private ISmartContractZero _smartContractZero;
-        private ChainTest _chainTest;
-
+        private readonly IBlockManager _blockManager;
+        private readonly ISmartContractZero _smartContractZero;
+        private readonly ChainTest _chainTest;
 
         public BlockTest(IBlockManager blockManager, ISmartContractZero smartContractZero, ChainTest chainTest)
         {
@@ -19,9 +18,7 @@ namespace AElf.Kernel.Tests
             _smartContractZero = smartContractZero;
             _chainTest = chainTest;
         }
-
      
-
        [Fact]
         public void GenesisBlockBuilderTest()
         {

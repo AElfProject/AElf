@@ -6,5 +6,7 @@
         Hash Address { get; set; }
         
         Hash ChainId { get; set; }
+
+        Hash GetHash();
     }
 }

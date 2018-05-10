@@ -1,19 +1,28 @@
 using System;
+using System.Collections.Generic;
+using System.Net.Mime;
+using System.Runtime.CompilerServices;
+using AElf.Kernel.Storages;
 
 namespace AElf.Kernel
 {
     public class AccountDataProvider : IAccountDataProvider
     {
-        public IAccountDataContext Context { get; set; }
+        private readonly IWorldStateManager _worldStateManager;
         
-        public IHash GetAccountAddress()
+        public IAccountDataContext Context { get; set; }
+
+        public AccountDataProvider(Hash accountHash, Hash chainId, 
+            IAccountContextService accountContextService,
+            IWorldStateManager worldStateManager)
         {
-            throw new NotImplementedException();
+            _worldStateManager = worldStateManager;
+            Context = accountContextService.GetAccountDataContext(accountHash, chainId);
         }
 
         public IDataProvider GetDataProvider()
         {
-            throw new NotImplementedException();
+            return new DataProvider(Context, _worldStateManager);
         }
     }
 }

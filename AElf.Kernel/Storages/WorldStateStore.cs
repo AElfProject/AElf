@@ -1,65 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Extensions;
 
 namespace AElf.Kernel.Storages
 {
     public class WorldStateStore : IWorldStateStore
     {
-        private readonly Dictionary<IHash, List<IChangesStore>> _changesStores = 
-            new Dictionary<IHash, List<IChangesStore>>();
+        private readonly KeyValueDatabase _keyValueDatabase;
         
-        private Dictionary<IHash, List<IAccountDataProvider>> _accountDataProviders =
-            new Dictionary<IHash, List<IAccountDataProvider>>();
-        
-        public Task SetWorldStateAsync(IHash chainHash, IChangesStore changesStore)
+        public WorldStateStore(KeyValueDatabase keyValueDatabase)
         {
-            if (!Validation(changesStore))
-            {
-                throw new InvalidOperationException("Invalide changes");
-            }
-            
-            _changesStores[chainHash].Add(changesStore);
-            return Task.CompletedTask;
+            _keyValueDatabase = keyValueDatabase;
         }
 
-        public Task<WorldState> GetAsync(IHash chainHash, long height)
+        public async Task InsertWorldStateAsync(Hash chainId, Hash blockHash, ChangesDict changes)
         {
-            throw new System.NotImplementedException();
+            Hash wsKey = chainId.CalculateHashWith(blockHash);
+            await _keyValueDatabase.SetAsync(wsKey, changes);
         }
 
-        public Task<WorldState> GetAsync(IHash chainHash)
+        public async Task<WorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)
         {
-            return Task.FromResult(CreateWorldState(chainHash));
-        }
-
-        private bool Validation(IChangesStore changesStore)
-        {
-            return true;
-        }
-
-        private List<IChangesStore> GetChangesList(IHash chainHash)
-        {
-            return _changesStores[chainHash];
-        }
-
-        private WorldState CreateWorldState(IHash chainHash, long height = -1)
-        {
-            var currentWorldState = new WorldState(_accountDataProviders[chainHash]);
-            if (height == -1)
-            {
-                return currentWorldState;
-            }
-
-            var changes = GetChangesList(chainHash);
-            var currentHeight = changes.Count;
-            var changesToRollback = changes.GetRange((int)height, (int)(currentHeight - height));
-            return Rollback(currentWorldState, changesToRollback);
-        }
-
-        private WorldState Rollback(WorldState worldState, List<IChangesStore> changes)
-        {
-            throw new NotImplementedException();
+            Hash wsKey = chainId.CalculateHashWith(blockHash);
+            var changesDict = (ChangesDict) await _keyValueDatabase.GetAsync(wsKey, typeof(ChangesDict));
+            return new WorldState(changesDict);
         }
     }
 }

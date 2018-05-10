@@ -21,11 +21,11 @@ namespace AElf.Kernel.KernelAccount
 
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        private IWorldStateManager _worldStateManager;
+        private readonly IWorldStateManager _worldStateManager;
 
         private readonly IAccountContextService _accountContextService;
         
-        private ISerializer<SmartContractRegistration> _serializer;
+        private readonly ISerializer<SmartContractRegistration> _serializer;
 
         public SmartContractZero(ISmartContractRunnerFactory smartContractRunnerFactory,
             IWorldStateManager worldStateManager, ISerializer<SmartContractRegistration> serializer, 
@@ -59,10 +59,8 @@ namespace AElf.Kernel.KernelAccount
         public async Task RegisterSmartContract(Hash caller, SmartContractRegistration reg)
         {
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
-            await smartContractMap.SetAsync(
-                reg.ContractHash, _serializer.Serialize(reg)
-            );
-            
+            //TODO: For now just hard coded to Hash.Zero
+            await smartContractMap.SetAsync(reg.ContractHash, _serializer.Serialize(reg));
         }
 
         public async Task DeploySmartContract(Hash caller, SmartContractDeployment smartContractRegister)
