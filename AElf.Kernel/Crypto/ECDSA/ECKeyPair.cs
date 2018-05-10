@@ -1,9 +1,4 @@
-﻿using System.Runtime.InteropServices.ComTypes;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math.EC;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities.Encoders;
+﻿using Org.BouncyCastle.Crypto.Parameters;
 
 namespace AElf.Kernel.Crypto.ECDSA
 {

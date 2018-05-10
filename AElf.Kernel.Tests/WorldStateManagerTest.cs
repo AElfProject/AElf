@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
+using AElf.Kernel.Managers;
+using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
-using Castle.Components.DictionaryAdapter;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 

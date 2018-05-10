@@ -1,6 +1,3 @@
-using System;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Storages;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule

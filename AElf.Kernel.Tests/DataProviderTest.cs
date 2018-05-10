@@ -1,8 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
+using AElf.Kernel.Managers;
+using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
 using Xunit;
 using Xunit.Frameworks.Autofac;

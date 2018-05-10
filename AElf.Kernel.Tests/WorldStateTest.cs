@@ -1,9 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
-using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Managers;
+using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
 using Xunit;
 using Xunit.Frameworks.Autofac;

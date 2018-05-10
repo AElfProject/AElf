@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Google.Protobuf;
 
 namespace AElf.Kernel.KernelAccount
 {

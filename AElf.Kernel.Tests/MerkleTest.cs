@@ -1,4 +1,3 @@
-using System;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Merkle;
 using System.Collections.Generic;
