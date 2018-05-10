@@ -1,5 +1,6 @@
 ﻿using System;
 using AElf.Kernel.Crypto.ECDSA;
+using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
 using Xunit;

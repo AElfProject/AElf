@@ -1,10 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
-using AElf.Kernel.Merkle;
-using System.Threading.Tasks;
-using Moq;
-using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.Tests

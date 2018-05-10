@@ -1,4 +1,5 @@
 ﻿using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using Xunit;
 using Xunit.Frameworks.Autofac;

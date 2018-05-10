@@ -1,8 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Merkle;
-using Moq;
+using AElf.Kernel.Managers;
+using AElf.Kernel.Services;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 

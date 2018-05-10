@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
+using AElf.Kernel.Managers;
+using AElf.Kernel.Services;
 using Google.Protobuf;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace AElf.Kernel.KernelAccount
 {

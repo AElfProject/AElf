@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
-using Google.Protobuf.WellKnownTypes;
+﻿using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storages
 {
