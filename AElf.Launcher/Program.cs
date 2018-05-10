@@ -20,6 +20,8 @@ namespace AElf.Launcher
             using(var scope = container.BeginLifetimeScope())
             {
                 IAElfNode node = scope.Resolve<IAElfNode>();
+                
+                // Start the system
                 node.Start();
 
                 Console.ReadLine();
@@ -30,8 +32,10 @@ namespace AElf.Launcher
         {
             var builder = new ContainerBuilder();
             
-            // Registrations
-            builder.RegisterModule(new MainModule());
+            // Register everything
+            builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
+            
+            // Module registrations
             builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
             builder.RegisterModule(new TransactionManagerModule());
             

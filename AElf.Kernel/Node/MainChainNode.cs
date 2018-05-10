@@ -17,7 +17,6 @@ namespace AElf.Kernel.Node
         public void Start()
         {
             _poolService.Start();
-            _poolService.GetPoolSize();
         }
     }
 }
