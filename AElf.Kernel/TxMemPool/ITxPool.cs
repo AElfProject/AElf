@@ -49,6 +49,10 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         ulong EntryThreshold { get; }
 
+        /// <summary>
+        /// return chain id for this pool
+        /// </summary>
+        Hash ChainId { get; }
 
         /// <summary>
         /// limit size for tx

@@ -14,12 +14,10 @@ namespace AElf.Kernel.TxMemPool
         private readonly Dictionary<Hash, Transaction> _pool = new Dictionary<Hash, Transaction>();
         
         private readonly IAccountContextService _accountContextService;
-        private readonly Hash _chainId;
         private readonly ITxPoolConfig _config;
 
-        public TxPool(Hash chainId, ITxPoolConfig config, IAccountContextService accountContextService)
+        public TxPool(ITxPoolConfig config, IAccountContextService accountContextService)
         {
-            _chainId = chainId;
             _config = config;
             _accountContextService = accountContextService;
         }
@@ -28,6 +26,9 @@ namespace AElf.Kernel.TxMemPool
 
         /// <inheritdoc />
         public ulong EntryThreshold => _config.EntryThreshold;
+
+        /// <inheritdoc />
+        public Hash ChainId => _config.ChainId;
 
         /// <inheritdoc />
         public uint TxLimitSize => _config.TxLimitSize;
@@ -470,7 +471,7 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         private ulong GetNonce(Hash addr)
         {
-            return _accountContextService.GetAccountDataContext(addr, _chainId).IncreasementId;
+            return _accountContextService.GetAccountDataContext(addr, ChainId).IncreasementId;
         }
       
     }
