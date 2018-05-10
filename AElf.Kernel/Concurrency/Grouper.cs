@@ -30,23 +30,25 @@ namespace AElf.Kernel.Concurrency
         /// <param name="txList">Transaction list</param>
         /// <returns></returns>
         public List<List<Transaction>> MergeByAccount(List<Transaction> txList)
-        {    
+        {
+			if(txList.Count == 0) return new List<List<Transaction>>();
+         
             Dictionary<Hash, UnionFindNode> accountUnionSet = new Dictionary<Hash, UnionFindNode>();
             
             //set up the union find set
             foreach (var tx in txList)
             {
-                if (!accountUnionSet.ContainsKey(tx.From))
+				if (!accountUnionSet.TryGetValue(tx.From, out var fromNode))
                 {
-                    accountUnionSet[tx.From] = new UnionFindNode();
+					fromNode = new UnionFindNode();
                 }
 
-                if (!accountUnionSet.ContainsKey(tx.To))
+				if (!accountUnionSet.TryGetValue(tx.To, out var toNode))
                 {
-                    accountUnionSet[tx.To] = new UnionFindNode();
+					toNode = new UnionFindNode();
                 }
 
-                accountUnionSet[tx.From].Union(accountUnionSet[tx.To]);
+				fromNode.Union(toNode);
             }
 
             //set up the result group and init the first group

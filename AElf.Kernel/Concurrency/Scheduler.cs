@@ -9,9 +9,9 @@ namespace AElf.Kernel.Concurrency
     public class Scheduler : IScheduler
     {
         private ITxPoolService _txPoolService;
-        protected Grouper _grouper;
+        protected IGrouper _grouper;
 
-        public Scheduler(ITxPoolService txPoolService, Grouper grouper)
+        public Scheduler(ITxPoolService txPoolService, IGrouper grouper)
         {
             _txPoolService = txPoolService;
             _grouper = grouper;
