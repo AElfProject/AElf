@@ -9,9 +9,10 @@ message Transaction
     uint64 IncrementId = 3;
     string MethodName = 4;
     bytes Params = 5;
-    bytes R = 6;
-    bytes S = 7;
-    bytes P = 8;
+    uint64 Fee = 6;
+    bytes R = 7;
+    bytes S = 8;
+    bytes P = 9;
 }
 
 message Hash{
@@ -49,4 +50,19 @@ message SmartContractDeployment{
 message SmartContractInvokeContext{
     Hash Caller = 1;
     uint64 IncrementId = 2;
+}
+
+message Change{
+    Hash Before = 1;
+    Hash After = 2;
+    Hash TransactionId = 3;
+}
+
+message PairHashChange{
+    Hash Key = 1;
+    Change Value = 2;
+}
+
+message ChangesDict{
+    repeated PairHashChange Dict = 1;
 }

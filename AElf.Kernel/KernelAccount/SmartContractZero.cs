@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
+using AElf.Kernel.Managers;
+using AElf.Kernel.Services;
 using Google.Protobuf;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace AElf.Kernel.KernelAccount
 {
@@ -21,11 +20,11 @@ namespace AElf.Kernel.KernelAccount
 
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        private IWorldStateManager _worldStateManager;
+        private readonly IWorldStateManager _worldStateManager;
 
         private readonly IAccountContextService _accountContextService;
         
-        private ISerializer<SmartContractRegistration> _serializer;
+        private readonly ISerializer<SmartContractRegistration> _serializer;
 
         public SmartContractZero(ISmartContractRunnerFactory smartContractRunnerFactory,
             IWorldStateManager worldStateManager, ISerializer<SmartContractRegistration> serializer, 
@@ -59,10 +58,8 @@ namespace AElf.Kernel.KernelAccount
         public async Task RegisterSmartContract(Hash caller, SmartContractRegistration reg)
         {
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
-            await smartContractMap.SetAsync(
-                reg.ContractHash, _serializer.Serialize(reg)
-            );
-            
+            //TODO: For now just hard coded to Hash.Zero
+            await smartContractMap.SetAsync(reg.ContractHash, _serializer.Serialize(reg));
         }
 
         public async Task DeploySmartContract(Hash caller, SmartContractDeployment smartContractRegister)

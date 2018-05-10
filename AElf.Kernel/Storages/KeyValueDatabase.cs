@@ -8,14 +8,9 @@ namespace AElf.Kernel.Storages
     {
         private readonly Dictionary<Hash, object> _dictionary = new Dictionary<Hash, object>();
         
-        public Task<object> GetAsync(Hash key,Type type)
+        public Task<object> GetAsync(Hash key, Type type)
         {
-            if (_dictionary.TryGetValue(key, out var value))
-            {
-                return Task.FromResult(value);
-            }
-
-            throw new InvalidOperationException("Cannot find related value.");
+            return _dictionary.TryGetValue(key, out var value) ? Task.FromResult(value) : Task.FromResult<object>(null);
         }
 
         public Task SetAsync(Hash key, object bytes)

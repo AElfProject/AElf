@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.Linq;
-using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Services;
 using Moq;
 using Xunit;
 
@@ -71,7 +69,7 @@ namespace AElf.Kernel.Tests
             
             ISmartContractService sm = null;
             IChainContext context = null;
-            var transactionExecutingManager = new TransactionExecutingManager(sm);
+            var transactionExecutingManager = new TransactionExecutingService(sm);
             
             // simple demo cases
 

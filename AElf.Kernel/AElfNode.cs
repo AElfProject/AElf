@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.TxMemPool;
+﻿using AElf.Kernel.Managers;
+using AElf.Kernel.TxMemPool;
 
 namespace AElf.Kernel
 {

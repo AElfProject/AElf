@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
+using AElf.Kernel.Services;
 
 namespace AElf.Kernel.TxMemPool
 {
@@ -15,12 +14,10 @@ namespace AElf.Kernel.TxMemPool
         private readonly Dictionary<Hash, Transaction> _pool = new Dictionary<Hash, Transaction>();
         
         private readonly IAccountContextService _accountContextService;
-        private readonly IChainContext _context;
         private readonly ITxPoolConfig _config;
 
-        public TxPool(IChainContext context, ITxPoolConfig config, IAccountContextService accountContextService)
+        public TxPool(ITxPoolConfig config, IAccountContextService accountContextService)
         {
-            _context = context;
             _config = config;
             _accountContextService = accountContextService;
         }
@@ -29,6 +26,18 @@ namespace AElf.Kernel.TxMemPool
 
         /// <inheritdoc />
         public ulong EntryThreshold => _config.EntryThreshold;
+
+        /// <inheritdoc />
+        public Hash ChainId => _config.ChainId;
+
+        /// <inheritdoc />
+        public uint TxLimitSize => _config.TxLimitSize;
+        
+        /// <inheritdoc/>
+        public ulong TmpSize => (ulong)Tmp.Count;
+
+        /// <inheritdoc/>
+        public ulong MinimalFee => _config.EntryThreshold;
 
         /// <inheritdoc />
         //public Fee MinimalFee => _config.FeeThreshold;
@@ -106,7 +115,7 @@ namespace AElf.Kernel.TxMemPool
             var list = new List<Transaction>();
             foreach (var p in _executable)
             {
-                var nonce = _accountContextService.GetAccountDataContext(p.Key, _context.ChainId).IncreasementId;
+                var nonce = GetNonce(p.Key);
                 foreach (var hash in p.Value)
                 {
                     if(_pool.TryGetValue(hash, out var tx) && tx.IncrementId >= nonce)
@@ -170,12 +179,6 @@ namespace AElf.Kernel.TxMemPool
             return _waiting.Values.Aggregate<Dictionary<ulong, Hash>, ulong>(0,
                 (current, p) => current + (ulong) p.Count);
         }
-
-        /// <inheritdoc/>
-        public ulong GetTmpSize()
-        {
-            return (ulong)Tmp.Count;
-        }
         
         
         /// <summary>
@@ -216,7 +219,7 @@ namespace AElf.Kernel.TxMemPool
                 return false;
             }
             // disgard the tx if too old
-            if (tx.IncrementId < _accountContextService.GetAccountDataContext(tx.From, _context.ChainId).IncreasementId)
+            if (tx.IncrementId < GetNonce(tx.From))
                 return false;
             
             var addr = tx.From;
@@ -261,7 +264,7 @@ namespace AElf.Kernel.TxMemPool
             var tx = _pool[hash];
             // remove the tx 
             var addr = tx.From;
-            var nonce = _accountContextService.GetAccountDataContext(addr, _context.ChainId).IncreasementId;
+            var nonce = GetNonce(addr);
 
 
             // fail if not exist
@@ -309,7 +312,7 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         private List<Transaction> RemoveExecutedTxs(Hash accountHash)
         {
-            var nonce = _accountContextService.GetAccountDataContext(accountHash, _context.ChainId).IncreasementId;
+            var nonce = GetNonce(accountHash);
             if (!_executable.TryGetValue(accountHash, out var list) || list.Count ==0)
                 return null;
 
@@ -377,7 +380,7 @@ namespace AElf.Kernel.TxMemPool
             }
         }
 
-        public ulong? GetNextPromotableTxId(Hash addr)
+        private ulong? GetNextPromotableTxId(Hash addr)
         {
             if (_waiting == null)
                 return null;
@@ -410,7 +413,12 @@ namespace AElf.Kernel.TxMemPool
             return next;
         }
 
-        public void DiscardOldTransaction(Hash addr, ulong w)
+        /// <summary>
+        /// remove tx before nonce w
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <param name="w"></param>
+        private void DiscardOldTransaction(Hash addr, ulong w)
         {
             var waitingList = _waiting[addr];
             
@@ -427,7 +435,7 @@ namespace AElf.Kernel.TxMemPool
         /// promote ready txs from waiting to exectuable
         /// </summary>
         /// <param name="addr">From account addr</param>
-        public void Promote(Hash addr)
+        private void Promote(Hash addr)
         {
             ulong? next = GetNextPromotableTxId(addr);
 
@@ -463,7 +471,7 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         private ulong GetNonce(Hash addr)
         {
-            return _accountContextService.GetAccountDataContext(addr, _context.ChainId).IncreasementId;
+            return _accountContextService.GetAccountDataContext(addr, ChainId).IncreasementId;
         }
       
     }

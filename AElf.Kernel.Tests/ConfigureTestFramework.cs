@@ -16,7 +16,7 @@ namespace AElf.Kernel.Tests
 
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
-            builder.RegisterAssemblyModules(typeof(AElf.Kernel.Modules.AutofacModule.MainModule).Assembly);
+            builder.RegisterAssemblyModules(typeof(Modules.AutofacModule.MainModule).Assembly);
 
             // configure your container
             // e.g. builder.RegisterModule<TestOverrideModule>();
