@@ -10,12 +10,17 @@
         /// <summary>
         /// tx size limit
         /// </summary>
-        int TxLimitSize { get; }
+        uint TxLimitSize { get; }
         
         /// <summary>
         /// minimal tx fee 
         /// </summary>
-        //Fee FeeThreshold { get; }
+        ulong FeeThreshold { get; }
+
+        /// <summary>
+        /// chain id 
+        /// </summary>
+        Hash ChainId { get;} 
         
         /// <summary>
         /// minimal number of txs for entering pool

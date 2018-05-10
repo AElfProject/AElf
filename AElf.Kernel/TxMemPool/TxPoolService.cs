@@ -38,7 +38,7 @@ namespace AElf.Kernel.TxMemPool
             return Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
             {
                 var res = _txPool.AddTx(tx);
-                if (_txPool.GetTmpSize() >= _txPool.EntryThreshold)
+                if (_txPool.TmpSize >= _txPool.EntryThreshold)
                 {
                     EnqueueEvent.Set();
                 }
@@ -167,7 +167,7 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task<ulong> GetTmpSizeAsync()
         {
-            return Lock.ReadLock(() => _txPool.GetTmpSize());
+            return Lock.ReadLock(() => _txPool.TmpSize);
         }
         
 
