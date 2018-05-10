@@ -20,7 +20,7 @@ namespace AElf.Kernel.Tests.TxMemPool
 
         private TxPool GetPool(ulong feeThreshold = 0, uint txSize = 0)
         {
-            return new TxPool(Hash.Generate(), new TxPoolConfig
+            return new TxPool(new TxPoolConfig
             {
                 TxLimitSize = txSize,
                 FeeThreshold = feeThreshold

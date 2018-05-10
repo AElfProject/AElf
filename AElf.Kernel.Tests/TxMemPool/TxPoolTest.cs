@@ -18,7 +18,7 @@ namespace AElf.Kernel.Tests.TxMemPool
 
         private TxPool GetPool()
         {
-            return new TxPool( Hash.Generate(), TxPoolConfig.Default, _accountContextService);
+            return new TxPool(TxPoolConfig.Default, _accountContextService);
         }
 
         private Transaction BuildTransaction(Hash adrFrom = null, Hash adrTo = null, ulong nonce = 0)
@@ -39,7 +39,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             TxPoolConfig conf = TxPoolConfig.Default;
             conf.EntryThreshold = 1;
 
-            var pool = new TxPool(Hash.Generate(), conf, _accountContextService);
+            var pool = new TxPool(conf, _accountContextService);
             
             // Add a valid transaction
             var tx = BuildTransaction();

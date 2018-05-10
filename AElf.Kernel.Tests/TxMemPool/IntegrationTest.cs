@@ -21,8 +21,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         
         private TxPool GetPool()
         {
-            return new TxPool(Hash.Generate(), TxPoolConfig.Default,
-                _accountContextService);
+            return new TxPool(TxPoolConfig.Default,_accountContextService);
         }
 
         [Fact]
