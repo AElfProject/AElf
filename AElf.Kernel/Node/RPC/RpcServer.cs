@@ -142,7 +142,7 @@ namespace AElf.Kernel.Node.RPC
                            responseData = await ProcessGetTx(reqParams);
                            break;
                        case InsertTxMethodName:
-                           responseData = await InsertTxName(reqParams);
+                           responseData = await InsertTx(reqParams);
                            break;
                        default:
                            Console.WriteLine("Method name not found"); // todo log
@@ -191,11 +191,18 @@ namespace AElf.Kernel.Node.RPC
             return JObject.FromObject(txDto);
         }
         
-        private async Task<JObject> InsertTxName(JObject reqParams)
+        private async Task<JObject> InsertTx(JObject reqParams)
         {
-            JObject jObj = new JObject();
+            TransactionDto dto = reqParams["tx"].ToObject<TransactionDto>();
 
-            return jObj;
+            IHash txHash = await _node.InsertTransaction(dto.ToTransaction());
+
+            JObject j = new JObject
+            {
+                ["hash"] = txHash.Value.ToBase64()
+            };
+            
+            return JObject.FromObject(j);
         }
 
         private async Task WriteResponse(HttpContext context, JObject response)
@@ -204,15 +211,6 @@ namespace AElf.Kernel.Node.RPC
                 return;
             
             await context.Response.WriteAsync(response.ToString(), Encoding.UTF8);
-        }
-
-        public byte[] StringToByteArray(String hex)
-        {
-            int numberChars = hex.Length;
-            byte[] bytes = new byte[numberChars / 2];
-            for (int i = 0; i < numberChars; i += 2)
-                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-            return bytes;
         }
     }
 }
