@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using AElf.Node.RPC.DTO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +15,16 @@ namespace AElf.Kernel.Node.RPC
 {
     public class RpcServer : IRpcServer
     {
+
+        private const string GetTxMethodName = "get_tx";
+        private const string InsertTxMethodName = "insert_tx";
+        
+        private List<string> _rpcCommands = new List<string>()
+        {
+            GetTxMethodName,
+            InsertTxMethodName
+        };
+        
         private MainChainNode _node;
         
         public RpcServer()
@@ -70,9 +82,27 @@ namespace AElf.Kernel.Node.RPC
             }
         }
         
-        private JObject ValidateRequest()
+        /// <summary>
+        /// Verifies a certain amount of points about the request
+        /// </summary>
+        /// <param name="request">The request to verify</param>
+        /// <returns>Null if the request is valid, the response if verification fails</returns>
+        private JObject ValidateRequest(JObject request)
         {
-            // TODO validation
+            if (request == null)
+                return null;
+            
+            JToken method = JToken.FromObject(request["method"]);
+
+            if (method != null)
+            {
+                string methodName = method.ToObject<string>();
+                if (string.IsNullOrEmpty(methodName) || !_rpcCommands.Contains(methodName))
+                {
+                    return ErrorResponseFactory.GetMethodNotFound(request["id"].ToObject<int>());
+                }
+            }
+            
             return null;
         }
         
@@ -85,51 +115,64 @@ namespace AElf.Kernel.Node.RPC
             
             if (request == null)
             {
-                JObject err = ErrorResponseFactory.GetParseErrorObj(0);
+                JObject err = ErrorResponseFactory.GetParseError(0);
                 WriteResponse(context, err);
+                return;
             }
             
-            JObject validErr = ValidateRequest();
-            
+            JObject validErr = ValidateRequest(request);
+
             if (validErr != null)
+            {
                 WriteResponse(context, validErr);
-            
-            if (context.Request.Method == "POST")
-            {
-                try
-                {
-                    JToken method = JToken.FromObject(request["method"]);
-                    JArray paramArray = JArray.FromObject(request["params"]);
-
-                    if (method.ToObject<string>() == "get_tx")
-                    {
-                        JToken i1 = paramArray[0];
-                        string txid = i1.ToObject<string>();
-
-                        byte[] arr = StringToByteArray(txid);
-
-                        ITransaction tx = await _node.GetTransaction(arr);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-
-                /*if (method == "get_tx")
-                {
-                    byte[] txid = 
-                }*/
+                return;
             }
-            
-            // write to stream
-            /*string bodyAsString;
-            using (var streamReader = new StreamReader(context.Request.Body, Encoding.UTF8))
+
+            try
             {
-                bodyAsString = streamReader.ReadToEnd();
+                string methodName = JToken.FromObject(request["method"]).ToObject<string>();
+                JObject reqParams = JObject.FromObject(request["params"]);
+
+                JObject response = null;
+                switch (methodName)
+                {
+                       case GetTxMethodName:
+                           response = await ProcessGetTx(reqParams);
+                           break;
+                       case InsertTxMethodName:
+                           response = await InsertTxName(reqParams);
+                           break;
+                       default:
+                           Console.WriteLine("Method name not found"); // todo log
+                           break;
+                }
+
+                if (response == null)
+                {
+                    
+                }
+                
+                WriteResponse(context, response);
             }
-            Console.WriteLine("Request data: " + bodyAsString);
-            await context.Response.WriteAsync("hello");*/
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+
+        private async Task<JObject> ProcessGetTx(JObject reqParams)
+        {
+            ITransaction tx = await _node.GetTransaction(new byte[] { 0x01, 0x02});
+            TransactionDto txDto = tx.ToTransactionDto();
+            
+            return JObject.FromObject(txDto);
+        }
+        
+        private async Task<JObject> InsertTxName(JObject reqParams)
+        {
+            JObject jObj = new JObject();
+
+            return jObj;
         }
 
         public void WriteResponse(HttpContext context, JObject response)

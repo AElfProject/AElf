@@ -29,7 +29,21 @@ namespace AElf.Kernel.Node
 
         public async Task<ITransaction> GetTransaction(Hash txId)
         {
-            return await _transactionManager.GetTransaction(txId);
+            // todo 
+            return await Task.Factory.StartNew(() =>
+            {
+
+                var tx = new Transaction()
+                {
+                    From = new Hash(new byte[] {0x01, 0x02}),
+                    To = new Hash(new byte[] {0x01, 0x02})
+                };
+
+                return tx;
+            });
+            
+            
+            //return await _transactionManager.GetTransaction(txId);
         }
     }
 }
