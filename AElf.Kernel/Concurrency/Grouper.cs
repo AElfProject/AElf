@@ -2,6 +2,7 @@
 
 namespace AElf.Kernel.Concurrency
 {
+
     public class Grouper : IGrouper
     {
         /// <summary>
@@ -14,9 +15,9 @@ namespace AElf.Kernel.Concurrency
         /// </summary>
         /// <param name="txList"></param>
         /// <returns></returns>
-        public List<List<Transaction>> ProduceGroup(List<Transaction> txList)
+        public List<TransactionParallelGroup> ProduceGroup(Dictionary<Hash, List<Transaction>> txList)
         {
-            var groupsByAccount = MergeByAccount(txList);
+            var groupsByAccount = MergeAccountTxList(txList);
 
             return groupsByAccount;
         }
@@ -25,58 +26,82 @@ namespace AElf.Kernel.Concurrency
         /// Divide the txList into groups according to accounts.
         /// Basic idea: build a undirected graph where vertex is account and edge is transaction, and those tx that their related account belongs to the same connected component are in same group.
         /// 
-        /// <remarks>WARNING : This solution is under assumption that the TX only have ONE input account and ONE output account, if this assumption is not satified, further solution wiil be needed. </remarks>
+        /// <remarks>
+        /// WARNING : This solution is under assumption that the TX only have ONE input account and ONE output account, if this assumption is not satified, further solution wiil be needed.
+        /// <para>
+        /// Solution without fully consideration: if tx have inputAccountList and outputAccountList, just union all the input account to make them all connectted.
+        ///     e.g.: t_1 has input account {A, G} and output account {B, H}, t_2 has input {B} and output {C}, t_3 has input {H} and output {D}
+        ///         if don't connect A+G, then we have two connectted components {A-B-C} and {G-H-D}, so the t_3 will not be in same group with t_1+t_2, which is not accepted.
+        ///         Hence, we connect A+G, i.e. consider input account in the same tx is also dependent, making this account graph connected and solve the problem 
+        /// </para>
+        /// </remarks>
         /// </summary>
-        /// <param name="txList">Transaction list</param>
+        /// <param name="txDict">Dictionary of Transaction list sent by accounts</param>
         /// <returns></returns>
-        public List<List<Transaction>> MergeByAccount(List<Transaction> txList)
-        {    
+        public List<TransactionParallelGroup> MergeAccountTxList(Dictionary<Hash, List<Transaction>> txList)
+        {
+            if (txList.Count == 0)
+            {
+                return new List<TransactionParallelGroup>();
+            }
             Dictionary<Hash, UnionFindNode> accountUnionSet = new Dictionary<Hash, UnionFindNode>();
             
             //set up the union find set
-            foreach (var tx in txList)
+            foreach (var accountTxList in txList.Values)
             {
-                if (!accountUnionSet.ContainsKey(tx.From))
+                foreach (var tx in accountTxList)
                 {
-                    accountUnionSet[tx.From] = new UnionFindNode();
-                }
+                    if (!accountUnionSet.TryGetValue(tx.From, out var fromNode))
+                    {
+                        fromNode = new UnionFindNode();
+                        accountUnionSet.Add(tx.From, fromNode);
+                    }
 
-                if (!accountUnionSet.ContainsKey(tx.To))
-                {
-                    accountUnionSet[tx.To] = new UnionFindNode();
+                    if (!accountUnionSet.TryGetValue(tx.To, out var toNode))
+                    {
+                        toNode = new UnionFindNode();
+                        accountUnionSet.Add(tx.To, toNode);
+                    }
+                    
+                    fromNode.Union(toNode);
                 }
-
-                accountUnionSet[tx.From].Union(accountUnionSet[tx.To]);
             }
 
             //set up the result group and init the first group
-            var groups = new List<List<Transaction>>();
-            groups.Add(new List<Transaction>());
-            groups[0].Add(txList[0]);
-
+            var groupList = new List<TransactionParallelGroup>();
+            bool firstElement = true;
             //if two txs' account in the same set, then these two are in the same group
-            for(int index = 1; index < txList.Count; index++)
+            foreach (var accountTxList in txList)
             {
-                var tx = txList[index];
-                bool createNewGroup = true;
-                foreach (var group in groups)
+                if (firstElement)
                 {
-                    if (accountUnionSet[tx.From].IsUnionedWith(accountUnionSet[group[0].From]))
-                    {
-                        group.Add(tx);
-                        createNewGroup = false;
-                    }
+                    var firstGroup = new TransactionParallelGroup();
+                    firstGroup.AddAccountTxList(accountTxList);
+                    groupList.Add(firstGroup);
+                    firstElement = false;
                 }
-
-                if (createNewGroup)
+                else
                 {
-                    var newGroup = new List<Transaction>();
-                    newGroup.Add(tx);
-                    groups.Add(newGroup);
+                    bool createNewGroup = true;
+                    foreach (var group in groupList)
+                    {
+                        if (accountUnionSet[accountTxList.Key].IsUnionedWith(accountUnionSet[group.GetOneAccountInGroup()]))
+                        {
+                            group.AddAccountTxList(accountTxList);
+                            createNewGroup = false;
+                        }
+                    }
+
+                    if (createNewGroup)
+                    {
+                        var newGroup = new TransactionParallelGroup();
+                        newGroup.AddAccountTxList(accountTxList);
+                        groupList.Add(newGroup);
+                    }
                 }
             }
     
-            return groups;
+            return groupList;
         }
         
         

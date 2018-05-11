@@ -28,7 +28,7 @@ namespace AElf.Kernel.Concurrency
         /// Returns the current representative of the set this node is in.
         /// Note that the representative is only accurate untl the next Union operation.
         /// </summary>
-        public UnionFindNode Find() {
+        private UnionFindNode Find() {
             if (!ReferenceEquals(_parent, this)) _parent = _parent.Find();
             return _parent;
         }
