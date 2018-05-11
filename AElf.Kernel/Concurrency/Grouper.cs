@@ -44,6 +44,7 @@ namespace AElf.Kernel.Concurrency
             {
                 return new List<TransactionParallelGroup>();
             }
+            
             Dictionary<Hash, UnionFindNode> accountUnionSet = new Dictionary<Hash, UnionFindNode>();
             
             //set up the union find set
