@@ -18,13 +18,16 @@ namespace AElf.Kernel.Services
             _transactionResultManager = transactionResultManager;
         }
 
+        /// <inheritdoc/>
         public async Task<TransactionResult> GetResultAsync(Hash txId)
         {
+            // found in cache
             if (_cacheResults.TryGetValue(txId, out var res))
             {
                 return res;
             }
 
+            // in storage
             res = await _transactionResultManager.GetTransactionResultAsync(txId);
             if (res != null)
             {
@@ -32,6 +35,7 @@ namespace AElf.Kernel.Services
                 return res;
             }
 
+            // in tx pool
             if (await _txPoolService.GetTxAsync(txId) != null)
             {
                 return new TransactionResult
@@ -41,6 +45,7 @@ namespace AElf.Kernel.Services
                 };
             }
             
+            // not existed
             return new TransactionResult
             {
                 TransactionId = txId,
@@ -48,6 +53,7 @@ namespace AElf.Kernel.Services
             };
         }
 
+        /// <inheritdoc/>
         public async Task AddResultAsync(TransactionResult res)
         {
             _cacheResults[res.TransactionId] = res;
