@@ -2,6 +2,7 @@
 using AElf.Kernel;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
+using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
 using Autofac;
 
@@ -41,6 +42,7 @@ namespace AElf.Launcher
             
             // Node registration
             builder.RegisterType<MainChainNode>().As<IAElfNode>();
+            builder.RegisterType<RpcServer>().As<IRpcServer>();
 
             IContainer container = null;
             
