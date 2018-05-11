@@ -1,18 +1,25 @@
 ﻿using System.Threading.Tasks;
+using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Managers
 {
     public class TransactionResultManager : ITransactionResultManager
     {
-        //TODO: access to result storage
-        public Task AddTransactionResultAsync(TransactionResult tr)
+        private readonly ITransactionResultStore _transactionResultStore;
+
+        public TransactionResultManager(ITransactionResultStore transactionResultStore)
         {
-            throw new System.NotImplementedException();
+            _transactionResultStore = transactionResultStore;
         }
 
-        public Task<TransactionResult> GetTransactionResultAsync(Hash txId)
+        public async Task AddTransactionResultAsync(TransactionResult tr)
         {
-            throw new System.NotImplementedException();
+            await _transactionResultStore.InsertAsync(tr);
+        }
+
+        public async Task<TransactionResult> GetTransactionResultAsync(Hash txId)
+        {
+            return await _transactionResultStore.GetAsync(txId);
         }
     }
 }
