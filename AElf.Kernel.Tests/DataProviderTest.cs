@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Database;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
+using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -63,6 +65,36 @@ namespace AElf.Kernel.Tests
                 var getData = await dataProvider.GetAsync(keys[i]);
                 Assert.False(getData.SequenceEqual(setList[i + 1]));
             }
+        }
+        
+        [Fact]
+        public async Task RedisHelperTest()
+        {
+            const string key = "OneChange";
+
+            var change = new Change
+            {
+                After = Hash.Generate(),
+                LatestChangedBlockHash = Hash.Generate(),
+                TransactionIds = Hash.Generate()
+            };
+            change.AddHashBefore(Hash.Generate());
+            change.AddHashBefore(Hash.Generate());
+            change.AddHashBefore(Hash.Generate());
+            change.AddHashBefore(Hash.Generate());
+
+            var serializedValue = change.ToByteArray();
+
+            var success = await RedisHelper.SetAsync(key, serializedValue);
+            Assert.True(success);
+            
+            var getChange = await RedisHelper.GetAsync(key);
+            var getDeserializedChange = Change.Parser.ParseFrom(getChange);
+            
+            Assert.True(change.After == getDeserializedChange.After);
+            Assert.True(change.GetLastHashBefore() == getDeserializedChange.GetLastHashBefore());
+            Assert.True(change.LatestChangedBlockHash == getDeserializedChange.LatestChangedBlockHash);
+            Assert.True(change.TransactionIds == getDeserializedChange.TransactionIds);
         }
 
         private IEnumerable<byte[]> CreateSet(int count)

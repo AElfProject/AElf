@@ -1,13 +1,14 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Storages
 {
     public class WorldStateStore : IWorldStateStore
     {
-        private readonly KeyValueDatabase _keyValueDatabase;
+        private readonly IKeyValueDatabase _keyValueDatabase;
         
-        public WorldStateStore(KeyValueDatabase keyValueDatabase)
+        public WorldStateStore(IKeyValueDatabase keyValueDatabase)
         {
             _keyValueDatabase = keyValueDatabase;
         }
@@ -15,13 +16,13 @@ namespace AElf.Kernel.Storages
         public async Task InsertWorldStateAsync(Hash chainId, Hash blockHash, ChangesDict changes)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
-            await _keyValueDatabase.SetAsync(wsKey, changes);
+            await _keyValueDatabase.SetAsync(wsKey, changes.ToByteArray());
         }
 
         public async Task<WorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
-            var changesDict = (ChangesDict) await _keyValueDatabase.GetAsync(wsKey, typeof(ChangesDict));
+            var changesDict = ChangesDict.Parser.ParseFrom(await _keyValueDatabase.GetAsync(wsKey, typeof(ChangesDict)));
             return new WorldState(changesDict);
         }
     }

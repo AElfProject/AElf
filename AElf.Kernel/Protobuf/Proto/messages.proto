@@ -67,3 +67,9 @@ message PairHashChange{
 message ChangesDict{
     repeated PairHashChange Dict = 1;
 }
+
+message Chain{
+    Hash Id = 1;
+    Hash CurrentBlockHash = 2;
+    uint64 CurrentBlockHeight = 3;
+}

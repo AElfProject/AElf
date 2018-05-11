@@ -14,12 +14,7 @@ namespace AElf.Kernel
         private readonly string _dataProviderKey;
         private readonly Path _path;
 
-        private Hash _preBlockHash;
-
-        public Hash PreBlockHash
-        {
-            get => _preBlockHash;
-        }
+        private Hash PreBlockHash { get; set; }
 
         public DataProvider(IAccountDataContext accountDataContext, IWorldStateManager worldStateManager, 
             string dataProviderKey = "")
@@ -98,8 +93,8 @@ namespace AElf.Kernel
             var preBlockHash = PreBlockHash;
             if (preBlockHash == null)
             {
-                _preBlockHash = await _worldStateManager.GetDataAsync(_worldStateManager.HashToGetPreBlockHash);
-                preBlockHash = _preBlockHash;
+                PreBlockHash = await _worldStateManager.GetDataAsync(_worldStateManager.HashToGetPreBlockHash);
+                preBlockHash = PreBlockHash;
             }
             
             var change = await _worldStateManager.GetChangeAsync(pathHash);

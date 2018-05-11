@@ -44,8 +44,10 @@ namespace AElf.Kernel {
             "SWRzGAMgASgLMgUuSGFzaBIlChZMYXRlc3RDaGFuZ2VkQmxvY2tIYXNoGAQg",
             "ASgLMgUuSGFzaCI8Cg5QYWlySGFzaENoYW5nZRISCgNLZXkYASABKAsyBS5I",
             "YXNoEhYKBVZhbHVlGAIgASgLMgcuQ2hhbmdlIiwKC0NoYW5nZXNEaWN0Eh0K",
-            "BERpY3QYASADKAsyDy5QYWlySGFzaENoYW5nZUIOqgILQUVsZi5LZXJuZWxi",
-            "BnByb3RvMw=="));
+            "BERpY3QYASADKAsyDy5QYWlySGFzaENoYW5nZSJXCgVDaGFpbhIRCgJJZBgB",
+            "IAEoCzIFLkhhc2gSHwoQQ3VycmVudEJsb2NrSGFzaBgCIAEoCzIFLkhhc2gS",
+            "GgoSQ3VycmVudEJsb2NrSGVpZ2h0GAMgASgEQg6qAgtBRWxmLktlcm5lbGIG",
+            "cHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -59,7 +61,8 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractInvokeContext), global::AElf.Kernel.SmartContractInvokeContext.Parser, new[]{ "Caller", "IncrementId" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Change), global::AElf.Kernel.Change.Parser, new[]{ "Befores", "After", "TransactionIds", "LatestChangedBlockHash" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.PairHashChange), global::AElf.Kernel.PairHashChange.Parser, new[]{ "Key", "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.ChangesDict), global::AElf.Kernel.ChangesDict.Parser, new[]{ "Dict" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.ChangesDict), global::AElf.Kernel.ChangesDict.Parser, new[]{ "Dict" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Chain), global::AElf.Kernel.Chain.Parser, new[]{ "Id", "CurrentBlockHash", "CurrentBlockHeight" }, null, null, null)
           }));
     }
     #endregion
@@ -2103,6 +2106,203 @@ namespace AElf.Kernel {
             break;
           case 10: {
             dict_.AddEntriesFrom(input, _repeated_dict_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class Chain : pb::IMessage<Chain> {
+    private static readonly pb::MessageParser<Chain> _parser = new pb::MessageParser<Chain>(() => new Chain());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<Chain> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[11]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Chain() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Chain(Chain other) : this() {
+      Id = other.id_ != null ? other.Id.Clone() : null;
+      CurrentBlockHash = other.currentBlockHash_ != null ? other.CurrentBlockHash.Clone() : null;
+      currentBlockHeight_ = other.currentBlockHeight_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Chain Clone() {
+      return new Chain(this);
+    }
+
+    /// <summary>Field number for the "Id" field.</summary>
+    public const int IdFieldNumber = 1;
+    private global::AElf.Kernel.Hash id_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash Id {
+      get { return id_; }
+      set {
+        id_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "CurrentBlockHash" field.</summary>
+    public const int CurrentBlockHashFieldNumber = 2;
+    private global::AElf.Kernel.Hash currentBlockHash_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash CurrentBlockHash {
+      get { return currentBlockHash_; }
+      set {
+        currentBlockHash_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "CurrentBlockHeight" field.</summary>
+    public const int CurrentBlockHeightFieldNumber = 3;
+    private ulong currentBlockHeight_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ulong CurrentBlockHeight {
+      get { return currentBlockHeight_; }
+      set {
+        currentBlockHeight_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as Chain);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(Chain other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Id, other.Id)) return false;
+      if (!object.Equals(CurrentBlockHash, other.CurrentBlockHash)) return false;
+      if (CurrentBlockHeight != other.CurrentBlockHeight) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (id_ != null) hash ^= Id.GetHashCode();
+      if (currentBlockHash_ != null) hash ^= CurrentBlockHash.GetHashCode();
+      if (CurrentBlockHeight != 0UL) hash ^= CurrentBlockHeight.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (id_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Id);
+      }
+      if (currentBlockHash_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(CurrentBlockHash);
+      }
+      if (CurrentBlockHeight != 0UL) {
+        output.WriteRawTag(24);
+        output.WriteUInt64(CurrentBlockHeight);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (id_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Id);
+      }
+      if (currentBlockHash_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(CurrentBlockHash);
+      }
+      if (CurrentBlockHeight != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(CurrentBlockHeight);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(Chain other) {
+      if (other == null) {
+        return;
+      }
+      if (other.id_ != null) {
+        if (id_ == null) {
+          id_ = new global::AElf.Kernel.Hash();
+        }
+        Id.MergeFrom(other.Id);
+      }
+      if (other.currentBlockHash_ != null) {
+        if (currentBlockHash_ == null) {
+          currentBlockHash_ = new global::AElf.Kernel.Hash();
+        }
+        CurrentBlockHash.MergeFrom(other.CurrentBlockHash);
+      }
+      if (other.CurrentBlockHeight != 0UL) {
+        CurrentBlockHeight = other.CurrentBlockHeight;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            if (id_ == null) {
+              id_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(id_);
+            break;
+          }
+          case 18: {
+            if (currentBlockHash_ == null) {
+              currentBlockHash_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(currentBlockHash_);
+            break;
+          }
+          case 24: {
+            CurrentBlockHeight = input.ReadUInt64();
             break;
           }
         }

@@ -40,12 +40,14 @@ namespace AElf.Kernel.Tests
             var worldStateManager = new WorldStateManager(_worldStateStore,
                 accountContextService, _pointerStore, _changesStore, _dataStore);
 
+            await worldStateManager.SetWorldStateAsync(chain.Id, block0.GetHash());
+            
             await chainManger.AddChainAsync(chain.Id);
             await chainManger.AppendBlockToChainAsync(chain, block0);
 
             await worldStateManager.SetWorldStateAsync(chain.Id, block.GetHash());
             await chainManger.AppendBlockToChainAsync(chain, block);
-
+            
             var worldState = await worldStateManager.GetWorldStateAsync(chain.Id, block0.GetHash());
             
             Assert.NotNull(worldState);

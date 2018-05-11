@@ -1,25 +1,14 @@
-﻿using System;
-using System.Linq;
+﻿using System.Threading.Tasks;
 using AElf.Kernel;
-using ServiceStack;
-using ServiceStack.Redis;
+using Google.Protobuf;
 using Xunit;
-using ProtobufSerializer = AElf.Serialization.Protobuf.ProtobufSerializer;
 
 namespace AElf.Database.Tests
 {
     public class RedisTest
     {
-        private const string IpAddress = "127.0.0.1";
-
-        private const int Port = 6379;
-
-        private static RedisClient RedisClient => new RedisClient(IpAddress, Port);
-
-        private readonly ProtobufSerializer _serializer = new ProtobufSerializer();
-
         [Fact]
-        public void BasicTest()
+        public async Task RedisHelperTest()
         {
             const string key = "OneChange";
 
@@ -34,16 +23,18 @@ namespace AElf.Database.Tests
             change.AddHashBefore(Hash.Generate());
             change.AddHashBefore(Hash.Generate());
 
-            var serializedValue = _serializer.Serialize(change);
+            var serializedValue = change.ToByteArray();
 
-            var success = RedisClient.Set(key, serializedValue);
+            var success = await RedisHelper.SetAsync(key, serializedValue);
             Assert.True(success);
             
-            var getChange = RedisClient.Get(key);
-            var getDeserializedChange = _serializer.Deserialize<Change>(getChange);
+            var getChange = await RedisHelper.GetAsync(key);
+            var getDeserializedChange = Change.Parser.ParseFrom(getChange);
             
             Assert.True(change.After == getDeserializedChange.After);
             Assert.True(change.GetLastHashBefore() == getDeserializedChange.GetLastHashBefore());
+            Assert.True(change.LatestChangedBlockHash == getDeserializedChange.LatestChangedBlockHash);
+            Assert.True(change.TransactionIds == getDeserializedChange.TransactionIds);
         }
     }
 }

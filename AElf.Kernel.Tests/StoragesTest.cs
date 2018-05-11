@@ -93,7 +93,7 @@ namespace AElf.Kernel.Tests
         public async Task OneBlockDataTest()
         {
             //Create a chain with one block.
-            var chain = new Chain();
+            var chain = new Chain(Hash.Generate());
             var chainManager = new ChainManager(_chainStore);
             var genesisBlockHash = Hash.Generate();
             var blockHash = Hash.Generate();

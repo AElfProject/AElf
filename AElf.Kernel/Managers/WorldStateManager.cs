@@ -39,7 +39,7 @@ namespace AElf.Kernel.Managers
             _changesStore = changesStore;
             _dataStore = dataStore;
 
-            _preBlockHash = _dataStore.GetDataAsync(HashToGetPreBlockHash).Result ?? Hash.Zero;
+            _preBlockHash = _dataStore.GetDataAsync(HashToGetPreBlockHash)?.Result ?? Hash.Zero;
             
             _dataStore.SetDataAsync(GetHashToGetPathsCount(), ((long)0).ToBytes());
         }
