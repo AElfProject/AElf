@@ -16,7 +16,7 @@ namespace AElf.Kernel.Concurrency
         /// </summary>
         /// <param name="txList"></param>
         /// <returns></returns>
-        public List<TransactionParallelGroup> ProduceGroup(Dictionary<Hash, List<Transaction>> txList)
+        public List<ITransactionParallelGroup> ProduceGroup(Dictionary<Hash, List<ITransaction>> txList)
         {
             var groupsByAccount = MergeAccountTxList(txList);
 
@@ -39,11 +39,11 @@ namespace AElf.Kernel.Concurrency
         /// </summary>
         /// <param name="txDict">Dictionary of Transaction list sent by accounts</param>
         /// <returns></returns>
-        public List<TransactionParallelGroup> MergeAccountTxList(Dictionary<Hash, List<Transaction>> txList)
+        public List<ITransactionParallelGroup> MergeAccountTxList(Dictionary<Hash, List<ITransaction>> txList)
         {
             if (txList.Count == 0)
             {
-                return new List<TransactionParallelGroup>();
+                return new List<ITransactionParallelGroup>();
             }
             
             Dictionary<Hash, UnionFindNode> accountUnionSet = new Dictionary<Hash, UnionFindNode>();
@@ -68,8 +68,8 @@ namespace AElf.Kernel.Concurrency
                     fromNode.Union(toNode);
                 }
             }
-
-			Dictionary<int, TransactionParallelGroup> grouped = new Dictionary<int, TransactionParallelGroup>();         
+            
+			Dictionary<int, ITransactionParallelGroup> grouped = new Dictionary<int, ITransactionParallelGroup>();         
 			foreach(var senderTxList in txList){
 				int nodeId = accountUnionSet[senderTxList.Key].Find().NodeId;
 				if(!grouped.TryGetValue(nodeId, out var txs)){
@@ -81,7 +81,6 @@ namespace AElf.Kernel.Concurrency
          
 			return grouped.Values.ToList();
        }
-        
         
     }
 }
