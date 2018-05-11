@@ -9,18 +9,15 @@ namespace AElf.Kernel.Concurrency
 {
     public class Scheduler : IScheduler
     {
-        private ITxPoolService _txPoolService;
         protected IGrouper _grouper;
 
-        public Scheduler(ITxPoolService txPoolService, IGrouper grouper)
+        public Scheduler(IGrouper grouper)
         {
-            _txPoolService = txPoolService;
             _grouper = grouper;
         }
 
-        public async Task<List<List<Transaction>>> ScheduleTransactions()
+        public async Task<List<List<Transaction>>> ScheduleTransactions(Dictionary<Hash, List<Transaction>> txDict)
         {
-            var txList = await _txPoolService.GetReadyTxsAsync();
             throw new NotImplementedException();
         }
     }

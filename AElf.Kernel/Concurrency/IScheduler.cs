@@ -5,6 +5,6 @@ namespace AElf.Kernel.Concurrency
 {
     public interface IScheduler
     {
-        Task<List<List<Transaction>>> ScheduleTransactions();
+        Task<List<List<Transaction>>> ScheduleTransactions(Dictionary<Hash, List<Transaction>> txDict);
     }
 }
