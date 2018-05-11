@@ -16,11 +16,11 @@ namespace AElf.Database.Tests
 
         private static RedisClient RedisClient => new RedisClient(IpAddress, Port);
 
+        private readonly ProtobufSerializer _serializer = new ProtobufSerializer();
+
         [Fact]
         public void BasicTest()
         {
-            var serializer = new ProtobufSerializer();
-            
             const string key = "OneChange";
 
             var change = new Change
@@ -34,13 +34,13 @@ namespace AElf.Database.Tests
             change.AddHashBefore(Hash.Generate());
             change.AddHashBefore(Hash.Generate());
 
-            var serializedValue = serializer.Serialize(change);
+            var serializedValue = _serializer.Serialize(change);
 
             var success = RedisClient.Set(key, serializedValue);
             Assert.True(success);
             
             var getChange = RedisClient.Get(key);
-            var getDeserializedChange = serializer.Deserialize<Change>(getChange);
+            var getDeserializedChange = _serializer.Deserialize<Change>(getChange);
             
             Assert.True(change.After == getDeserializedChange.After);
             Assert.True(change.GetLastHashBefore() == getDeserializedChange.GetLastHashBefore());
