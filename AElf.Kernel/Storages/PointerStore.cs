@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Google.Protobuf;
 
@@ -15,15 +16,20 @@ namespace AElf.Kernel.Storages
 
         public async Task UpdateAsync(Hash pathHash, Hash pointerHash)
         {
-            var bytes = pointerHash.ToByteArray();
-            await _keyValueDatabase.SetAsync(pathHash, bytes);
+            var changeByte = await _keyValueDatabase.GetAsync(pathHash.Value.ToBase64(), typeof(Change));
+            if (changeByte == null)
+                return;
+            
+            var change = Change.Parser.ParseFrom(changeByte);
+            change.UpdateHashAfter(pointerHash);
+            await _keyValueDatabase.SetAsync(pathHash.Value.ToBase64(), change.ToByteArray());
         }
 
         public async Task<Hash> GetAsync(Hash pathHash)
         {
-            var bytes = await _keyValueDatabase.GetAsync(pathHash.Clone(), typeof(Hash));
-            var value = Hash.Parser.ParseFrom(bytes);
-            return value;
+            var changeByte = await _keyValueDatabase.GetAsync(pathHash.Value.ToBase64(), typeof(Change));
+            var change = Change.Parser.ParseFrom(changeByte);
+            return change.After;
         }
     }
 }

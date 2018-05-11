@@ -8,19 +8,17 @@ using ServiceStack.Text;
 
 namespace AElf.Kernel.Storages
 {
-/*    public class RedisDatabase : IKeyValueDatabase
+    public class RedisDatabase : IKeyValueDatabase
     {
-        public async Task<byte[]> GetAsync(Hash key, Type type)
+        public async Task<byte[]> GetAsync(string key, Type type)
         {
-            var k = key.Value.ToBase64();
-            var bytes = await RedisHelper.GetAsync(k);
+            var bytes = await RedisHelper.GetAsync(key);
             return bytes;
         }
 
-        public async Task SetAsync(Hash key, byte[] bytes)
+        public async Task SetAsync(string key, byte[] bytes)
         {
-            var keyStr = key.Value.ToBase64();
-            await RedisHelper.SetAsync(keyStr, bytes);
+            await RedisHelper.SetAsync(key, bytes);
         }
-    }*/
+    }
 }

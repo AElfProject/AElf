@@ -17,12 +17,12 @@ namespace AElf.Kernel.Storages
 
         public async Task InsertAsync(Transaction tx)
         {
-            await _keyValueDatabase.SetAsync(tx.GetHash(), tx.ToByteArray());
+            await _keyValueDatabase.SetAsync(tx.GetHash().Value.ToBase64(), tx.ToByteArray());
         }
 
         public async Task<Transaction> GetAsync(Hash hash)
         {
-            return Transaction.Parser.ParseFrom(await _keyValueDatabase.GetAsync(hash,typeof(Transaction)));
+            return Transaction.Parser.ParseFrom(await _keyValueDatabase.GetAsync(hash.Value.ToBase64(),typeof(Transaction)));
         }
     }
 }

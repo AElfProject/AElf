@@ -14,12 +14,12 @@ namespace AElf.Kernel.Storages
 
         public async Task InsertAsync(Hash key, Change change)
         {
-            await _keyValueDatabase.SetAsync(key, change.ToByteArray());
+            await _keyValueDatabase.SetAsync(key.Value.ToBase64(), change.ToByteArray());
         }
 
         public async Task<Change> GetAsync(Hash key)
         {
-            var value = await _keyValueDatabase.GetAsync(key, typeof(Change));
+            var value = await _keyValueDatabase.GetAsync(key.Value.ToBase64(), typeof(Change));
             return value == null ? null : Change.Parser.ParseFrom(value);
         }
     }
