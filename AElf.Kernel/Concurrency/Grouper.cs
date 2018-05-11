@@ -15,7 +15,7 @@ namespace AElf.Kernel.Concurrency
         /// </summary>
         /// <param name="txList"></param>
         /// <returns></returns>
-        public List<TransactionParallelGroup> ProduceGroup(Dictionary<Hash, List<Transaction>> txList)
+        public List<ITransactionParallelGroup> ProduceGroup(Dictionary<Hash, List<ITransaction>> txList)
         {
             var groupsByAccount = MergeAccountTxList(txList);
 
@@ -38,11 +38,11 @@ namespace AElf.Kernel.Concurrency
         /// </summary>
         /// <param name="txDict">Dictionary of Transaction list sent by accounts</param>
         /// <returns></returns>
-        public List<TransactionParallelGroup> MergeAccountTxList(Dictionary<Hash, List<Transaction>> txList)
+        public List<ITransactionParallelGroup> MergeAccountTxList(Dictionary<Hash, List<ITransaction>> txList)
         {
             if (txList.Count == 0)
             {
-                return new List<TransactionParallelGroup>();
+                return new List<ITransactionParallelGroup>();
             }
             
             Dictionary<Hash, UnionFindNode> accountUnionSet = new Dictionary<Hash, UnionFindNode>();
@@ -69,7 +69,7 @@ namespace AElf.Kernel.Concurrency
             }
 
             //set up the result group and init the first group
-            var groupList = new List<TransactionParallelGroup>();
+            var groupList = new List<ITransactionParallelGroup>();
             bool firstElement = true;
             //if two txs' account in the same set, then these two are in the same group
             foreach (var accountTxList in txList)

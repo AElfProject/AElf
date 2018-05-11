@@ -4,6 +4,6 @@ namespace AElf.Kernel.Concurrency
 {
     public interface IGrouper
     {
-        List<TransactionParallelGroup> ProduceGroup(Dictionary<Hash, List<Transaction>> txList);
+        List<ITransactionParallelGroup> ProduceGroup(Dictionary<Hash, List<ITransaction>> txList);
     }
 }

@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace AElf.Kernel.Concurrency
 {
-    public class TransactionParallelGroup
+    public class TransactionParallelGroup : ITransactionParallelGroup
     {
-        protected Dictionary<Hash, List<Transaction>> _accountTxsDict;
+        protected Dictionary<Hash, List<ITransaction>> _accountTxsDict;
         private int _currentScheduleBatch;
         private dynamic _accountListOrderedByTxSize;
         
@@ -14,21 +14,24 @@ namespace AElf.Kernel.Concurrency
         public TransactionParallelGroup()
         {
             _currentScheduleBatch = 0;
-            _accountTxsDict = new Dictionary<Hash, List<Transaction>>();
+            _accountTxsDict = new Dictionary<Hash, List<ITransaction>>();
         }
 
-        public int Count => _accountTxsDict.Count;
+        public int GetSenderCount()
+        {
+            return _accountTxsDict.Count;
+        }
 
         /// <summary>
         /// Get the tx list in this group, txList is empty if the sender is not found in this group
         /// </summary>
         /// <param name="sender"></param>
         /// <returns></returns>
-        public List<Transaction> GetAccountTxList(Hash sender)
+        public List<ITransaction> GetAccountTxList(Hash sender)
         {
             if (!_accountTxsDict.TryGetValue(sender, out var accountTxList))
             {
-                accountTxList = new List<Transaction>();
+                accountTxList = new List<ITransaction>();
             }
 
             return accountTxList;
@@ -40,7 +43,7 @@ namespace AElf.Kernel.Concurrency
         /// <param name="account"></param>
         /// <param name="txsSentByAccount"></param>
         /// <returns>return true if succeed, false if this group is already batching</returns>
-        public bool AddAccountTxList(KeyValuePair<Hash, List<Transaction>> kvPair)
+        public bool AddAccountTxList(KeyValuePair<Hash, List<ITransaction>> kvPair)
         {
             if (_currentScheduleBatch == 0)
             {
@@ -74,7 +77,7 @@ namespace AElf.Kernel.Concurrency
             return _accountTxsDict.Keys.ToList();
         }
 
-        public List<Transaction> GetNextUnScheduledTxBatch()
+        public List<ITransaction> GetNextUnScheduledTxBatch()
         {
             throw new NotImplementedException();
             var transactionBatch = new List<Transaction>();

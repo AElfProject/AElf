@@ -9,9 +9,9 @@ namespace AElf.Kernel.Tests.Concurrency
     public class GrouperTest
     {
         public List<Hash> _accountList = new List<Hash>();
-        public Dictionary<Hash, List<Transaction>> GetTestData()
+        public Dictionary<Hash, List<ITransaction>> GetTestData()
         {
-            Dictionary<Hash, List<Transaction>> txList = new Dictionary<Hash, List<Transaction>>();
+            Dictionary<Hash, List<ITransaction>> txList = new Dictionary<Hash, List<ITransaction>>();
             
            
             for (int i = 0; i < 12; i++)
@@ -32,7 +32,7 @@ namespace AElf.Kernel.Tests.Concurrency
             return txList;
         }
 
-        public void GetTransactionReadyInList(Dictionary<Hash, List<Transaction>> txList, List<Hash> _accountList, int from, int to)
+        public void GetTransactionReadyInList(Dictionary<Hash, List<ITransaction>> txList, List<Hash> _accountList, int from, int to)
         {
             var tx = GetTransaction(_accountList, from, to);
             if (txList.ContainsKey(tx.From))
@@ -41,7 +41,7 @@ namespace AElf.Kernel.Tests.Concurrency
             }
             else
             {
-                var accountTxList = new List<Transaction>();
+                var accountTxList = new List<ITransaction>();
                 accountTxList.Add(tx);
                 txList.Add(tx.From, accountTxList);
             }
@@ -66,7 +66,7 @@ namespace AElf.Kernel.Tests.Concurrency
             //3 group
             Assert.Equal(3, groups.Count);
             //group 1: {0-1}; {2-1, 2-4}; {3-2}; {4-5}
-            Assert.Equal(4, groups[0].Count);
+            Assert.Equal(4, groups[0].GetSenderCount());
             Assert.Equal(1, groups[0].GetAccountTxList(_accountList[0]).Count);
             Assert.Equal(2, groups[0].GetAccountTxList(_accountList[2]).Count);
             Assert.Equal(1, groups[0].GetAccountTxList(_accountList[3]).Count);
@@ -79,13 +79,13 @@ namespace AElf.Kernel.Tests.Concurrency
             Assert.True(groups[0].GetAccountTxList(_accountList[4]).Contains(txDic[_accountList[4]][0]));
             
             //group 2: {6-7}; {8-7}
-            Assert.Equal(2, groups[1].Count);
+            Assert.Equal(2, groups[1].GetSenderCount());
             Assert.Equal(1, groups[1].GetAccountTxList(_accountList[6]).Count);
             Assert.Equal(1, groups[1].GetAccountTxList(_accountList[8]).Count);
             Assert.True(groups[1].GetAccountTxList(_accountList[6]).Contains(txDic[_accountList[6]][0]));
             Assert.True(groups[1].GetAccountTxList(_accountList[8]).Contains(txDic[_accountList[8]][0]));
             //group 3: {9-10}; {10-11}
-            Assert.Equal(2, groups[2].Count);
+            Assert.Equal(2, groups[2].GetSenderCount());
             Assert.Equal(1, groups[2].GetAccountTxList(_accountList[9]).Count);
             Assert.Equal(1, groups[2].GetAccountTxList(_accountList[10]).Count);
             Assert.True(groups[2].GetAccountTxList(_accountList[9]).Contains(txDic[_accountList[9]][0]));

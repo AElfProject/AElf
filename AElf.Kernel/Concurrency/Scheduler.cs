@@ -16,7 +16,7 @@ namespace AElf.Kernel.Concurrency
             _grouper = grouper;
         }
 
-        public async Task<List<List<Transaction>>> ScheduleTransactions(Dictionary<Hash, List<Transaction>> txDict)
+        public async Task<List<List<ITransaction>>> ScheduleTransactions(Dictionary<Hash, List<ITransaction>> txDict)
         {
             throw new NotImplementedException();
         }
