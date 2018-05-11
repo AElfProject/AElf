@@ -56,9 +56,6 @@ namespace AElf.Kernel.Node.RPC
             return true;
         }
         
-        //curl -H "Content-Type: application/json" -X POST -d '{"jsonrpc": "2.0", "method": "get_tx", "params": ["68656c6c6f776f726c64", 23], "id": 1}'  http://localhost:5000/ -m 
-
-
         private JObject ParseRequest(HttpContext context)
         {
             if (context?.Request?.Body == null)
@@ -83,7 +80,7 @@ namespace AElf.Kernel.Node.RPC
         }
         
         /// <summary>
-        /// Verifies a certain amount of points about the request
+        /// Verifies the request
         /// </summary>
         /// <param name="request">The request to verify</param>
         /// <returns>Null if the request is valid, the response if verification fails</returns>
@@ -116,7 +113,7 @@ namespace AElf.Kernel.Node.RPC
             if (request == null)
             {
                 JObject err = ErrorResponseFactory.GetParseError(0);
-                WriteResponse(context, err);
+                await WriteResponse(context, err);
                 return;
             }
             
@@ -124,35 +121,42 @@ namespace AElf.Kernel.Node.RPC
 
             if (validErr != null)
             {
-                WriteResponse(context, validErr);
+                await WriteResponse(context, validErr);
                 return;
             }
 
+            int reqId = -1;
+
             try
             {
+                // read id
+                reqId = request["id"].ToObject<int>();
+                
                 string methodName = JToken.FromObject(request["method"]).ToObject<string>();
                 JObject reqParams = JObject.FromObject(request["params"]);
 
-                JObject response = null;
+                JObject responseData = null;
                 switch (methodName)
                 {
                        case GetTxMethodName:
-                           response = await ProcessGetTx(reqParams);
+                           responseData = await ProcessGetTx(reqParams);
                            break;
                        case InsertTxMethodName:
-                           response = await InsertTxName(reqParams);
+                           responseData = await InsertTxName(reqParams);
                            break;
                        default:
                            Console.WriteLine("Method name not found"); // todo log
                            break;
                 }
 
-                if (response == null)
+                if (responseData == null)
                 {
-                    
+                    // todo write error
                 }
+
+                JObject resp = CreateResponse(responseData, reqId);
                 
-                WriteResponse(context, response);
+                await WriteResponse(context, resp);
             }
             catch (Exception e)
             {
@@ -160,9 +164,28 @@ namespace AElf.Kernel.Node.RPC
             }
         }
 
+        private JObject CreateResponse(JObject responseData, int id)
+        {
+            JObject jObj = new JObject
+            {
+                ["jsonrpc"] = "2.0",
+                ["id"] = id,
+                ["result"] = responseData
+            };
+
+            return jObj;
+        }
+        
         private async Task<JObject> ProcessGetTx(JObject reqParams)
         {
-            ITransaction tx = await _node.GetTransaction(new byte[] { 0x01, 0x02});
+            byte[] txid = reqParams["txid"].ToObject<byte[]>();
+            ITransaction tx = await _node.GetTransaction(txid);
+
+            if (tx == null)
+            {
+                // todo tx not found
+            }
+            
             TransactionDto txDto = tx.ToTransactionDto();
             
             return JObject.FromObject(txDto);
@@ -175,20 +198,21 @@ namespace AElf.Kernel.Node.RPC
             return jObj;
         }
 
-        public void WriteResponse(HttpContext context, JObject response)
+        private async Task WriteResponse(HttpContext context, JObject response)
         {
-            context?.Response?.WriteAsync(response.ToString(), Encoding.UTF8);
+            if (context?.Response == null)
+                return;
+            
+            await context.Response.WriteAsync(response.ToString(), Encoding.UTF8);
         }
 
         public byte[] StringToByteArray(String hex)
         {
-            int NumberChars = hex.Length;
-            byte[] bytes = new byte[NumberChars / 2];
-            for (int i = 0; i < NumberChars; i += 2)
+            int numberChars = hex.Length;
+            byte[] bytes = new byte[numberChars / 2];
+            for (int i = 0; i < numberChars; i += 2)
                 bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
             return bytes;
         }
-        
-        
     }
 }
