@@ -1,19 +1,22 @@
 ﻿using System;
+using System.Threading;
 
 namespace AElf.Kernel.Concurrency
 {
-    /// <summary>
-    /// A UnionFindNode represents a set of nodes that it is a member of.
-    /// 
-    /// You can get the unique representative node of the set a given node is in by using the Find method.
-    /// Two nodes are in the same set when their Find methods return the same representative.
-    /// The IsUnionedWith method will check if two nodes' sets are the same (i.e. the nodes have the same representative).
-    ///
-    /// You can merge the sets two nodes are in by using the Union operation.
-    /// There is no way to split sets after they have been merged.
-    /// </summary>
-    public class UnionFindNode
-    {
+	/// <summary>
+	/// A UnionFindNode represents a set of nodes that it is a member of.
+	/// 
+	/// You can get the unique representative node of the set a given node is in by using the Find method.
+	/// Two nodes are in the same set when their Find methods return the same representative.
+	/// The IsUnionedWith method will check if two nodes' sets are the same (i.e. the nodes have the same representative).
+	///
+	/// You can merge the sets two nodes are in by using the Union operation.
+	/// There is no way to split sets after they have been merged.
+	/// </summary>
+	public class UnionFindNode
+	{
+		static int nextId = 0;
+		public int NodeId { get; private set; }
         private UnionFindNode _parent;
         private uint _rank;
 
@@ -22,13 +25,14 @@ namespace AElf.Kernel.Concurrency
         /// </summary>
         public UnionFindNode() {
             _parent = this;
+			NodeId = Interlocked.Increment(ref nextId);
         }
 
         /// <summary>
         /// Returns the current representative of the set this node is in.
         /// Note that the representative is only accurate untl the next Union operation.
         /// </summary>
-        private UnionFindNode Find() {
+		public UnionFindNode Find() {
             if (!ReferenceEquals(_parent, this)) _parent = _parent.Find();
             return _parent;
         }
