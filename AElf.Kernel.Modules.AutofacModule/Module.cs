@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.Storages;
+﻿using AElf.Database;
+using AElf.Kernel.Storages;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
@@ -11,7 +12,15 @@ namespace AElf.Kernel.Modules.AutofacModule
             
             builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
 
-            builder.RegisterType(typeof(KeyValueDatabase)).As(typeof(IKeyValueDatabase));
+            var client = RedisHelper.GetRedisClient();
+            if (client.HasConnected)
+            {
+                builder.RegisterType(typeof(RedisDatabase)).As(typeof(IKeyValueDatabase));
+            }
+            else
+            {
+                builder.RegisterType(typeof(KeyValueDatabase)).As(typeof(IKeyValueDatabase));
+            }
 
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));
             

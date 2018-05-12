@@ -21,5 +21,20 @@ namespace AElf.Database
         {
             return Task.FromResult(RedisClient.Get(key));
         }
+        
+        public static RedisClient GetRedisClient()
+        {
+            return new RedisClient(IpAddress, Port);
+        }
+
+        public static RedisClient GetRedisClient(int port)
+        {
+            return new RedisClient(IpAddress, port);
+        }
+        
+        public static RedisClient GetRedisClient(string ipAddress, int port)
+        {
+            return new RedisClient(ipAddress, port);
+        }
     }
 }
