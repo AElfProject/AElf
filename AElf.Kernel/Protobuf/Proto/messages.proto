@@ -67,3 +67,17 @@ message PairHashChange{
 message ChangesDict{
     repeated PairHashChange Dict = 1;
 }
+
+message TransactionResult{
+    Hash TransactionId = 1;
+    Status status = 2;
+    bytes logs = 3;
+}
+
+enum Status {
+    NotExisted = 0;
+    Refused = 1;
+    Pending = 2;
+    ExecutedFailed = 3;
+    Mined = 4;
+}

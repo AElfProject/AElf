@@ -4,6 +4,7 @@ namespace AElf.Kernel.Managers
 {
     public interface ITransactionManager
     {
-        Task AddTransactionAsync(Transaction tx);
+        Task<IHash> AddTransactionAsync(ITransaction tx);
+        Task<ITransaction> GetTransaction(Hash txId);
     }
 }
