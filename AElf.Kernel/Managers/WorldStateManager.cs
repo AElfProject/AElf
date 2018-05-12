@@ -276,7 +276,7 @@ namespace AElf.Kernel.Managers
             return path.SetBlockHash(_preBlockHash).GetPointerHash();
         }
        
-        #region Provate methods
+        #region Private methods
         /// <summary>
         /// A specific way to get a hash value which pointer to
         /// the count of Changes of a world state.
