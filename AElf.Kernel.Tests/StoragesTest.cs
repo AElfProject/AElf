@@ -15,19 +15,17 @@ namespace AElf.Kernel.Tests
         private readonly IBlockHeaderStore _blockHeaderStore;
         private readonly IBlockBodyStore _blockBodyStore;
         private readonly IWorldStateStore _worldStateStore;
-        private readonly IPointerStore _pointerStore;
         private readonly IChainStore _chainStore;
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
 
         public StoragesTest(IChainStore chainStore, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
-            IWorldStateStore worldStateStore, IPointerStore pointerStore, IChangesStore changesStore, IDataStore dataStore)
+            IWorldStateStore worldStateStore, IChangesStore changesStore, IDataStore dataStore)
         {
             _chainStore = chainStore;
             _blockHeaderStore = blockHeaderStore;
             _blockBodyStore = blockBodyStore;
             _worldStateStore = worldStateStore;
-            _pointerStore = pointerStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
         }
@@ -107,7 +105,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, 
-                accountContextService, _pointerStore, _changesStore, _dataStore);
+                accountContextService, _changesStore, _dataStore);
             await worldStateManager.SetWorldStateAsync(chain.Id, genesisBlockHash);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
             
@@ -159,7 +157,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore,
-                accountContextService, _pointerStore, _changesStore, _dataStore);
+                accountContextService, _changesStore, _dataStore);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
 
             await worldStateManager.SetWorldStateAsync(chain.Id, genesisBlockHash);
@@ -222,7 +220,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, 
-                accountContextService, _pointerStore, _changesStore, _dataStore);
+                accountContextService, _changesStore, _dataStore);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
             
             await worldStateManager.SetWorldStateAsync(chain.Id, genesisBlockHash);

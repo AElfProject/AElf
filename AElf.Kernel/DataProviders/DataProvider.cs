@@ -119,7 +119,6 @@ namespace AElf.Kernel
             
             change.LatestChangedBlockHash = preBlockHash;
             
-            await _worldStateManager.UpdatePointerAsync(pathHash, pointerHashAfter);
             await _worldStateManager.InsertChangeAsync(pathHash, change);
             await _worldStateManager.SetDataAsync(pointerHashAfter, obj);
             

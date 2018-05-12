@@ -16,15 +16,13 @@ namespace AElf.Kernel.Tests
     public class DataProviderTest
     {
         private readonly IWorldStateStore _worldStateStore;
-        private readonly IPointerStore _pointerStore;
         private readonly IChainStore _chainStore;
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
 
-        public DataProviderTest(IWorldStateStore worldStateStore, IPointerStore pointerStore, IChainStore chainStore, IChangesStore changesStore, IDataStore dataStore)
+        public DataProviderTest(IWorldStateStore worldStateStore, IChainStore chainStore, IChangesStore changesStore, IDataStore dataStore)
         {
             _worldStateStore = worldStateStore;
-            _pointerStore = pointerStore;
             _chainStore = chainStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
@@ -44,7 +42,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, accountContextService,
-                _pointerStore, _changesStore, _dataStore);
+                _changesStore, _dataStore);
             await worldStateManager.SetWorldStateAsync(chain.Id, Hash.Generate());
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
             var dataProvider = accountDataProvider.GetDataProvider();

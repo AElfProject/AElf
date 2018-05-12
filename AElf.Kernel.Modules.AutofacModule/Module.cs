@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using AElf.Kernel.Storages;
+using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
@@ -9,6 +10,8 @@ namespace AElf.Kernel.Modules.AutofacModule
             var assembly = typeof(AElf.Kernel.IAccount).Assembly;
             
             builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
+
+            builder.RegisterType(typeof(KeyValueDatabase)).As(typeof(IKeyValueDatabase));
 
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));
             

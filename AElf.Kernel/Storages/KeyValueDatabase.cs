@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel.Storages
 {
-/*    public class KeyValueDatabase : IKeyValueDatabase
+    public class KeyValueDatabase : IKeyValueDatabase
     {
         private readonly Dictionary<string, byte[]> _dictionary = new Dictionary<string, byte[]>();
         
@@ -18,5 +18,5 @@ namespace AElf.Kernel.Storages
             _dictionary[key] = bytes;
             return Task.CompletedTask;
         }
-    }*/
+    }
 }

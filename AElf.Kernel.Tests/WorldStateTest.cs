@@ -13,17 +13,15 @@ namespace AElf.Kernel.Tests
     public class WorldStateTest
     {
         private readonly IWorldStateStore _worldStateStore;
-        private readonly IPointerStore _pointerStore;
         private readonly IChainStore _chainStore;
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
 
         public WorldStateTest(IChainStore chainStore, IWorldStateStore worldStateStore, 
-            IPointerStore pointerStore, IChangesStore changesStore, IDataStore dataStore)
+            IChangesStore changesStore, IDataStore dataStore)
         {
             _chainStore = chainStore;
             _worldStateStore = worldStateStore;
-            _pointerStore = pointerStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
         }
@@ -38,7 +36,7 @@ namespace AElf.Kernel.Tests
 
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore,
-                accountContextService, _pointerStore, _changesStore, _dataStore);
+                accountContextService, _changesStore, _dataStore);
 
             await worldStateManager.SetWorldStateAsync(chain.Id, block0.GetHash());
             
@@ -66,7 +64,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, 
-                accountContextService, _pointerStore, _changesStore, _dataStore);
+                accountContextService, _changesStore, _dataStore);
             await worldStateManager.SetWorldStateAsync(chain.Id, genesisBlockHash);
             
             var key = new Hash("testkey".CalculateHash());
@@ -188,7 +186,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, 
-                accountContextService, _pointerStore, _changesStore, _dataStore);
+                accountContextService, _changesStore, _dataStore);
             await worldStateManager.SetWorldStateAsync(chain.Id, genesisBlockHash);
             
             var key1 = new Hash("testkey1".CalculateHash());
