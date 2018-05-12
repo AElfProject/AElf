@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace AElf.Kernel.Concurrency
 {
@@ -46,7 +47,7 @@ namespace AElf.Kernel.Concurrency
             }
             
             Dictionary<Hash, UnionFindNode> accountUnionSet = new Dictionary<Hash, UnionFindNode>();
-            
+
             //set up the union find set
             foreach (var accountTxList in txList.Values)
             {
@@ -63,48 +64,23 @@ namespace AElf.Kernel.Concurrency
                         toNode = new UnionFindNode();
                         accountUnionSet.Add(tx.To, toNode);
                     }
-                    
+
                     fromNode.Union(toNode);
                 }
             }
-
-            //set up the result group and init the first group
-            var groupList = new List<ITransactionParallelGroup>();
-            bool firstElement = true;
-            //if two txs' account in the same set, then these two are in the same group
-            foreach (var accountTxList in txList)
-            {
-                if (firstElement)
-                {
-                    var firstGroup = new TransactionParallelGroup();
-                    firstGroup.AddAccountTxList(accountTxList);
-                    groupList.Add(firstGroup);
-                    firstElement = false;
-                }
-                else
-                {
-                    bool createNewGroup = true;
-                    foreach (var group in groupList)
-                    {
-                        if (accountUnionSet[accountTxList.Key].IsUnionedWith(accountUnionSet[group.GetOneAccountInGroup()]))
-                        {
-                            group.AddAccountTxList(accountTxList);
-                            createNewGroup = false;
-                        }
-                    }
-
-                    if (createNewGroup)
-                    {
-                        var newGroup = new TransactionParallelGroup();
-                        newGroup.AddAccountTxList(accountTxList);
-                        groupList.Add(newGroup);
-                    }
-                }
-            }
-    
-            return groupList;
-        }
-        
+            
+			Dictionary<int, ITransactionParallelGroup> grouped = new Dictionary<int, ITransactionParallelGroup>();         
+			foreach(var senderTxList in txList){
+				int nodeId = accountUnionSet[senderTxList.Key].Find().NodeId;
+				if(!grouped.TryGetValue(nodeId, out var txs)){
+					txs = new TransactionParallelGroup();
+					grouped.Add(nodeId, txs);
+                  }
+				txs.AddAccountTxList(senderTxList);
+			}
+         
+			return grouped.Values.ToList();
+       }
         
     }
 }
