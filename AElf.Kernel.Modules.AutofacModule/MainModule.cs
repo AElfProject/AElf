@@ -1,6 +1,7 @@
 ﻿using AElf.Database;
 using AElf.Kernel.Storages;
 using Autofac;
+using ServiceStack.Redis;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {

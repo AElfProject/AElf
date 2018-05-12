@@ -8,7 +8,7 @@ using ServiceStack.Text;
 
 namespace AElf.Kernel.Storages
 {
-    /*public class RedisDatabase : IKeyValueDatabase
+    public class RedisDatabase : IKeyValueDatabase
     {
         public async Task<byte[]> GetAsync(string key, Type type)
         {
@@ -20,5 +20,5 @@ namespace AElf.Kernel.Storages
         {
             await RedisHelper.SetAsync(key, bytes);
         }
-    }*/
+    }
 }
