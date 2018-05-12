@@ -1,5 +1,6 @@
 ﻿using System;
 using AElf.Kernel.Crypto.ECDSA;
+using AElf.Kernel.Extensions;
 using Google.Protobuf;
 using Org.BouncyCastle.Math;
 
@@ -9,7 +10,7 @@ namespace AElf.Kernel
     {
         public Hash GetHash()
         {
-            return new Hash(GetSignatureData());
+            return this.CalculateHash();
         }
 
         public byte[] Serialize()
