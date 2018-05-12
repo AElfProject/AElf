@@ -27,7 +27,8 @@ namespace AElf.Kernel.Services
             
             block.FillTxsMerkleTreeRootInHeader();
             var ws = await _worldStateManager.GetWorldStateAsync(chainId, lastBlockHash);
-            block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
+            if(ws != null)
+                block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
             block.Body.BlockHeader = block.Header.GetHash();
             
             
