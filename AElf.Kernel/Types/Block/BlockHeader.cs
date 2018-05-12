@@ -3,7 +3,7 @@ using System;
 
 namespace AElf.Kernel
 {
-    public partial class BlockHeader : IBlockHeader, IHashProvider
+    public partial class BlockHeader : IBlockHeader
     {
         /// <summary>
         /// The miner's signature.
@@ -23,13 +23,6 @@ namespace AElf.Kernel
 
         public Hash PreviousHash { get; set; }
 
-        public Hash Hash => this.CalculateHash();
-
-        /// <summary>
-        /// block index in chain
-        /// </summary>
-        public ulong Index { get; set;}
-        
         public Hash GetHash()
         {
             return this.CalculateHash();
