@@ -124,7 +124,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var ready = pool.ReadyTxs();
             
             Assert.Equal(1, ready.Count);
-            Assert.True(ready.Contains(tx));
+            Assert.True(ready.ContainsKey(tx.From) && ready[tx.From].Contains(tx));
         }
 
 

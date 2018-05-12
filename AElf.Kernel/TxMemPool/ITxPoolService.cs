@@ -27,7 +27,7 @@ namespace AElf.Kernel.TxMemPool
         /// return ready txs can be executed 
         /// </summary>
         /// <returns></returns>
-        Task<List<Transaction>> GetReadyTxsAsync();
+        Task<Dictionary<Hash, List<Transaction>>> GetReadyTxsAsync();
 
         /// <summary>
         /// promote txs from waiting list to executable

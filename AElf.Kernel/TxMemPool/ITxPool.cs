@@ -42,7 +42,7 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// return tx list can be executed
         /// </summary>
-        List<Transaction> ReadyTxs();
+        Dictionary<Hash, List<Transaction>> ReadyTxs();
 
         /// <summary>
         /// threshold for entering pool

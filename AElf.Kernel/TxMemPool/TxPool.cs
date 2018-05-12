@@ -110,19 +110,21 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public List<Transaction> ReadyTxs()
+        public Dictionary<Hash, List<Transaction>> ReadyTxs()
         {
-            var list = new List<Transaction>();
-            foreach (var p in _executable)
+            var res = new Dictionary<Hash, List<Transaction>>();
+            foreach (var kv in _executable)
             {
-                var nonce = GetNonce(p.Key);
-                foreach (var hash in p.Value)
+                if(!res.ContainsKey(kv.Key))
+                    res[kv.Key] = new List<Transaction>();
+                var nonce = GetNonce(kv.Key);
+                foreach (var txHash in kv.Value)
                 {
-                    if(_pool.TryGetValue(hash, out var tx) && tx.IncrementId >= nonce)
-                        list.Add(tx);
+                    if(_pool.TryGetValue(txHash, out var tx) && tx.IncrementId >= nonce)
+                        res[kv.Key].Add(tx);
                 }
             }
-            return list;
+            return res;
         }
         
         /// <inheritdoc/>
