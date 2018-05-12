@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Google.Protobuf;
 
 namespace AElf.Kernel.Storages
 {
@@ -15,14 +14,16 @@ namespace AElf.Kernel.Storages
             _keyValueDatabase = keyValueDatabase;
         }
 
-        public async Task InsertAsync(Transaction tx)
+        public async Task<IHash> InsertAsync(ITransaction tx)
         {
-            await _keyValueDatabase.SetAsync(tx.GetHash().Value.ToBase64(), tx.ToByteArray());
+            Hash key = tx.GetHash();
+            await _keyValueDatabase.SetAsync(key, tx);
+            return key;
         }
 
-        public async Task<Transaction> GetAsync(Hash hash)
+        public async Task<ITransaction> GetAsync(Hash hash)
         {
-            return Transaction.Parser.ParseFrom(await _keyValueDatabase.GetAsync(hash.Value.ToBase64(),typeof(Transaction)));
+            return (Transaction) await _keyValueDatabase.GetAsync(hash, typeof(Transaction));
         }
     }
 }

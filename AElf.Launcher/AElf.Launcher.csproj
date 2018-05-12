@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj">
+      <Project>{C7B2F451-DF68-4FBB-AEA1-020F17BB6598}</Project>
+      <Name>AElf.Kernel.Modules.AutofacModule</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="4.8.0" />
+    <PackageReference Include="NLog" Version="4.5.4" />
+  </ItemGroup>
+</Project>

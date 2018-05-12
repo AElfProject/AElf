@@ -4,12 +4,15 @@ using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
-    public class Module: Autofac.Module
+    public class MainModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
-            var assembly = typeof(AElf.Kernel.IAccount).Assembly;
+            //TODO : REVIEW - probably not a good idea
             
+            var assembly = typeof(IAccount).Assembly;
+            
+            builder.RegisterInstance<IHash>(new Hash()).As<Hash>();
             builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
 
             var client = RedisHelper.GetRedisClient();
@@ -23,7 +26,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             }
 
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));
-            
+
             builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
 
             base.Load(builder);
