@@ -13,17 +13,10 @@ namespace AElf.Kernel.Modules.AutofacModule
             var assembly = typeof(IAccount).Assembly;
             
             builder.RegisterInstance<IHash>(new Hash()).As<Hash>();
+            
             builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
 
-            var client = RedisHelper.GetRedisClient();
-            if (client.HasConnected)
-            {
-                builder.RegisterType(typeof(RedisDatabase)).As(typeof(IKeyValueDatabase));
-            }
-            else
-            {
-                builder.RegisterType(typeof(KeyValueDatabase)).As(typeof(IKeyValueDatabase));
-            }
+            builder.RegisterType(typeof(KeyValueDatabase)).As(typeof(IKeyValueDatabase));
 
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));
 

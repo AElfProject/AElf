@@ -1,5 +1,6 @@
 ﻿using Google.Protobuf;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public interface ITransaction : IHashProvider

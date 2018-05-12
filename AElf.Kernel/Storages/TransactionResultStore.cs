@@ -1,17 +1,28 @@
 ﻿using System.Threading.Tasks;
-
-namespace AElf.Kernel.Storages
-{
-    public class TransactionResultStore : ITransactionResultStore
-    {
-        public Task InsertAsync(TransactionResult result)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Task<TransactionResult> GetAsync(Hash hash)
-        {
-            throw new System.NotImplementedException();
-        }
-    }
-}
+ using AElf.Kernel.Extensions;
+ using Google.Protobuf;
+ 
+ namespace AElf.Kernel.Storages
+ {
+     public class TransactionResultStore : ITransactionResultStore
+     {
+         private readonly IKeyValueDatabase _keyValueDatabase;
+ 
+         public TransactionResultStore(IKeyValueDatabase keyValueDatabase)
+         {
+             _keyValueDatabase = keyValueDatabase;
+         }
+ 
+         public async Task InsertAsync(TransactionResult result)
+         {
+             Hash hash = result.CalculateHash();
+             await _keyValueDatabase.SetAsync(hash.Value.ToBase64(), result.ToByteArray());
+         }
+ 
+         public async Task<TransactionResult> GetAsync(Hash hash)
+         {
+             var txResultBytes = await _keyValueDatabase.GetAsync(hash.Value.ToBase64(), typeof(TransactionResult));
+             return TransactionResult.Parser.ParseFrom(txResultBytes);
+         }
+     }
+ }

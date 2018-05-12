@@ -17,9 +17,9 @@ namespace AElf.Node.RPC.DTO
             return dto;
         }
 
-        public static ITransaction ToTransaction(this TransactionDto dto)
+        public static Transaction ToTransaction(this TransactionDto dto)
         {
-            Transaction tx = new Transaction()
+            Transaction tx = new Transaction
             {
                 From = dto.From,
                 To = dto.To
