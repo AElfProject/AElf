@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.0-rc1-final" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.3" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="NLog" Version="4.5.4" />
     <PackageReference Include="QuickGraphCore" Version="1.0.0" />
     <PackageReference Include="SharpRepository.Repository" Version="2.0.2" />
   </ItemGroup>

@@ -2,7 +2,7 @@
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
-    public class MainModule : Autofac.Module
+    public class MainModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {

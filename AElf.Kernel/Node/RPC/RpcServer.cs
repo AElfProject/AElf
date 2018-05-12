@@ -7,6 +7,7 @@ using AElf.Node.RPC.DTO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
@@ -15,11 +16,10 @@ namespace AElf.Kernel.Node.RPC
 {
     public class RpcServer : IRpcServer
     {
-
         private const string GetTxMethodName = "get_tx";
         private const string InsertTxMethodName = "insert_tx";
         
-        private List<string> _rpcCommands = new List<string>()
+        private readonly List<string> _rpcCommands = new List<string>()
         {
             GetTxMethodName,
             InsertTxMethodName
@@ -42,6 +42,10 @@ namespace AElf.Kernel.Node.RPC
             {
                 var host = new WebHostBuilder()
                     .UseKestrel()
+                    .ConfigureLogging((hostingContext, logging) =>
+                    {
+                        logging.ClearProviders(); 
+                    })
                     .Configure(a => a.Run(ProcessAsync))
                     .Build();
                 

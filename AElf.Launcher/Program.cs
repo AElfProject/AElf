@@ -18,6 +18,12 @@ namespace AElf.Launcher
             // Setup ioc 
             IContainer container = SetupIocContainer(tc);
 
+            if (container == null)
+            {
+                Console.WriteLine("IoC setup failed");
+                return;
+            }
+
             using(var scope = container.BeginLifetimeScope())
             {
                 IAElfNode node = scope.Resolve<IAElfNode>();
@@ -39,6 +45,7 @@ namespace AElf.Launcher
             // Module registrations
             builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
             builder.RegisterModule(new TransactionManagerModule());
+            builder.RegisterModule(new LoggerModule());
             
             // Node registration
             builder.RegisterType<MainChainNode>().As<IAElfNode>();
