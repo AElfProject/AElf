@@ -28,29 +28,30 @@ namespace AElf.Kernel {
             "CzIFLkhhc2gSEQoCVG8YAiABKAsyBS5IYXNoEhMKC0luY3JlbWVudElkGAMg",
             "ASgEEhIKCk1ldGhvZE5hbWUYBCABKAkSDgoGUGFyYW1zGAUgASgMEgsKA0Zl",
             "ZRgGIAEoBBIJCgFSGAcgASgMEgkKAVMYCCABKAwSCQoBUBgJIAEoDCIVCgRI",
-            "YXNoEg0KBVZhbHVlGAEgASgMImkKC0Jsb2NrSGVhZGVyEg8KB1ZlcnNpb24Y",
-            "ASABKAUSHAoNUGVydmlvdXNCbG9jaxgCIAEoCzIFLkhhc2gSKwocTWVya2xl",
-            "VHJlZVJvb3RPZlRyYW5zYWN0aW9ucxgDIAEoCzIFLkhhc2giRAoJQmxvY2tC",
-            "b2R5EhoKC0Jsb2NrSGVhZGVyGAEgASgLMgUuSGFzaBIbCgxUcmFuc2FjdGlv",
-            "bnMYAiADKAsyBS5IYXNoIj8KBUJsb2NrEhwKBkhlYWRlchgBIAEoCzIMLkJs",
-            "b2NrSGVhZGVyEhgKBEJvZHkYAiABKAsyCi5CbG9ja0JvZHkiYQoZU21hcnRD",
-            "b250cmFjdFJlZ2lzdHJhdGlvbhIQCghDYXRlZ29yeRgBIAEoBRIbCgxDb250",
-            "cmFjdEhhc2gYAiABKAsyBS5IYXNoEhUKDUNvbnRyYWN0Qnl0ZXMYAyABKAwi",
-            "TwoXU21hcnRDb250cmFjdERlcGxveW1lbnQSGwoMQ29udHJhY3RIYXNoGAEg",
-            "ASgLMgUuSGFzaBIXCg9Db25zdHJ1Y3RQYXJhbXMYAiABKAwiSAoaU21hcnRD",
-            "b250cmFjdEludm9rZUNvbnRleHQSFQoGQ2FsbGVyGAEgASgLMgUuSGFzaBIT",
-            "CgtJbmNyZW1lbnRJZBgCIAEoBCJTCgZDaGFuZ2USFQoGQmVmb3JlGAEgASgL",
-            "MgUuSGFzaBIUCgVBZnRlchgCIAEoCzIFLkhhc2gSHAoNVHJhbnNhY3Rpb25J",
-            "ZBgDIAEoCzIFLkhhc2giPAoOUGFpckhhc2hDaGFuZ2USEgoDS2V5GAEgASgL",
-            "MgUuSGFzaBIWCgVWYWx1ZRgCIAEoCzIHLkNoYW5nZSIsCgtDaGFuZ2VzRGlj",
-            "dBIdCgREaWN0GAEgAygLMg8uUGFpckhhc2hDaGFuZ2VCDqoCC0FFbGYuS2Vy",
-            "bmVsYgZwcm90bzM="));
+            "YXNoEg0KBVZhbHVlGAEgASgMIqMBCgtCbG9ja0hlYWRlchIPCgdWZXJzaW9u",
+            "GAEgASgFEhwKDVBlcnZpb3VzQmxvY2sYAiABKAsyBS5IYXNoEisKHE1lcmts",
+            "ZVRyZWVSb290T2ZUcmFuc2FjdGlvbnMYAyABKAsyBS5IYXNoEikKGk1lcmts",
+            "ZVRyZWVSb290T2ZXb3JsZFN0YXRlGAQgASgLMgUuSGFzaBINCgVJbmRleBgF",
+            "IAEoBCJECglCbG9ja0JvZHkSGgoLQmxvY2tIZWFkZXIYASABKAsyBS5IYXNo",
+            "EhsKDFRyYW5zYWN0aW9ucxgCIAMoCzIFLkhhc2giPwoFQmxvY2sSHAoGSGVh",
+            "ZGVyGAEgASgLMgwuQmxvY2tIZWFkZXISGAoEQm9keRgCIAEoCzIKLkJsb2Nr",
+            "Qm9keSJhChlTbWFydENvbnRyYWN0UmVnaXN0cmF0aW9uEhAKCENhdGVnb3J5",
+            "GAEgASgFEhsKDENvbnRyYWN0SGFzaBgCIAEoCzIFLkhhc2gSFQoNQ29udHJh",
+            "Y3RCeXRlcxgDIAEoDCJPChdTbWFydENvbnRyYWN0RGVwbG95bWVudBIbCgxD",
+            "b250cmFjdEhhc2gYASABKAsyBS5IYXNoEhcKD0NvbnN0cnVjdFBhcmFtcxgC",
+            "IAEoDCJIChpTbWFydENvbnRyYWN0SW52b2tlQ29udGV4dBIVCgZDYWxsZXIY",
+            "ASABKAsyBS5IYXNoEhMKC0luY3JlbWVudElkGAIgASgEIlMKBkNoYW5nZRIV",
+            "CgZCZWZvcmUYASABKAsyBS5IYXNoEhQKBUFmdGVyGAIgASgLMgUuSGFzaBIc",
+            "Cg1UcmFuc2FjdGlvbklkGAMgASgLMgUuSGFzaCI8Cg5QYWlySGFzaENoYW5n",
+            "ZRISCgNLZXkYASABKAsyBS5IYXNoEhYKBVZhbHVlGAIgASgLMgcuQ2hhbmdl",
+            "IiwKC0NoYW5nZXNEaWN0Eh0KBERpY3QYASADKAsyDy5QYWlySGFzaENoYW5n",
+            "ZUIOqgILQUVsZi5LZXJuZWxiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params", "Fee", "R", "S", "P" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Hash), global::AElf.Kernel.Hash.Parser, new[]{ "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PerviousBlock", "MerkleTreeRootOfTransactions" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PerviousBlock", "MerkleTreeRootOfTransactions", "MerkleTreeRootOfWorldState", "Index" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockBody), global::AElf.Kernel.BlockBody.Parser, new[]{ "BlockHeader", "Transactions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Block), global::AElf.Kernel.Block.Parser, new[]{ "Header", "Body" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractRegistration), global::AElf.Kernel.SmartContractRegistration.Parser, new[]{ "Category", "ContractHash", "ContractBytes" }, null, null, null),
@@ -587,6 +588,8 @@ namespace AElf.Kernel {
       version_ = other.version_;
       PerviousBlock = other.perviousBlock_ != null ? other.PerviousBlock.Clone() : null;
       MerkleTreeRootOfTransactions = other.merkleTreeRootOfTransactions_ != null ? other.MerkleTreeRootOfTransactions.Clone() : null;
+      MerkleTreeRootOfWorldState = other.merkleTreeRootOfWorldState_ != null ? other.MerkleTreeRootOfWorldState.Clone() : null;
+      index_ = other.index_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -628,6 +631,28 @@ namespace AElf.Kernel {
       }
     }
 
+    /// <summary>Field number for the "MerkleTreeRootOfWorldState" field.</summary>
+    public const int MerkleTreeRootOfWorldStateFieldNumber = 4;
+    private global::AElf.Kernel.Hash merkleTreeRootOfWorldState_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash MerkleTreeRootOfWorldState {
+      get { return merkleTreeRootOfWorldState_; }
+      set {
+        merkleTreeRootOfWorldState_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Index" field.</summary>
+    public const int IndexFieldNumber = 5;
+    private ulong index_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ulong Index {
+      get { return index_; }
+      set {
+        index_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as BlockHeader);
@@ -644,6 +669,8 @@ namespace AElf.Kernel {
       if (Version != other.Version) return false;
       if (!object.Equals(PerviousBlock, other.PerviousBlock)) return false;
       if (!object.Equals(MerkleTreeRootOfTransactions, other.MerkleTreeRootOfTransactions)) return false;
+      if (!object.Equals(MerkleTreeRootOfWorldState, other.MerkleTreeRootOfWorldState)) return false;
+      if (Index != other.Index) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -653,6 +680,8 @@ namespace AElf.Kernel {
       if (Version != 0) hash ^= Version.GetHashCode();
       if (perviousBlock_ != null) hash ^= PerviousBlock.GetHashCode();
       if (merkleTreeRootOfTransactions_ != null) hash ^= MerkleTreeRootOfTransactions.GetHashCode();
+      if (merkleTreeRootOfWorldState_ != null) hash ^= MerkleTreeRootOfWorldState.GetHashCode();
+      if (Index != 0UL) hash ^= Index.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -678,6 +707,14 @@ namespace AElf.Kernel {
         output.WriteRawTag(26);
         output.WriteMessage(MerkleTreeRootOfTransactions);
       }
+      if (merkleTreeRootOfWorldState_ != null) {
+        output.WriteRawTag(34);
+        output.WriteMessage(MerkleTreeRootOfWorldState);
+      }
+      if (Index != 0UL) {
+        output.WriteRawTag(40);
+        output.WriteUInt64(Index);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -694,6 +731,12 @@ namespace AElf.Kernel {
       }
       if (merkleTreeRootOfTransactions_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(MerkleTreeRootOfTransactions);
+      }
+      if (merkleTreeRootOfWorldState_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(MerkleTreeRootOfWorldState);
+      }
+      if (Index != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(Index);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -720,6 +763,15 @@ namespace AElf.Kernel {
           merkleTreeRootOfTransactions_ = new global::AElf.Kernel.Hash();
         }
         MerkleTreeRootOfTransactions.MergeFrom(other.MerkleTreeRootOfTransactions);
+      }
+      if (other.merkleTreeRootOfWorldState_ != null) {
+        if (merkleTreeRootOfWorldState_ == null) {
+          merkleTreeRootOfWorldState_ = new global::AElf.Kernel.Hash();
+        }
+        MerkleTreeRootOfWorldState.MergeFrom(other.MerkleTreeRootOfWorldState);
+      }
+      if (other.Index != 0UL) {
+        Index = other.Index;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -748,6 +800,17 @@ namespace AElf.Kernel {
               merkleTreeRootOfTransactions_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(merkleTreeRootOfTransactions_);
+            break;
+          }
+          case 34: {
+            if (merkleTreeRootOfWorldState_ == null) {
+              merkleTreeRootOfWorldState_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(merkleTreeRootOfWorldState_);
+            break;
+          }
+          case 40: {
+            Index = input.ReadUInt64();
             break;
           }
         }

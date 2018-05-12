@@ -23,6 +23,8 @@ message BlockHeader{
     int32 Version = 1;
     Hash PerviousBlock = 2;
     Hash MerkleTreeRootOfTransactions = 3;
+    Hash MerkleTreeRootOfWorldState = 4;
+    uint64 Index = 5;
 }
 
 message BlockBody{
@@ -39,7 +41,6 @@ message SmartContractRegistration{
     int32 Category = 1;
     Hash ContractHash = 2;
     bytes ContractBytes = 3;
-
 }
 
 message SmartContractDeployment{
