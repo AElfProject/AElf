@@ -8,7 +8,7 @@
         /// <summary>
         /// Current block height
         /// </summary>
-        long CurrentBlockHeight { get; }
+        ulong CurrentBlockHeight { get; }
         
         /// <summary>
         /// Current block hash

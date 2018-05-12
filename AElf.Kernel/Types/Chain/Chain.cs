@@ -1,6 +1,6 @@
 ﻿namespace AElf.Kernel
 {
-    public class Chain
+    public class Chain : IChain
     {
         public ulong CurrentBlockHeight { get; set; }
         public Hash CurrentBlockHash { get; set; }
