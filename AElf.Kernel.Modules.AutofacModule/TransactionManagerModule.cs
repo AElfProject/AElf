@@ -8,7 +8,6 @@ namespace AElf.Kernel.Modules.AutofacModule
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<KeyValueDatabase>().As<IKeyValueDatabase>();
             builder.RegisterType<TransactionStore>().As<ITransactionStore>();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>();
         }

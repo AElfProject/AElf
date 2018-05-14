@@ -2,21 +2,26 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AElf.Kernel.Storages
+namespace AElf.Database
 {
     public class KeyValueDatabase : IKeyValueDatabase
     {
-        private readonly Dictionary<Hash, byte[]> _dictionary = new Dictionary<Hash, byte[]>();
+        private readonly Dictionary<string, byte[]> _dictionary = new Dictionary<string, byte[]>();
         
-        public Task<byte[]> GetAsync(Hash key, Type type)
+        public Task<byte[]> GetAsync(string key, Type type)
         {
             return _dictionary.TryGetValue(key, out var value) ? Task.FromResult(value) : Task.FromResult<byte[]>(null);
         }
 
-        public Task SetAsync(Hash key, byte[] bytes)
+        public Task SetAsync(string key, byte[] bytes)
         {
             _dictionary[key] = bytes;
             return Task.CompletedTask;
+        }
+
+        public bool IsConnected()
+        {
+            return true;
         }
     }
 }
