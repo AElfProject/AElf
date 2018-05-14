@@ -30,7 +30,7 @@ namespace AElf.Kernel.Crypto.ECDSA
                 if (Signature == null || Signature.Length != 2)
                     return null;
 
-                return Signature[0].ToByteArrayUnsigned();
+                return Signature[0].ToByteArray();
             }
         }
         
@@ -41,7 +41,7 @@ namespace AElf.Kernel.Crypto.ECDSA
                 if (Signature == null || Signature.Length != 2)
                     return null;
 
-                return Signature[1].ToByteArrayUnsigned();
+                return Signature[1].ToByteArray();
             }
         }
     }
