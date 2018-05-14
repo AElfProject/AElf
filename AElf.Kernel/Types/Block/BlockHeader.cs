@@ -1,9 +1,11 @@
 ﻿using AElf.Kernel.Extensions;
 using System;
+using Google.Protobuf;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public partial class BlockHeader : IBlockHeader, IHashProvider
+    public partial class BlockHeader : IBlockHeader
     {
         /// <summary>
         /// The miner's signature.
@@ -23,8 +25,6 @@ namespace AElf.Kernel
 
         public Hash PreviousHash { get; set; }
 
-        public Hash Hash => this.CalculateHash();
-
         /// <summary>
         /// block index in chain
         /// </summary>
@@ -33,6 +33,11 @@ namespace AElf.Kernel
         public Hash GetHash()
         {
             return this.CalculateHash();
+        }
+
+        public byte[] Serialize()
+        {
+            return this.ToByteArray();
         }
     }
 }

@@ -18,6 +18,7 @@ namespace AElf.Kernel.Tests
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
             builder.RegisterModule(new MainModule());
+            builder.RegisterModule(new DatabaseModule());
 
             // configure your container
             // e.g. builder.RegisterModule<TestOverrideModule>();

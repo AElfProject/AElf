@@ -2,7 +2,7 @@
 
 namespace AElf.Kernel
 {
-    public interface IBlockBody
+    public interface IBlockBody : ISerializable, IHashProvider
     {
         RepeatedField<Hash> Transactions { get; }
 

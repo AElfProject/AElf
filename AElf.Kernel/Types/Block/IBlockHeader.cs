@@ -2,10 +2,9 @@
 
 namespace AElf.Kernel
 {
-    public interface IBlockHeader :  IHashProvider
+    public interface IBlockHeader :  IHashProvider, ISerializable
     {
-        Int32 Version { get; set; }
-        
+        int Version { get; set; }
         Hash PreviousHash { get; set; }
         Hash MerkleTreeRootOfTransactions { get; set; }
     }

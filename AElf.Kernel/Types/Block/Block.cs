@@ -35,7 +35,7 @@ namespace AElf.Kernel
 
         public Hash GetHash()
         {
-            return new Hash(this.CalculateHash());
+            return Header.GetHash();
         }
     }
 }

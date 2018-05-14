@@ -4,8 +4,8 @@ namespace AElf.Kernel.Storages
 {
     public interface IBlockHeaderStore
     {
-        Task InsertAsync(BlockHeader block);
+        Task InsertAsync(IBlockHeader block);
 
-        Task<BlockHeader> GetAsync(Hash blockHash);
+        Task<IBlockHeader> GetAsync(Hash blockHash);
     }
 }

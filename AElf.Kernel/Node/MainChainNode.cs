@@ -37,7 +37,7 @@ namespace AElf.Kernel.Node
             return await _transactionManager.GetTransaction(txId);
         }
 
-        public async Task<IHash> InsertTransaction(ITransaction tx)
+        public async Task<IHash> InsertTransaction(Transaction tx)
         {
             return await _transactionManager.AddTransactionAsync(tx);
         }

@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Merkle;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public class WorldState : IWorldState

@@ -2,6 +2,7 @@
 using System.Linq;
 using AElf.Kernel.Extensions;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public class Path : IPath
