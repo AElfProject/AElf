@@ -8,7 +8,6 @@ namespace AElf.Kernel
     public interface IChainContext
     {
         ISmartContractZero SmartContractZero { get; }
-        ulong CurrentBlockHeight { get; }
         Hash ChainId { get; }
     }
 }
