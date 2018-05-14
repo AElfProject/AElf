@@ -5,7 +5,7 @@ namespace AElf.Kernel.Storages
 {
     public interface IKeyValueDatabase
     {
-        Task<byte[]> GetAsync(string key,Type type);
-        Task SetAsync(string key, byte[] bytes);
+        Task<byte[]> GetAsync(Hash key,Type type);
+        Task SetAsync(Hash key, byte[] bytes);
     }
 }

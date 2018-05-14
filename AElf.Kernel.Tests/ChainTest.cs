@@ -33,7 +33,7 @@ namespace AElf.Kernel.Tests
         }
 
         [Fact]
-        public async Task<Chain> CreateChainTest()
+        public async Task<IChain> CreateChainTest()
         {
             var chainId = Hash.Generate();
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, _smartContractZero.GetType());
@@ -67,7 +67,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(context.SmartContractZero, _smartContractZero);
         }
 
-        public async Task AppendBlockTest(Chain chain, Block block)
+        public async Task AppendBlockTest(IChain chain, Block block)
         {
             await _chainManager.AppendBlockToChainAsync(chain, block);
             Assert.Equal(chain.CurrentBlockHeight, (ulong)2);

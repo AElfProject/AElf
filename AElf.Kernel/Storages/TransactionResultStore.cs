@@ -16,12 +16,12 @@
          public async Task InsertAsync(TransactionResult result)
          {
              Hash hash = result.CalculateHash();
-             await _keyValueDatabase.SetAsync(hash.Value.ToBase64(), result.ToByteArray());
+             await _keyValueDatabase.SetAsync(hash, result.ToByteArray());
          }
  
          public async Task<TransactionResult> GetAsync(Hash hash)
          {
-             var txResultBytes = await _keyValueDatabase.GetAsync(hash.Value.ToBase64(), typeof(TransactionResult));
+             var txResultBytes = await _keyValueDatabase.GetAsync(hash, typeof(TransactionResult));
              return TransactionResult.Parser.ParseFrom(txResultBytes);
          }
      }

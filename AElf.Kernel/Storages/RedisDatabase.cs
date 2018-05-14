@@ -10,15 +10,15 @@ namespace AElf.Kernel.Storages
 {
     public class RedisDatabase : IKeyValueDatabase
     {
-        public async Task<byte[]> GetAsync(string key, Type type)
+        public async Task<byte[]> GetAsync(Hash key, Type type)
         {
-            var bytes = await RedisHelper.GetAsync(key);
+            var bytes = await RedisHelper.GetAsync(key.Value.ToBase64());
             return bytes;
         }
 
-        public async Task SetAsync(string key, byte[] bytes)
+        public async Task SetAsync(Hash key, byte[] bytes)
         {
-            await RedisHelper.SetAsync(key, bytes);
+            await RedisHelper.SetAsync(key.Value.ToBase64(), bytes);
         }
     }
 }

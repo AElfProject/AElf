@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using ServiceStack.Redis;
 
@@ -10,7 +11,7 @@ namespace AElf.Database
         private const string IpAddress = "127.0.0.1";
         private const int Port = 6379;
 
-        private static RedisClient RedisClient => new RedisClient(IpAddress, Port);
+        private static RedisClient RedisClient => new RedisClient(IpAddress, Port) {ConnectTimeout = 1};
 
         public static Task<bool> SetAsync(string key, byte[] bytes)
         {

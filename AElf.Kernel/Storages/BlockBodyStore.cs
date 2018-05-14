@@ -12,14 +12,14 @@ namespace AElf.Kernel.Storages
             _keyValueDatabase = keyValueDatabase;
         }
 
-        public async Task InsertAsync(Hash txsMerkleTreeRoot, BlockBody body)
+        public async Task InsertAsync(Hash txsMerkleTreeRoot, IBlockBody body)
         {
-            await _keyValueDatabase.SetAsync(txsMerkleTreeRoot.Value.ToBase64(), body.ToByteArray());
+            await _keyValueDatabase.SetAsync(txsMerkleTreeRoot, body.Serialize());
         }
 
-        public async Task<BlockBody> GetAsync(Hash blockHash)
+        public async Task<IBlockBody> GetAsync(Hash blockHash)
         {
-            var blockBody =  await _keyValueDatabase.GetAsync(blockHash.Value.ToBase64(), typeof(BlockBody));
+            var blockBody =  await _keyValueDatabase.GetAsync(blockHash, typeof(BlockBody));
             return BlockBody.Parser.ParseFrom(blockBody);
         }
     }
