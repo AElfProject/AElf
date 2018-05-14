@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public partial class Change
