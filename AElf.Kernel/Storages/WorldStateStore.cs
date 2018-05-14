@@ -16,7 +16,7 @@ namespace AElf.Kernel.Storages
         public async Task InsertWorldStateAsync(Hash chainId, Hash blockHash, ChangesDict changes)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
-            await _keyValueDatabase.SetAsync(wsKey, changes.ToByteArray());
+            await _keyValueDatabase.SetAsync(wsKey, changes.Serialize());
         }
 
         public async Task<WorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)

@@ -1,9 +1,10 @@
 ﻿using System.Linq;
+using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public partial class Change
+    public partial class Change : ISerializable
     {
         public void AddHashBefore(Hash hash)
         {
@@ -31,6 +32,11 @@ namespace AElf.Kernel
         public Hash GetLastHashBefore()
         {
             return befores_.Last();
+        }
+
+        public byte[] Serialize()
+        {
+            return this.ToByteArray();
         }
     }
 }

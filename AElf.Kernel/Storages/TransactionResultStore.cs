@@ -16,7 +16,7 @@
          public async Task InsertAsync(TransactionResult result)
          {
              Hash hash = result.CalculateHash();
-             await _keyValueDatabase.SetAsync(hash, result.ToByteArray());
+             await _keyValueDatabase.SetAsync(hash, result.Serialize());
          }
  
          public async Task<TransactionResult> GetAsync(Hash hash)
