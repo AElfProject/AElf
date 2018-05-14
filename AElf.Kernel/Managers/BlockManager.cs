@@ -28,7 +28,7 @@ namespace AElf.Kernel.Managers
             return block;
         }
 
-        public Task<BlockHeader> GetBlockHeaderAsync(Hash hash)
+        public Task<IBlockHeader> GetBlockHeaderAsync(Hash hash)
         {
             return _blockHeaderStore.GetAsync(hash);
         }

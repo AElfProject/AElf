@@ -3,7 +3,7 @@
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public partial class TransactionResult : ISerializable
+    public partial class ChangesDict : ISerializable
     {
         public byte[] Serialize()
         {

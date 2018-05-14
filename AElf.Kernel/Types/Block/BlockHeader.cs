@@ -1,6 +1,8 @@
 ﻿using AElf.Kernel.Extensions;
 using System;
+using Google.Protobuf;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public partial class BlockHeader : IBlockHeader
@@ -26,6 +28,11 @@ namespace AElf.Kernel
         public Hash GetHash()
         {
             return this.CalculateHash();
+        }
+
+        public byte[] Serialize()
+        {
+            return this.ToByteArray();
         }
     }
 }

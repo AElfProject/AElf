@@ -46,7 +46,8 @@ namespace AElf.Launcher
             builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new LoggerModule());
-            
+            builder.RegisterModule(new DatabaseModule());
+
             // Node registration
             builder.RegisterType<MainChainNode>().As<IAElfNode>();
             builder.RegisterType<RpcServer>().As<IRpcServer>();

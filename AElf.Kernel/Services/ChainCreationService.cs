@@ -18,7 +18,7 @@ namespace AElf.Kernel.Services
         }
 
 
-        public async Task<Chain> CreateNewChainAsync(Hash chainId,Type smartContract)
+        public async Task<IChain> CreateNewChainAsync(Hash chainId,Type smartContract)
         {
             var chain = await _chainManager.AddChainAsync(chainId);
             var builder= new GenesisBlockBuilder();

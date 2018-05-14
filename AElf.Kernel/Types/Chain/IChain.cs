@@ -3,7 +3,7 @@
     /// <summary>
     /// A chain only provides the ability to add and load block, but not keep them in memory
     /// </summary>
-    public interface IChain
+    public interface IChain : ISerializable
     {
         /// <summary>
         /// Current block height
@@ -13,7 +13,7 @@
         /// <summary>
         /// Current block hash
         /// </summary>
-        Hash CurrentBlockHash { get; }
+        Hash CurrentBlockHash { get; set; }
 
         void UpdateCurrentBlock(Block block);
         

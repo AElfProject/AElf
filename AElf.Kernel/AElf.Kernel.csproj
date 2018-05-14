@@ -35,4 +35,7 @@
       <HintPath>..\..\..\..\.nuget\packages\google.protobuf\3.5.1\lib\netstandard1.0\Google.Protobuf.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
+  </ItemGroup>
 </Project>

@@ -1,5 +1,7 @@
 ﻿using AElf.Kernel.Merkle;
+using Google.Protobuf;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public partial class BlockBody : IBlockBody
@@ -22,6 +24,16 @@ namespace AElf.Kernel
             merkleTree.AddNodes(transactions_);
             
             return merkleTree.ComputeRootHash();
+        }
+
+        public byte[] Serialize()
+        {
+            return this.ToByteArray();
+        }
+
+        public Hash GetHash()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

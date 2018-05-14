@@ -16,25 +16,24 @@ namespace AElf.Kernel.Tests
         private readonly IChainManager _chainManager;
         private readonly IChainContextService _chainContextService;
         private readonly IWorldStateStore _worldStateStore;
-        private readonly IPointerStore _pointerStore;
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
 
         public ChainTest(ISmartContractZero smartContractZero, IChainCreationService chainCreationService,
-            IChainManager chainManager, IChainContextService chainContextService, IWorldStateStore worldStateStore, IPointerStore pointerStore, IChangesStore changesStore, IDataStore dataStore)
+            IChainManager chainManager, IChainContextService chainContextService, IWorldStateStore worldStateStore, 
+            IChangesStore changesStore, IDataStore dataStore)
         {
             _smartContractZero = smartContractZero;
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
             _chainContextService = chainContextService;
             _worldStateStore = worldStateStore;
-            _pointerStore = pointerStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
         }
 
         [Fact]
-        public async Task<Chain> CreateChainTest()
+        public async Task<IChain> CreateChainTest()
         {
             var chainId = Hash.Generate();
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, _smartContractZero.GetType());
@@ -44,7 +43,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore, 
-                accountContextService, _pointerStore, _changesStore, _dataStore);
+                accountContextService, _changesStore, _dataStore);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chainId, address);
             
             await _smartContractZero.InitializeAsync(accountDataProvider);
@@ -68,7 +67,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(context.SmartContractZero, _smartContractZero);
         }
 
-        public async Task AppendBlockTest(Chain chain, Block block)
+        public async Task AppendBlockTest(IChain chain, Block block)
         {
             await _chainManager.AppendBlockToChainAsync(chain, block);
             Assert.Equal(chain.CurrentBlockHeight, (ulong)2);

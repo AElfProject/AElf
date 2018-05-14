@@ -4,13 +4,14 @@ using AElf.Kernel.Extensions;
 using Google.Protobuf;
 using Org.BouncyCastle.Math;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public partial class Transaction : ITransaction
     {
         public Hash GetHash()
         {
-            return this.CalculateHash();
+            return GetSignatureData();
         }
 
         public byte[] Serialize()

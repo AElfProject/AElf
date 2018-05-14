@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
@@ -11,7 +12,6 @@ namespace AElf.Kernel.Managers
     {
         #region Stores and Service
         private readonly IWorldStateStore _worldStateStore;
-        private readonly IPointerStore _pointerStore;
         private readonly IDataStore _dataStore;
         private readonly IChangesStore _changesStore;
 
@@ -25,20 +25,19 @@ namespace AElf.Kernel.Managers
         /// <summary>
         /// A specific key to store previous block hash value.
         /// </summary>
-        private static readonly Hash HashToGetPreBlockHash = "PreviousBlockHash".CalculateHash();
+        public Hash HashToGetPreBlockHash => "PreviousBlockHash".CalculateHash();
         #endregion
 
         public WorldStateManager(IWorldStateStore worldStateStore,
-            IAccountContextService accountContextService, IPointerStore pointerStore, 
+            IAccountContextService accountContextService,
             IChangesStore changesStore, IDataStore dataStore)
         {
             _worldStateStore = worldStateStore;
             _accountContextService = accountContextService;
-            _pointerStore = pointerStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
 
-            _preBlockHash = _dataStore.GetDataAsync(HashToGetPreBlockHash).Result ?? Hash.Zero;
+            _preBlockHash = _dataStore.GetDataAsync(HashToGetPreBlockHash)?.Result ?? Hash.Zero;
             
             _dataStore.SetDataAsync(GetHashToGetPathsCount(), ((long)0).ToBytes());
         }
@@ -54,7 +53,7 @@ namespace AElf.Kernel.Managers
         /// <returns></returns>
         public async Task InsertChangeAsync(Hash pathHash, Change change)
         {
-            await _changesStore.InsertAsync(pathHash, change);
+            await _changesStore.InsertChangeAsync(pathHash, change);
             
             var countBytes = await _dataStore.GetDataAsync(GetHashToGetPathsCount());
             countBytes = countBytes ??  ((long)0).ToBytes();
@@ -64,18 +63,23 @@ namespace AElf.Kernel.Managers
             count++;
             await _dataStore.SetDataAsync(GetHashToGetPathsCount(), count.ToBytes());
         }
+
+        public async Task<Change> GetChangeAsync(Hash pathHash)
+        {
+            return await _changesStore.GetChangeAsync(pathHash);
+        }
         
         /// <summary>
-        /// Rollback data to previous set world state
+        /// Rollback changes of executed transactions
         /// by rollback the PointerStore.
         /// </summary>
         /// <returns></returns>
-        public async Task RollbackDataToPreviousWorldStateAsync()
+        public async Task RollbackCurrentChangesAsync()
         {
             var dict = await GetChangesDictionaryAsync();
             foreach (var pair in dict)
             {
-                await _pointerStore.UpdateAsync(pair.Key, pair.Value.Before);
+                await _changesStore.UpdatePointerAsync(pair.Key, pair.Value.Befores[0]);
             }
         }
 
@@ -91,6 +95,7 @@ namespace AElf.Kernel.Managers
         }
 
         #region Methods about WorldState
+
         /// <summary>
         /// Get a WorldState instance.
         /// </summary>
@@ -109,7 +114,7 @@ namespace AElf.Kernel.Managers
         /// <param name="chainId"></param>
         /// <param name="preBlockHash">At last set preBlockHash to a specific key</param>
         /// <returns></returns>
-        public async Task SetWorldStateToCurrentStateAsync(Hash chainId, Hash preBlockHash)
+        public async Task SetWorldStateAsync(Hash chainId, Hash preBlockHash)
         {
             var changes = await GetChangesDictionaryAsync();
             var dict = new ChangesDict();
@@ -117,13 +122,13 @@ namespace AElf.Kernel.Managers
             {
                 var pairHashChange = new PairHashChange
                 {
-                    Key = pair.Key,
-                    Value = pair.Value
+                    Key = pair.Key.Clone(),
+                    Value = pair.Value.Clone()
                 };
                 dict.Dict.Add(pairHashChange);
             }
             await _worldStateStore.InsertWorldStateAsync(chainId, _preBlockHash, dict);
-            await _dataStore.SetDataAsync(HashToGetPreBlockHash, preBlockHash.Value.ToByteArray());
+            await _dataStore.SetDataAsync(HashToGetPreBlockHash, preBlockHash.Value.ToArray());
 
             //Refresh _preBlockHash after setting WorldState.
             _preBlockHash = preBlockHash;
@@ -137,9 +142,9 @@ namespace AElf.Kernel.Managers
         /// <param name="pathHash"></param>
         /// <param name="pointerHash"></param>
         /// <returns></returns>
-        public async Task UpdatePointerToPointerStoreAsync(Hash pathHash, Hash pointerHash)
+        public async Task UpdatePointerAsync(Hash pathHash, Hash pointerHash)
         {
-            await _pointerStore.UpdateAsync(pathHash, pointerHash);
+            await _changesStore.UpdatePointerAsync(pathHash, pointerHash);
         }
 
         /// <summary>
@@ -148,9 +153,9 @@ namespace AElf.Kernel.Managers
         /// </summary>
         /// <param name="pathHash"></param>
         /// <returns></returns>
-        public async Task<Hash> GetPointerFromPointerStoreAsync(Hash pathHash)
+        public async Task<Hash> GetPointerAsync(Hash pathHash)
         {
-            return await _pointerStore.GetAsync(pathHash);
+            return await _changesStore.GetPointerAsync(pathHash);
         }
         #endregion
 
@@ -236,7 +241,7 @@ namespace AElf.Kernel.Managers
             
             foreach (var path in paths)
             {
-                var change = await _changesStore.GetAsync(path);
+                var change = await _changesStore.GetChangeAsync(path);
                 changes.Add(change);
             }
 
@@ -258,7 +263,7 @@ namespace AElf.Kernel.Managers
             
             foreach (var path in paths)
             {
-                var change = await _changesStore.GetAsync(path);
+                var change = await _changesStore.GetChangeAsync(path);
                 dict[path] = change;
             }
 
