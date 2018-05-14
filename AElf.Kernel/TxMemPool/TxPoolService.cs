@@ -193,6 +193,7 @@ namespace AElf.Kernel.TxMemPool
             {
                 // TODO: release resources
                 Cts.Cancel();
+                Cts.Dispose();
                 EnqueueEvent.Dispose();
                 DemoteEvent.Dispose();
             });
