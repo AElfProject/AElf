@@ -8,7 +8,7 @@ namespace AElf.Kernel.Modules.AutofacModule
     public class MainModule : Module
     {
         // Set this value to false to avoid waiting timeout from the attempt connecting redis.
-        private readonly bool _useRedis = true;
+        private readonly bool _useRedis = false;
         
         protected override void Load(ContainerBuilder builder)
         {
