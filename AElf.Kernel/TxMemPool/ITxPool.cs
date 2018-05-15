@@ -34,6 +34,11 @@ namespace AElf.Kernel.TxMemPool
         void Promote(List<Hash> addrs = null);
         
         /// <summary>
+        /// return ready tx count 
+        /// </summary>
+        //ulong ReadyTxCount { get; }
+        
+        /// <summary>
         /// return pool size
         /// </summary>
         /// <returns></returns>
@@ -42,7 +47,7 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// return tx list can be executed
         /// </summary>
-        Dictionary<Hash, List<Transaction>> ReadyTxs();
+        List<ITransaction> ReadyTxs(ulong limit);
 
         /// <summary>
         /// threshold for entering pool
