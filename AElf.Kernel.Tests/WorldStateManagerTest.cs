@@ -37,7 +37,7 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task AccountDataProviderTest()
         {
-            var chain = new Chain(Hash.Generate());
+            var chain = new Chain(Hash.Generate(), _genesisBlockHash);
             var address = Hash.Generate();
 
             await _worldStateManager.SetWorldStateAsync(chain.Id, _genesisBlockHash);
