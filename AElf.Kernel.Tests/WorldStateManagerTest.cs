@@ -16,10 +16,10 @@ namespace AElf.Kernel.Tests
 
         private readonly Hash _genesisBlockHash = Hash.Generate();
         
-        public WorldStateManagerTest(IWorldStateStore worldStateStore, IPointerStore pointerStore, IAccountContextService accountContextService, IChangesStore changesStore, IDataStore dataStore)
+        public WorldStateManagerTest(IWorldStateStore worldStateStore, IAccountContextService accountContextService, IChangesStore changesStore, IDataStore dataStore)
         {
             _worldStateManager = new WorldStateManager(worldStateStore, 
-                accountContextService, pointerStore, changesStore, dataStore);
+                accountContextService, changesStore, dataStore);
         }
 
         [Fact]
@@ -40,7 +40,7 @@ namespace AElf.Kernel.Tests
             var chain = new Chain(Hash.Generate());
             var address = Hash.Generate();
 
-            await _worldStateManager.SetWorldStateToCurrentStateAsync(chain.Id, _genesisBlockHash);
+            await _worldStateManager.SetWorldStateAsync(chain.Id, _genesisBlockHash);
 
             var accountDataProvider = _worldStateManager.GetAccountDataProvider(chain.Id, address);
             

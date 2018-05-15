@@ -12,7 +12,7 @@ namespace AElf.Kernel.Managers
             _chainStore = chainStore;
         }
 
-        public async Task AppendBlockToChainAsync(Chain chain, Block block)
+        public async Task AppendBlockToChainAsync(IChain chain, Block block)
         {
             if (chain.CurrentBlockHeight == 0)
             {
@@ -29,12 +29,12 @@ namespace AElf.Kernel.Managers
             await _chainStore.UpdateAsync(chain);
         }
 
-        public Task<Chain> GetChainAsync(Hash id)
+        public Task<IChain> GetChainAsync(Hash id)
         {
             return _chainStore.GetAsync(id);
         }
 
-        public Task<Chain> AddChainAsync(Hash chainId)
+        public Task<IChain> AddChainAsync(Hash chainId)
         {
             return _chainStore.InsertAsync(new Chain(chainId));
         }

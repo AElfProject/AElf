@@ -2,6 +2,7 @@ using AElf.Kernel.Extensions;
 using System;
 using Google.Protobuf;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public partial class Hash : IHash
@@ -61,7 +62,7 @@ namespace AElf.Kernel
         
         public static implicit operator Hash(byte[] value)
         {
-            return new Hash(value);
+            return value == null ? Zero : new Hash(value);
         }
     }
 }

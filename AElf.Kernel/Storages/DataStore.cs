@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
@@ -13,12 +14,12 @@ namespace AElf.Kernel.Storages
 
         public async Task SetDataAsync(Hash pointerHash, byte[] data)
         {
-            await _keyValueDatabase.SetAsync(pointerHash, data);
+            await _keyValueDatabase.SetAsync(pointerHash.Value.ToBase64(), data);
         }
 
         public async Task<byte[]> GetDataAsync(Hash pointerHash)
         {
-            return (byte[]) await _keyValueDatabase.GetAsync(pointerHash, typeof(byte[]));
+            return await _keyValueDatabase.GetAsync(pointerHash.Value.ToBase64(), typeof(byte[]));
         }
     }
 }
