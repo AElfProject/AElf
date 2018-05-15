@@ -36,7 +36,7 @@ namespace AElf.Kernel.Tests
             var keys = GenerateKeys(setList).ToList();
             
             var chain = new Chain(Hash.Generate());
-            var chainManager = new ChainManager(_chainStore);
+            var chainManager = new ChainManager(_chainStore, _dataStore);
             await chainManager.AddChainAsync(chain.Id);
 
             var address = Hash.Generate();

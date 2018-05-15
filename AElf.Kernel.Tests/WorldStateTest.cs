@@ -32,7 +32,7 @@ namespace AElf.Kernel.Tests
             var chain = new Chain(Hash.Generate());
             var block0 = CreateBlock();
             var block = CreateBlock();
-            var chainManger = new ChainManager(_chainStore);
+            var chainManger = new ChainManager(_chainStore, _dataStore);
 
             var accountContextService = new AccountContextService();
             var worldStateManager = new WorldStateManager(_worldStateStore,
@@ -58,7 +58,7 @@ namespace AElf.Kernel.Tests
             var genesisBlockHash = Hash.Generate();
             var block1 = CreateBlock();
             var block2 = CreateBlock();
-            var chainManger = new ChainManager(_chainStore);
+            var chainManger = new ChainManager(_chainStore, _dataStore);
             await chainManger.AddChainAsync(chain.Id);
 
             var address = Hash.Generate();
@@ -180,7 +180,7 @@ namespace AElf.Kernel.Tests
             var genesisBlockHash = Hash.Generate();
             var block1 = CreateBlock();
             var block2 = CreateBlock();
-            var chainManger = new ChainManager(_chainStore);
+            var chainManger = new ChainManager(_chainStore, _dataStore);
             await chainManger.AddChainAsync(chain.Id);
             
             var address = Hash.Generate();

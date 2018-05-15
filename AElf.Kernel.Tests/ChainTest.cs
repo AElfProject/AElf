@@ -38,7 +38,7 @@ namespace AElf.Kernel.Tests
             var chainId = Hash.Generate();
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, _smartContractZero.GetType());
 
-            await _chainManager.AppendBlockToChainAsync(chain, new Block(Hash.Generate()));
+            await _chainManager.AppendBlockToChainAsync(chain.Id, new Block(Hash.Generate()));
             
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
@@ -47,20 +47,20 @@ namespace AElf.Kernel.Tests
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chainId, address);
             
             await _smartContractZero.InitializeAsync(accountDataProvider);
-            Assert.Equal(chain.CurrentBlockHeight, (ulong)1);
+            Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)1);
             return chain;
         }
 
         public async Task ChainStoreTest(Hash chainId)
         {
-            await _chainManager.AddChainAsync(chainId);
+            await _chainManager.AddChainAsync(chainId, Hash.Generate());
             Assert.NotNull(_chainManager.GetChainAsync(chainId).Result);
         }
 
         public async Task ChainContextTest()
         {
             var chain = await CreateChainTest();
-            await _chainManager.AddChainAsync(chain.Id);
+            await _chainManager.AddChainAsync(chain.Id, Hash.Generate());
             chain = await _chainManager.GetChainAsync(chain.Id);
             var context = _chainContextService.GetChainContext(chain.Id);
             Assert.NotNull(context);
@@ -69,9 +69,9 @@ namespace AElf.Kernel.Tests
 
         public async Task AppendBlockTest(IChain chain, Block block)
         {
-            await _chainManager.AppendBlockToChainAsync(chain, block);
-            Assert.Equal(chain.CurrentBlockHeight, (ulong)2);
-            Assert.Equal(chain.CurrentBlockHash, block.GetHash());
+            await _chainManager.AppendBlockToChainAsync(chain.Id, block);
+            Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)2);
+            Assert.Equal(await _chainManager.GetChainLastBlockHash(chain.Id), block.GetHash());
         }
     }
 }
