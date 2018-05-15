@@ -45,14 +45,13 @@ namespace AElf.Kernel {
             "HQoOVHJhbnNhY3Rpb25JZHMYAyABKAsyBS5IYXNoEiUKFkxhdGVzdENoYW5n",
             "ZWRCbG9ja0hhc2gYBCABKAsyBS5IYXNoIjwKDlBhaXJIYXNoQ2hhbmdlEhIK",
             "A0tleRgBIAEoCzIFLkhhc2gSFgoFVmFsdWUYAiABKAsyBy5DaGFuZ2UiLAoL",
-            "Q2hhbmdlc0RpY3QSHQoERGljdBgBIAMoCzIPLlBhaXJIYXNoQ2hhbmdlIlcK",
-            "BUNoYWluEhEKAklkGAEgASgLMgUuSGFzaBIfChBDdXJyZW50QmxvY2tIYXNo",
-            "GAIgASgLMgUuSGFzaBIaChJDdXJyZW50QmxvY2tIZWlnaHQYAyABKAQiWAoR",
-            "VHJhbnNhY3Rpb25SZXN1bHQSHAoNVHJhbnNhY3Rpb25JZBgBIAEoCzIFLkhh",
-            "c2gSFwoGc3RhdHVzGAIgASgOMgcuU3RhdHVzEgwKBGxvZ3MYAyABKAwqUQoG",
-            "U3RhdHVzEg4KCk5vdEV4aXN0ZWQQABILCgdSZWZ1c2VkEAESCwoHUGVuZGlu",
-            "ZxACEhIKDkV4ZWN1dGVkRmFpbGVkEAMSCQoFTWluZWQQBEIOqgILQUVsZi5L",
-            "ZXJuZWxiBnByb3RvMw=="));
+            "Q2hhbmdlc0RpY3QSHQoERGljdBgBIAMoCzIPLlBhaXJIYXNoQ2hhbmdlIjsK",
+            "BUNoYWluEhEKAklkGAEgASgLMgUuSGFzaBIfChBHZW5lc2lzQmxvY2tIYXNo",
+            "GAIgASgLMgUuSGFzaCJYChFUcmFuc2FjdGlvblJlc3VsdBIcCg1UcmFuc2Fj",
+            "dGlvbklkGAEgASgLMgUuSGFzaBIXCgZzdGF0dXMYAiABKA4yBy5TdGF0dXMS",
+            "DAoEbG9ncxgDIAEoDCpRCgZTdGF0dXMSDgoKTm90RXhpc3RlZBAAEgsKB1Jl",
+            "ZnVzZWQQARILCgdQZW5kaW5nEAISEgoORXhlY3V0ZWRGYWlsZWQQAxIJCgVN",
+            "aW5lZBAEQg6qAgtBRWxmLktlcm5lbGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), }, new pbr::GeneratedClrTypeInfo[] {
@@ -67,7 +66,7 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Change), global::AElf.Kernel.Change.Parser, new[]{ "Befores", "After", "TransactionIds", "LatestChangedBlockHash" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.PairHashChange), global::AElf.Kernel.PairHashChange.Parser, new[]{ "Key", "Value" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.ChangesDict), global::AElf.Kernel.ChangesDict.Parser, new[]{ "Dict" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Chain), global::AElf.Kernel.Chain.Parser, new[]{ "Id", "CurrentBlockHash", "CurrentBlockHeight" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Chain), global::AElf.Kernel.Chain.Parser, new[]{ "Id", "GenesisBlockHash" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionResult), global::AElf.Kernel.TransactionResult.Parser, new[]{ "TransactionId", "Status", "Logs" }, null, null, null)
           }));
     }
@@ -2219,8 +2218,7 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public Chain(Chain other) : this() {
       Id = other.id_ != null ? other.Id.Clone() : null;
-      CurrentBlockHash = other.currentBlockHash_ != null ? other.CurrentBlockHash.Clone() : null;
-      currentBlockHeight_ = other.currentBlockHeight_;
+      GenesisBlockHash = other.genesisBlockHash_ != null ? other.GenesisBlockHash.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2240,25 +2238,14 @@ namespace AElf.Kernel {
       }
     }
 
-    /// <summary>Field number for the "CurrentBlockHash" field.</summary>
-    public const int CurrentBlockHashFieldNumber = 2;
-    private global::AElf.Kernel.Hash currentBlockHash_;
+    /// <summary>Field number for the "GenesisBlockHash" field.</summary>
+    public const int GenesisBlockHashFieldNumber = 2;
+    private global::AElf.Kernel.Hash genesisBlockHash_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Hash CurrentBlockHash {
-      get { return currentBlockHash_; }
+    public global::AElf.Kernel.Hash GenesisBlockHash {
+      get { return genesisBlockHash_; }
       set {
-        currentBlockHash_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "CurrentBlockHeight" field.</summary>
-    public const int CurrentBlockHeightFieldNumber = 3;
-    private ulong currentBlockHeight_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public ulong CurrentBlockHeight {
-      get { return currentBlockHeight_; }
-      set {
-        currentBlockHeight_ = value;
+        genesisBlockHash_ = value;
       }
     }
 
@@ -2276,8 +2263,7 @@ namespace AElf.Kernel {
         return true;
       }
       if (!object.Equals(Id, other.Id)) return false;
-      if (!object.Equals(CurrentBlockHash, other.CurrentBlockHash)) return false;
-      if (CurrentBlockHeight != other.CurrentBlockHeight) return false;
+      if (!object.Equals(GenesisBlockHash, other.GenesisBlockHash)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -2285,8 +2271,7 @@ namespace AElf.Kernel {
     public override int GetHashCode() {
       int hash = 1;
       if (id_ != null) hash ^= Id.GetHashCode();
-      if (currentBlockHash_ != null) hash ^= CurrentBlockHash.GetHashCode();
-      if (CurrentBlockHeight != 0UL) hash ^= CurrentBlockHeight.GetHashCode();
+      if (genesisBlockHash_ != null) hash ^= GenesisBlockHash.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -2304,13 +2289,9 @@ namespace AElf.Kernel {
         output.WriteRawTag(10);
         output.WriteMessage(Id);
       }
-      if (currentBlockHash_ != null) {
+      if (genesisBlockHash_ != null) {
         output.WriteRawTag(18);
-        output.WriteMessage(CurrentBlockHash);
-      }
-      if (CurrentBlockHeight != 0UL) {
-        output.WriteRawTag(24);
-        output.WriteUInt64(CurrentBlockHeight);
+        output.WriteMessage(GenesisBlockHash);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -2323,11 +2304,8 @@ namespace AElf.Kernel {
       if (id_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(Id);
       }
-      if (currentBlockHash_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(CurrentBlockHash);
-      }
-      if (CurrentBlockHeight != 0UL) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(CurrentBlockHeight);
+      if (genesisBlockHash_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(GenesisBlockHash);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -2346,14 +2324,11 @@ namespace AElf.Kernel {
         }
         Id.MergeFrom(other.Id);
       }
-      if (other.currentBlockHash_ != null) {
-        if (currentBlockHash_ == null) {
-          currentBlockHash_ = new global::AElf.Kernel.Hash();
+      if (other.genesisBlockHash_ != null) {
+        if (genesisBlockHash_ == null) {
+          genesisBlockHash_ = new global::AElf.Kernel.Hash();
         }
-        CurrentBlockHash.MergeFrom(other.CurrentBlockHash);
-      }
-      if (other.CurrentBlockHeight != 0UL) {
-        CurrentBlockHeight = other.CurrentBlockHeight;
+        GenesisBlockHash.MergeFrom(other.GenesisBlockHash);
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -2374,14 +2349,10 @@ namespace AElf.Kernel {
             break;
           }
           case 18: {
-            if (currentBlockHash_ == null) {
-              currentBlockHash_ = new global::AElf.Kernel.Hash();
+            if (genesisBlockHash_ == null) {
+              genesisBlockHash_ = new global::AElf.Kernel.Hash();
             }
-            input.ReadMessage(currentBlockHash_);
-            break;
-          }
-          case 24: {
-            CurrentBlockHeight = input.ReadUInt64();
+            input.ReadMessage(genesisBlockHash_);
             break;
           }
         }

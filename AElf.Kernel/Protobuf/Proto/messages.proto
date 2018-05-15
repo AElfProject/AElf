@@ -71,8 +71,7 @@ message ChangesDict{
 
 message Chain{
     Hash Id = 1;
-    Hash CurrentBlockHash = 2;
-    uint64 CurrentBlockHeight = 3;
+    Hash GenesisBlockHash = 2;
 }
 
 
