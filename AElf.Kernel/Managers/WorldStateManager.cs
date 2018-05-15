@@ -39,7 +39,7 @@ namespace AElf.Kernel.Managers
 
             _preBlockHash = _dataStore.GetDataAsync(HashToGetPreBlockHash)?.Result ?? Hash.Zero;
             
-            _dataStore.SetDataAsync(GetHashToGetPathsCount(), ((long)0).ToBytes());
+            _dataStore.SetDataAsync(GetHashToGetPathsCount(), ((ulong)0).ToBytes());
         }
         
         /// <summary>
@@ -56,7 +56,7 @@ namespace AElf.Kernel.Managers
             await _changesStore.InsertChangeAsync(pathHash, change);
             
             var countBytes = await _dataStore.GetDataAsync(GetHashToGetPathsCount());
-            countBytes = countBytes ??  ((long)0).ToBytes();
+            countBytes = countBytes ??  ((ulong)0).ToBytes();
             var key = CalculateHashToGetPath(_preBlockHash, countBytes);
             var count = countBytes.ToInt64();
             await _dataStore.SetDataAsync(key, pathHash.Value.ToByteArray());
@@ -196,7 +196,7 @@ namespace AElf.Kernel.Managers
 
             var changedPathsCount = await GetChangedPathsCountAsync(blockHash);
             
-            for (long i = 0; i < changedPathsCount; i++)
+            for (ulong i = 0; i < changedPathsCount; i++)
             {
                 var key = CalculateHashToGetPath(blockHash, i.ToBytes());
                 var path = await _dataStore.GetDataAsync(key);
@@ -300,7 +300,7 @@ namespace AElf.Kernel.Managers
         /// </summary>
         /// <param name="blockHash"></param>
         /// <returns></returns>
-        private async Task<long> GetChangedPathsCountAsync(Hash blockHash)
+        private async Task<ulong> GetChangedPathsCountAsync(Hash blockHash)
         {
             var changedPathsCountBytes = await _dataStore.GetDataAsync(GetHashToGetPathsCount(blockHash));
             return changedPathsCountBytes?.ToInt64() ?? 0;
