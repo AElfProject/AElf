@@ -31,7 +31,6 @@ namespace AElf.Kernel.Services
 
             await _blockManager.AddBlockAsync(builder.Block);
             var chain = await _chainManager.AddChainAsync(chainId, builder.Block.GetHash());
-            await _chainManager.AppendBlockToChainAsync(chainId, builder.Block);
 
             return chain;
         }
