@@ -59,7 +59,8 @@ namespace AElf.Kernel.Managers
         public async Task<ulong> GetChainCurrentHeight(Hash chainId)
         {
             var key = CalculateKeyForCurrentHeight(chainId);
-            return (await _dataStore.GetDataAsync(key)).ToInt64();
+            var heightBytes = await _dataStore.GetDataAsync(key);
+            return heightBytes?.ToInt64() ?? 0;
         }
 
         /// <inheritdoc/>
@@ -79,7 +80,7 @@ namespace AElf.Kernel.Managers
         /// <inheritdoc/>
         public async Task SetChainLastBlockHash(Hash chainId, Hash blockHash)
         {
-            var key = CalculateKeyForCurrentHeight(chainId);
+            var key = CalculateKeyForLastBlockHash(chainId);
             await _dataStore.SetDataAsync(key, blockHash.GetHashBytes());
         }
 

@@ -34,10 +34,11 @@ namespace AElf.Kernel.Tests
             const int count = 5;
             var setList = CreateSet(count).ToList();
             var keys = GenerateKeys(setList).ToList();
-            
-            var chain = new Chain(Hash.Generate());
+
+            var genesisBlockHash = Hash.Generate();
+            var chain = new Chain(Hash.Generate(), genesisBlockHash);
             var chainManager = new ChainManager(_chainStore, _dataStore);
-            await chainManager.AddChainAsync(chain.Id);
+            await chainManager.AddChainAsync(chain.Id, genesisBlockHash);
 
             var address = Hash.Generate();
             var accountContextService = new AccountContextService();
