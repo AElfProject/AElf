@@ -1,0 +1,16 @@
+﻿namespace AElf.Kernel.MIner
+{
+    public class MinerConifg : IMinerConfig
+    {
+        public Hash CoinBase { get; set; }
+        public bool IsParallel { get; set; }
+        public Hash ChainId { get; set; }
+        public ulong TxCountLimit { get; set; }
+        
+        public static MinerConifg Default = new MinerConifg
+        {
+            IsParallel = true,
+            TxCountLimit = 100
+        };
+    }
+}

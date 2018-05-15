@@ -121,10 +121,10 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             pool.Promote();
             
-            var ready = pool.ReadyTxs();
+            var ready = pool.ReadyTxs(10);
             
             Assert.Equal(1, ready.Count);
-            Assert.True(ready.Contains(tx));
+            Assert.True(ready.Contains(tx) && ready.Contains(tx));
         }
 
 

@@ -111,9 +111,9 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task<List<Transaction>> GetReadyTxsAsync()
+        public Task<List<ITransaction>> GetReadyTxsAsync(ulong limit)
         {
-            return Lock.ReadLock(() => _txPool.ReadyTxs());
+            return Lock.ReadLock(() => _txPool.ReadyTxs(limit));
         }
 
         /// <inheritdoc/>
@@ -193,6 +193,7 @@ namespace AElf.Kernel.TxMemPool
             {
                 // TODO: release resources
                 Cts.Cancel();
+                Cts.Dispose();
                 EnqueueEvent.Dispose();
                 DemoteEvent.Dispose();
             });

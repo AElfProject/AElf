@@ -39,7 +39,7 @@ namespace AElf.Kernel.Managers
 
             _preBlockHash = _dataStore.GetDataAsync(HashToGetPreBlockHash)?.Result ?? Hash.Zero;
             
-            _dataStore.SetDataAsync(CalculateKeyForPathsCount(), ((long)0).ToBytes());
+            _dataStore.SetDataAsync(CalculateKeyForPathsCount(), ((ulong)0).ToBytes());
         }
         
         /// <summary>
@@ -55,8 +55,9 @@ namespace AElf.Kernel.Managers
         {
             await _changesStore.InsertChangeAsync(pathHash, change);
             
+
             var countBytes = await _dataStore.GetDataAsync(CalculateKeyForPathsCount());
-            countBytes = countBytes ??  ((long)0).ToBytes();
+            countBytes = countBytes ??  ((ulong)0).ToBytes();
             var key = CalculateKeyForPath(_preBlockHash, countBytes);
             var count = countBytes.ToInt64();
             await _dataStore.SetDataAsync(key, pathHash.Value.ToByteArray());
@@ -196,7 +197,7 @@ namespace AElf.Kernel.Managers
 
             var changedPathsCount = await GetChangedPathsCountAsync(blockHash);
             
-            for (long i = 0; i < changedPathsCount; i++)
+            for (ulong i = 0; i < changedPathsCount; i++)
             {
                 var key = CalculateKeyForPath(blockHash, i.ToBytes());
                 var path = await _dataStore.GetDataAsync(key);
@@ -281,7 +282,7 @@ namespace AElf.Kernel.Managers
             return path.SetBlockHash(_preBlockHash).GetPointerHash();
         }
        
-        #region Provate methods
+        #region Private methods
         /// <summary>
         /// A specific way to get a hash value which pointer to
         /// the count of Changes of a world state.
@@ -300,7 +301,7 @@ namespace AElf.Kernel.Managers
         /// </summary>
         /// <param name="blockHash"></param>
         /// <returns></returns>
-        private async Task<long> GetChangedPathsCountAsync(Hash blockHash)
+        private async Task<ulong> GetChangedPathsCountAsync(Hash blockHash)
         {
             var changedPathsCountBytes = await _dataStore.GetDataAsync(CalculateKeyForPathsCount(blockHash));
             return changedPathsCountBytes?.ToInt64() ?? 0;

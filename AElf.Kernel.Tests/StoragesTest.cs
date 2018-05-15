@@ -35,7 +35,7 @@ namespace AElf.Kernel.Tests
         {
             var chainId = Hash.Generate();
             var chain = new Chain(chainId);
-            var chainManager = new ChainManager(_chainStore);
+            var chainManager = new ChainManager(_chainStore, _dataStore);
             
             await chainManager.AddChainAsync(chain.Id);
 
@@ -92,7 +92,7 @@ namespace AElf.Kernel.Tests
         {
             //Create a chain with one block.
             var chain = new Chain(Hash.Generate());
-            var chainManager = new ChainManager(_chainStore);
+            var chainManager = new ChainManager(_chainStore, _dataStore);
             var genesisBlockHash = Hash.Generate();
             var blockHash = Hash.Generate();
             var block = new Block(blockHash);
@@ -144,7 +144,7 @@ namespace AElf.Kernel.Tests
         {
             //Create a chian and two blocks.
             var chain = new Chain(Hash.Generate());
-            var chainManager = new ChainManager(_chainStore);
+            var chainManager = new ChainManager(_chainStore, _dataStore);
 
             var genesisBlockHash = Hash.Generate();
             var block1 = CreateBlock();
@@ -205,7 +205,7 @@ namespace AElf.Kernel.Tests
             
             //Create a chian and several blocks.
             var chain = new Chain(Hash.Generate());
-            var chainManager = new ChainManager(_chainStore);
+            var chainManager = new ChainManager(_chainStore, _dataStore);
 
             var genesisBlockHash = Hash.Generate();
             var block1 = CreateBlock();

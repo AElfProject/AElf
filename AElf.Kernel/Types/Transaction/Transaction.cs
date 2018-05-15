@@ -1,5 +1,6 @@
 ﻿using System;
 using AElf.Kernel.Crypto.ECDSA;
+using AElf.Kernel.Extensions;
 using Google.Protobuf;
 using Org.BouncyCastle.Math;
 

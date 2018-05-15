@@ -1,4 +1,5 @@
 ﻿﻿using System.Collections.Generic;
+ using AElf.Kernel.Extensions;
 
 namespace AElf.Kernel.Services
 {
@@ -9,8 +10,8 @@ namespace AElf.Kernel.Services
         
         public IAccountDataContext GetAccountDataContext(Hash accountHash, Hash chainId)
         {
-            
-            if (_accountDataContexts.TryGetValue(accountHash, out var ctx))
+            var key = accountHash.CombineHashWith(chainId);
+            if (_accountDataContexts.TryGetValue(key, out var ctx))
             {
                 return ctx;
             }
@@ -22,7 +23,7 @@ namespace AElf.Kernel.Services
                 ChainId = chainId
             };
 
-            _accountDataContexts[accountHash] = accountDataContext;
+            _accountDataContexts[key] = accountDataContext;
             return accountDataContext;
         }
     }
