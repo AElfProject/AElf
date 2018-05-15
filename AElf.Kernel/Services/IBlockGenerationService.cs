@@ -9,18 +9,16 @@ namespace AElf.Kernel.Services
         /// generate block
         /// </summary>
         /// <param name="chainId"></param>
-        /// <param name="lastBlockHash"></param>
         /// <param name="txIds"></param>
         /// <returns></returns>
-        Task<Block> BlockGeneration(Hash chainId, Hash lastBlockHash, IEnumerable<TransactionResult> txIds);
+        Task<IBlock> BlockGeneration(Hash chainId,IEnumerable<TransactionResult> txIds);
 
         /// <summary>
         /// generate block header
         /// </summary>
         /// <param name="chainId"></param>
-        /// <param name="lastBlockHash"></param>
         /// <param name="merkleTreeRootForTransaction"></param>
         /// <returns></returns>
-        Task<BlockHeader> BlockHeaderGeneration(Hash chainId, Hash lastBlockHash, Hash merkleTreeRootForTransaction);
+        Task<IBlockHeader> BlockHeaderGeneration(Hash chainId, Hash merkleTreeRootForTransaction);
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
+using Org.BouncyCastle.Math.EC;
 using QuickGraph.Collections;
 
 namespace AElf.Kernel.Services
@@ -9,37 +10,53 @@ namespace AElf.Kernel.Services
     public class BlockGenerationService : IBlockGenerationService
     {
         private readonly IWorldStateManager _worldStateManager;
+        private readonly IChainManager _chainManager;
+        private readonly IBlockManager _blockManager;
 
-        public BlockGenerationService(IWorldStateManager worldStateManager)
+        public BlockGenerationService(IWorldStateManager worldStateManager, IChainManager chainManager, 
+            IBlockManager blockManager)
         {
             _worldStateManager = worldStateManager;
+            _chainManager = chainManager;
+            _blockManager = blockManager;
         }
         
         /// <inheritdoc/>
-        public async Task<Block> BlockGeneration(Hash chainId, Hash lastBlockHash, IEnumerable<TransactionResult> results)
+        public async Task<IBlock> BlockGeneration(Hash chainId, IEnumerable<TransactionResult> results)
         {
+            var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
             var block = new Block(lastBlockHash);
             
+            // add tx hash
             foreach (var r in results)
             {
                 block.AddTransaction(r.TransactionId);
             }
             
+            // calculate and set tx merkle tree root
             block.FillTxsMerkleTreeRootInHeader();
+            
+            // set ws merkle tree root
             var ws = await _worldStateManager.GetWorldStateAsync(chainId, lastBlockHash);
             if(ws != null)
                 block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
             block.Body.BlockHeader = block.Header.GetHash();
             
+            // append block
+            await _blockManager.AddBlockAsync(block);
+            await _chainManager.AppendBlockToChainAsync(chainId, block);
             
             return block;
         }
         
         /// <inheritdoc/>
-        public async Task<BlockHeader> BlockHeaderGeneration(Hash chainId, Hash lastBlockHash, Hash merkleTreeRootForTransaction)
+        public async Task<IBlockHeader> BlockHeaderGeneration(Hash chainId, Hash merkleTreeRootForTransaction)
         {
+            // get ws merkle tree root
+            var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
             var ws = await _worldStateManager.GetWorldStateAsync(chainId, lastBlockHash);
             var state = await ws.GetWorldStateMerkleTreeRootAsync();
+            
             var header = new BlockHeader
             {
                 Version = 0,
@@ -48,7 +65,8 @@ namespace AElf.Kernel.Services
                 MerkleTreeRootOfTransactions = merkleTreeRootForTransaction
             };
 
-            return header;
+            return await _blockManager.AddBlockHeaderAsync(header);
+            
         }
     }
 }
