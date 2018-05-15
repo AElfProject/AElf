@@ -111,9 +111,9 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task<Dictionary<Hash, List<Transaction>>> GetReadyTxsAsync()
+        public Task<List<ITransaction>> GetReadyTxsAsync(ulong limit)
         {
-            return Lock.ReadLock(() => _txPool.ReadyTxs());
+            return Lock.ReadLock(() => _txPool.ReadyTxs(limit));
         }
 
         /// <inheritdoc/>
