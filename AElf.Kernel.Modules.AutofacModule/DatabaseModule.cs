@@ -7,7 +7,7 @@ namespace AElf.Kernel.Modules.AutofacModule
 {
     public class DatabaseModule : Module
     {
-        private static readonly bool _useRedis = false;
+        private readonly bool _useRedis = true;
         protected override void Load(ContainerBuilder builder)
         {
             if (_useRedis)
@@ -15,9 +15,6 @@ namespace AElf.Kernel.Modules.AutofacModule
                 if (!new RedisDatabase().IsConnected()) 
                     return;
                 
-                builder.RegisterInstance(
-                        new DatabaseConfig {IpAddress = "127.0.0.1", Port = 6379})
-                    .As<DatabaseConfig>();
                 builder.RegisterType<RedisDatabase>().As<IKeyValueDatabase>();
             }
             else

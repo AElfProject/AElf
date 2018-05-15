@@ -15,12 +15,8 @@ namespace AElf.Database
     {
         private readonly IRedisClient _client;
         
-        public RedisDatabase()
+        public RedisDatabase():this(new DatabaseConfig())
         {
-            using (var redisManager = new RedisManagerPool("127.0.0.1:6379"))
-            {
-                _client = redisManager.GetClient();
-            }
         }
 
         public RedisDatabase(DatabaseConfig config)
