@@ -39,4 +39,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Concurrency\Execution\Messages\" />
+  </ItemGroup>
 </Project>
