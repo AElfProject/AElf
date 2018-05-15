@@ -1,20 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace AElf.Kernel.Concurrency
 {
     public class TransactionParallelGroup : ITransactionParallelGroup
     {
-        protected Dictionary<Hash, List<ITransaction>> _accountTxsDict;
-        private int _currentScheduleBatch;
+        private readonly Dictionary<Hash, List<ITransaction>> _accountTxsDict;
+        private readonly bool _batched;
+        private List<IBatch> _batches;
         private dynamic _accountListOrderedByTxSize;
         
 
         public TransactionParallelGroup()
         {
-            _currentScheduleBatch = 0;
+            _batched = false;
             _accountTxsDict = new Dictionary<Hash, List<ITransaction>>();
+            _batches = new List<IBatch>();
         }
 
         public int GetSenderCount()
@@ -33,26 +36,35 @@ namespace AElf.Kernel.Concurrency
             {
                 accountTxList = new List<ITransaction>();
             }
-
+            
             return accountTxList;
         }
 
         /// <summary>
         /// Add new accountTxList into the group before start batching
         /// </summary>
-        /// <param name="account"></param>
-        /// <param name="txsSentByAccount"></param>
         /// <returns>return true if succeed, false if this group is already batching</returns>
-        public bool AddAccountTxList(KeyValuePair<Hash, List<ITransaction>> kvPair)
+        public void AddAccountTxList(KeyValuePair<Hash, List<ITransaction>> kvPair)
         {
-            if (_currentScheduleBatch == 0)
+            if (!_batched)
             {
                 _accountTxsDict.Add(kvPair.Key, kvPair.Value);
-                return true;
+                
+                for (int i = 0; i < kvPair.Value.Count; i++)
+                {
+                    IBatch batch = _batches.ElementAtOrDefault(i);
+                    if (batch == null)
+                    {
+                        batch = new Batch();
+                        _batches.Add(batch);
+                    }
+                    
+                    batch.AddTransaction(kvPair.Value.ElementAt(i));
+                }
             }
             else
             {
-                return false;
+                throw new Exception("When try to add accountTxList to parallelGroup, the group already start batching");
             }
         }
 
@@ -81,20 +93,11 @@ namespace AElf.Kernel.Concurrency
         {
             throw new NotImplementedException();
             var transactionBatch = new List<Transaction>();
-            if (_currentScheduleBatch == 0)
+            if (!_batched)
             {
                 _accountListOrderedByTxSize = from txLists in _accountTxsDict
                     orderby txLists.Value.Count descending
                     select txLists;
-            }
-
-            _currentScheduleBatch++;
-
-            foreach (Hash account in _accountListOrderedByTxSize)
-            {
-                if (_accountTxsDict[account].Count <= _currentScheduleBatch)
-                {
-                }
             }
         }
         

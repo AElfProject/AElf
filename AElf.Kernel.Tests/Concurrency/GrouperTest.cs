@@ -59,7 +59,7 @@ namespace AElf.Kernel.Tests.Concurrency
         public void MergeByAccountTest()
         {
             var txDic = GetTestData();
-            Grouper grouper = new Grouper();
+            ParallelGroupService grouper = new ParallelGroupService();
 
             var groups = grouper.MergeAccountTxList(txDic);
             

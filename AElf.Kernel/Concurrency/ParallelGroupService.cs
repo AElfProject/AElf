@@ -4,14 +4,15 @@ using System.Linq;
 namespace AElf.Kernel.Concurrency
 {
 
-    public class Grouper : IGrouper
+    public class ParallelGroupService : IParallelGroupService
     {
         /// <summary>
         /// Produce the sub group where conflicting tx inside same group so that there will be no conflict among tx that belong to different groups.
         /// <para>
         /// Strategy:
-        ///     1. first divide by account, those tx that may modify same accounts' data will be in same group
-        ///     TODO: Use MetaData to further divide the groups.
+        ///     1. First TODO: Use MetaData to divide the tx into group where different groups use different data.
+        ///     1. Second divide by account, those tx that may modify same accounts' data will be in same group
+        ///     
         /// </para>
         /// </summary>
         /// <param name="txList"></param>
@@ -72,11 +73,11 @@ namespace AElf.Kernel.Concurrency
 			Dictionary<int, ITransactionParallelGroup> grouped = new Dictionary<int, ITransactionParallelGroup>();         
 			foreach(var senderTxList in txList){
 				int nodeId = accountUnionSet[senderTxList.Key].Find().NodeId;
-				if(!grouped.TryGetValue(nodeId, out var txs)){
-					txs = new TransactionParallelGroup();
-					grouped.Add(nodeId, txs);
-                  }
-				txs.AddAccountTxList(senderTxList);
+				if(!grouped.TryGetValue(nodeId, out var paraGroup)){
+				    paraGroup = new TransactionParallelGroup();
+					grouped.Add(nodeId, paraGroup);
+                }
+			    paraGroup.AddAccountTxList(senderTxList);
 			}
          
 			return grouped.Values.ToList();

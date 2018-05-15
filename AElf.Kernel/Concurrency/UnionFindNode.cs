@@ -56,6 +56,15 @@ namespace AElf.Kernel.Concurrency
             var root2 = other.Find();
             if (ReferenceEquals(root1, root2)) return false;
 
+	        if (root1.NodeId < root2.NodeId)
+	        {
+		        root2._parent = root1;
+	        }
+	        else
+	        {
+		        root1._parent = root2;
+	        }
+	        /*
             if (root1._rank < root2._rank) {
                 root1._parent = root2;
             } else if (root1._rank > root2._rank) {
@@ -64,7 +73,27 @@ namespace AElf.Kernel.Concurrency
                 root2._parent = root1;
                 root1._rank++;
             }
+            */
             return true;
         }
+
+		public static int GetIdIfUnion(int root1, int root2)
+		{
+			return (root1 < root2) ? root1 : root2;
+		}
+
+		public static bool GetNewRootIdAndDiscardedIdIfUnion(int root1, int root2, out int newRoot, out int discardedId)
+		{
+			if (root1 == root2)
+			{
+				discardedId = -1;
+				newRoot = root1;
+				return false;
+			}
+			
+			newRoot = (root1 < root2) ? root1 : root2;
+			discardedId = (root1 < root2) ? root2 : root1;
+			return true;
+		}
     }
 }

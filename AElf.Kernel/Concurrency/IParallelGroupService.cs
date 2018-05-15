@@ -2,7 +2,7 @@
 
 namespace AElf.Kernel.Concurrency
 {
-    public interface IGrouper
+    public interface IParallelGroupService
     {
         List<ITransactionParallelGroup> ProduceGroup(Dictionary<Hash, List<ITransaction>> txList);
     }
