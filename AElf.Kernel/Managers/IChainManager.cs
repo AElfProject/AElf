@@ -4,7 +4,22 @@ namespace AElf.Kernel.Managers
 {
     public interface IChainManager
     {
+        /// <summary>
+        /// append given block to one chain
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="block"></param>
+        /// <returns></returns>
         Task AppendBlockToChainAsync(Hash chainId, IBlock block);
+
+        /// <summary>
+        /// append given header to one chain
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="header"></param>
+        /// <returns></returns>
+        Task AppednBlockHeaderAsync(Hash chainId, IBlockHeader header);
+        
         Task<IChain> GetChainAsync(Hash id);
         Task<IChain> AddChainAsync(Hash chainId, Hash genesisBlockHash);
         
