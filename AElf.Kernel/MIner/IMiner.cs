@@ -4,6 +4,5 @@
     {
         void Start();
         void Stop();
-        Hash ChainId { get; }
     }
 }

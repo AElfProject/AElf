@@ -12,8 +12,6 @@ namespace AElf.Kernel.MIner
     public class Miner : IMiner
     {
         private readonly IBlockGenerationService _blockGenerationService;
-        private readonly ITxPoolService _poolService;
-        private readonly IChainManager _chainManager;
         
         private MinerLock Lock { get; } = new MinerLock();
         
@@ -30,14 +28,11 @@ namespace AElf.Kernel.MIner
         
         public IMinerConfig Config { get; }
         
-        public Hash ChainId => Config.ChainId;
 
-        public Miner(IBlockGenerationService blockGenerationService, IMinerConfig config, ITxPoolService poolService, IChainManager chainManager)
+        public Miner(IBlockGenerationService blockGenerationService, IMinerConfig config)
         {
             _blockGenerationService = blockGenerationService;
             Config = config;
-            _poolService = poolService;
-            _chainManager = chainManager;
         }
 
         /// <summary>
@@ -51,16 +46,10 @@ namespace AElf.Kernel.MIner
                 MiningResetEvent.WaitOne();
                 if (Cts.IsCancellationRequested) break;
 
-                await _poolService.PromoteAsync();
-                // return txs ready to be executed
-                var readyTxs = await _poolService.GetReadyTxsAsync(Config.TxCountLimit);
-
-                
                 List<TransactionResult> txResultList = null;
                 // TODO：dispatch txs with ISParallel, return collection of tx results
 
-                var lastBlockHash = await _chainManager.GetChainLastBlockHash(ChainId);
-                var block = _blockGenerationService.BlockGeneration(ChainId, lastBlockHash, txResultList);
+                var block = await _blockGenerationService.BlockGeneration(Config.ChainId, txResultList);
                 
             }
         }
