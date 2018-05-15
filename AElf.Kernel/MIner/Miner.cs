@@ -29,6 +29,8 @@ namespace AElf.Kernel.MIner
         public AutoResetEvent MiningResetEvent { get; private set; }
         
         public IMinerConfig Config { get; }
+        
+        public Hash ChainId => Config.ChainId;
 
         public Miner(IBlockGenerationService blockGenerationService, IMinerConfig config, ITxPoolService poolService, IChainManager chainManager)
         {
@@ -48,14 +50,18 @@ namespace AElf.Kernel.MIner
             {
                 MiningResetEvent.WaitOne();
                 if (Cts.IsCancellationRequested) break;
-                
+
+                await _poolService.PromoteAsync();
                 // return txs ready to be executed
-                var readyTxs = await _poolService.GetReadyTxsAsync();
+                var readyTxs = await _poolService.GetReadyTxsAsync(Config.TxCountLimit);
 
+                
+                List<TransactionResult> txResultList = null;
                 // TODO：dispatch txs with ISParallel, return collection of tx results
-                List<TransactionResult> txResultList;
-                //var block = _blockGenerationService.BlockGeneration(ChainId, );
 
+                var lastBlockHash = await _chainManager.GetChainLastBlockHash(ChainId);
+                var block = _blockGenerationService.BlockGeneration(ChainId, lastBlockHash, txResultList);
+                
             }
         }
 
@@ -83,7 +89,6 @@ namespace AElf.Kernel.MIner
             
         }
 
-        public Hash ChainId => Config.ChainId;
     }
     
     /// <inheritdoc />
