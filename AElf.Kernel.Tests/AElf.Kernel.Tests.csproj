@@ -23,5 +23,13 @@
   <ItemGroup>
     <Folder Include="Concurrency\" />
     <Folder Include="Concurrency\Execution\" />
+    <Folder Include="Concurrency\Execution\Protobuf\" />
+    <Folder Include="Concurrency\Execution\Protobuf\Proto\" />
+    <Folder Include="Concurrency\Execution\Protobuf\Generated\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Google.Protobuf">
+      <HintPath>..\..\..\..\.nuget\packages\google.protobuf\3.5.1\lib\netstandard1.0\Google.Protobuf.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
