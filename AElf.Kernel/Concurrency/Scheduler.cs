@@ -9,14 +9,14 @@ namespace AElf.Kernel.Concurrency
 {
     public class Scheduler : IScheduler
     {
-        protected readonly IParallelGroupService _parallelGroupService;
+        private readonly IParallelGroupService _parallelGroupService;
 
         public Scheduler(IParallelGroupService parallelGroupService)
         {
             _parallelGroupService = parallelGroupService;
         }
 
-        public async Task<List<List<ITransaction>>> ScheduleTransactions(Dictionary<Hash, List<ITransaction>> txDict)
+        public Task<List<List<ITransaction>>> ScheduleTransactions(Dictionary<Hash, List<ITransaction>> txDict)
         {
             var groupResult = _parallelGroupService.ProduceGroup(txDict);
             throw new NotImplementedException();

@@ -1,21 +1,25 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AElf.Kernel.Concurrency
 {
     public class Batch : IBatch
     {
-        private Dictionary<int, Job> _jobs = new Dictionary<int, Job>();
+        private readonly Dictionary<int, Job> _jobs = new Dictionary<int, Job>();
         private readonly Dictionary<Hash, UnionFindNode> _accountUnionFindSet = new Dictionary<Hash, UnionFindNode>();
+        private readonly HashSet<Hash> _senderSet = new HashSet<Hash>();
         
-        
-        public List<Job> Jobs()
-        {
-            throw new System.NotImplementedException();
-        }
-
         public void AddTransaction(ITransaction tx)
         {
+            //A batch contains at most one tx from each sender
+            if (_senderSet.Contains(tx.From))
+            {
+                throw new Exception("Try to add another transaction sent by " + tx.From + " where this batch already contains a tx sent by this account");
+            }
+            _senderSet.Add(tx.From);
+            
             //union the connected component linked by the tx's input and output account
             if (!_accountUnionFindSet.TryGetValue(tx.From, out var fromNode))
             {
@@ -29,9 +33,8 @@ namespace AElf.Kernel.Concurrency
                 _accountUnionFindSet.Add(tx.To, toNode);
             }
 
-
             //Union the actual job according to the result of union operation
-            if (UnionFindNode.GetNewRootIdAndDiscardedIdIfUnion(fromNode.NodeId, toNode.NodeId, out var newRoot, out var discardedId))
+            if (UnionFindNode.GetNewRootIdAndDiscardedIdIfUnion(fromNode.Find().NodeId, toNode.Find().NodeId, out var newRoot, out var discardedId))
             {
                 if(!_jobs.TryGetValue(newRoot, out var newRootJob))
                 {
@@ -49,6 +52,18 @@ namespace AElf.Kernel.Concurrency
             
             //Add new tx into the unioned Job
             _jobs[newRoot].AddTx(tx);
+        }
+
+        public List<Job> Jobs => _jobs.Values.ToList();
+
+        public IEnumerator<Job> GetEnumerator()
+        {
+            return _jobs.Values.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

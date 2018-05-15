@@ -6,7 +6,7 @@ using Xunit;
 
 namespace AElf.Kernel.Tests.Concurrency
 {
-    public class GrouperTest
+    public class ParallelGroupServiceTest
     {
         public List<Hash> _accountList = new List<Hash>();
         public Dictionary<Hash, List<ITransaction>> GetTestData()
@@ -19,22 +19,22 @@ namespace AElf.Kernel.Tests.Concurrency
                 _accountList.Add(Hash.Generate());
             }
 
-            GetTransactionReadyInList(txList, _accountList, 0, 1);
-            GetTransactionReadyInList(txList, _accountList, 2, 1);
-            GetTransactionReadyInList(txList, _accountList, 3, 2);
-            GetTransactionReadyInList(txList, _accountList, 2, 4);
-            GetTransactionReadyInList(txList, _accountList, 4, 5);
-            GetTransactionReadyInList(txList, _accountList, 6, 7);
-            GetTransactionReadyInList(txList, _accountList, 8, 7);
-            GetTransactionReadyInList(txList, _accountList, 9, 10);
-            GetTransactionReadyInList(txList, _accountList, 10, 11);
+            GetTransactionReadyInList(txList, 0, 1);
+            GetTransactionReadyInList(txList, 2, 1);
+            GetTransactionReadyInList(txList, 3, 2);
+            GetTransactionReadyInList(txList, 2, 4);
+            GetTransactionReadyInList(txList, 4, 5);
+            GetTransactionReadyInList(txList, 6, 7);
+            GetTransactionReadyInList(txList, 8, 7);
+            GetTransactionReadyInList(txList, 9, 10);
+            GetTransactionReadyInList(txList, 10, 11);
 
             return txList;
         }
 
-        public void GetTransactionReadyInList(Dictionary<Hash, List<ITransaction>> txList, List<Hash> _accountList, int from, int to)
+        public void GetTransactionReadyInList(Dictionary<Hash, List<ITransaction>> txList, int from, int to)
         {
-            var tx = GetTransaction(_accountList, from, to);
+            var tx = GetTransaction(from, to);
             if (txList.ContainsKey(tx.From))
             {
                 txList[tx.From].Add(tx);
@@ -47,7 +47,7 @@ namespace AElf.Kernel.Tests.Concurrency
             }
         }
 
-        public Transaction GetTransaction(List<Hash> _accountList, int from, int to)
+        public Transaction GetTransaction(int from, int to)
         {
             var tx = new Transaction();
             tx.From = _accountList[from];

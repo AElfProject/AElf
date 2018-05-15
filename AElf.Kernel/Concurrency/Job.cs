@@ -26,5 +26,7 @@ namespace AElf.Kernel.Concurrency
         {
             return GetEnumerator();
         }
+
+        public int Count => TxList.Count;
     }
 }

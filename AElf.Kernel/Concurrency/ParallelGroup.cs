@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 
 namespace AElf.Kernel.Concurrency
 {
-    public class TransactionParallelGroup : ITransactionParallelGroup
+    public class ParallelGroup : IParallelGroup
     {
         private readonly Dictionary<Hash, List<ITransaction>> _accountTxsDict;
-        private readonly bool _batched;
-        private List<IBatch> _batches;
-        private dynamic _accountListOrderedByTxSize;
+        private readonly bool _batched; //TODO: is this bool flag really needed?
+        private readonly List<IBatch> _batches;
         
 
-        public TransactionParallelGroup()
+        public ParallelGroup()
         {
             _batched = false;
             _accountTxsDict = new Dictionary<Hash, List<ITransaction>>();
@@ -68,39 +66,11 @@ namespace AElf.Kernel.Concurrency
             }
         }
 
-        /// <summary>
-        /// Return first tx's sender account, used to determine whether another sender account should merge into this group.
-        /// </summary>
-        /// <returns></returns>
-        public Hash GetOneAccountInGroup()
-        {
-            if (_accountTxsDict.Count > 0)
-            {
-                return _accountTxsDict.First().Key;
-            }
-            else
-            {
-                return Hash.Zero;
-            }
-        }
-
         public List<Hash> GetSenderList()
         {
             return _accountTxsDict.Keys.ToList();
         }
-
-        public List<ITransaction> GetNextUnScheduledTxBatch()
-        {
-            throw new NotImplementedException();
-            var transactionBatch = new List<Transaction>();
-            if (!_batched)
-            {
-                _accountListOrderedByTxSize = from txLists in _accountTxsDict
-                    orderby txLists.Value.Count descending
-                    select txLists;
-            }
-        }
         
-        
+        public List<IBatch> Batches => _batches;
     }
 }

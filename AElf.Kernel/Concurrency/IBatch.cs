@@ -2,9 +2,9 @@
 
 namespace AElf.Kernel.Concurrency
 {
-    public interface IBatch
+    public interface IBatch : IEnumerable<Job>
     {
-        List<Job> Jobs();
         void AddTransaction(ITransaction tx);
+        List<Job> Jobs { get; }
     }
 }

@@ -17,7 +17,7 @@ namespace AElf.Kernel.Concurrency
         /// </summary>
         /// <param name="txList"></param>
         /// <returns></returns>
-        public List<ITransactionParallelGroup> ProduceGroup(Dictionary<Hash, List<ITransaction>> txList)
+        public List<IParallelGroup> ProduceGroup(Dictionary<Hash, List<ITransaction>> txList)
         {
             var groupsByAccount = MergeAccountTxList(txList);
 
@@ -40,17 +40,17 @@ namespace AElf.Kernel.Concurrency
         /// </summary>
         /// <param name="txDict">Dictionary of Transaction list sent by accounts</param>
         /// <returns></returns>
-        public List<ITransactionParallelGroup> MergeAccountTxList(Dictionary<Hash, List<ITransaction>> txList)
+        public List<IParallelGroup> MergeAccountTxList(Dictionary<Hash, List<ITransaction>> txDict)
         {
-            if (txList.Count == 0)
+            if (txDict.Count == 0)
             {
-                return new List<ITransactionParallelGroup>();
+                return new List<IParallelGroup>();
             }
             
             Dictionary<Hash, UnionFindNode> accountUnionSet = new Dictionary<Hash, UnionFindNode>();
 
             //set up the union find set
-            foreach (var accountTxList in txList.Values)
+            foreach (var accountTxList in txDict.Values)
             {
                 foreach (var tx in accountTxList)
                 {
@@ -70,11 +70,11 @@ namespace AElf.Kernel.Concurrency
                 }
             }
             
-			Dictionary<int, ITransactionParallelGroup> grouped = new Dictionary<int, ITransactionParallelGroup>();         
-			foreach(var senderTxList in txList){
+			Dictionary<int, IParallelGroup> grouped = new Dictionary<int, IParallelGroup>();         
+			foreach(var senderTxList in txDict){
 				int nodeId = accountUnionSet[senderTxList.Key].Find().NodeId;
 				if(!grouped.TryGetValue(nodeId, out var paraGroup)){
-				    paraGroup = new TransactionParallelGroup();
+				    paraGroup = new ParallelGroup();
 					grouped.Add(nodeId, paraGroup);
                 }
 			    paraGroup.AddAccountTxList(senderTxList);
