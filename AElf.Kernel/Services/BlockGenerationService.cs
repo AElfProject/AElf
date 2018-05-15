@@ -16,13 +16,13 @@ namespace AElf.Kernel.Services
         }
         
         /// <inheritdoc/>
-        public async Task<Block> BlockGeneration(Hash chainId, Hash lastBlockHash, IEnumerable<Hash> txIds)
+        public async Task<Block> BlockGeneration(Hash chainId, Hash lastBlockHash, IEnumerable<TransactionResult> results)
         {
             var block = new Block(lastBlockHash);
             
-            foreach (var txId in txIds)
+            foreach (var r in results)
             {
-                block.AddTransaction(txId);
+                block.AddTransaction(r.TransactionId);
             }
             
             block.FillTxsMerkleTreeRootInHeader();

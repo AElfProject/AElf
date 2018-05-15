@@ -12,7 +12,7 @@ namespace AElf.Kernel.Services
         /// <param name="lastBlockHash"></param>
         /// <param name="txIds"></param>
         /// <returns></returns>
-        Task<Block> BlockGeneration(Hash chainId, Hash lastBlockHash, IEnumerable<Hash> txIds);
+        Task<Block> BlockGeneration(Hash chainId, Hash lastBlockHash, IEnumerable<TransactionResult> txIds);
 
         /// <summary>
         /// generate block header
