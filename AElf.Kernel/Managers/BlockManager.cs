@@ -16,7 +16,7 @@ namespace AElf.Kernel.Managers
             _blockBodyStore = blockBodyStore;
         }
 
-        public async Task<IBlock> AddBlockAsync(IBlock block)
+        public async Task<Block> AddBlockAsync(Block block)
         {
             if (!Validation(block))
             {
@@ -27,16 +27,27 @@ namespace AElf.Kernel.Managers
             await _blockBodyStore.InsertAsync(block.Header.MerkleTreeRootOfTransactions, block.Body);
             return block;
         }
-        
 
-        public async Task<IBlockHeader> GetBlockHeaderAsync(Hash hash)
+
+        public async Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash)
         {
-            return await _blockHeaderStore.GetAsync(hash);
+            return await _blockHeaderStore.GetAsync(blockHash);
         }
 
-        public async Task<IBlockHeader> AddBlockHeaderAsync(IBlockHeader header)
+        public async Task<BlockHeader> AddBlockHeaderAsync(BlockHeader header)
         {
             return await _blockHeaderStore.InsertAsync(header);
+        }
+
+        public async Task<Block> GetBlockAsync(Hash blockHash)
+        {
+            var header = await _blockHeaderStore.GetAsync(blockHash);
+            var body = await _blockBodyStore.GetAsync(header.MerkleTreeRootOfTransactions);
+            return new Block
+            {
+                Header = header,
+                Body = body
+            };
         }
 
         /// <summary>
