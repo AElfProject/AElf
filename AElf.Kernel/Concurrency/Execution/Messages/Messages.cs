@@ -1,56 +1,54 @@
 ﻿using System;
+using System.Collections.Generic;
+
 
 namespace AElf.Kernel.Concurrency.Execution.Messages
 {
 	#region AccountDataContext
-	public sealed class RequestAccountDataContext
-	{
-		public RequestAccountDataContext(long requestId, Hash hash)
-		{
-			RequestId = requestId;
-			AccountHash = hash;
-		}
-
-		public long RequestId { get; }
-		public Hash AccountHash { get; }
-	}
-
-	public sealed class RespondAccountDataContext
-	{
-		public RespondAccountDataContext(long requestId, IAccountDataContext accountDataContext)
-		{
-			RequestId = requestId;
-			AccountDataContext = accountDataContext;
-		}
-
-		public long RequestId { get; }
-		public IAccountDataContext AccountDataContext { get; }
-	}
-	#endregion AccountDataContext
-
-	#region TransactionExecution
-	public sealed class RequestTransactionExecution
-	{
-		public RequestTransactionExecution(long requestId, ITransaction transaction)
-		{
-			RequestId = requestId;
-			Transaction = transaction;
-		}
-
-		public long RequestId { get; }
-		public ITransaction Transaction { get; }
-	}
-
-	public sealed class RespondTransactionExecution
+    public sealed class RequestAccountDataContext
     {
-		public RespondTransactionExecution(long requestId, TransactionResult transactionResult)
+        public RequestAccountDataContext(long requestId, Hash hash)
         {
             RequestId = requestId;
-			TransactionResult = transactionResult;
+            AccountHash = hash;
         }
 
         public long RequestId { get; }
-		public TransactionResult TransactionResult { get; }
+        public Hash AccountHash { get; }
     }
-	#endregion TransactionExecution
+
+    public sealed class RespondAccountDataContext
+    {
+        public RespondAccountDataContext(long requestId, IAccountDataContext accountDataContext)
+        {
+            RequestId = requestId;
+            AccountDataContext = accountDataContext;
+        }
+
+        public long RequestId { get; }
+        public IAccountDataContext AccountDataContext { get; }
+    }
+    #endregion AccountDataContext
+
+	public sealed class TransactionResultMessage
+	{
+		public TransactionResultMessage(TransactionResult transactionResult)
+		{
+			TransactionResult = transactionResult;
+		}
+
+		public TransactionResult TransactionResult { get; }
+	}
+
+	public sealed class JobResultMessage
+	{
+		public JobResultMessage(List<TransactionResult> transactionResults)
+		{
+			TransactionResults = transactionResults;
+		}
+
+		public List<TransactionResult> TransactionResults { get; }
+	}
+
+	public sealed class StartExecutionMessage { }
 }

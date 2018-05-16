@@ -151,34 +151,35 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		}
 
 		[Fact]
-		public void RequestTransactionExecutionTest()
+		public void TransactionExecutionTest()
 		{
 			ProtobufSerializer serializer = new ProtobufSerializer();
 			Hash from = Hash.Generate();
 			Hash to = Hash.Generate();
-			var executor = sys.ActorOf(ParallelExecutionTransactionExecutor.Props(_chainContext));
+
             
 			SmartContractZeroWithTransfer smartContractZero = (_chainContext.SmartContractZero as SmartContractZeroWithTransfer);
 			smartContractZero.SetBalance(from, 100);
 			smartContractZero.SetBalance(to, 0);
-            
+                     
 			// Normal transfer
-			var tx = GetTransaction(from, to, 10);
-			executor.Tell(new RequestTransactionExecution(42, tx));
-			var result = ExpectMsg<RespondTransactionExecution>();
-			Assert.Equal(42, result.RequestId);
-			Assert.Equal(tx.GetHash(), result.TransactionResult.TransactionId);
-			Assert.Equal(Status.Mined, result.TransactionResult.Status);
+			var tx1 = GetTransaction(from, to, 10);
+			var executor1 = sys.ActorOf(ParallelExecutionTransactionExecutor.Props(_chainContext, tx1, TestActor));
+			Watch(executor1);
+			executor1.Tell(new StartExecutionMessage());
+			var result = ExpectMsg<TransactionResultMessage>().TransactionResult;
+			Assert.Equal(tx1.GetHash(), result.TransactionId);
+			Assert.Equal(Status.Mined, result.Status);
 			Assert.Equal((ulong)90, smartContractZero.GetBalance(from));
 			Assert.Equal((ulong)10, smartContractZero.GetBalance(to));
+			ExpectTerminated(executor1);         
 
 			// Insufficient balance
-			tx = GetTransaction(from, to, 100);
-			executor.Tell(new RequestTransactionExecution(43, tx));
-			result = ExpectMsg<RespondTransactionExecution>();
-			Assert.Equal(43, result.RequestId);
-			Assert.Equal(tx.GetHash(), result.TransactionResult.TransactionId);
-			Assert.Equal(Status.ExecutedFailed, result.TransactionResult.Status);
+			var tx2 = GetTransaction(from, to, 100);
+			var executor2 = ActorOf(ParallelExecutionTransactionExecutor.Props(_chainContext, tx2, TestActor));
+			executor2.Tell(new StartExecutionMessage());
+			result = ExpectMsg<TransactionResultMessage>().TransactionResult;
+			Assert.Equal(Status.ExecutedFailed, result.Status);
 			Assert.Equal((ulong)90, smartContractZero.GetBalance(from));
 			Assert.Equal((ulong)10, smartContractZero.GetBalance(to));
 		}
