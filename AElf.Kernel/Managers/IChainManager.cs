@@ -18,7 +18,7 @@ namespace AElf.Kernel.Managers
         /// <param name="chainId"></param>
         /// <param name="header"></param>
         /// <returns></returns>
-        Task AppednBlockHeaderAsync(Hash chainId, IBlockHeader header);
+        Task AppednBlockHeaderAsync(Hash chainId, BlockHeader header);
         
         Task<IChain> GetChainAsync(Hash id);
         Task<IChain> AddChainAsync(Hash chainId, Hash genesisBlockHash);

@@ -1,12 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Database;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
-using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -41,11 +38,9 @@ namespace AElf.Kernel.Tests
             await chainManager.AddChainAsync(chain.Id, genesisBlockHash);
 
             var address = Hash.Generate();
-            var accountContextService = new AccountContextService();
-            var worldStateManager = new WorldStateManager(_worldStateStore, accountContextService,
-                _changesStore, _dataStore);
-            await worldStateManager.SetWorldStateAsync(chain.Id, Hash.Generate());
-            var accountDataProvider = worldStateManager.GetAccountDataProvider(chain.Id, address);
+            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
+            await worldStateManager.SetWorldStateAsync(genesisBlockHash);
+            var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             var dataProvider = accountDataProvider.GetDataProvider();
 
             for (var i = 0; i < count; i++)
