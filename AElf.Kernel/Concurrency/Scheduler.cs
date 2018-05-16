@@ -16,10 +16,34 @@ namespace AElf.Kernel.Concurrency
             _parallelGroupService = parallelGroupService;
         }
 
-        public Task<List<List<ITransaction>>> ScheduleTransactions(Dictionary<Hash, List<ITransaction>> txDict)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="txList"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public List<IParallelGroup> ScheduleTransactions(List<ITransaction> txList)
         {
-            var groupResult = _parallelGroupService.ProduceGroup(txDict);
-            throw new NotImplementedException();
+            //TODO: Because not sure about whether it's convenient to use txDict when grouping by metadata
+            //for now the this method takes List<ITransaction> and Scheduler convert this list to Dictionary<Hash, List<ITransaction>>
+            var txDict = ConvertTxListIntoTxDict(txList);
+            return _parallelGroupService.ProduceGroup(txDict);
+        }
+
+        private Dictionary<Hash, List<ITransaction>> ConvertTxListIntoTxDict(List<ITransaction> txList)
+        {
+            var txDict = new Dictionary<Hash, List<ITransaction>>();
+            foreach (var tx in txList)
+            {
+                if (!txDict.TryGetValue(tx.From, out var accountTxList))
+                {
+                    accountTxList = new List<ITransaction>();
+                    txDict.Add(tx.From, accountTxList);
+                }
+                accountTxList.Add(tx);
+            }
+
+            return txDict;
         }
     }
 }
