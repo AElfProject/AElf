@@ -31,7 +31,7 @@ namespace AElf.Kernel.Managers
 
         Task<Dictionary<Hash, Change>> GetChangesDictionaryAsync();
 
-        IAccountDataProvider GetAccountDataProvider(Hash account);
+        IAccountDataProvider GetAccountDataProvider(Hash accountAddress);
 
         Task SetDataAsync(Hash pointerHash, byte[] data);
 
