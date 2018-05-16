@@ -27,6 +27,8 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc />
         public ulong EntryThreshold => _config.EntryThreshold;
 
+        public bool Promotable { get; set; } = true;
+
         /// <inheritdoc />
         public Hash ChainId => _config.ChainId;
 
@@ -37,7 +39,7 @@ namespace AElf.Kernel.TxMemPool
         public ulong TmpSize => (ulong)Tmp.Count;
 
         /// <inheritdoc/>
-        public ulong MinimalFee => _config.EntryThreshold;
+        public ulong MinimalFee => _config.FeeThreshold;
 
         /// <inheritdoc />
         //public Fee MinimalFee => _config.FeeThreshold;
@@ -128,6 +130,7 @@ namespace AElf.Kernel.TxMemPool
                         break;
                 }
                 
+                // TODO: update account data context
                 //remove txs 
                 kv.Value.RemoveRange(0, r);
             }
