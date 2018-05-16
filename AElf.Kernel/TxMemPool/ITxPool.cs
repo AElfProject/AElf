@@ -55,6 +55,12 @@ namespace AElf.Kernel.TxMemPool
         ulong EntryThreshold { get; }
 
         /// <summary>
+        /// txs can be promoted to executable list if Promotable is true,
+        /// otherwise they can't be.
+        /// </summary>
+        bool Promotable { get; set; }
+        
+        /// <summary>
         /// return chain id for this pool
         /// </summary>
         Hash ChainId { get; }

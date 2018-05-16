@@ -57,7 +57,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private static bool VerifySignature(this Transaction tx)
+        public static bool VerifySignature(this Transaction tx)
         {
             if (tx.P == null)
             {
@@ -75,10 +75,10 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private static bool CheckAccountAddress(this Transaction tx)
+        public static bool CheckAccountAddress(this Transaction tx)
         {
             // TODO: more verifications
-            return tx.From.CalculateSize() != 32 && (tx.To == null || tx.To.CalculateSize() != 32);
+            return tx.From.Value.Length == 32 && (tx.To == null || tx.To.Value.Length == 32);
         }
         
        

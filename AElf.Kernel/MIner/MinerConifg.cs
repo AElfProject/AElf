@@ -7,10 +7,5 @@
         public Hash ChainId { get; set; }
         public ulong TxCountLimit { get; set; }
         
-        public static MinerConifg Default = new MinerConifg
-        {
-            IsParallel = true,
-            TxCountLimit = 100
-        };
     }
 }

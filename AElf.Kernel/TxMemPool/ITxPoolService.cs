@@ -31,9 +31,11 @@ namespace AElf.Kernel.TxMemPool
 
         /// <summary>
         /// promote txs from waiting list to executable
+        /// return true if promotable
+        /// otherwis return true
         /// </summary>
         /// <returns></returns>
-        Task PromoteAsync();
+        Task<bool> PromoteAsync();
         
         /// <summary>
         /// return pool size
@@ -77,6 +79,12 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <returns></returns>
         Task<ulong> GetTmpSizeAsync();
+
+        /// <summary>
+        /// set Promotable status as true
+        /// </summary>
+        /// <returns></returns>
+        Task SetPromotable(bool flag);
         
         /// <summary>
         /// open transaction pool
