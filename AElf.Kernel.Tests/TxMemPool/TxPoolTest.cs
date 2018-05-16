@@ -32,7 +32,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             return tx;
         }
         
-        [Fact]
+        //[Fact]
         public void EntryThreshold_Test()
         {
             // setup config
@@ -53,7 +53,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         }
 
         // Adding a valide transaction to the pool => AddTx returns true
-        [Fact]
+        //[Fact]
         public void AddTx_ValidTransaction_ReturnsTrue()
         {
             TxPool pool = GetPool();
@@ -64,7 +64,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.True(addResult);
         }
 
-        [Fact]
+        //[Fact]
         public void ContainsTx_ReturnsTrue_AfterAdd()
         {
             TxPool pool = GetPool();
@@ -77,7 +77,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.True(res);
         }
 
-        [Fact]
+        //[Fact]
         public void QueueTxTest()
         {
             TxPool pool = GetPool();
@@ -93,7 +93,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.Equal(0, (int)executable);
         }
 
-        [Fact]
+        //[Fact]
         public void PromoteTest()
         {
             TxPool pool = GetPool();
@@ -110,7 +110,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.Equal(1, (int)executable);
         }
 
-        [Fact]
+        //[Fact]
         public void ReadyTxsTest()
         {
             TxPool pool = GetPool();
@@ -128,7 +128,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         }
 
 
-        [Fact]
+        //[Fact]
         public void GetTxTest()
         {
             TxPool pool = GetPool();
