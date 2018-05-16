@@ -14,16 +14,15 @@ using AElf.Kernel.Extensions;
              _keyValueDatabase = keyValueDatabase;
          }
  
-         public async Task InsertAsync(TransactionResult result)
+         public async Task InsertAsync(Hash trKey, TransactionResult result)
          {
-             Hash hash = result.CalculateHash();
-             await _keyValueDatabase.SetAsync(hash.Value.ToBase64(), result.Serialize());
+             await _keyValueDatabase.SetAsync(trKey.Value.ToBase64(), result.Serialize());
          }
  
          public async Task<TransactionResult> GetAsync(Hash hash)
          {
              var txResultBytes = await _keyValueDatabase.GetAsync(hash.Value.ToBase64(), typeof(TransactionResult));
-             return TransactionResult.Parser.ParseFrom(txResultBytes);
+             return txResultBytes == null ? null : TransactionResult.Parser.ParseFrom(txResultBytes);
          }
      }
  }
