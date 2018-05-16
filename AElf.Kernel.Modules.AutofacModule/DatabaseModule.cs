@@ -7,7 +7,7 @@ namespace AElf.Kernel.Modules.AutofacModule
 {
     public class DatabaseModule : Module
     {
-        private readonly bool _useRedis = true;
+        private readonly bool _useRedis = false;
         protected override void Load(ContainerBuilder builder)
         {
             if (_useRedis)

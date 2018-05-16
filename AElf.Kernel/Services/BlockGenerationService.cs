@@ -37,7 +37,8 @@ namespace AElf.Kernel.Services
             block.FillTxsMerkleTreeRootInHeader();
             
             // set ws merkle tree root
-            var ws = await _worldStateManager.GetWorldStateAsync(chainId, lastBlockHash);
+            await _worldStateManager.OfChain(chainId);
+            var ws = await _worldStateManager.GetWorldStateAsync(lastBlockHash);
             if(ws != null)
                 block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
             block.Body.BlockHeader = block.Header.GetHash();
@@ -54,7 +55,8 @@ namespace AElf.Kernel.Services
         {
             // get ws merkle tree root
             var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
-            var ws = await _worldStateManager.GetWorldStateAsync(chainId, lastBlockHash);
+            await _worldStateManager.OfChain(chainId);
+            var ws = await _worldStateManager.GetWorldStateAsync(lastBlockHash);
             var state = await ws.GetWorldStateMerkleTreeRootAsync();
             
             var header = new BlockHeader

@@ -11,9 +11,6 @@ namespace AElf.Kernel.Managers
         private readonly IChainStore _chainStore;
         private readonly IDataStore _dataStore;
 
-        private const string Height = "Height";
-        private const string LastBlockHash = "LastBlockHash";
-        
         public ChainManager(IChainStore chainStore, IDataStore dataStore)
         {
             _chainStore = chainStore;
@@ -66,7 +63,7 @@ namespace AElf.Kernel.Managers
         /// <inheritdoc/>
         public async Task<ulong> GetChainCurrentHeight(Hash chainId)
         {
-            var key = CalculateKeyForCurrentHeight(chainId);
+            var key = Path.CalculatePointerForCurrentBlockHeight(chainId);
             var heightBytes = await _dataStore.GetDataAsync(key);
             return heightBytes?.ToInt64() ?? 0;
         }
@@ -74,43 +71,23 @@ namespace AElf.Kernel.Managers
         /// <inheritdoc/>
         public async Task SetChainCurrentHeight(Hash chainId, ulong height)
         {
-            var key = CalculateKeyForCurrentHeight(chainId);
+            var key = Path.CalculatePointerForCurrentBlockHeight(chainId);
             await _dataStore.SetDataAsync(key, height.ToBytes());
         }
 
         /// <inheritdoc/>
         public async Task<Hash> GetChainLastBlockHash(Hash chainId)
         {
-            var key = CalculateKeyForLastBlockHash(chainId);
+            var key = Path.CalculatePointerForLastBlockHash(chainId);
             return await _dataStore.GetDataAsync(key);
         }
 
         /// <inheritdoc/>
         public async Task SetChainLastBlockHash(Hash chainId, Hash blockHash)
         {
-            var key = CalculateKeyForLastBlockHash(chainId);
+            var key = Path.CalculatePointerForLastBlockHash(chainId);
             await _dataStore.SetDataAsync(key, blockHash.GetHashBytes());
         }
-
-        /// <summary>
-        /// calculate key for CurrentHeight storage
-        /// </summary>
-        /// <param name="chainId"></param>
-        /// <returns></returns>
-        private Hash CalculateKeyForCurrentHeight(Hash chainId)
-        {
-            return chainId.CalculateHashWith((Hash)Height.CalculateHash());
-        }
         
-        
-        /// <summary>
-        /// calculate key for LastBlockHash storage
-        /// </summary>
-        /// <param name="chainId"></param>
-        /// <returns></returns>
-        private Hash CalculateKeyForLastBlockHash(Hash chainId)
-        {
-            return chainId.CalculateHashWith((Hash)LastBlockHash.CalculateHash());
-        }
     }
 }
