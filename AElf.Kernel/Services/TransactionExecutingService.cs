@@ -29,8 +29,16 @@ namespace AElf.Kernel.Services
         public async Task ExecuteAsync(ITransaction tx, IChainContext chain)
         {
             var smartContract = await _smartContractService.GetAsync(tx.To, chain);
-
-            await smartContract.InvokeAsync(tx.From, tx.MethodName, tx.Params);
+            
+            var context=new SmartContractInvokeContext()
+            {
+                Caller = tx.From,
+                IncrementId = tx.IncrementId,
+                MethodName = tx.MethodName,
+                Params = tx.Params
+            };
+            
+            await smartContract.InvokeAsync(context);
         }
 
         
