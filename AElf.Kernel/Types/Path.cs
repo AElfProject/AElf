@@ -90,6 +90,7 @@ namespace AElf.Kernel
             return chainId.CalculateHashWith((Hash) "LastBlockHash".CalculateHash());
         }
         
+        
         #endregion
         
         #region Calculate pointer for block contest
@@ -100,6 +101,15 @@ namespace AElf.Kernel
             return foo.CalculateHashWith((Hash) "PathsCount".CalculateHash());
         }
         
+        #endregion
+
+        #region Calculate pointer for tx result
+
+        public static Hash CalculatePointerForTxResult(Hash txId)
+        {
+            return txId.CalculateHashWith((Hash)"Result".CalculateHash());
+        }
+
         #endregion
         
         #region Private methods
