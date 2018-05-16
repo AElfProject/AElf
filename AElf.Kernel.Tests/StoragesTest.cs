@@ -133,8 +133,8 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task TwoBlockDataTest()
         {
+            //Create a chain and two blocks.
             var genesisBlockHash = Hash.Generate();
-            //Create a chian and two blocks.
             var chainManager = new ChainManager(_chainStore, _dataStore);
             var chain = await chainManager.AddChainAsync(Hash.Generate(), genesisBlockHash);
 
