@@ -19,7 +19,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             }
             else
             {
-                builder.RegisterType<KeyValueDatabase>().As<IKeyValueDatabase>();
+                builder.RegisterType<KeyValueDatabase>().As<IKeyValueDatabase>().SingleInstance();
             }
         }
     }
