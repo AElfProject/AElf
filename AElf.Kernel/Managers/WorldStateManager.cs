@@ -87,11 +87,13 @@ namespace AElf.Kernel.Managers
         /// <summary>
         /// Get an AccountDataProvider instance
         /// </summary>
-        /// <param name="accountHash"></param>
+        /// <param name="accountAddress"></param>
         /// <returns></returns>
-        public IAccountDataProvider GetAccountDataProvider(Hash accountHash)
+        public IAccountDataProvider GetAccountDataProvider(Hash accountAddress)
         {
-            return new AccountDataProvider(_chainId, accountHash, this);
+            Check();
+            
+            return new AccountDataProvider(_chainId, accountAddress, this);
         }
 
         #region Methods about WorldState
@@ -104,6 +106,7 @@ namespace AElf.Kernel.Managers
         public async Task<IWorldState> GetWorldStateAsync(Hash blockHash)
         {
             Check();
+            
             return await _worldStateStore.GetWorldStateAsync(_chainId, blockHash);
         }
         
@@ -130,9 +133,6 @@ namespace AElf.Kernel.Managers
             }
             await _worldStateStore.InsertWorldStateAsync(_chainId, _preBlockHash, dict);
             
-            //todo: maybe dup.
-            //await _dataStore.SetDataAsync(Path.CalculatePointerForLastBlockHash(_chainId), preBlockHash.Value.ToArray());
-
             //Refresh _preBlockHash after setting WorldState.
             _preBlockHash = preBlockHash;
         }
@@ -293,6 +293,8 @@ namespace AElf.Kernel.Managers
         /// <returns></returns>
         private async Task<ulong> GetChangedPathsCountAsync(Hash blockHash)
         {
+            Check();
+            
             var changedPathsCountBytes = await _dataStore.GetDataAsync(Path.CalculatePointerForPathsCount(_chainId, blockHash));
             return changedPathsCountBytes?.ToInt64() ?? 0;
         }
