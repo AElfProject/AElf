@@ -38,13 +38,16 @@ namespace AElf.Kernel.Tests
             var chainId = Hash.Generate();
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, _smartContractZero.GetType());
 
-            await _chainManager.AppendBlockToChainAsync(chain.Id, new Block(Hash.Generate()));
+            var genesisBlock = new Block(Hash.Generate());
+            await _chainManager.AddChainAsync(chain.Id, genesisBlock.GetHash());
+            var block = new Block(Hash.Generate());
+            block.Header.PreviousHash = genesisBlock.GetHash();
+            await _chainManager.AppendBlockToChainAsync(chain.Id, block);
             
             var address = Hash.Generate();
-            var accountContextService = new AccountContextService();
-            var worldStateManager = new WorldStateManager(_worldStateStore, 
-                accountContextService, _changesStore, _dataStore);
-            var accountDataProvider = worldStateManager.GetAccountDataProvider(chainId, address);
+            var worldStateManager = await new WorldStateManager(_worldStateStore, 
+                _changesStore, _dataStore).OfChain(chainId);
+            var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             
             await _smartContractZero.InitializeAsync(accountDataProvider);
             Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)1);

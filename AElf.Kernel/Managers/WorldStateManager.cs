@@ -1,45 +1,44 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
-using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Managers
 {
     public class WorldStateManager: IWorldStateManager
     {
-        #region Stores and Service
+        #region Stores
         private readonly IWorldStateStore _worldStateStore;
         private readonly IDataStore _dataStore;
         private readonly IChangesStore _changesStore;
-
-        private readonly IAccountContextService _accountContextService;
+        #endregion
         
-        /// <summary>
-        /// To avoid accessing DataStore so frequently.
-        /// </summary>
+        private bool _isChainIdSetted;
+        private Hash _chainId;
         private Hash _preBlockHash;
 
-        /// <summary>
-        /// A specific key to store previous block hash value.
-        /// </summary>
-        public Hash HashToGetPreBlockHash => "PreviousBlockHash".CalculateHash();
-        #endregion
-
         public WorldStateManager(IWorldStateStore worldStateStore,
-            IAccountContextService accountContextService,
             IChangesStore changesStore, IDataStore dataStore)
         {
             _worldStateStore = worldStateStore;
-            _accountContextService = accountContextService;
             _changesStore = changesStore;
             _dataStore = dataStore;
+        }
 
-            _preBlockHash = _dataStore.GetDataAsync(HashToGetPreBlockHash)?.Result ?? Hash.Zero;
-            
-            _dataStore.SetDataAsync(CalculateKeyForPathsCount(), ((ulong)0).ToBytes());
+        public async Task<IWorldStateManager> OfChain(Hash chainId)
+        {
+            _chainId = chainId;
+            _preBlockHash = await _dataStore.GetDataAsync(await _dataStore.GetDataAsync(
+                Path.CalculatePointerForLastBlockHash(chainId)));
+
+            await _dataStore.SetDataAsync(Path.CalculatePointerForPathsCount(_chainId, _preBlockHash), ((ulong)0).ToBytes());
+
+            _isChainIdSetted = true;
+
+            return this;
         }
         
         /// <summary>
@@ -53,16 +52,17 @@ namespace AElf.Kernel.Managers
         /// <returns></returns>
         public async Task InsertChangeAsync(Hash pathHash, Change change)
         {
+            Check();
+            
             await _changesStore.InsertChangeAsync(pathHash, change);
             
-
-            var countBytes = await _dataStore.GetDataAsync(CalculateKeyForPathsCount());
+            var countBytes = await _dataStore.GetDataAsync(Path.CalculatePointerForPathsCount(_chainId, _preBlockHash));
             countBytes = countBytes ??  ((ulong)0).ToBytes();
             var key = CalculateKeyForPath(_preBlockHash, countBytes);
             var count = countBytes.ToInt64();
             await _dataStore.SetDataAsync(key, pathHash.Value.ToByteArray());
             count++;
-            await _dataStore.SetDataAsync(CalculateKeyForPathsCount(), count.ToBytes());
+            await _dataStore.SetDataAsync(Path.CalculatePointerForPathsCount(_chainId, _preBlockHash), count.ToBytes());
         }
 
         public async Task<Change> GetChangeAsync(Hash pathHash)
@@ -87,12 +87,11 @@ namespace AElf.Kernel.Managers
         /// <summary>
         /// Get an AccountDataProvider instance
         /// </summary>
-        /// <param name="chainId"></param>
         /// <param name="accountHash"></param>
         /// <returns></returns>
-        public IAccountDataProvider GetAccountDataProvider(Hash chainId, Hash accountHash)
+        public IAccountDataProvider GetAccountDataProvider(Hash accountHash)
         {
-            return new AccountDataProvider(accountHash, chainId, _accountContextService, this);
+            return new AccountDataProvider(_chainId, accountHash, this);
         }
 
         #region Methods about WorldState
@@ -100,23 +99,24 @@ namespace AElf.Kernel.Managers
         /// <summary>
         /// Get a WorldState instance.
         /// </summary>
-        /// <param name="chainId"></param>
         /// <param name="blockHash"></param>
         /// <returns></returns>
-        public async Task<IWorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)
+        public async Task<IWorldState> GetWorldStateAsync(Hash blockHash)
         {
-            return await _worldStateStore.GetWorldStateAsync(chainId, blockHash);
+            Check();
+            return await _worldStateStore.GetWorldStateAsync(_chainId, blockHash);
         }
         
         /// <summary>
         /// Capture a ChangesStore instance and generate a ChangesDict,
         /// then set the ChangesDict to WorldStateStore.
         /// </summary>
-        /// <param name="chainId"></param>
         /// <param name="preBlockHash">At last set preBlockHash to a specific key</param>
         /// <returns></returns>
-        public async Task SetWorldStateAsync(Hash chainId, Hash preBlockHash)
+        public async Task SetWorldStateAsync(Hash preBlockHash)
         {
+            Check();
+            
             var changes = await GetChangesDictionaryAsync();
             var dict = new ChangesDict();
             foreach (var pair in changes)
@@ -128,8 +128,10 @@ namespace AElf.Kernel.Managers
                 };
                 dict.Dict.Add(pairHashChange);
             }
-            await _worldStateStore.InsertWorldStateAsync(chainId, _preBlockHash, dict);
-            await _dataStore.SetDataAsync(HashToGetPreBlockHash, preBlockHash.Value.ToArray());
+            await _worldStateStore.InsertWorldStateAsync(_chainId, _preBlockHash, dict);
+            
+            //todo: maybe dup.
+            //await _dataStore.SetDataAsync(Path.CalculatePointerForLastBlockHash(_chainId), preBlockHash.Value.ToArray());
 
             //Refresh _preBlockHash after setting WorldState.
             _preBlockHash = preBlockHash;
@@ -212,13 +214,14 @@ namespace AElf.Kernel.Managers
         /// <summary>
         /// Using a paths list to get Changes from a ChangesStore.
         /// </summary>
-        /// <param name="chainId"></param>
         /// <param name="blockHash"></param>
         /// <returns></returns>
-        public async Task<List<Change>> GetChangesAsync(Hash chainId, Hash blockHash)
+        public async Task<List<Change>> GetChangesAsync(Hash blockHash)
         {
+            Check();
+
             var paths = await GetPathsAsync(blockHash);
-            var worldState = await _worldStateStore.GetWorldStateAsync(chainId, blockHash);
+            var worldState = await _worldStateStore.GetWorldStateAsync(_chainId, blockHash);
             var changes = new List<Change>();
             foreach (var path in paths)
             {
@@ -284,26 +287,13 @@ namespace AElf.Kernel.Managers
        
         #region Private methods
         /// <summary>
-        /// A specific way to get a hash value which pointer to
-        /// the count of Changes of a world state.
-        /// </summary>
-        /// <param name="blockHash"></param>
-        /// <returns></returns>
-        private Hash CalculateKeyForPathsCount(Hash blockHash = null)
-        {
-            Interlocked.CompareExchange(ref blockHash, _preBlockHash, null);
-            Hash foo = "paths".CalculateHash();
-            return foo.CombineHashWith(blockHash);
-        }
-
-        /// <summary>
         /// Get the count of changed-paths of a specific block.
         /// </summary>
         /// <param name="blockHash"></param>
         /// <returns></returns>
         private async Task<ulong> GetChangedPathsCountAsync(Hash blockHash)
         {
-            var changedPathsCountBytes = await _dataStore.GetDataAsync(CalculateKeyForPathsCount(blockHash));
+            var changedPathsCountBytes = await _dataStore.GetDataAsync(Path.CalculatePointerForPathsCount(_chainId, blockHash));
             return changedPathsCountBytes?.ToInt64() ?? 0;
         }
 
@@ -316,6 +306,14 @@ namespace AElf.Kernel.Managers
         private Hash CalculateKeyForPath(Hash blockHash, byte[] countBytes)
         {
             return blockHash.CombineReverseHashWith(countBytes);
+        }
+
+        private void Check()
+        {
+            if (!_isChainIdSetted)
+            {
+                throw new InvalidOperationException("Should set chain id before using a WorldStateManager");
+            }
         }
         #endregion
     }

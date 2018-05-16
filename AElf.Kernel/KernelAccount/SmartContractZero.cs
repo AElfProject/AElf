@@ -94,7 +94,8 @@ namespace AElf.Kernel.KernelAccount
             var smartContract = await runner.RunAsync(reg);
              
             var acc = new Account(reg.ContractHash);
-            var dp = _worldStateManager.GetAccountDataProvider(_accountDataProvider.Context.ChainId, acc.GetAddress());
+            await _worldStateManager.OfChain(_accountDataProvider.Context.ChainId);
+            var dp = _worldStateManager.GetAccountDataProvider(acc.GetAddress());
 
             await smartContract.InitializeAsync(dp);
 
