@@ -16,7 +16,7 @@ namespace AElf.Kernel
         ByteString Params { get; set; }
 
         /// <summary>
-        /// The caller铯tting
+        /// The caller
         /// </summary>
         Hash From { get; set; }
 
