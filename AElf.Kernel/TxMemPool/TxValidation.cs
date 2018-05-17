@@ -14,7 +14,7 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         public static bool ValidateTx(this ITxPool pool, Transaction tx)
         {
-            if (tx.From == null || tx.MethodName == "" || tx.Params.Length == 0 || tx.IncrementId < 0)
+            if (tx.From == null || tx.MethodName == "" || tx.Params.Count == 0 || tx.IncrementId < 0)
             {
                 // TODO: log errors
                 return false;
