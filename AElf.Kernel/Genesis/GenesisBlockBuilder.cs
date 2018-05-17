@@ -16,14 +16,14 @@ namespace AElf.Kernel
         {
             var block = new Block(Hash.Zero)
             {
-                    Header = new BlockHeader
-                    {
+                Header = new BlockHeader
+                {
                     Index = 0,
                     PreviousHash = Hash.Zero
                 },
                 Body = new BlockBody()
             };
-            
+
             var registerTx = new Transaction
             {
                 IncrementId = 0,
@@ -31,13 +31,18 @@ namespace AElf.Kernel
                 To = Hash.Zero,
                 From = Hash.Zero,
                 Params = ByteString.CopyFrom(
-                    new SmartContractRegistration
+                    new Parameters
+                    {
+                        Params = { new Param
                         {
-                            Category = 0,
-                            ContractBytes = ByteString.CopyFromUtf8(smartContractZero.FullName),
-                            ContractHash = Hash.Zero
-                        }
-                        .ToByteArray()
+                            RegisterVal = new SmartContractRegistration
+                            {
+                                Category = 0,
+                                ContractBytes = ByteString.CopyFromUtf8(smartContractZero.FullName),
+                                ContractHash = Hash.Zero
+                            }
+                        }}
+                    }.ToByteArray()
                 )
             };
             block.AddTransaction(registerTx.GetHash());
@@ -49,10 +54,22 @@ namespace AElf.Kernel
                 From = Hash.Zero,
                 To = Hash.Zero,
                 Params = ByteString.CopyFrom(
-                    new SmartContractDeployment
+                    new Parameters
                     {
-                        ContractHash = Hash.Zero
-                    }.ToByteArray()
+                       Params = { 
+                           new Param
+                           {
+                               HashVal = Hash.Zero
+                           },
+                           new Param
+                           {
+                               DeploymentVal = new SmartContractDeployment
+                               {
+                                   ContractHash = Hash.Zero
+                               }
+                           }}
+                    }
+                    .ToByteArray()
                 )
             };
             block.AddTransaction(deployTx.GetHash());
