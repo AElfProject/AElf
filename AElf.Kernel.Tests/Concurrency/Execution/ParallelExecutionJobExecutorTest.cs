@@ -92,6 +92,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			Assert.Equal((ulong)10, smartContractZero.GetBalance(address4));
 			ExpectTerminated(executor1);
 
+            // Check sequence
+			TransferArgs args1 = (TransferArgs) serializer.Deserialize(tx1.Params.ToByteArray(), typeof(TransferArgs));
+			TransferArgs args2 = (TransferArgs)serializer.Deserialize(tx2.Params.ToByteArray(), typeof(TransferArgs));
+			var end1 = smartContractZero.TransactionEndTimes[args1];
+			var start2 = smartContractZero.TransactionStartTimes[args2];
+			Assert.True(end1 < start2);      
 		}
 
 	}

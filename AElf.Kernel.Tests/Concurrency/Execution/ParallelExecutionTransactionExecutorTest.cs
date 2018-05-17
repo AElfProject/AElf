@@ -24,6 +24,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		public class InsufficientBalanceException : Exception { }
 
 		private Dictionary<Hash, ulong> _cryptoAccounts = new Dictionary<Hash, ulong>();
+		public Dictionary<TransferArgs, DateTime> TransactionStartTimes = new Dictionary<TransferArgs, DateTime>();
+		public Dictionary<TransferArgs, DateTime> TransactionEndTimes = new Dictionary<TransferArgs, DateTime>();
 
 		public async Task InvokeAsync(IHash caller, string methodname, ByteString bytes)
 		{
@@ -54,16 +56,21 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			return bal;
 		}
 
+		public string Now()
+        {
+            return DateTime.Now.ToString("o");
+        }
+
 		public async Task Transfer(TransferArgs transfer)
 		{
+			TransactionStartTimes.Add(transfer, DateTime.Now);
 			var qty = transfer.Quantity;
 			var from = transfer.From;
 			var to = transfer.To;
 
 			var fromBal = GetBalance(transfer.From);
 			var toBal = GetBalance(transfer.To);
-
-
+            
 			if (fromBal <= transfer.Quantity)
 			{
 				throw new InsufficientMemoryException();
@@ -73,6 +80,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			SetBalance(transfer.To, toBal + qty);
 
 			await Task.CompletedTask;
+			TransactionEndTimes.Add(transfer, DateTime.Now);
 		}
 
 		#region ISmartContractZero
@@ -146,7 +154,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 				MethodName = "Transfer",
 				Params = argsBS
 			};
-         
+
 			return tx;
 		}
 
@@ -157,11 +165,10 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			Hash from = Hash.Generate();
 			Hash to = Hash.Generate();
 
-            
 			SmartContractZeroWithTransfer smartContractZero = (_chainContext.SmartContractZero as SmartContractZeroWithTransfer);
 			smartContractZero.SetBalance(from, 100);
 			smartContractZero.SetBalance(to, 0);
-                     
+
 			// Normal transfer
 			var tx1 = GetTransaction(from, to, 10);
 			var executor1 = sys.ActorOf(ParallelExecutionTransactionExecutor.Props(_chainContext, tx1, TestActor));
@@ -172,7 +179,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			Assert.Equal(Status.Mined, result.Status);
 			Assert.Equal((ulong)90, smartContractZero.GetBalance(from));
 			Assert.Equal((ulong)10, smartContractZero.GetBalance(to));
-			ExpectTerminated(executor1);         
+			ExpectTerminated(executor1);
 
 			// Insufficient balance
 			var tx2 = GetTransaction(from, to, 100);
@@ -182,6 +189,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			Assert.Equal(Status.ExecutedFailed, result.Status);
 			Assert.Equal((ulong)90, smartContractZero.GetBalance(from));
 			Assert.Equal((ulong)10, smartContractZero.GetBalance(to));
+            
 		}
 
 	}
