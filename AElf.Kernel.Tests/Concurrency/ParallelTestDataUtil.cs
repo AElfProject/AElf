@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AElf.Kernel.Tests.Concurrency
 {
@@ -83,6 +84,7 @@ namespace AElf.Kernel.Tests.Concurrency
             return txList;
         }
         
+        
         public List<ITransaction> GetSecondGroupTxList()
         {
             var txList = new List<ITransaction>();
@@ -114,6 +116,42 @@ namespace AElf.Kernel.Tests.Concurrency
 
             return txList;
         }
+
+        public List<ITransaction> GetJobTxListInFirstBatch(int jobIndex)
+        {
+            var txList = new List<ITransaction>();
+            switch (jobIndex)
+            {
+                    case 0: 
+                        //{A - > B -> F <- H}
+                        AddTxInList(txList, 0, 1);
+                        AddTxInList(txList, 1, 5);
+                        AddTxInList(txList, 7, 5);
+                        break;
+                    case 1:
+                        //{C -> D -> E}
+                        AddTxInList(txList, 2, 3);
+                        AddTxInList(txList, 3, 4);
+                        break;
+                    case 2:
+                        //{I ->J <- K, J -> L -> K, M -> L}
+                        AddTxInList(txList, 8, 9);
+                        AddTxInList(txList, 10, 9);
+                        AddTxInList(txList, 9, 11);
+                        AddTxInList(txList, 11, 10);
+                        AddTxInList(txList, 12, 11);
+                        break;
+                    case 3:
+                        //{O->P, Q->P}
+                        AddTxInList(txList, 14, 15);
+                        AddTxInList(txList, 16, 15);
+                        break;
+            }
+
+            return txList;
+        }
+        
+        
         
         
         public void AddTxInList(List<ITransaction> txList, int from, int to)
@@ -146,6 +184,15 @@ namespace AElf.Kernel.Tests.Concurrency
             return txDict;
         }
         
-        
+        public string StringRepresentation(List<Transaction> l)
+        {
+            return String.Join(
+                " ",
+                l.OrderBy(y => _accountList.IndexOf(y.From))
+                    .ThenBy(z => _accountList.IndexOf(z.To))
+                    .Select(
+                        y => String.Format("({0}-{1})", _accountList.IndexOf(y.From), _accountList.IndexOf(y.To))
+                    ));
+        }
     }
 }

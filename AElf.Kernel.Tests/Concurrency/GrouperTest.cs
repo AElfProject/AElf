@@ -10,6 +10,7 @@ namespace AElf.Kernel.Tests.Concurrency
     public class GrouperTest
     {
         public List<Hash> _accountList = new List<Hash>();
+        private ParallelTestDataUtil _dataUtil = new ParallelTestDataUtil();
         public Dictionary<Hash, List<Transaction>> GetTestData()
         {
             Dictionary<Hash, List<Transaction>> txList = new Dictionary<Hash, List<Transaction>>();
@@ -77,6 +78,20 @@ namespace AElf.Kernel.Tests.Concurrency
 
             //group 3: {9-10}; {10-11}
             Assert.Equal("(9-10) (10-11)", s[2]);
+        }
+
+        [Fact]
+        public void MergeByAccountTestFullTxList()
+        {
+            var txList = _dataUtil.GetFullTxList();
+            Grouper grouper = new Grouper();
+            var grouped = grouper.Process(txList.Select(x => x as Transaction).ToList());
+            var s = grouped.Select(
+                x => _dataUtil.StringRepresentation(x)
+            ).ToList();
+            
+            Assert.Equal(_dataUtil.StringRepresentation(_dataUtil.GetFirstGroupTxList().Select(x => x as Transaction).ToList()), s[0]);
+            Assert.Equal(_dataUtil.StringRepresentation(_dataUtil.GetSecondGroupTxList().Select(x => x as Transaction).ToList()), s[1]);
         }
     }
 }

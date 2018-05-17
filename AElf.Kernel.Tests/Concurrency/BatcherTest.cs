@@ -18,7 +18,7 @@ namespace AElf.Kernel.Tests.Concurrency
 			return txList;
 		}
 
-		private string StringRepresentation(List<Transaction> l)
+		public string StringRepresentation(List<Transaction> l)
 		{
 			return String.Join(
 				" ",
@@ -44,6 +44,28 @@ namespace AElf.Kernel.Tests.Concurrency
 			// Test Batch 1
 			var expected = StringRepresentation(_dataUtil.GetFirstBatchTxList().Select(x => x as Transaction).ToList());
 			Assert.Equal(expected, s[0]);
+		}
+
+		[Fact]
+		public void TestJobInBatch()
+		{
+			var txList = _dataUtil.GetFirstBatchTxList();
+			var batcher = new Batcher();
+			var grouper = new Grouper();
+			var batched = batcher.Process(txList.Select(x => x as Transaction).ToList());
+
+			var firstBatch = batched.First();
+			var jobs = grouper.Process(firstBatch);
+			
+			Assert.Equal(4, jobs.Count);
+
+			var s = jobs.Select(
+				StringRepresentation).ToList();
+
+			for (int jobIndex = 0; jobIndex < 4; jobIndex++)
+			{
+				Assert.Equal(StringRepresentation(_dataUtil.GetJobTxListInFirstBatch(jobIndex).Select(x => x as Transaction).ToList()), s[jobIndex]);
+			}
 		}
 	}
 }
