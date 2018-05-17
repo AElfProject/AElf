@@ -11,6 +11,7 @@ namespace AElf.Kernel.Tests.Concurrency
     {
         public List<Hash> _accountList = new List<Hash>();
         private ParallelTestDataUtil _dataUtil = new ParallelTestDataUtil();
+        
         public Dictionary<Hash, List<Transaction>> GetTestData()
         {
             Dictionary<Hash, List<Transaction>> txList = new Dictionary<Hash, List<Transaction>>();

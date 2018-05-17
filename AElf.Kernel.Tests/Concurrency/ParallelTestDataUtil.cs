@@ -9,13 +9,13 @@ namespace AElf.Kernel.Tests.Concurrency
     /// </summary>
     public class ParallelTestDataUtil
     {
-        public List<Hash> _accountList = new List<Hash>();
+        public List<Hash> AccountList { get; } = new List<Hash>();
 
         public ParallelTestDataUtil()
         {
             for (int i = 0; i < 26; i++)
             {
-                _accountList.Add(Hash.Generate());
+                AccountList.Add(Hash.Generate());
                 //0    1    2    3    4    5    6    7    8    9    10
                 //A    B    C    D    E    F    G    H    I    J    K
                 
@@ -163,8 +163,8 @@ namespace AElf.Kernel.Tests.Concurrency
         public Transaction NewTransaction(int from, int to)
         {
             var tx = new Transaction();
-            tx.From = _accountList[from];
-            tx.To = _accountList[to];
+            tx.From = AccountList[from];
+            tx.To = AccountList[to];
             return tx;
         }
         
@@ -188,10 +188,10 @@ namespace AElf.Kernel.Tests.Concurrency
         {
             return String.Join(
                 " ",
-                l.OrderBy(y => _accountList.IndexOf(y.From))
-                    .ThenBy(z => _accountList.IndexOf(z.To))
+                l.OrderBy(y => AccountList.IndexOf(y.From))
+                    .ThenBy(z => AccountList.IndexOf(z.To))
                     .Select(
-                        y => String.Format("({0}-{1})", _accountList.IndexOf(y.From), _accountList.IndexOf(y.To))
+                        y => String.Format("({0}-{1})", AccountList.IndexOf(y.From), AccountList.IndexOf(y.To))
                     ));
         }
     }

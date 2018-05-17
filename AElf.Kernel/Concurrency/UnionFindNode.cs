@@ -15,17 +15,16 @@ namespace AElf.Kernel.Concurrency
 	/// </summary>
 	public class UnionFindNode
 	{
-		static int nextId = 0;
+		private static int _nextId = 0;
 		public int NodeId { get; private set; }
         private UnionFindNode _parent;
-        private uint _rank;
 
         /// <summary>
         /// Creates a new disjoint node, representative of a set containing only the new node.
         /// </summary>
         public UnionFindNode() {
             _parent = this;
-			NodeId = Interlocked.Increment(ref nextId);
+			NodeId = Interlocked.Increment(ref _nextId);
         }
 
         /// <summary>

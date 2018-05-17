@@ -10,7 +10,8 @@ namespace AElf.Kernel.Tests.Concurrency
 	public class BatcherTest
 	{
 		private ParallelTestDataUtil _dataUtil = new ParallelTestDataUtil();
-		private List<Hash> _accountList { get { return _dataUtil._accountList; } }
+		private List<Hash> AccountList { get { return _dataUtil.AccountList; } }
+		
 		public List<ITransaction> GetTestData()
 		{
 			var txList = _dataUtil.GetFirstGroupTxList();
@@ -22,10 +23,10 @@ namespace AElf.Kernel.Tests.Concurrency
 		{
 			return String.Join(
 				" ",
-				l.OrderBy(y => _accountList.IndexOf(y.From))
-				.ThenBy(z => _accountList.IndexOf(z.To))
+				l.OrderBy(y => AccountList.IndexOf(y.From))
+				.ThenBy(z => AccountList.IndexOf(z.To))
 				.Select(
-					y => String.Format("({0}-{1})", _accountList.IndexOf(y.From), _accountList.IndexOf(y.To))
+					y => String.Format("({0}-{1})", AccountList.IndexOf(y.From), AccountList.IndexOf(y.To))
 				));
 		}
 
