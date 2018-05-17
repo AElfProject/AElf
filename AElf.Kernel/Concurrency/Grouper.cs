@@ -13,6 +13,9 @@ namespace AElf.Kernel.Concurrency
 		}
 	}
 
+	/// <summary>
+	/// The grouper can be used in both producing subgroup and splitting the job in batch
+	/// </summary>
 	public class Grouper : IGrouper
 	{
 		public List<List<Transaction>> Process(List<Transaction> transactions)
@@ -24,8 +27,7 @@ namespace AElf.Kernel.Concurrency
 
 			Dictionary<Hash, UnionFindNode> accountUnionSet = new Dictionary<Hash, UnionFindNode>();
 
-			//set up the union find set
-
+			//set up the union find set as the representation of graph and the connected components will be the resulting groups
 			foreach (var tx in transactions)
 			{
 				UnionFindNode first = null;
@@ -46,9 +48,9 @@ namespace AElf.Kernel.Concurrency
 					}
 				}
 			}
-
+			
 			Dictionary<int, List<Transaction>> grouped = new Dictionary<int, List<Transaction>>();
-
+			
 			foreach (var tx in transactions)
 			{
 				int nodeId = accountUnionSet[tx.From].Find().NodeId;

@@ -75,24 +75,5 @@ namespace AElf.Kernel.Concurrency
             */
             return true;
         }
-
-		public static int GetIdIfUnion(int root1, int root2)
-		{
-			return (root1 < root2) ? root1 : root2;
-		}
-
-		public static bool GetNewRootIdAndDiscardedIdIfUnion(int root1, int root2, out int newRoot, out int discardedId)
-		{
-			if (root1 == root2)
-			{
-				discardedId = -1;
-				newRoot = root1;
-				return false;
-			}
-			
-			newRoot = (root1 < root2) ? root1 : root2;
-			discardedId = (root1 < root2) ? root2 : root1;
-			return true;
-		}
     }
 }
