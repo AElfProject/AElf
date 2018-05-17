@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 option csharp_namespace = "AElf.Kernel";
-
 message Transaction
 {
     Hash From = 1;
@@ -45,7 +44,23 @@ message SmartContractRegistration{
 
 message SmartContractDeployment{
     Hash ContractHash = 1;
-    bytes ConstructParams =2;
+    bytes ConstructParams = 2;
+}
+
+message Parameters{
+    repeated Param Params = 1;
+}
+
+message Param {
+    oneof data{
+        int32 intVal = 1;
+        string strVal = 2;
+        double dVal = 3;
+        Hash hashVal = 4;
+        uint64 longVal = 5;
+        SmartContractRegistration registerVal = 6;
+        SmartContractDeployment deploymentVal = 7;
+    }
 }
 
 message SmartContractInvokeContext{
