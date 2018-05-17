@@ -1,0 +1,49 @@
+﻿using System;
+using System.Linq;
+using System.Collections.Generic;
+using AElf.Kernel.Concurrency;
+using Xunit;
+using Xunit.Sdk;
+
+namespace AElf.Kernel.Tests.Concurrency
+{
+	public class BatcherTest
+	{
+		private ParallelTestDataUtil _dataUtil = new ParallelTestDataUtil();
+		private List<Hash> _accountList { get { return _dataUtil._accountList; } }
+		public List<ITransaction> GetTestData()
+		{
+			var txList = _dataUtil.GetFirstGroupTxList();
+
+			return txList;
+		}
+
+		private string StringRepresentation(List<Transaction> l)
+		{
+			return String.Join(
+				" ",
+				l.OrderBy(y => _accountList.IndexOf(y.From))
+				.ThenBy(z => _accountList.IndexOf(z.To))
+				.Select(
+					y => String.Format("({0}-{1})", _accountList.IndexOf(y.From), _accountList.IndexOf(y.To))
+				));
+		}
+
+		[Fact]
+		public void TestBatch()
+		{
+			//var batch = new Batch();
+			var txList = GetTestData();
+
+			var batcher = new Batcher();
+			var batched = batcher.Process(txList.Select(x => x as Transaction).ToList());
+
+			var s = batched.Select(
+				x => StringRepresentation(x.ToList())
+			).OrderBy(b => b).ToList();
+			// Test Batch 1
+			var expected = StringRepresentation(_dataUtil.GetFirstBatchTxList().Select(x => x as Transaction).ToList());
+			Assert.Equal(expected, s[0]);
+		}
+	}
+}
