@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Google.Protobuf;
 
 namespace AElf.Kernel
@@ -6,12 +9,7 @@ namespace AElf.Kernel
     public abstract class SmartContract : ISmartContract
     {
         private IAccountDataProvider _accountDataProvider;
-        private ISerializer<SmartContractRegistration> _serializer;
 
-        protected SmartContract(ISerializer<SmartContractRegistration> serializer)
-        {
-            _serializer = serializer;
-        }
 
         public async Task InitializeAsync(IAccountDataProvider dataProvider)
         {
@@ -21,5 +19,17 @@ namespace AElf.Kernel
 
         public abstract Task InvokeAsync(SmartContractInvokeContext context);
 
+    }
+    
+    public class CSharpSmartContract : SmartContract
+    {
+        public Type Type { get; set; }
+        public ConstructorInfo Constructor { get; set; }
+        public object[] Params { get; set; }
+        
+        public override Task InvokeAsync(SmartContractInvokeContext context)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
