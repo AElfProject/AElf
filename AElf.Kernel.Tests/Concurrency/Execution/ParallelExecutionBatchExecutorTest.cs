@@ -67,6 +67,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		[Fact]
 		public void TwoJobBatchExecutionTest()
 		{
+			TwoJobBatchExecutionTestWithChildType(ParallelExecutionBatchExecutor.ChildType.Group);
+			TwoJobBatchExecutionTestWithChildType(ParallelExecutionBatchExecutor.ChildType.Job);
+		}
+
+		public void TwoJobBatchExecutionTestWithChildType(ParallelExecutionBatchExecutor.ChildType childType)
+		{
 			/*
 			 *  Job 1: (0-1, 10), (1-2, 9)
 			 *  Job 2: (3-4, 8)
@@ -95,7 +101,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 				90, 1, 9, 192, 8
 			};
 
-			var executor1 = sys.ActorOf(ParallelExecutionBatchExecutor.Props(_chainContext, txs, TestActor));
+			var executor1 = sys.ActorOf(ParallelExecutionBatchExecutor.Props(_chainContext, txs, TestActor, childType));
 			Watch(executor1);
 			executor1.Tell(new StartExecutionMessage());
 			var results = new List<TransactionResult>()

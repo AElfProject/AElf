@@ -12,6 +12,11 @@ namespace AElf.Kernel.Concurrency.Execution
 	/// </summary>
 	public class ParallelExecutionBatchExecutor : UntypedActor
 	{
+		public enum ChildType
+		{
+			Group,
+			Job
+		}
 		enum State
 		{
 			PendingGrouping,
@@ -25,14 +30,16 @@ namespace AElf.Kernel.Concurrency.Execution
 		private List<Transaction> _transactions;
 		private List<List<Transaction>> _grouped;
 		private IActorRef _resultCollector;
+		private ChildType _childType;
 		private Dictionary<IActorRef, List<Transaction>> _actorToTransactions = new Dictionary<IActorRef, List<Transaction>>();
 		private Dictionary<Hash, TransactionResult> _transactionResults = new Dictionary<Hash, TransactionResult>();
 
-		public ParallelExecutionBatchExecutor(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector)
+		public ParallelExecutionBatchExecutor(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector, ChildType childType)
 		{
 			_chainContext = chainContext;
 			_transactions = transactions;
 			_resultCollector = resultCollector;
+			_childType = childType;
 		}
 
 		protected override void PreStart()
@@ -75,7 +82,16 @@ namespace AElf.Kernel.Concurrency.Execution
 		{
 			foreach (var txs in _grouped)
 			{
-				var actor = Context.ActorOf(ParallelExecutionJobExecutor.Props(_chainContext, txs, Self));
+				IActorRef actor = null;
+				if (_childType == ChildType.Group)
+				{
+					actor = Context.ActorOf(ParallelExecutionGroupExecutor.Props(_chainContext, txs, Self));
+				}
+				else
+				{
+					actor = Context.ActorOf(ParallelExecutionJobExecutor.Props(_chainContext, txs, Self));
+				}
+
 				_actorToTransactions.Add(actor, txs);
 				Context.Watch(actor);
 			}
@@ -109,9 +125,9 @@ namespace AElf.Kernel.Concurrency.Execution
 			}
 		}
 
-		public static Props Props(IChainContext chainContext, List<Transaction> job, IActorRef resultCollector)
+		public static Props Props(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector, ChildType childType)
 		{
-			return Akka.Actor.Props.Create(() => new ParallelExecutionBatchExecutor(chainContext, job, resultCollector));
+			return Akka.Actor.Props.Create(() => new ParallelExecutionBatchExecutor(chainContext, transactions, resultCollector, childType));
 		}
 	}
 }
