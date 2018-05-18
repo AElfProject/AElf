@@ -37,28 +37,29 @@ namespace AElf.Kernel {
             "ZGVyGAEgASgLMgwuQmxvY2tIZWFkZXISGAoEQm9keRgCIAEoCzIKLkJsb2Nr",
             "Qm9keSJhChlTbWFydENvbnRyYWN0UmVnaXN0cmF0aW9uEhAKCENhdGVnb3J5",
             "GAEgASgFEhsKDENvbnRyYWN0SGFzaBgCIAEoCzIFLkhhc2gSFQoNQ29udHJh",
-            "Y3RCeXRlcxgDIAEoDCJPChdTbWFydENvbnRyYWN0RGVwbG95bWVudBIbCgxD",
-            "b250cmFjdEhhc2gYASABKAsyBS5IYXNoEhcKD0NvbnN0cnVjdFBhcmFtcxgC",
-            "IAEoDCIkCgpQYXJhbWV0ZXJzEhYKBlBhcmFtcxgBIAMoCzIGLlBhcmFtItYB",
-            "CgVQYXJhbRIQCgZpbnRWYWwYASABKAVIABIQCgZzdHJWYWwYAiABKAlIABIO",
-            "CgRkVmFsGAMgASgBSAASGAoHaGFzaFZhbBgEIAEoCzIFLkhhc2hIABIRCgds",
-            "b25nVmFsGAUgASgESAASMQoLcmVnaXN0ZXJWYWwYBiABKAsyGi5TbWFydENv",
-            "bnRyYWN0UmVnaXN0cmF0aW9uSAASMQoNZGVwbG95bWVudFZhbBgHIAEoCzIY",
-            "LlNtYXJ0Q29udHJhY3REZXBsb3ltZW50SABCBgoEZGF0YSJsChpTbWFydENv",
-            "bnRyYWN0SW52b2tlQ29udGV4dBIVCgZDYWxsZXIYASABKAsyBS5IYXNoEhMK",
-            "C0luY3JlbWVudElkGAIgASgEEhIKCk1ldGhvZE5hbWUYAyABKAkSDgoGUGFy",
-            "YW1zGAQgASgMInwKBkNoYW5nZRIWCgdCZWZvcmVzGAEgAygLMgUuSGFzaBIU",
-            "CgVBZnRlchgCIAEoCzIFLkhhc2gSHQoOVHJhbnNhY3Rpb25JZHMYAyABKAsy",
-            "BS5IYXNoEiUKFkxhdGVzdENoYW5nZWRCbG9ja0hhc2gYBCABKAsyBS5IYXNo",
-            "IjwKDlBhaXJIYXNoQ2hhbmdlEhIKA0tleRgBIAEoCzIFLkhhc2gSFgoFVmFs",
-            "dWUYAiABKAsyBy5DaGFuZ2UiLAoLQ2hhbmdlc0RpY3QSHQoERGljdBgBIAMo",
-            "CzIPLlBhaXJIYXNoQ2hhbmdlIjsKBUNoYWluEhEKAklkGAEgASgLMgUuSGFz",
-            "aBIfChBHZW5lc2lzQmxvY2tIYXNoGAIgASgLMgUuSGFzaCJYChFUcmFuc2Fj",
-            "dGlvblJlc3VsdBIcCg1UcmFuc2FjdGlvbklkGAEgASgLMgUuSGFzaBIXCgZz",
-            "dGF0dXMYAiABKA4yBy5TdGF0dXMSDAoEbG9ncxgDIAEoDCpRCgZTdGF0dXMS",
-            "DgoKTm90RXhpc3RlZBAAEgsKB1JlZnVzZWQQARILCgdQZW5kaW5nEAISEgoO",
-            "RXhlY3V0ZWRGYWlsZWQQAxIJCgVNaW5lZBAEQg6qAgtBRWxmLktlcm5lbGIG",
-            "cHJvdG8z"));
+            "Y3RCeXRlcxgDIAEoDCJ7ChdTbWFydENvbnRyYWN0RGVwbG95bWVudBIbCgxD",
+            "b250cmFjdEhhc2gYASABKAsyBS5IYXNoEhUKBkNhbGxlchgCIAEoCzIFLkhh",
+            "c2gSFwoPQ29uc3RydWN0UGFyYW1zGAMgASgMEhMKC0luY3JlbWVudElkGAQg",
+            "ASgEIiQKClBhcmFtZXRlcnMSFgoGUGFyYW1zGAEgAygLMgYuUGFyYW0i1gEK",
+            "BVBhcmFtEhAKBmludFZhbBgBIAEoBUgAEhAKBnN0clZhbBgCIAEoCUgAEg4K",
+            "BGRWYWwYAyABKAFIABIYCgdoYXNoVmFsGAQgASgLMgUuSGFzaEgAEhEKB2xv",
+            "bmdWYWwYBSABKARIABIxCgtyZWdpc3RlclZhbBgGIAEoCzIaLlNtYXJ0Q29u",
+            "dHJhY3RSZWdpc3RyYXRpb25IABIxCg1kZXBsb3ltZW50VmFsGAcgASgLMhgu",
+            "U21hcnRDb250cmFjdERlcGxveW1lbnRIAEIGCgRkYXRhImwKGlNtYXJ0Q29u",
+            "dHJhY3RJbnZva2VDb250ZXh0EhUKBkNhbGxlchgBIAEoCzIFLkhhc2gSEwoL",
+            "SW5jcmVtZW50SWQYAiABKAQSEgoKTWV0aG9kTmFtZRgDIAEoCRIOCgZQYXJh",
+            "bXMYBCABKAwifAoGQ2hhbmdlEhYKB0JlZm9yZXMYASADKAsyBS5IYXNoEhQK",
+            "BUFmdGVyGAIgASgLMgUuSGFzaBIdCg5UcmFuc2FjdGlvbklkcxgDIAEoCzIF",
+            "Lkhhc2gSJQoWTGF0ZXN0Q2hhbmdlZEJsb2NrSGFzaBgEIAEoCzIFLkhhc2gi",
+            "PAoOUGFpckhhc2hDaGFuZ2USEgoDS2V5GAEgASgLMgUuSGFzaBIWCgVWYWx1",
+            "ZRgCIAEoCzIHLkNoYW5nZSIsCgtDaGFuZ2VzRGljdBIdCgREaWN0GAEgAygL",
+            "Mg8uUGFpckhhc2hDaGFuZ2UiOwoFQ2hhaW4SEQoCSWQYASABKAsyBS5IYXNo",
+            "Eh8KEEdlbmVzaXNCbG9ja0hhc2gYAiABKAsyBS5IYXNoIlgKEVRyYW5zYWN0",
+            "aW9uUmVzdWx0EhwKDVRyYW5zYWN0aW9uSWQYASABKAsyBS5IYXNoEhcKBnN0",
+            "YXR1cxgCIAEoDjIHLlN0YXR1cxIMCgRsb2dzGAMgASgMKlEKBlN0YXR1cxIO",
+            "CgpOb3RFeGlzdGVkEAASCwoHUmVmdXNlZBABEgsKB1BlbmRpbmcQAhISCg5F",
+            "eGVjdXRlZEZhaWxlZBADEgkKBU1pbmVkEARCDqoCC0FFbGYuS2VybmVsYgZw",
+            "cm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), }, new pbr::GeneratedClrTypeInfo[] {
@@ -68,7 +69,7 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockBody), global::AElf.Kernel.BlockBody.Parser, new[]{ "BlockHeader", "Transactions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Block), global::AElf.Kernel.Block.Parser, new[]{ "Header", "Body" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractRegistration), global::AElf.Kernel.SmartContractRegistration.Parser, new[]{ "Category", "ContractHash", "ContractBytes" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractDeployment), global::AElf.Kernel.SmartContractDeployment.Parser, new[]{ "ContractHash", "ConstructParams" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractDeployment), global::AElf.Kernel.SmartContractDeployment.Parser, new[]{ "ContractHash", "Caller", "ConstructParams", "IncrementId" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Parameters), global::AElf.Kernel.Parameters.Parser, new[]{ "Params" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Param), global::AElf.Kernel.Param.Parser, new[]{ "IntVal", "StrVal", "DVal", "HashVal", "LongVal", "RegisterVal", "DeploymentVal" }, new[]{ "Data" }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractInvokeContext), global::AElf.Kernel.SmartContractInvokeContext.Parser, new[]{ "Caller", "IncrementId", "MethodName", "Params" }, null, null, null),
@@ -1388,7 +1389,9 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public SmartContractDeployment(SmartContractDeployment other) : this() {
       ContractHash = other.contractHash_ != null ? other.ContractHash.Clone() : null;
+      Caller = other.caller_ != null ? other.Caller.Clone() : null;
       constructParams_ = other.constructParams_;
+      incrementId_ = other.incrementId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1408,14 +1411,36 @@ namespace AElf.Kernel {
       }
     }
 
+    /// <summary>Field number for the "Caller" field.</summary>
+    public const int CallerFieldNumber = 2;
+    private global::AElf.Kernel.Hash caller_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash Caller {
+      get { return caller_; }
+      set {
+        caller_ = value;
+      }
+    }
+
     /// <summary>Field number for the "ConstructParams" field.</summary>
-    public const int ConstructParamsFieldNumber = 2;
+    public const int ConstructParamsFieldNumber = 3;
     private pb::ByteString constructParams_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pb::ByteString ConstructParams {
       get { return constructParams_; }
       set {
         constructParams_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "IncrementId" field.</summary>
+    public const int IncrementIdFieldNumber = 4;
+    private ulong incrementId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ulong IncrementId {
+      get { return incrementId_; }
+      set {
+        incrementId_ = value;
       }
     }
 
@@ -1433,7 +1458,9 @@ namespace AElf.Kernel {
         return true;
       }
       if (!object.Equals(ContractHash, other.ContractHash)) return false;
+      if (!object.Equals(Caller, other.Caller)) return false;
       if (ConstructParams != other.ConstructParams) return false;
+      if (IncrementId != other.IncrementId) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1441,7 +1468,9 @@ namespace AElf.Kernel {
     public override int GetHashCode() {
       int hash = 1;
       if (contractHash_ != null) hash ^= ContractHash.GetHashCode();
+      if (caller_ != null) hash ^= Caller.GetHashCode();
       if (ConstructParams.Length != 0) hash ^= ConstructParams.GetHashCode();
+      if (IncrementId != 0UL) hash ^= IncrementId.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1459,9 +1488,17 @@ namespace AElf.Kernel {
         output.WriteRawTag(10);
         output.WriteMessage(ContractHash);
       }
-      if (ConstructParams.Length != 0) {
+      if (caller_ != null) {
         output.WriteRawTag(18);
+        output.WriteMessage(Caller);
+      }
+      if (ConstructParams.Length != 0) {
+        output.WriteRawTag(26);
         output.WriteBytes(ConstructParams);
+      }
+      if (IncrementId != 0UL) {
+        output.WriteRawTag(32);
+        output.WriteUInt64(IncrementId);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -1474,8 +1511,14 @@ namespace AElf.Kernel {
       if (contractHash_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(ContractHash);
       }
+      if (caller_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Caller);
+      }
       if (ConstructParams.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConstructParams);
+      }
+      if (IncrementId != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(IncrementId);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1494,8 +1537,17 @@ namespace AElf.Kernel {
         }
         ContractHash.MergeFrom(other.ContractHash);
       }
+      if (other.caller_ != null) {
+        if (caller_ == null) {
+          caller_ = new global::AElf.Kernel.Hash();
+        }
+        Caller.MergeFrom(other.Caller);
+      }
       if (other.ConstructParams.Length != 0) {
         ConstructParams = other.ConstructParams;
+      }
+      if (other.IncrementId != 0UL) {
+        IncrementId = other.IncrementId;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1516,7 +1568,18 @@ namespace AElf.Kernel {
             break;
           }
           case 18: {
+            if (caller_ == null) {
+              caller_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(caller_);
+            break;
+          }
+          case 26: {
             ConstructParams = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            IncrementId = input.ReadUInt64();
             break;
           }
         }

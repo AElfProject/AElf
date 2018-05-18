@@ -44,7 +44,9 @@ message SmartContractRegistration{
 
 message SmartContractDeployment{
     Hash ContractHash = 1;
-    bytes ConstructParams = 2;
+    Hash Caller = 2;
+    bytes ConstructParams = 3;
+    uint64 IncrementId = 4;
 }
 
 message Parameters{
