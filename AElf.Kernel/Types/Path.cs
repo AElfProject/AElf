@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using AElf.Kernel.Extensions;
+using Google.Protobuf.WellKnownTypes;
 using NLog.Layouts;
 
 // ReSharper disable once CheckNamespace
@@ -89,8 +90,31 @@ namespace AElf.Kernel
         {
             return chainId.CalculateHashWith((Hash) "LastBlockHash".CalculateHash());
         }
-        
-        
+
+        /// <summary>
+        /// calculate hash for account zero in a chain
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <returns></returns>
+        public static Hash CalculatePointerForAccountZero(Hash chainId)
+        {
+            return chainId.CalculateHashWith((Hash) "AccountZero".CalculateHash());
+        }
+
+        /// <summary>
+        /// calculate new account address
+        /// using parent account addr and nonce
+        /// </summary>
+        /// <param name="parentAccount"></param>
+        /// <param name="nonce"></param>
+        /// <returns></returns>
+        public static Hash CalculateAccountAddress(Hash parentAccount, ulong nonce)
+        {
+            return parentAccount.CalculateHashWith(new UInt64Value
+            {
+                Value = nonce
+            });
+        }
         #endregion
         
         #region Calculate pointer for block contest
