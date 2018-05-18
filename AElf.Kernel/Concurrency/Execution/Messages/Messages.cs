@@ -40,16 +40,6 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 		public TransactionResult TransactionResult { get; }
 	}
 
-	public sealed class JobResultMessage
-	{
-		public JobResultMessage(List<TransactionResult> transactionResults)
-		{
-			TransactionResults = transactionResults;
-		}
-
-		public List<TransactionResult> TransactionResults { get; }
-	}
-
 	public sealed class StartExecutionMessage { }
 	public sealed class StartGroupingMessage { }
 	public sealed class StartBatchingMessage { }
