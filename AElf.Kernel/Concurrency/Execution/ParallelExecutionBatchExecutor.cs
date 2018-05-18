@@ -8,7 +8,7 @@ using AElf.Kernel.Concurrency;
 namespace AElf.Kernel.Concurrency.Execution
 {
 	/// <summary>
-	/// Batch executor groups a list of transactions into jobs and run them in parallel.
+	/// Batch executor groups a list of transactions into groups/jobs and run them in parallel.
 	/// </summary>
 	public class ParallelExecutionBatchExecutor : UntypedActor
 	{
