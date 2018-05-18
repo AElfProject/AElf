@@ -50,10 +50,12 @@ namespace AElf.Launcher
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new NetworkModule(serverConfig));
+            builder.RegisterModule(new MainChainNodeModule());
+            builder.RegisterModule(new RpcServerModule());
 
             // Node registration
-            builder.RegisterType<MainChainNode>().As<IAElfNode>();
-            builder.RegisterType<RpcServer>().As<IRpcServer>();
+            //builder.RegisterType<MainChainNode>().As<IAElfNode>();
+            //builder.RegisterType<RpcServer>().As<IRpcServer>();
 
             IContainer container = null;
             
