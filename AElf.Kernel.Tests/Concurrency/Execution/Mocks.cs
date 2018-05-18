@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using AElf.Kernel.KernelAccount;
 using Google.Protobuf;
 
@@ -12,8 +13,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		public class InsufficientBalanceException : Exception { }
 
 		private Dictionary<Hash, ulong> _cryptoAccounts = new Dictionary<Hash, ulong>();
-		public Dictionary<TransferArgs, DateTime> TransactionStartTimes = new Dictionary<TransferArgs, DateTime>();
-		public Dictionary<TransferArgs, DateTime> TransactionEndTimes = new Dictionary<TransferArgs, DateTime>();
+		public ConcurrentDictionary<TransferArgs, DateTime> TransactionStartTimes = new ConcurrentDictionary<TransferArgs, DateTime>();
+		public ConcurrentDictionary<TransferArgs, DateTime> TransactionEndTimes = new ConcurrentDictionary<TransferArgs, DateTime>();
 
 		public async Task InvokeAsync(IHash caller, string methodname, ByteString bytes)
 		{
@@ -51,7 +52,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
 		public async Task Transfer(TransferArgs transfer)
 		{
-			TransactionStartTimes.Add(transfer, DateTime.Now);
+			TransactionStartTimes.TryAdd(transfer, DateTime.Now);
 			var qty = transfer.Quantity;
 			var from = transfer.From;
 			var to = transfer.To;
@@ -61,6 +62,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
 			if (fromBal <= transfer.Quantity)
 			{
+				TransactionEndTimes.TryAdd(transfer, DateTime.Now);
 				throw new InsufficientMemoryException();
 			}
 
@@ -68,7 +70,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			SetBalance(transfer.To, toBal + qty);
 
 			await Task.CompletedTask;
-			TransactionEndTimes.Add(transfer, DateTime.Now);
+			TransactionEndTimes.TryAdd(transfer, DateTime.Now);
 		}
 
 		#region ISmartContractZero

@@ -7,35 +7,28 @@ using AElf.Kernel.Concurrency;
 
 namespace AElf.Kernel.Concurrency.Execution
 {
-	// Inside Batch, there are Jobs that will be run in parallel
-	using Transactions = List<Transaction>;
-
-	interface IGrouper
-	{
-		List<List<Transaction>> Process(List<Transaction> transactions);
-	}
-
+	/// <summary>
+	/// Batch executor groups a list of transactions into jobs and run them in parallel.
+	/// </summary>
 	public class ParallelExecutionBatchExecutor : UntypedActor
 	{
 		enum State
 		{
 			PendingGrouping,
-			GroupingDone,
-			CreatingChildren,
 			ReadyToRun,
 			Running
 		}
 		private State _state = State.PendingGrouping;
 		private bool _startExecutionMessageReceived = false;
-		private IGrouper _grouper;
+		private Grouper _grouper = new Grouper();
 		private IChainContext _chainContext;
-		private Transactions _transactions;
-		private List<Transactions> _grouped;
+		private List<Transaction> _transactions;
+		private List<List<Transaction>> _grouped;
 		private IActorRef _resultCollector;
-		private Dictionary<IActorRef, Transaction> _actorToTransaction = new Dictionary<IActorRef, Transaction>();
+		private Dictionary<IActorRef, List<Transaction>> _actorToTransactions = new Dictionary<IActorRef, List<Transaction>>();
 		private Dictionary<Hash, TransactionResult> _transactionResults = new Dictionary<Hash, TransactionResult>();
 
-		public ParallelExecutionBatchExecutor(IChainContext chainContext, Transactions transactions, IActorRef resultCollector)
+		public ParallelExecutionBatchExecutor(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector)
 		{
 			_chainContext = chainContext;
 			_transactions = transactions;
@@ -55,7 +48,7 @@ namespace AElf.Kernel.Concurrency.Execution
 					if (_state == State.PendingGrouping)
 					{
 						_grouped = _grouper.Process(_transactions);
-						_state = State.CreatingChildren;
+						// TODO: Report and/or log grouping outcomes
 						CreateChildren();
 						_state = State.ReadyToRun;
 						MaybeStartChildren();
@@ -67,54 +60,54 @@ namespace AElf.Kernel.Concurrency.Execution
 					break;
 				case TransactionResultMessage res:
 					_transactionResults[res.TransactionResult.TransactionId] = res.TransactionResult;
-					CheckReceived();
+					ForwardResult(res);
+					StopIfAllFinished();
 					break;
 				case Terminated t:
-					var txId = _actorToTransaction[Sender].GetHash();
-					if (!_transactionResults.ContainsKey(txId))
-					{
-						_transactionResults.Add(txId, new TransactionResult { TransactionId = txId, Status = Status.ExecutedFailed });
-					}
-					CheckReceived();
+					// For now, just ignore
+					// TODO: Handle failure
 					break;
 			}
 		}
 
 		private void CreateChildren()
 		{
-			foreach (var tx in _transactions)
+			foreach (var txs in _grouped)
 			{
-				var actor = Context.ActorOf(ParallelExecutionTransactionExecutor.Props(_chainContext, tx, Self));
-				_actorToTransaction.Add(actor, tx);
+				var actor = Context.ActorOf(ParallelExecutionJobExecutor.Props(_chainContext, txs, Self));
+				_actorToTransactions.Add(actor, txs);
 			}
 		}
 
 		private void MaybeStartChildren()
 		{
-			if (_state == State.Running)
-				return;
 			if (_state == State.ReadyToRun && _startExecutionMessageReceived)
 			{
-				foreach (var a in _actorToTransaction.Keys)
+				foreach (var a in _actorToTransactions.Keys)
 				{
 					a.Tell(new StartExecutionMessage());
 				}
+				_state = State.Running;
 			}
 		}
 
-		private void CheckReceived()
+		private void ForwardResult(TransactionResultMessage resultMessage)
 		{
-			if (_transactionResults.Count == _actorToTransaction.Count)
+			if (_resultCollector != null)
 			{
-				if (_resultCollector != null)
-				{
-					_resultCollector.Tell(new JobResultMessage(_transactionResults.Values.ToList()));
-				}
+				_resultCollector.Forward(resultMessage);
+			}
+		}
+
+		private void StopIfAllFinished()
+		{
+			if (_transactionResults.Count == _transactions.Count)
+			{
 				Context.Stop(Self);
 			}
 		}
 
-		public static Props Props(IChainContext chainContext, Transactions job, IActorRef resultCollector)
+		public static Props Props(IChainContext chainContext, List<Transaction> job, IActorRef resultCollector)
 		{
 			return Akka.Actor.Props.Create(() => new ParallelExecutionBatchExecutor(chainContext, job, resultCollector));
 		}
