@@ -33,15 +33,18 @@ namespace AElf.Kernel
                 Params = ByteString.CopyFrom(
                     new Parameters
                     {
-                        Params = { new Param
+                        Params = 
                         {
-                            RegisterVal = new SmartContractRegistration
+                            new Param
                             {
-                                Category = 0,
-                                ContractBytes = ByteString.CopyFromUtf8(smartContractZero.FullName),
-                                ContractHash = Hash.Zero
+                                RegisterVal = new SmartContractRegistration
+                                {
+                                    Category = 0,
+                                    ContractBytes = ByteString.CopyFromUtf8(smartContractZero.FullName),
+                                    ContractHash = Hash.Zero
+                                }
                             }
-                        }}
+                        }
                     }.ToByteArray()
                 )
             };
