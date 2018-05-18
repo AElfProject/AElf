@@ -64,6 +64,7 @@ namespace AElf.Kernel.Concurrency.Execution
 					StopIfAllFinished();
 					break;
 				case Terminated t:
+					Context.Unwatch(Sender);
 					// For now, just ignore
 					// TODO: Handle failure
 					break;
@@ -76,6 +77,7 @@ namespace AElf.Kernel.Concurrency.Execution
 			{
 				var actor = Context.ActorOf(ParallelExecutionJobExecutor.Props(_chainContext, txs, Self));
 				_actorToTransactions.Add(actor, txs);
+				Context.Watch(actor);
 			}
 		}
 
