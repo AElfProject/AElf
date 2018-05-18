@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
@@ -23,13 +24,19 @@ namespace AElf.Kernel
     
     public class CSharpSmartContract : SmartContract
     {
-        public Type Type { get; set; }
-        public ConstructorInfo Constructor { get; set; }
-        public object[] Params { get; set; }
-        
-        public override Task InvokeAsync(SmartContractInvokeContext context)
+
+        public object Instance { get; set; }
+        public override async Task InvokeAsync(SmartContractInvokeContext context)
         {
-            throw new System.NotImplementedException();
+            var type = Instance.GetType();
+            
+            // method info
+            var member = type.GetMethod(context.MethodName);
+
+            // params array
+            var parameters = Parameters.Parser.ParseFrom(context.Params).Params.Select(p => p.Value()).ToArray();
+            
+            await (Task) member.Invoke(Instance, new object[]{context.Caller, parameters});
         }
     }
 }
