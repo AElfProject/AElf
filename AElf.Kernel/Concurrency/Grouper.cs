@@ -3,16 +3,6 @@ using System.Collections.Generic;
 
 namespace AElf.Kernel.Concurrency
 {
-	public static class ResourceExtractor
-	{
-		public static List<Hash> GetResources(this Transaction tx)
-		{
-			return new List<Hash>(){
-				tx.From, tx.To
-			};
-		}
-	}
-
 	public class Grouper : IGrouper
 	{
 		public List<List<Transaction>> Process(List<Transaction> transactions)
