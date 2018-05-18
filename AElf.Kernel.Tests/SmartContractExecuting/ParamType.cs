@@ -1,4 +1,5 @@
 ﻿using System;
+using Google.Protobuf;
 using Xunit;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
@@ -14,6 +15,9 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             Assert.True(param.DataCase == Param.DataOneofCase.StrVal);
             Assert.Equal(param.Value().GetType(), data.GetType());
             Assert.Equal(param.Value(), data);
+
+            var bytes = param.ToByteArray();
+            
         }
         
         [Fact]
