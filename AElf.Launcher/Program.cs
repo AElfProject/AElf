@@ -2,6 +2,7 @@
 using AElf.Kernel;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
+using AElf.Kernel.Node.Network;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
 using Autofac;
@@ -14,9 +15,10 @@ namespace AElf.Launcher
         {
             // Parse options
             TxPoolConfig tc = new TxPoolConfig();
+            TcpServerConfig sc = new TcpServerConfig();
             
             // Setup ioc 
-            IContainer container = SetupIocContainer(tc);
+            IContainer container = SetupIocContainer(tc, sc);
 
             if (container == null)
             {
@@ -35,7 +37,7 @@ namespace AElf.Launcher
             }
         }
 
-        private static IContainer SetupIocContainer(ITxPoolConfig txPoolConf)
+        private static IContainer SetupIocContainer(ITxPoolConfig txPoolConf, IAElfServerConfig serverConfig)
         {
             var builder = new ContainerBuilder();
             
@@ -47,6 +49,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseModule());
+            builder.RegisterModule(new NetworkModule(serverConfig));
 
             // Node registration
             builder.RegisterType<MainChainNode>().As<IAElfNode>();
