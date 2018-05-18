@@ -19,4 +19,13 @@
   <ItemGroup>
     <Compile Remove="TransactionTests.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Parallel\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="Parallel\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Parallel\**" />
+  </ItemGroup>
 </Project>
