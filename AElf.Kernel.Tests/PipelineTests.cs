@@ -16,14 +16,13 @@ namespace AElf.Kernel.Tests
 
         private IBlockVaildationService _blockVaildationService;
 
-        private IChainContextService _chainContextService;
         
-        public PipelineTests(ISmartContractZero smartContractZero, IChainManager chainManager, IBlockVaildationService blockVaildationService, IChainContextService chainContextFactory)
+        public PipelineTests(ISmartContractZero smartContractZero, IChainManager chainManager, 
+            IBlockVaildationService blockVaildationService)
         {
             _smartContractZero = smartContractZero;
             _chainManager = chainManager;
             _blockVaildationService = blockVaildationService;
-            _chainContextService = chainContextFactory;
         }
 
         [Fact]
