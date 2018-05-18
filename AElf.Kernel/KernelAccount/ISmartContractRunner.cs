@@ -1,31 +1,51 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Managers;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.KernelAccount
 {
     public interface ISmartContractRunner
     {
-        Task<ISmartContract> RunAsync(SmartContractRegistration reg, SmartContractDeployment deployment);
+        Task<ISmartContract> RunAsync(SmartContractRegistration reg, SmartContractDeployment deployment, 
+            IAccountDataProvider adp);
     }
     
-    public class KernelZeroSmartContractRunner: ISmartContractRunner
+    /*public class KernelZeroSmartContractRunner: ISmartContractRunner
     {
-        public async Task<ISmartContract> RunAsync(SmartContractRegistration reg, SmartContractDeployment deployment)
+        public Task<ISmartContract> RunAsync(SmartContractRegistration reg, SmartContractDeployment deployment)
         {
-            var type = Type.GetType(reg.ContractBytes.ToString());
-            var paramTypes = deployment.ConstructParams.Select(p => p.Value().GetType()).ToArray();
-            var constructor = type.GetConstructor(paramTypes);
-            var paramArray = deployment.ConstructParams.Select(p => p.Value()).ToArray();
+            throw new NotImplementedException();
+        }
+    }*/
 
+    public class CSharpSmartContractRunner : ISmartContractRunner
+    {
+
+        public async Task<ISmartContract> RunAsync(SmartContractRegistration reg, SmartContractDeployment deployment, 
+            IAccountDataProvider adp)
+        {
+            var contractName = StringValue.Parser.ParseFrom(reg.ContractBytes.ToByteArray()).ToString();
+            var type = System.Type.GetType(contractName);
+            
+            // construct instance
+            var constructorParams = Parameters.Parser.ParseFrom(deployment.ConstructParams).Params;
+            var parameterObjs = constructorParams.Select(p => p.Value()).ToArray();
+            var paramTypes = parameterObjs.Select(p => p.GetType()).ToArray();
+            var constructorInfo = type.GetConstructor(paramTypes);
+
+            var instance = constructorInfo.Invoke(parameterObjs);
+            
+            // inject instance
             var smartContract = new CSharpSmartContract
             {
-                Type = type,
-                Constructor = constructor,
-                Params = paramArray
+                Instance = instance
             };
-
+            
+            // initialize account info 
+            await smartContract.InitializeAsync(adp);
             return smartContract;
         }
-    }
+    } 
 }
