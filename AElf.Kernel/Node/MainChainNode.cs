@@ -41,5 +41,12 @@ namespace AElf.Kernel.Node
         {
             return await _transactionManager.AddTransactionAsync(tx);
         }
+
+        public async Task BroadcastTransaction(Transaction tx)
+        {
+            // todo : send to network through server
+            // maybe _server.BroadcastTransaction(tx)
+            ;
+        }
     }
 }

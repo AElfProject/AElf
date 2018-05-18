@@ -7,10 +7,10 @@ using AElf.Node.RPC.DTO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
+using NLog;
 
 namespace AElf.Kernel.Node.RPC
 {
@@ -18,7 +18,7 @@ namespace AElf.Kernel.Node.RPC
     {
         private const string GetTxMethodName = "get_tx";
         private const string InsertTxMethodName = "insert_tx";
-        private const string BroadcastTx = "broadcast_tx";
+        private const string BroadcastTxMethodName = "broadcast_tx";
         
         /// <summary>
         /// The names of the exposed RPC methods and also the
@@ -28,7 +28,7 @@ namespace AElf.Kernel.Node.RPC
         {
             GetTxMethodName,
             InsertTxMethodName,
-            BroadcastTx
+            BroadcastTxMethodName
         };
         
         /// <summary>
@@ -36,8 +36,11 @@ namespace AElf.Kernel.Node.RPC
         /// </summary>
         private MainChainNode _node;
         
-        public RpcServer()
+        private readonly ILogger _logger;
+        
+        public RpcServer(ILogger logger)
         {
+            _logger = logger;
         }
 
         /// <summary>
@@ -63,7 +66,7 @@ namespace AElf.Kernel.Node.RPC
                     .UseKestrel()
                     .ConfigureLogging((hostingContext, logging) =>
                     {
-                        logging.ClearProviders(); 
+                        //logging.ClearProviders(); 
                     })
                     .Configure(a => a.Run(ProcessAsync))
                     .Build();
@@ -72,7 +75,7 @@ namespace AElf.Kernel.Node.RPC
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.LogException(LogLevel.Error, "Error while starting the RPC server.", e);
                 return false;
             }
 
@@ -98,6 +101,7 @@ namespace AElf.Kernel.Node.RPC
             }
             catch (Exception e)
             {
+                _logger.LogException(LogLevel.Error, "Error while parsing the RPC request.", e);
                 return null;
             }
         }
@@ -171,6 +175,9 @@ namespace AElf.Kernel.Node.RPC
                        case InsertTxMethodName:
                            responseData = await ProcessInsertTx(reqParams);
                            break;
+                       case BroadcastTxMethodName:
+                           responseData = await ProcessBroadcastTx(reqParams);
+                           break;
                        default:
                            Console.WriteLine("Method name not found"); // todo log
                            break;
@@ -178,7 +185,7 @@ namespace AElf.Kernel.Node.RPC
 
                 if (responseData == null)
                 {
-                    // todo write error
+                    // todo write error 
                 }
 
                 JObject resp = JsonRpcHelpers.CreateResponse(responseData, reqId);
@@ -190,7 +197,16 @@ namespace AElf.Kernel.Node.RPC
                 Console.WriteLine(e);
             }
         }
-        
+
+        private async Task<JObject> ProcessBroadcastTx(JObject reqParams)
+        {
+            TransactionDto dto = reqParams["tx"].ToObject<TransactionDto>();
+
+            await _node.BroadcastTransaction(dto.ToTransaction());
+
+            return null;
+        }
+
         private async Task<JObject> ProcessGetTx(JObject reqParams)
         {
             byte[] txid = reqParams["txid"].ToObject<byte[]>();
