@@ -1,14 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
 using Google.Protobuf;
-using Google.Protobuf.Reflection;
-using ServiceStack;
-using Type = Google.Protobuf.WellKnownTypes.Type;
 
 namespace AElf.Kernel.KernelAccount
 {
@@ -24,36 +18,32 @@ namespace AElf.Kernel.KernelAccount
             new Dictionary<IHash, ISmartContract>();
 
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
-
         private readonly IWorldStateManager _worldStateManager;
 
-        private readonly IAccountContextService _accountContextService;
-        
-
-        public SmartContractZero(ISmartContractRunnerFactory smartContractRunnerFactory,
-            IWorldStateManager worldStateManager, IAccountContextService accountContextService)
+        public SmartContractZero(ISmartContractRunnerFactory smartContractRunnerFactory, IWorldStateManager worldStateManager)
         {
             _smartContractRunnerFactory = smartContractRunnerFactory;
             _worldStateManager = worldStateManager;
-            _accountContextService = accountContextService;
         }
 
         public async Task InitializeAsync(IAccountDataProvider dataProvider)
         {
             _accountDataProvider = dataProvider;
-            await Task.CompletedTask;
+            await _worldStateManager.OfChain(dataProvider.Context.ChainId);
         }
 
         public async Task InvokeAsync(SmartContractInvokeContext context)
         {
             var type = typeof(SmartContractZero);
+            
+            // method info
             var member = type.GetMethod(context.MethodName);
-            var p = member.GetParameters()[0]; //first parameters
+            // params array
+            var parameters = Parameters.Parser.ParseFrom(context.Params).Params.Select(p => p.Value()).ToArray();
             
-            ProtobufSerializer serializer=new ProtobufSerializer();
-            var obj = serializer.Deserialize(context.Params.ToByteArray(), p.ParameterType.DeclaringType);
             
-            await (Task) member.Invoke(this, new object[]{context.Caller, obj});
+            // invoke
+            await (Task) member.Invoke(this, parameters);
         }
 
         /// <inheritdoc/>
@@ -66,35 +56,62 @@ namespace AElf.Kernel.KernelAccount
         
         
         /// <inheritdoc/>
-        public async Task DeploySmartContract(Hash account, SmartContractDeployment smartContractRegister)
+        public async Task<Hash> DeploySmartContract(SmartContractDeployment smartContractRegister)
         {
+            var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
+            
+            // throw exception if not registered
+            if(await smartContractMap.GetAsync(smartContractRegister.ContractHash) == null)
+                throw new KeyNotFoundException("Not Registered SmartContract");
+            
             var smartContractDeploymentMap =
                 _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_INSTANCES);
-            await smartContractDeploymentMap.SetAsync(smartContractRegister.ContractHash,
-                smartContractRegister.Serialize());
-        }
 
+            // calculate new account address
+            var account = smartContractRegister.Caller == null ? Hash.Zero :
+                Path.CalculateAccountAddress(smartContractRegister.Caller, smartContractRegister.IncrementId);
+            
+            // set storage
+            await smartContractDeploymentMap.SetAsync(account ?? Hash.Zero, smartContractRegister.ToByteArray());
+
+            return account;
+        }
+        
+
+        /// <inheritdoc/>
         public async Task<ISmartContract> GetSmartContractAsync(Hash hash)
         {
             if (_smartContracts.ContainsKey(hash))
                 return _smartContracts[hash];
             
-            // get SmartContractRegistration
-            var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
-            var reg = await smartContractMap.GetAsync(hash);
             
-            // 
+            // get smart contract deployment info
             var smartContractDeploymentMap =
                 _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_INSTANCES);
-            var deployment = await smartContractDeploymentMap.GetAsync(hash);
-
-            if (reg == null || deployment == null)
-                return null;
+            var deploymentData = await smartContractDeploymentMap.GetAsync(hash);
+            if (deploymentData == null)
+            {
+                throw new KeyNotFoundException("Not Deployed SmartContract");
+            }
+            var deployment = SmartContractDeployment.Parser.ParseFrom(deploymentData);
             
-            var reg = SmartContractRegistration.Parser.ParseFrom(obj);
+            // get SmartContractRegistration
+            var contractHash = deployment.ContractHash;
+            var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
+            var regData = await smartContractMap.GetAsync(contractHash);
+            if (regData == null)
+                throw new KeyNotFoundException("Not Registered SmartContract");
+            var reg = SmartContractRegistration.Parser.ParseFrom(regData);
 
+            // get runnner
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
-            var smartContract = await runner.RunAsync(reg);
+            
+            // get account dataprovider
+            var adp = _worldStateManager.GetAccountDataProvider(hash);
+            // run smartcontract instance info and return smartcontract
+            var smartContract = await runner.RunAsync(reg, deployment, adp);
+            
+            // cache
             _smartContracts[hash] = smartContract;
 
             //TODO: _smartContracts should be implemented as a memory cache with expired.
@@ -107,7 +124,7 @@ namespace AElf.Kernel.KernelAccount
             return Hash.Zero;
         }
 
-        /// <summary>
+        /*/// <summary>
         /// deploy a contract account
         /// </summary>
         /// <param name="caller"></param>
@@ -122,6 +139,6 @@ namespace AElf.Kernel.KernelAccount
             //var hash = new Hash(calllerContext.CalculateHashWith(smartContractRegistration.Bytes));
             //_accountContextService.GetAccountDataContext(hash, _accountDataProvider.Context.ChainId);
             //return Task.FromResult((IAccount) new Account(hash));
-        }
+        }*/
     }
 }
