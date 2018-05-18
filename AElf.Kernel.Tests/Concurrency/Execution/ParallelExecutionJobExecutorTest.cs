@@ -52,7 +52,49 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		}
 
 		[Fact]
-		public void JobExecutionTest()
+		public void ZeroTransactionExecutionTest()
+		{
+			var executor1 = sys.ActorOf(ParallelExecutionJobExecutor.Props(_chainContext, new List<Transaction>(), TestActor));
+            Watch(executor1);
+            executor1.Tell(new StartExecutionMessage());
+            ExpectTerminated(executor1);
+		}
+
+		[Fact]
+		public void SingleTransactionExecutionTest()
+		{
+			ProtobufSerializer serializer = new ProtobufSerializer();
+			Hash from = Hash.Generate();
+			Hash to = Hash.Generate();
+
+			SmartContractZeroWithTransfer smartContractZero = (_chainContext.SmartContractZero as SmartContractZeroWithTransfer);
+			smartContractZero.SetBalance(from, 100);
+			smartContractZero.SetBalance(to, 0);
+
+			// Normal transfer
+			var tx1 = GetTransaction(from, to, 10);
+			var executor1 = sys.ActorOf(ParallelExecutionJobExecutor.Props(_chainContext, new List<Transaction>() { tx1 }, TestActor));
+			Watch(executor1);
+			executor1.Tell(new StartExecutionMessage());
+			var result = ExpectMsg<TransactionResultMessage>().TransactionResult;
+			Assert.Equal(tx1.GetHash(), result.TransactionId);
+			Assert.Equal(Status.Mined, result.Status);
+			Assert.Equal((ulong)90, smartContractZero.GetBalance(from));
+			Assert.Equal((ulong)10, smartContractZero.GetBalance(to));
+			ExpectTerminated(executor1);
+
+			// Insufficient balance
+			var tx2 = GetTransaction(from, to, 100);
+			var executor2 = ActorOf(ParallelExecutionJobExecutor.Props(_chainContext, new List<Transaction>() { tx2 }, TestActor));
+			executor2.Tell(new StartExecutionMessage());
+			result = ExpectMsg<TransactionResultMessage>().TransactionResult;
+			Assert.Equal(Status.ExecutedFailed, result.Status);
+			Assert.Equal((ulong)90, smartContractZero.GetBalance(from));
+			Assert.Equal((ulong)10, smartContractZero.GetBalance(to));         
+		}
+
+		[Fact]
+		public void MultipleTransactionExecutionTest()
 		{
 			ProtobufSerializer serializer = new ProtobufSerializer();
 			Hash address1 = Hash.Generate();
@@ -79,11 +121,10 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			var executor1 = ActorOf(ParallelExecutionJobExecutor.Props(_chainContext, job1, TestActor));
 			Watch(executor1);
 			executor1.Tell(new StartExecutionMessage());
-			var results = ExpectMsg<JobResultMessage>().TransactionResults.ToDictionary(x => x.TransactionId);//new TimeSpan(0, 0, 10)
-			Assert.Contains(tx1.GetHash(), results.Keys);
-			Assert.Contains(tx2.GetHash(), results.Keys);
-			var result1 = results[tx1.GetHash()];
-			var result2 = results[tx2.GetHash()];
+			var result1 = ExpectMsg<TransactionResultMessage>().TransactionResult;
+			var result2 = ExpectMsg<TransactionResultMessage>().TransactionResult;
+			Assert.Equal(tx1.GetHash(), result1.TransactionId);
+			Assert.Equal(tx2.GetHash(), result2.TransactionId);
 			Assert.Equal(Status.Mined, result1.Status);
 			Assert.Equal((ulong)90, smartContractZero.GetBalance(address1));
 			Assert.Equal((ulong)10, smartContractZero.GetBalance(address2));
@@ -92,13 +133,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			Assert.Equal((ulong)10, smartContractZero.GetBalance(address4));
 			ExpectTerminated(executor1);
 
-            // Check sequence
-			TransferArgs args1 = (TransferArgs) serializer.Deserialize(tx1.Params.ToByteArray(), typeof(TransferArgs));
+			// Check sequence
+			TransferArgs args1 = (TransferArgs)serializer.Deserialize(tx1.Params.ToByteArray(), typeof(TransferArgs));
 			TransferArgs args2 = (TransferArgs)serializer.Deserialize(tx2.Params.ToByteArray(), typeof(TransferArgs));
 			var end1 = smartContractZero.TransactionEndTimes[args1];
 			var start2 = smartContractZero.TransactionStartTimes[args2];
-			Assert.True(end1 < start2);      
+			Assert.True(end1 < start2);
 		}
-
 	}
 }

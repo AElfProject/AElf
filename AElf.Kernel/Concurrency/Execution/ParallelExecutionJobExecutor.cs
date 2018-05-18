@@ -1,48 +1,35 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Akka.Actor;
 using AElf.Kernel.Concurrency.Execution.Messages;
-using AElf.Kernel.Concurrency;
+using AElf.Kernel.KernelAccount;
 
 namespace AElf.Kernel.Concurrency.Execution
 {
-	// TODO: Use real job class
-	using Job = List<Transaction>;
-
+	/// <summary>
+    /// Job executor runs a list of transactions sequentially.
+    /// </summary>
 	public class ParallelExecutionJobExecutor : UntypedActor
 	{
+		enum State
+		{
+			NotStarted,
+			Running
+		}
+		private State _state = State.NotStarted;
 		private IChainContext _chainContext;
 		private IActorRef _resultCollector;
-		private Job _job;
+		private List<Transaction> _transactions;
 		private int _currentRunningIndex = -1;
-		private IActorRef _currentRunningActor;
-		private Dictionary<IActorRef, Transaction> _actorToTransaction = new Dictionary<IActorRef, Transaction>();
+		private Hash _currentTransactionHash;
 		private Dictionary<Hash, TransactionResult> _transactionResults = new Dictionary<Hash, TransactionResult>();
 
-		public ParallelExecutionJobExecutor(IChainContext chainContext, Job job, IActorRef resultCollector)
+		public ParallelExecutionJobExecutor(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector)
 		{
 			_chainContext = chainContext;
-			_job = job;
+			_transactions = transactions;
 			_resultCollector = resultCollector;
-		}
-
-		protected override void PreStart()
-		{
-			if (_job.Count == 0)
-			{
-				Context.Stop(Self);
-			}
-			CreateActorForNextTx();
-		}
-
-		private void CreateActorForNextTx()
-		{
-			_currentRunningIndex++;
-			var tx = _job[_currentRunningIndex];
-			var actor = Context.ActorOf(ParallelExecutionTransactionExecutor.Props(_chainContext, tx, Self));
-			_actorToTransaction.Add(actor, tx);
-			_currentRunningActor = actor;
 		}
 
 		protected override void OnReceive(object message)
@@ -50,43 +37,70 @@ namespace AElf.Kernel.Concurrency.Execution
 			switch (message)
 			{
 				case StartExecutionMessage start:
-					_currentRunningActor.Tell(start);
-					break;
-				case TransactionResultMessage res:
-					_transactionResults[res.TransactionResult.TransactionId] = res.TransactionResult;
-					CheckReceived();
-					break;
-				case Terminated t:
-					var txId = _actorToTransaction[Sender].GetHash();
-					if (!_transactionResults.ContainsKey(txId))
+					if (_state == State.NotStarted)
 					{
-						_transactionResults.Add(txId, new TransactionResult { TransactionId = txId, Status = Status.ExecutedFailed });
+						RunNextOrStop();
 					}
-					CheckReceived();
+					break;
+				case TransactionResultMessage res when res.TransactionResult.TransactionId == _currentTransactionHash:
+					ForwardResult(res);
+					_transactionResults.Add(res.TransactionResult.TransactionId, res.TransactionResult);
+					RunNextOrStop();
 					break;
 			}
 		}
 
-		private void CheckReceived()
+		private void ForwardResult(TransactionResultMessage resultMessage)
 		{
-			if (_transactionResults.Count == _job.Count)
+			if (_resultCollector != null)
 			{
-				if (_resultCollector != null)
-				{
-					_resultCollector.Tell(new JobResultMessage(_transactionResults.Values.ToList()));
-				}
+				_resultCollector.Forward(resultMessage);
+			}
+		}
+
+		private void RunNextOrStop()
+		{
+			_state = State.Running;
+			if (_currentRunningIndex == _transactions.Count - 1)
+			{
 				Context.Stop(Self);
 			}
 			else
 			{
-				CreateActorForNextTx();
-				_currentRunningActor.Tell(new StartExecutionMessage());
+				_currentRunningIndex++;
+				var tx = _transactions[_currentRunningIndex];
+				_currentTransactionHash = tx.GetHash();
+				ExecuteTransaction(tx).ContinueWith(
+					task => new TransactionResultMessage(task.Result),
+					TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
+				).PipeTo(Self);
 			}
 		}
 
-		public static Props Props(IChainContext chainContext, Job job, IActorRef resultCollector)
+		private async Task<TransactionResult> ExecuteTransaction(Transaction transaction)
 		{
-			return Akka.Actor.Props.Create(() => new ParallelExecutionJobExecutor(chainContext, job, resultCollector));
+			// TODO: Handle timeout
+			ISmartContractZero smartContractZero = _chainContext.SmartContractZero;
+			TransactionResult result = new TransactionResult();
+			result.TransactionId = transaction.GetHash();
+			// TODO: Reject tx if IncrementId != Nonce
+
+			try
+			{
+				await smartContractZero.InvokeAsync(caller: transaction.From, methodname: transaction.MethodName, bytes: transaction.Params);
+				result.Status = Status.Mined;
+			}
+			catch
+			{
+				result.Status = Status.ExecutedFailed;
+			}
+
+			return result;
+		}
+
+		public static Props Props(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector)
+		{
+			return Akka.Actor.Props.Create(() => new ParallelExecutionJobExecutor(chainContext, transactions, resultCollector));
 		}
 	}
 }
