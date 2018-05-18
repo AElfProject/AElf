@@ -52,4 +52,5 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 
 	public sealed class StartExecutionMessage { }
 	public sealed class StartGroupingMessage { }
+	public sealed class StartBatchingMessage { }
 }
