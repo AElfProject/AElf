@@ -107,4 +107,19 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			ChainId = chainId;
 		}
 	}
+
+	#region For Multichain
+	public class SmartContractZeroWithTransfer2 : SmartContractZeroWithTransfer { }
+
+	public class ChainContextWithSmartContractZeroWithTransfer2 : IChainContext
+	{
+		public ISmartContractZero SmartContractZero { get; }
+		public Hash ChainId { get; }
+		public ChainContextWithSmartContractZeroWithTransfer2(SmartContractZeroWithTransfer2 smartContractZero)
+		{
+			SmartContractZero = smartContractZero;
+			ChainId = Hash.Generate();
+		}
+	}
+	#endregion For Multichain
 }
