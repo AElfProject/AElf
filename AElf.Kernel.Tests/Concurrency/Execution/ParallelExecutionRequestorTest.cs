@@ -55,7 +55,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		}
 
 		[Fact]
-		public void MultipleTransactionExecutionTest()
+		public void Test()
         {
 			var balances = new List<int>()
             {
