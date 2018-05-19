@@ -63,6 +63,9 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 	}
 	#endregion ExecuteTransactions
 
+    /// <summary>
+    /// Message sent to local requestor for transaction execution.
+    /// </summary>
 	public sealed class LocalExecuteTransactionsMessage
 	{
 		public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions, TaskCompletionSource<bool> taskCompletionSource)

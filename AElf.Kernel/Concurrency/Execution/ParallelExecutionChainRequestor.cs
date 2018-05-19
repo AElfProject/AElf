@@ -9,6 +9,9 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.Concurrency.Execution
 {
+	/// <summary>
+    /// Used locally to send request to chain executor of the repective chain.
+    /// </summary>
 	public class ParallelExecutionChainRequestor : UntypedActor
 	{
 		private readonly ActorSystem _system;
