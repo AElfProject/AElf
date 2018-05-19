@@ -63,14 +63,16 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 	}
 	#endregion ExecuteTransactions
 
-	public sealed class ExecuteTransactionsMessageToLocalChainRequestor
+	public sealed class LocalExecuteTransactionsMessage
 	{
-		public ExecuteTransactionsMessageToLocalChainRequestor(List<Transaction> transactions, TaskCompletionSource<bool> taskCompletionSource)
+		public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions, TaskCompletionSource<bool> taskCompletionSource)
 		{
+			ChainId = chainId;
 			Transactions = transactions;
 			TaskCompletionSource = taskCompletionSource;
 		}
 
+		public Hash ChainId { get; }
 		public List<Transaction> Transactions { get; }
 		public TaskCompletionSource<bool> TaskCompletionSource { get; }
 	}

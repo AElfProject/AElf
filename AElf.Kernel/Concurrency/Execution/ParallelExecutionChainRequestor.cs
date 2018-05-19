@@ -29,7 +29,7 @@ namespace AElf.Kernel.Concurrency.Execution
 		{
 			switch (message)
 			{
-				case ExecuteTransactionsMessageToLocalChainRequestor req:
+				case LocalExecuteTransactionsMessage req:
 					var reqId = GetNextRequestId();
 					_requestIdToTaskCompleteSource.Add(reqId, req.TaskCompletionSource);
 					_chainExecutor.Tell(new RequestExecuteTransactions(reqId, req.Transactions));

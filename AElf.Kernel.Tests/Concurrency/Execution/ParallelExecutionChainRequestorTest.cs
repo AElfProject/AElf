@@ -83,7 +83,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			var requestor = sys.ActorOf(ParallelExecutionChainRequestor.Props(sys, _chainContext.ChainId));
    
 			var tcs = new TaskCompletionSource<bool>();
-			requestor.Tell(new ExecuteTransactionsMessageToLocalChainRequestor(txs, tcs));
+			requestor.Tell(new LocalExecuteTransactionsMessage(_chainContext.ChainId, txs, tcs));
 			tcs.Task.Wait(TimeSpan.FromSeconds(3));
 			foreach (var addFinbal in addresses.Zip(finalBalances, Tuple.Create))
             {
