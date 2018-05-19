@@ -16,7 +16,7 @@ using Google.Protobuf;
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
 	[UseAutofacTestFramework]
-	public class ParallelExecutionRequestorTest : TestKitBase
+	public class ParallelExecutionChainRequestorTest : TestKitBase
 	{
 		private ActorSystem sys = ActorSystem.Create("test");
 		private ChainContextWithSmartContractZeroWithTransfer _chainContext;
@@ -24,7 +24,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		private SmartContractZeroWithTransfer _smartContractZero { get { return (_chainContext.SmartContractZero as SmartContractZeroWithTransfer); } }
 		private AccountContextService _accountContextService;
       
-		public ParallelExecutionRequestorTest(ChainContextWithSmartContractZeroWithTransfer chainContext, AccountContextService accountContextService) : base(new XunitAssertions())
+		public ParallelExecutionChainRequestorTest(ChainContextWithSmartContractZeroWithTransfer chainContext, AccountContextService accountContextService) : base(new XunitAssertions())
 		{
 			_chainContext = chainContext;
 			_accountContextService = accountContextService;
@@ -80,7 +80,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
 			var chainExecutor = sys.ActorOf(ParallelExecutionChainExecutor.Props(_chainContext, _accountContextService), "chainexecutor-"+_chainContext.ChainId.ToByteArray().ToHex());
          
-			var requestor = sys.ActorOf(ParallelExecutionRequestor.Props(sys, _chainContext));
+			var requestor = sys.ActorOf(ParallelExecutionChainRequestor.Props(sys, _chainContext));
    
 			var tcs = new TaskCompletionSource<bool>();
 			requestor.Tell(new ExecuteTransactionsMessageToLocalRequestor(txs, tcs));

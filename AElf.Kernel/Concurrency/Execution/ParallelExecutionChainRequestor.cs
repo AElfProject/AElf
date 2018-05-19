@@ -9,7 +9,7 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.Concurrency.Execution
 {
-	public class ParallelExecutionRequestor : UntypedActor
+	public class ParallelExecutionChainRequestor : UntypedActor
 	{
 		private readonly ActorSystem _system;
 		private readonly IChainContext _chainContext;
@@ -17,7 +17,7 @@ namespace AElf.Kernel.Concurrency.Execution
 		private long _nextRequestId = 0;
 		private Dictionary<long, TaskCompletionSource<bool>> _requestIdToTaskCompleteSource = new Dictionary<long, TaskCompletionSource<bool>>();
 
-		public ParallelExecutionRequestor(ActorSystem system, IChainContext chainContext)
+		public ParallelExecutionChainRequestor(ActorSystem system, IChainContext chainContext)
 		{
 			// TODO: Check Chain Executor valid
 			_system = system;
@@ -50,7 +50,7 @@ namespace AElf.Kernel.Concurrency.Execution
 
 		public static Props Props(ActorSystem system, IChainContext chainContext)
 		{
-			return Akka.Actor.Props.Create(() => new ParallelExecutionRequestor(system, chainContext));
+			return Akka.Actor.Props.Create(() => new ParallelExecutionChainRequestor(system, chainContext));
 		}
 
 	}
