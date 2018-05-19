@@ -12,24 +12,24 @@ namespace AElf.Kernel.Concurrency.Execution
 	public class ParallelExecutionChainRequestor : UntypedActor
 	{
 		private readonly ActorSystem _system;
-		private readonly IChainContext _chainContext;
+		private readonly Hash _chainId;
 		private ActorSelection _chainExecutor;
 		private long _nextRequestId = 0;
 		private Dictionary<long, TaskCompletionSource<bool>> _requestIdToTaskCompleteSource = new Dictionary<long, TaskCompletionSource<bool>>();
 
-		public ParallelExecutionChainRequestor(ActorSystem system, IChainContext chainContext)
+		public ParallelExecutionChainRequestor(ActorSystem system, Hash chainId)
 		{
 			// TODO: Check Chain Executor valid
 			_system = system;
-			_chainContext = chainContext;
-			_chainExecutor = system.ActorSelection("/user/chainexecutor-" + chainContext.ChainId.ToByteArray().ToHex());
+			_chainId = chainId;
+			_chainExecutor = system.ActorSelection("/user/chainexecutor-" + chainId.ToByteArray().ToHex());
 		}
 
 		protected override void OnReceive(object message)
 		{
 			switch (message)
 			{
-				case ExecuteTransactionsMessageToLocalRequestor req:
+				case ExecuteTransactionsMessageToLocalChainRequestor req:
 					var reqId = GetNextRequestId();
 					_requestIdToTaskCompleteSource.Add(reqId, req.TaskCompletionSource);
 					_chainExecutor.Tell(new RequestExecuteTransactions(reqId, req.Transactions));
@@ -48,9 +48,9 @@ namespace AElf.Kernel.Concurrency.Execution
 			return Interlocked.Increment(ref _nextRequestId);
 		}
 
-		public static Props Props(ActorSystem system, IChainContext chainContext)
+		public static Props Props(ActorSystem system, Hash chainId)
 		{
-			return Akka.Actor.Props.Create(() => new ParallelExecutionChainRequestor(system, chainContext));
+			return Akka.Actor.Props.Create(() => new ParallelExecutionChainRequestor(system, chainId));
 		}
 
 	}
