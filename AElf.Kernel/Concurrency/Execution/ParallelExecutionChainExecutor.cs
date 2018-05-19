@@ -42,6 +42,7 @@ namespace AElf.Kernel.Concurrency.Execution
 					}
 					else
 					{
+						// Currently only supports one request at a time
 						_currentRequestor = Sender;
 						_currentRequest = req;
 						_currentExecutor = Context.ActorOf(ParallelExecutionBatchExecutor.Props(_chainContext, req.Transactions, Self, ParallelExecutionBatchExecutor.ChildType.Group));
