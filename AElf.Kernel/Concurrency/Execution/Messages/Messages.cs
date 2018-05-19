@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Threading.Tasks;
 
 namespace AElf.Kernel.Concurrency.Execution.Messages
 {
@@ -62,6 +62,18 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 		public List<TransactionResult> TransactionResults { get; }
 	}
 	#endregion ExecuteTransactions
+
+	public sealed class ExecuteTransactionsMessageToLocalRequestor
+	{
+		public ExecuteTransactionsMessageToLocalRequestor(List<Transaction> transactions, TaskCompletionSource<bool> taskCompletionSource)
+		{
+			Transactions = transactions;
+			TaskCompletionSource = taskCompletionSource;
+		}
+
+		public List<Transaction> Transactions { get; }
+		public TaskCompletionSource<bool> TaskCompletionSource;
+	}
 
 	public sealed class TransactionResultMessage
 	{
