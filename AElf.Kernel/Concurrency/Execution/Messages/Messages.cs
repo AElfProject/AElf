@@ -72,7 +72,7 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 		}
 
 		public List<Transaction> Transactions { get; }
-		public TaskCompletionSource<bool> TaskCompletionSource;
+		public TaskCompletionSource<bool> TaskCompletionSource { get; }
 	}
 
 	public sealed class TransactionResultMessage
