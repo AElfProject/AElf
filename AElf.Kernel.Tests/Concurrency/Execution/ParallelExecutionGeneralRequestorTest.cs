@@ -16,18 +16,6 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
-	public class SmartContractZeroWithTransfer2 : SmartContractZeroWithTransfer { }
-
-	public class ChainContextWithSmartContractZeroWithTransfer2 : IChainContext
-    {
-        public ISmartContractZero SmartContractZero { get; }
-        public Hash ChainId { get; }
-        public ChainContextWithSmartContractZeroWithTransfer2(SmartContractZeroWithTransfer2 smartContractZero)
-        {
-            SmartContractZero = smartContractZero;
-			ChainId = Hash.Generate();
-        }
-    }
 
 	[UseAutofacTestFramework]
 	public class ParallelExecutionGeneralRequestorTest : TestKitBase
