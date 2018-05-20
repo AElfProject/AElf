@@ -101,10 +101,10 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 	{
 		public ISmartContractZero SmartContractZero { get; }
 		public Hash ChainId { get; }
-		public ChainContextWithSmartContractZeroWithTransfer(SmartContractZeroWithTransfer smartContractZero, Hash chainId)
+		public ChainContextWithSmartContractZeroWithTransfer(SmartContractZeroWithTransfer smartContractZero)
 		{
 			SmartContractZero = smartContractZero;
-			ChainId = chainId;
+			ChainId = Hash.Generate();
 		}
 	}
 
