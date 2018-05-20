@@ -44,7 +44,7 @@ namespace AElf.Kernel.Concurrency.Execution
 
 		protected override void PreStart()
 		{
-			Context.System.Scheduler.ScheduleTellOnce(new TimeSpan(0, 0, 0), Self, new StartGroupingMessage(), Self);
+			Context.System.Scheduler.ScheduleTellOnce(new TimeSpan(0, 0, 0), Self, StartGroupingMessage.Instance, Self);
 		}
 
 		protected override void OnReceive(object message)
@@ -103,7 +103,7 @@ namespace AElf.Kernel.Concurrency.Execution
 			{
 				foreach (var a in _actorToTransactions.Keys)
 				{
-					a.Tell(new StartExecutionMessage());
+					a.Tell(StartExecutionMessage.Instance);
 				}
 				_state = State.Running;
 			}

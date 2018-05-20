@@ -63,9 +63,9 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 	}
 	#endregion ExecuteTransactions
 
-    /// <summary>
-    /// Message sent to local requestor for transaction execution.
-    /// </summary>
+	/// <summary>
+	/// Message sent to local requestor for transaction execution.
+	/// </summary>
 	public sealed class LocalExecuteTransactionsMessage
 	{
 		public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions, TaskCompletionSource<bool> taskCompletionSource)
@@ -90,7 +90,62 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 		public TransactionResult TransactionResult { get; }
 	}
 
-	public sealed class StartExecutionMessage { }
-	public sealed class StartGroupingMessage { }
-	public sealed class StartBatchingMessage { }
+	#region Singleton Messages
+	/// <summary>
+	/// Short-lived executor actors require a <see cref="StartExecutionMessage"/> to start execution.
+	/// </summary>
+	public sealed class StartExecutionMessage
+	{
+		private StartExecutionMessage() { }
+
+		/// <summary>
+		/// The singleton instance of StartExecutionMessage.
+		/// </summary>
+		public static StartExecutionMessage Instance { get; } = new StartExecutionMessage();
+
+		/// <inheritdoc/>
+		public override string ToString()
+		{
+			return "<StartExecutionMessage>";
+		}
+	}
+
+	/// <summary>
+	/// <see cref="StartGroupingMessage"/> is automatically sent to the actor itself upon starting so that grouping will start.
+	/// </summary>
+	public sealed class StartGroupingMessage
+	{
+		private StartGroupingMessage() { }
+
+		/// <summary>
+		/// The singleton instance of StartGroupingMessage.
+		/// </summary>
+		public static StartGroupingMessage Instance { get; } = new StartGroupingMessage();
+
+		/// <inheritdoc/>
+		public override string ToString()
+		{
+			return "<StartGroupingMessage>";
+		}
+	}
+
+	/// <summary>
+	/// <see cref="StartBatchingMessage"/> is automatically sent to the actor itself upon starting so that batching will start.
+	/// </summary>
+	public sealed class StartBatchingMessage
+	{
+		private StartBatchingMessage() { }
+
+		/// <summary>
+		/// The singleton instance of StartBatchingMessage.
+		/// </summary>
+		public static StartBatchingMessage Instance { get; } = new StartBatchingMessage();
+
+		/// <inheritdoc/>
+		public override string ToString()
+		{
+			return "<StartBatchingMessage>";
+		}
+	}
+	#endregion Singleton Messages
 }

@@ -56,7 +56,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		{
 			var executor1 = sys.ActorOf(ParallelExecutionJobExecutor.Props(_chainContext, new List<Transaction>(), TestActor));
             Watch(executor1);
-            executor1.Tell(new StartExecutionMessage());
+			executor1.Tell(StartExecutionMessage.Instance);
             ExpectTerminated(executor1);
 		}
 
@@ -75,7 +75,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			var tx1 = GetTransaction(from, to, 10);
 			var executor1 = sys.ActorOf(ParallelExecutionJobExecutor.Props(_chainContext, new List<Transaction>() { tx1 }, TestActor));
 			Watch(executor1);
-			executor1.Tell(new StartExecutionMessage());
+			executor1.Tell(StartExecutionMessage.Instance);
 			var result = ExpectMsg<TransactionResultMessage>().TransactionResult;
 			Assert.Equal(tx1.GetHash(), result.TransactionId);
 			Assert.Equal(Status.Mined, result.Status);
@@ -86,7 +86,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			// Insufficient balance
 			var tx2 = GetTransaction(from, to, 100);
 			var executor2 = ActorOf(ParallelExecutionJobExecutor.Props(_chainContext, new List<Transaction>() { tx2 }, TestActor));
-			executor2.Tell(new StartExecutionMessage());
+			executor2.Tell(StartExecutionMessage.Instance);
 			result = ExpectMsg<TransactionResultMessage>().TransactionResult;
 			Assert.Equal(Status.ExecutedFailed, result.Status);
 			Assert.Equal((ulong)90, smartContractZero.GetBalance(from));
@@ -120,7 +120,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
 			var executor1 = ActorOf(ParallelExecutionJobExecutor.Props(_chainContext, job1, TestActor));
 			Watch(executor1);
-			executor1.Tell(new StartExecutionMessage());
+			executor1.Tell(StartExecutionMessage.Instance);
 			var result1 = ExpectMsg<TransactionResultMessage>().TransactionResult;
 			var result2 = ExpectMsg<TransactionResultMessage>().TransactionResult;
 			Assert.Equal(tx1.GetHash(), result1.TransactionId);

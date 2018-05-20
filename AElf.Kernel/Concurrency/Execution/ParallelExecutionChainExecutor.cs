@@ -48,7 +48,7 @@ namespace AElf.Kernel.Concurrency.Execution
 						_currentExecutor = Context.ActorOf(ParallelExecutionBatchExecutor.Props(_chainContext, req.Transactions, Self, ParallelExecutionBatchExecutor.ChildType.Group));
 						_currentTransactionResults = new Dictionary<Hash, TransactionResult>();
 						Context.Watch(_currentExecutor);
-						_currentExecutor.Tell(new StartExecutionMessage());
+						_currentExecutor.Tell(StartExecutionMessage.Instance);
 					}
 					break;
 				case TransactionResultMessage res:

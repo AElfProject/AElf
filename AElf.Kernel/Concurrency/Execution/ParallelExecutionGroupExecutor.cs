@@ -36,7 +36,7 @@ namespace AElf.Kernel.Concurrency.Execution
 
 		protected override void PreStart()
 		{
-			Context.System.Scheduler.ScheduleTellOnce(new TimeSpan(0, 0, 0), Self, new StartBatchingMessage(), Self);
+			Context.System.Scheduler.ScheduleTellOnce(new TimeSpan(0, 0, 0), Self, StartBatchingMessage.Instance, Self);
 		}
 
 		protected override void OnReceive(object message)
@@ -94,7 +94,7 @@ namespace AElf.Kernel.Concurrency.Execution
 				else
 				{
 					_currentRunningIndex++;
-					_actors[_currentRunningIndex].Tell(new StartExecutionMessage());
+					_actors[_currentRunningIndex].Tell(StartExecutionMessage.Instance);
 				}
 			}
 		}

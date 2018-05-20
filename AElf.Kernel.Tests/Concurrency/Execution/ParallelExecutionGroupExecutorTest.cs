@@ -101,7 +101,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
 			var executor1 = sys.ActorOf(ParallelExecutionGroupExecutor.Props(_chainContext, txs, TestActor));
 			Watch(executor1);
-			executor1.Tell(new StartExecutionMessage());
+			executor1.Tell(StartExecutionMessage.Instance);
 			var results = new List<TransactionResult>()
 			{
 				ExpectMsg<TransactionResultMessage>().TransactionResult,
