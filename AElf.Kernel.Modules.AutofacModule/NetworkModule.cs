@@ -11,14 +11,14 @@ using Autofac;
 
          public NetworkModule(IAElfServerConfig serverConfig, IAElfNetworkConfig netConfig)
          {
-             ServerConfig = serverConfig;
-             NetConfig = netConfig;
+             ServerConfig = serverConfig ?? new TcpServerConfig();
+             NetConfig = netConfig ?? new AElfNetworkConfig();
          }
 
          protected override void Load(ContainerBuilder builder)
          {
-             builder.RegisterType<AElfNetworkConfig>().As<IAElfNetworkConfig>();
-             builder.RegisterType<AElfTcpServer>().As<IAElfServerConfig>();
+             builder.RegisterInstance(NetConfig).As<IAElfNetworkConfig>();
+             builder.RegisterInstance(ServerConfig).As<IAElfServerConfig>();
              
              builder.RegisterType<AElfTcpServer>().As<IAElfServer>();
          }
