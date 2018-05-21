@@ -5,26 +5,27 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NLog;
 
 namespace AElf.Kernel.Node.Network
 {
     public class AElfTcpServer : IAElfServer
     {
-        //public event EventHandler<ClientAcceptedEventArgs> OnClientAcceptedEvent;
-
         private readonly List<TcpClient> _connectedClients;
         
         private TcpListener _listener;
         private TcpServerConfig _config;
+
+        private ILogger _logger;
         
         private CancellationTokenSource _tokenSource;
         private CancellationToken _token;
 
-        public AElfTcpServer() : this(null)
+        public AElfTcpServer(ILogger logger) : this(null, logger)
         {
         }
 
-        public AElfTcpServer(TcpServerConfig config)
+        public AElfTcpServer(TcpServerConfig config, ILogger logger)
         {
             if (config == null)
                 _config = new TcpServerConfig();
@@ -32,22 +33,22 @@ namespace AElf.Kernel.Node.Network
                 _config = config;
             
             _connectedClients = new List<TcpClient>();
+            _logger = logger;
         }
 
         public async Task Start(CancellationToken? token = null)
         {
-            //---listen at the specified IP and port no.---
-            _listener = new TcpListener(IPAddress.Parse(_config.Host), _config.Port);
             try
             {
+                _listener = new TcpListener(IPAddress.Parse(_config.Host), _config.Port);
                 _listener.Start();
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.Error(e, "An error occurred while starting the server");
             }
             
-            Console.WriteLine("Listening on " + _listener.LocalEndpoint);
+            _logger.Info("Server listening on " + _listener.LocalEndpoint);
             
             _tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token ?? new CancellationToken());
             _token = _tokenSource.Token;
@@ -56,18 +57,14 @@ namespace AElf.Kernel.Node.Network
             {
                 while (!_token.IsCancellationRequested)
                 {
-                    Console.WriteLine("Waiting for something to accept...");
                     TcpClient client = await _listener.AcceptTcpClientAsync();
                     
                     Task.Run(async () =>
                     {
-                        Console.WriteLine("[SERVER] Connection received.");
-                        //await Task.Delay(2000);
+                        _logger.Info("[SERVER] Connection received.");
 
                         await ProcessIncomingConnection(client);
-                        //OnClientAcceptedEvent?.Invoke(this, new ClientAcceptedEventArgs(client.GetStream()));
 
-                        Console.WriteLine("Processing finished...");
                     }, _token);
                 }
             }
@@ -81,16 +78,16 @@ namespace AElf.Kernel.Node.Network
         {
             if (client == null)
             {
-                Console.WriteLine("[INC CONNECTION] Refused because client was null");
+                _logger.Error("Connection refused: null client");
                 return;
             }
             
             _connectedClients.Add(client);
             
-            // Auth
+            // Fake auth - todo
             string name = await GetNameAsync(client);
             
-            Console.WriteLine("[SERVER] Got name : " + name);
+            _logger.Info("Connection established");
         }
 
         private async Task<string> GetNameAsync(TcpClient client)

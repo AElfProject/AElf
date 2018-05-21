@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Node.Network;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
 using NLog;
@@ -12,19 +13,23 @@ namespace AElf.Kernel.Node
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
+        private readonly IAElfServer _server;
         
-        public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, ILogger logger)
+        public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
+            IAElfServer server, ILogger logger)
         {
             _poolService = poolService;
             _transactionManager = txManager;
             _rpcServer = rpcServer;
             _logger = logger;
+            _server = server;
         }
 
         public void Start()
         {
             _poolService.Start();
             _rpcServer.Start();
+            _server.Start();
             
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
