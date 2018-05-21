@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Akka.Actor;
 using AElf.Kernel.Concurrency.Execution.Messages;
-using AElf.Kernel.Concurrency;
+using AElf.Kernel.Concurrency.Scheduling;
 
 namespace AElf.Kernel.Concurrency.Execution
 {

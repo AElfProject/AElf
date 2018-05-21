@@ -26,6 +26,7 @@
     <Folder Include="Concurrency\Execution\Protobuf\" />
     <Folder Include="Concurrency\Execution\Protobuf\Proto\" />
     <Folder Include="Concurrency\Execution\Protobuf\Generated\" />
+    <Folder Include="Concurrency\Scheduling\" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Google.Protobuf">

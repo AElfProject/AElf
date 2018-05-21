@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace AElf.Kernel.Concurrency
+namespace AElf.Kernel.Concurrency.Scheduling
 {
     public interface IBatcher
     {
