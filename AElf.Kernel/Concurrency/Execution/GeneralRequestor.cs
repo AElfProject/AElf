@@ -36,7 +36,7 @@ namespace AElf.Kernel.Concurrency.Execution
 		{
 			if (!_requestorByChainId.TryGetValue(chainId, out var actor))
 			{
-				actor = Context.ActorOf(ChainRequestor.Props(_system, chainId), "chainrequestor-" + chainId.ToByteArray().ToHex());
+				actor = Context.ActorOf(ChainRequestor.Props(_system, chainId), "0x" + chainId.ToByteArray().ToHex());
 				_requestorByChainId.Add(chainId, actor);
 			}
 			return actor;
