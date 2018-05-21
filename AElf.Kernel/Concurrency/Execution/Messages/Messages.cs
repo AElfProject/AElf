@@ -68,7 +68,7 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 	/// </summary>
 	public sealed class LocalExecuteTransactionsMessage
 	{
-		public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions, TaskCompletionSource<bool> taskCompletionSource)
+		public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions, TaskCompletionSource<List<TransactionResult>> taskCompletionSource)
 		{
 			ChainId = chainId;
 			Transactions = transactions;
@@ -77,7 +77,7 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 
 		public Hash ChainId { get; }
 		public List<Transaction> Transactions { get; }
-		public TaskCompletionSource<bool> TaskCompletionSource { get; }
+		public TaskCompletionSource<List<TransactionResult>> TaskCompletionSource { get; }
 	}
 
 	public sealed class TransactionResultMessage

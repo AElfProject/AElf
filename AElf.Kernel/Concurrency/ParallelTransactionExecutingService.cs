@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Akka.Actor;
+using AElf.Kernel;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
 
@@ -18,11 +19,11 @@ namespace AElf.Kernel.Concurrency
 			_requestor = system.ActorOf(ParallelExecutionGeneralRequestor.Props(system));
 		}
 
-		public async Task ExecuteAsync(List<Transaction> transactions, Hash chainId)
+		public async Task<List<TransactionResult>> ExecuteAsync(List<Transaction> transactions, Hash chainId)
 		{
-			TaskCompletionSource<bool> taskCompletionSource = new TaskCompletionSource<bool>();
+			var taskCompletionSource = new TaskCompletionSource<List<TransactionResult>>();
 			_requestor.Tell(new LocalExecuteTransactionsMessage(chainId, transactions, taskCompletionSource));
-			await taskCompletionSource.Task;
+			return await taskCompletionSource.Task;
 		}
         
 		// TODO: Maybe we need a finalizer

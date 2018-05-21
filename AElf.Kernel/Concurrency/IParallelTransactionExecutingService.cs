@@ -5,6 +5,6 @@ namespace AElf.Kernel
 {
 	public interface IParallelTransactionExecutingService
     {
-		Task ExecuteAsync(List<Transaction> transactions, Hash chainId);
+		Task<List<TransactionResult>> ExecuteAsync(List<Transaction> transactions, Hash chainId);
     }
 }

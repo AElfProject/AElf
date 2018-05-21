@@ -7,6 +7,7 @@ using Xunit.Frameworks.Autofac;
 using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
+using AElf.Kernel;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Services;
@@ -82,7 +83,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
          
 			var requestor = sys.ActorOf(ParallelExecutionChainRequestor.Props(sys, _chainContext.ChainId));
    
-			var tcs = new TaskCompletionSource<bool>();
+			var tcs = new TaskCompletionSource<List<TransactionResult>>();
 			requestor.Tell(new LocalExecuteTransactionsMessage(_chainContext.ChainId, txs, tcs));
 			tcs.Task.Wait(TimeSpan.FromSeconds(3));
 			foreach (var addFinbal in addresses.Zip(finalBalances, Tuple.Create))
