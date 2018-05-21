@@ -103,10 +103,10 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
 			var tcs = new TaskCompletionSource<List<TransactionResult>>();         
 			requestor.Tell(new LocalExecuteTransactionsMessage(_chainContext.ChainId, txs1, tcs));
-			tcs.Task.Wait(TimeSpan.FromSeconds(3));
+			tcs.Task.Wait();
 			var tcs2 = new TaskCompletionSource<List<TransactionResult>>();
 			requestor.Tell(new LocalExecuteTransactionsMessage(_chainContext2.ChainId, txs2, tcs2));
-			tcs2.Task.Wait(TimeSpan.FromSeconds(3));
+			tcs2.Task.Wait();
 
 			foreach (var addFinbal in addresses.Zip(finalBalances1, Tuple.Create))
 			{

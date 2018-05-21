@@ -85,7 +85,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
    
 			var tcs = new TaskCompletionSource<List<TransactionResult>>();
 			requestor.Tell(new LocalExecuteTransactionsMessage(_chainContext.ChainId, txs, tcs));
-			tcs.Task.Wait(TimeSpan.FromSeconds(3));
+			tcs.Task.Wait();
 			foreach (var addFinbal in addresses.Zip(finalBalances, Tuple.Create))
             {
                 Assert.Equal((ulong)addFinbal.Item2, _smartContractZero.GetBalance(addFinbal.Item1));

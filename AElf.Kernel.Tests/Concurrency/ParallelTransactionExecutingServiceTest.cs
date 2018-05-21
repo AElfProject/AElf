@@ -84,7 +84,16 @@ namespace AElf.Kernel.Tests.Concurrency
 			var chainExecutor = sys.ActorOf(ParallelExecutionChainExecutor.Props(_chainContext, _accountContextService), "chainexecutor-" + _chainContext.ChainId.ToByteArray().ToHex());
 
 			var service = new ParallelTransactionExecutingService(sys);
-			service.ExecuteAsync(txs, _chainContext.ChainId).Wait(TimeSpan.FromSeconds(3));
+
+			var txsResults = Task.Factory.StartNew(async () =>
+			{
+				return await service.ExecuteAsync(txs, _chainContext.ChainId);
+			}).Unwrap().Result;
+			foreach (var txRes in txs.Zip(txsResults, Tuple.Create))
+			{
+				Assert.Equal(txRes.Item1.GetHash(), txRes.Item2.TransactionId);
+				Assert.Equal(Status.Mined, txRes.Item2.Status);
+			}
 			foreach (var addFinbal in addresses.Zip(finalBalances, Tuple.Create))
 			{
 				Assert.Equal((ulong)addFinbal.Item2, _smartContractZero.GetBalance(addFinbal.Item1));
