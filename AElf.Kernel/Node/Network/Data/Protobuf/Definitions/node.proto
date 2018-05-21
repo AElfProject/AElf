@@ -2,6 +2,6 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.Network";
 
-message Peer {
-    string IP = 1;
+message Node {
+    string IpAddress = 1;
 }
