@@ -16,7 +16,7 @@ namespace AElf.Kernel.Concurrency.Execution
 	{
 		private readonly ActorSystem _system;
 		private readonly Hash _chainId;
-		private ActorSelection _chainExecutor;
+		private ActorSelection _chainExecutorActorSelection;
 		private long _nextRequestId = 0;
 		private Dictionary<long, TaskCompletionSource<List<TransactionResult>>> _requestIdToTaskCompleteSource = new Dictionary<long, TaskCompletionSource<List<TransactionResult>>>();
 
@@ -25,7 +25,7 @@ namespace AElf.Kernel.Concurrency.Execution
 			// TODO: Check Chain Executor valid
 			_system = system;
 			_chainId = chainId;
-			_chainExecutor = system.ActorSelection("/user/chainexecutor-" + chainId.ToByteArray().ToHex());
+			_chainExecutorActorSelection = system.ActorSelection("/user/chainexecutor-" + chainId.ToByteArray().ToHex());
 		}
 
 		protected override void OnReceive(object message)
@@ -35,9 +35,9 @@ namespace AElf.Kernel.Concurrency.Execution
 				case LocalExecuteTransactionsMessage req:
 					var reqId = GetNextRequestId();
 					_requestIdToTaskCompleteSource.Add(reqId, req.TaskCompletionSource);
-					_chainExecutor.Tell(new RequestExecuteTransactions(reqId, req.Transactions));
+					_chainExecutorActorSelection.Tell(new RequestExecuteTransactions(reqId, req.Transactions));
 					break;
-				case RespondExecuteTransactions res when Sender.Equals(_chainExecutor):
+				case RespondExecuteTransactions res:
 					if (_requestIdToTaskCompleteSource.TryGetValue(res.RequestId, out var taskCompletionSource))
 					{
 						taskCompletionSource.TrySetResult(res.TransactionResults);
