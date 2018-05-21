@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Node.Network.Helpers;
 using NLog;
 
 namespace AElf.Kernel.Node.Network
@@ -61,7 +62,7 @@ namespace AElf.Kernel.Node.Network
                     
                     Task.Run(async () =>
                     {
-                        _logger.Info("[SERVER] Connection received.");
+                        _logger.Info("Connection received.");
 
                         await ProcessIncomingConnection(client);
 
