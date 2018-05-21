@@ -14,13 +14,13 @@ using Google.Protobuf;
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
 	[UseAutofacTestFramework]
-	public class ParallelExecutionChainExecutorTests : TestKitBase
+	public class ChainExecutorTest : TestKitBase
 	{
 		private ActorSystem sys = ActorSystem.Create("test");
 		private ChainContextWithSmartContractZeroWithTransfer _chainContext;
 		private AccountContextService _accountContextService;
 
-		public ParallelExecutionChainExecutorTests(ChainContextWithSmartContractZeroWithTransfer chainContext, AccountContextService accountContextService) : base(new XunitAssertions())
+		public ChainExecutorTest(ChainContextWithSmartContractZeroWithTransfer chainContext, AccountContextService accountContextService) : base(new XunitAssertions())
 		{
 			_chainContext = chainContext;
 			_accountContextService = accountContextService;
@@ -30,7 +30,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		public void RequestAccountDataContextTest()
 		{
 			Hash accountHash = Hash.Generate();
-			var chainExecutor = sys.ActorOf(ParallelExecutionChainExecutor.Props(_chainContext, _accountContextService));
+			var chainExecutor = sys.ActorOf(ChainExecutor.Props(_chainContext, _accountContextService));
 
 			chainExecutor.Tell(new RequestAccountDataContext(42, accountHash));
 			var accountDataContext = ExpectMsg<RespondAccountDataContext>();
@@ -117,7 +117,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 90, 1, 9, 192, 8
             };
 
-			var chainExecutor = sys.ActorOf(ParallelExecutionChainExecutor.Props(_chainContext, _accountContextService));
+			var chainExecutor = sys.ActorOf(ChainExecutor.Props(_chainContext, _accountContextService));
 
 			chainExecutor.Tell(new RequestExecuteTransactions(33, txs));
 			var respond = ExpectMsg<RespondExecuteTransactions>();

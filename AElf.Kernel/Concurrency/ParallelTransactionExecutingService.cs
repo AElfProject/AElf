@@ -16,7 +16,7 @@ namespace AElf.Kernel.Concurrency
 		public ParallelTransactionExecutingService(ActorSystem system)
 		{
 			_system = system;
-			_requestor = system.ActorOf(ParallelExecutionGeneralRequestor.Props(system));
+			_requestor = system.ActorOf(GeneralRequestor.Props(system));
 		}
 
 		public async Task<List<TransactionResult>> ExecuteAsync(List<Transaction> transactions, Hash chainId)

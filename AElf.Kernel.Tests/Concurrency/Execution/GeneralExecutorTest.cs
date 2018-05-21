@@ -15,7 +15,7 @@ using Google.Protobuf;
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
 	[UseAutofacTestFramework]
-	public class ParallelExecutionGeneralExecutorTest : TestKitBase
+	public class GeneralExecutorTest : TestKitBase
 	{
 		private ActorSystem sys = ActorSystem.Create("test");
 		private ChainContextWithSmartContractZeroWithTransfer _chainContext;
@@ -23,12 +23,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		private IAccountContextService _accountContextService;
 		private IActorRef _generalExecutor;
 
-		public ParallelExecutionGeneralExecutorTest(ChainContextServiceWithAdd chainContextService, AccountContextService accountContextService, ChainContextWithSmartContractZeroWithTransfer chainContext) : base(new XunitAssertions())
+		public GeneralExecutorTest(ChainContextServiceWithAdd chainContextService, AccountContextService accountContextService, ChainContextWithSmartContractZeroWithTransfer chainContext) : base(new XunitAssertions())
 		{
 			_chainContextService = chainContextService;
 			_accountContextService = accountContextService;
 			_chainContext = chainContext;
-			_generalExecutor = sys.ActorOf(ParallelExecutionGeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
+			_generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
 		}
 
 		[Fact]

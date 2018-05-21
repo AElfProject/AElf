@@ -8,7 +8,7 @@ namespace AElf.Kernel.Concurrency.Execution
 	/// <summary>
 	/// Group executor puts a list of transactions into batchs and run them in sequence.
 	/// </summary>
-	public class ParallelExecutionGroupExecutor : UntypedActor
+	public class GroupExecutor : UntypedActor
 	{
 		enum State
 		{
@@ -27,7 +27,7 @@ namespace AElf.Kernel.Concurrency.Execution
 		private List<IActorRef> _actors = new List<IActorRef>();
 		private Dictionary<Hash, TransactionResult> _transactionResults = new Dictionary<Hash, TransactionResult>();
 
-		public ParallelExecutionGroupExecutor(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector)
+		public GroupExecutor(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector)
 		{
 			_chainContext = chainContext;
 			_transactions = transactions;
@@ -76,7 +76,7 @@ namespace AElf.Kernel.Concurrency.Execution
 		{
 			foreach (var txs in _batched)
 			{
-				var actor = Context.ActorOf(ParallelExecutionJobExecutor.Props(_chainContext, txs, Self));
+				var actor = Context.ActorOf(JobExecutor.Props(_chainContext, txs, Self));
 				_actors.Add(actor);
 				Context.Watch(actor);
 			}
@@ -109,7 +109,7 @@ namespace AElf.Kernel.Concurrency.Execution
 
 		public static Props Props(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector)
 		{
-			return Akka.Actor.Props.Create(() => new ParallelExecutionGroupExecutor(chainContext, transactions, resultCollector));
+			return Akka.Actor.Props.Create(() => new GroupExecutor(chainContext, transactions, resultCollector));
 		}
 
 	}

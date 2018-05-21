@@ -12,7 +12,7 @@ namespace AElf.Kernel.Concurrency.Execution
 	/// <summary>
 	/// Used locally to send request to chain executor of the repective chain.
 	/// </summary>
-	public class ParallelExecutionChainRequestor : UntypedActor
+	public class ChainRequestor : UntypedActor
 	{
 		private readonly ActorSystem _system;
 		private readonly Hash _chainId;
@@ -20,7 +20,7 @@ namespace AElf.Kernel.Concurrency.Execution
 		private long _nextRequestId = 0;
 		private Dictionary<long, TaskCompletionSource<List<TransactionResult>>> _requestIdToTaskCompleteSource = new Dictionary<long, TaskCompletionSource<List<TransactionResult>>>();
 
-		public ParallelExecutionChainRequestor(ActorSystem system, Hash chainId)
+		public ChainRequestor(ActorSystem system, Hash chainId)
 		{
 			// TODO: Check Chain Executor valid
 			_system = system;
@@ -53,7 +53,7 @@ namespace AElf.Kernel.Concurrency.Execution
 
 		public static Props Props(ActorSystem system, Hash chainId)
 		{
-			return Akka.Actor.Props.Create(() => new ParallelExecutionChainRequestor(system, chainId));
+			return Akka.Actor.Props.Create(() => new ChainRequestor(system, chainId));
 		}
 
 	}

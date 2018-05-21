@@ -6,7 +6,7 @@ using AElf.Kernel.Concurrency.Execution.Messages;
 
 namespace AElf.Kernel.Concurrency.Execution
 {
-	public class ParallelExecutionChainExecutor : UntypedActor
+	public class ChainExecutor : UntypedActor
 	{
 		enum State
 		{
@@ -21,7 +21,7 @@ namespace AElf.Kernel.Concurrency.Execution
 		private IActorRef _currentExecutor;
 		private Dictionary<Hash, TransactionResult> _currentTransactionResults;
 
-		public ParallelExecutionChainExecutor(IChainContext chainContext, IAccountContextService accountContextService)
+		public ChainExecutor(IChainContext chainContext, IAccountContextService accountContextService)
 		{
 			_chainContext = chainContext;
 			_accountContextService = accountContextService;
@@ -45,7 +45,7 @@ namespace AElf.Kernel.Concurrency.Execution
 						// Currently only supports one request at a time
 						_currentRequestor = Sender;
 						_currentRequest = req;
-						_currentExecutor = Context.ActorOf(ParallelExecutionBatchExecutor.Props(_chainContext, req.Transactions, Self, ParallelExecutionBatchExecutor.ChildType.Group));
+						_currentExecutor = Context.ActorOf(BatchExecutor.Props(_chainContext, req.Transactions, Self, BatchExecutor.ChildType.Group));
 						_currentTransactionResults = new Dictionary<Hash, TransactionResult>();
 						Context.Watch(_currentExecutor);
 						_currentExecutor.Tell(StartExecutionMessage.Instance);
@@ -86,7 +86,7 @@ namespace AElf.Kernel.Concurrency.Execution
 
 		public static Props Props(IChainContext chainContext, IAccountContextService accountContextService)
 		{
-			return Akka.Actor.Props.Create(() => new ParallelExecutionChainExecutor(chainContext, accountContextService));
+			return Akka.Actor.Props.Create(() => new ChainExecutor(chainContext, accountContextService));
 		}
 
 	}

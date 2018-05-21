@@ -11,14 +11,14 @@ namespace AElf.Kernel.Concurrency.Execution
 	/// <summary>
 	/// Manages all chain executors.
 	/// </summary>
-	public class ParallelExecutionGeneralExecutor : UntypedActor
+	public class GeneralExecutor : UntypedActor
 	{
 		private readonly ActorSystem _system;
 		private readonly IChainContextService _chainContextService;
 		private readonly IAccountContextService _accountContextService;
 		private Dictionary<Hash, IActorRef> _executorByChainId = new Dictionary<Hash, IActorRef>();
 
-		public ParallelExecutionGeneralExecutor(ActorSystem system, IChainContextService chainContextService, IAccountContextService accountContextService)
+		public GeneralExecutor(ActorSystem system, IChainContextService chainContextService, IAccountContextService accountContextService)
 		{
 			_system = system;
 			_chainContextService = chainContextService;
@@ -34,7 +34,7 @@ namespace AElf.Kernel.Concurrency.Execution
 					{
 						// TODO: Handle chainId not found in chain context service
 						// TODO: Don't need prefix "0x" if Hash.Zero's string representation is not empty
-						actor = Context.ActorOf(ParallelExecutionChainExecutor.Props(_chainContextService.GetChainContext(req.ChainId), _accountContextService), "0x" + req.ChainId.ToByteArray().ToHex());
+						actor = Context.ActorOf(ChainExecutor.Props(_chainContextService.GetChainContext(req.ChainId), _accountContextService), "0x" + req.ChainId.ToByteArray().ToHex());
 						_executorByChainId.Add(req.ChainId, actor);
 					}
 					Sender.Tell(new RespondAddChainExecutor(req.ChainId, actor));
@@ -61,7 +61,7 @@ namespace AElf.Kernel.Concurrency.Execution
 
 		public static Props Props(ActorSystem system, IChainContextService chainContextService, IAccountContextService accountContextService)
 		{
-			return Akka.Actor.Props.Create(() => new ParallelExecutionGeneralExecutor(system, chainContextService, accountContextService));
+			return Akka.Actor.Props.Create(() => new GeneralExecutor(system, chainContextService, accountContextService));
 		}
 	}
 }

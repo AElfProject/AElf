@@ -34,7 +34,7 @@ namespace AElf.Kernel.Tests.Concurrency
 			_chainContextService = chainContextService;
 			_chainContext = chainContext;
 			_accountContextService = accountContextService;
-			_generalExecutor = sys.ActorOf(ParallelExecutionGeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
+			_generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
 		}
 
 		private Transaction GetTransaction(Hash from, Hash to, ulong qty)

@@ -11,12 +11,12 @@ namespace AElf.Kernel.Concurrency.Execution
 	/// <summary>
 	/// Supervises Chain Requestors and forward messages to them according to ChainId.
 	/// </summary>
-	public class ParallelExecutionGeneralRequestor : UntypedActor
+	public class GeneralRequestor : UntypedActor
 	{
 		private readonly ActorSystem _system;
 		private Dictionary<Hash, IActorRef> _requestorByChainId = new Dictionary<Hash, IActorRef>();
 
-		public ParallelExecutionGeneralRequestor(ActorSystem system)
+		public GeneralRequestor(ActorSystem system)
 		{
 			_system = system;
 		}
@@ -36,7 +36,7 @@ namespace AElf.Kernel.Concurrency.Execution
 		{
 			if (!_requestorByChainId.TryGetValue(chainId, out var actor))
 			{
-				actor = Context.ActorOf(ParallelExecutionChainRequestor.Props(_system, chainId), "chainrequestor-" + chainId.ToByteArray().ToHex());
+				actor = Context.ActorOf(ChainRequestor.Props(_system, chainId), "chainrequestor-" + chainId.ToByteArray().ToHex());
 				_requestorByChainId.Add(chainId, actor);
 			}
 			return actor;
@@ -44,7 +44,7 @@ namespace AElf.Kernel.Concurrency.Execution
 
         public static Props Props(ActorSystem system)
         {
-			return Akka.Actor.Props.Create(() => new ParallelExecutionGeneralRequestor(system));
+			return Akka.Actor.Props.Create(() => new GeneralRequestor(system));
         }
 	}
 }

@@ -10,7 +10,7 @@ namespace AElf.Kernel.Concurrency.Execution
 	/// <summary>
     /// Job executor runs a list of transactions sequentially.
     /// </summary>
-	public class ParallelExecutionJobExecutor : UntypedActor
+	public class JobExecutor : UntypedActor
 	{
 		enum State
 		{
@@ -25,7 +25,7 @@ namespace AElf.Kernel.Concurrency.Execution
 		private Hash _currentTransactionHash;
 		private Dictionary<Hash, TransactionResult> _transactionResults = new Dictionary<Hash, TransactionResult>();
 
-		public ParallelExecutionJobExecutor(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector)
+		public JobExecutor(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector)
 		{
 			_chainContext = chainContext;
 			_transactions = transactions;
@@ -100,7 +100,7 @@ namespace AElf.Kernel.Concurrency.Execution
 
 		public static Props Props(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector)
 		{
-			return Akka.Actor.Props.Create(() => new ParallelExecutionJobExecutor(chainContext, transactions, resultCollector));
+			return Akka.Actor.Props.Create(() => new JobExecutor(chainContext, transactions, resultCollector));
 		}
 	}
 }

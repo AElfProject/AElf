@@ -18,7 +18,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 {
 
 	[UseAutofacTestFramework]
-	public class ParallelExecutionGeneralRequestorTest : TestKitBase
+	public class GeneralRequestorTest : TestKitBase
 	{
 		private ActorSystem sys = ActorSystem.Create("test");
 		private ChainContextServiceWithAdd _chainContextService;
@@ -30,7 +30,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		private AccountContextService _accountContextService;
 		private IActorRef _generalExecutor;
 
-		public ParallelExecutionGeneralRequestorTest(
+		public GeneralRequestorTest(
 			ChainContextServiceWithAdd chainContextService,
 			ChainContextWithSmartContractZeroWithTransfer chainContext,
 			ChainContextWithSmartContractZeroWithTransfer2 chainContext2,
@@ -40,7 +40,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			_chainContext = chainContext;
             _chainContext2 = chainContext2;
 			_accountContextService = accountContextService;
-			_generalExecutor = sys.ActorOf(ParallelExecutionGeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
+			_generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
 		}
 
 		private Transaction GetTransaction(Hash from, Hash to, ulong qty)
@@ -112,7 +112,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			//var chainExecutor = sys.ActorOf(ParallelExecutionChainExecutor.Props(_chainContext, _accountContextService), "chainexecutor-" + _chainContext.ChainId.ToByteArray().ToHex());
 			//var chainExecutor2 = sys.ActorOf(ParallelExecutionChainExecutor.Props(_chainContext2, _accountContextService), "chainexecutor-" + _chainContext2.ChainId.ToByteArray().ToHex());
 
-			var requestor = sys.ActorOf(ParallelExecutionGeneralRequestor.Props(sys));
+			var requestor = sys.ActorOf(GeneralRequestor.Props(sys));
 
 			var tcs = new TaskCompletionSource<List<TransactionResult>>();         
 			requestor.Tell(new LocalExecuteTransactionsMessage(_chainContext.ChainId, txs1, tcs));

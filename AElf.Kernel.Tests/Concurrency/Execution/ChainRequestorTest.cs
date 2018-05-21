@@ -17,7 +17,7 @@ using Google.Protobuf;
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
 	[UseAutofacTestFramework]
-	public class ParallelExecutionChainRequestorTest : TestKitBase
+	public class ChainRequestorTest : TestKitBase
 	{
 		private ActorSystem sys = ActorSystem.Create("test");
 		private IActorRef _generalExecutor;
@@ -27,12 +27,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		private SmartContractZeroWithTransfer _smartContractZero { get { return (_chainContext.SmartContractZero as SmartContractZeroWithTransfer); } }
 		private AccountContextService _accountContextService;
       
-		public ParallelExecutionChainRequestorTest(ChainContextServiceWithAdd chainContextService, AccountContextService accountContextService, ChainContextWithSmartContractZeroWithTransfer chainContext) : base(new XunitAssertions())
+		public ChainRequestorTest(ChainContextServiceWithAdd chainContextService, AccountContextService accountContextService, ChainContextWithSmartContractZeroWithTransfer chainContext) : base(new XunitAssertions())
 		{
 			_chainContextService = chainContextService;
 			_chainContext = chainContext;
 			_accountContextService = accountContextService;
-			_generalExecutor = sys.ActorOf(ParallelExecutionGeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
+			_generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
 		}
 
 		private Transaction GetTransaction(Hash from, Hash to, ulong qty)
@@ -89,7 +89,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			_generalExecutor.Tell(new RequestAddChainExecutor(_chainContext.ChainId));
 			ExpectMsg<RespondAddChainExecutor>();
 
-			var requestor = sys.ActorOf(ParallelExecutionChainRequestor.Props(sys, _chainContext.ChainId));
+			var requestor = sys.ActorOf(ChainRequestor.Props(sys, _chainContext.ChainId));
    
 			var tcs = new TaskCompletionSource<List<TransactionResult>>();
 			requestor.Tell(new LocalExecuteTransactionsMessage(_chainContext.ChainId, txs, tcs));

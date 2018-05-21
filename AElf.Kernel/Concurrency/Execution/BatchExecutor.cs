@@ -10,7 +10,7 @@ namespace AElf.Kernel.Concurrency.Execution
 	/// <summary>
 	/// Batch executor groups a list of transactions into groups/jobs and run them in parallel.
 	/// </summary>
-	public class ParallelExecutionBatchExecutor : UntypedActor
+	public class BatchExecutor : UntypedActor
 	{
 		public enum ChildType
 		{
@@ -34,7 +34,7 @@ namespace AElf.Kernel.Concurrency.Execution
 		private Dictionary<IActorRef, List<Transaction>> _actorToTransactions = new Dictionary<IActorRef, List<Transaction>>();
 		private Dictionary<Hash, TransactionResult> _transactionResults = new Dictionary<Hash, TransactionResult>();
 
-		public ParallelExecutionBatchExecutor(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector, ChildType childType)
+		public BatchExecutor(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector, ChildType childType)
 		{
 			_chainContext = chainContext;
 			_transactions = transactions;
@@ -85,11 +85,11 @@ namespace AElf.Kernel.Concurrency.Execution
 				IActorRef actor = null;
 				if (_childType == ChildType.Group)
 				{
-					actor = Context.ActorOf(ParallelExecutionGroupExecutor.Props(_chainContext, txs, Self));
+					actor = Context.ActorOf(GroupExecutor.Props(_chainContext, txs, Self));
 				}
 				else
 				{
-					actor = Context.ActorOf(ParallelExecutionJobExecutor.Props(_chainContext, txs, Self));
+					actor = Context.ActorOf(JobExecutor.Props(_chainContext, txs, Self));
 				}
 
 				_actorToTransactions.Add(actor, txs);
@@ -127,7 +127,7 @@ namespace AElf.Kernel.Concurrency.Execution
 
 		public static Props Props(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector, ChildType childType)
 		{
-			return Akka.Actor.Props.Create(() => new ParallelExecutionBatchExecutor(chainContext, transactions, resultCollector, childType));
+			return Akka.Actor.Props.Create(() => new BatchExecutor(chainContext, transactions, resultCollector, childType));
 		}
 	}
 }

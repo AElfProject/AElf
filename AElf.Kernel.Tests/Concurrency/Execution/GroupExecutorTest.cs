@@ -16,14 +16,14 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 {
 
 	[UseAutofacTestFramework]
-	public class ParallelExecutionBatchExecutorTest : TestKitBase
+	public class GroupExecutorTest : TestKitBase
 	{
 		private ActorSystem sys = ActorSystem.Create("test");
 		private IChainContext _chainContext;
 		private ProtobufSerializer _serializer = new ProtobufSerializer();
 		private SmartContractZeroWithTransfer _smartContractZero { get { return (_chainContext.SmartContractZero as SmartContractZeroWithTransfer); } }
 
-		public ParallelExecutionBatchExecutorTest(ChainContextWithSmartContractZeroWithTransfer chainContext) : base(new XunitAssertions())
+		public GroupExecutorTest(ChainContextWithSmartContractZeroWithTransfer chainContext) : base(new XunitAssertions())
 		{
 			_chainContext = chainContext;
 		}
@@ -65,18 +65,15 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		}
 
 		[Fact]
-		public void TwoJobBatchExecutionTest()
-		{
-			TwoJobBatchExecutionTestWithChildType(ParallelExecutionBatchExecutor.ChildType.Group);
-			TwoJobBatchExecutionTestWithChildType(ParallelExecutionBatchExecutor.ChildType.Job);
-		}
-
-		public void TwoJobBatchExecutionTestWithChildType(ParallelExecutionBatchExecutor.ChildType childType)
+		public void TwoBatchGroupExecutionTest()
 		{
 			/*
-			 *  Job 1: (0-1, 10), (1-2, 9)
-			 *  Job 2: (3-4, 8)
-			 */
+             *  Batch 1:
+             *    Job 1: (0-1, 10), (1-2, 9)
+             *    Job 2: (3-4, 8)
+             *  Batch 2:
+             *    Job 1: (0-3, 7)
+             */
 
 			var balances = new List<int>()
 			{
@@ -92,16 +89,17 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			var txs = new List<Transaction>(){
 				GetTransaction(addresses[0], addresses[1], 10),
 				GetTransaction(addresses[1], addresses[2], 9),
-				GetTransaction(addresses[3], addresses[4], 8)
+				GetTransaction(addresses[3], addresses[4], 8),
+				GetTransaction(addresses[0], addresses[3], 7),
 			};
 			var txsHashes = txs.Select(y => y.GetHash()).ToList();
 
 			var finalBalances = new List<int>
 			{
-				90, 1, 9, 192, 8
+				83, 1, 9, 199, 8
 			};
 
-			var executor1 = sys.ActorOf(ParallelExecutionBatchExecutor.Props(_chainContext, txs, TestActor, childType));
+			var executor1 = sys.ActorOf(GroupExecutor.Props(_chainContext, txs, TestActor));
 			Watch(executor1);
 			executor1.Tell(StartExecutionMessage.Instance);
 			var results = new List<TransactionResult>()
@@ -109,15 +107,18 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 				ExpectMsg<TransactionResultMessage>().TransactionResult,
 				ExpectMsg<TransactionResultMessage>().TransactionResult,
 				ExpectMsg<TransactionResultMessage>().TransactionResult,
+				ExpectMsg<TransactionResultMessage>().TransactionResult,
 			}.OrderBy(y => txsHashes.IndexOf(y.TransactionId)).ToList();
 			ExpectTerminated(executor1);
-			// Job 1: Tx0 -> Tx1 (Tx1 starts after Tx0 finishes)
-			// Job 2: Tx2 (Tx2 starts before Tx1 finishes, not strict, but should be)
-			Assert.True(GetTransactionStartTime(txs[1]) > GetTransactionEndTime(txs[0]));
-			Assert.True(GetTransactionStartTime(txs[2]) < GetTransactionEndTime(txs[1]));
-			Assert.Equal(Status.Mined, results[0].Status);
-			Assert.Equal(Status.Mined, results[1].Status);
-			Assert.Equal(Status.Mined, results[2].Status);
+			// Tx3 starts after all other Tx's are finished
+			foreach (var tx in txs.GetRange(0, 3))
+			{
+				Assert.True(GetTransactionStartTime(txs[3]) > GetTransactionEndTime(tx));
+			}
+			foreach (var r in results)
+			{
+				Assert.Equal(Status.Mined, r.Status);
+			}
 			foreach (var addFinbal in addresses.Zip(finalBalances, Tuple.Create))
 			{
 				Assert.Equal((ulong)addFinbal.Item2, _smartContractZero.GetBalance(addFinbal.Item1));
