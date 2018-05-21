@@ -1,10 +1,10 @@
-﻿namespace AElf.Kernel.Node.Network.Peers
+﻿using System.Collections.Generic;
+
+namespace AElf.Kernel.Node.Network.Peers
 {
     public interface IPeerDatabase
     {
-        void Initialize();
-        
-        void AddPeer(string peerID);
-        void RemovePeer(string peerId);
+        List<IPeer> ReadPeers();
+        void WritePeers(List<IPeer> peerList);
     }
 }
