@@ -10,8 +10,8 @@ using Google.Protobuf;
 namespace AElf.Kernel.Concurrency.Execution
 {
 	/// <summary>
-    /// Used locally to send request to chain executor of the repective chain.
-    /// </summary>
+	/// Used locally to send request to chain executor of the repective chain.
+	/// </summary>
 	public class ParallelExecutionChainRequestor : UntypedActor
 	{
 		private readonly ActorSystem _system;
@@ -25,7 +25,7 @@ namespace AElf.Kernel.Concurrency.Execution
 			// TODO: Check Chain Executor valid
 			_system = system;
 			_chainId = chainId;
-			_chainExecutorActorSelection = system.ActorSelection("/user/chainexecutor-" + chainId.ToByteArray().ToHex());
+			_chainExecutorActorSelection = system.ActorSelection("/user/exec/0x" + chainId.ToByteArray().ToHex());
 		}
 
 		protected override void OnReceive(object message)

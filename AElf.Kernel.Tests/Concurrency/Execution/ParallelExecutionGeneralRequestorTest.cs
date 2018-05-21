@@ -21,21 +21,26 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 	public class ParallelExecutionGeneralRequestorTest : TestKitBase
 	{
 		private ActorSystem sys = ActorSystem.Create("test");
+		private ChainContextServiceWithAdd _chainContextService;
 		private ChainContextWithSmartContractZeroWithTransfer _chainContext;
 		private ChainContextWithSmartContractZeroWithTransfer2 _chainContext2;
 		private ProtobufSerializer _serializer = new ProtobufSerializer();
 		private SmartContractZeroWithTransfer _smartContractZero { get { return (_chainContext.SmartContractZero as SmartContractZeroWithTransfer); } }
 		private SmartContractZeroWithTransfer2 _smartContractZero2 { get { return (_chainContext2.SmartContractZero as SmartContractZeroWithTransfer2); } }
 		private AccountContextService _accountContextService;
+		private IActorRef _generalExecutor;
 
 		public ParallelExecutionGeneralRequestorTest(
+			ChainContextServiceWithAdd chainContextService,
 			ChainContextWithSmartContractZeroWithTransfer chainContext,
 			ChainContextWithSmartContractZeroWithTransfer2 chainContext2,
 			AccountContextService accountContextService) : base(new XunitAssertions())
 		{
+			_chainContextService = chainContextService;
 			_chainContext = chainContext;
             _chainContext2 = chainContext2;
-			_accountContextService = accountContextService;         
+			_accountContextService = accountContextService;
+			_generalExecutor = sys.ActorOf(ParallelExecutionGeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
 		}
 
 		private Transaction GetTransaction(Hash from, Hash to, ulong qty)
@@ -96,8 +101,16 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 80, 20
             };
 
-			var chainExecutor = sys.ActorOf(ParallelExecutionChainExecutor.Props(_chainContext, _accountContextService), "chainexecutor-" + _chainContext.ChainId.ToByteArray().ToHex());
-			var chainExecutor2 = sys.ActorOf(ParallelExecutionChainExecutor.Props(_chainContext2, _accountContextService), "chainexecutor-" + _chainContext2.ChainId.ToByteArray().ToHex());
+			_chainContextService.AddChainContext(_chainContext.ChainId, _chainContext);
+			_generalExecutor.Tell(new RequestAddChainExecutor(_chainContext.ChainId));
+            ExpectMsg<RespondAddChainExecutor>();
+
+			_chainContextService.AddChainContext(_chainContext2.ChainId, _chainContext2);
+            _generalExecutor.Tell(new RequestAddChainExecutor(_chainContext2.ChainId));
+            ExpectMsg<RespondAddChainExecutor>();
+
+			//var chainExecutor = sys.ActorOf(ParallelExecutionChainExecutor.Props(_chainContext, _accountContextService), "chainexecutor-" + _chainContext.ChainId.ToByteArray().ToHex());
+			//var chainExecutor2 = sys.ActorOf(ParallelExecutionChainExecutor.Props(_chainContext2, _accountContextService), "chainexecutor-" + _chainContext2.ChainId.ToByteArray().ToHex());
 
 			var requestor = sys.ActorOf(ParallelExecutionGeneralRequestor.Props(sys));
 
