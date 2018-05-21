@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Services;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
@@ -105,6 +106,22 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		{
 			SmartContractZero = smartContractZero;
 			ChainId = Hash.Generate();
+		}
+	}
+
+	public class ChainContextServiceWithAdd : IChainContextService
+	{
+		private readonly Dictionary<IHash, IChainContext> _chainContexts = new Dictionary<IHash, IChainContext>();
+
+		public void AddChainContext(Hash chainId, IChainContext chainContext)
+		{
+			_chainContexts.Add(chainId, chainContext);
+		}
+
+		public IChainContext GetChainContext(Hash chainId)
+		{
+			_chainContexts.TryGetValue(chainId, out var ctx);
+			return ctx;
 		}
 	}
 

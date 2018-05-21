@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Akka.Actor;
 
 namespace AElf.Kernel.Concurrency.Execution.Messages
 {
@@ -62,6 +63,74 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 		public List<TransactionResult> TransactionResults { get; }
 	}
 	#endregion ExecuteTransactions
+
+	#region Chain Executors
+	public sealed class RequestAddChainExecutor
+	{
+		public RequestAddChainExecutor(Hash chainId)
+		{
+			ChainId = chainId;
+		}
+		public Hash ChainId { get; }
+	}
+
+	public sealed class RespondAddChainExecutor
+	{
+		public RespondAddChainExecutor(Hash chainId, IActorRef actorRef)
+		{
+			ChainId = chainId;
+			ActorRef = actorRef;         
+		}
+		public Hash ChainId { get; }
+		public IActorRef ActorRef { get; }
+	}
+
+
+    public sealed class RequestGetChainExecutor
+    {
+        public RequestGetChainExecutor(Hash chainId)
+        {
+            ChainId = chainId;
+        }
+        public Hash ChainId { get; }
+    }
+
+    public sealed class RespondGetChainExecutor
+    {
+		public RespondGetChainExecutor(Hash chainId, IActorRef actorRef)
+        {
+            ChainId = chainId;
+			ActorRef = actorRef;
+        }
+        public Hash ChainId { get; }
+		public IActorRef ActorRef { get; }
+    }
+
+	public sealed class RequestRemoveChainExecutor
+	{
+		public RequestRemoveChainExecutor(Hash chainId)
+		{
+			ChainId = chainId;
+		}
+		public Hash ChainId { get; }
+	}
+
+	public sealed class RespondRemoveChainExecutor
+	{
+		public enum RemoveStatus
+		{
+			NotExisting,
+			Removed
+		}
+		public RespondRemoveChainExecutor(Hash chainId, RemoveStatus status)
+		{
+			ChainId = chainId;
+			Status = status;
+		}
+		public Hash ChainId { get; }
+		public RemoveStatus Status { get; }
+	}   
+	#endregion Chain Executors
 
 	/// <summary>
 	/// Message sent to local requestor for transaction execution.
