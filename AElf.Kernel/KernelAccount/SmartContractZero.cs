@@ -108,6 +108,7 @@ namespace AElf.Kernel.KernelAccount
             
             // get account dataprovider
             var adp = _worldStateManager.GetAccountDataProvider(hash);
+            
             // run smartcontract instance info and return smartcontract
             var smartContract = await runner.RunAsync(reg, deployment, adp);
             
@@ -124,21 +125,5 @@ namespace AElf.Kernel.KernelAccount
             return Hash.Zero;
         }
 
-        /*/// <summary>
-        /// deploy a contract account
-        /// </summary>
-        /// <param name="caller"></param>
-        /// <param name="smartContractRegistration"></param>
-        /// <returns></returns>
-        public Task<IAccount> DeployAccount(Hash caller, SmartContractRegistration smartContractRegistration)
-        {
-            // create new account for the contract
-            var calllerContext =
-                _accountContextService.GetAccountDataContext(caller, _accountDataProvider.Context.ChainId);
-            throw new NotImplementedException();
-            //var hash = new Hash(calllerContext.CalculateHashWith(smartContractRegistration.Bytes));
-            //_accountContextService.GetAccountDataContext(hash, _accountDataProvider.Context.ChainId);
-            //return Task.FromResult((IAccount) new Account(hash));
-        }*/
     }
 }

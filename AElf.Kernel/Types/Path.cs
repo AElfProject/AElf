@@ -90,6 +90,8 @@ namespace AElf.Kernel
         {
             return chainId.CalculateHashWith((Hash) "LastBlockHash".CalculateHash());
         }
+        
+        #endregion
 
         /// <summary>
         /// calculate hash for account zero in a chain
@@ -115,7 +117,7 @@ namespace AElf.Kernel
                 Value = nonce
             });
         }
-        #endregion
+        
         
         #region Calculate pointer for block contest
 
