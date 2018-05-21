@@ -22,15 +22,19 @@ namespace AElf.Kernel.Tests.Concurrency
 	public class ParallelTransactionExecutingServiceTest : TestKitBase
 	{
 		private ActorSystem sys = ActorSystem.Create("test");
+		private ChainContextServiceWithAdd _chainContextService;
 		private ChainContextWithSmartContractZeroWithTransfer _chainContext;
 		private ProtobufSerializer _serializer = new ProtobufSerializer();
 		private SmartContractZeroWithTransfer _smartContractZero { get { return (_chainContext.SmartContractZero as SmartContractZeroWithTransfer); } }
 		private AccountContextService _accountContextService;
+		private IActorRef _generalExecutor;
 
-		public ParallelTransactionExecutingServiceTest(ChainContextWithSmartContractZeroWithTransfer chainContext, AccountContextService accountContextService) : base(new XunitAssertions())
+		public ParallelTransactionExecutingServiceTest(ChainContextServiceWithAdd chainContextService, ChainContextWithSmartContractZeroWithTransfer chainContext, AccountContextService accountContextService) : base(new XunitAssertions())
 		{
+			_chainContextService = chainContextService;
 			_chainContext = chainContext;
 			_accountContextService = accountContextService;
+			_generalExecutor = sys.ActorOf(ParallelExecutionGeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
 		}
 
 		private Transaction GetTransaction(Hash from, Hash to, ulong qty)
@@ -80,8 +84,10 @@ namespace AElf.Kernel.Tests.Concurrency
 			{
 				90, 10
 			};
-
-			var chainExecutor = sys.ActorOf(ParallelExecutionChainExecutor.Props(_chainContext, _accountContextService), "chainexecutor-" + _chainContext.ChainId.ToByteArray().ToHex());
+         
+			_chainContextService.AddChainContext(_chainContext.ChainId, _chainContext);
+            _generalExecutor.Tell(new RequestAddChainExecutor(_chainContext.ChainId));
+            ExpectMsg<RespondAddChainExecutor>();
 
 			var service = new ParallelTransactionExecutingService(sys);
 
