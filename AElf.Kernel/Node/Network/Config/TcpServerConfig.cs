@@ -1,4 +1,4 @@
-﻿namespace AElf.Kernel.Node.Network
+﻿namespace AElf.Kernel.Node.Network.Config
 {
     public class TcpServerConfig : IAElfServerConfig
     {

@@ -1,11 +1,10 @@
 ﻿using System;
 using AElf.Kernel;
 using AElf.Kernel.Modules.AutofacModule;
-using AElf.Kernel.Node;
-using AElf.Kernel.Node.Network;
-using AElf.Kernel.Node.RPC;
+using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.TxMemPool;
 using Autofac;
+using IContainer = Autofac.IContainer;
 
 namespace AElf.Launcher
 {
@@ -14,11 +13,15 @@ namespace AElf.Launcher
         static void Main(string[] args)
         {
             // Parse options
-            TxPoolConfig tc = new TxPoolConfig();
-            TcpServerConfig sc = new TcpServerConfig();
+            ConfigParser confParser = new ConfigParser();
+            bool parsed = confParser.Parse(args);
+            
+            ITxPoolConfig txPoolConf = confParser.TxPoolConfig;
+            IAElfServerConfig serverConf = confParser.ServerConfig;
+            IAElfNetworkConfig netConf = confParser.NetConfig;
             
             // Setup ioc 
-            IContainer container = SetupIocContainer(tc, sc);
+            IContainer container = SetupIocContainer(txPoolConf, serverConf, netConf);
 
             if (container == null)
             {
@@ -37,7 +40,8 @@ namespace AElf.Launcher
             }
         }
 
-        private static IContainer SetupIocContainer(ITxPoolConfig txPoolConf, IAElfServerConfig serverConfig)
+        private static IContainer SetupIocContainer(ITxPoolConfig txPoolConf, IAElfServerConfig serverConfig, 
+            IAElfNetworkConfig netConf)
         {
             var builder = new ContainerBuilder();
             
@@ -49,13 +53,9 @@ namespace AElf.Launcher
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseModule());
-            builder.RegisterModule(new NetworkModule(serverConfig));
+            builder.RegisterModule(new NetworkModule(serverConfig, netConf));
             builder.RegisterModule(new MainChainNodeModule());
             builder.RegisterModule(new RpcServerModule());
-
-            // Node registration
-            //builder.RegisterType<MainChainNode>().As<IAElfNode>();
-            //builder.RegisterType<RpcServer>().As<IRpcServer>();
 
             IContainer container = null;
             

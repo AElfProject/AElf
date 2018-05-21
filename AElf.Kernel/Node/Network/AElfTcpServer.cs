@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.Node.Network.Helpers;
 using NLog;
 
@@ -15,7 +16,7 @@ namespace AElf.Kernel.Node.Network
         private readonly List<TcpClient> _connectedClients;
         
         private TcpListener _listener;
-        private TcpServerConfig _config;
+        private IAElfServerConfig _config;
 
         private ILogger _logger;
         
@@ -26,7 +27,7 @@ namespace AElf.Kernel.Node.Network
         {
         }
 
-        public AElfTcpServer(TcpServerConfig config, ILogger logger)
+        public AElfTcpServer(IAElfServerConfig config, ILogger logger)
         {
             if (config == null)
                 _config = new TcpServerConfig();

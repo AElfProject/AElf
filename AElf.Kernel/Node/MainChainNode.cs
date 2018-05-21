@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node.Network;
+using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
 using NLog;
