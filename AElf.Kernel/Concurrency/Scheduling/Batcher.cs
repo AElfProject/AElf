@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 
-namespace AElf.Kernel.Concurrency
+namespace AElf.Kernel.Concurrency.Scheduling
 {
 	public class Batcher : IBatcher
 	{
@@ -24,7 +24,7 @@ namespace AElf.Kernel.Concurrency
 			{
 				while (true)
 				{
-					// Every time take one from each group,
+					// Every time take one transaction from each sender,
                     // so that possible parallelization can be done within each batch
 					var batch = enumerators.Where(x => x.MoveNext()).Select(x => x.Current).ToList();
 					if (batch.Count == 0)

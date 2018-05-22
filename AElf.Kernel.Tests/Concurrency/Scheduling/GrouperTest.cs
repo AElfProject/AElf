@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using AElf.Kernel.Concurrency;
+using AElf.Kernel.Concurrency.Scheduling;
 using Xunit;
 
-namespace AElf.Kernel.Tests.Concurrency
+namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
     public class GrouperTest
     {

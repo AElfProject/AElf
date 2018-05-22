@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using AElf.Kernel.Concurrency;
+using AElf.Kernel.Concurrency.Scheduling;
 using Xunit;
 using Xunit.Sdk;
 
-namespace AElf.Kernel.Tests.Concurrency
+namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
 	public class BatcherTest
 	{
