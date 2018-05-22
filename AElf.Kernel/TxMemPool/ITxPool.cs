@@ -1,20 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace AElf.Kernel.TxMemPool
 {
     public interface ITxPool
     {
         /// <summary>
-        /// add tx
-        /// </summary>
-        /// <param name="tx"></param>
-        /// <returns></returns>
-        bool AddTx(Transaction tx);
-
-        /// <summary>
         /// queue txs from tmp to waiting
         /// </summary>
-        void QueueTxs();
+        /// <param name="tx"></param>
+        void QueueTxs(HashSet<ITransaction> tx);
         
         /// <summary>
         /// remove a tx
@@ -25,7 +20,7 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// remove executed txs from executable
         /// </summary>
-        List<Transaction> RemoveExecutedTxs();
+        List<ITransaction> RemoveExecutedTxs();
 
         /// <summary>
         /// promote txs from waiting to executable
@@ -55,10 +50,10 @@ namespace AElf.Kernel.TxMemPool
         ulong EntryThreshold { get; }
 
         /// <summary>
-        /// txs can be promoted to executable list if Promotable is true,
+        /// txs can be enqueued to waiting list if Enqueueable is true,
         /// otherwise they can't be.
         /// </summary>
-        bool Promotable { get; set; }
+        bool Enqueueable { get; set; }
         
         /// <summary>
         /// return chain id for this pool
@@ -76,20 +71,27 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         ulong  MinimalFee { get; }
 
+
+        /// <summary>
+        /// cache incrementId for account
+        /// </summary>
+        /// <returns></returns>
+        Dictionary<Hash, ulong> Nonces { get; }
+
         /// <summary>
         /// return a tx alread in pool
         /// </summary>
         /// <param name="txHash"></param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        bool GetTx(Hash txHash, out Transaction tx);
+        bool GetTx(Hash txHash, out ITransaction tx);
 
         /// <summary>
         /// return a tx alread in pool
         /// </summary>
         /// <param name="txHash"></param>
         /// <returns></returns>
-        Transaction GetTx(Hash txHash);
+        ITransaction GetTx(Hash txHash);
 
         /// <summary>
         /// clear all txs in pool
@@ -129,6 +131,6 @@ namespace AElf.Kernel.TxMemPool
         /// return Tmp list size
         /// </summary>
         /// <returns></returns>
-        ulong TmpSize { get; }
+        //ulong TmpSize { get; }
     }
 }
