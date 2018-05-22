@@ -2,7 +2,7 @@
 
 namespace AElf.Kernel.Concurrency
 {
-    public static class ResourceExtractor
+    public static class ConcurrencyHelpers
     {
         public static List<Hash> GetResources(this Transaction tx)
         {
