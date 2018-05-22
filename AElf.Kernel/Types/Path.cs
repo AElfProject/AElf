@@ -91,8 +91,6 @@ namespace AElf.Kernel
             return chainId.CalculateHashWith((Hash) "LastBlockHash".CalculateHash());
         }
         
-        #endregion
-
         /// <summary>
         /// calculate hash for account zero in a chain
         /// </summary>
@@ -102,7 +100,10 @@ namespace AElf.Kernel
         {
             return chainId.CalculateHashWith((Hash) "AccountZero".CalculateHash());
         }
+        
+        #endregion
 
+        
         /// <summary>
         /// calculate new account address
         /// using parent account addr and nonce
@@ -119,7 +120,7 @@ namespace AElf.Kernel
         }
         
         
-        #region Calculate pointer for block contest
+        #region Calculate pointer for block context
 
         public static Hash CalculatePointerForPathsCount(Hash chainId, Hash blockHash)
         {
