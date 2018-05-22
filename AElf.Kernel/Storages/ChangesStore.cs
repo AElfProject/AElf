@@ -34,8 +34,8 @@ namespace AElf.Kernel.Storages
         public async Task<Hash> GetPointerAsync(Hash pathHash)
         {
             var changeByte = await _keyValueDatabase.GetAsync(pathHash.Value.ToBase64(), typeof(Change));
-            var change = Change.Parser.ParseFrom(changeByte);
-            return change.After;
+            var change = changeByte == null ? null : Change.Parser.ParseFrom(changeByte);
+            return change?.After;
         }
     }
 }

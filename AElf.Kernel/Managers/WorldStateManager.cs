@@ -59,7 +59,7 @@ namespace AElf.Kernel.Managers
             var countBytes = await _dataStore.GetDataAsync(Path.CalculatePointerForPathsCount(_chainId, _preBlockHash));
             countBytes = countBytes ??  ((ulong)0).ToBytes();
             var key = CalculateKeyForPath(_preBlockHash, countBytes);
-            var count = countBytes.ToInt64();
+            var count = countBytes.ToUInt64();
             await _dataStore.SetDataAsync(key, pathHash.Value.ToByteArray());
             count++;
             await _dataStore.SetDataAsync(Path.CalculatePointerForPathsCount(_chainId, _preBlockHash), count.ToBytes());
@@ -296,7 +296,7 @@ namespace AElf.Kernel.Managers
             Check();
             
             var changedPathsCountBytes = await _dataStore.GetDataAsync(Path.CalculatePointerForPathsCount(_chainId, blockHash));
-            return changedPathsCountBytes?.ToInt64() ?? 0;
+            return changedPathsCountBytes?.ToUInt64() ?? 0;
         }
 
         /// <summary>
