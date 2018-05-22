@@ -1,7 +1,0 @@
-syntax = "proto3";
-
-option csharp_namespace = "AElf.Network";
-
-message Node {
-    string IpAddress = 1;
-}

@@ -7,13 +7,31 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.Node.Network.Helpers;
+using AElf.Kernel.Node.Network.Peers;
+using AElf.Network;
 using NLog;
 
 namespace AElf.Kernel.Node.Network
 {
+    /// <summary>
+    /// The event that's raised when a new connection is
+    /// transformed into a Peer.
+    /// </summary>
+    public class ClientConnectedArgs : EventArgs
+    {
+        public Peer NewPeer { get; set; }
+    }
+    
+    /// <summary>
+    /// This class is a tcp server implementation. Its main functionnality
+    /// is to listen for incoming tcp connection and transform them into
+    /// peers.
+    /// </summary>
     public class AElfTcpServer : IAElfServer
     {
-        private readonly List<TcpClient> _connectedClients;
+        private const int PeerBufferLength = 1024;
+        
+        public event EventHandler ClientConnected;
         
         private TcpListener _listener;
         private IAElfServerConfig _config;
@@ -34,12 +52,23 @@ namespace AElf.Kernel.Node.Network
             else
                 _config = config;
             
-            _connectedClients = new List<TcpClient>();
             _logger = logger;
         }
 
+        /// <summary>
+        /// Starts the server on the based on the information contained
+        /// in the <see cref="IAElfServerConfig"/> object.
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public async Task Start(CancellationToken? token = null)
         {
+            if (_config == null)
+            {
+                _logger.Error("Could not start the server, config object is null");
+                return;
+            }
+                
             try
             {
                 _listener = new TcpListener(IPAddress.Parse(_config.Host), _config.Port);
@@ -65,7 +94,7 @@ namespace AElf.Kernel.Node.Network
                     {
                         _logger.Info("Connection received.");
 
-                        await ProcessIncomingConnection(client);
+                        await ProcessConnectionRequest(client);
 
                     }, _token);
                 }
@@ -76,7 +105,12 @@ namespace AElf.Kernel.Node.Network
             }
         }
         
-        private async Task ProcessIncomingConnection(TcpClient client)
+        /// <summary>
+        /// Processes a connection after the tcp client was accepted.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        private async Task ProcessConnectionRequest(TcpClient client)
         {
             if (client == null)
             {
@@ -84,25 +118,54 @@ namespace AElf.Kernel.Node.Network
                 return;
             }
             
-            _connectedClients.Add(client);
-            
-            // Fake auth - todo
-            string name = await GetNameAsync(client);
+            PeerConnector connector = new PeerConnector(client);
+            Peer connected = await FinalizeConnect(client, client.GetStream());
+
+            if (connected == null)
+                return;
             
             _logger.Info("Connection established");
+            
+            ClientConnectedArgs args = new ClientConnectedArgs();
+            args.NewPeer = connected;
+            
+            ClientConnected?.Invoke(this, args);
         }
-
-        private async Task<string> GetNameAsync(TcpClient client)
+        
+        /// <summary>
+        /// Reads the initial data sent by the distant node after a
+        /// successful connection.
+        /// </summary>
+        public async Task<Peer> FinalizeConnect(TcpClient tcpClient, NetworkStream stream)
         {
-            byte[] askName = Encoding.UTF8.GetBytes("GetName");
+            try
+            {
+                // todo : better error management and logging
+                
+                // read the initial data
+                byte[] bytes = new byte[1024];
+                int bytesRead = await stream.ReadAsync(bytes, 0, 1024);
 
-            NetworkStream stream = client.GetStream();
-            await stream.WriteAsync(askName, 0, askName.Length);
-            
-            byte[] buffer = new byte[7];
-            await stream.ReadAsync(buffer, 0, 7);
-            
-            return buffer.ToUtf8();
+                byte[] readBytes = new byte[bytesRead];
+                Array.Copy(bytes, readBytes, bytesRead);
+
+                if (bytesRead > 0)
+                {
+                    NodeData n = NodeData.Parser.ParseFrom(readBytes);
+                    Peer p = new Peer(n, tcpClient);
+                    
+                    return p;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Warn("Error creating the connection");
+                return null;
+            }
         }
     }
 }

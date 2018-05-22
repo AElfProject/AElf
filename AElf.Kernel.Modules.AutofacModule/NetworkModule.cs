@@ -1,5 +1,6 @@
 ﻿using AElf.Kernel.Node.Network;
 using AElf.Kernel.Node.Network.Config;
+using AElf.Kernel.Node.Network.Peers;
 using Autofac;
  
  namespace AElf.Kernel.Modules.AutofacModule
@@ -21,6 +22,8 @@ using Autofac;
              builder.RegisterInstance(ServerConfig).As<IAElfServerConfig>();
              
              builder.RegisterType<AElfTcpServer>().As<IAElfServer>();
+             builder.RegisterType<PeerManager>().As<IPeerManager>();
+             builder.RegisterType<PeerDatabase>().As<IPeerDatabase>();
          }
      }
  }
