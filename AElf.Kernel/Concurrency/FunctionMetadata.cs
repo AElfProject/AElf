@@ -15,11 +15,20 @@ namespace AElf.Kernel.Concurrency
             PathSet = pathSet ?? new HashSet<Hash>();
         }
 
+        public FunctionMetadata(HashSet<string> callingSet, HashSet<Hash> pathSet, HashSet<Hash> nonRecursivePathSet)
+        {
+            CallingSet = callingSet ?? new HashSet<string>();
+            PathSet = pathSet ?? new HashSet<Hash>();
+            NonRecursivePathSet = nonRecursivePathSet ?? new HashSet<Hash>();
+        }
+
         /// <summary>
         /// used to find influenced contract when a contract is updated
         /// </summary>
         public HashSet<string> CallingSet { get; }
 
         public HashSet<Hash> PathSet { get; }
+        
+        public HashSet<Hash> NonRecursivePathSet { get; }
     }
 }

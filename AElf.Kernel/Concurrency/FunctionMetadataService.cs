@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Org.BouncyCastle.Security;
+using ServiceStack;
 
 namespace AElf.Kernel.Concurrency
 {
@@ -17,7 +18,6 @@ namespace AElf.Kernel.Concurrency
                 throw new InvalidOperationException("FunctionMetadataService: FunctionMetadataMap already contain a function named " + functionFullName);
             }
 
-            
             HashSet<Hash> pathSet = new HashSet<Hash>(nonRecursivePathSet);
 
             try
@@ -76,13 +76,30 @@ namespace AElf.Kernel.Concurrency
         }
 
         /// <summary>
-        /// Update other functions that call the updated function (recursively).
+        /// Update other functions that call the updated function (backward recursively).
         /// </summary>
         /// <param name="updatedFunctionFullName"></param>
         /// <exception cref="NotImplementedException"></exception>
         private void UpdateInfluencedMetadata(string updatedFunctionFullName)
         {
-            throw new NotImplementedException();
+            if(TryFindCallerFunctions(updatedFunctionFullName, out var callerFuncs))
+            {
+                foreach (var caller in callerFuncs)
+                {
+                    var oldMetadata = FunctionMetadataMap[caller];
+                    FunctionMetadataMap.Remove(caller);
+                    SetNewFunctionMetadata(caller, oldMetadata.CallingSet, oldMetadata.NonRecursivePathSet);
+                    UpdateInfluencedMetadata(caller);
+                }
+            }
+        }
+
+        private bool TryFindCallerFunctions(string calledFunctionFullName, out List<string> callerFunctions)
+        {
+            callerFunctions = FunctionMetadataMap.Where(funcMeta => funcMeta.Value.CallingSet.Contains(calledFunctionFullName))
+                .Select(a => a.Key).ToList();
+            
+            return !callerFunctions.IsEmpty();
         }
     }
 }
