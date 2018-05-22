@@ -10,7 +10,7 @@ namespace AElf.Kernel.Node.Network.Peers
         private const string FileName = "peerDB.txt";
         private readonly string _filePath = System.IO.Path.Combine(System.Environment.CurrentDirectory, FileName);
         
-        private bool checkDBExists()
+        private static bool CheckDbExists()
         {
             DirectoryInfo di = new DirectoryInfo(System.Environment.CurrentDirectory);
             FileInfo[] dbFile = di.GetFiles(FileName);
@@ -21,7 +21,7 @@ namespace AElf.Kernel.Node.Network.Peers
         {
             List<IPeer> peerList = new List<IPeer>();
             
-            if (!checkDBExists()) return peerList; // Returns empty list for robustness. Do empty check during usage
+            if (!CheckDbExists()) return peerList; // Returns empty list for robustness. Do empty check during usage
             string[] fileContents = File.ReadAllLines(_filePath);
 
             foreach (string line in fileContents)

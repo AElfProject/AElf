@@ -23,9 +23,9 @@ namespace AElf.Kernel.Node.Network
     }
     
     /// <summary>
-    /// This class is a tcp server implementation. Its main functionnality
-    /// is to listen for incoming tcp connection and transform them into
-    /// peers.
+    /// This class is a tcp server implementation. Its main functionality
+    /// is to listen for incoming tcp connections and transform them into
+    /// Peers.
     /// </summary>
     public class AElfTcpServer : IAElfServer
     {
@@ -56,7 +56,7 @@ namespace AElf.Kernel.Node.Network
         }
 
         /// <summary>
-        /// Starts the server on the based on the information contained
+        /// Starts the server based on the information contained
         /// in the <see cref="IAElfServerConfig"/> object.
         /// </summary>
         /// <param name="token"></param>
@@ -106,7 +106,7 @@ namespace AElf.Kernel.Node.Network
         }
         
         /// <summary>
-        /// Processes a connection after the tcp client was accepted.
+        /// Processes a connection after the tcp client is accepted.
         /// </summary>
         /// <param name="client"></param>
         /// <returns></returns>
@@ -133,7 +133,7 @@ namespace AElf.Kernel.Node.Network
         }
         
         /// <summary>
-        /// Reads the initial data sent by the distant node after a
+        /// Reads the initial data sent by the remote peer after a
         /// successful connection.
         /// </summary>
         public async Task<Peer> FinalizeConnect(TcpClient tcpClient, NetworkStream stream)

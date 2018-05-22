@@ -21,7 +21,7 @@ namespace AElf.Kernel.Node.Network.Peers
         }
 
         /// <summary>
-        /// Reads the data send by the distant node after a connection
+        /// Reads the data send by the remote peer after a connection
         /// request.
         /// </summary>
         /// <returns></returns>
