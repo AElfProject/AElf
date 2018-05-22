@@ -21,7 +21,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         
         private TxPool GetPool()
         {
-            return new TxPool(TxPoolConfig.Default,_accountContextService);
+            return new TxPool(TxPoolConfig.Default);
         }
 
         [Fact]
@@ -29,7 +29,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             var pool = GetPool();
             
-            var poolService = new TxPoolService(pool);
+            var poolService = new TxPoolService(pool, _accountContextService);
             poolService.Start();
             ulong queued = 0;
             ulong exec = 0;
@@ -76,7 +76,6 @@ namespace AElf.Kernel.Tests.TxMemPool
             }
 
             Task.WaitAll(tasks.ToArray());
-            pool.QueueTxs();
             await poolService.PromoteAsync();
             Assert.Equal(k, threadNum);
             Assert.Equal(exec, poolService.GetExecutableSizeAsync().Result);

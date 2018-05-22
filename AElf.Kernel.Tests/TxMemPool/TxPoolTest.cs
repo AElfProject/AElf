@@ -1,6 +1,9 @@
-﻿using AElf.Kernel.KernelAccount;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
+using Org.BouncyCastle.Utilities.Collections;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -18,7 +21,7 @@ namespace AElf.Kernel.Tests.TxMemPool
 
         private TxPool GetPool()
         {
-            return new TxPool(TxPoolConfig.Default, _accountContextService);
+            return new TxPool(TxPoolConfig.Default);
         }
 
         private Transaction BuildTransaction(Hash adrFrom = null, Hash adrTo = null, ulong nonce = 0)
@@ -32,109 +35,97 @@ namespace AElf.Kernel.Tests.TxMemPool
             return tx;
         }
         
+        
         //[Fact]
-        public void EntryThreshold_Test()
+        public async Task EntryThreshold_Test()
         {
             // setup config
-            TxPoolConfig conf = TxPoolConfig.Default;
+            var conf = TxPoolConfig.Default;
             conf.EntryThreshold = 1;
 
-            var pool = new TxPool(conf, _accountContextService);
+            var pool = new TxPool(conf);
             
             // Add a valid transaction
             var tx = BuildTransaction();
-            pool.AddTx(tx);
+            var tmp = new HashSet<ITransaction> {tx};
+            var ctx = await _accountContextService.GetAccountDataContext(tx.From, conf.ChainId);
+            pool.Nonces[tx.From] = ctx.IncrementId;
+            pool.QueueTxs(tmp);
             
-            pool.GetPoolStates(out var executable, out var waiting, out var tmp);
-            
-            Assert.Equal(1, (int)tmp);
+            pool.GetPoolStates(out var executable, out var waiting);
             Assert.Equal(0, (int)waiting);
             Assert.Equal(0, (int)executable);
         }
 
-        // Adding a valide transaction to the pool => AddTx returns true
+        
         //[Fact]
-        public void AddTx_ValidTransaction_ReturnsTrue()
+        public async Task ContainsTx_ReturnsTrue_AfterAdd()
         {
-            TxPool pool = GetPool();
+            var pool = GetPool();
+            
+            // Add a valid transaction
             var tx = BuildTransaction();
-            
-            bool addResult = pool.AddTx(tx);
-            
-            Assert.True(addResult);
-        }
+            var tmp = new HashSet<ITransaction> {tx};
+            var ctx = await _accountContextService.GetAccountDataContext(tx.From, TxPoolConfig.Default.ChainId);
+            pool.Nonces[tx.From] = ctx.IncrementId;
+            pool.QueueTxs(tmp);
 
-        //[Fact]
-        public void ContainsTx_ReturnsTrue_AfterAdd()
-        {
-            TxPool pool = GetPool();
-            var tx = BuildTransaction();
-            
-            pool.AddTx(tx);
-
-            bool res = pool.Contains(tx.GetHash());
+            var res = pool.Contains(tx.GetHash());
             
             Assert.True(res);
         }
 
-        //[Fact]
-        public void QueueTxTest()
-        {
-            TxPool pool = GetPool();
-            var tx = BuildTransaction();
-            
-            pool.AddTx(tx);
-            pool.QueueTxs();
-            
-            pool.GetPoolStates(out var executable, out var waiting, out var tmp);
-            
-            Assert.Equal(0, (int)tmp);
-            Assert.Equal(1, (int)waiting);
-            Assert.Equal(0, (int)executable);
-        }
 
         //[Fact]
-        public void PromoteTest()
+        public async Task PromoteTest()
         {
-            TxPool pool = GetPool();
-            var tx = BuildTransaction();
+            var pool = GetPool();
             
-            pool.AddTx(tx);
-            pool.QueueTxs();
+            // Add a valid transaction
+            var tx = BuildTransaction();
+            var tmp = new HashSet<ITransaction> {tx};
+            var ctx = await _accountContextService.GetAccountDataContext(tx.From, TxPoolConfig.Default.ChainId);
+            pool.Nonces[tx.From] = ctx.IncrementId;
+            pool.QueueTxs(tmp);
             
             pool.Promote();
             
-            pool.GetPoolStates(out var executable, out var waiting, out var tmp);
-            Assert.Equal(0, (int)tmp);
+            pool.GetPoolStates(out var executable, out var waiting);
             Assert.Equal(0, (int)waiting);
             Assert.Equal(1, (int)executable);
         }
 
         //[Fact]
-        public void ReadyTxsTest()
+        public async Task ReadyTxsTest()
         {
-            TxPool pool = GetPool();
-            var tx = BuildTransaction();
+            var pool = GetPool();
             
-            pool.AddTx(tx);
-            pool.QueueTxs();
+            // Add a valid transaction
+            var tx = BuildTransaction();
+            var tmp = new HashSet<ITransaction> {tx};
+            var ctx = await _accountContextService.GetAccountDataContext(tx.From, TxPoolConfig.Default.ChainId);
+            pool.Nonces[tx.From] = ctx.IncrementId;
+            pool.QueueTxs(tmp);
             
             pool.Promote();
             
             var ready = pool.ReadyTxs(10);
             
             Assert.Equal(1, ready.Count);
-            Assert.True(ready.Contains(tx) && ready.Contains(tx));
+            Assert.True(ready.Contains(tx));
+            Assert.Equal(pool.Nonces[tx.From], ctx.IncrementId + 1);
         }
 
 
         //[Fact]
-        public void GetTxTest()
+        public async Task GetTxTest()
         {
-            TxPool pool = GetPool();
+            var pool = GetPool();
             var tx = BuildTransaction();
-            
-            pool.AddTx(tx);
+            var tmp = new HashSet<ITransaction> {tx};
+            var ctx = await _accountContextService.GetAccountDataContext(tx.From, TxPoolConfig.Default.ChainId);
+            pool.Nonces[tx.From] = ctx.IncrementId;
+            pool.QueueTxs(tmp);
             
             var t = pool.GetTx(tx.GetHash());
             

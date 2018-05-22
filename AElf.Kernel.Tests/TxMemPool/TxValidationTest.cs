@@ -24,7 +24,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             {
                 TxLimitSize = txSize,
                 FeeThreshold = feeThreshold
-            }, _accountContextService);
+            });
         }
 
         private Transaction CreateAndSignTransaction(Hash from = null, Hash to = null, ulong id = 0, ulong fee = 0 )
