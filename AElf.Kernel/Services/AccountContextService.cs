@@ -1,5 +1,8 @@
-﻿﻿using System.Collections.Generic;
+﻿﻿using System;
+ using System.Collections.Generic;
+ using System.Threading.Tasks;
  using AElf.Kernel.Extensions;
+ using AElf.Kernel.Managers;
 
 namespace AElf.Kernel.Services
 {
@@ -7,26 +10,56 @@ namespace AElf.Kernel.Services
     {
         private readonly Dictionary<Hash, IAccountDataContext> _accountDataContexts =
             new Dictionary<Hash, IAccountDataContext>();
+
+        private readonly IWorldStateManager _worldStateManager;
+
+        public AccountContextService(IWorldStateManager worldStateManager)
+        {   
+            _worldStateManager = worldStateManager;
+        }
         
-        public IAccountDataContext GetAccountDataContext(Hash accountHash, Hash chainId)
-        {
-            var key = accountHash.CombineHashWith(chainId);
+        /// <inheritdoc/>
+        public async Task<IAccountDataContext> GetAccountDataContext(Hash account, Hash chainId)
+        {   
+                
+            var key = account.CombineHashWith(chainId);
             if (_accountDataContexts.TryGetValue(key, out var ctx))
-            {
+             {
                 return ctx;
             }
-
-            var accountDataContext = new AccountDataContext
+            
+            await _worldStateManager.OfChain(chainId);
+            var adp = _worldStateManager.GetAccountDataProvider(account);
+            
+            // TODO: get account incrementId
+            ulong id = ;
+            
+            id = id == null ? 0 : id;
+            var accountDataContext = new  
             {
-                IncreasementId = 0,
-                Address = accountHash,
+                IncreasementId = id,
+                Address = account,
                 ChainId = chainId
             };
 
             _accountDataContexts[key] = accountDataContext;
             return accountDataContext;
         }
+
         
-        // TODO: update account data context to database when updating block
+        /// <inheritdoc/>
+        public async Task SetAccountContext(IAccountDataContext accountDataContext)
+        {
+            // calculate key
+            var key = accountDataContext.Address.CombineHashWith(accountDataContext.ChainId);
+
+            _accountDataContexts[key] = accountDataContext;
+            
+            await _worldStateManager.OfChain(accountDataContext.ChainId);
+            var adp = _worldStateManager.GetAccountDataProvider(accountDataContext.Address);
+            
+            //  TODO: set incrementId 
+            
+        }
     }
 }
