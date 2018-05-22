@@ -65,7 +65,7 @@ namespace AElf.Kernel.Managers
         {
             var key = Path.CalculatePointerForCurrentBlockHeight(chainId);
             var heightBytes = await _dataStore.GetDataAsync(key);
-            return heightBytes?.ToInt64() ?? 0;
+            return heightBytes?.ToUInt64() ?? 0;
         }
 
         /// <inheritdoc/>

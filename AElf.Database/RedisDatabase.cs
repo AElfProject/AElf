@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
 using System.Threading.Tasks;
-using AElf.Database;
-using ServiceStack;
 using ServiceStack.Redis;
-using ServiceStack.Text;
 
 namespace AElf.Database
 {

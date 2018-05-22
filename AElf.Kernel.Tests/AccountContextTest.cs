@@ -30,6 +30,20 @@ namespace AElf.Kernel.Tests
             Assert.Equal(context1, context3);
             Assert.Equal(context3.IncrementId, (ulong)1);
         }
+
+        [Fact]
+        public async Task SetAccountContextTest()
+        {
+            var chainId = Hash.Generate();
+            var accountId = Hash.Generate();
+
+            var context1 = await _accountContextService.GetAccountDataContext(accountId, chainId);
+            context1.IncrementId++;
+            await _accountContextService.SetAccountContext(context1);
+            
+            var context2 = await _accountContextService.GetAccountDataContext(accountId, chainId);
+            Assert.Equal((ulong)1, context2.IncrementId);
+        }
         
     }
 }

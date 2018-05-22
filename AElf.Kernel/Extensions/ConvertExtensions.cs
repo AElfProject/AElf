@@ -12,7 +12,7 @@ namespace AElf.Kernel.Extensions
                 BitConverter.GetBytes(number);
         }
 
-        public static ulong ToInt64(this byte[] bytes)
+        public static ulong ToUInt64(this byte[] bytes)
         {
             return BitConverter.ToUInt64(
                 BitConverter.IsLittleEndian ? 

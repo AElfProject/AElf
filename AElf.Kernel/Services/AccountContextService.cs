@@ -30,14 +30,13 @@ namespace AElf.Kernel.Services
             
             await _worldStateManager.OfChain(chainId);
             var adp = _worldStateManager.GetAccountDataProvider(account);
+
+            var idBytes = await adp.GetDataProvider().GetAsync(GetKeyForIncrementId());
+            var id = idBytes?.ToUInt64() ?? 0;
             
-            // TODO: get account incrementId
-            ulong id = ;
-            
-            id = id == null ? 0 : id;
-            var accountDataContext = new  
+            var accountDataContext = new AccountDataContext
             {
-                IncreasementId = id,
+                IncrementId = id,
                 Address = account,
                 ChainId = chainId
             };
@@ -57,9 +56,13 @@ namespace AElf.Kernel.Services
             
             await _worldStateManager.OfChain(accountDataContext.ChainId);
             var adp = _worldStateManager.GetAccountDataProvider(accountDataContext.Address);
-            
-            //  TODO: set incrementId 
-            
+
+            await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), accountDataContext.IncrementId.ToBytes());
+        }
+
+        private Hash GetKeyForIncrementId()
+        {
+            return "Id".CalculateHash();
         }
     }
 }
