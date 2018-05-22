@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Managers;
+using AElf.Kernel.Services;
 using ReaderWriterLock = AElf.Kernel.Lock.ReaderWriterLock;
 
 namespace AElf.Kernel.TxMemPool
@@ -9,10 +11,12 @@ namespace AElf.Kernel.TxMemPool
     public class TxPoolService : ITxPoolService
     {
         private readonly ITxPool _txPool;
+        private readonly IAccountContextService _accountContextService;
 
-        public TxPoolService(ITxPool txPool)
+        public TxPoolService(ITxPool txPool, IAccountContextService accountContextService)
         {
             _txPool = txPool;
+            _accountContextService = accountContextService;
         }
 
         /// <summary>
@@ -31,14 +35,17 @@ namespace AElf.Kernel.TxMemPool
         private CancellationTokenSource Cts { get; set; } 
         
         private TxPoolSchedulerLock Lock { get; } = new TxPoolSchedulerLock();
+        
+        private HashSet<ITransaction> Tmp { get; } = new HashSet<ITransaction>();
 
         /// <inheritdoc/>
         public Task<bool> AddTxAsync(Transaction tx)
         {
             return Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
             {
-                var res = _txPool.AddTx(tx);
-                if (_txPool.TmpSize >= _txPool.EntryThreshold)
+                //var res = _txPool.AddTx(tx);
+                var res = Tmp.Add(tx);
+                if ((ulong)Tmp.Count >= _txPool.EntryThreshold)
                 {
                     EnqueueEvent.Set();
                 }
@@ -55,11 +62,23 @@ namespace AElf.Kernel.TxMemPool
             // TODO: need interupt waiting 
             while (!Cts.IsCancellationRequested)
             {
+                if(!_txPool.Enqueueable)
+                    continue;
                 // wait for signal
                 EnqueueEvent.WaitOne();
+
+                // no lock needed, since account data context should not be changed when Enqueueable is true
+                foreach (var t in Tmp)
+                {
+                    if(_txPool.Nonces.ContainsKey(t.From))
+                        continue;
+                    _txPool.Nonces[t.From] = (await _accountContextService.GetAccountDataContext(t.From, _txPool.ChainId))
+                        .IncrementId;
+                }
+                
                 await Lock.WriteLock(() =>
                 {
-                    _txPool.QueueTxs();
+                    _txPool.QueueTxs(Tmp); 
                 });
             }
         }
@@ -101,7 +120,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="txs"></param>
         /// <returns></returns>
-        private void PersistTxs(IEnumerable<Transaction> txs)
+        private void PersistTxs(IEnumerable<ITransaction> txs)
         {
             foreach (var t in txs)
             {
@@ -115,7 +134,7 @@ namespace AElf.Kernel.TxMemPool
         {
             return Lock.ReadLock(() =>
             {
-                _txPool.Promotable = false;
+                _txPool.Enqueueable = false;
                 return _txPool.ReadyTxs(limit);
             });
         }
@@ -125,7 +144,7 @@ namespace AElf.Kernel.TxMemPool
         {
             return Lock.WriteLock(() =>
             {
-                if (!_txPool.Promotable) return false;
+                if (!_txPool.Enqueueable) return false;
                 _txPool.Promote();
                 return true;
             });
@@ -138,7 +157,7 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task<Transaction> GetTxAsync(Hash txHash)
+        public Task<ITransaction> GetTxAsync(Hash txHash)
         {
             return Lock.ReadLock(() => _txPool.GetTx(txHash));
         }
@@ -173,16 +192,32 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task<ulong> GetTmpSizeAsync()
         {
-            return Lock.ReadLock(() => _txPool.TmpSize);
+            return Lock.ReadLock(() => (ulong)Tmp.Count);
+        }
+
+        /// <inheritdoc/>
+        public Task ResetAndUpdate(List<TransactionResult> txResultList)
+        {
+            foreach (var res in txResultList)
+            {
+                var hash = _txPool.GetTx(res.TransactionId).From;
+                var id = _txPool.Nonces[hash];
+                
+                // update account context
+                _accountContextService.SetAccountContext(new AccountDataContext
+                {
+                    IncrementId = id,
+                    Address = hash,
+                    ChainId = _txPool.ChainId
+                });
+            }
+            
+            return Lock.WriteLock(() =>
+            {
+                _txPool.Enqueueable = true;
+            });
         }
         
-        /// <inheritdoc/>
-        public Task SetPromotable(bool flag)
-        {
-            return Lock.WriteLock(() => _txPool.Promotable = flag);
-        }
-
-
         /// <inheritdoc/>
         public void Start()
         {
@@ -192,9 +227,10 @@ namespace AElf.Kernel.TxMemPool
             Cts = new CancellationTokenSource();
             
             // waiting enqueue tx
-            Task.Factory.StartNew(async () => await Receive());
+            var task1 = Task.Factory.StartNew(async () => await Receive());
+            
             // waiting demote txs
-            Task.Factory.StartNew(async () => await Demote());
+            var task2 = Task.Factory.StartNew(async () => await Demote());
         }
 
         

@@ -48,7 +48,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="txHash"></param>
         /// <returns></returns>
-        Task<Transaction> GetTxAsync(Hash txHash);
+        Task<ITransaction> GetTxAsync(Hash txHash);
 
         /// <summary>
         /// clear tx pool
@@ -81,10 +81,12 @@ namespace AElf.Kernel.TxMemPool
         Task<ulong> GetTmpSizeAsync();
 
         /// <summary>
-        /// set Promotable status as true
+        /// Reset Enqueueable to true 
+        /// update account IncrementId,
+        /// which happens a block generated 
         /// </summary>
         /// <returns></returns>
-        Task SetPromotable(bool flag);
+        Task ResetAndUpdate(List<TransactionResult> txResultList);
         
         /// <summary>
         /// open transaction pool
