@@ -1,82 +1,43 @@
 ﻿using System;
-using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
 using AElf.Kernel.SmartContracts.CSharpSmartContract;
 using Google.Protobuf;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
-    [UseAutofacTestFramework]
     public class ContractTest
     {
 
-        private IWorldStateManager _worldStateManager;
-        private IChainCreationService _chainCreationService;
-        private IChainContextService _chainContextService;
-        private IBlockManager _blockManager;
-        private ITransactionManager _transactionManager;
-        private ISmartContractService _smartContractService;
-
-        private Hash ChainId { get; } = Hash.Generate();
-
-        public ContractTest(IWorldStateManager worldStateManager,
-            IChainCreationService chainCreationService, IBlockManager blockManager, 
-            ITransactionManager transactionManager, ISmartContractService smartContractService, 
-            IChainContextService chainContextService)
-        {
-            _worldStateManager = worldStateManager;
-            _chainCreationService = chainCreationService;
-            _blockManager = blockManager;
-            _transactionManager = transactionManager;
-            _smartContractService = smartContractService;
-            _chainContextService = chainContextService;
-        }
-        
-
         [Fact]
-        public async Task RegisterContract()
+        public void RegisterContract()
         {
-            var smartContractZero = typeof(Class1);
-            Assert.Equal(smartContractZero, typeof(Class1));
-            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, smartContractZero);
-            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
-            var txs = genesis.Body.Transactions;
-            var register = await _transactionManager.GetTransaction(txs[0]);
-            var adp = (await _worldStateManager.OfChain(ChainId)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId));
+            Type smartContractZero = typeof(Class1);
             
-            var chainContext = _chainContextService.GetChainContext(ChainId);
-
-            var inovkeContext = new SmartContractInvokeContext
+            var registerTx = new Transaction
             {
-                Caller = register.From,
-                IncrementId = register.IncrementId,
-                MethodName = register.MethodName,
-                Params = register.Params
-                
+                IncrementId = 0,
+                MethodName = nameof(ISmartContractZero.RegisterSmartContract),
+                To = Hash.Zero,
+                From = Hash.Zero,
+                Params = ByteString.CopyFrom(
+                    new Parameters
+                    {
+                        Params = 
+                        {
+                            new Param
+                            {
+                                RegisterVal = new SmartContractRegistration
+                                {
+                                    Category = 0,
+                                    ContractBytes = ByteString.CopyFromUtf8(smartContractZero.FullName),
+                                    ContractHash = Hash.Zero
+                                }
+                            }
+                        }
+                    }.ToByteArray()
+                )
             };
-            var sm = await _smartContractService.GetAsync(inovkeContext.Caller, chainContext);
-            await sm.InvokeAsync(inovkeContext);
-
-            var smartContractMap = adp.GetDataProvider().GetDataProvider("SmartContractMap");
-
-            var copy = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFromUtf8(smartContractZero.FullName),
-                ContractHash = Hash.Zero
-            };
-
-            var hash = Hash.Zero;
-            var bytes = await smartContractMap.GetAsync(hash); 
-            var reg = SmartContractRegistration.Parser.ParseFrom(bytes);
-            
-            // throw exception if not registered
-            Assert.Equal(reg, copy);
-
         }
         
         

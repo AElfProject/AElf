@@ -74,8 +74,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public async Task<byte[]> GetAsync(Hash keyHash)
         {
-            var foo = _path.SetDataKey(keyHash).GetPathHash();
-            var pointerHash = await _worldStateManager.GetPointerAsync(foo);
+            var pointerHash = await _worldStateManager.GetPointerAsync(_path.SetDataKey(keyHash).GetPathHash());
             return await _worldStateManager.GetDataAsync(pointerHash);
         }
 

@@ -44,8 +44,7 @@ namespace AElf.Kernel
             Transaction txData = new Transaction();
             txData.From = From.Clone();
             txData.To = To.Clone();
-            txData.IncrementId = IncrementId;
-                
+
             return txData.ToByteArray();
         }
     }

@@ -67,19 +67,18 @@ namespace AElf.Kernel.TxMemPool
                 // wait for signal
                 EnqueueEvent.WaitOne();
 
+                // no lock needed, since account data context should not be changed when Enqueueable is true
+                foreach (var t in Tmp)
+                {
+                    if(_txPool.Nonces.ContainsKey(t.From))
+                        continue;
+                    _txPool.Nonces[t.From] = (await _accountContextService.GetAccountDataContext(t.From, _txPool.ChainId))
+                        .IncrementId;
+                }
+                
                 await Lock.WriteLock(() =>
                 {
-                    // no lock needed, since account data context should not be changed when Enqueueable is true
-                    foreach (var t in Tmp)
-                    {
-                        if(_txPool.Nonces.ContainsKey(t.From))
-                            continue;
-                        _txPool.Nonces[t.From] = _accountContextService.GetAccountDataContext(t.From, _txPool.ChainId)
-                            .Result.IncrementId;
-                    }
-                    
                     _txPool.QueueTxs(Tmp); 
-                    Tmp.Clear();
                 });
             }
         }

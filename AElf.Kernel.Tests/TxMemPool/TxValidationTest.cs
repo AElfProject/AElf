@@ -30,26 +30,16 @@ namespace AElf.Kernel.Tests.TxMemPool
         private Transaction CreateAndSignTransaction(Hash from = null, Hash to = null, ulong id = 0, ulong fee = 0 )
         {
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
-            var ps = new Parameters();
+            
             var tx = new Transaction
             {
                 From = from,
                 To = to,
                 IncrementId = id,
                 MethodName = "null",
-                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
+                P =  ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
                 Fee = fee,
-                Params = ByteString.CopyFrom(new Parameters
-                {
-                    Params =
-                    {
-                        new Param
-                        {
-                            IntVal = 1
-
-                        }
-                    }
-                }.ToByteArray())
+                Params = ByteString.CopyFrom(new byte[1])
             };
             
             // Serialize and hash the transaction
@@ -133,16 +123,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {  
             var pool = GetPool(2, 3);
             var tx = CreateAndSignTransaction(Hash.Generate(), Hash.Generate(),0, 1);
-            tx.Params = ByteString.CopyFrom(new Parameters
-            {
-                Params =
-                {
-                    new Param
-                    {
-                        IntVal = 2
-                    }
-                }
-            }.ToByteArray());
+            tx.Params = ByteString.CopyFrom(new byte[2]);
             Assert.False(pool.ValidateTx(tx));
         }
         
