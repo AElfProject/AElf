@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Node.Network.Data;
 using AElf.Kernel.Node.Network.Peers;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
@@ -68,7 +69,7 @@ namespace AElf.Kernel.Node
         public async Task BroadcastTransaction(Transaction tx)
         {
             // todo : send to network through server
-            // maybe _server.BroadcastTransaction(tx)
+            await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, tx.ToByteArray());
         }
 
         public async Task ReceiveTransaction(ByteString messagePayload)

@@ -93,7 +93,7 @@ namespace AElf.Kernel.Node.Network.Peers
             }
         }
 
-        public async Task SendReply(byte[] data)
+        public async Task Send(byte[] data)
         {
             if (_stream == null)
                 return;
