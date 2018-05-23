@@ -7,6 +7,6 @@ namespace AElf.Kernel
     public interface ISmartContract 
     {
         Task InitializeAsync(IAccountDataProvider dataProvider);
-        Task InvokeAsync(SmartContractInvokeContext context);
+        Task<object> InvokeAsync(SmartContractInvokeContext context);
     }
 }

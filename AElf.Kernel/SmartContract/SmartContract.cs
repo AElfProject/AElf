@@ -18,7 +18,7 @@ namespace AElf.Kernel
             await Task.CompletedTask;
         }
 
-        public abstract Task InvokeAsync(SmartContractInvokeContext context);
+        public abstract Task<object> InvokeAsync(SmartContractInvokeContext context);
 
     }
     
@@ -26,7 +26,7 @@ namespace AElf.Kernel
     {
 
         public object Instance { get; set; }
-        public override async Task InvokeAsync(SmartContractInvokeContext context)
+        public override async Task<object> InvokeAsync(SmartContractInvokeContext context)
         {
             var type = Instance.GetType();
             
@@ -36,7 +36,7 @@ namespace AElf.Kernel
             // params array
             var parameters = Parameters.Parser.ParseFrom(context.Params).Params.Select(p => p.Value()).ToArray();
             
-            await (Task) member.Invoke(Instance, new object[]{context.Caller, parameters});
+            return (object)member.Invoke(Instance, parameters);
         }
     }
 }
