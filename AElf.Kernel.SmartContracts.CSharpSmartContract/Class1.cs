@@ -4,9 +4,17 @@ namespace AElf.Kernel.SmartContracts.CSharpSmartContract
 {
     public class Class1
     {
-        public void SayHello()
+        public string Name { get; }
+
+        public Class1(string name)
         {
-            Console.WriteLine("Hello World");
+            Name = name;
+        }
+
+        public string SayHello(String yours)
+        {
+            Console.WriteLine("Hello " + yours + ", I am " + Name);
+            return Name;
         }
     }
 }
