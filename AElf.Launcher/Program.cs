@@ -1,6 +1,6 @@
 ﻿using System;
-using AElf.Kernel;
 using AElf.Kernel.Modules.AutofacModule;
+using AElf.Kernel.Node;
 using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.TxMemPool;
 using Autofac;

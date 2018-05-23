@@ -1,4 +1,4 @@
-﻿namespace AElf.Kernel
+﻿namespace AElf.Kernel.Node
 {
     public interface IAElfNode
     {

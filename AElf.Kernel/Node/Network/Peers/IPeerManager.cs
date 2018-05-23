@@ -4,5 +4,7 @@
     {
         void Start();
         void AddPeer(Peer peer);
+        
+        void SetCommandContext(MainChainNode node);
     }
 }
