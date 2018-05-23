@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Managers;
+using AElf.Kernel.SmartContracts.CSharpSmartContract;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.KernelAccount
@@ -26,8 +26,15 @@ namespace AElf.Kernel.KernelAccount
         public async Task<ISmartContract> RunAsync(SmartContractRegistration reg, SmartContractDeployment deployment, 
             IAccountDataProvider adp)
         {
-            var contractName = StringValue.Parser.ParseFrom(reg.ContractBytes.ToByteArray()).ToString();
-            var type = System.Type.GetType(contractName);
+            
+            var smartContractZero = typeof(Class1);
+            var typeName = smartContractZero.AssemblyQualifiedName;
+            var type = System.Type.GetType(typeName);
+            
+            var contractName = StringValue.Parser.ParseFrom(reg.ContractBytes).Value;
+            //var type = System.Type.GetType(contractName);
+
+            var t = typeName.Equals(contractName);
             
             // construct instance
             var constructorParams = Parameters.Parser.ParseFrom(deployment.ConstructParams).Params;
