@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.SmartContracts.CSharpSmartContract;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using Type = System.Type;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
@@ -78,35 +82,160 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             Assert.Equal(reg, copy);
 
         }
-        
-        
-        public void DeployContract()
+
+        public SmartContractInvokeContext RegisterContext(Type smartContractZero)
         {
-            var deployTx = new Transaction
+            // register context
+            var registerContext = new SmartContractInvokeContext
             {
-                IncrementId = 1,
+                Caller = Hash.Zero,
+                IncrementId = 0,
+                MethodName = nameof(ISmartContractZero.RegisterSmartContract),
+                Params = ByteString.CopyFrom(
+                    new Parameters
+                    {
+                        Params = 
+                        {
+                            new Param
+                            {
+                                RegisterVal = new SmartContractRegistration
+                                {
+                                    Category = 1,
+                                    ContractBytes = new StringValue
+                                    {
+                                        Value = smartContractZero.AssemblyQualifiedName
+                                    }.ToByteString(),
+                                    ContractHash = Hash.Zero
+                                }
+                            }
+                        }
+                    }.ToByteArray()
+                )
+            };
+
+            return registerContext;
+        }
+
+        public SmartContractInvokeContext DeploymentContext(string name)
+        {
+            var deployContext = new SmartContractInvokeContext
+            {
                 MethodName = nameof(ISmartContractZero.DeploySmartContract),
-                From = Hash.Zero,
-                To = Hash.Zero,
+                Caller = Hash.Zero,
                 Params = ByteString.CopyFrom(
                     new Parameters
                         {
-                            Params = { 
-                                new Param
-                                {
-                                    HashVal = Hash.Zero
-                                },
+                            Params = {
                                 new Param
                                 {
                                     DeploymentVal = new SmartContractDeployment
                                     {
-                                        ContractHash = Hash.Zero
+                                        ContractHash = Hash.Zero,
+                                        Caller = Hash.Zero,
+                                        ConstructParams = ByteString.CopyFrom(
+                                            new Parameters
+                                            {
+                                                Params =
+                                                {
+                                                    new Param
+                                                    {
+                                                        StrVal = name
+                                                    }
+                                                }
+                                            }.ToByteArray()
+                                        ),
+                                        IncrementId = 1
                                     }
-                                }}
+                                }
+                            }
                         }
                         .ToByteArray()
                 )
             };
+
+            return deployContext;
+        }
+        
+        [Fact]
+        public async Task DeployContract()
+        {
+            // register smart contract
+            var smartContractZero = typeof(Class1);
+            
+            // create chain
+            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, smartContractZero);
+            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
+            var chainContext = _chainContextService.GetChainContext(ChainId);
+
+            var registerContext = RegisterContext(smartContractZero);
+            
+            // register
+            var sm1 = await _smartContractService.GetAsync(registerContext.Caller, chainContext);
+            await sm1.InvokeAsync(registerContext);
+
+            // deploy contract
+
+            var name = "Sam";
+            var deployContext = DeploymentContext(name);
+            var sm2 = await _smartContractService.GetAsync(deployContext.Caller, chainContext);
+            var account = await sm2.InvokeAsync(deployContext);
+            Assert.Equal(account.GetType(), typeof(Hash));
+
+            var sm3 =(CSharpSmartContract) await _smartContractService.GetAsync((Hash) account, chainContext);
+            Assert.Equal(name, ((Class1)sm3.Instance).Name);
+        }
+
+
+        [Fact]
+        public async Task Invoke()
+        {
+            // register smart contract
+            var smartContractZero = typeof(Class1);
+            
+            // create chain
+            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, smartContractZero);
+            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
+            var chainContext = _chainContextService.GetChainContext(ChainId);
+
+            var registerContext = RegisterContext(smartContractZero);
+            
+            // register
+            var sm1 = await _smartContractService.GetAsync(registerContext.Caller, chainContext);
+            await sm1.InvokeAsync(registerContext);
+
+            // deploy contract
+            var name = "Sam";
+            var deployContext = DeploymentContext(name);
+            var sm2 = await _smartContractService.GetAsync(deployContext.Caller, chainContext);
+            var account = await sm2.InvokeAsync(deployContext);
+
+            var sm3 =(CSharpSmartContract) await _smartContractService.GetAsync((Hash) account, chainContext);
+
+
+            var yours = "Wk";
+            var inokeContext = new SmartContractInvokeContext
+            {
+                Caller = Hash.Generate(),
+                IncrementId = 0,
+                MethodName = "SayHello",
+                Params = ByteString.CopyFrom(
+                    new Parameters
+                    {
+                        Params =
+                        {
+                            new Param
+                            {
+                                StrVal = yours
+                            }
+                        }
+                    }.ToByteArray()
+                )
+            };
+            
+            var str = await sm3.InvokeAsync(inokeContext);
+            
+            Assert.Equal(name, str);
+
         }
     }
 }
