@@ -48,7 +48,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.Equal(1, (int) await poolService.GetTmpSizeAsync());
             Assert.Equal(0, (int) await poolService.GetWaitingSizeAsync());
             Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
-            Assert.Equal(1, (int)pool.Size);
+            Assert.Equal(0, (int)pool.Size);
             
             var tx2 = new Transaction
             {
@@ -62,7 +62,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.Equal(2, (int) await poolService.GetTmpSizeAsync());
             Assert.Equal(0, (int) await poolService.GetWaitingSizeAsync());
             Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
-            Assert.Equal(2, (int)pool.Size);
+            Assert.Equal(0, (int)pool.Size);
             
             
             var tx3 = new Transaction
@@ -77,7 +77,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.Equal(3, (int) await poolService.GetTmpSizeAsync());
             Assert.Equal(0, (int) await poolService.GetWaitingSizeAsync());
             Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
-            Assert.Equal(3, (int)pool.Size);
+            Assert.Equal(0, (int)pool.Size);
             
             
             var tx4 = new Transaction
@@ -86,12 +86,13 @@ namespace AElf.Kernel.Tests.TxMemPool
                 To = Hash.Generate(),
                 IncrementId = 1
             };
+            
             res = await poolService.AddTxAsync(tx4);
             Assert.True(res);
             Assert.Equal(4, (int) await poolService.GetTmpSizeAsync());
             Assert.Equal(0, (int) await poolService.GetWaitingSizeAsync());
             Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
-            Assert.Equal(4, (int)pool.Size);
+            Assert.Equal(0, (int)pool.Size);
             
             var tx5 = new Transaction
             {

@@ -194,8 +194,6 @@ namespace AElf.Kernel.Tests
             var chainManager = new ChainManager(_chainStore, _dataStore);
 
             var block1 = CreateBlock(genesisBlockHash);
-            var block2 = CreateBlock(block1.GetHash());
-            var block3 = CreateBlock(block2.GetHash());
 
             //Add first block.
             await chainManager.AddChainAsync(chain.Id, genesisBlockHash);
@@ -217,8 +215,10 @@ namespace AElf.Kernel.Tests
 
             //Set WorldState and add a new block.
             await worldStateManager.SetWorldStateAsync(block1.GetHash());
+            
+            var block2 = CreateBlock(block1.GetHash());
+
             await chainManager.AppendBlockToChainAsync(chain.Id, block2);
-            //Now block1.Header.Hash is current WorldState's preBlockHash.
 
             //Must refresh the DataProviders before set new data.
             accountDataProvider = worldStateManager.GetAccountDataProvider(address);
@@ -238,6 +238,9 @@ namespace AElf.Kernel.Tests
             
             //Now set WorldState again and add a third block.
             await worldStateManager.SetWorldStateAsync(block2.GetHash());
+            
+            var block3 = CreateBlock(block2.GetHash());
+
             await chainManager.AppendBlockToChainAsync(chain.Id, block3);
             
             accountDataProvider = worldStateManager.GetAccountDataProvider(address);

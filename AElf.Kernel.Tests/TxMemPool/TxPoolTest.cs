@@ -36,7 +36,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         }
         
         
-        //[Fact]
+        [Fact]
         public async Task EntryThreshold_Test()
         {
             // setup config
@@ -53,12 +53,12 @@ namespace AElf.Kernel.Tests.TxMemPool
             pool.QueueTxs(tmp);
             
             pool.GetPoolStates(out var executable, out var waiting);
-            Assert.Equal(0, (int)waiting);
+            Assert.Equal(1, (int)waiting);
             Assert.Equal(0, (int)executable);
         }
 
         
-        //[Fact]
+        [Fact]
         public async Task ContainsTx_ReturnsTrue_AfterAdd()
         {
             var pool = GetPool();
@@ -76,7 +76,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         }
 
 
-        //[Fact]
+        [Fact]
         public async Task PromoteTest()
         {
             var pool = GetPool();
@@ -95,7 +95,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.Equal(1, (int)executable);
         }
 
-        //[Fact]
+        [Fact]
         public async Task ReadyTxsTest()
         {
             var pool = GetPool();
@@ -117,7 +117,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         }
 
 
-        //[Fact]
+        [Fact]
         public async Task GetTxTest()
         {
             var pool = GetPool();

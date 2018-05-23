@@ -36,16 +36,17 @@ namespace AElf.Kernel.Tests.TxMemPool
             var tasks = new List<Task>();
             int k = 0;
             var threadNum = 10;
-            for (var j = 0; j < 10; j++)
+            for (var j = 0; j < threadNum; j++)
             {
                 var task = Task.Run(async () =>
                 {
+                    // sorted set for tx id
                     var sortedSet = new SortedSet<ulong>();
                     var addr = Hash.Generate();
                     var i = 0;
-                    while (i++ < 500)
+                    while (i++ < 100)
                     {
-                        var id = (ulong) new Random().Next(100);
+                        var id = (ulong) new Random().Next(10);
                         sortedSet.Add(id);
                         var tx = new Transaction
                         {
@@ -78,8 +79,8 @@ namespace AElf.Kernel.Tests.TxMemPool
             Task.WaitAll(tasks.ToArray());
             await poolService.PromoteAsync();
             Assert.Equal(k, threadNum);
-            Assert.Equal(exec, poolService.GetExecutableSizeAsync().Result);
-            Assert.Equal(queued - exec, poolService.GetWaitingSizeAsync().Result);
+            Assert.Equal(exec, await poolService.GetExecutableSizeAsync());
+            Assert.Equal(queued - exec, await poolService.GetWaitingSizeAsync());
             
         }
     }
