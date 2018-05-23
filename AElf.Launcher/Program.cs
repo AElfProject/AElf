@@ -15,6 +15,9 @@ namespace AElf.Launcher
             // Parse options
             ConfigParser confParser = new ConfigParser();
             bool parsed = confParser.Parse(args);
+
+            if (!parsed)
+                return;
             
             ITxPoolConfig txPoolConf = confParser.TxPoolConfig;
             IAElfServerConfig serverConf = confParser.ServerConfig;
@@ -34,7 +37,7 @@ namespace AElf.Launcher
                 IAElfNode node = scope.Resolve<IAElfNode>();
                 
                 // Start the system
-                node.Start();
+                node.Start(confParser.Rpc);
 
                 Console.ReadLine();
             }

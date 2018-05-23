@@ -16,5 +16,8 @@ namespace AElf.Launcher
         
         [Option(HelpText = "The port this node is listening on.")]
         public int? Port { get; set; }
+        
+        [Option(Default = false, HelpText = "Starts the node without exposing the RPC interface")]
+        public bool NoRpc { get; set; }
     }
 }

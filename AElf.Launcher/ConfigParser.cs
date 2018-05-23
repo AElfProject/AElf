@@ -11,8 +11,10 @@ namespace AElf.Launcher
         public IAElfNetworkConfig NetConfig { get; private set; }
         public IAElfServerConfig ServerConfig { get; private set; }
         public ITxPoolConfig TxPoolConfig { get; private set; }
+        
+        public bool Rpc { get; private set; }
 
-        public bool Success { get; private set; } = false;
+        public bool Success { get; private set; }
         
         public bool Parse(string[] args)
         {
@@ -32,6 +34,8 @@ namespace AElf.Launcher
 
         private void MapOptions(AElfOptions opts)
         {
+            Rpc = !opts.NoRpc;
+            
             // Network
             AElfNetworkConfig netConfig = new AElfNetworkConfig();
 

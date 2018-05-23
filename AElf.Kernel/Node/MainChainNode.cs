@@ -29,10 +29,12 @@ namespace AElf.Kernel.Node
             _logger = logger;
         }
 
-        public void Start()
+        public void Start(bool startRpc)
         {
             _poolService.Start();
-            _rpcServer.Start();
+            
+            if (startRpc)
+                _rpcServer.Start();
             
             _peerManager.Start();
             
@@ -71,7 +73,13 @@ namespace AElf.Kernel.Node
             // todo : send to network through server
             await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, tx.ToByteArray());
         }
-
+        
+        /// <summary>
+        /// This method processes a transaction received from one of the
+        /// connected peers.
+        /// </summary>
+        /// <param name="messagePayload"></param>
+        /// <returns></returns>
         public async Task ReceiveTransaction(ByteString messagePayload)
         {
             try

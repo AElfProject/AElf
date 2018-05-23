@@ -2,6 +2,6 @@
 {
     public interface IAElfNode
     {
-        void Start();
+        void Start(bool startRpc);
     }
 }

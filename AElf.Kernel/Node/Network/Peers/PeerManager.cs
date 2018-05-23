@@ -52,10 +52,10 @@ namespace AElf.Kernel.Node.Network.Peers
         /// This method start the server that listens for incoming
         /// connections and sets up the manager.
         /// </summary>
-        public async void Start()
+        public void Start()
         {
-            await _server.Start();
-            await Setup();
+            Task.Run(() => _server.Start());
+            Task.Run(Setup);
         }
         
         /// <summary>

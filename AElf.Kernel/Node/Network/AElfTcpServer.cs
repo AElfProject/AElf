@@ -66,7 +66,7 @@ namespace AElf.Kernel.Node.Network
             if (_config == null)
             {
                 _logger.Error("Could not start the server, config object is null");
-                return;
+                return ;
             }
                 
             try
@@ -92,8 +92,6 @@ namespace AElf.Kernel.Node.Network
                     
                     Task.Run(async () =>
                     {
-                        _logger.Info("Connection received.");
-
                         await ProcessConnectionRequest(client);
 
                     }, _token);
