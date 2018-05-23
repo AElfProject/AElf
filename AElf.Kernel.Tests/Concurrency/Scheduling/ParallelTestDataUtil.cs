@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AElf.Kernel.Tests.Concurrency
+namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
     /// <summary>
     /// This class putting test data for parallel altogather
