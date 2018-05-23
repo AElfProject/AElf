@@ -118,7 +118,6 @@ namespace AElf.Kernel.Node.Network
                 return;
             }
             
-            PeerConnector connector = new PeerConnector(client);
             Peer connected = await FinalizeConnect(client, client.GetStream());
 
             if (connected == null)

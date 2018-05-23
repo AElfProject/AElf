@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using NLog;
+using NLog.Conditions;
 using NLog.Config;
 using NLog.Targets;
 
@@ -15,6 +16,16 @@ namespace AElf.Kernel.Modules.AutofacModule
             // Step 2. Create targets and add them to the configuration 
             var consoleTarget = new ColoredConsoleTarget();
             config.AddTarget("console", consoleTarget);
+
+            consoleTarget.UseDefaultRowHighlightingRules = false;
+            
+            var highlightRule = new ConsoleRowHighlightingRule();
+            
+            highlightRule.Condition = ConditionParser.ParseExpression("level == LogLevel.Trace");
+            highlightRule.ForegroundColor = ConsoleOutputColor.White;
+            highlightRule.BackgroundColor = ConsoleOutputColor.Cyan;
+            
+            consoleTarget.RowHighlightingRules.Add(highlightRule);
 
             // Step 3. Set target properties 
             consoleTarget.Layout = @"${date:format=HH\:mm\:ss} : ${message}";

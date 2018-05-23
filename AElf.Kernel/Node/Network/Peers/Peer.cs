@@ -12,10 +12,13 @@ namespace AElf.Kernel.Node.Network.Peers
     public class MessageReceivedArgs : EventArgs
     {
         public AElfPacketData Message { get; set; }
+        public Peer peer { get; set; }
     }
     
     public class Peer : IPeer
     {
+        public event EventHandler MessageReceived;
+        
         private readonly TcpClient _client;
         private readonly NetworkStream _stream;
         private readonly NodeData _nodeData;
@@ -64,7 +67,13 @@ namespace AElf.Kernel.Node.Network.Peers
                     if (bytesRead > 0)
                     {
                         AElfPacketData n = AElfPacketData.Parser.ParseFrom(readBytes);
+                       
+                        // Raise the event so the higher levels can process it.
+                        MessageReceivedArgs args = new MessageReceivedArgs();
+                        args.Message = n;
+                        args.peer = this;
                         
+                        MessageReceived?.Invoke(this, args);
                     }
                     else
                     {
@@ -82,6 +91,14 @@ namespace AElf.Kernel.Node.Network.Peers
             {
                 _client?.Close();
             }
+        }
+
+        public async Task SendReply(byte[] data)
+        {
+            if (_stream == null)
+                return;
+
+            await _stream.WriteAsync(data, 0, data.Length);
         }
     }
 }
