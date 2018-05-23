@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using AElf.Kernel.Node.Network;
 using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.TxMemPool;
 using CommandLine;
@@ -9,7 +10,6 @@ namespace AElf.Launcher
     {
         public IAElfNetworkConfig NetConfig { get; private set; }
         public IAElfServerConfig ServerConfig { get; private set; }
-        
         public ITxPoolConfig TxPoolConfig { get; private set; }
 
         public bool Success { get; private set; } = false;
@@ -33,15 +33,28 @@ namespace AElf.Launcher
         private void MapOptions(AElfOptions opts)
         {
             // Network
-            AElfNetworkConfig config = new AElfNetworkConfig();
+            AElfNetworkConfig netConfig = new AElfNetworkConfig();
 
             if (opts.Bootnodes != null && opts.Bootnodes.Any())
-                config.Bootnodes = opts.Bootnodes.ToList();
+                netConfig.Bootnodes = opts.Bootnodes.ToList();
 
-            NetConfig = config;
+            if (opts.Peers != null)
+                netConfig.Peers = opts.Peers.ToList();
+
+            NetConfig = netConfig;
+            
+            // Tcp Server config
+            TcpServerConfig serverConfig = new TcpServerConfig();
+            
+            if (opts.Port.HasValue)
+                serverConfig.Port = opts.Port.Value;
+
+            if (!string.IsNullOrEmpty(opts.Host))
+                serverConfig.Host = opts.Host;
+
+            ServerConfig = serverConfig;
             
             // Todo ITxPoolConfig
-            // Todo IAElfServerConfig
         }
     }
 }

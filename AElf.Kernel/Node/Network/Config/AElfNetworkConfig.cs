@@ -6,6 +6,7 @@ namespace AElf.Kernel.Node.Network.Config
     public class AElfNetworkConfig : IAElfNetworkConfig
     {
         public List<string> Bootnodes { get; set; }
+        public List<string> Peers { get; set; }
         
         public bool UseCustomBootnodes
         {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.Node.Network.Data;
 using AElf.Network;
 using Google.Protobuf;
@@ -11,14 +12,16 @@ namespace AElf.Kernel.Node.Network.Peers
 {
     public class PeerManager : IPeerManager
     {
+        private readonly IAElfNetworkConfig _networkConfig;
         private readonly IAElfServer _server;
         private readonly ILogger _logger;
         private readonly List<Peer> _peers;
         
         private MainChainNode _node;
 
-        public PeerManager(IAElfServer server, IPeerDatabase peerDatabase, ILogger logger)
+        public PeerManager(IAElfServer server, IPeerDatabase peerDatabase, IAElfNetworkConfig config, ILogger logger)
         {
+            _networkConfig = config;
             _logger = logger;
             _server = server;
             _peers = new List<Peer>();
@@ -45,19 +48,71 @@ namespace AElf.Kernel.Node.Network.Peers
             }
         }
 
-        public void Start()
+        /// <summary>
+        /// This method start the server that listens for incoming
+        /// connections and sets up the manager.
+        /// </summary>
+        public async void Start()
         {
-            _server.Start();
+            await _server.Start();
+            await Setup();
+        }
+        
+        /// <summary>
+        /// Sets up the server according to the configuration that was
+        /// provided.
+        /// </summary>
+        private async Task Setup()
+        {
+            if (_networkConfig == null)
+                return;
+            
+            if (_networkConfig.Peers.Any())
+            {
+                foreach (var peerString in _networkConfig.Peers)
+                {
+                    // Parse the IP and port
+                    string[] splitted = peerString.Split(':');
+
+                    if (splitted.Length != 2)
+                        continue;
+                    
+                    ushort port = ushort.Parse(splitted[1]);
+                    Peer p = new Peer(splitted[0], port);
+
+                    bool success = await p.DoConnect();
+
+                    // If we succesfully connected to the other peer 
+                    // add it to be managed.
+                    if (success)
+                    {
+                        AddPeer(p);
+                    }
+                }
+            }
         }
 
+        /// <summary>
+        /// Adds a peer to the manager and hooks up the callback for
+        /// receiving messages from it. It also starts the peers
+        /// listening process.
+        /// </summary>
+        /// <param name="peer">the peer to add</param>
         public void AddPeer(Peer peer)
         {
             _peers.Add(peer);
             peer.MessageReceived += ProcessPeerMessage;
             
+            _logger.Trace("Peer added : " + peer.IpAddress + ":" + peer.Port);
+            
             Task.Run(peer.StartListeningAsync);
         }
 
+        /// <summary>
+        /// Callback that is executed when a peer receives a message.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void ProcessPeerMessage(object sender, EventArgs e)
         {
             if (sender != null && e is MessageReceivedArgs args && args.Message != null)

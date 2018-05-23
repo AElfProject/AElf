@@ -7,5 +7,7 @@ namespace AElf.Kernel.Node.Network.Config
     {
         List<string> Bootnodes { get; }
         bool UseCustomBootnodes { get; }
+        
+        List<string> Peers { get; }
     }
 }
