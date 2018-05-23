@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using AElf.Kernel.Extensions;
+using NLog.Layouts;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -77,6 +78,42 @@ namespace AElf.Kernel
             return CalculateListHash(_chainHash, _accountAddress, _dataProviderHash, _keyHash);
         }
         
+        #region Calculate pointer for chain context
+
+        public static Hash CalculatePointerForCurrentBlockHeight(Hash chainId)
+        {
+            return chainId.CalculateHashWith((Hash) "Height".CalculateHash());
+        }
+
+        public static Hash CalculatePointerForLastBlockHash(Hash chainId)
+        {
+            return chainId.CalculateHashWith((Hash) "LastBlockHash".CalculateHash());
+        }
+        
+        
+        #endregion
+        
+        #region Calculate pointer for block contest
+
+        public static Hash CalculatePointerForPathsCount(Hash chainId, Hash blockHash)
+        {
+            Hash foo = chainId.CalculateHashWith(blockHash);
+            return foo.CalculateHashWith((Hash) "PathsCount".CalculateHash());
+        }
+        
+        #endregion
+
+        #region Calculate pointer for tx result
+
+        public static Hash CalculatePointerForTxResult(Hash txId)
+        {
+            return txId.CalculateHashWith((Hash)"Result".CalculateHash());
+        }
+
+        #endregion
+        
+        #region Private methods
+        
         private bool PointerValidation()
         {
             return _chainHash != null && _blockHash != null && _accountAddress != null && _dataProviderHash != null &&
@@ -97,5 +134,7 @@ namespace AElf.Kernel
             var remains = hashes.Skip(1).ToArray();
             return hashes[0].CombineHashWith(CalculateListHash(remains));
         }
+        
+        #endregion
     }
 }

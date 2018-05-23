@@ -28,17 +28,34 @@ namespace AElf.Kernel.Managers
             return block;
         }
 
-        public Task<IBlockHeader> GetBlockHeaderAsync(Hash hash)
+
+        public async Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash)
         {
-            return _blockHeaderStore.GetAsync(hash);
+            return await _blockHeaderStore.GetAsync(blockHash);
         }
-        
+
+        public async Task<BlockHeader> AddBlockHeaderAsync(BlockHeader header)
+        {
+            return await _blockHeaderStore.InsertAsync(header);
+        }
+
+        public async Task<Block> GetBlockAsync(Hash blockHash)
+        {
+            var header = await _blockHeaderStore.GetAsync(blockHash);
+            var body = await _blockBodyStore.GetAsync(header.MerkleTreeRootOfTransactions);
+            return new Block
+            {
+                Header = header,
+                Body = body
+            };
+        }
+
         /// <summary>
         /// The validation should be done in manager instead of storage.
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        private bool Validation(Block block)
+        private bool Validation(IBlock block)
         {
             // TODO:
             // Do some checks like duplication

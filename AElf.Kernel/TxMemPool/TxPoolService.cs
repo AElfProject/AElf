@@ -111,17 +111,23 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task<List<Transaction>> GetReadyTxsAsync()
+        public Task<List<ITransaction>> GetReadyTxsAsync(ulong limit)
         {
-            return Lock.ReadLock(() => _txPool.ReadyTxs());
+            return Lock.ReadLock(() =>
+            {
+                _txPool.Promotable = false;
+                return _txPool.ReadyTxs(limit);
+            });
         }
 
         /// <inheritdoc/>
-        public Task PromoteAsync()
+        public Task<bool> PromoteAsync()
         {
             return Lock.WriteLock(() =>
             {
+                if (!_txPool.Promotable) return false;
                 _txPool.Promote();
+                return true;
             });
         }
 
@@ -170,6 +176,12 @@ namespace AElf.Kernel.TxMemPool
             return Lock.ReadLock(() => _txPool.TmpSize);
         }
         
+        /// <inheritdoc/>
+        public Task SetPromotable(bool flag)
+        {
+            return Lock.WriteLock(() => _txPool.Promotable = flag);
+        }
+
 
         /// <inheritdoc/>
         public void Start()
@@ -193,6 +205,7 @@ namespace AElf.Kernel.TxMemPool
             {
                 // TODO: release resources
                 Cts.Cancel();
+                Cts.Dispose();
                 EnqueueEvent.Dispose();
                 DemoteEvent.Dispose();
             });

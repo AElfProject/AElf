@@ -34,6 +34,11 @@ namespace AElf.Kernel.TxMemPool
         void Promote(List<Hash> addrs = null);
         
         /// <summary>
+        /// return ready tx count 
+        /// </summary>
+        //ulong ReadyTxCount { get; }
+        
+        /// <summary>
         /// return pool size
         /// </summary>
         /// <returns></returns>
@@ -42,13 +47,19 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// return tx list can be executed
         /// </summary>
-        List<Transaction> ReadyTxs();
+        List<ITransaction> ReadyTxs(ulong limit);
 
         /// <summary>
         /// threshold for entering pool
         /// </summary>
         ulong EntryThreshold { get; }
 
+        /// <summary>
+        /// txs can be promoted to executable list if Promotable is true,
+        /// otherwise they can't be.
+        /// </summary>
+        bool Promotable { get; set; }
+        
         /// <summary>
         /// return chain id for this pool
         /// </summary>

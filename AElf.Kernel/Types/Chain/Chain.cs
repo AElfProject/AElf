@@ -8,24 +8,16 @@ namespace AElf.Kernel
 {
     public partial class Chain : IChain
     {
-        public void UpdateCurrentBlock(Block block)
+        public Chain(Hash chainId, Hash genesisBlockHash)
         {
-            block.Header.Index = CurrentBlockHeight;
-            CurrentBlockHeight += 1;
-            CurrentBlockHash = block.GetHash();
-        }
-        public Hash GenesisBlockHash { get; set; }
-
-        public Chain(Hash id)
-        {
-            Id = id;
-            CurrentBlockHash = null;
-            CurrentBlockHeight = 0;
+            Id = chainId;
+            GenesisBlockHash = genesisBlockHash;
         }
 
         public byte[] Serialize()
         {
             return this.ToByteArray();
         }
+        
     }
 }

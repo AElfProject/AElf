@@ -27,6 +27,8 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc />
         public ulong EntryThreshold => _config.EntryThreshold;
 
+        public bool Promotable { get; set; } = true;
+
         /// <inheritdoc />
         public Hash ChainId => _config.ChainId;
 
@@ -37,7 +39,7 @@ namespace AElf.Kernel.TxMemPool
         public ulong TmpSize => (ulong)Tmp.Count;
 
         /// <inheritdoc/>
-        public ulong MinimalFee => _config.EntryThreshold;
+        public ulong MinimalFee => _config.FeeThreshold;
 
         /// <inheritdoc />
         //public Fee MinimalFee => _config.FeeThreshold;
@@ -110,19 +112,29 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public List<Transaction> ReadyTxs()
+        public List<ITransaction> ReadyTxs(ulong limit)
         {
-            var list = new List<Transaction>();
-            foreach (var p in _executable)
+            var res = new List<ITransaction>();
+            foreach (var kv in _executable)
             {
-                var nonce = GetNonce(p.Key);
-                foreach (var hash in p.Value)
+                if ((ulong) res.Count >= limit)
+                    break;
+                var nonce = GetNonce(kv.Key);
+                var r = 0;
+                foreach (var txHash in kv.Value)
                 {
-                    if(_pool.TryGetValue(hash, out var tx) && tx.IncrementId >= nonce)
-                        list.Add(tx);
+                    if (!_pool.TryGetValue(txHash, out var tx) || tx.IncrementId < nonce) continue;
+                    r++;
+                    res.Add(tx);
+                    if ((ulong) res.Count >= limit)
+                        break;
                 }
+                
+                // TODO: update account data context
+                //remove txs 
+                kv.Value.RemoveRange(0, r);
             }
-            return list;
+            return res;
         }
         
         /// <inheritdoc/>
@@ -369,6 +381,7 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="addrs"></param>
         public void Promote(List<Hash> addrs = null)
         {
+            
             if (addrs == null)
             {
                 addrs = _waiting.Keys.ToList();
@@ -380,12 +393,14 @@ namespace AElf.Kernel.TxMemPool
             }
         }
 
+        /// <inheritdoc/>
+        //public ulong ReadyTxCount { get; private set; }
+
         private ulong? GetNextPromotableTxId(Hash addr)
         {
             if (_waiting == null)
                 return null;
 
-            Dictionary<ulong, Hash> waitingDict = null;
             if (!_waiting.TryGetValue(addr, out var waitingList))
             {
                 return null;
@@ -432,7 +447,7 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <summary>
-        /// promote ready txs from waiting to exectuable
+        /// promote ready tx from waiting to exectuable
         /// </summary>
         /// <param name="addr">From account addr</param>
         private void Promote(Hash addr)
@@ -440,13 +455,13 @@ namespace AElf.Kernel.TxMemPool
             ulong? next = GetNextPromotableTxId(addr);
 
             if (!next.HasValue)
-                return;
+                return ;
 
             DiscardOldTransaction(addr, next.Value);
 
             if (!_executable.TryGetValue(addr, out var executableList) || !_waiting.TryGetValue(addr, out var waitingList))
             {
-                return;
+                return ;
             }
 
             ulong incr = next.Value;
@@ -459,7 +474,7 @@ namespace AElf.Kernel.TxMemPool
                 executableList.Add(hash);
                 // remove from waiting list
                 waitingList.Remove(incr);
-
+                
             } while (waitingList.Count > 0 && waitingList.Keys.Contains(++incr));
 
         }

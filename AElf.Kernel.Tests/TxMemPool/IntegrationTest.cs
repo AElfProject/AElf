@@ -76,7 +76,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             }
 
             Task.WaitAll(tasks.ToArray());
-            pool.QueueTxs();
+            //pool.QueueTxs();
             await poolService.PromoteAsync();
             Assert.Equal(k, threadNum);
             Assert.Equal(exec, poolService.GetExecutableSizeAsync().Result);

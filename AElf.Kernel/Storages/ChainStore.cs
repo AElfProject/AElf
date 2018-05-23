@@ -16,7 +16,8 @@ namespace AElf.Kernel.Storages
     
         public async Task<IChain> GetAsync(Hash id)
         {
-            return Chain.Parser.ParseFrom(await _keyValueDatabase.GetAsync(id.Value.ToBase64(), typeof(Chain)));
+            var chainBytes = await _keyValueDatabase.GetAsync(id.Value.ToBase64(), typeof(Chain));
+            return chainBytes == null ? null : Chain.Parser.ParseFrom(chainBytes);
         }
 
         public async Task<IChain> UpdateAsync(IChain chain)

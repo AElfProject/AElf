@@ -28,35 +28,36 @@ namespace AElf.Kernel {
             "CzIFLkhhc2gSEQoCVG8YAiABKAsyBS5IYXNoEhMKC0luY3JlbWVudElkGAMg",
             "ASgEEhIKCk1ldGhvZE5hbWUYBCABKAkSDgoGUGFyYW1zGAUgASgMEgsKA0Zl",
             "ZRgGIAEoBBIJCgFSGAcgASgMEgkKAVMYCCABKAwSCQoBUBgJIAEoDCIVCgRI",
-            "YXNoEg0KBVZhbHVlGAEgASgMImkKC0Jsb2NrSGVhZGVyEg8KB1ZlcnNpb24Y",
-            "ASABKAUSHAoNUGVydmlvdXNCbG9jaxgCIAEoCzIFLkhhc2gSKwocTWVya2xl",
-            "VHJlZVJvb3RPZlRyYW5zYWN0aW9ucxgDIAEoCzIFLkhhc2giRAoJQmxvY2tC",
-            "b2R5EhoKC0Jsb2NrSGVhZGVyGAEgASgLMgUuSGFzaBIbCgxUcmFuc2FjdGlv",
-            "bnMYAiADKAsyBS5IYXNoIj8KBUJsb2NrEhwKBkhlYWRlchgBIAEoCzIMLkJs",
-            "b2NrSGVhZGVyEhgKBEJvZHkYAiABKAsyCi5CbG9ja0JvZHkiYQoZU21hcnRD",
-            "b250cmFjdFJlZ2lzdHJhdGlvbhIQCghDYXRlZ29yeRgBIAEoBRIbCgxDb250",
-            "cmFjdEhhc2gYAiABKAsyBS5IYXNoEhUKDUNvbnRyYWN0Qnl0ZXMYAyABKAwi",
-            "TwoXU21hcnRDb250cmFjdERlcGxveW1lbnQSGwoMQ29udHJhY3RIYXNoGAEg",
-            "ASgLMgUuSGFzaBIXCg9Db25zdHJ1Y3RQYXJhbXMYAiABKAwiSAoaU21hcnRD",
-            "b250cmFjdEludm9rZUNvbnRleHQSFQoGQ2FsbGVyGAEgASgLMgUuSGFzaBIT",
-            "CgtJbmNyZW1lbnRJZBgCIAEoBCJ8CgZDaGFuZ2USFgoHQmVmb3JlcxgBIAMo",
-            "CzIFLkhhc2gSFAoFQWZ0ZXIYAiABKAsyBS5IYXNoEh0KDlRyYW5zYWN0aW9u",
-            "SWRzGAMgASgLMgUuSGFzaBIlChZMYXRlc3RDaGFuZ2VkQmxvY2tIYXNoGAQg",
-            "ASgLMgUuSGFzaCI8Cg5QYWlySGFzaENoYW5nZRISCgNLZXkYASABKAsyBS5I",
-            "YXNoEhYKBVZhbHVlGAIgASgLMgcuQ2hhbmdlIiwKC0NoYW5nZXNEaWN0Eh0K",
-            "BERpY3QYASADKAsyDy5QYWlySGFzaENoYW5nZSJXCgVDaGFpbhIRCgJJZBgB",
-            "IAEoCzIFLkhhc2gSHwoQQ3VycmVudEJsb2NrSGFzaBgCIAEoCzIFLkhhc2gS",
-            "GgoSQ3VycmVudEJsb2NrSGVpZ2h0GAMgASgEIlgKEVRyYW5zYWN0aW9uUmVz",
-            "dWx0EhwKDVRyYW5zYWN0aW9uSWQYASABKAsyBS5IYXNoEhcKBnN0YXR1cxgC",
-            "IAEoDjIHLlN0YXR1cxIMCgRsb2dzGAMgASgMKlEKBlN0YXR1cxIOCgpOb3RF",
-            "eGlzdGVkEAASCwoHUmVmdXNlZBABEgsKB1BlbmRpbmcQAhISCg5FeGVjdXRl",
-            "ZEZhaWxlZBADEgkKBU1pbmVkEARCDqoCC0FFbGYuS2VybmVsYgZwcm90bzM="));
+            "YXNoEg0KBVZhbHVlGAEgASgMIqMBCgtCbG9ja0hlYWRlchIPCgdWZXJzaW9u",
+            "GAEgASgFEhwKDVBlcnZpb3VzQmxvY2sYAiABKAsyBS5IYXNoEisKHE1lcmts",
+            "ZVRyZWVSb290T2ZUcmFuc2FjdGlvbnMYAyABKAsyBS5IYXNoEikKGk1lcmts",
+            "ZVRyZWVSb290T2ZXb3JsZFN0YXRlGAQgASgLMgUuSGFzaBINCgVJbmRleBgF",
+            "IAEoBCJECglCbG9ja0JvZHkSGgoLQmxvY2tIZWFkZXIYASABKAsyBS5IYXNo",
+            "EhsKDFRyYW5zYWN0aW9ucxgCIAMoCzIFLkhhc2giPwoFQmxvY2sSHAoGSGVh",
+            "ZGVyGAEgASgLMgwuQmxvY2tIZWFkZXISGAoEQm9keRgCIAEoCzIKLkJsb2Nr",
+            "Qm9keSJhChlTbWFydENvbnRyYWN0UmVnaXN0cmF0aW9uEhAKCENhdGVnb3J5",
+            "GAEgASgFEhsKDENvbnRyYWN0SGFzaBgCIAEoCzIFLkhhc2gSFQoNQ29udHJh",
+            "Y3RCeXRlcxgDIAEoDCJPChdTbWFydENvbnRyYWN0RGVwbG95bWVudBIbCgxD",
+            "b250cmFjdEhhc2gYASABKAsyBS5IYXNoEhcKD0NvbnN0cnVjdFBhcmFtcxgC",
+            "IAEoDCJIChpTbWFydENvbnRyYWN0SW52b2tlQ29udGV4dBIVCgZDYWxsZXIY",
+            "ASABKAsyBS5IYXNoEhMKC0luY3JlbWVudElkGAIgASgEInwKBkNoYW5nZRIW",
+            "CgdCZWZvcmVzGAEgAygLMgUuSGFzaBIUCgVBZnRlchgCIAEoCzIFLkhhc2gS",
+            "HQoOVHJhbnNhY3Rpb25JZHMYAyABKAsyBS5IYXNoEiUKFkxhdGVzdENoYW5n",
+            "ZWRCbG9ja0hhc2gYBCABKAsyBS5IYXNoIjwKDlBhaXJIYXNoQ2hhbmdlEhIK",
+            "A0tleRgBIAEoCzIFLkhhc2gSFgoFVmFsdWUYAiABKAsyBy5DaGFuZ2UiLAoL",
+            "Q2hhbmdlc0RpY3QSHQoERGljdBgBIAMoCzIPLlBhaXJIYXNoQ2hhbmdlIjsK",
+            "BUNoYWluEhEKAklkGAEgASgLMgUuSGFzaBIfChBHZW5lc2lzQmxvY2tIYXNo",
+            "GAIgASgLMgUuSGFzaCJYChFUcmFuc2FjdGlvblJlc3VsdBIcCg1UcmFuc2Fj",
+            "dGlvbklkGAEgASgLMgUuSGFzaBIXCgZzdGF0dXMYAiABKA4yBy5TdGF0dXMS",
+            "DAoEbG9ncxgDIAEoDCpRCgZTdGF0dXMSDgoKTm90RXhpc3RlZBAAEgsKB1Jl",
+            "ZnVzZWQQARILCgdQZW5kaW5nEAISEgoORXhlY3V0ZWRGYWlsZWQQAxIJCgVN",
+            "aW5lZBAEQg6qAgtBRWxmLktlcm5lbGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params", "Fee", "R", "S", "P" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Hash), global::AElf.Kernel.Hash.Parser, new[]{ "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PerviousBlock", "MerkleTreeRootOfTransactions" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PerviousBlock", "MerkleTreeRootOfTransactions", "MerkleTreeRootOfWorldState", "Index" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockBody), global::AElf.Kernel.BlockBody.Parser, new[]{ "BlockHeader", "Transactions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Block), global::AElf.Kernel.Block.Parser, new[]{ "Header", "Body" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractRegistration), global::AElf.Kernel.SmartContractRegistration.Parser, new[]{ "Category", "ContractHash", "ContractBytes" }, null, null, null),
@@ -65,7 +66,7 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Change), global::AElf.Kernel.Change.Parser, new[]{ "Befores", "After", "TransactionIds", "LatestChangedBlockHash" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.PairHashChange), global::AElf.Kernel.PairHashChange.Parser, new[]{ "Key", "Value" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.ChangesDict), global::AElf.Kernel.ChangesDict.Parser, new[]{ "Dict" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Chain), global::AElf.Kernel.Chain.Parser, new[]{ "Id", "CurrentBlockHash", "CurrentBlockHeight" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Chain), global::AElf.Kernel.Chain.Parser, new[]{ "Id", "GenesisBlockHash" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionResult), global::AElf.Kernel.TransactionResult.Parser, new[]{ "TransactionId", "Status", "Logs" }, null, null, null)
           }));
     }
@@ -606,6 +607,8 @@ namespace AElf.Kernel {
       version_ = other.version_;
       PerviousBlock = other.perviousBlock_ != null ? other.PerviousBlock.Clone() : null;
       MerkleTreeRootOfTransactions = other.merkleTreeRootOfTransactions_ != null ? other.MerkleTreeRootOfTransactions.Clone() : null;
+      MerkleTreeRootOfWorldState = other.merkleTreeRootOfWorldState_ != null ? other.MerkleTreeRootOfWorldState.Clone() : null;
+      index_ = other.index_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -647,6 +650,28 @@ namespace AElf.Kernel {
       }
     }
 
+    /// <summary>Field number for the "MerkleTreeRootOfWorldState" field.</summary>
+    public const int MerkleTreeRootOfWorldStateFieldNumber = 4;
+    private global::AElf.Kernel.Hash merkleTreeRootOfWorldState_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash MerkleTreeRootOfWorldState {
+      get { return merkleTreeRootOfWorldState_; }
+      set {
+        merkleTreeRootOfWorldState_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Index" field.</summary>
+    public const int IndexFieldNumber = 5;
+    private ulong index_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ulong Index {
+      get { return index_; }
+      set {
+        index_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as BlockHeader);
@@ -663,6 +688,8 @@ namespace AElf.Kernel {
       if (Version != other.Version) return false;
       if (!object.Equals(PerviousBlock, other.PerviousBlock)) return false;
       if (!object.Equals(MerkleTreeRootOfTransactions, other.MerkleTreeRootOfTransactions)) return false;
+      if (!object.Equals(MerkleTreeRootOfWorldState, other.MerkleTreeRootOfWorldState)) return false;
+      if (Index != other.Index) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -672,6 +699,8 @@ namespace AElf.Kernel {
       if (Version != 0) hash ^= Version.GetHashCode();
       if (perviousBlock_ != null) hash ^= PerviousBlock.GetHashCode();
       if (merkleTreeRootOfTransactions_ != null) hash ^= MerkleTreeRootOfTransactions.GetHashCode();
+      if (merkleTreeRootOfWorldState_ != null) hash ^= MerkleTreeRootOfWorldState.GetHashCode();
+      if (Index != 0UL) hash ^= Index.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -697,6 +726,14 @@ namespace AElf.Kernel {
         output.WriteRawTag(26);
         output.WriteMessage(MerkleTreeRootOfTransactions);
       }
+      if (merkleTreeRootOfWorldState_ != null) {
+        output.WriteRawTag(34);
+        output.WriteMessage(MerkleTreeRootOfWorldState);
+      }
+      if (Index != 0UL) {
+        output.WriteRawTag(40);
+        output.WriteUInt64(Index);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -713,6 +750,12 @@ namespace AElf.Kernel {
       }
       if (merkleTreeRootOfTransactions_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(MerkleTreeRootOfTransactions);
+      }
+      if (merkleTreeRootOfWorldState_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(MerkleTreeRootOfWorldState);
+      }
+      if (Index != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(Index);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -739,6 +782,15 @@ namespace AElf.Kernel {
           merkleTreeRootOfTransactions_ = new global::AElf.Kernel.Hash();
         }
         MerkleTreeRootOfTransactions.MergeFrom(other.MerkleTreeRootOfTransactions);
+      }
+      if (other.merkleTreeRootOfWorldState_ != null) {
+        if (merkleTreeRootOfWorldState_ == null) {
+          merkleTreeRootOfWorldState_ = new global::AElf.Kernel.Hash();
+        }
+        MerkleTreeRootOfWorldState.MergeFrom(other.MerkleTreeRootOfWorldState);
+      }
+      if (other.Index != 0UL) {
+        Index = other.Index;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -767,6 +819,17 @@ namespace AElf.Kernel {
               merkleTreeRootOfTransactions_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(merkleTreeRootOfTransactions_);
+            break;
+          }
+          case 34: {
+            if (merkleTreeRootOfWorldState_ == null) {
+              merkleTreeRootOfWorldState_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(merkleTreeRootOfWorldState_);
+            break;
+          }
+          case 40: {
+            Index = input.ReadUInt64();
             break;
           }
         }
@@ -2155,8 +2218,7 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public Chain(Chain other) : this() {
       Id = other.id_ != null ? other.Id.Clone() : null;
-      CurrentBlockHash = other.currentBlockHash_ != null ? other.CurrentBlockHash.Clone() : null;
-      currentBlockHeight_ = other.currentBlockHeight_;
+      GenesisBlockHash = other.genesisBlockHash_ != null ? other.GenesisBlockHash.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2176,25 +2238,14 @@ namespace AElf.Kernel {
       }
     }
 
-    /// <summary>Field number for the "CurrentBlockHash" field.</summary>
-    public const int CurrentBlockHashFieldNumber = 2;
-    private global::AElf.Kernel.Hash currentBlockHash_;
+    /// <summary>Field number for the "GenesisBlockHash" field.</summary>
+    public const int GenesisBlockHashFieldNumber = 2;
+    private global::AElf.Kernel.Hash genesisBlockHash_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Hash CurrentBlockHash {
-      get { return currentBlockHash_; }
+    public global::AElf.Kernel.Hash GenesisBlockHash {
+      get { return genesisBlockHash_; }
       set {
-        currentBlockHash_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "CurrentBlockHeight" field.</summary>
-    public const int CurrentBlockHeightFieldNumber = 3;
-    private ulong currentBlockHeight_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public ulong CurrentBlockHeight {
-      get { return currentBlockHeight_; }
-      set {
-        currentBlockHeight_ = value;
+        genesisBlockHash_ = value;
       }
     }
 
@@ -2212,8 +2263,7 @@ namespace AElf.Kernel {
         return true;
       }
       if (!object.Equals(Id, other.Id)) return false;
-      if (!object.Equals(CurrentBlockHash, other.CurrentBlockHash)) return false;
-      if (CurrentBlockHeight != other.CurrentBlockHeight) return false;
+      if (!object.Equals(GenesisBlockHash, other.GenesisBlockHash)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -2221,8 +2271,7 @@ namespace AElf.Kernel {
     public override int GetHashCode() {
       int hash = 1;
       if (id_ != null) hash ^= Id.GetHashCode();
-      if (currentBlockHash_ != null) hash ^= CurrentBlockHash.GetHashCode();
-      if (CurrentBlockHeight != 0UL) hash ^= CurrentBlockHeight.GetHashCode();
+      if (genesisBlockHash_ != null) hash ^= GenesisBlockHash.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -2240,13 +2289,9 @@ namespace AElf.Kernel {
         output.WriteRawTag(10);
         output.WriteMessage(Id);
       }
-      if (currentBlockHash_ != null) {
+      if (genesisBlockHash_ != null) {
         output.WriteRawTag(18);
-        output.WriteMessage(CurrentBlockHash);
-      }
-      if (CurrentBlockHeight != 0UL) {
-        output.WriteRawTag(24);
-        output.WriteUInt64(CurrentBlockHeight);
+        output.WriteMessage(GenesisBlockHash);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -2259,11 +2304,8 @@ namespace AElf.Kernel {
       if (id_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(Id);
       }
-      if (currentBlockHash_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(CurrentBlockHash);
-      }
-      if (CurrentBlockHeight != 0UL) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(CurrentBlockHeight);
+      if (genesisBlockHash_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(GenesisBlockHash);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -2282,14 +2324,11 @@ namespace AElf.Kernel {
         }
         Id.MergeFrom(other.Id);
       }
-      if (other.currentBlockHash_ != null) {
-        if (currentBlockHash_ == null) {
-          currentBlockHash_ = new global::AElf.Kernel.Hash();
+      if (other.genesisBlockHash_ != null) {
+        if (genesisBlockHash_ == null) {
+          genesisBlockHash_ = new global::AElf.Kernel.Hash();
         }
-        CurrentBlockHash.MergeFrom(other.CurrentBlockHash);
-      }
-      if (other.CurrentBlockHeight != 0UL) {
-        CurrentBlockHeight = other.CurrentBlockHeight;
+        GenesisBlockHash.MergeFrom(other.GenesisBlockHash);
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -2310,14 +2349,10 @@ namespace AElf.Kernel {
             break;
           }
           case 18: {
-            if (currentBlockHash_ == null) {
-              currentBlockHash_ = new global::AElf.Kernel.Hash();
+            if (genesisBlockHash_ == null) {
+              genesisBlockHash_ = new global::AElf.Kernel.Hash();
             }
-            input.ReadMessage(currentBlockHash_);
-            break;
-          }
-          case 24: {
-            CurrentBlockHeight = input.ReadUInt64();
+            input.ReadMessage(genesisBlockHash_);
             break;
           }
         }
