@@ -70,7 +70,7 @@ namespace AElf.Kernel.Tests
         public async Task AppendBlockTest(IChain chain, Block block)
         {
             await _chainManager.AppendBlockToChainAsync(chain, block);
-            Assert.Equal(chain.CurrentBlockHeight, (ulong)2);
+            Assert.Equal( (ulong)2, chain.CurrentBlockHeight);
             Assert.Equal(chain.CurrentBlockHash, block.GetHash());
         }
     }
