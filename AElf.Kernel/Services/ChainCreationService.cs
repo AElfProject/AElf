@@ -25,16 +25,19 @@ namespace AElf.Kernel.Services
             
             foreach (var tx in builder.Txs)
             {
+                builder.Block.Body.Transactions.Add(tx.GetHash());
                 await _transactionManager.AddTransactionAsync(tx);
             }
 
+            
             // add block to storage
             await _blockManager.AddBlockAsync(builder.Block);
             
             // set height and lastBlockHash for a chain
-            await _chainManager.SetChainCurrentHeight(chainId, 1);
+            await _chainManager.SetChainCurrentHeight(chainId, 0);
             await _chainManager.SetChainLastBlockHash(chainId, builder.Block.GetHash());
             var chain = await _chainManager.AddChainAsync(chainId, builder.Block.GetHash());
+            await _chainManager.AppendBlockToChainAsync(chainId, builder.Block);
             return chain;
         }
     }

@@ -157,12 +157,13 @@ namespace AElf.Kernel.TxMemPool
                 // already in the pool
                 if (Contains(txHash) )
                     continue;
-                _pool[txHash] = tx;
                 
                 if (ReplaceTx(txHash))
                 {
                     continue;
                 }
+                
+                _pool[txHash] = tx;
                 if (!AddWaitingTx(txHash))
                     _pool.Remove(txHash);
             }
