@@ -47,7 +47,7 @@ namespace AElf.Kernel.Tests
             var accountDataProvider = worldStateManager.GetAccountDataProvider(chainId, address);
             
             await _smartContractZero.InitializeAsync(accountDataProvider);
-            Assert.Equal(chain.CurrentBlockHeight, (ulong)1);
+            Assert.Equal((ulong)2, chain.CurrentBlockHeight);
             return chain;
         }
 
