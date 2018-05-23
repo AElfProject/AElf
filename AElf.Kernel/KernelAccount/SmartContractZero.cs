@@ -32,7 +32,7 @@ namespace AElf.Kernel.KernelAccount
             await _worldStateManager.OfChain(dataProvider.Context.ChainId);
         }
 
-        public async Task InvokeAsync(SmartContractInvokeContext context)
+        public async Task<object> InvokeAsync(SmartContractInvokeContext context)
         {
             var type = typeof(SmartContractZero);
             
@@ -43,21 +43,22 @@ namespace AElf.Kernel.KernelAccount
             
             
             // invoke
-            await (Task) member.Invoke(this, parameters);
+            return await (Task<object>) member.Invoke(this, parameters);
         }
 
         /// <inheritdoc/>
-        public async Task RegisterSmartContract(SmartContractRegistration reg)
+        public async Task<object> RegisterSmartContract(SmartContractRegistration reg)
         {
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
             //TODO: For now just hard coded to Hash.Zero
             var hash = reg.ContractHash;
             await smartContractMap.SetAsync(hash, reg.Serialize());
+            return null;
         }
         
         
         /// <inheritdoc/>
-        public async Task<Hash> DeploySmartContract(SmartContractDeployment smartContractRegister)
+        public async Task<object> DeploySmartContract(SmartContractDeployment smartContractRegister)
         {
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
             
