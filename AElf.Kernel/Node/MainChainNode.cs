@@ -52,8 +52,8 @@ namespace AElf.Kernel.Node
 
         /// <summary>
         /// This inserts a transaction into the node. Note that it does
-        /// not broadcast it to the network and doesn't add to the
-        /// transaction pool. Essentially it just insert the transaction
+        /// not broadcast it to the network and doesn't add it to the
+        /// transaction pool. Essentially it just inserts the transaction
         /// in the database.
         /// </summary>
         /// <param name="tx">The transaction to insert</param>

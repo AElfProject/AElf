@@ -125,8 +125,8 @@ namespace AElf.Kernel.Node.Network.Peers
         }
 
         /// <summary>
-        /// This message broadcasts data to all of its peers. The creates and
-        /// send a <see cref="AElfPacketData"/> object with the provided pay-
+        /// This message broadcasts data to all of its peers. This creates and
+        /// sends a <see cref="AElfPacketData"/> object with the provided pay-
         /// load and message type.
         /// </summary>
         /// <param name="messageType"></param>

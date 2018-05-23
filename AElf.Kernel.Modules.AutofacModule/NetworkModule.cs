@@ -23,7 +23,7 @@ using Autofac;
              
              builder.RegisterType<AElfTcpServer>().As<IAElfServer>();
              builder.RegisterType<PeerManager>().As<IPeerManager>();
-             builder.RegisterType<PeerDatabase>().As<IPeerDatabase>();
+             builder.RegisterType<PeerDataStore>().As<IPeerDatabase>();
          }
      }
  }

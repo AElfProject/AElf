@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AElf.Kernel.Node.Network.Peers
 {
-    public class PeerDatabase : IPeerDatabase
+    public class PeerDataStore : IPeerDatabase
     {
         private const string FileName = "peerDB.txt";
         private readonly string _filePath = System.IO.Path.Combine(System.Environment.CurrentDirectory, FileName);
