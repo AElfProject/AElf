@@ -17,7 +17,7 @@ namespace AElf.Kernel.Node.Network.Peers
         private readonly IAElfServer _server;
         private readonly IPeerDatabase _peerDatabase;
         private readonly ILogger _logger;
-        private List<IPeer> _peers;
+        private List<IPeer> _peers = new List<IPeer>();
         private List<IPeer> _peerDBContents;
         
         private MainChainNode _node;
