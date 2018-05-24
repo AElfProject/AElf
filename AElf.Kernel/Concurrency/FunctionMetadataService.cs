@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using NLog;
 using Org.BouncyCastle.Security;
 using QuickGraph;
 using QuickGraph.Algorithms;
@@ -11,17 +12,20 @@ namespace AElf.Kernel.Concurrency
     /// <summary>
     /// Where get and set the metadata when deploy the contracts and check correctness when trying to updating contracts(functions)
     /// TODO: currently just sopport update one function of a contract, if trying to update multiple function at a time, the calling graph and the FunctionMetadataMap should be backup before the update in case one of the function fail the update and all the preceding updated function need to roll back their effect. Or maybe just check Whether applying all the updating functions can result in non-DAG calling graph. 
+    /// TODO: Whether need the functionality of deleting the existing function?
     /// </summary>
     public class FunctionMetadataService : IFunctionMetaDataService
     {
         public Dictionary<string, FunctionMetadata> FunctionMetadataMap { get; } = new Dictionary<string, FunctionMetadata>();
         private AdjacencyGraph<string, Edge<string>> _callingGraph;
+        
+        private readonly ILogger _logger;
 
-        public FunctionMetadataService()
+        public FunctionMetadataService(ILogger logger)
         {
+            _logger = logger;
             _callingGraph = new AdjacencyGraph<string, Edge<string>>();
         }
-
 
         public bool SetNewFunctionMetadata(string functionFullName, HashSet<string> otherFunctionsCallByThis, HashSet<Hash> nonRecursivePathSet)
         {
@@ -44,7 +48,7 @@ namespace AElf.Kernel.Concurrency
             }
             catch (InvalidParameterException e)
             {
-                Console.WriteLine(e);
+                _logger.Error(e, "when tries to add function: " + functionFullName + ", it cause non-DAG calling graph thus fail.");
                 return false;
             }
             
@@ -159,7 +163,7 @@ namespace AElf.Kernel.Concurrency
             }
             catch (NonAcyclicGraphException e)
             {
-                Console.WriteLine("FunctionMetadataService: When update function " + updatingFunc + ", its new calling set form a acyclic graph, thus update don't take effect");
+                _logger.Warn(e, "FunctionMetadataService: When update function " + updatingFunc + ", its new calling set form a acyclic graph, thus update don't take effect");
                 return false;
             }
 
