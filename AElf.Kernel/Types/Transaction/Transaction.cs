@@ -39,6 +39,11 @@ namespace AElf.Kernel
             return new ECSignature(sig);
         }
 
+        public int Size()
+        {
+            return CalculateSize();
+        }
+
         public byte[] GetSignatureData()
         {
             Transaction txData = new Transaction();
