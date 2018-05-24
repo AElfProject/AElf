@@ -165,10 +165,16 @@ namespace AElf.Kernel.Node.Network.Peers
             if (_nodeData == null)
                 return false;
             
-            _client = new TcpClient(_nodeData.IpAddress, _nodeData.Port);
-            _stream = _client?.GetStream();
-            
-            await WriteConnectInfo();
+            try
+            {
+                _client = new TcpClient(_nodeData.IpAddress, _nodeData.Port);
+                _stream = _client?.GetStream();
+                await WriteConnectInfo();
+            }
+            catch (Exception e)
+            {
+                ;
+            }
 
             return true;
         }

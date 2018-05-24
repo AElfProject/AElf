@@ -27,7 +27,6 @@ namespace AElf.Kernel.Node.Network.Peers
             _logger = logger;
             _server = server;
             _peerDatabase = peerDatabase;
-            _peers = null;
 
             _server.ClientConnected += HandleConnection;
         }
