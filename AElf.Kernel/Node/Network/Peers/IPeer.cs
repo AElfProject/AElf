@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace AElf.Kernel.Node.Network.Peers
 {
@@ -6,5 +7,11 @@ namespace AElf.Kernel.Node.Network.Peers
     {
         string IpAddress { get; }
         ushort Port { get; }
+        event EventHandler MessageReceived;
+        bool IsConnected { get; }
+        bool IsListening { get; }
+        Task StartListeningAsync();
+        Task Send(byte[] data);
+        Task<bool> DoConnect();
     }
 }

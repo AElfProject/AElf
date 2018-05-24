@@ -15,8 +15,9 @@ namespace AElf.Kernel.Node.Network.Peers
     {
         private readonly IAElfNetworkConfig _networkConfig;
         private readonly IAElfServer _server;
+        private readonly IPeerDatabase _peerDatabase;
         private readonly ILogger _logger;
-        private readonly List<Peer> _peers;
+        private List<IPeer> _peers;
         
         private MainChainNode _node;
 
@@ -25,7 +26,8 @@ namespace AElf.Kernel.Node.Network.Peers
             _networkConfig = config;
             _logger = logger;
             _server = server;
-            _peers = new List<Peer>();
+            _peerDatabase = peerDatabase;
+            _peers = null;
 
             _server.ClientConnected += HandleConnection;
         }
@@ -55,10 +57,11 @@ namespace AElf.Kernel.Node.Network.Peers
         /// </summary>
         public void Start()
         {
+            _peers = _peerDatabase.ReadPeers();
             Task.Run(() => _server.Start());
             Task.Run(Setup);
         }
-        
+
         /// <summary>
         /// Sets up the server according to the configuration that was
         /// provided.
@@ -79,8 +82,8 @@ namespace AElf.Kernel.Node.Network.Peers
                         continue;
                     
                     ushort port = ushort.Parse(splitted[1]);
-                    Peer p = new Peer(splitted[0], port);
-
+                    IPeer p = new Peer(splitted[0], port);
+                    
                     bool success = await p.DoConnect();
 
                     // If we succesfully connected to the other peer 
@@ -88,6 +91,21 @@ namespace AElf.Kernel.Node.Network.Peers
                     if (success)
                     {
                         AddPeer(p);
+                    }
+                }
+            }
+
+            if (_peers.Count > 0)
+            {
+                foreach (var peer in _peers)
+                {
+                    bool success = await peer.DoConnect();
+                    
+                    // If we successfully connected to the other peer
+                    // add it to be managed
+                    if (success)
+                    {
+                        AddPeer(peer);
                     }
                 }
             }
@@ -99,7 +117,7 @@ namespace AElf.Kernel.Node.Network.Peers
         /// listening process.
         /// </summary>
         /// <param name="peer">the peer to add</param>
-        public void AddPeer(Peer peer)
+        public void AddPeer(IPeer peer)
         {
             _peers.Add(peer);
             peer.MessageReceived += ProcessPeerMessage;
