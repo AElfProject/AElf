@@ -48,7 +48,7 @@ namespace AElf.Kernel.Concurrency
             }
             catch (InvalidParameterException e)
             {
-                _logger.Error(e, "when tries to add function: " + functionFullName + ", it cause non-DAG calling graph thus fail.");
+                _logger?.Error(e, "when tries to add function: " + functionFullName + ", it cause non-DAG calling graph thus fail.");
                 return false;
             }
             
@@ -163,7 +163,7 @@ namespace AElf.Kernel.Concurrency
             }
             catch (NonAcyclicGraphException e)
             {
-                _logger.Warn(e, "FunctionMetadataService: When update function " + updatingFunc + ", its new calling set form a acyclic graph, thus update don't take effect");
+                _logger?.Warn(e, "FunctionMetadataService: When update function " + updatingFunc + ", its new calling set form a acyclic graph, thus update don't take effect");
                 return false;
             }
 

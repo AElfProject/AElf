@@ -21,8 +21,14 @@ namespace AElf.Kernel.Concurrency
         /// </summary>
         public HashSet<string> CallingSet { get; }
 
+        /// <summary>
+        /// used to find what resource this function will access (recursive)
+        /// </summary>
         public HashSet<Hash> PathSet { get; }
         
+        /// <summary>
+        /// used when updating a function, the caller functions of this updating function should use this NonRecursivePathSet to regenerate the new metadata
+        /// </summary>
         public HashSet<Hash> NonRecursivePathSet { get; }
     }
 }
