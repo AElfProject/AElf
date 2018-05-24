@@ -8,8 +8,7 @@ namespace AElf.Kernel.Services
 {
     public class AccountContextService : IAccountContextService
     {
-        private readonly Dictionary<Hash, IAccountDataContext> _accountDataContexts =
-            new Dictionary<Hash, IAccountDataContext>();
+        //private readonly Dictionary<Hash, IAccountDataContext> _accountDataContexts = new Dictionary<Hash, IAccountDataContext>();
 
         private readonly IWorldStateManager _worldStateManager;
 
@@ -22,11 +21,10 @@ namespace AElf.Kernel.Services
         public async Task<IAccountDataContext> GetAccountDataContext(Hash account, Hash chainId)
         {   
                 
-            var key = account.CombineHashWith(chainId);
-            if (_accountDataContexts.TryGetValue(key, out var ctx))
+            /*if (_accountDataContexts.TryGetValue(key, out var ctx))
              {
                 return ctx;
-            }
+            }*/
             
             await _worldStateManager.OfChain(chainId);
             var adp = _worldStateManager.GetAccountDataProvider(account);
@@ -41,7 +39,7 @@ namespace AElf.Kernel.Services
                 ChainId = chainId
             };
 
-            _accountDataContexts[key] = accountDataContext;
+            //_accountDataContexts[key] = accountDataContext;
             return accountDataContext;
         }
 
@@ -49,11 +47,6 @@ namespace AElf.Kernel.Services
         /// <inheritdoc/>
         public async Task SetAccountContext(IAccountDataContext accountDataContext)
         {
-            // calculate key
-            var key = accountDataContext.Address.CombineHashWith(accountDataContext.ChainId);
-
-            _accountDataContexts[key] = accountDataContext;
-            
             await _worldStateManager.OfChain(accountDataContext.ChainId);
             var adp = _worldStateManager.GetAccountDataProvider(accountDataContext.Address);
 
