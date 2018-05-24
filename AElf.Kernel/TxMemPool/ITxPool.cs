@@ -83,7 +83,7 @@ namespace AElf.Kernel.TxMemPool
         /// cache incrementId for account
         /// </summary>
         /// <returns></returns>
-        Dictionary<Hash, ulong> Nonces { get; }
+        ConcurrentDictionary <Hash, ulong> Nonces { get; }
 
         /// <summary>
         /// return a tx alread in pool
@@ -138,7 +138,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="waiting"></param>
         /// <param name="executable"></param>
-        void GetPoolState(out ulong waiting, out ulong executable);
+        void GetPoolState(out ulong executable, out ulong waiting);
 
         /// <summary>
         /// return Tmp list size
