@@ -18,6 +18,7 @@ namespace AElf.Kernel.Node.Network.Peers
         private readonly IPeerDatabase _peerDatabase;
         private readonly ILogger _logger;
         private List<IPeer> _peers;
+        private List<IPeer> _peerDBContents;
         
         private MainChainNode _node;
 
@@ -56,7 +57,7 @@ namespace AElf.Kernel.Node.Network.Peers
         /// </summary>
         public void Start()
         {
-            _peers = _peerDatabase.ReadPeers();
+            _peerDBContents = _peerDatabase.ReadPeers();
             Task.Run(() => _server.Start());
             Task.Run(Setup);
         }
@@ -94,9 +95,9 @@ namespace AElf.Kernel.Node.Network.Peers
                 }
             }
 
-            if (_peers.Count > 0)
+            if (_peerDBContents.Count > 0)
             {
-                foreach (var peer in _peers)
+                foreach (var peer in _peerDBContents)
                 {
                     bool success = await peer.DoConnect();
                     
