@@ -9,12 +9,6 @@ namespace AElf.Kernel.Concurrency
     /// </summary>
     public class FunctionMetadata
     {
-        public FunctionMetadata(HashSet<string> callingSet, HashSet<Hash> pathSet)
-        {
-            CallingSet = callingSet ?? new HashSet<string>();
-            PathSet = pathSet ?? new HashSet<Hash>();
-        }
-
         public FunctionMetadata(HashSet<string> callingSet, HashSet<Hash> pathSet, HashSet<Hash> nonRecursivePathSet)
         {
             CallingSet = callingSet ?? new HashSet<string>();

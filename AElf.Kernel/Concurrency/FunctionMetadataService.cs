@@ -48,7 +48,7 @@ namespace AElf.Kernel.Concurrency
                 return false;
             }
             
-            var metadata = new FunctionMetadata(otherFunctionsCallByThis, pathSet);
+            var metadata = new FunctionMetadata(otherFunctionsCallByThis, pathSet, nonRecursivePathSet);
             
             FunctionMetadataMap.Add(functionFullName, metadata);
 
