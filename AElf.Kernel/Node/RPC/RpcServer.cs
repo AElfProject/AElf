@@ -7,13 +7,12 @@ using AElf.Node.RPC.DTO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
 using NLog;
 
 namespace AElf.Kernel.Node.RPC
 {
+    [LoggerName("RPC")]
     public class RpcServer : IRpcServer
     {
         private const string GetTxMethodName = "get_tx";

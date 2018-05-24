@@ -1,4 +1,7 @@
-﻿using Autofac;
+﻿using System;
+using System.Linq;
+using Autofac;
+using Autofac.Core;
 using NLog;
 using NLog.Conditions;
 using NLog.Config;
@@ -28,7 +31,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             consoleTarget.RowHighlightingRules.Add(highlightRule);
 
             // Step 3. Set target properties 
-            consoleTarget.Layout = @"${date:format=HH\:mm\:ss} : ${message}";
+            consoleTarget.Layout = @"[ ${date:format=HH\:mm\:ss} - ${logger} ] : ${message}";
 
             // Step 4. Define rules
             var rule1 = new LoggingRule("*", LogLevel.Trace, consoleTarget);
@@ -36,10 +39,35 @@ namespace AElf.Kernel.Modules.AutofacModule
             
             // Step 5. Activate the configuration
             LogManager.Configuration = config;
+        }
+        
+        protected override void AttachToComponentRegistration(IComponentRegistry componentRegistry, IComponentRegistration registration)
+        {
+            // Handle constructor parameters.
+            registration.Preparing += OnComponentPreparing;
+        }
 
-            Logger logger = LogManager.GetLogger("General");
+        private void OnComponentPreparing(object sender, PreparingEventArgs e)
+        {
+            Type t = e.Component.Activator.LimitType;
+
+            LoggerNameAttribute loggerName = null;
+            string name = null;
+
+            try
+            {
+                loggerName = (LoggerNameAttribute) Attribute.GetCustomAttribute(t, typeof(LoggerNameAttribute));
+                name = loggerName?.Name?.PadRight(7);
+            }
+            catch (Exception ex)
+            {
+            }
             
-            builder.RegisterInstance(logger).As<ILogger>();
+            e.Parameters = e.Parameters.Union(
+                new[]
+                {
+                    new ResolvedParameter((p, i) => p.ParameterType == typeof (ILogger), (p, i) => LogManager.GetLogger(name ?? t.Name))
+                });
         }
     }
 }

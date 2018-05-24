@@ -11,6 +11,7 @@ using ServiceStack.Templates;
 
 namespace AElf.Kernel.Node
 {
+    [LoggerName("Node")]
     public class MainChainNode : IAElfNode
     {
         private readonly ITxPoolService _poolService;
@@ -31,11 +32,10 @@ namespace AElf.Kernel.Node
 
         public void Start(bool startRpc)
         {
-            _poolService.Start();
-            
             if (startRpc)
                 _rpcServer.Start();
             
+            _poolService.Start();
             _peerManager.Start();
             
             // todo : avoid circular dependency

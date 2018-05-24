@@ -27,6 +27,7 @@ namespace AElf.Kernel.Node.Network
     /// is to listen for incoming tcp connections and transform them into
     /// Peers.
     /// </summary>
+    [LoggerName("Server")]
     public class AElfTcpServer : IAElfServer
     {
         private const int PeerBufferLength = 1024;
