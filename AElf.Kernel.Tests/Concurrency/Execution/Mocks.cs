@@ -17,8 +17,11 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		public ConcurrentDictionary<TransferArgs, DateTime> TransactionStartTimes = new ConcurrentDictionary<TransferArgs, DateTime>();
 		public ConcurrentDictionary<TransferArgs, DateTime> TransactionEndTimes = new ConcurrentDictionary<TransferArgs, DateTime>();
 
-		public async Task InvokeAsync(IHash caller, string methodname, ByteString bytes)
+        public async Task<object> InvokeAsync(SmartContractInvokeContext context)
 		{
+            IHash caller = context.Caller;
+            string methodname = context.MethodName;
+            ByteString bytes = context.Params;
 			var type = typeof(SmartContractZeroWithTransfer);
 			var member = type.GetMethod(methodname);
 
@@ -29,7 +32,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			var obj = serializer.Deserialize(bytes.ToByteArray(), p.ParameterType);
 
 			await (Task)member.Invoke(this, new object[] { obj });
-			#endregion Not Same As Smart Contract Zero
+            #endregion Not Same As Smart Contract Zero
+            return null;
 		}
 
 		public void SetBalance(Hash account, ulong balance)
@@ -75,20 +79,21 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		}
 
 		#region ISmartContractZero
+
 		// All are dummies
 		public Task InitializeAsync(IAccountDataProvider dataProvider)
 		{
 			return Task.CompletedTask;
 		}
 
-		public Task RegisterSmartContract(SmartContractRegistration reg)
+        public Task<object> RegisterSmartContract(SmartContractRegistration reg)
 		{
-			return Task.CompletedTask;
+            return Task.FromResult<object>(null);
 		}
 
-		public Task DeploySmartContract(SmartContractDeployment smartContractRegister)
+        public Task<object> DeploySmartContract(SmartContractDeployment smartContractRegister)
 		{
-			return Task.CompletedTask;
+            return Task.FromResult<object>(null);
 		}
 
 		public Task<ISmartContract> GetSmartContractAsync(Hash hash)
