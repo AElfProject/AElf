@@ -25,9 +25,8 @@ namespace AElf.Kernel.Modules.AutofacModule
             var highlightRule = new ConsoleRowHighlightingRule();
             
             highlightRule.Condition = ConditionParser.ParseExpression("level == LogLevel.Trace");
-            highlightRule.ForegroundColor = ConsoleOutputColor.White;
-            highlightRule.BackgroundColor = ConsoleOutputColor.Cyan;
-            
+            highlightRule.BackgroundColor = ConsoleOutputColor.White;
+            highlightRule.ForegroundColor = ConsoleOutputColor.Black;
             consoleTarget.RowHighlightingRules.Add(highlightRule);
 
             // Step 3. Set target properties 
@@ -52,12 +51,10 @@ namespace AElf.Kernel.Modules.AutofacModule
             Type t = e.Component.Activator.LimitType;
 
             LoggerNameAttribute loggerName = null;
-            string name = null;
 
             try
             {
                 loggerName = (LoggerNameAttribute) Attribute.GetCustomAttribute(t, typeof(LoggerNameAttribute));
-                name = loggerName?.Name?.PadRight(7);
             }
             catch (Exception ex)
             {
@@ -66,7 +63,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             e.Parameters = e.Parameters.Union(
                 new[]
                 {
-                    new ResolvedParameter((p, i) => p.ParameterType == typeof (ILogger), (p, i) => LogManager.GetLogger(name ?? t.Name))
+                    new ResolvedParameter((p, i) => p.ParameterType == typeof (ILogger), (p, i) => LogManager.GetLogger(loggerName?.Name ?? t.Name))
                 });
         }
     }

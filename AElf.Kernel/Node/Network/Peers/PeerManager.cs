@@ -7,6 +7,7 @@ using AElf.Kernel.Node.Network.Data;
 using AElf.Network;
 using Google.Protobuf;
 using NLog;
+using ServiceStack;
 
 namespace AElf.Kernel.Node.Network.Peers
 {

@@ -72,6 +72,8 @@ namespace AElf.Kernel.Node
         {
             // todo : send to network through server
             await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, tx.ToByteArray());
+            
+            _logger.Trace("Broadcasted transaction to peers: " + JsonFormatter.Default.Format(tx));
         }
         
         /// <summary>
