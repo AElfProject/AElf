@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
-using AElf.Kernel.Services;
 using QuickGraph;
 
 
@@ -30,7 +29,7 @@ namespace AElf.Kernel.Services
         {
             var smartContract = await _smartContractService.GetAsync(tx.To, chain);
             
-            var context=new SmartContractInvokeContext()
+            var context = new SmartContractInvokeContext()
             {
                 Caller = tx.From,
                 IncrementId = tx.IncrementId,
