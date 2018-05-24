@@ -173,7 +173,7 @@ namespace AElf.Kernel.Node.Network.Peers
             }
             catch (Exception e)
             {
-                ;
+                return false;
             }
 
             return true;

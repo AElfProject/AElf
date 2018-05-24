@@ -97,7 +97,7 @@ namespace AElf.Kernel.Node.Network.Peers
 
             if (_peerDBContents.Count > 0)
             {
-                foreach (var peer in _peerDBContents)
+                foreach (IPeer peer in _peerDBContents)
                 {
                     bool success = await peer.DoConnect();
                     
