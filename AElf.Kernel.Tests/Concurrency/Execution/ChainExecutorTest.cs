@@ -36,14 +36,14 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			var accountDataContext = ExpectMsg<RespondAccountDataContext>();
 			Assert.Equal(42, accountDataContext.RequestId);
 			Assert.Equal(accountHash, accountDataContext.AccountDataContext.Address);
-			Assert.Equal((ulong)0, accountDataContext.AccountDataContext.IncreasementId);
+            Assert.Equal((ulong)0, accountDataContext.AccountDataContext.IncrementId);
 
 			var localAccountDataContext = _accountContextService.GetAccountDataContext(accountHash, _chainContext.ChainId);
-			localAccountDataContext.IncreasementId += 1;
+            localAccountDataContext.Result.IncrementId += 1;
 
 			chainExecutor.Tell(new RequestAccountDataContext(43, accountHash));
 			accountDataContext = ExpectMsg<RespondAccountDataContext>();
-			Assert.Equal((ulong)1, accountDataContext.AccountDataContext.IncreasementId);
+            Assert.Equal((ulong)1, accountDataContext.AccountDataContext.IncrementId);
 		}
 
 		#region RequestExecuteTransactionsTest
