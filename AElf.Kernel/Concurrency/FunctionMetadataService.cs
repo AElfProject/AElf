@@ -8,6 +8,10 @@ using ServiceStack;
 
 namespace AElf.Kernel.Concurrency
 {
+    /// <summary>
+    /// Where get and set the metadata when deploy the contracts and check correctness when trying to updating contracts(functions)
+    /// TODO: currently just sopport update one function of a contract, if trying to update multiple function at a time, the calling graph and the FunctionMetadataMap should be backup before the update in case one of the function fail the update and all the preceding updated function need to roll back their effect. Or maybe just check Whether applying all the updating functions can result in non-DAG calling graph. 
+    /// </summary>
     public class FunctionMetadataService : IFunctionMetaDataService
     {
         public Dictionary<string, FunctionMetadata> FunctionMetadataMap { get; } = new Dictionary<string, FunctionMetadata>();
@@ -23,6 +27,7 @@ namespace AElf.Kernel.Concurrency
         {
             if (FunctionMetadataMap.ContainsKey(functionFullName))
             {
+                //This should be the completely new function
                 throw new InvalidOperationException("FunctionMetadataService: FunctionMetadataMap already contain a function named " + functionFullName);
             }
 
@@ -47,6 +52,8 @@ namespace AElf.Kernel.Concurrency
             
             FunctionMetadataMap.Add(functionFullName, metadata);
 
+            //add the new function into calling graph
+            //this graph will still be DAG cause GetFunctionMetadata above will throw exception if it's not
             _callingGraph.AddVertex(functionFullName);
             foreach (var callingFunc in metadata.CallingSet)
             {
@@ -79,13 +86,14 @@ namespace AElf.Kernel.Concurrency
 
             if (!TryUpdateCallingGraph(functionFullName, oldMetadata.CallingSet, newOtherFunctionsCallByThis))
             {
+                //new graph have circle, nothing take effect
                 return false;
             }
 
             FunctionMetadataMap.Remove(functionFullName);
             
-            //
             if(!SetNewFunctionMetadata(functionFullName, newOtherFunctionsCallByThis, newNonRecursivePathSet)){
+                //This should be unReachable, because function above already check whether new graph is DAG
                 FunctionMetadataMap.Add(functionFullName, oldMetadata);
                 return false;
             }
@@ -114,6 +122,12 @@ namespace AElf.Kernel.Concurrency
             }
         }
 
+        /// <summary>
+        /// Find the functions in the calling graph that call this func
+        /// </summary>
+        /// <param name="calledFunctionFullName">Full name of the called function</param>
+        /// <param name="callerFunctions">result</param>
+        /// <returns>True if find any</returns>
         private bool TryFindCallerFunctions(string calledFunctionFullName, out List<string> callerFunctions)
         {
             callerFunctions = FunctionMetadataMap.Where(funcMeta => funcMeta.Value.CallingSet.Contains(calledFunctionFullName))
@@ -122,11 +136,19 @@ namespace AElf.Kernel.Concurrency
             return !callerFunctions.IsEmpty();
         }
 
+        /// <summary>
+        /// Try to update the calling graph when updating the function.
+        /// If the new graph after applying the update has circle, the update will not be approved and nothing will take effect
+        /// </summary>
+        /// <param name="updatingFunc"></param>
+        /// <param name="oldCallingSet"></param>
+        /// <param name="newOtherFunctionsCallByThis"></param>
+        /// <returns></returns>
         private bool TryUpdateCallingGraph(string updatingFunc, HashSet<string> oldCallingSet, HashSet<string> newOtherFunctionsCallByThis)
         {
             var newGraph = _callingGraph.CreateCopy();
             newGraph.RemoveOutEdgeIf(updatingFunc, outEdge => oldCallingSet.Contains(outEdge.Target));
-            //TODO: some vertex should be deleted?
+            
             foreach (var newCallingFunc in newOtherFunctionsCallByThis)
             {
                 newGraph.AddEdge(new Edge<string>(updatingFunc, newCallingFunc));
