@@ -4,7 +4,7 @@ using AElf.Kernel.Services;
 
 namespace AElf.Kernel.TxMemPool
 {
-    public class TxPoolNoLockService : ITxPoolNoLockService
+    public class TxPoolNoLockService 
     {
         private readonly ITxPool _txPool;
         private readonly IAccountContextService _accountContextService;
@@ -23,12 +23,12 @@ namespace AElf.Kernel.TxMemPool
                 _txPool.Nonces.Add(tx.From,
                     _accountContextService.GetAccountDataContext(tx.From, _txPool.ChainId).Result.IncrementId
                 );
-            _txPool.QueueTxs(tx);
+            _txPool.EnQueueTx(tx);
         }
 
         public void Remove(Hash txHash)
         {
-            _txPool.DiscardTx(txHash);
+            //_txPool.DiscardTx(txHash);
         }
 
         public Task RemoveTxWithWorstFee()
@@ -52,10 +52,10 @@ namespace AElf.Kernel.TxMemPool
             return _txPool.Size;
         }
 
-        public ITransaction GetTx(Hash txHash)
+        /*public ITransaction GetTx(Hash txHash)
         {
             return _txPool.GetTx(txHash);
-        }
+        }*/
 
         public void Clear()
         {
@@ -82,7 +82,7 @@ namespace AElf.Kernel.TxMemPool
             throw new System.NotImplementedException();
         }
 
-        public void ResetAndUpdate(List<TransactionResult> txResultList)
+        /*public void ResetAndUpdate(List<TransactionResult> txResultList)
         {
             foreach (var res in txResultList)
             {
@@ -99,7 +99,7 @@ namespace AElf.Kernel.TxMemPool
             }
             
             _txPool.Enqueueable = true;
-        }
+        }*/
 
         public void Start()
         {
