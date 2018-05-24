@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,7 +7,7 @@ namespace AElf.Database
 {
     public class KeyValueDatabase : IKeyValueDatabase
     {
-        private readonly Dictionary<string, byte[]> _dictionary = new Dictionary<string, byte[]>();
+        private readonly ConcurrentDictionary<string, byte[]> _dictionary = new ConcurrentDictionary<string, byte[]>();
         
         public Task<byte[]> GetAsync(string key, Type type)
         {
