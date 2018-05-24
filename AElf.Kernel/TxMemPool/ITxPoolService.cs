@@ -48,7 +48,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="txHash"></param>
         /// <returns></returns>
-        Task<ITransaction> GetTxAsync(Hash txHash);
+        ITransaction GetTx(Hash txHash);
 
         /// <summary>
         /// clear tx pool
@@ -78,7 +78,7 @@ namespace AElf.Kernel.TxMemPool
         /// return tmp pool size
         /// </summary>
         /// <returns></returns>
-        Task<ulong> GetTmpSizeAsync();
+        //Task<ulong> GetTmpSizeAsync();
 
         /// <summary>
         /// Reset Enqueueable to true 

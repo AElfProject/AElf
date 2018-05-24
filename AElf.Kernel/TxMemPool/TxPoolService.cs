@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,24 +37,27 @@ namespace AElf.Kernel.TxMemPool
         
         private TxPoolSchedulerLock Lock { get; } = new TxPoolSchedulerLock();
         
-        private HashSet<ITransaction> Tmp { get; } = new HashSet<ITransaction>();
+        //private HashSet<ITransaction> Tmp { get; } = new HashSet<ITransaction>();
+        
+        private readonly ConcurrentDictionary<Hash, ulong> _nonces = new ConcurrentDictionary<Hash, ulong>();
+        
+        private readonly ConcurrentDictionary<Hash, ITransaction> _txs = new ConcurrentDictionary<Hash, ITransaction>();
 
         /// <inheritdoc/>
         public Task<bool> AddTxAsync(Transaction tx)
         {
-            return Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
-            {
-                //var res = _txPool.AddTx(tx);
-                var res = Tmp.Add(tx);
-                if ((ulong)Tmp.Count >= _txPool.EntryThreshold)
-                {
-                    EnqueueEvent.Set();
-                }
-                return res;
-            });
+            // add tx
+            _txs.GetOrAdd(tx.GetHash(), tx);
+            
+            // tx from account state
+            var id = _accountContextService.GetAccountDataContext(tx.From, _txPool.ChainId)
+                .Result.IncrementId;
+            _nonces.AddOrUpdate(tx.From, id, (key, oldValue) => id);
+            
+            return Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() => _txPool.EnQueueTx(tx));
         }
         
-        /// <summary>
+        /*/// <summary>
         /// wait new tx
         /// </summary> 
         /// <returns></returns>
@@ -62,27 +66,27 @@ namespace AElf.Kernel.TxMemPool
             // TODO: need interupt waiting 
             while (!Cts.IsCancellationRequested)
             {
-                if(!_txPool.Enqueueable)
-                    continue;
                 // wait for signal
                 EnqueueEvent.WaitOne();
-
+                
+                if(!_txPool.Enqueueable)
+                    continue;
+                
                 await Lock.WriteLock(() =>
                 {
-                    // no lock needed, since account data context should not be changed when Enqueueable is true
                     foreach (var t in Tmp)
                     {
                         if(_txPool.Nonces.ContainsKey(t.From))
                             continue;
-                        _txPool.Nonces[t.From] = _accountContextService.GetAccountDataContext(t.From, _txPool.ChainId)
-                            .Result.IncrementId;
+                        if(_nonces.TryGetValue(t.From, out var idValue))
+                            _txPool.Nonces[t.From] = idValue;
                     }
                     
                     _txPool.QueueTxs(Tmp); 
                     Tmp.Clear();
                 });
             }
-        }
+        }*/
         
         /// <summary>
         /// wait signal to demote txs
@@ -94,11 +98,6 @@ namespace AElf.Kernel.TxMemPool
             while (!Cts.IsCancellationRequested)
             {
                 DemoteEvent.WaitOne();
-                await Lock.WriteLock(() =>
-                {
-                    var res = _txPool.RemoveExecutedTxs();
-                    PersistTxs(res);
-                });
             }
         }
         
@@ -106,7 +105,7 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task RemoveAsync(Hash txHash)
         {
-            return Lock.WriteLock(() => _txPool.DiscardTx(txHash));
+            return !_txs.TryGetValue(txHash, out var tx) ? Task.CompletedTask : Lock.WriteLock(() => _txPool.DiscardTx(tx));
         }
 
         /// <inheritdoc/>
@@ -158,9 +157,13 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task<ITransaction> GetTxAsync(Hash txHash)
+        public ITransaction GetTx(Hash txHash)
         {
-            return Lock.ReadLock(() => _txPool.GetTx(txHash));
+            if (_txs.TryGetValue(txHash, out var tx) )
+            {
+                return tx;
+            }
+            return null;
         }
 
         /// <inheritdoc/>
@@ -191,17 +194,17 @@ namespace AElf.Kernel.TxMemPool
         }
         
         /// <inheritdoc/>
-        public Task<ulong> GetTmpSizeAsync()
+        /*public Task<ulong> GetTmpSizeAsync()
         {
             return Lock.ReadLock(() => (ulong)Tmp.Count);
-        }
+        }*/
 
         /// <inheritdoc/>
         public Task ResetAndUpdate(List<TransactionResult> txResultList)
         {
             foreach (var res in txResultList)
             {
-                var hash = _txPool.GetTx(res.TransactionId).From;
+                var hash = GetTx(res.TransactionId).From;
                 var id = _txPool.Nonces[hash];
                 
                 // update account context
@@ -228,7 +231,7 @@ namespace AElf.Kernel.TxMemPool
             Cts = new CancellationTokenSource();
             
             // waiting enqueue tx
-            var task1 = Task.Factory.StartNew(async () => await Receive());
+            //var task1 = Task.Factory.StartNew(async () => await Receive());
             
             // waiting demote txs
             var task2 = Task.Factory.StartNew(async () => await Demote());
@@ -255,5 +258,24 @@ namespace AElf.Kernel.TxMemPool
     /// </summary>
     public class TxPoolSchedulerLock : ReaderWriterLock
     {
+        
+    }
+    
+    /// <inheritdoc />
+    /// <summary>
+    /// A lock for managing asynchronous access to memory pool.
+    /// </summary>
+    public class EnqueueSchedulerLock : ReaderWriterLock
+    {
+        
+    }
+    
+    /// <inheritdoc />
+    /// <summary>
+    /// A lock for managing asynchronous access to memory pool.
+    /// </summary>
+    public class ReadySchedulerLock : ReaderWriterLock
+    {
+        
     }
 }

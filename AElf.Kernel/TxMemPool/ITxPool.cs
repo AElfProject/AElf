@@ -8,19 +8,26 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// queue txs from tmp to waiting
         /// </summary>
+        /// <param name="txs"></param>
+        void EnQueueTxs(HashSet<ITransaction> txs);
+        
+        
+        /// <summary>
+        /// queue txs from tmp to waiting
+        /// </summary>
         /// <param name="tx"></param>
-        void QueueTxs(HashSet<ITransaction> tx);
+        bool EnQueueTx(ITransaction tx);
         
         /// <summary>
         /// remove a tx
         /// </summary>
-        /// <param name="txHash"></param>
-        bool DiscardTx(Hash txHash);
+        /// <param name="tx"></param>
+        bool DiscardTx(ITransaction tx);
 
         /// <summary>
         /// remove executed txs from executable
         /// </summary>
-        List<ITransaction> RemoveExecutedTxs();
+        //List<ITransaction> RemoveExecutedTxs();
 
         /// <summary>
         /// promote txs from waiting to executable
@@ -84,14 +91,14 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="txHash"></param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        bool GetTx(Hash txHash, out ITransaction tx);
+        //bool GetTx(Hash txHash, out ITransaction tx);
 
         /// <summary>
         /// return a tx alread in pool
         /// </summary>
         /// <param name="txHash"></param>
         /// <returns></returns>
-        ITransaction GetTx(Hash txHash);
+        //ITransaction GetTx(Hash txHash);
 
         /// <summary>
         /// clear all txs in pool
@@ -112,7 +119,7 @@ namespace AElf.Kernel.TxMemPool
         /// return true if contained in pool, otherwise false
         /// </summary>
         /// <param name="txHash"></param>
-        bool Contains(Hash txHash);
+        //bool Contains(Hash txHash);
         
         /// <summary>
         /// return waiting list size
@@ -125,8 +132,14 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <returns></returns>
         ulong GetExecutableSize();
-        
-        
+
+        /// <summary>
+        /// return size for lists
+        /// </summary>
+        /// <param name="waiting"></param>
+        /// <param name="executable"></param>
+        void GetPoolState(out ulong waiting, out ulong executable);
+
         /// <summary>
         /// return Tmp list size
         /// </summary>
