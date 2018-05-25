@@ -138,15 +138,13 @@ namespace AElf.Kernel.Node.Network
                 // todo : better error management and logging
                 
                 // read the initial data
-                byte[] bytes = new byte[1024];
+                byte[] bytes = new byte[1024];// todo not every call
+                
                 int bytesRead = await stream.ReadAsync(bytes, 0, 1024);
-
-                byte[] readBytes = new byte[bytesRead];
-                Array.Copy(bytes, readBytes, bytesRead);
 
                 if (bytesRead > 0)
                 {
-                    NodeData n = NodeData.Parser.ParseFrom(readBytes);
+                    NodeData n = NodeData.Parser.ParseFrom(bytes, 0, bytesRead);
                     Peer p = new Peer(_nodeData, n, tcpClient);
                     
                     await p.WriteConnectInfoAsync();

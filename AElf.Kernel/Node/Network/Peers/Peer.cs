@@ -231,7 +231,7 @@ namespace AElf.Kernel.Node.Network.Peers
         public async Task<NodeData> AwaitForConnectionInfoAsync()
         {
             // read the initial data
-            byte[] bytes = new byte[1024];
+            byte[] bytes = new byte[1024]; // todo not every call
 
             int bytesRead;
             using (var cancellationTokenSource = new CancellationTokenSource(DefaultReadTimeOut))
@@ -240,12 +240,9 @@ namespace AElf.Kernel.Node.Network.Peers
                 bytesRead = await t.WithCancellation(cancellationTokenSource.Token);
             }
 
-            byte[] readBytes = new byte[bytesRead];
-            Array.Copy(bytes, readBytes, bytesRead);
-
             if (bytesRead > 0)
             {
-                NodeData n = NodeData.Parser.ParseFrom(readBytes);
+                NodeData n = NodeData.Parser.ParseFrom(bytes, 0, bytesRead);
                 return n;
             }
 
