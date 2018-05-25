@@ -87,6 +87,7 @@ namespace AElf.Kernel.Node
             try
             {
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
+                _logger.Trace("Received Transaction: " + JsonFormatter.Default.Format(tx));
                 await _poolService.AddTxAsync(tx);
             }
             catch (Exception e)
