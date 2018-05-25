@@ -12,9 +12,9 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         public List<Hash> _accountList = new List<Hash>();
         private ParallelTestDataUtil _dataUtil = new ParallelTestDataUtil();
         
-        public Dictionary<Hash, List<Transaction>> GetTestData()
+        public Dictionary<Hash, List<ITransaction>> GetTestData()
         {
-            Dictionary<Hash, List<Transaction>> txList = new Dictionary<Hash, List<Transaction>>();
+            Dictionary<Hash, List<ITransaction>> txList = new Dictionary<Hash, List<ITransaction>>();
 
 
             for (int i = 0; i < 12; i++)
@@ -35,7 +35,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return txList;
         }
 
-        public void GetTransactionReadyInList(Dictionary<Hash, List<Transaction>> txList, int from, int to)
+        public void GetTransactionReadyInList(Dictionary<Hash, List<ITransaction>> txList, int from, int to)
         {
             var tx = GetTransaction(from, to);
             if (txList.ContainsKey(tx.From))
@@ -44,7 +44,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             }
             else
             {
-                var accountTxList = new List<Transaction>();
+                var accountTxList = new List<ITransaction>();
                 accountTxList.Add(tx);
                 txList.Add(tx.From, accountTxList);
             }
@@ -86,13 +86,13 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var txList = _dataUtil.GetFullTxList();
             Grouper grouper = new Grouper();
-            var grouped = grouper.Process(txList.Select(x => x as Transaction).ToList());
+            var grouped = grouper.Process(txList.Select(x => x).ToList());
             var s = grouped.Select(
                 x => _dataUtil.StringRepresentation(x)
             ).ToList();
             
-            Assert.Equal(_dataUtil.StringRepresentation(_dataUtil.GetFirstGroupTxList().Select(x => x as Transaction).ToList()), s[0]);
-            Assert.Equal(_dataUtil.StringRepresentation(_dataUtil.GetSecondGroupTxList().Select(x => x as Transaction).ToList()), s[1]);
+            Assert.Equal(_dataUtil.StringRepresentation(_dataUtil.GetFirstGroupTxList().Select(x => x).ToList()), s[0]);
+            Assert.Equal(_dataUtil.StringRepresentation(_dataUtil.GetSecondGroupTxList().Select(x => x).ToList()), s[1]);
         }
     }
 }

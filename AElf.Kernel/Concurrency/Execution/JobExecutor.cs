@@ -20,12 +20,12 @@ namespace AElf.Kernel.Concurrency.Execution
         private State _state = State.NotStarted;
         private IChainContext _chainContext;
         private IActorRef _resultCollector;
-        private List<Transaction> _transactions;
+        private List<ITransaction> _transactions;
         private int _currentRunningIndex = -1;
         private Hash _currentTransactionHash;
         private Dictionary<Hash, TransactionResult> _transactionResults = new Dictionary<Hash, TransactionResult>();
 
-        public JobExecutor(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector)
+        public JobExecutor(IChainContext chainContext, List<ITransaction> transactions, IActorRef resultCollector)
         {
             _chainContext = chainContext;
             _transactions = transactions;
@@ -77,7 +77,7 @@ namespace AElf.Kernel.Concurrency.Execution
             }
         }
 
-        private async Task<TransactionResult> ExecuteTransaction(Transaction transaction)
+        private async Task<TransactionResult> ExecuteTransaction(ITransaction transaction)
         {
             // TODO: Handle timeout
             ISmartContractZero smartContractZero = _chainContext.SmartContractZero;
@@ -103,7 +103,7 @@ namespace AElf.Kernel.Concurrency.Execution
             return result;
         }
 
-        public static Props Props(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector)
+        public static Props Props(IChainContext chainContext, List<ITransaction> transactions, IActorRef resultCollector)
         {
             return Akka.Actor.Props.Create(() => new JobExecutor(chainContext, transactions, resultCollector));
         }
