@@ -9,7 +9,6 @@ namespace AElf.Launcher
     public class ConfigParser
     {
         public IAElfNetworkConfig NetConfig { get; private set; }
-        public IAElfServerConfig ServerConfig { get; private set; }
         public ITxPoolConfig TxPoolConfig { get; private set; }
         
         public bool Rpc { get; private set; }
@@ -44,19 +43,14 @@ namespace AElf.Launcher
 
             if (opts.Peers != null)
                 netConfig.Peers = opts.Peers.ToList();
-
-            NetConfig = netConfig;
-            
-            // Tcp Server config
-            TcpServerConfig serverConfig = new TcpServerConfig();
             
             if (opts.Port.HasValue)
-                serverConfig.Port = opts.Port.Value;
+                netConfig.Port = opts.Port.Value;
 
             if (!string.IsNullOrEmpty(opts.Host))
-                serverConfig.Host = opts.Host;
-
-            ServerConfig = serverConfig;
+                netConfig.Host = opts.Host;
+            
+            NetConfig = netConfig;
             
             // Todo ITxPoolConfig
         }

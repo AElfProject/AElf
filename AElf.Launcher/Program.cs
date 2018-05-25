@@ -20,11 +20,10 @@ namespace AElf.Launcher
                 return;
             
             ITxPoolConfig txPoolConf = confParser.TxPoolConfig;
-            IAElfServerConfig serverConf = confParser.ServerConfig;
             IAElfNetworkConfig netConf = confParser.NetConfig;
             
             // Setup ioc 
-            IContainer container = SetupIocContainer(txPoolConf, serverConf, netConf);
+            IContainer container = SetupIocContainer(txPoolConf, netConf);
 
             if (container == null)
             {
@@ -43,8 +42,7 @@ namespace AElf.Launcher
             }
         }
 
-        private static IContainer SetupIocContainer(ITxPoolConfig txPoolConf, IAElfServerConfig serverConfig, 
-            IAElfNetworkConfig netConf)
+        private static IContainer SetupIocContainer(ITxPoolConfig txPoolConf, IAElfNetworkConfig netConf)
         {
             var builder = new ContainerBuilder();
             
@@ -56,7 +54,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseModule());
-            builder.RegisterModule(new NetworkModule(serverConfig, netConf));
+            builder.RegisterModule(new NetworkModule(netConf));
             builder.RegisterModule(new MainChainNodeModule());
             builder.RegisterModule(new RpcServerModule());
 

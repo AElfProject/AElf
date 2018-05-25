@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Network.Config;
-using AElf.Kernel.Node.Network.Helpers;
 using AElf.Kernel.Node.Network.Peers;
 using AElf.Network;
 using NLog;
@@ -34,25 +31,22 @@ namespace AElf.Kernel.Node.Network
         
         public event EventHandler ClientConnected;
         
+        private readonly IAElfNetworkConfig _config;
+        private readonly ILogger _logger;
+        
         private TcpListener _listener;
-        private IAElfServerConfig _config;
-
-        private ILogger _logger;
+        private readonly NodeData _nodeData;
         
         private CancellationTokenSource _tokenSource;
         private CancellationToken _token;
-
+        
         public AElfTcpServer(ILogger logger) : this(null, logger)
         {
         }
 
-        public AElfTcpServer(IAElfServerConfig config, ILogger logger)
+        public AElfTcpServer(IAElfNetworkConfig config, ILogger logger)
         {
-            if (config == null)
-                _config = new TcpServerConfig();
-            else
-                _config = config;
-            
+            _config = config ?? new AElfNetworkConfig();
             _logger = logger;
         }
 
@@ -150,7 +144,7 @@ namespace AElf.Kernel.Node.Network
                 if (bytesRead > 0)
                 {
                     NodeData n = NodeData.Parser.ParseFrom(readBytes);
-                    Peer p = new Peer(n, tcpClient);
+                    Peer p = new Peer(_nodeData, n, tcpClient);
                     
                     return p;
                 }

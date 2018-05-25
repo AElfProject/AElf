@@ -6,14 +6,10 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.Node.Network.Peers
 {
-    /// <summary>
-    /// The event that's raised when a message is received
-    /// from the peer.
-    /// </summary>
     public class MessageReceivedArgs : EventArgs
     {
         public AElfPacketData Message { get; set; }
-        public Peer peer { get; set; }
+        public Peer Peer { get; set; }
     }
     
     /// <summary>
@@ -23,29 +19,39 @@ namespace AElf.Kernel.Node.Network.Peers
     /// </summary>
     public class Peer : IPeer
     {
+        /// <summary>
+        /// The event that's raised when a message is received
+        /// from the peer.
+        /// </summary>
         public event EventHandler MessageReceived;
         
+        /// <summary>
+        /// The data relative to the current nodes identity.
+        /// </summary>
         private readonly NodeData _nodeData;
+        
+        /// <summary>
+        /// The data received after the initial connection.
+        /// </summary>
+        private NodeData _distantNodeData;
         
         private TcpClient _client;
         private NetworkStream _stream;
 
         private bool _isListening = false;
-        
+
         /// <summary>
         /// Constructor used for creating a peer that is not
         /// connected to any client. The next logical step
         /// would be to call <see cref="DoConnect"/>.
         /// </summary>
+        /// <param name="nodeData"></param>
         /// <param name="ipAddress"></param>
         /// <param name="port"></param>
-        public Peer(string ipAddress, ushort port)
+        public Peer(NodeData nodeData, string ipAddress, ushort port)
         {
-            _nodeData = new NodeData
-            {
-                IpAddress = ipAddress,
-                Port = port
-            };
+            _nodeData = nodeData;
+            _distantNodeData = new NodeData { IpAddress = ipAddress, Port = port };
         }
 
         /// <summary>
@@ -54,10 +60,13 @@ namespace AElf.Kernel.Node.Network.Peers
         /// step is to call <see cref="StartListeningAsync"/>.
         /// </summary>
         /// <param name="nodeData"></param>
+        /// <param name="distantNodeData"></param>
         /// <param name="client"></param>
-        public Peer(NodeData nodeData, TcpClient client)
+        public Peer(NodeData nodeData, NodeData distantNodeData, TcpClient client)
         {
             _nodeData = nodeData;
+            _distantNodeData = distantNodeData;
+            
             _client = client;
             _stream = client?.GetStream();
         }
@@ -90,41 +99,22 @@ namespace AElf.Kernel.Node.Network.Peers
         /// <returns></returns>
         public async Task StartListeningAsync()
         {
+            // If the peer is not connected or is already in 
+            // a listening state.
             if (!IsConnected || IsListening)
                 return; // todo error
             
             try
             {
+                _isListening = true;
+                
                 while (true)
                 {
-                    // tries to read the 
-                    byte[] bytes = new byte[1024];
-
-                    _isListening = true;
-                    int bytesRead = await _stream.ReadAsync(bytes, 0, 1024);
-
-                    byte[] readBytes = new byte[bytesRead];
-                    Array.Copy(bytes, readBytes, bytesRead);
-
-                    if (bytesRead > 0)
-                    {
-                        AElfPacketData n = AElfPacketData.Parser.ParseFrom(readBytes);
-                       
-                        // raise the event so the higher levels can process it.
-                        MessageReceivedArgs args = new MessageReceivedArgs
-                        {
-                            Message = n,
-                            peer = this
-                        };
-
-                        MessageReceived?.Invoke(this, args);
-                    }
-                    else
-                    {
-                        Console.WriteLine("End of the stream, closing.");
-                        _client?.Close();
-                        break;
-                    }
+                    AElfPacketData packet = await ListenForPacket();
+                    
+                    // raise the event so the higher levels can process it.
+                    var args = new MessageReceivedArgs { Message = packet, Peer = this };
+                    MessageReceived?.Invoke(this, args);
                 }
             }
             catch (Exception e)
@@ -137,6 +127,29 @@ namespace AElf.Kernel.Node.Network.Peers
                 _client?.Close();
                 _isListening = false;
             }
+        }
+
+        private async Task<AElfPacketData> ListenForPacket()
+        {
+            byte[] bytes = new byte[1024];
+            int bytesRead = await _stream.ReadAsync(bytes, 0, 1024);
+
+            byte[] readBytes = new byte[bytesRead];
+            Array.Copy(bytes, readBytes, bytesRead);
+
+            AElfPacketData packet = null;
+            if (bytesRead > 0)
+            {
+                // Deserialize
+                packet = AElfPacketData.Parser.ParseFrom(readBytes);
+            }
+            else
+            {
+                _client?.Close();
+                throw new Exception("Stream closed");
+            }
+
+            return packet;
         }
 
         /// <summary>
@@ -162,14 +175,18 @@ namespace AElf.Kernel.Node.Network.Peers
         /// <returns></returns>
         public async Task<bool> DoConnect()
         {
-            if (_nodeData == null)
+            if (_distantNodeData == null)
                 return false;
             
             try
             {
-                _client = new TcpClient(_nodeData.IpAddress, _nodeData.Port);
+                _client = new TcpClient(_distantNodeData.IpAddress, _distantNodeData.Port);
                 _stream = _client?.GetStream();
+                
                 await WriteConnectInfo();
+                
+                _distantNodeData = await AwaitForConnectionInfo();
+                
             }
             catch (Exception e)
             {
@@ -190,6 +207,28 @@ namespace AElf.Kernel.Node.Network.Peers
             await _stream.WriteAsync(packet, 0, packet.Length);
 
             return true;
+        }
+
+        /// <summary>
+        /// Receives the initial data from the other node
+        /// </summary>
+        /// <returns></returns>
+        private async Task<NodeData> AwaitForConnectionInfo()
+        {
+            // read the initial data
+            byte[] bytes = new byte[1024];
+            int bytesRead = await _stream.ReadAsync(bytes, 0, 1024);
+
+            byte[] readBytes = new byte[bytesRead];
+            Array.Copy(bytes, readBytes, bytesRead);
+
+            if (bytesRead > 0)
+            {
+                NodeData n = NodeData.Parser.ParseFrom(readBytes);
+                return n;
+            }
+
+            return null;
         }
     }
 }

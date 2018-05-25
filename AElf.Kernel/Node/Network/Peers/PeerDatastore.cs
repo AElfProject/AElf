@@ -27,7 +27,7 @@ namespace AElf.Kernel.Node.Network.Peers
             foreach (string line in fileContents)
             {
                 string[] sPeer = line.Split(',');
-                Peer peer = new Peer(sPeer[0], Convert.ToUInt16(sPeer[1]));
+                Peer peer = new Peer(null, sPeer[0], Convert.ToUInt16(sPeer[1]));
                 peerList.Add(peer);
             }
 

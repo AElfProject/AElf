@@ -18,7 +18,8 @@ namespace AElf.Kernel.Node.Network.Peers
         private readonly IPeerDatabase _peerDatabase;
         private readonly ILogger _logger;
         private List<IPeer> _peers = new List<IPeer>();
-        private List<IPeer> _peerDBContents;
+
+        private readonly NodeData _nodeData;
         
         private MainChainNode _node;
 
@@ -29,7 +30,11 @@ namespace AElf.Kernel.Node.Network.Peers
             _server = server;
             _peerDatabase = peerDatabase;
 
-            _server.ClientConnected += HandleConnection;
+            _nodeData = new NodeData()
+            {
+                IpAddress = config.Host,
+                Port = config.Port
+            };
         }
         
         /// <summary>
@@ -57,9 +62,12 @@ namespace AElf.Kernel.Node.Network.Peers
         /// </summary>
         public void Start()
         {
-            _peerDBContents = _peerDatabase.ReadPeers();
+            
+            
             Task.Run(() => _server.Start());
             Task.Run(Setup);
+            
+            _server.ClientConnected += HandleConnection;
         }
 
         /// <summary>
@@ -82,7 +90,7 @@ namespace AElf.Kernel.Node.Network.Peers
                         continue;
                     
                     ushort port = ushort.Parse(splitted[1]);
-                    IPeer p = new Peer(splitted[0], port);
+                    IPeer p = new Peer(_nodeData, splitted[0], port);
                     
                     bool success = await p.DoConnect();
 
@@ -95,9 +103,10 @@ namespace AElf.Kernel.Node.Network.Peers
                 }
             }
 
-            if (_peerDBContents.Count > 0)
+            var dbPeers = _peerDatabase.ReadPeers();
+            if (dbPeers.Count > 0)
             {
-                foreach (IPeer peer in _peerDBContents)
+                foreach (var peer in dbPeers)
                 {
                     bool success = await peer.DoConnect();
                     

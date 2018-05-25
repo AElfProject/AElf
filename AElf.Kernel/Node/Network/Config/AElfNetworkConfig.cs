@@ -12,5 +12,15 @@ namespace AElf.Kernel.Node.Network.Config
         {
             get { return Bootnodes != null && Bootnodes.Any(); }
         }
+        
+        /// <summary>
+        /// Server listening host
+        /// </summary>
+        public string Host { get; set; } = "127.0.0.1";
+        
+        /// <summary>
+        /// Server listening Port
+        /// </summary>
+        public int Port { get; set; } = 6790;
     }
 }
