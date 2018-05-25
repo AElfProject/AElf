@@ -28,6 +28,16 @@ namespace AElf.Kernel.Node.Network.Peers
             {
                 string[] sPeer = line.Split(',');
                 Peer peer = new Peer(null, sPeer[0], Convert.ToUInt16(sPeer[1]));
+               
+                // Change above line to below code when switch from
+                // Peer to NodeData is complete. Change interface to reflect
+                // as well as method signatures
+//                NodeData peer = new NodeData()
+//                {
+//                    IpAddress = sPeer[0],
+//                    Port = Convert.ToUInt16(sPeer[1])
+//                };
+                
                 peerList.Add(peer);
             }
 
