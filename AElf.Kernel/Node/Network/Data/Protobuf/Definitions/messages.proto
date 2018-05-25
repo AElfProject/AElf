@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Network";
+option csharp_namespace = "AElf.Kernel.Node.Network.Data";
 
 message NodeData {
     string IpAddress = 1;

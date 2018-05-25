@@ -9,7 +9,7 @@ using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
-namespace AElf.Network {
+namespace AElf.Kernel.Node.Network.Data {
 
   /// <summary>Holder for reflection information generated from messages.proto</summary>
   public static partial class MessagesReflection {
@@ -26,13 +26,13 @@ namespace AElf.Network {
           string.Concat(
             "Cg5tZXNzYWdlcy5wcm90byIrCghOb2RlRGF0YRIRCglJcEFkZHJlc3MYASAB",
             "KAkSDAoEUG9ydBgCIAEoBSJCCg5BRWxmUGFja2V0RGF0YRIPCgdtc2dUeXBl",
-            "GAEgASgFEg4KBmxlbmd0aBgCIAEoBRIPCgdwYXlsb2FkGAMgASgMQg+qAgxB",
-            "RWxmLk5ldHdvcmtiBnByb3RvMw=="));
+            "GAEgASgFEg4KBmxlbmd0aBgCIAEoBRIPCgdwYXlsb2FkGAMgASgMQiCqAh1B",
+            "RWxmLktlcm5lbC5Ob2RlLk5ldHdvcmsuRGF0YWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.NodeData), global::AElf.Network.NodeData.Parser, new[]{ "IpAddress", "Port" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.AElfPacketData), global::AElf.Network.AElfPacketData.Parser, new[]{ "MsgType", "Length", "Payload" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Node.Network.Data.NodeData), global::AElf.Kernel.Node.Network.Data.NodeData.Parser, new[]{ "IpAddress", "Port" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Node.Network.Data.AElfPacketData), global::AElf.Kernel.Node.Network.Data.AElfPacketData.Parser, new[]{ "MsgType", "Length", "Payload" }, null, null, null)
           }));
     }
     #endregion
@@ -47,7 +47,7 @@ namespace AElf.Network {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Network.MessagesReflection.Descriptor.MessageTypes[0]; }
+      get { return global::AElf.Kernel.Node.Network.Data.MessagesReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -204,7 +204,7 @@ namespace AElf.Network {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Network.MessagesReflection.Descriptor.MessageTypes[1]; }
+      get { return global::AElf.Kernel.Node.Network.Data.MessagesReflection.Descriptor.MessageTypes[1]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

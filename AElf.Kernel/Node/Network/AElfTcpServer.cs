@@ -4,8 +4,8 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Network.Config;
+using AElf.Kernel.Node.Network.Data;
 using AElf.Kernel.Node.Network.Peers;
-using AElf.Network;
 using NLog;
 
 namespace AElf.Kernel.Node.Network
@@ -48,6 +48,9 @@ namespace AElf.Kernel.Node.Network
         {
             _config = config ?? new AElfNetworkConfig();
             _logger = logger;
+            
+            if (config != null)
+                _nodeData = new NodeData { IpAddress = config.Host, Port = config.Port };
         }
 
         /// <summary>
@@ -111,12 +114,12 @@ namespace AElf.Kernel.Node.Network
                 return;
             }
             
+            _logger.Trace("Connection established : " + client.Client.RemoteEndPoint);
+            
             Peer connected = await FinalizeConnect(client, client.GetStream());
 
             if (connected == null)
                 return;
-            
-            _logger.Info("Connection established");
             
             ClientConnectedArgs args = new ClientConnectedArgs();
             args.NewPeer = connected;
@@ -145,6 +148,8 @@ namespace AElf.Kernel.Node.Network
                 {
                     NodeData n = NodeData.Parser.ParseFrom(readBytes);
                     Peer p = new Peer(_nodeData, n, tcpClient);
+                    
+                    await p.WriteConnectInfoAsync();
                     
                     return p;
                 }

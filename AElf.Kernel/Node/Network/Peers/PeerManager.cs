@@ -4,10 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.Node.Network.Data;
-using AElf.Network;
+using AElf.Kernel.Node.Network.Peers.Exceptions;
 using Google.Protobuf;
 using NLog;
-using ServiceStack;
 
 namespace AElf.Kernel.Node.Network.Peers
 {
@@ -17,7 +16,7 @@ namespace AElf.Kernel.Node.Network.Peers
         private readonly IAElfServer _server;
         private readonly IPeerDatabase _peerDatabase;
         private readonly ILogger _logger;
-        private List<IPeer> _peers = new List<IPeer>();
+        private readonly List<IPeer> _peers = new List<IPeer>();
 
         private readonly NodeData _nodeData;
         
@@ -62,8 +61,6 @@ namespace AElf.Kernel.Node.Network.Peers
         /// </summary>
         public void Start()
         {
-            
-            
             Task.Run(() => _server.Start());
             Task.Run(Setup);
             
@@ -103,18 +100,33 @@ namespace AElf.Kernel.Node.Network.Peers
                 }
             }
 
-            var dbPeers = _peerDatabase.ReadPeers();
+            var dbPeers = _peerDatabase.ReadPeers()
+                .Where(p => !p.DistantNodeData.Equals(_nodeData))
+                .ToList();
+            
             if (dbPeers.Count > 0)
             {
                 foreach (var peer in dbPeers)
                 {
-                    bool success = await peer.DoConnect();
+                    if (_peers.Contains(peer))
+                        continue;
                     
-                    // If we successfully connected to the other peer
-                    // add it to be managed
-                    if (success)
+                    peer.SetNodeData(_nodeData); // todo temp
+
+                    try
                     {
-                        AddPeer(peer);
+                        bool success = await peer.DoConnect();
+                    
+                        // If we successfully connected to the other peer
+                        // add it to be managed
+                        if (success)
+                        {
+                            AddPeer(peer);
+                        }
+                    }
+                    catch (ResponseTimeOutException rex)
+                    {
+                        _logger.Error(rex, rex?.Message + " - "  + peer);
                     }
                 }
             }
@@ -131,7 +143,7 @@ namespace AElf.Kernel.Node.Network.Peers
             _peers.Add(peer);
             peer.MessageReceived += ProcessPeerMessage;
             
-            _logger.Trace("Peer added : " + peer.IpAddress + ":" + peer.Port);
+            _logger.Trace("Peer added : " + peer);
             
             Task.Run(peer.StartListeningAsync);
         }

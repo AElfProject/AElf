@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
-using AElf.Network;
+using AElf.Kernel.Node.Network.Data;
+using AElf.Kernel.Node.Network.Helpers;
+using AElf.Kernel.Node.Network.Peers.Exceptions;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Node.Network.Peers
@@ -19,6 +22,8 @@ namespace AElf.Kernel.Node.Network.Peers
     /// </summary>
     public class Peer : IPeer
     {
+        private const int DefaultReadTimeOut = 3000;
+        
         /// <summary>
         /// The event that's raised when a message is received
         /// from the peer.
@@ -28,12 +33,7 @@ namespace AElf.Kernel.Node.Network.Peers
         /// <summary>
         /// The data relative to the current nodes identity.
         /// </summary>
-        private readonly NodeData _nodeData;
-        
-        /// <summary>
-        /// The data received after the initial connection.
-        /// </summary>
-        private NodeData _distantNodeData;
+        private NodeData _nodeData; // todo readonly
         
         private TcpClient _client;
         private NetworkStream _stream;
@@ -51,7 +51,7 @@ namespace AElf.Kernel.Node.Network.Peers
         public Peer(NodeData nodeData, string ipAddress, ushort port)
         {
             _nodeData = nodeData;
-            _distantNodeData = new NodeData { IpAddress = ipAddress, Port = port };
+            DistantNodeData = new NodeData { IpAddress = ipAddress, Port = port };
         }
 
         /// <summary>
@@ -65,11 +65,16 @@ namespace AElf.Kernel.Node.Network.Peers
         public Peer(NodeData nodeData, NodeData distantNodeData, TcpClient client)
         {
             _nodeData = nodeData;
-            _distantNodeData = distantNodeData;
+            DistantNodeData = distantNodeData;
             
             _client = client;
             _stream = client?.GetStream();
         }
+        
+        /// <summary>
+        /// The data received after the initial connection.
+        /// </summary>
+        public NodeData DistantNodeData { get; private set; }
 
         public bool IsConnected
         {
@@ -89,6 +94,12 @@ namespace AElf.Kernel.Node.Network.Peers
         public ushort Port
         {
             get { return _nodeData != null ? (ushort)_nodeData.Port : (ushort)0; }
+        }
+
+        // todo cf interface comment
+        public void SetNodeData(NodeData data)
+        {
+            _nodeData = data;
         }
         
         /// <summary>
@@ -173,20 +184,24 @@ namespace AElf.Kernel.Node.Network.Peers
         /// instance.
         /// </summary>
         /// <returns></returns>
+        /// <exception cref="OperationCanceledException">Distant peer timeout</exception>
         public async Task<bool> DoConnect()
         {
-            if (_distantNodeData == null)
+            if (DistantNodeData == null)
                 return false;
-            
+
             try
             {
-                _client = new TcpClient(_distantNodeData.IpAddress, _distantNodeData.Port);
+                _client = new TcpClient(DistantNodeData.IpAddress, DistantNodeData.Port);
                 _stream = _client?.GetStream();
-                
-                await WriteConnectInfo();
-                
-                _distantNodeData = await AwaitForConnectionInfo();
-                
+
+                await WriteConnectInfoAsync();
+                DistantNodeData = await AwaitForConnectionInfoAsync();
+            }
+            catch (OperationCanceledException e)
+            {
+                _client.Close();
+                throw new ResponseTimeOutException(e);
             }
             catch (Exception e)
             {
@@ -201,7 +216,7 @@ namespace AElf.Kernel.Node.Network.Peers
         /// information on the peers stream.
         /// </summary>
         /// <returns></returns>
-        private async Task<bool> WriteConnectInfo()
+        public async Task<bool> WriteConnectInfoAsync()
         {
             byte[] packet = _nodeData.ToByteArray();
             await _stream.WriteAsync(packet, 0, packet.Length);
@@ -213,11 +228,17 @@ namespace AElf.Kernel.Node.Network.Peers
         /// Receives the initial data from the other node
         /// </summary>
         /// <returns></returns>
-        private async Task<NodeData> AwaitForConnectionInfo()
+        public async Task<NodeData> AwaitForConnectionInfoAsync()
         {
             // read the initial data
             byte[] bytes = new byte[1024];
-            int bytesRead = await _stream.ReadAsync(bytes, 0, 1024);
+
+            int bytesRead;
+            using (var cancellationTokenSource = new CancellationTokenSource(DefaultReadTimeOut))
+            {
+                Task<int> t = _stream.ReadAsync(bytes, 0, 1024);
+                bytesRead = await t.WithCancellation(cancellationTokenSource.Token);
+            }
 
             byte[] readBytes = new byte[bytesRead];
             Array.Copy(bytes, readBytes, bytesRead);
@@ -229,6 +250,11 @@ namespace AElf.Kernel.Node.Network.Peers
             }
 
             return null;
+        }
+
+        public override string ToString()
+        {
+            return DistantNodeData.IpAddress + ":" + DistantNodeData.Port;
         }
     }
 }
