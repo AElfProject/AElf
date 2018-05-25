@@ -3,16 +3,6 @@ using System.Collections.Generic;
 
 namespace AElf.Kernel.Concurrency.Scheduling
 {
-	public static class ResourceExtractor
-	{
-		public static List<Hash> GetResources(this Transaction tx)
-		{
-			return new List<Hash>(){
-				tx.From, tx.To
-			};
-		}
-	}
-
 	/// <summary>
 	/// The grouper can be used in both producing subgroup and splitting the job in batch
 	/// </summary>

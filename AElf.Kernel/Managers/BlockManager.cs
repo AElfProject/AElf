@@ -20,7 +20,7 @@ namespace AElf.Kernel.Managers
         {
             if (!Validation(block))
             {
-                throw new InvalidOperationException("Invalide block.");
+                throw new InvalidOperationException("Invalid block.");
             }
 
             await _blockHeaderStore.InsertAsync(block.Header);
