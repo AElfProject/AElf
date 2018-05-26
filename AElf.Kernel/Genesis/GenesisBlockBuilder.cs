@@ -40,7 +40,7 @@ namespace AElf.Kernel
                                 RegisterVal = new SmartContractRegistration
                                 {
                                     Category = 0,
-                                    ContractBytes = ByteString.CopyFromUtf8(smartContractZero.FullName),
+                                    ContractBytes = ByteString.CopyFromUtf8(smartContractZero.AssemblyQualifiedName),
                                     ContractHash = Hash.Zero
                                 }
                             }
