@@ -8,13 +8,13 @@ namespace AElf.Kernel.Concurrency
         AccountSpecific
     }
     
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class SmartContractFieldDataAttribute : Attribute
     {
-        public SmartContractFieldDataAttribute(string dataFullName, DataAccessMode dataAccessMode)
+        public SmartContractFieldDataAttribute(string dataName, DataAccessMode dataAccessMode)
         {
             DataAccessMode = dataAccessMode;
-            DataFullName = dataFullName;
+            DataFullName = dataName;
         }
 
         public DataAccessMode DataAccessMode { get; }

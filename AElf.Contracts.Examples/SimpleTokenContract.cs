@@ -6,13 +6,19 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Extensions;
 using AElf.Api.CSharp;
+using AElf.Kernel.Concurrency;
+using Akka.Configuration.Hocon;
 using CSharpSmartContract = AElf.Api.CSharp.CSharpSmartContract;
 
 namespace AElf.Contracts.Examples
 {
     public class SimpleTokenContract: CSharpSmartContract
     {
+        [SmartContractFieldData("Balances", DataAccessMode.AccountSpecific)]
         public Map Balances = new Map("Balances");
+        
+        [SmartContractFieldData("TokenContractName", DataAccessMode.ReadOnlyAccountSharing)]
+        public string TokenContractName { get; }
         
         public override async Task InitializeAsync(IAccountDataProvider dataProvider)
         {
@@ -33,7 +39,13 @@ namespace AElf.Contracts.Examples
             // invoke
             return await (Task<object>) member.Invoke(this, parameters);
         }
+
+        public SimpleTokenContract(string tokenContractName)
+        {
+            TokenContractName = tokenContractName;
+        }
         
+        [SmartContractFunction("Transfer(string, string, ulong)", new []{"Balances"})]
         public async Task<object> Transfer(string from, string to, ulong qty)
         {
             var fromBalBytes = await Balances.GetValue(from.CalculateHash());
@@ -47,6 +59,7 @@ namespace AElf.Contracts.Examples
             return null;
         }
 
+        [SmartContractFunction("GetBalance(string)", new []{"Balances"})]
         public async Task<object> GetBalance(string account)
         {
             var balBytes = await Balances.GetValue(account.CalculateHash());

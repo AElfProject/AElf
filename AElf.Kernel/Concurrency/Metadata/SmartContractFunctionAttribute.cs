@@ -5,11 +5,13 @@ namespace AElf.Kernel.Concurrency
     [AttributeUsage(AttributeTargets.Method)]
     public class SmartContractFunctionAttribute : Attribute
     {
-        public SmartContractFunctionAttribute(string functionFullName)
+        public SmartContractFunctionAttribute(string functionSignature, string[] resources)
         {
-            FunctionFullName = functionFullName;
+            FunctionSignature = functionSignature;
+            Resources = resources;
         }
 
-        public string FunctionFullName { get; }
+        public string FunctionSignature { get; }
+        public string[] Resources { get; }
     }
 }
