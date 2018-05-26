@@ -94,7 +94,7 @@ namespace AElf.Runtime.CSharp.Tests
             };
 
             
-            Assert.Equal("", string.Join("\n", AppDomain.CurrentDomain.GetAssemblies().Where(x=>x.GetName().Name.Contains("Api")).Select(x=>x.GetName().Name.ToString())));
+//            Assert.Equal("", string.Join("\n", AppDomain.CurrentDomain.GetAssemblies().Where(x=>x.GetName().Name.Contains("Api")).Select(x=>x.GetName().Name.ToString())));
             
             var contract1 = await _runner1.RunAsync(reg, dep, _dataProvider1);
             var contract2 = await _runner2.RunAsync(reg, dep, _dataProvider2);
