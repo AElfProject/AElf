@@ -80,8 +80,8 @@ namespace AElf.Kernel.Tests.TxMemPool
 
             var IdDict = new Dictionary<Hash, ulong>();
             int k = 0;
-            var Num = 10;
-            var threadNum = 100;
+            var Num = 50;
+            var threadNum = 50;
 
             int count = 0;
             
@@ -103,7 +103,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             while (count++ < threadNum)
             {
                 var index = count % Num;
-                var id =  new Random().Next(10);
+                var id =  new Random().Next(50);
                 sortedSet[addrList[index]].Add(id);
                 var tx = BuildTransaction(addrList[index], nonce: (ulong)id);
                 txList.Add(tx);
@@ -126,6 +126,11 @@ namespace AElf.Kernel.Tests.TxMemPool
                 var j1 = j;
                 var task = Task.Run(async () =>
                 {
+                    if (j1 % Num == 0)
+                    {
+                        await poolService.PromoteAsync();
+                    }
+                    
                     // sorted set for tx id
                     var stopwatch = new Stopwatch();
                     stopwatch.Start();
@@ -167,7 +172,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             }
         }
         
-        [Fact]
+        
         public void StartNoLock()
         {
             /*var pool = GetPool();
