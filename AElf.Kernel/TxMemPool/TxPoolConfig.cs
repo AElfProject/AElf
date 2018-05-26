@@ -1,4 +1,4 @@
-﻿using AElf.Kernel.MIner;
+﻿using AElf.Kernel.Miner;
 
 namespace AElf.Kernel.TxMemPool
 {

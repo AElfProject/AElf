@@ -149,7 +149,6 @@ namespace AElf.Kernel.TxMemPool
         {
             return Lock.WriteLock(() =>
             {
-                if (!_txPool.Enqueueable) return false;
                 _txPool.Promote();
                 return true;
             });
@@ -250,6 +249,8 @@ namespace AElf.Kernel.TxMemPool
                 DemoteEvent.Dispose();
             });
         }
+
+        
     }
     
     /// <inheritdoc />
@@ -260,22 +261,5 @@ namespace AElf.Kernel.TxMemPool
     {
         
     }
-    
-    /// <inheritdoc />
-    /// <summary>
-    /// A lock for managing asynchronous access to memory pool.
-    /// </summary>
-    public class EnqueueSchedulerLock : ReaderWriterLock
-    {
-        
-    }
-    
-    /// <inheritdoc />
-    /// <summary>
-    /// A lock for managing asynchronous access to memory pool.
-    /// </summary>
-    public class ReadySchedulerLock : ReaderWriterLock
-    {
-        
-    }
+   
 }

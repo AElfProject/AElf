@@ -97,5 +97,6 @@ namespace AElf.Kernel.TxMemPool
         /// close transaction pool
         /// </summary>
         Task Stop();
+        
     }
 }
