@@ -38,6 +38,8 @@ namespace AElf.Kernel.Services
             
             // set ws merkle tree root
             await _worldStateManager.OfChain(chainId);
+            
+            await _worldStateManager.SetWorldStateAsync(lastBlockHash);
             var ws = await _worldStateManager.GetWorldStateAsync(lastBlockHash);
             if(ws != null)
                 block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
