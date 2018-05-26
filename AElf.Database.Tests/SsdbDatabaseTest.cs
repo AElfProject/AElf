@@ -2,20 +2,19 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using AElf.Database.Client;
+using AElf.Database.SsdbClient;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
 namespace AElf.Database.Tests
 {
-    [UseAutofacTestFramework]
-    public class SsdbDatebaseTest
+    public class SsdbDatabaseTest
     {
         private readonly IKeyValueDatabase _database;
 
-        public SsdbDatebaseTest()
+        public SsdbDatabaseTest()
         {
-            _database = new SsdbDatebase();
+            _database = new SsdbDatabase();
         }
 
         [Fact]
@@ -31,20 +30,11 @@ namespace AElf.Database.Tests
             var key = "UintTest";
             var value = Guid.NewGuid().ToString();
 
-            _database.SetAsync(key, ConvertToBytes((value)));
+            _database.SetAsync(key, Helper.StringToBytes((value)));
             var getResult = _database.GetAsync(key, null);
-            var getResultStr = ConvertToString(getResult.Result);
+            var getResultStr = Helper.BytesToString(getResult.Result);
             
             Assert.Equal(value,getResultStr);
-        }
-        
-        private byte[] ConvertToBytes(string s)	{
-            return Encoding.Default.GetBytes(s);
-        }
-
-        private string ConvertToString(byte[] bytes)
-        {
-            return Encoding.Default.GetString(bytes);
         }
     }
 }
