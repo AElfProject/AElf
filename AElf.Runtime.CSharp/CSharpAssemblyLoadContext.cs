@@ -5,6 +5,9 @@ using System.Reflection;
 
 namespace AElf.Runtime.CSharp
 {
+    /// <summary>
+    /// Smart contract running context which contains the contract assembly with a unique Api singleton.
+    /// </summary>
     public class CSharpAssemblyLoadContext : AssemblyLoadContext
     {
         private readonly string _apiDllDirectory;
