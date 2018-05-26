@@ -28,44 +28,55 @@ namespace AElf.Kernel {
             "CzIFLkhhc2gSEQoCVG8YAiABKAsyBS5IYXNoEhMKC0luY3JlbWVudElkGAMg",
             "ASgEEhIKCk1ldGhvZE5hbWUYBCABKAkSDgoGUGFyYW1zGAUgASgMEgsKA0Zl",
             "ZRgGIAEoBBIJCgFSGAcgASgMEgkKAVMYCCABKAwSCQoBUBgJIAEoDCIVCgRI",
-            "YXNoEg0KBVZhbHVlGAEgASgMImkKC0Jsb2NrSGVhZGVyEg8KB1ZlcnNpb24Y",
-            "ASABKAUSHAoNUGVydmlvdXNCbG9jaxgCIAEoCzIFLkhhc2gSKwocTWVya2xl",
-            "VHJlZVJvb3RPZlRyYW5zYWN0aW9ucxgDIAEoCzIFLkhhc2giRAoJQmxvY2tC",
-            "b2R5EhoKC0Jsb2NrSGVhZGVyGAEgASgLMgUuSGFzaBIbCgxUcmFuc2FjdGlv",
-            "bnMYAiADKAsyBS5IYXNoIj8KBUJsb2NrEhwKBkhlYWRlchgBIAEoCzIMLkJs",
-            "b2NrSGVhZGVyEhgKBEJvZHkYAiABKAsyCi5CbG9ja0JvZHkiYQoZU21hcnRD",
-            "b250cmFjdFJlZ2lzdHJhdGlvbhIQCghDYXRlZ29yeRgBIAEoBRIbCgxDb250",
-            "cmFjdEhhc2gYAiABKAsyBS5IYXNoEhUKDUNvbnRyYWN0Qnl0ZXMYAyABKAwi",
-            "TwoXU21hcnRDb250cmFjdERlcGxveW1lbnQSGwoMQ29udHJhY3RIYXNoGAEg",
-            "ASgLMgUuSGFzaBIXCg9Db25zdHJ1Y3RQYXJhbXMYAiABKAwiSAoaU21hcnRD",
-            "b250cmFjdEludm9rZUNvbnRleHQSFQoGQ2FsbGVyGAEgASgLMgUuSGFzaBIT",
-            "CgtJbmNyZW1lbnRJZBgCIAEoBCJ8CgZDaGFuZ2USFgoHQmVmb3JlcxgBIAMo",
-            "CzIFLkhhc2gSFAoFQWZ0ZXIYAiABKAsyBS5IYXNoEh0KDlRyYW5zYWN0aW9u",
-            "SWRzGAMgASgLMgUuSGFzaBIlChZMYXRlc3RDaGFuZ2VkQmxvY2tIYXNoGAQg",
-            "ASgLMgUuSGFzaCI8Cg5QYWlySGFzaENoYW5nZRISCgNLZXkYASABKAsyBS5I",
-            "YXNoEhYKBVZhbHVlGAIgASgLMgcuQ2hhbmdlIiwKC0NoYW5nZXNEaWN0Eh0K",
-            "BERpY3QYASADKAsyDy5QYWlySGFzaENoYW5nZSJXCgVDaGFpbhIRCgJJZBgB",
-            "IAEoCzIFLkhhc2gSHwoQQ3VycmVudEJsb2NrSGFzaBgCIAEoCzIFLkhhc2gS",
-            "GgoSQ3VycmVudEJsb2NrSGVpZ2h0GAMgASgEIlgKEVRyYW5zYWN0aW9uUmVz",
-            "dWx0EhwKDVRyYW5zYWN0aW9uSWQYASABKAsyBS5IYXNoEhcKBnN0YXR1cxgC",
-            "IAEoDjIHLlN0YXR1cxIMCgRsb2dzGAMgASgMKlEKBlN0YXR1cxIOCgpOb3RF",
-            "eGlzdGVkEAASCwoHUmVmdXNlZBABEgsKB1BlbmRpbmcQAhISCg5FeGVjdXRl",
-            "ZEZhaWxlZBADEgkKBU1pbmVkEARCDqoCC0FFbGYuS2VybmVsYgZwcm90bzM="));
+            "YXNoEg0KBVZhbHVlGAEgASgMIqMBCgtCbG9ja0hlYWRlchIPCgdWZXJzaW9u",
+            "GAEgASgFEhwKDVBlcnZpb3VzQmxvY2sYAiABKAsyBS5IYXNoEisKHE1lcmts",
+            "ZVRyZWVSb290T2ZUcmFuc2FjdGlvbnMYAyABKAsyBS5IYXNoEikKGk1lcmts",
+            "ZVRyZWVSb290T2ZXb3JsZFN0YXRlGAQgASgLMgUuSGFzaBINCgVJbmRleBgF",
+            "IAEoBCJECglCbG9ja0JvZHkSGgoLQmxvY2tIZWFkZXIYASABKAsyBS5IYXNo",
+            "EhsKDFRyYW5zYWN0aW9ucxgCIAMoCzIFLkhhc2giPwoFQmxvY2sSHAoGSGVh",
+            "ZGVyGAEgASgLMgwuQmxvY2tIZWFkZXISGAoEQm9keRgCIAEoCzIKLkJsb2Nr",
+            "Qm9keSJhChlTbWFydENvbnRyYWN0UmVnaXN0cmF0aW9uEhAKCENhdGVnb3J5",
+            "GAEgASgFEhsKDENvbnRyYWN0SGFzaBgCIAEoCzIFLkhhc2gSFQoNQ29udHJh",
+            "Y3RCeXRlcxgDIAEoDCJ7ChdTbWFydENvbnRyYWN0RGVwbG95bWVudBIbCgxD",
+            "b250cmFjdEhhc2gYASABKAsyBS5IYXNoEhUKBkNhbGxlchgCIAEoCzIFLkhh",
+            "c2gSFwoPQ29uc3RydWN0UGFyYW1zGAMgASgMEhMKC0luY3JlbWVudElkGAQg",
+            "ASgEIiQKClBhcmFtZXRlcnMSFgoGUGFyYW1zGAEgAygLMgYuUGFyYW0i1gEK",
+            "BVBhcmFtEhAKBmludFZhbBgBIAEoBUgAEhAKBnN0clZhbBgCIAEoCUgAEg4K",
+            "BGRWYWwYAyABKAFIABIYCgdoYXNoVmFsGAQgASgLMgUuSGFzaEgAEhEKB2xv",
+            "bmdWYWwYBSABKARIABIxCgtyZWdpc3RlclZhbBgGIAEoCzIaLlNtYXJ0Q29u",
+            "dHJhY3RSZWdpc3RyYXRpb25IABIxCg1kZXBsb3ltZW50VmFsGAcgASgLMhgu",
+            "U21hcnRDb250cmFjdERlcGxveW1lbnRIAEIGCgRkYXRhImwKGlNtYXJ0Q29u",
+            "dHJhY3RJbnZva2VDb250ZXh0EhUKBkNhbGxlchgBIAEoCzIFLkhhc2gSEwoL",
+            "SW5jcmVtZW50SWQYAiABKAQSEgoKTWV0aG9kTmFtZRgDIAEoCRIOCgZQYXJh",
+            "bXMYBCABKAwifAoGQ2hhbmdlEhYKB0JlZm9yZXMYASADKAsyBS5IYXNoEhQK",
+            "BUFmdGVyGAIgASgLMgUuSGFzaBIdCg5UcmFuc2FjdGlvbklkcxgDIAEoCzIF",
+            "Lkhhc2gSJQoWTGF0ZXN0Q2hhbmdlZEJsb2NrSGFzaBgEIAEoCzIFLkhhc2gi",
+            "PAoOUGFpckhhc2hDaGFuZ2USEgoDS2V5GAEgASgLMgUuSGFzaBIWCgVWYWx1",
+            "ZRgCIAEoCzIHLkNoYW5nZSIsCgtDaGFuZ2VzRGljdBIdCgREaWN0GAEgAygL",
+            "Mg8uUGFpckhhc2hDaGFuZ2UiOwoFQ2hhaW4SEQoCSWQYASABKAsyBS5IYXNo",
+            "Eh8KEEdlbmVzaXNCbG9ja0hhc2gYAiABKAsyBS5IYXNoIlgKEVRyYW5zYWN0",
+            "aW9uUmVzdWx0EhwKDVRyYW5zYWN0aW9uSWQYASABKAsyBS5IYXNoEhcKBnN0",
+            "YXR1cxgCIAEoDjIHLlN0YXR1cxIMCgRsb2dzGAMgASgMKlEKBlN0YXR1cxIO",
+            "CgpOb3RFeGlzdGVkEAASCwoHUmVmdXNlZBABEgsKB1BlbmRpbmcQAhISCg5F",
+            "eGVjdXRlZEZhaWxlZBADEgkKBU1pbmVkEARCDqoCC0FFbGYuS2VybmVsYgZw",
+            "cm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params", "Fee", "R", "S", "P" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Hash), global::AElf.Kernel.Hash.Parser, new[]{ "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PerviousBlock", "MerkleTreeRootOfTransactions" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PerviousBlock", "MerkleTreeRootOfTransactions", "MerkleTreeRootOfWorldState", "Index" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockBody), global::AElf.Kernel.BlockBody.Parser, new[]{ "BlockHeader", "Transactions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Block), global::AElf.Kernel.Block.Parser, new[]{ "Header", "Body" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractRegistration), global::AElf.Kernel.SmartContractRegistration.Parser, new[]{ "Category", "ContractHash", "ContractBytes" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractDeployment), global::AElf.Kernel.SmartContractDeployment.Parser, new[]{ "ContractHash", "ConstructParams" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractInvokeContext), global::AElf.Kernel.SmartContractInvokeContext.Parser, new[]{ "Caller", "IncrementId" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractDeployment), global::AElf.Kernel.SmartContractDeployment.Parser, new[]{ "ContractHash", "Caller", "ConstructParams", "IncrementId" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Parameters), global::AElf.Kernel.Parameters.Parser, new[]{ "Params" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Param), global::AElf.Kernel.Param.Parser, new[]{ "IntVal", "StrVal", "DVal", "HashVal", "LongVal", "RegisterVal", "DeploymentVal" }, new[]{ "Data" }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractInvokeContext), global::AElf.Kernel.SmartContractInvokeContext.Parser, new[]{ "Caller", "IncrementId", "MethodName", "Params" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Change), global::AElf.Kernel.Change.Parser, new[]{ "Befores", "After", "TransactionIds", "LatestChangedBlockHash" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.PairHashChange), global::AElf.Kernel.PairHashChange.Parser, new[]{ "Key", "Value" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.ChangesDict), global::AElf.Kernel.ChangesDict.Parser, new[]{ "Dict" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Chain), global::AElf.Kernel.Chain.Parser, new[]{ "Id", "CurrentBlockHash", "CurrentBlockHeight" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Chain), global::AElf.Kernel.Chain.Parser, new[]{ "Id", "GenesisBlockHash" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionResult), global::AElf.Kernel.TransactionResult.Parser, new[]{ "TransactionId", "Status", "Logs" }, null, null, null)
           }));
     }
@@ -606,6 +617,8 @@ namespace AElf.Kernel {
       version_ = other.version_;
       PerviousBlock = other.perviousBlock_ != null ? other.PerviousBlock.Clone() : null;
       MerkleTreeRootOfTransactions = other.merkleTreeRootOfTransactions_ != null ? other.MerkleTreeRootOfTransactions.Clone() : null;
+      MerkleTreeRootOfWorldState = other.merkleTreeRootOfWorldState_ != null ? other.MerkleTreeRootOfWorldState.Clone() : null;
+      index_ = other.index_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -647,6 +660,28 @@ namespace AElf.Kernel {
       }
     }
 
+    /// <summary>Field number for the "MerkleTreeRootOfWorldState" field.</summary>
+    public const int MerkleTreeRootOfWorldStateFieldNumber = 4;
+    private global::AElf.Kernel.Hash merkleTreeRootOfWorldState_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash MerkleTreeRootOfWorldState {
+      get { return merkleTreeRootOfWorldState_; }
+      set {
+        merkleTreeRootOfWorldState_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Index" field.</summary>
+    public const int IndexFieldNumber = 5;
+    private ulong index_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ulong Index {
+      get { return index_; }
+      set {
+        index_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as BlockHeader);
@@ -663,6 +698,8 @@ namespace AElf.Kernel {
       if (Version != other.Version) return false;
       if (!object.Equals(PerviousBlock, other.PerviousBlock)) return false;
       if (!object.Equals(MerkleTreeRootOfTransactions, other.MerkleTreeRootOfTransactions)) return false;
+      if (!object.Equals(MerkleTreeRootOfWorldState, other.MerkleTreeRootOfWorldState)) return false;
+      if (Index != other.Index) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -672,6 +709,8 @@ namespace AElf.Kernel {
       if (Version != 0) hash ^= Version.GetHashCode();
       if (perviousBlock_ != null) hash ^= PerviousBlock.GetHashCode();
       if (merkleTreeRootOfTransactions_ != null) hash ^= MerkleTreeRootOfTransactions.GetHashCode();
+      if (merkleTreeRootOfWorldState_ != null) hash ^= MerkleTreeRootOfWorldState.GetHashCode();
+      if (Index != 0UL) hash ^= Index.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -697,6 +736,14 @@ namespace AElf.Kernel {
         output.WriteRawTag(26);
         output.WriteMessage(MerkleTreeRootOfTransactions);
       }
+      if (merkleTreeRootOfWorldState_ != null) {
+        output.WriteRawTag(34);
+        output.WriteMessage(MerkleTreeRootOfWorldState);
+      }
+      if (Index != 0UL) {
+        output.WriteRawTag(40);
+        output.WriteUInt64(Index);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -713,6 +760,12 @@ namespace AElf.Kernel {
       }
       if (merkleTreeRootOfTransactions_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(MerkleTreeRootOfTransactions);
+      }
+      if (merkleTreeRootOfWorldState_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(MerkleTreeRootOfWorldState);
+      }
+      if (Index != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(Index);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -739,6 +792,15 @@ namespace AElf.Kernel {
           merkleTreeRootOfTransactions_ = new global::AElf.Kernel.Hash();
         }
         MerkleTreeRootOfTransactions.MergeFrom(other.MerkleTreeRootOfTransactions);
+      }
+      if (other.merkleTreeRootOfWorldState_ != null) {
+        if (merkleTreeRootOfWorldState_ == null) {
+          merkleTreeRootOfWorldState_ = new global::AElf.Kernel.Hash();
+        }
+        MerkleTreeRootOfWorldState.MergeFrom(other.MerkleTreeRootOfWorldState);
+      }
+      if (other.Index != 0UL) {
+        Index = other.Index;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -767,6 +829,17 @@ namespace AElf.Kernel {
               merkleTreeRootOfTransactions_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(merkleTreeRootOfTransactions_);
+            break;
+          }
+          case 34: {
+            if (merkleTreeRootOfWorldState_ == null) {
+              merkleTreeRootOfWorldState_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(merkleTreeRootOfWorldState_);
+            break;
+          }
+          case 40: {
+            Index = input.ReadUInt64();
             break;
           }
         }
@@ -1316,7 +1389,9 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public SmartContractDeployment(SmartContractDeployment other) : this() {
       ContractHash = other.contractHash_ != null ? other.ContractHash.Clone() : null;
+      Caller = other.caller_ != null ? other.Caller.Clone() : null;
       constructParams_ = other.constructParams_;
+      incrementId_ = other.incrementId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1336,14 +1411,36 @@ namespace AElf.Kernel {
       }
     }
 
+    /// <summary>Field number for the "Caller" field.</summary>
+    public const int CallerFieldNumber = 2;
+    private global::AElf.Kernel.Hash caller_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash Caller {
+      get { return caller_; }
+      set {
+        caller_ = value;
+      }
+    }
+
     /// <summary>Field number for the "ConstructParams" field.</summary>
-    public const int ConstructParamsFieldNumber = 2;
+    public const int ConstructParamsFieldNumber = 3;
     private pb::ByteString constructParams_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pb::ByteString ConstructParams {
       get { return constructParams_; }
       set {
         constructParams_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "IncrementId" field.</summary>
+    public const int IncrementIdFieldNumber = 4;
+    private ulong incrementId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ulong IncrementId {
+      get { return incrementId_; }
+      set {
+        incrementId_ = value;
       }
     }
 
@@ -1361,7 +1458,9 @@ namespace AElf.Kernel {
         return true;
       }
       if (!object.Equals(ContractHash, other.ContractHash)) return false;
+      if (!object.Equals(Caller, other.Caller)) return false;
       if (ConstructParams != other.ConstructParams) return false;
+      if (IncrementId != other.IncrementId) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1369,7 +1468,9 @@ namespace AElf.Kernel {
     public override int GetHashCode() {
       int hash = 1;
       if (contractHash_ != null) hash ^= ContractHash.GetHashCode();
+      if (caller_ != null) hash ^= Caller.GetHashCode();
       if (ConstructParams.Length != 0) hash ^= ConstructParams.GetHashCode();
+      if (IncrementId != 0UL) hash ^= IncrementId.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1387,9 +1488,17 @@ namespace AElf.Kernel {
         output.WriteRawTag(10);
         output.WriteMessage(ContractHash);
       }
-      if (ConstructParams.Length != 0) {
+      if (caller_ != null) {
         output.WriteRawTag(18);
+        output.WriteMessage(Caller);
+      }
+      if (ConstructParams.Length != 0) {
+        output.WriteRawTag(26);
         output.WriteBytes(ConstructParams);
+      }
+      if (IncrementId != 0UL) {
+        output.WriteRawTag(32);
+        output.WriteUInt64(IncrementId);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -1402,8 +1511,14 @@ namespace AElf.Kernel {
       if (contractHash_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(ContractHash);
       }
+      if (caller_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Caller);
+      }
       if (ConstructParams.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(ConstructParams);
+      }
+      if (IncrementId != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(IncrementId);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1422,8 +1537,17 @@ namespace AElf.Kernel {
         }
         ContractHash.MergeFrom(other.ContractHash);
       }
+      if (other.caller_ != null) {
+        if (caller_ == null) {
+          caller_ = new global::AElf.Kernel.Hash();
+        }
+        Caller.MergeFrom(other.Caller);
+      }
       if (other.ConstructParams.Length != 0) {
         ConstructParams = other.ConstructParams;
+      }
+      if (other.IncrementId != 0UL) {
+        IncrementId = other.IncrementId;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1444,7 +1568,506 @@ namespace AElf.Kernel {
             break;
           }
           case 18: {
+            if (caller_ == null) {
+              caller_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(caller_);
+            break;
+          }
+          case 26: {
             ConstructParams = input.ReadBytes();
+            break;
+          }
+          case 32: {
+            IncrementId = input.ReadUInt64();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class Parameters : pb::IMessage<Parameters> {
+    private static readonly pb::MessageParser<Parameters> _parser = new pb::MessageParser<Parameters>(() => new Parameters());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<Parameters> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[7]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Parameters() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Parameters(Parameters other) : this() {
+      params_ = other.params_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Parameters Clone() {
+      return new Parameters(this);
+    }
+
+    /// <summary>Field number for the "Params" field.</summary>
+    public const int ParamsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::AElf.Kernel.Param> _repeated_params_codec
+        = pb::FieldCodec.ForMessage(10, global::AElf.Kernel.Param.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.Param> params_ = new pbc::RepeatedField<global::AElf.Kernel.Param>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::AElf.Kernel.Param> Params {
+      get { return params_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as Parameters);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(Parameters other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!params_.Equals(other.params_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= params_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      params_.WriteTo(output, _repeated_params_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += params_.CalculateSize(_repeated_params_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(Parameters other) {
+      if (other == null) {
+        return;
+      }
+      params_.Add(other.params_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            params_.AddEntriesFrom(input, _repeated_params_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class Param : pb::IMessage<Param> {
+    private static readonly pb::MessageParser<Param> _parser = new pb::MessageParser<Param>(() => new Param());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<Param> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[8]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Param() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Param(Param other) : this() {
+      switch (other.DataCase) {
+        case DataOneofCase.IntVal:
+          IntVal = other.IntVal;
+          break;
+        case DataOneofCase.StrVal:
+          StrVal = other.StrVal;
+          break;
+        case DataOneofCase.DVal:
+          DVal = other.DVal;
+          break;
+        case DataOneofCase.HashVal:
+          HashVal = other.HashVal.Clone();
+          break;
+        case DataOneofCase.LongVal:
+          LongVal = other.LongVal;
+          break;
+        case DataOneofCase.RegisterVal:
+          RegisterVal = other.RegisterVal.Clone();
+          break;
+        case DataOneofCase.DeploymentVal:
+          DeploymentVal = other.DeploymentVal.Clone();
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Param Clone() {
+      return new Param(this);
+    }
+
+    /// <summary>Field number for the "intVal" field.</summary>
+    public const int IntValFieldNumber = 1;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int IntVal {
+      get { return dataCase_ == DataOneofCase.IntVal ? (int) data_ : 0; }
+      set {
+        data_ = value;
+        dataCase_ = DataOneofCase.IntVal;
+      }
+    }
+
+    /// <summary>Field number for the "strVal" field.</summary>
+    public const int StrValFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string StrVal {
+      get { return dataCase_ == DataOneofCase.StrVal ? (string) data_ : ""; }
+      set {
+        data_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        dataCase_ = DataOneofCase.StrVal;
+      }
+    }
+
+    /// <summary>Field number for the "dVal" field.</summary>
+    public const int DValFieldNumber = 3;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public double DVal {
+      get { return dataCase_ == DataOneofCase.DVal ? (double) data_ : 0D; }
+      set {
+        data_ = value;
+        dataCase_ = DataOneofCase.DVal;
+      }
+    }
+
+    /// <summary>Field number for the "hashVal" field.</summary>
+    public const int HashValFieldNumber = 4;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash HashVal {
+      get { return dataCase_ == DataOneofCase.HashVal ? (global::AElf.Kernel.Hash) data_ : null; }
+      set {
+        data_ = value;
+        dataCase_ = value == null ? DataOneofCase.None : DataOneofCase.HashVal;
+      }
+    }
+
+    /// <summary>Field number for the "longVal" field.</summary>
+    public const int LongValFieldNumber = 5;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ulong LongVal {
+      get { return dataCase_ == DataOneofCase.LongVal ? (ulong) data_ : 0UL; }
+      set {
+        data_ = value;
+        dataCase_ = DataOneofCase.LongVal;
+      }
+    }
+
+    /// <summary>Field number for the "registerVal" field.</summary>
+    public const int RegisterValFieldNumber = 6;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.SmartContractRegistration RegisterVal {
+      get { return dataCase_ == DataOneofCase.RegisterVal ? (global::AElf.Kernel.SmartContractRegistration) data_ : null; }
+      set {
+        data_ = value;
+        dataCase_ = value == null ? DataOneofCase.None : DataOneofCase.RegisterVal;
+      }
+    }
+
+    /// <summary>Field number for the "deploymentVal" field.</summary>
+    public const int DeploymentValFieldNumber = 7;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.SmartContractDeployment DeploymentVal {
+      get { return dataCase_ == DataOneofCase.DeploymentVal ? (global::AElf.Kernel.SmartContractDeployment) data_ : null; }
+      set {
+        data_ = value;
+        dataCase_ = value == null ? DataOneofCase.None : DataOneofCase.DeploymentVal;
+      }
+    }
+
+    private object data_;
+    /// <summary>Enum of possible cases for the "data" oneof.</summary>
+    public enum DataOneofCase {
+      None = 0,
+      IntVal = 1,
+      StrVal = 2,
+      DVal = 3,
+      HashVal = 4,
+      LongVal = 5,
+      RegisterVal = 6,
+      DeploymentVal = 7,
+    }
+    private DataOneofCase dataCase_ = DataOneofCase.None;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public DataOneofCase DataCase {
+      get { return dataCase_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void ClearData() {
+      dataCase_ = DataOneofCase.None;
+      data_ = null;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as Param);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(Param other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (IntVal != other.IntVal) return false;
+      if (StrVal != other.StrVal) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.Equals(DVal, other.DVal)) return false;
+      if (!object.Equals(HashVal, other.HashVal)) return false;
+      if (LongVal != other.LongVal) return false;
+      if (!object.Equals(RegisterVal, other.RegisterVal)) return false;
+      if (!object.Equals(DeploymentVal, other.DeploymentVal)) return false;
+      if (DataCase != other.DataCase) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (dataCase_ == DataOneofCase.IntVal) hash ^= IntVal.GetHashCode();
+      if (dataCase_ == DataOneofCase.StrVal) hash ^= StrVal.GetHashCode();
+      if (dataCase_ == DataOneofCase.DVal) hash ^= pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.GetHashCode(DVal);
+      if (dataCase_ == DataOneofCase.HashVal) hash ^= HashVal.GetHashCode();
+      if (dataCase_ == DataOneofCase.LongVal) hash ^= LongVal.GetHashCode();
+      if (dataCase_ == DataOneofCase.RegisterVal) hash ^= RegisterVal.GetHashCode();
+      if (dataCase_ == DataOneofCase.DeploymentVal) hash ^= DeploymentVal.GetHashCode();
+      hash ^= (int) dataCase_;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (dataCase_ == DataOneofCase.IntVal) {
+        output.WriteRawTag(8);
+        output.WriteInt32(IntVal);
+      }
+      if (dataCase_ == DataOneofCase.StrVal) {
+        output.WriteRawTag(18);
+        output.WriteString(StrVal);
+      }
+      if (dataCase_ == DataOneofCase.DVal) {
+        output.WriteRawTag(25);
+        output.WriteDouble(DVal);
+      }
+      if (dataCase_ == DataOneofCase.HashVal) {
+        output.WriteRawTag(34);
+        output.WriteMessage(HashVal);
+      }
+      if (dataCase_ == DataOneofCase.LongVal) {
+        output.WriteRawTag(40);
+        output.WriteUInt64(LongVal);
+      }
+      if (dataCase_ == DataOneofCase.RegisterVal) {
+        output.WriteRawTag(50);
+        output.WriteMessage(RegisterVal);
+      }
+      if (dataCase_ == DataOneofCase.DeploymentVal) {
+        output.WriteRawTag(58);
+        output.WriteMessage(DeploymentVal);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (dataCase_ == DataOneofCase.IntVal) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(IntVal);
+      }
+      if (dataCase_ == DataOneofCase.StrVal) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(StrVal);
+      }
+      if (dataCase_ == DataOneofCase.DVal) {
+        size += 1 + 8;
+      }
+      if (dataCase_ == DataOneofCase.HashVal) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(HashVal);
+      }
+      if (dataCase_ == DataOneofCase.LongVal) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(LongVal);
+      }
+      if (dataCase_ == DataOneofCase.RegisterVal) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(RegisterVal);
+      }
+      if (dataCase_ == DataOneofCase.DeploymentVal) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(DeploymentVal);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(Param other) {
+      if (other == null) {
+        return;
+      }
+      switch (other.DataCase) {
+        case DataOneofCase.IntVal:
+          IntVal = other.IntVal;
+          break;
+        case DataOneofCase.StrVal:
+          StrVal = other.StrVal;
+          break;
+        case DataOneofCase.DVal:
+          DVal = other.DVal;
+          break;
+        case DataOneofCase.HashVal:
+          if (HashVal == null) {
+            HashVal = new global::AElf.Kernel.Hash();
+          }
+          HashVal.MergeFrom(other.HashVal);
+          break;
+        case DataOneofCase.LongVal:
+          LongVal = other.LongVal;
+          break;
+        case DataOneofCase.RegisterVal:
+          if (RegisterVal == null) {
+            RegisterVal = new global::AElf.Kernel.SmartContractRegistration();
+          }
+          RegisterVal.MergeFrom(other.RegisterVal);
+          break;
+        case DataOneofCase.DeploymentVal:
+          if (DeploymentVal == null) {
+            DeploymentVal = new global::AElf.Kernel.SmartContractDeployment();
+          }
+          DeploymentVal.MergeFrom(other.DeploymentVal);
+          break;
+      }
+
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            IntVal = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            StrVal = input.ReadString();
+            break;
+          }
+          case 25: {
+            DVal = input.ReadDouble();
+            break;
+          }
+          case 34: {
+            global::AElf.Kernel.Hash subBuilder = new global::AElf.Kernel.Hash();
+            if (dataCase_ == DataOneofCase.HashVal) {
+              subBuilder.MergeFrom(HashVal);
+            }
+            input.ReadMessage(subBuilder);
+            HashVal = subBuilder;
+            break;
+          }
+          case 40: {
+            LongVal = input.ReadUInt64();
+            break;
+          }
+          case 50: {
+            global::AElf.Kernel.SmartContractRegistration subBuilder = new global::AElf.Kernel.SmartContractRegistration();
+            if (dataCase_ == DataOneofCase.RegisterVal) {
+              subBuilder.MergeFrom(RegisterVal);
+            }
+            input.ReadMessage(subBuilder);
+            RegisterVal = subBuilder;
+            break;
+          }
+          case 58: {
+            global::AElf.Kernel.SmartContractDeployment subBuilder = new global::AElf.Kernel.SmartContractDeployment();
+            if (dataCase_ == DataOneofCase.DeploymentVal) {
+              subBuilder.MergeFrom(DeploymentVal);
+            }
+            input.ReadMessage(subBuilder);
+            DeploymentVal = subBuilder;
             break;
           }
         }
@@ -1461,7 +2084,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[7]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[9]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1480,6 +2103,8 @@ namespace AElf.Kernel {
     public SmartContractInvokeContext(SmartContractInvokeContext other) : this() {
       Caller = other.caller_ != null ? other.Caller.Clone() : null;
       incrementId_ = other.incrementId_;
+      methodName_ = other.methodName_;
+      params_ = other.params_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1510,6 +2135,28 @@ namespace AElf.Kernel {
       }
     }
 
+    /// <summary>Field number for the "MethodName" field.</summary>
+    public const int MethodNameFieldNumber = 3;
+    private string methodName_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string MethodName {
+      get { return methodName_; }
+      set {
+        methodName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Params" field.</summary>
+    public const int ParamsFieldNumber = 4;
+    private pb::ByteString params_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString Params {
+      get { return params_; }
+      set {
+        params_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as SmartContractInvokeContext);
@@ -1525,6 +2172,8 @@ namespace AElf.Kernel {
       }
       if (!object.Equals(Caller, other.Caller)) return false;
       if (IncrementId != other.IncrementId) return false;
+      if (MethodName != other.MethodName) return false;
+      if (Params != other.Params) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1533,6 +2182,8 @@ namespace AElf.Kernel {
       int hash = 1;
       if (caller_ != null) hash ^= Caller.GetHashCode();
       if (IncrementId != 0UL) hash ^= IncrementId.GetHashCode();
+      if (MethodName.Length != 0) hash ^= MethodName.GetHashCode();
+      if (Params.Length != 0) hash ^= Params.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1554,6 +2205,14 @@ namespace AElf.Kernel {
         output.WriteRawTag(16);
         output.WriteUInt64(IncrementId);
       }
+      if (MethodName.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(MethodName);
+      }
+      if (Params.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(Params);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1567,6 +2226,12 @@ namespace AElf.Kernel {
       }
       if (IncrementId != 0UL) {
         size += 1 + pb::CodedOutputStream.ComputeUInt64Size(IncrementId);
+      }
+      if (MethodName.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(MethodName);
+      }
+      if (Params.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Params);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1587,6 +2252,12 @@ namespace AElf.Kernel {
       }
       if (other.IncrementId != 0UL) {
         IncrementId = other.IncrementId;
+      }
+      if (other.MethodName.Length != 0) {
+        MethodName = other.MethodName;
+      }
+      if (other.Params.Length != 0) {
+        Params = other.Params;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1610,6 +2281,14 @@ namespace AElf.Kernel {
             IncrementId = input.ReadUInt64();
             break;
           }
+          case 26: {
+            MethodName = input.ReadString();
+            break;
+          }
+          case 34: {
+            Params = input.ReadBytes();
+            break;
+          }
         }
       }
     }
@@ -1624,7 +2303,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[8]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1847,7 +2526,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[9]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[11]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2016,7 +2695,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[10]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[12]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2137,7 +2816,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[11]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[13]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2155,8 +2834,7 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public Chain(Chain other) : this() {
       Id = other.id_ != null ? other.Id.Clone() : null;
-      CurrentBlockHash = other.currentBlockHash_ != null ? other.CurrentBlockHash.Clone() : null;
-      currentBlockHeight_ = other.currentBlockHeight_;
+      GenesisBlockHash = other.genesisBlockHash_ != null ? other.GenesisBlockHash.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2176,25 +2854,14 @@ namespace AElf.Kernel {
       }
     }
 
-    /// <summary>Field number for the "CurrentBlockHash" field.</summary>
-    public const int CurrentBlockHashFieldNumber = 2;
-    private global::AElf.Kernel.Hash currentBlockHash_;
+    /// <summary>Field number for the "GenesisBlockHash" field.</summary>
+    public const int GenesisBlockHashFieldNumber = 2;
+    private global::AElf.Kernel.Hash genesisBlockHash_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Hash CurrentBlockHash {
-      get { return currentBlockHash_; }
+    public global::AElf.Kernel.Hash GenesisBlockHash {
+      get { return genesisBlockHash_; }
       set {
-        currentBlockHash_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "CurrentBlockHeight" field.</summary>
-    public const int CurrentBlockHeightFieldNumber = 3;
-    private ulong currentBlockHeight_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public ulong CurrentBlockHeight {
-      get { return currentBlockHeight_; }
-      set {
-        currentBlockHeight_ = value;
+        genesisBlockHash_ = value;
       }
     }
 
@@ -2212,8 +2879,7 @@ namespace AElf.Kernel {
         return true;
       }
       if (!object.Equals(Id, other.Id)) return false;
-      if (!object.Equals(CurrentBlockHash, other.CurrentBlockHash)) return false;
-      if (CurrentBlockHeight != other.CurrentBlockHeight) return false;
+      if (!object.Equals(GenesisBlockHash, other.GenesisBlockHash)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -2221,8 +2887,7 @@ namespace AElf.Kernel {
     public override int GetHashCode() {
       int hash = 1;
       if (id_ != null) hash ^= Id.GetHashCode();
-      if (currentBlockHash_ != null) hash ^= CurrentBlockHash.GetHashCode();
-      if (CurrentBlockHeight != 0UL) hash ^= CurrentBlockHeight.GetHashCode();
+      if (genesisBlockHash_ != null) hash ^= GenesisBlockHash.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -2240,13 +2905,9 @@ namespace AElf.Kernel {
         output.WriteRawTag(10);
         output.WriteMessage(Id);
       }
-      if (currentBlockHash_ != null) {
+      if (genesisBlockHash_ != null) {
         output.WriteRawTag(18);
-        output.WriteMessage(CurrentBlockHash);
-      }
-      if (CurrentBlockHeight != 0UL) {
-        output.WriteRawTag(24);
-        output.WriteUInt64(CurrentBlockHeight);
+        output.WriteMessage(GenesisBlockHash);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -2259,11 +2920,8 @@ namespace AElf.Kernel {
       if (id_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(Id);
       }
-      if (currentBlockHash_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(CurrentBlockHash);
-      }
-      if (CurrentBlockHeight != 0UL) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(CurrentBlockHeight);
+      if (genesisBlockHash_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(GenesisBlockHash);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -2282,14 +2940,11 @@ namespace AElf.Kernel {
         }
         Id.MergeFrom(other.Id);
       }
-      if (other.currentBlockHash_ != null) {
-        if (currentBlockHash_ == null) {
-          currentBlockHash_ = new global::AElf.Kernel.Hash();
+      if (other.genesisBlockHash_ != null) {
+        if (genesisBlockHash_ == null) {
+          genesisBlockHash_ = new global::AElf.Kernel.Hash();
         }
-        CurrentBlockHash.MergeFrom(other.CurrentBlockHash);
-      }
-      if (other.CurrentBlockHeight != 0UL) {
-        CurrentBlockHeight = other.CurrentBlockHeight;
+        GenesisBlockHash.MergeFrom(other.GenesisBlockHash);
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -2310,14 +2965,10 @@ namespace AElf.Kernel {
             break;
           }
           case 18: {
-            if (currentBlockHash_ == null) {
-              currentBlockHash_ = new global::AElf.Kernel.Hash();
+            if (genesisBlockHash_ == null) {
+              genesisBlockHash_ = new global::AElf.Kernel.Hash();
             }
-            input.ReadMessage(currentBlockHash_);
-            break;
-          }
-          case 24: {
-            CurrentBlockHeight = input.ReadUInt64();
+            input.ReadMessage(genesisBlockHash_);
             break;
           }
         }
@@ -2334,7 +2985,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[12]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[14]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

@@ -36,7 +36,7 @@ namespace AElf.Kernel.Services
             }
 
             // in tx pool
-            if (await _txPoolService.GetTxAsync(txId) != null)
+            if (_txPoolService.GetTx(txId) != null)
             {
                 return new TransactionResult
                 {

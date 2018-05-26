@@ -38,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.SmartContracts.CSharpSmartContract\AElf.Kernel.SmartContracts.CSharpSmartContract.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Concurrency\Execution\Messages\" />

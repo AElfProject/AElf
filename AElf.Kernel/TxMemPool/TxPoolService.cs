@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Managers;
+using AElf.Kernel.Services;
 using ReaderWriterLock = AElf.Kernel.Lock.ReaderWriterLock;
 
 namespace AElf.Kernel.TxMemPool
@@ -9,10 +12,12 @@ namespace AElf.Kernel.TxMemPool
     public class TxPoolService : ITxPoolService
     {
         private readonly ITxPool _txPool;
+        private readonly IAccountContextService _accountContextService;
 
-        public TxPoolService(ITxPool txPool)
+        public TxPoolService(ITxPool txPool, IAccountContextService accountContextService)
         {
             _txPool = txPool;
+            _accountContextService = accountContextService;
         }
 
         /// <summary>
@@ -31,22 +36,28 @@ namespace AElf.Kernel.TxMemPool
         private CancellationTokenSource Cts { get; set; } 
         
         private TxPoolSchedulerLock Lock { get; } = new TxPoolSchedulerLock();
+        
+        //private HashSet<ITransaction> Tmp { get; } = new HashSet<ITransaction>();
+        
+        private readonly ConcurrentDictionary<Hash, ulong> _nonces = new ConcurrentDictionary<Hash, ulong>();
+        
+        private readonly ConcurrentDictionary<Hash, ITransaction> _txs = new ConcurrentDictionary<Hash, ITransaction>();
 
         /// <inheritdoc/>
         public Task<bool> AddTxAsync(Transaction tx)
         {
-            return Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
-            {
-                var res = _txPool.AddTx(tx);
-                if (_txPool.TmpSize >= _txPool.EntryThreshold)
-                {
-                    EnqueueEvent.Set();
-                }
-                return res;
-            });
+            // add tx
+            _txs.GetOrAdd(tx.GetHash(), tx);
+            
+            // tx from account state
+            var id = _accountContextService.GetAccountDataContext(tx.From, _txPool.ChainId)
+                .Result.IncrementId;
+            _nonces.AddOrUpdate(tx.From, id, (key, oldValue) => id);
+            
+            return Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() => _txPool.EnQueueTx(tx));
         }
         
-        /// <summary>
+        /*/// <summary>
         /// wait new tx
         /// </summary> 
         /// <returns></returns>
@@ -57,12 +68,25 @@ namespace AElf.Kernel.TxMemPool
             {
                 // wait for signal
                 EnqueueEvent.WaitOne();
+                
+                if(!_txPool.Enqueueable)
+                    continue;
+                
                 await Lock.WriteLock(() =>
                 {
-                    _txPool.QueueTxs();
+                    foreach (var t in Tmp)
+                    {
+                        if(_txPool.Nonces.ContainsKey(t.From))
+                            continue;
+                        if(_nonces.TryGetValue(t.From, out var idValue))
+                            _txPool.Nonces[t.From] = idValue;
+                    }
+                    
+                    _txPool.QueueTxs(Tmp); 
+                    Tmp.Clear();
                 });
             }
-        }
+        }*/
         
         /// <summary>
         /// wait signal to demote txs
@@ -74,11 +98,6 @@ namespace AElf.Kernel.TxMemPool
             while (!Cts.IsCancellationRequested)
             {
                 DemoteEvent.WaitOne();
-                await Lock.WriteLock(() =>
-                {
-                    var res = _txPool.RemoveExecutedTxs();
-                    PersistTxs(res);
-                });
             }
         }
         
@@ -86,7 +105,7 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task RemoveAsync(Hash txHash)
         {
-            return Lock.WriteLock(() => _txPool.DiscardTx(txHash));
+            return !_txs.TryGetValue(txHash, out var tx) ? Task.CompletedTask : Lock.WriteLock(() => _txPool.DiscardTx(tx));
         }
 
         /// <inheritdoc/>
@@ -101,7 +120,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="txs"></param>
         /// <returns></returns>
-        private void PersistTxs(IEnumerable<Transaction> txs)
+        private void PersistTxs(IEnumerable<ITransaction> txs)
         {
             foreach (var t in txs)
             {
@@ -111,17 +130,23 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task<List<Transaction>> GetReadyTxsAsync()
+        public Task<List<ITransaction>> GetReadyTxsAsync(ulong limit)
         {
-            return Lock.ReadLock(() => _txPool.ReadyTxs());
+            return Lock.ReadLock(() =>
+            {
+                _txPool.Enqueueable = false;
+                return _txPool.ReadyTxs(limit);
+            });
         }
 
         /// <inheritdoc/>
-        public Task PromoteAsync()
+        public Task<bool> PromoteAsync()
         {
             return Lock.WriteLock(() =>
             {
+                if (!_txPool.Enqueueable) return false;
                 _txPool.Promote();
+                return true;
             });
         }
 
@@ -132,9 +157,13 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task<Transaction> GetTxAsync(Hash txHash)
+        public ITransaction GetTx(Hash txHash)
         {
-            return Lock.ReadLock(() => _txPool.GetTx(txHash));
+            if (_txs.TryGetValue(txHash, out var tx) )
+            {
+                return tx;
+            }
+            return null;
         }
 
         /// <inheritdoc/>
@@ -165,12 +194,34 @@ namespace AElf.Kernel.TxMemPool
         }
         
         /// <inheritdoc/>
-        public Task<ulong> GetTmpSizeAsync()
+        /*public Task<ulong> GetTmpSizeAsync()
         {
-            return Lock.ReadLock(() => _txPool.TmpSize);
+            return Lock.ReadLock(() => (ulong)Tmp.Count);
+        }*/
+
+        /// <inheritdoc/>
+        public Task ResetAndUpdate(List<TransactionResult> txResultList)
+        {
+            foreach (var res in txResultList)
+            {
+                var hash = GetTx(res.TransactionId).From;
+                var id = _txPool.Nonces[hash];
+                
+                // update account context
+                _accountContextService.SetAccountContext(new AccountDataContext
+                {
+                    IncrementId = id,
+                    Address = hash,
+                    ChainId = _txPool.ChainId
+                });
+            }
+            
+            return Lock.WriteLock(() =>
+            {
+                _txPool.Enqueueable = true;
+            });
         }
         
-
         /// <inheritdoc/>
         public void Start()
         {
@@ -180,9 +231,10 @@ namespace AElf.Kernel.TxMemPool
             Cts = new CancellationTokenSource();
             
             // waiting enqueue tx
-            Task.Factory.StartNew(async () => await Receive());
+            //var task1 = Task.Factory.StartNew(async () => await Receive());
+            
             // waiting demote txs
-            Task.Factory.StartNew(async () => await Demote());
+            var task2 = Task.Factory.StartNew(async () => await Demote());
         }
 
         
@@ -193,6 +245,7 @@ namespace AElf.Kernel.TxMemPool
             {
                 // TODO: release resources
                 Cts.Cancel();
+                Cts.Dispose();
                 EnqueueEvent.Dispose();
                 DemoteEvent.Dispose();
             });
@@ -205,5 +258,24 @@ namespace AElf.Kernel.TxMemPool
     /// </summary>
     public class TxPoolSchedulerLock : ReaderWriterLock
     {
+        
+    }
+    
+    /// <inheritdoc />
+    /// <summary>
+    /// A lock for managing asynchronous access to memory pool.
+    /// </summary>
+    public class EnqueueSchedulerLock : ReaderWriterLock
+    {
+        
+    }
+    
+    /// <inheritdoc />
+    /// <summary>
+    /// A lock for managing asynchronous access to memory pool.
+    /// </summary>
+    public class ReadySchedulerLock : ReaderWriterLock
+    {
+        
     }
 }

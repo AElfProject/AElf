@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
+using Google.Protobuf.Collections;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -34,19 +36,27 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task BlockManagerTest()
         {
-            var builder = new GenesisBlockBuilder().Build(_smartContractZero.GetType());
-            var genesisBlock = builder.Block;
-
-            await _blockManager.AddBlockAsync(genesisBlock);
-            var blockHeader = await _blockManager.GetBlockHeaderAsync(genesisBlock.GetHash());
-
-            var block = new Block(genesisBlock.GetHash());
-
             var chain = await _chainTest.CreateChainTest();
-            await _chainTest.AppendBlockTest(chain, block);
-            Assert.Equal(blockHeader, genesisBlock.Header);
+
+            var block = CreateBlock(chain.GenesisBlockHash);
+            await _blockManager.AddBlockAsync(block);
+            var b = await _blockManager.GetBlockAsync(block.GetHash());
+            Assert.Equal(b, block);
         }
         
+        private Block CreateBlock(Hash preBlockHash = null)
+        {
+            Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
+            
+            var block = new Block(Hash.Generate());
+            block.AddTransaction(Hash.Generate());
+            block.AddTransaction(Hash.Generate());
+            block.AddTransaction(Hash.Generate());
+            block.AddTransaction(Hash.Generate());
+            block.FillTxsMerkleTreeRootInHeader();
+            block.Header.PreviousHash = preBlockHash;
+            return block;
+        }
         
     }
 }

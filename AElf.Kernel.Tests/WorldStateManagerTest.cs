@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -16,10 +15,10 @@ namespace AElf.Kernel.Tests
 
         private readonly Hash _genesisBlockHash = Hash.Generate();
         
-        public WorldStateManagerTest(IWorldStateStore worldStateStore, IAccountContextService accountContextService, IChangesStore changesStore, IDataStore dataStore)
+        public WorldStateManagerTest(IWorldStateStore worldStateStore, IChangesStore changesStore, IDataStore dataStore)
         {
-            _worldStateManager = new WorldStateManager(worldStateStore, 
-                accountContextService, changesStore, dataStore);
+            _worldStateManager = new WorldStateManager(worldStateStore, changesStore, dataStore);
+
         }
 
         [Fact]
@@ -37,12 +36,14 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task AccountDataProviderTest()
         {
-            var chain = new Chain(Hash.Generate());
+            var chain = new Chain(Hash.Generate(), _genesisBlockHash);
             var address = Hash.Generate();
 
-            await _worldStateManager.SetWorldStateAsync(chain.Id, _genesisBlockHash);
+            await _worldStateManager.OfChain(chain.Id);
+            
+            await _worldStateManager.SetWorldStateAsync(_genesisBlockHash);
 
-            var accountDataProvider = _worldStateManager.GetAccountDataProvider(chain.Id, address);
+            var accountDataProvider = _worldStateManager.GetAccountDataProvider(address);
             
             Assert.True(accountDataProvider.Context.Address == address);
             Assert.True(accountDataProvider.Context.ChainId == chain.Id);

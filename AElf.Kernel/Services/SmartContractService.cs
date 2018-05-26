@@ -22,7 +22,6 @@ namespace AElf.Kernel.Services
             }
 
             return await sm.GetSmartContractAsync(account);
-
         }
     }
 }
