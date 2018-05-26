@@ -75,7 +75,7 @@ namespace AElf.Kernel.Tests.Concurrency
 				_smartContractZero.SetBalance(addbal.Item1, (ulong)addbal.Item2);
 			}
 
-			var txs = new List<Transaction>(){
+			var txs = new List<ITransaction>(){
 				GetTransaction(addresses[0], addresses[1], 10),
 			};
 			var txsHashes = txs.Select(y => y.GetHash()).ToList();

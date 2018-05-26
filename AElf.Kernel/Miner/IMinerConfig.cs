@@ -1,4 +1,4 @@
-﻿namespace AElf.Kernel.MIner
+﻿namespace AElf.Kernel.Miner
 {
     public interface IMinerConfig
     {

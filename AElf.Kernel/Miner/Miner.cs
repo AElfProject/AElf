@@ -4,15 +4,17 @@ using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
+using Google.Protobuf;
 using ReaderWriterLock = AElf.Kernel.Lock.ReaderWriterLock;
 
 
-namespace AElf.Kernel.MIner
+namespace AElf.Kernel.Miner
 {
     public class Miner : IMiner
     {
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly ITxPoolService _txPoolService;
+        private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
         
         private MinerLock Lock { get; } = new MinerLock();
         
@@ -31,34 +33,32 @@ namespace AElf.Kernel.MIner
         
 
         public Miner(IBlockGenerationService blockGenerationService, IMinerConfig config, 
-            ITxPoolService txPoolService)
+            ITxPoolService txPoolService, IParallelTransactionExecutingService parallelTransactionExecutingService)
         {
             _blockGenerationService = blockGenerationService;
             Config = config;
             _txPoolService = txPoolService;
+            _parallelTransactionExecutingService = parallelTransactionExecutingService;
         }
 
-        /// <summary>
-        /// mining functionality
-        /// </summary>
-        /// <returns></returns>
-        private async Task Mine()
+        
+        public async Task<IBlock> Mine()
         {
-            while (!Cts.IsCancellationRequested)
-            {
-                MiningResetEvent.WaitOne();
-                if (Cts.IsCancellationRequested) break;
+            if (Cts == null || Cts.IsCancellationRequested)
+                return null;
+            
+            var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCountLimit);
+            // TODO：dispatch txs with ISParallel, return list of tx results
+            
+            var results =  await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
+            
+            // generate block
+            var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);
+             
+            // reset Promotable and update account context
+            await _txPoolService.ResetAndUpdate(results);
 
-                var ready = _txPoolService.GetReadyTxsAsync(Config.TxCountLimit);
-                // TODO：dispatch txs with ISParallel, return collection of tx results
-                List<TransactionResult> txResultList = null;
-                
-                // generate block
-                var block = await _blockGenerationService.BlockGeneration(Config.ChainId, txResultList);
-                
-                // reset Promotable and update account context
-                await _txPoolService.ResetAndUpdate(txResultList);
-            }
+            return block;
         }
 
         /// <summary>
@@ -67,8 +67,7 @@ namespace AElf.Kernel.MIner
         public void Start()
         {
             Cts = new CancellationTokenSource();
-            MiningResetEvent = new AutoResetEvent(false);
-            Task.Factory.StartNew(async () => await Mine());
+            //MiningResetEvent = new AutoResetEvent(false);
         }
 
         /// <summary>
@@ -80,7 +79,7 @@ namespace AElf.Kernel.MIner
             {
                 Cts.Cancel();
                 Cts.Dispose();
-                MiningResetEvent.Dispose();
+                //MiningResetEvent.Dispose();
             });
             
         }
