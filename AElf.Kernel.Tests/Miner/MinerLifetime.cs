@@ -1,14 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Concurrency;
+using AElf.Kernel.Concurrency.Execution;
+using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Services;
 using AElf.Kernel.SmartContracts.CSharpSmartContract;
+using AElf.Kernel.Tests.Concurrency.Execution;
 using AElf.Kernel.TxMemPool;
 using Akka.Actor;
 using Akka.Dispatch.SysMsg;
+using Akka.TestKit;
+using Akka.TestKit.Xunit;
 using Google.Protobuf;
 using Moq;
 using Xunit;
@@ -17,81 +23,51 @@ using Xunit.Frameworks.Autofac;
 namespace AElf.Kernel.Tests.Miner
 {
     [UseAutofacTestFramework]
-    public class MinerLifetime
+    public class MinerLifetime : TestKitBase
     {
+        private ActorSystem sys = ActorSystem.Create("test");
+        private readonly ChainContextServiceWithAdd _chainContextService;
         private readonly IBlockGenerationService _blockGenerationService;
+        private ChainContextWithSmartContractZeroWithTransfer _chainContext;
+        private SmartContractZeroWithTransfer SmartContractZero { get { return (_chainContext.SmartContractZero as SmartContractZeroWithTransfer); } }
+        private AccountContextService _accountContextService;
+        private IActorRef _generalExecutor;
 
-        private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService =
-            new ParallelTransactionExecutingService(ActorSystem.Create("test"));
-        private readonly IChainCreationService _chainCreationService;
-        private readonly IChainContextService _chainContextService;
-        
-
-        public MinerLifetime(IBlockGenerationService blockGenerationService, 
-            IChainCreationService chainCreationService, IChainContextService chainContextService)
+        public MinerLifetime(ChainContextServiceWithAdd chainContextService, 
+            ChainContextWithSmartContractZeroWithTransfer chainContext, AccountContextService accountContextService, 
+            IBlockGenerationService blockGenerationService) : base(new XunitAssertions())
         {
-            _blockGenerationService = blockGenerationService;
-            _chainCreationService = chainCreationService;
             _chainContextService = chainContextService;
+            _chainContext = chainContext;
+            _accountContextService = accountContextService;
+            _blockGenerationService = blockGenerationService;
+            _generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
         }
 
         public Mock<ITxPoolService> MockTxPoolService()
         {
-            var readyList = new List<ITransaction>();
-
-            var from = Hash.Generate();
             
-            var tx1 = new Transaction
+            var balances = new List<int>()
             {
-                From = from,
-                To = Hash.Zero,
-                MethodName = "SayHello",
-                IncrementId = 0,
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                        Params =
-                        {
-                            new Param
-                            {
-                                StrVal = "wk"
-                            }
-                        }
-                    }.ToByteArray()
-                )
-                
+                100, 0
             };
+            var addresses = Enumerable.Range(0, balances.Count).Select(x => Hash.Generate()).ToList();
 
-            var tx2 = new Transaction
+            foreach (var addbal in addresses.Zip(balances, Tuple.Create))
             {
-                From = from,
-                To = Hash.Zero,
-                MethodName = "SayHello",
-                IncrementId = 1,
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                        Params =
-                        {
-                            new Param
-                            {
-                                StrVal = "wk"
-                            }
-                        }
-                    }.ToByteArray()
-                )
-                
+                SmartContractZero.SetBalance(addbal.Item1, (ulong)addbal.Item2);
+            }
+
+            var txs = new List<ITransaction>(){
+                GetTransaction(addresses[0], addresses[1], 10),
             };
-            readyList.Add(tx1);
-            readyList.Add(tx2);
-            
             
             var mock = new Mock<ITxPoolService>();
-            mock.Setup((s) => s.GetReadyTxsAsync(It.IsAny<ulong>())).Returns(Task.FromResult(readyList));
+            mock.Setup((s) => s.GetReadyTxsAsync(It.IsAny<ulong>())).Returns(Task.FromResult(txs));
             return mock;
         }
         
-        public async Task<IChain> CreateChain()
+        /*public async Task<IChain> CreateChain()
         {
             var smartContract = typeof(Class1);
             var chainId = Hash.Generate();
@@ -110,15 +86,16 @@ namespace AElf.Kernel.Tests.Miner
                 ContractHash = Hash.Zero
             };
             await chainContext.SmartContractZero.RegisterSmartContract(reg);
-            await chainContext.SmartContractZero.DeploySmartContract(deplotment);*/
+            await chainContext.SmartContractZero.DeploySmartContract(deplotment);#1#
 
             return chain;
-        }
+        }*/
         
         public IMiner GetMiner(IMinerConfig config)
         {
+            var parallelTransactionExecutingService = new ParallelTransactionExecutingService(sys);
             return new Kernel.Miner.Miner(_blockGenerationService, config, MockTxPoolService().Object,
-                _parallelTransactionExecutingService);
+                parallelTransactionExecutingService);
         }
 
         public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit)
@@ -131,28 +108,49 @@ namespace AElf.Kernel.Tests.Miner
             };
         }
         
+        private Transaction GetTransaction(Hash from, Hash to, ulong qty)
+        {
+            // TODO: Test with IncrementId
+            TransferArgs args = new TransferArgs()
+            {
+                From = from,
+                To = to,
+                Quantity = qty
+            };
+
+            ByteString argsBS = args.ToByteString();
+
+            Transaction tx = new Transaction()
+            {
+                IncrementId = 0,
+                From = from,
+                To = to,
+                MethodName = "Transfer",
+                Params = argsBS
+            };
+
+            return tx;
+        }
+        
 
         [Fact]
         public async Task MineWithoutStarting()
         {
-            var chain = await CreateChain();
-            var config = GetMinerConfig(chain.Id, 10);
+            var config = GetMinerConfig(_chainContext.ChainId, 10);
             var miner = GetMiner(config);
             
             var block = await miner.Mine();
             Assert.Null(block);
         }
 
-        [Fact(Skip = "TODO")]
+        [Fact]
         public async Task Mine()
         {
-            var chain = await CreateChain();
-            var config = GetMinerConfig(chain.Id, 10);
+            var config = GetMinerConfig(_chainContext.ChainId, 10);
             var miner = GetMiner(config);
-            
+            _generalExecutor.Tell(new RequestAddChainExecutor(_chainContext.ChainId));
+            ExpectMsg<RespondAddChainExecutor>();
             miner.Start();
-            
-            
             var block = await miner.Mine();
             Assert.NotNull(block);
         }
