@@ -32,15 +32,17 @@ namespace AElf.Kernel.Tests.Miner
         private SmartContractZeroWithTransfer SmartContractZero { get { return (_chainContext.SmartContractZero as SmartContractZeroWithTransfer); } }
         private AccountContextService _accountContextService;
         private IActorRef _generalExecutor;
+        private IChainCreationService _chainCreationService;
 
         public MinerLifetime(ChainContextServiceWithAdd chainContextService, 
             ChainContextWithSmartContractZeroWithTransfer chainContext, AccountContextService accountContextService, 
-            IBlockGenerationService blockGenerationService) : base(new XunitAssertions())
+            IBlockGenerationService blockGenerationService, IChainCreationService chainCreationService) : base(new XunitAssertions())
         {
             _chainContextService = chainContextService;
             _chainContext = chainContext;
             _accountContextService = accountContextService;
             _blockGenerationService = blockGenerationService;
+            _chainCreationService = chainCreationService;
             _generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
         }
 
@@ -67,10 +69,10 @@ namespace AElf.Kernel.Tests.Miner
             return mock;
         }
         
-        /*public async Task<IChain> CreateChain()
+        public async Task<IChain> CreateChain()
         {
             var smartContract = typeof(Class1);
-            var chainId = Hash.Generate();
+            var chainId = _chainContext.ChainId;
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, smartContract);
             /*var chainContext = _chainContextService.GetChainContext(chainId);
             
@@ -86,10 +88,10 @@ namespace AElf.Kernel.Tests.Miner
                 ContractHash = Hash.Zero
             };
             await chainContext.SmartContractZero.RegisterSmartContract(reg);
-            await chainContext.SmartContractZero.DeploySmartContract(deplotment);#1#
+            await chainContext.SmartContractZero.DeploySmartContract(deplotment);#*/
 
             return chain;
-        }*/
+        }
         
         public IMiner GetMiner(IMinerConfig config)
         {
@@ -143,11 +145,13 @@ namespace AElf.Kernel.Tests.Miner
             Assert.Null(block);
         }
 
-        [Fact]
+        [Fact(Skip = "TODO")]
         public async Task Mine()
         {
             var config = GetMinerConfig(_chainContext.ChainId, 10);
             var miner = GetMiner(config);
+            
+            _chainContextService.AddChainContext(_chainContext.ChainId, _chainContext);
             _generalExecutor.Tell(new RequestAddChainExecutor(_chainContext.ChainId));
             ExpectMsg<RespondAddChainExecutor>();
             miner.Start();
