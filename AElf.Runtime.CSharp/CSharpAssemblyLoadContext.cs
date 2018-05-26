@@ -26,12 +26,14 @@ namespace AElf.Runtime.CSharp
 
         Assembly LoadFromFolderOrDefault(AssemblyName assemblyName)
         {
-            // API assembly should NOT be shared
-            var path = Path.Combine(_apiDllDirectory, assemblyName.Name);
+            if (assemblyName.Name.StartsWith("AElf.Api"))
+            {
+                // API assembly should NOT be shared
+                var path = Path.Combine(_apiDllDirectory, assemblyName.Name);
 
-            if (File.Exists(path + ".dll"))
-                return LoadFromAssemblyPath(path + ".dll");
-            
+                return LoadFromAssemblyPath(path + ".dll");   
+            }
+
             return _parentLoaded.FirstOrDefault(x => x.GetName().Name == assemblyName.Name);
         }
     }

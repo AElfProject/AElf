@@ -41,7 +41,7 @@ namespace AElf.Runtime.CSharp.Tests
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             
-            _runner = new BinaryCSharpSmartContractRunner("../../../../AElf.Contracts.Examples");
+            _runner = new BinaryCSharpSmartContractRunner("../../../../AElf.Api.CSharp/bin/Debug/netstandard2.0/");
         }
 
         public async Task Init()
