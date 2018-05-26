@@ -7,35 +7,56 @@ using AElf.Node.RPC.DTO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
+using NLog;
 
 namespace AElf.Kernel.Node.RPC
 {
+    [LoggerName("RPC")]
     public class RpcServer : IRpcServer
     {
         private const string GetTxMethodName = "get_tx";
         private const string InsertTxMethodName = "insert_tx";
+        private const string BroadcastTxMethodName = "broadcast_tx";
         
+        /// <summary>
+        /// The names of the exposed RPC methods and also the
+        /// names used in the JSON to perform a call.
+        /// </summary>
         private readonly List<string> _rpcCommands = new List<string>()
         {
             GetTxMethodName,
-            InsertTxMethodName
+            InsertTxMethodName,
+            BroadcastTxMethodName
         };
         
+        /// <summary>
+        /// Represents the node itself.
+        /// </summary>
         private MainChainNode _node;
         
-        public RpcServer()
+        private readonly ILogger _logger;
+        
+        public RpcServer(ILogger logger)
         {
+            _logger = logger;
         }
 
+        /// <summary>
+        /// Temporary solution, this is used for injecting a
+        /// reference to the node.
+        /// todo : remove dependency on the node
+        /// </summary>
+        /// <param name="node"></param>
         public void SetCommandContext(MainChainNode node)
         {
             _node = node;
         }
         
+        /// <summary>
+        /// Starts the Kestrel server.
+        /// </summary>
+        /// <returns></returns>
         public bool Start() 
         {
             try
@@ -44,7 +65,7 @@ namespace AElf.Kernel.Node.RPC
                     .UseKestrel()
                     .ConfigureLogging((hostingContext, logging) =>
                     {
-                        logging.ClearProviders(); 
+                        //logging.ClearProviders(); 
                     })
                     .Configure(a => a.Run(ProcessAsync))
                     .Build();
@@ -53,7 +74,7 @@ namespace AElf.Kernel.Node.RPC
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.LogException(LogLevel.Error, "Error while starting the RPC server.", e);
                 return false;
             }
 
@@ -79,12 +100,14 @@ namespace AElf.Kernel.Node.RPC
             }
             catch (Exception e)
             {
+                _logger.LogException(LogLevel.Error, "Error while parsing the RPC request.", e);
                 return null;
             }
         }
         
         /// <summary>
-        /// Verifies the request
+        /// Verifies the request, especially it checks to see it the command is
+        /// registered.
         /// </summary>
         /// <param name="request">The request to verify</param>
         /// <returns>Null if the request is valid, the response if verification fails</returns>
@@ -107,6 +130,11 @@ namespace AElf.Kernel.Node.RPC
             return null;
         }
         
+        /// <summary>
+        /// Callback that setup to process the requests : parse, validate and dispatch
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         private async Task ProcessAsync(HttpContext context)
         {
             if (context?.Request?.Body == null)
@@ -129,12 +157,10 @@ namespace AElf.Kernel.Node.RPC
                 return;
             }
 
-            int reqId = -1;
-
             try
             {
                 // read id
-                reqId = request["id"].ToObject<int>();
+                int reqId = request["id"].ToObject<int>();
                 
                 string methodName = JToken.FromObject(request["method"]).ToObject<string>();
                 JObject reqParams = JObject.FromObject(request["params"]);
@@ -146,7 +172,10 @@ namespace AElf.Kernel.Node.RPC
                            responseData = await ProcessGetTx(reqParams);
                            break;
                        case InsertTxMethodName:
-                           responseData = await InsertTx(reqParams);
+                           responseData = await ProcessInsertTx(reqParams);
+                           break;
+                       case BroadcastTxMethodName:
+                           responseData = await ProcessBroadcastTx(reqParams);
                            break;
                        default:
                            Console.WriteLine("Method name not found"); // todo log
@@ -155,10 +184,10 @@ namespace AElf.Kernel.Node.RPC
 
                 if (responseData == null)
                 {
-                    // todo write error
+                    // todo write error 
                 }
 
-                JObject resp = CreateResponse(responseData, reqId);
+                JObject resp = JsonRpcHelpers.CreateResponse(responseData, reqId);
                 
                 await WriteResponse(context, resp);
             }
@@ -168,18 +197,15 @@ namespace AElf.Kernel.Node.RPC
             }
         }
 
-        private JObject CreateResponse(JObject responseData, int id)
+        private async Task<JObject> ProcessBroadcastTx(JObject reqParams)
         {
-            JObject jObj = new JObject
-            {
-                ["jsonrpc"] = "2.0",
-                ["id"] = id,
-                ["result"] = responseData
-            };
+            TransactionDto dto = reqParams["tx"].ToObject<TransactionDto>();
 
-            return jObj;
+            await _node.BroadcastTransaction(dto.ToTransaction());
+
+            return null;
         }
-        
+
         private async Task<JObject> ProcessGetTx(JObject reqParams)
         {
             byte[] txid = reqParams["txid"].ToObject<byte[]>();
@@ -195,7 +221,7 @@ namespace AElf.Kernel.Node.RPC
             return JObject.FromObject(txDto);
         }
         
-        private async Task<JObject> InsertTx(JObject reqParams)
+        private async Task<JObject> ProcessInsertTx(JObject reqParams)
         {
             TransactionDto dto = reqParams["tx"].ToObject<TransactionDto>();
 
