@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel.Node.Network.Data";
+
+message NodeData {
+    string IpAddress = 1;
+    int32 Port = 2;
+}
+
+message AElfPacketData {
+    int32 msgType = 1;
+    int32 length = 2;
+    bytes payload = 3;
+}

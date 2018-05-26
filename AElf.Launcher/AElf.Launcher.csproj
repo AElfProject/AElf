@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.0" />
+    <PackageReference Include="CommandLineParser" Version="2.2.1" />
     <PackageReference Include="NLog" Version="4.5.4" />
   </ItemGroup>
 </Project>
