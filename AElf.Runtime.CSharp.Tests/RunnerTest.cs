@@ -25,11 +25,7 @@ namespace AElf.Runtime.CSharp.Tests
     {
         private IAccountDataProvider _dataProvider1;
         private IAccountDataProvider _dataProvider2;
-        private CSharpAssemblyLoadContext _loadContext1;
-        private BinaryCSharpSmartContractRunner _runner1;
-        
-        private CSharpAssemblyLoadContext _loadContext2;
-        private BinaryCSharpSmartContractRunner _runner2;
+        private BinaryCSharpSmartContractRunner _runner;
         
         private IWorldStateManager _worldStateManager;
         private IChainCreationService _chainCreationService;
@@ -45,17 +41,10 @@ namespace AElf.Runtime.CSharp.Tests
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             
-            _loadContext1 = new CSharpAssemblyLoadContext(
-                System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples"),
-                AppDomain.CurrentDomain.GetAssemblies());
-            _loadContext2 = new CSharpAssemblyLoadContext(
-                System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples"),
-                AppDomain.CurrentDomain.GetAssemblies());
-            _runner1 = new BinaryCSharpSmartContractRunner(smartContractZero, _loadContext1);
-            _runner2 = new BinaryCSharpSmartContractRunner(smartContractZero, _loadContext2);
+            _runner = new BinaryCSharpSmartContractRunner("../../../../AElf.Contracts.Examples");
         }
 
-        public async Task init()
+        public async Task Init()
         {
             var smartContractZero = typeof(Class1);
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, smartContractZero);
@@ -70,7 +59,7 @@ namespace AElf.Runtime.CSharp.Tests
         [Fact]
         public async Task Test()
         {
-            await init();
+            await Init();
             byte[] code = null;
             using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/AElf.Contracts.Examples.dll")))
             {
@@ -93,11 +82,8 @@ namespace AElf.Runtime.CSharp.Tests
                 IncrementId = 1
             };
 
-            
-//            Assert.Equal("", string.Join("\n", AppDomain.CurrentDomain.GetAssemblies().Where(x=>x.GetName().Name.Contains("Api")).Select(x=>x.GetName().Name.ToString())));
-            
-            var contract1 = await _runner1.RunAsync(reg, dep, _dataProvider1);
-            var contract2 = await _runner2.RunAsync(reg, dep, _dataProvider2);
+            var contract1 = await _runner.RunAsync(reg, dep, _dataProvider1);
+            var contract2 = await _runner.RunAsync(reg, dep, _dataProvider2);
             await contract1.InitializeAsync(_dataProvider1);
             await contract2.InitializeAsync(_dataProvider2);
             
@@ -200,7 +186,6 @@ namespace AElf.Runtime.CSharp.Tests
             
             var bal21 = await contract2.InvokeAsync(b1);
             
-            //            Assert.Equal(bal10, bal20);
             Assert.Equal((ulong) 190, bal10);
             Assert.Equal((ulong) 180, bal20);
             

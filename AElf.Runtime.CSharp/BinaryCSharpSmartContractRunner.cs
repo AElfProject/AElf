@@ -7,64 +7,47 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using Google.Protobuf;
+using Path = System.IO.Path;
 
 namespace AElf.Runtime.CSharp
 {
-//    [Serializable]
     public class InvalidCodeException : Exception
     {
-        //
-        // For guidelines regarding the creation of new exception types, see
-        //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpgenref/html/cpconerrorraisinghandlingguidelines.asp
-        // and
-        //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dncscol/html/csharp07192001.asp
-        //
-
-        public InvalidCodeException()
-        {
-        }
-
         public InvalidCodeException(string message) : base(message)
-        {
-        }
-
-        public InvalidCodeException(string message, Exception inner) : base(message, inner)
-        {
-        }
-
-        protected InvalidCodeException(
-            SerializationInfo info,
-            StreamingContext context) : base(info, context)
         {
         }
     }
     
     public class BinaryCSharpSmartContractRunner : ISmartContractRunner
     {
+        private readonly string _apiDllDirectory;
 
-        private SmartContractZero _smartContractZero;
-        private CSharpAssemblyLoadContext _loadContext;
-
-        public BinaryCSharpSmartContractRunner(SmartContractZero smartContractZero, CSharpAssemblyLoadContext loadContext)
+        public BinaryCSharpSmartContractRunner(string apiDllDirectory)
         {
-            _smartContractZero = smartContractZero;
-            _loadContext = loadContext;
+            _apiDllDirectory = Path.GetFullPath(apiDllDirectory);
+        }
+
+        /// <summary>
+        /// Creates an isolated context for the smart contract residing with an Api singleton.
+        /// </summary>
+        /// <returns></returns>
+        private CSharpAssemblyLoadContext GetLoadContext()
+        {
+            // To make sure each smart contract resides in an isolated context with an Api singleton
+            return new CSharpAssemblyLoadContext(_apiDllDirectory, AppDomain.CurrentDomain.GetAssemblies());
         }
         
         public async Task<ISmartContract> RunAsync(SmartContractRegistration reg, SmartContractDeployment deployment, 
             IAccountDataProvider adp)
         {
-            
-//            var smartContractZero = typeof(Class1);
-//            var typeName = smartContractZero.AssemblyQualifiedName;
-//            var type = System.Type.GetType(typeName);
+            // TODO: Maybe input arguments can be simplified
 
             var code = reg.ContractBytes.ToByteArray();
             
             Assembly assembly = null;
             using (Stream stream = new MemoryStream(code))
             {
-                assembly = _loadContext.LoadFromStream(stream);
+                assembly = GetLoadContext().LoadFromStream(stream);
             }
 
             if (assembly == null)
@@ -84,8 +67,7 @@ namespace AElf.Runtime.CSharp
             var paramTypes = parameterObjs.Select(p => p.GetType()).ToArray();
             var constructorInfo = type.GetConstructor(paramTypes);
 
-//            var instance = Activator.CreateInstance(type);
-            
+            // TODO: There will be no parameters passed to constructor as the context will be injected
             var instance = (IContextedSmartContract) constructorInfo.Invoke(parameterObjs);
             instance?.SetDataProvider(adp.GetDataProvider());
 
