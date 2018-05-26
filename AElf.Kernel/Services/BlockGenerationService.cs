@@ -22,7 +22,7 @@ namespace AElf.Kernel.Services
         }
         
         /// <inheritdoc/>
-        public async Task<IBlock> BlockGeneration(Hash chainId, IEnumerable<TransactionResult> results)
+        public async Task<IBlock> GenerateBlockAsync(Hash chainId, IEnumerable<TransactionResult> results)
         {
             var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
             var block = new Block(lastBlockHash);
@@ -51,7 +51,7 @@ namespace AElf.Kernel.Services
         }
         
         /// <inheritdoc/>
-        public async Task<IBlockHeader> BlockHeaderGeneration(Hash chainId, Hash merkleTreeRootForTransaction)
+        public async Task<IBlockHeader> GenerateBlockHeaderAsync(Hash chainId, Hash merkleTreeRootForTransaction)
         {
             // get ws merkle tree root
             var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
