@@ -30,7 +30,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             consoleTarget.RowHighlightingRules.Add(highlightRule);
 
             // Step 3. Set target properties 
-            consoleTarget.Layout = @"[ ${date:format=HH\:mm\:ss} - ${logger} ] : ${message}";
+            consoleTarget.Layout = @"[ ${date:format=HH\:mm\:ss} - ${logger} ] : ${message} ${exception:format=toString}";
 
             // Step 4. Define rules
             var rule1 = new LoggingRule("*", LogLevel.Trace, consoleTarget);
