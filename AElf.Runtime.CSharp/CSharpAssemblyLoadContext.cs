@@ -29,6 +29,7 @@ namespace AElf.Runtime.CSharp
             if (assemblyName.Name.StartsWith("AElf.Api"))
             {
                 // API assembly should NOT be shared
+                // TODO: Handle version
                 var path = Path.Combine(_apiDllDirectory, assemblyName.Name);
 
                 return LoadFromAssemblyPath(path + ".dll");   
