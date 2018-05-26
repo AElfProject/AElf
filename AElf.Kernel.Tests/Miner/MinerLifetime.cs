@@ -96,11 +96,11 @@ namespace AElf.Kernel.Tests.Miner
             var smartContract = typeof(Class1);
             var chainId = Hash.Generate();
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, smartContract);
-            var chainContext = _chainContextService.GetChainContext(chainId);
+            /*var chainContext = _chainContextService.GetChainContext(chainId);
             
             var reg = new SmartContractRegistration
             {
-                Category = 0,
+                Category = 1,
                 ContractBytes = ByteString.CopyFromUtf8(smartContract.AssemblyQualifiedName),
                 ContractHash = Hash.Zero
             };
@@ -110,7 +110,7 @@ namespace AElf.Kernel.Tests.Miner
                 ContractHash = Hash.Zero
             };
             await chainContext.SmartContractZero.RegisterSmartContract(reg);
-            await chainContext.SmartContractZero.DeploySmartContract(deplotment);
+            await chainContext.SmartContractZero.DeploySmartContract(deplotment);*/
 
             return chain;
         }
@@ -143,7 +143,7 @@ namespace AElf.Kernel.Tests.Miner
             Assert.Null(block);
         }
 
-        //[Fact]
+        [Fact(Skip = "TODO")]
         public async Task Mine()
         {
             var chain = await CreateChain();
