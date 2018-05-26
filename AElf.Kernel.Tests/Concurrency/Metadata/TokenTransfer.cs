@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using AElf.Kernel.Concurrency;
 
-namespace AElf.Kernel.SmartContracts.CSharpSmartContract
+namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
     
     public class TokenTransfer
     {
         [SmartContractFieldData("BalanceMap", DataAccessMode.AccountSpecific)]
-        private Dictionary<Hash, long> _balanceMap;
+        private readonly Dictionary<Hash, long> _balanceMap;
         
         [SmartContractFieldData("TokenContractName", DataAccessMode.ReadOnlyAccountSharing)]
         public string TokenContractName { get; }
@@ -18,6 +17,12 @@ namespace AElf.Kernel.SmartContracts.CSharpSmartContract
             TokenContractName = tokenContractName;
             _balanceMap = new Dictionary<Hash, long>();
             playerAddressList.ForEach(user => _balanceMap.Add(user, 10000));
+        }
+
+        
+        public string GetName()
+        {
+            return TokenContractName;
         }
         
         [SmartContractFunction("Transfer(Hash, Hash, long)")]
