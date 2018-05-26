@@ -6,13 +6,6 @@ using AElf.Kernel;
 
 namespace AElf.Api.CSharp
 {
-    public class AttributeException : Exception
-    {
-        public AttributeException(string message):base(message)
-        {
-            
-        }
-    }
     public class Map
     {
         private string _name;
