@@ -1,4 +1,5 @@
 ﻿﻿using System;
+ using System.Collections.Concurrent;
  using System.Collections.Generic;
  using System.Threading.Tasks;
  using AElf.Kernel.Extensions;
@@ -8,7 +9,8 @@ namespace AElf.Kernel.Services
 {
     public class AccountContextService : IAccountContextService
     {
-        //private readonly Dictionary<Hash, IAccountDataContext> _accountDataContexts = new Dictionary<Hash, IAccountDataContext>();
+        private readonly ConcurrentDictionary<Hash, IAccountDataContext> _accountDataContexts =
+            new ConcurrentDictionary<Hash, IAccountDataContext>();
 
         private readonly IWorldStateManager _worldStateManager;
 
@@ -19,12 +21,12 @@ namespace AElf.Kernel.Services
         
         /// <inheritdoc/>
         public async Task<IAccountDataContext> GetAccountDataContext(Hash account, Hash chainId)
-        {   
-                
-            /*if (_accountDataContexts.TryGetValue(key, out var ctx))
+        {
+            var key = chainId.CalculateHashWith(account);    
+            if (_accountDataContexts.TryGetValue(key, out var ctx))
              {
                 return ctx;
-            }*/
+            }
             
             await _worldStateManager.OfChain(chainId);
             var adp = _worldStateManager.GetAccountDataProvider(account);
@@ -39,7 +41,7 @@ namespace AElf.Kernel.Services
                 ChainId = chainId
             };
 
-            //_accountDataContexts[key] = accountDataContext;
+            _accountDataContexts[key] = accountDataContext;
             return accountDataContext;
         }
 
@@ -47,6 +49,9 @@ namespace AElf.Kernel.Services
         /// <inheritdoc/>
         public async Task SetAccountContext(IAccountDataContext accountDataContext)
         {
+            _accountDataContexts.AddOrUpdate(accountDataContext.ChainId.CalculateHashWith(accountDataContext.Address),
+                accountDataContext, (hash, context) => accountDataContext);
+            
             await _worldStateManager.OfChain(accountDataContext.ChainId);
             var adp = _worldStateManager.GetAccountDataProvider(accountDataContext.Address);
 
