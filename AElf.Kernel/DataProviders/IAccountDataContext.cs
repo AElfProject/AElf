@@ -2,7 +2,7 @@
 {
     public interface IAccountDataContext
     {
-        ulong IncreasementId { get; set; }
+        ulong IncrementId { get; set; }
         Hash Address { get; set; }
         
         Hash ChainId { get; set; }

@@ -1,4 +1,6 @@
-﻿namespace AElf.Kernel.TxMemPool
+﻿using AElf.Kernel.Miner;
+
+namespace AElf.Kernel.TxMemPool
 {
     public class TxPoolConfig : ITxPoolConfig
     {
@@ -19,5 +21,6 @@
         public ulong FeeThreshold { get; set; }
        
         public ulong EntryThreshold { get; set; }
+    
     }
 }

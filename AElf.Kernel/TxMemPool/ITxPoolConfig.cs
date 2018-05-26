@@ -1,4 +1,6 @@
-﻿namespace AElf.Kernel.TxMemPool
+﻿using AElf.Kernel.Miner;
+
+namespace AElf.Kernel.TxMemPool
 {
     public interface ITxPoolConfig
     {
@@ -26,5 +28,6 @@
         /// minimal number of txs for entering pool
         /// </summary>
         ulong EntryThreshold { get; }
+        
     }
 }

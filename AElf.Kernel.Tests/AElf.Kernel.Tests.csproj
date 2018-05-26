@@ -11,21 +11,27 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
     <PackageReference Include="xunit.runner.console" Version="2.3.1" />
     <PackageReference Include="ZeroFormatter" Version="1.6.4" />
+    <PackageReference Include="Akka.TestKit.Xunit" Version="1.3.6" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.SmartContracts.CSharpSmartContract\AElf.Kernel.SmartContracts.CSharpSmartContract.csproj" />
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="TransactionTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Parallel\**" />
+    <Folder Include="Concurrency\" />
+    <Folder Include="Concurrency\Execution\" />
+    <Folder Include="Concurrency\Execution\Protobuf\" />
+    <Folder Include="Concurrency\Execution\Protobuf\Proto\" />
+    <Folder Include="Concurrency\Execution\Protobuf\Generated\" />
+    <Folder Include="Concurrency\Scheduling\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Remove="Parallel\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Parallel\**" />
+    <Reference Include="Google.Protobuf">
+      <HintPath>..\..\..\..\.nuget\packages\google.protobuf\3.5.1\lib\netstandard1.0\Google.Protobuf.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

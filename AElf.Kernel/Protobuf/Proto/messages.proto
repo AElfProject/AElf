@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 option csharp_namespace = "AElf.Kernel";
-
 message Transaction
 {
     Hash From = 1;
@@ -23,6 +22,8 @@ message BlockHeader{
     int32 Version = 1;
     Hash PerviousBlock = 2;
     Hash MerkleTreeRootOfTransactions = 3;
+    Hash MerkleTreeRootOfWorldState = 4;
+    uint64 Index = 5;
 }
 
 message BlockBody{
@@ -39,17 +40,36 @@ message SmartContractRegistration{
     int32 Category = 1;
     Hash ContractHash = 2;
     bytes ContractBytes = 3;
-
 }
 
 message SmartContractDeployment{
     Hash ContractHash = 1;
-    bytes ConstructParams =2;
+    Hash Caller = 2;
+    bytes ConstructParams = 3;
+    uint64 IncrementId = 4;
+}
+
+message Parameters{
+    repeated Param Params = 1;
+}
+
+message Param {
+    oneof data{
+        int32 intVal = 1;
+        string strVal = 2;
+        double dVal = 3;
+        Hash hashVal = 4;
+        uint64 longVal = 5;
+        SmartContractRegistration registerVal = 6;
+        SmartContractDeployment deploymentVal = 7;
+    }
 }
 
 message SmartContractInvokeContext{
     Hash Caller = 1;
     uint64 IncrementId = 2;
+    string MethodName = 3;
+    bytes Params = 4;
 }
 
 message Change{
@@ -70,8 +90,7 @@ message ChangesDict{
 
 message Chain{
     Hash Id = 1;
-    Hash CurrentBlockHash = 2;
-    uint64 CurrentBlockHeight = 3;
+    Hash GenesisBlockHash = 2;
 }
 
 
