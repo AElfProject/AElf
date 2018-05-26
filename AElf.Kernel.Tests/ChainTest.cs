@@ -54,6 +54,38 @@ namespace AElf.Kernel.Tests
             return chain;
         }
 
+        [Fact]
+        public async Task<IChain> CreateMultipleChainTest()
+        {
+            var chainId = Hash.Generate();
+            var chainId2 = Hash.Generate();
+
+            var chain = await _chainCreationService.CreateNewChainAsync(chainId, _smartContractZero.GetType());
+            var chain2 = await _chainCreationService.CreateNewChainAsync(chainId2, _smartContractZero.GetType());
+
+            await _chainManager.AppendBlockToChainAsync(chain, new Block(Hash.Generate()));
+
+            await _chainManager.AppendBlockToChainAsync(chain2, new Block(Hash.Generate()));
+            await _chainManager.AppendBlockToChainAsync(chain2, new Block(Hash.Generate()));
+
+            var address = Hash.Generate();
+            var address2 = Hash.Generate();
+
+            var accountContextService = new AccountContextService();
+            var worldStateManager = new WorldStateManager(_worldStateStore,
+                accountContextService, _changesStore, _dataStore);
+            var accountDataProvider = worldStateManager.GetAccountDataProvider(chainId, address);
+            var accountDataProvider2 = worldStateManager.GetAccountDataProvider(chainId, address2);
+
+            await _smartContractZero.InitializeAsync(accountDataProvider);
+            await _smartContractZero.InitializeAsync(accountDataProvider2);
+
+            Assert.Equal((ulong)2, chain.CurrentBlockHeight);
+            Assert.Equal((ulong)3, chain2.CurrentBlockHeight);
+            return chain;
+        }
+
+
         public async Task ChainStoreTest(Hash chainId)
         {
             await _chainManager.AddChainAsync(chainId, Hash.Generate());
