@@ -68,7 +68,7 @@ namespace AElf.Runtime.CSharp
             var constructorInfo = type.GetConstructor(paramTypes);
 
             // TODO: There will be no parameters passed to constructor as the context will be injected
-            var instance = (IContextedSmartContract) constructorInfo.Invoke(parameterObjs);
+            var instance = (ISmartContractWithContext) constructorInfo.Invoke(parameterObjs);
             instance?.SetDataProvider(adp.GetDataProvider());
 
             return await Task.FromResult(instance);

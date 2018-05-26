@@ -3,7 +3,7 @@ using AElf.Kernel;
 
 namespace AElf.Api.CSharp
 {
-    public abstract class CSharpSmartContract: IContextedSmartContract
+    public abstract class CSharpSmartContract: ISmartContractWithContext
     {
         public void SetDataProvider(IDataProvider dataProvider)
         {
