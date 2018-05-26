@@ -2,6 +2,10 @@
 
 namespace AElf.Kernel.Node.RPC
 {
+    /// <summary>
+    /// A factory classes that contains various methods to create
+    /// JSON RPC 2.0 error responses
+    /// </summary>
     internal static class ErrorResponseFactory
     {
         // Version of JSON RPC used

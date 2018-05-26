@@ -286,6 +286,20 @@ namespace AElf.Kernel.Managers
         }
        
         #region Private methods
+        
+        /// <summary>
+        /// A specific way to get a hash value which pointer to
+        /// the count of Changes of a world state.
+        /// </summary>
+        /// <param name="blockHash"></param>
+        /// <returns></returns>
+        private Hash GetHashToGetPathsCount(Hash blockHash = null)
+        {
+            Interlocked.CompareExchange(ref blockHash, _preBlockHash, null);
+            Hash foo = "paths".CalculateHash();
+            return foo.CombineHashWith(blockHash);
+        }
+
         /// <summary>
         /// Get the count of changed-paths of a specific block.
         /// </summary>

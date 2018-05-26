@@ -63,7 +63,7 @@ namespace AElf.Kernel
         {
             if (!PointerValidation())
             {
-                throw new InvalidOperationException("Invalide pointer.");
+                throw new InvalidOperationException("Invalid pointer.");
             }
 
             return CalculateListHash(_chainHash, _accountAddress, _dataProviderHash, _keyHash, _blockHash);
@@ -73,7 +73,7 @@ namespace AElf.Kernel
         {
             if (!PathValidation())
             {
-                throw new InvalidOperationException("Invalide path.");
+                throw new InvalidOperationException("Invalid path.");
             }
 
             return CalculateListHash(_chainHash, _accountAddress, _dataProviderHash, _keyHash);
