@@ -11,14 +11,14 @@ namespace AElf.Kernel.Services
         /// <param name="accountHash"></param>
         /// <param name="chainId"></param>
         /// <returns></returns>
-        Task<IAccountDataContext> GetAccountDataContext(Hash accountHash, Hash chainId);
+        Task<IAccountDataContext> GetAccountDataContextAsync(Hash accountHash, Hash chainId);
 
         /// <summary>
         /// set incrementId in memory
         /// and wait for inserting to storage
         /// </summary>
         /// <param name="accountDataContext"></param>
-        Task SetAccountContext(IAccountDataContext accountDataContext);
+        Task SetAccountContextAsync(IAccountDataContext accountDataContext);
 
     }
 }

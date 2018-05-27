@@ -130,7 +130,7 @@ namespace AElf.Kernel.Tests.Miner
         public Mock<IChainManager> GetChainManager(Hash lastBlockHash)
         {
             var mock = new Mock<IChainManager>();
-            mock.Setup(c => c.GetChainLastBlockHash(It.IsAny<Hash>())).Returns(Task.FromResult(lastBlockHash));
+            mock.Setup(c => c.GetChainLastBlockHashAsync(It.IsAny<Hash>())).Returns(Task.FromResult(lastBlockHash));
             return mock;
         }
 

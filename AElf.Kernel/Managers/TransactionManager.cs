@@ -17,7 +17,7 @@ namespace AElf.Kernel.Managers
             return await _transactionStore.InsertAsync(tx);
         }
 
-        public async Task<ITransaction> GetTransaction(Hash txId)
+        public async Task<ITransaction> GetTransactionAsync(Hash txId)
         {
             return await _transactionStore.GetAsync(txId);
         }

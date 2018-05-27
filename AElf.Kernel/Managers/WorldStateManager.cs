@@ -28,7 +28,7 @@ namespace AElf.Kernel.Managers
             _dataStore = dataStore;
         }
 
-        public async Task<IWorldStateManager> OfChain(Hash chainId)
+        public async Task<IWorldStateManager> OfChainAsync(Hash chainId)
         {
             _chainId = chainId;
             _preBlockHash = await _dataStore.GetDataAsync(await _dataStore.GetDataAsync(

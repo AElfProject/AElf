@@ -39,7 +39,7 @@ namespace AElf.Kernel.Tests
             var chain = new Chain(Hash.Generate(), _genesisBlockHash);
             var address = Hash.Generate();
 
-            await _worldStateManager.OfChain(chain.Id);
+            await _worldStateManager.OfChainAsync(chain.Id);
             
             await _worldStateManager.SetWorldStateAsync(_genesisBlockHash);
 

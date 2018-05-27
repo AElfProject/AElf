@@ -49,8 +49,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, smartContractZero);
             var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
             var txs = genesis.Body.Transactions;
-            var register = await _transactionManager.GetTransaction(txs[0]);
-            var adp = (await _worldStateManager.OfChain(ChainId)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId));
+            var register = await _transactionManager.GetTransactionAsync(txs[0]);
+            var adp = (await _worldStateManager.OfChainAsync(ChainId)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId));
             
             var chainContext = _chainContextService.GetChainContext(ChainId);
 
@@ -90,7 +90,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             {
                 Caller = Hash.Zero,
                 IncrementId = 0,
-                MethodName = nameof(ISmartContractZero.RegisterSmartContract),
+                MethodName = nameof(ISmartContractZero.RegisterSmartContractAsync),
                 Params = ByteString.CopyFrom(
                     new Parameters
                     {
@@ -120,7 +120,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         {
             var deployContext = new SmartContractInvokeContext
             {
-                MethodName = nameof(ISmartContractZero.DeploySmartContract),
+                MethodName = nameof(ISmartContractZero.DeploySmartContractAsync),
                 Caller = Hash.Zero,
                 Params = ByteString.CopyFrom(
                     new Parameters

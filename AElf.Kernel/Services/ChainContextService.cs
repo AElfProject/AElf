@@ -32,7 +32,7 @@ namespace AElf.Kernel.Services
             {
                 // create smart contract zero
                 var zero = new SmartContractZero(_contractRunnerFactory, _worldStateManager);
-                await _worldStateManager.OfChain(chainId);
+                await _worldStateManager.OfChainAsync(chainId);
                 
                 // initialize smart contract zero
                 var adp = _worldStateManager.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId));

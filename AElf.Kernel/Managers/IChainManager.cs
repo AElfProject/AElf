@@ -28,7 +28,7 @@ namespace AElf.Kernel.Managers
         /// </summary>
         /// <param name="chainId"></param>
         /// <returns></returns>
-        Task<ulong> GetChainCurrentHeight(Hash chainId);
+        Task<ulong> GetChainCurrentHeightAsync(Hash chainId);
 
         /// <summary>
         /// set height for one chain
@@ -36,14 +36,14 @@ namespace AElf.Kernel.Managers
         /// <param name="chainId"></param>
         /// <param name="height"></param>
         /// <returns></returns>
-        Task SetChainCurrentHeight(Hash chainId, ulong height);
+        Task SetChainCurrentHeightAsync(Hash chainId, ulong height);
         
         /// <summary>
         /// get last block hash for one chain
         /// </summary>
         /// <param name="chainId"></param>
         /// <returns></returns>
-        Task<Hash> GetChainLastBlockHash(Hash chainId);
+        Task<Hash> GetChainLastBlockHashAsync(Hash chainId);
 
         /// <summary>
         /// set height for one chain
@@ -51,6 +51,6 @@ namespace AElf.Kernel.Managers
         /// <param name="chainId"></param>
         /// <param name="blockHash"></param>
         /// <returns></returns>
-        Task SetChainLastBlockHash(Hash chainId, Hash blockHash);
+        Task SetChainLastBlockHashAsync(Hash chainId, Hash blockHash);
     }
 } 

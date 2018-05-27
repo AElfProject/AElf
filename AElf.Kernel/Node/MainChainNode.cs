@@ -47,7 +47,7 @@ namespace AElf.Kernel.Node
 
         public async Task<ITransaction> GetTransaction(Hash txId)
         {
-            return await _transactionManager.GetTransaction(txId);
+            return await _transactionManager.GetTransactionAsync(txId);
         }
 
         /// <summary>

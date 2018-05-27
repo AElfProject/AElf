@@ -24,7 +24,7 @@ namespace AElf.Kernel.Services
         /// <inheritdoc/>
         public async Task<IBlock> GenerateBlockAsync(Hash chainId, IEnumerable<TransactionResult> results)
         {
-            var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
+            var lastBlockHash = await _chainManager.GetChainLastBlockHashAsync(chainId);
             var block = new Block(lastBlockHash);
             
             // add tx hash
@@ -37,7 +37,7 @@ namespace AElf.Kernel.Services
             block.FillTxsMerkleTreeRootInHeader();
             
             // set ws merkle tree root
-            await _worldStateManager.OfChain(chainId);
+            await _worldStateManager.OfChainAsync(chainId);
             
             await _worldStateManager.SetWorldStateAsync(lastBlockHash);
             var ws = await _worldStateManager.GetWorldStateAsync(lastBlockHash);
@@ -56,8 +56,8 @@ namespace AElf.Kernel.Services
         public async Task<IBlockHeader> GenerateBlockHeaderAsync(Hash chainId, Hash merkleTreeRootForTransaction)
         {
             // get ws merkle tree root
-            var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
-            await _worldStateManager.OfChain(chainId);
+            var lastBlockHash = await _chainManager.GetChainLastBlockHashAsync(chainId);
+            await _worldStateManager.OfChainAsync(chainId);
             var ws = await _worldStateManager.GetWorldStateAsync(lastBlockHash);
             var state = await ws.GetWorldStateMerkleTreeRootAsync();
             

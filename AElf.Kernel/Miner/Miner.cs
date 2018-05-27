@@ -42,7 +42,7 @@ namespace AElf.Kernel.Miner
         }
 
         
-        public async Task<IBlock> Mine()
+        public async Task<IBlock> MineAsync()
         {
             if (Cts == null || Cts.IsCancellationRequested)
                 return null;

@@ -168,7 +168,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 
                 // account state
                 Assert.Equal(IdDict[address],
-                    (await _accountContextService.GetAccountDataContext(address, pool.ChainId)).IncrementId);
+                    (await _accountContextService.GetAccountDataContextAsync(address, pool.ChainId)).IncrementId);
             }
         }
         

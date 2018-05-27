@@ -29,7 +29,7 @@ namespace AElf.Kernel.KernelAccount
         public async Task InitializeAsync(IAccountDataProvider dataProvider)
         {
             _accountDataProvider = dataProvider;
-            await _worldStateManager.OfChain(dataProvider.Context.ChainId);
+            await _worldStateManager.OfChainAsync(dataProvider.Context.ChainId);
         }
 
         public async Task<object> InvokeAsync(SmartContractInvokeContext context)
@@ -47,7 +47,7 @@ namespace AElf.Kernel.KernelAccount
         }
 
         /// <inheritdoc/>
-        public async Task<object> RegisterSmartContract(SmartContractRegistration reg)
+        public async Task<object> RegisterSmartContractAsync(SmartContractRegistration reg)
         {
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
             //TODO: For now just hard coded to Hash.Zero
@@ -58,7 +58,7 @@ namespace AElf.Kernel.KernelAccount
         
         
         /// <inheritdoc/>
-        public async Task<object> DeploySmartContract(SmartContractDeployment smartContractRegister)
+        public async Task<object> DeploySmartContractAsync(SmartContractDeployment smartContractRegister)
         {
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
             
@@ -133,7 +133,7 @@ namespace AElf.Kernel.KernelAccount
 
             //TODO: _smartContracts should be implemented as a memory cache with expired.*/
 
-            var smartContract = await DeploySmartContract(deployment);
+            var smartContract = await DeploySmartContractAsync(deployment);
 
             return (ISmartContract) smartContract;
         }

@@ -5,7 +5,7 @@ namespace AElf.Kernel.Managers
 {
     public interface IWorldStateManager
     {
-        Task<IWorldStateManager> OfChain(Hash chainId);
+        Task<IWorldStateManager> OfChainAsync(Hash chainId);
         
         Task<IWorldState> GetWorldStateAsync(Hash blockHash);
 
