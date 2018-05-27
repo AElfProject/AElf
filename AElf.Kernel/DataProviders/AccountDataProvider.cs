@@ -9,12 +9,18 @@ namespace AElf.Kernel
         
         public IAccountDataContext Context { get; set; }
 
-        public AccountDataProvider(Hash accountHash, Hash chainId, 
-            IAccountContextService accountContextService,
+        public AccountDataProvider(Hash chainId, Hash accountAddress, 
             IWorldStateManager worldStateManager)
         {
             _worldStateManager = worldStateManager;
-            Context = accountContextService.GetAccountDataContext(accountHash, chainId);
+            
+            //Just use its structure to store info.
+            Context = new AccountDataContext
+            {
+                Address = accountAddress,
+                ChainId = chainId
+            };
+
         }
 
         public IDataProvider GetDataProvider()

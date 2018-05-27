@@ -12,9 +12,10 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="pool"></param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        public static bool ValidateTx(this ITxPool pool, Transaction tx)
+        public static bool ValidateTx(this ITxPool pool, ITransaction tx)
         {
-            if (tx.From == null || tx.MethodName == "" || tx.Params.Length == 0 || tx.IncrementId < 0)
+            if (tx.From == null || tx.MethodName == "" || Parameters.Parser.ParseFrom(tx.Params).Params.Count == 0 
+                || tx.IncrementId < 0)
             {
                 // TODO: log errors
                 return false;
@@ -57,7 +58,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private static bool VerifySignature(this Transaction tx)
+        public static bool VerifySignature(this ITransaction tx)
         {
             if (tx.P == null)
             {
@@ -75,10 +76,10 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private static bool CheckAccountAddress(this Transaction tx)
+        public static bool CheckAccountAddress(this ITransaction tx)
         {
             // TODO: more verifications
-            return tx.From.CalculateSize() != 32 && (tx.To == null || tx.To.CalculateSize() != 32);
+            return tx.From.Value.Length == 32 && (tx.To == null || tx.To.Value.Length == 32);
         }
         
        
@@ -88,9 +89,9 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private static int GetTxSize(Transaction tx)
+        private static int GetTxSize(ITransaction tx)
         {
-            return tx.CalculateSize();
+            return tx.Size();
         }
     }
 }

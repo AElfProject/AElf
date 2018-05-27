@@ -1,0 +1,12 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel.Tests.Concurrency.Execution";
+
+import "messages.proto";
+
+message TransferArgs
+{
+    Hash from = 1;
+    Hash to = 2;
+    uint64 quantity = 3;
+}

@@ -1,14 +1,24 @@
-﻿namespace AElf.Kernel.Services
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace AElf.Kernel.Services
 {
     public interface IAccountContextService
     {
         /// <summary>
-        /// IncreasmentId++ after query
+        /// return account context
         /// </summary>
         /// <param name="accountHash"></param>
         /// <param name="chainId"></param>
-        /// <param name="plusIncreasmentId"></param>
         /// <returns></returns>
-        IAccountDataContext GetAccountDataContext(Hash accountHash, Hash chainId);
+        Task<IAccountDataContext> GetAccountDataContext(Hash accountHash, Hash chainId);
+
+        /// <summary>
+        /// set incrementId in memory
+        /// and wait for inserting to storage
+        /// </summary>
+        /// <param name="accountDataContext"></param>
+        Task SetAccountContext(IAccountDataContext accountDataContext);
+
     }
 }

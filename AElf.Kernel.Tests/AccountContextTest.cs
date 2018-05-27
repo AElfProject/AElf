@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.Services;
+﻿using System.Threading.Tasks;
+using AElf.Kernel.Services;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -15,19 +16,29 @@ namespace AElf.Kernel.Tests
         }
 
         [Fact]
-        public void GetAccountContextTest()
+        public async Task GetAccountContextTest()
         {
             var chainId = Hash.Generate();
             var accountId = Hash.Generate();
 
-            var context1 = _accountContextService.GetAccountDataContext(accountId, chainId);
-            var context2 = _accountContextService.GetAccountDataContext(accountId, chainId);
-            Assert.Equal(context1, context2);
+            var context1 =  await _accountContextService.GetAccountDataContext(accountId, chainId);
+            var context2 =  await _accountContextService.GetAccountDataContext(accountId, chainId);
+            Assert.Equal(context1.IncrementId, context2.IncrementId);
             
-            context1.IncreasementId++;
-            var context3 = _accountContextService.GetAccountDataContext(accountId, chainId);
-            Assert.Equal(context1, context3);
-            Assert.Equal(context3.IncreasementId, (ulong)1);
+        }
+
+        [Fact]
+        public async Task SetAccountContextTest()
+        {
+            var chainId = Hash.Generate();
+            var accountId = Hash.Generate();
+
+            var context1 =  await _accountContextService.GetAccountDataContext(accountId, chainId);
+            context1.IncrementId++;
+            await _accountContextService.SetAccountContext(context1);
+            
+            var context2 =  await _accountContextService.GetAccountDataContext(accountId, chainId);
+            Assert.Equal((ulong)1, context2.IncrementId);
         }
         
     }

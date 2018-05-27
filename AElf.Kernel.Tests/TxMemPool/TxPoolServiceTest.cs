@@ -20,52 +20,42 @@ namespace AElf.Kernel.Tests.TxMemPool
 
         private TxPool GetPool()
         {
-            return new TxPool(TxPoolConfig.Default, _accountContextService);
+            return new TxPool(TxPoolConfig.Default);
         }
+        
+        
         
         [Fact]
         public async Task ServiceTest()
         {
             var pool = GetPool();
             
-            var poolService = new TxPoolService(pool);
+            var poolService = new TxPoolService(pool, _accountContextService);
             poolService.Start();
            
             var addr11 = Hash.Generate();
             var addr12 = Hash.Generate();
             var addr21 = Hash.Generate();
-             var addr22 = Hash.Generate();
-            
-            var tx1 = new Transaction
-            {
-                From = addr11,
-                To = addr12,
-                IncrementId = 0
-            };
+            var addr22 = Hash.Generate();
+
+            var tx1 = TxPoolTest.BuildTransaction();
             var res = await poolService.AddTxAsync(tx1);
             Assert.True(res);
             
-            Assert.Equal(1, (int) await poolService.GetTmpSizeAsync());
-            Assert.Equal(0, (int) await poolService.GetWaitingSizeAsync());
+            Assert.Equal(1, (int) await poolService.GetWaitingSizeAsync());
             Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
             Assert.Equal(1, (int)pool.Size);
             
-            var tx2 = new Transaction
-            {
-                From = addr21,
-                To = addr22,
-                IncrementId = 0
-            };
+            var tx2 = TxPoolTest.BuildTransaction();
             res = await poolService.AddTxAsync(tx2);
             
             Assert.True(res);
-            Assert.Equal(2, (int) await poolService.GetTmpSizeAsync());
-            Assert.Equal(0, (int) await poolService.GetWaitingSizeAsync());
+            Assert.Equal(2, (int) await poolService.GetWaitingSizeAsync());
             Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
             Assert.Equal(2, (int)pool.Size);
             
             
-            var tx3 = new Transaction
+            /*var tx3 = new Transaction
             {
                 From = addr11,
                 To = Hash.Generate(),
@@ -74,10 +64,9 @@ namespace AElf.Kernel.Tests.TxMemPool
             res = await poolService.AddTxAsync(tx3);
             
             Assert.True(res);
-            Assert.Equal(3, (int) await poolService.GetTmpSizeAsync());
-            Assert.Equal(0, (int) await poolService.GetWaitingSizeAsync());
+            Assert.Equal(3, (int) await poolService.GetWaitingSizeAsync());
             Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
-            Assert.Equal(3, (int)pool.Size);
+            Assert.Equal(0, (int)pool.Size);
             
             
             var tx4 = new Transaction
@@ -86,12 +75,12 @@ namespace AElf.Kernel.Tests.TxMemPool
                 To = Hash.Generate(),
                 IncrementId = 1
             };
+            
             res = await poolService.AddTxAsync(tx4);
             Assert.True(res);
-            Assert.Equal(4, (int) await poolService.GetTmpSizeAsync());
-            Assert.Equal(0, (int) await poolService.GetWaitingSizeAsync());
+            Assert.Equal(4, (int) await poolService.GetWaitingSizeAsync());
             Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
-            Assert.Equal(4, (int)pool.Size);
+            Assert.Equal(0, (int)pool.Size);
             
             var tx5 = new Transaction
             {
@@ -117,7 +106,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.True(res);
             Assert.Equal(1, (int) await poolService.GetTmpSizeAsync());
             Assert.Equal(4, (int) await poolService.GetWaitingSizeAsync());
-            Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
+            Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());*/
             
             await poolService.Stop();
             

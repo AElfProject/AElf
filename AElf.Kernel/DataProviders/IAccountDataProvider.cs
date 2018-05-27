@@ -5,7 +5,6 @@
     /// </summary>
     public interface IAccountDataProvider
     {
-        
         IAccountDataContext Context { get; set; }
        
         IDataProvider GetDataProvider();

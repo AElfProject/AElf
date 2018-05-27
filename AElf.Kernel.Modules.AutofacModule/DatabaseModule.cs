@@ -1,13 +1,26 @@
-﻿using AElf.Database;
+﻿using System;
+using AElf.Database;
 using Autofac;
+using ServiceStack.Redis;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
     public class DatabaseModule : Module
     {
+        private readonly bool _useRedis = false;
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<KeyValueDatabase>().As<IKeyValueDatabase>();
+            if (_useRedis)
+            {
+                if (!new RedisDatabase().IsConnected()) 
+                    return;
+                
+                builder.RegisterType<RedisDatabase>().As<IKeyValueDatabase>();
+            }
+            else
+            {
+                builder.RegisterType<KeyValueDatabase>().As<IKeyValueDatabase>().SingleInstance();
+            }
         }
     }
 }

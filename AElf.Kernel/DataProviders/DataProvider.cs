@@ -10,10 +10,14 @@ namespace AElf.Kernel
         private readonly IWorldStateManager _worldStateManager;
         /// <summary>
         /// To dictinct DataProviders of same account and same level.
+        /// Using a string value is just a choise, actually we can use any type of value.
         /// </summary>
         private readonly string _dataProviderKey;
         private readonly Path _path;
 
+        /// <summary>
+        /// Will only set the value during setting data.
+        /// </summary>
         private Hash PreBlockHash { get; set; }
 
         public DataProvider(IAccountDataContext accountDataContext, IWorldStateManager worldStateManager, 
@@ -31,17 +35,18 @@ namespace AElf.Kernel
 
         public Hash GetHash()
         {
+            // Use AccountDataContext instance + _dataProviderKey to calculate DataProvider's hash.
             return _accountDataContext.GetHash().CalculateHashWith(_dataProviderKey);
         }
         
         /// <summary>
         /// Get a sub-level DataProvider.
         /// </summary>
-        /// <param name="name">sub-level DataProvider's name</param>
+        /// <param name="dataProviderKey">sub-level DataProvider's name</param>
         /// <returns></returns>
-        public IDataProvider GetDataProvider(string name)
+        public IDataProvider GetDataProvider(string dataProviderKey)
         {
-            return new DataProvider(_accountDataContext, _worldStateManager, name);
+            return new DataProvider(_accountDataContext, _worldStateManager, dataProviderKey);
         }
 
         /// <summary>
@@ -53,7 +58,7 @@ namespace AElf.Kernel
         public async Task<byte[]> GetAsync(Hash keyHash, Hash preBlockHash)
         {
             //Get correspoding WorldState instance
-            var worldState = await _worldStateManager.GetWorldStateAsync(_accountDataContext.ChainId, preBlockHash);
+            var worldState = await _worldStateManager.GetWorldStateAsync(preBlockHash);
             //Get corresponding path hash
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
             //Using path hash to get Change from WorldState
@@ -69,7 +74,8 @@ namespace AElf.Kernel
         /// <returns></returns>
         public async Task<byte[]> GetAsync(Hash keyHash)
         {
-            var pointerHash = await _worldStateManager.GetPointerAsync(_path.SetDataKey(keyHash).GetPathHash());
+            var foo = _path.SetDataKey(keyHash).GetPathHash();
+            var pointerHash = await _worldStateManager.GetPointerAsync(foo);
             return await _worldStateManager.GetDataAsync(pointerHash);
         }
 
@@ -93,7 +99,8 @@ namespace AElf.Kernel
             var preBlockHash = PreBlockHash;
             if (preBlockHash == null)
             {
-                PreBlockHash = await _worldStateManager.GetDataAsync(_worldStateManager.HashToGetPreBlockHash);
+                PreBlockHash = await _worldStateManager.GetDataAsync(
+                    Path.CalculatePointerForLastBlockHash(_accountDataContext.ChainId));
                 preBlockHash = PreBlockHash;
             }
             

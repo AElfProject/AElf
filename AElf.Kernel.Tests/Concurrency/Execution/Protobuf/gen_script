@@ -1,0 +1,5 @@
+# script for generating the cs classes associated with the proto definitions.
+# The generated code is placed in the Generated folder with a ".g.cs" extension
+
+protoc --proto_path=../../../../AElf.Kernel/Protobuf/Proto \
+--proto_path=Proto --csharp_out=Generated --csharp_opt=file_extension=.g.cs Proto/*.proto

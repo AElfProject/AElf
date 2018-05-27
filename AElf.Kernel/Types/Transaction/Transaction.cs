@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Security.Cryptography;
 using AElf.Kernel.Crypto.ECDSA;
+using AElf.Kernel.Extensions;
 using Google.Protobuf;
 using Org.BouncyCastle.Math;
 
@@ -10,7 +12,7 @@ namespace AElf.Kernel
     {
         public Hash GetHash()
         {
-            return GetSignatureData();
+            return SHA256.Create().ComputeHash(GetSignatureData());
         }
 
         public byte[] Serialize()
@@ -37,12 +39,18 @@ namespace AElf.Kernel
             return new ECSignature(sig);
         }
 
+        public int Size()
+        {
+            return CalculateSize();
+        }
+
         public byte[] GetSignatureData()
         {
             Transaction txData = new Transaction();
             txData.From = From.Clone();
             txData.To = To.Clone();
-
+            txData.IncrementId = IncrementId;
+                
             return txData.ToByteArray();
         }
     }

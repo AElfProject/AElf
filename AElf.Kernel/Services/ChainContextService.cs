@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
@@ -10,14 +11,15 @@ namespace AElf.Kernel.Services
         private readonly ConcurrentDictionary<IHash, IChainContext> _chainContexts =
             new ConcurrentDictionary<IHash, IChainContext>();
 
-        private readonly ISmartContractManager _smartContractManager;
+        private readonly IWorldStateManager _worldStateManager;
 
         private readonly ISmartContractRunnerFactory _contractRunnerFactory;
         
-        public ChainContextService(ISmartContractManager smartContractManager, ISmartContractRunnerFactory contractRunnerFactory)
+        public ChainContextService(
+            ISmartContractRunnerFactory contractRunnerFactory, IWorldStateManager worldStateManager)
         {
-            _smartContractManager = smartContractManager;
             _contractRunnerFactory = contractRunnerFactory;
+            _worldStateManager = worldStateManager;
         }
     
 
@@ -28,11 +30,20 @@ namespace AElf.Kernel.Services
             
             var result= Task.Factory.StartNew(async () =>
             {
-                var zero = await _smartContractManager.GetAsync(Hash.Zero);
-                var runner = _contractRunnerFactory.GetRunner(zero.Category);
-                var smc =await runner.RunAsync(zero);
-                var context = new ChainContext((ISmartContractZero) smc, chainId);
+                // create smart contract zero
+                var zero = new SmartContractZero(_contractRunnerFactory, _worldStateManager);
+                await _worldStateManager.OfChain(chainId);
+                
+                // initialize smart contract zero
+                var adp = _worldStateManager.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId));
+                await zero.InitializeAsync(adp);
+                
+                // create chain context
+                var context = new ChainContext(zero, chainId);
+                
+                // cache
                 _chainContexts[chainId] = context;
+                
                 return context;
             }).Unwrap().Result;
 

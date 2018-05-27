@@ -17,6 +17,7 @@
     <PackageReference Include="NLog" Version="4.5.4" />
     <PackageReference Include="QuickGraphCore" Version="1.0.0" />
     <PackageReference Include="SharpRepository.Repository" Version="2.0.2" />
+    <PackageReference Include="Akka" Version="1.3.6" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Extensions\CommonExtensions.cs" />
@@ -37,5 +38,13 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.SmartContracts.CSharpSmartContract\AElf.Kernel.SmartContracts.CSharpSmartContract.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Concurrency\Execution\Messages\" />
+    <Folder Include="Concurrency\Scheduling\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Node\Network\config" />
   </ItemGroup>
 </Project>

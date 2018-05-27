@@ -55,7 +55,7 @@ namespace AElf.Kernel.Extensions
                 return hash;
             }
 
-            var length = hash.Value.Length;
+            var length = Math.Min(hash.Value.Length, another.Value.Length);
             var newHashBytes = new byte[length];
             for (var i = 0; i < length; i++)
             {

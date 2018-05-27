@@ -2,9 +2,11 @@
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using Xunit;
+using Xunit.Frameworks.Autofac;
 
 namespace AElf.Kernel.Tests
 {
+    [UseAutofacTestFramework]
     public class TransactionResultTest
     {
         private readonly ITransactionResultService _transactionResultService;
@@ -64,7 +66,7 @@ namespace AElf.Kernel.Tests
             var res = CreateResult(txId, Status.Mined);
             await _transactionResultManager.AddTransactionResultAsync(res);
 
-            var r =await _transactionResultService.GetResultAsync(txId);
+            var r = await _transactionResultService.GetResultAsync(txId);
             Assert.Equal(res, r);
         }
 
