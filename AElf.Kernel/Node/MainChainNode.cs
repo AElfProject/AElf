@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node.Network.Data;
@@ -94,6 +95,17 @@ namespace AElf.Kernel.Node
             {
                 _logger.Error(e, "Invalid tx - Could not receive transaction from the network", null);
             }
+        }
+
+        /// <summary>
+        /// This method requests a specified number of peers from
+        /// the node's peer list.
+        /// </summary>
+        /// <param name="numPeers"></param>
+        /// <returns></returns>
+        public async Task<List<IPeer>> GetPeers(ushort numPeers)
+        {
+            return _peerManager.GetPeers(numPeers);
         }
     }
 }

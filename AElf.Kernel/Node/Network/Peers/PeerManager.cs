@@ -149,6 +149,31 @@ namespace AElf.Kernel.Node.Network.Peers
         }
 
         /// <summary>
+        /// Returns a specified number of random peers from the peer
+        /// list.
+        /// </summary>
+        /// <param name="numPeers">number of peers requested</param>
+        public List<IPeer> GetPeers(ushort numPeers)
+        {
+            List<IPeer> peers = new List<IPeer>();
+            
+            for (ushort i = 0; i < numPeers - 1; i++)
+            {
+                try
+                {
+                    peers.Add(_peers[i]);
+                }
+                catch (Exception e)
+                {
+                    _logger.Error(e, e?.Message);
+                    break;
+                }
+            }
+
+            return peers;
+        }
+
+        /// <summary>
         /// Callback that is executed when a peer receives a message.
         /// </summary>
         /// <param name="sender"></param>
