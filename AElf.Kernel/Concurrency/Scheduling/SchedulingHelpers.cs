@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace AElf.Kernel.Concurrency
+namespace AElf.Kernel.Concurrency.Scheduling
 {
-    public static class ConcurrencyHelpers
+    public static class SchedulingHelpers
     {
-        public static List<Hash> GetResources(this Transaction tx)
+        public static List<Hash> GetResources(this ITransaction tx)
         {
             return new List<Hash>(){
                 tx.From, tx.To

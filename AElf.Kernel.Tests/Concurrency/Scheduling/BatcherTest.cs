@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using AElf.Kernel.Concurrency;
+using AElf.Kernel.Concurrency.Scheduling;
 using Xunit;
 using Xunit.Sdk;
 
-namespace AElf.Kernel.Tests.Concurrency
+namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
 	public class BatcherTest
 	{
@@ -19,7 +19,7 @@ namespace AElf.Kernel.Tests.Concurrency
 			return txList;
 		}
 
-		public string StringRepresentation(List<Transaction> l)
+		public string StringRepresentation(List<ITransaction> l)
 		{
 			return String.Join(
 				" ",
@@ -37,13 +37,13 @@ namespace AElf.Kernel.Tests.Concurrency
 			var txList = GetTestData();
 
 			var batcher = new Batcher();
-			var batched = batcher.Process(txList.Select(x => x as Transaction).ToList());
+			var batched = batcher.Process(txList.Select(x => x).ToList());
 
 			var s = batched.Select(
 				x => StringRepresentation(x.ToList())
 			).OrderBy(b => b).ToList();
 			// Test Batch 1
-			var expected = StringRepresentation(_dataUtil.GetFirstBatchTxList().Select(x => x as Transaction).ToList());
+			var expected = StringRepresentation(_dataUtil.GetFirstBatchTxList().Select(x => x).ToList());
 			Assert.Equal(expected, s[0]);
 		}
 
@@ -53,7 +53,7 @@ namespace AElf.Kernel.Tests.Concurrency
 			var txList = _dataUtil.GetFirstBatchTxList();
 			var batcher = new Batcher();
 			var grouper = new Grouper();
-			var batched = batcher.Process(txList.Select(x => x as Transaction).ToList());
+			var batched = batcher.Process(txList.Select(x => x).ToList());
 
 			var firstBatch = batched.First();
 			var jobs = grouper.Process(firstBatch);
@@ -65,7 +65,7 @@ namespace AElf.Kernel.Tests.Concurrency
 
 			for (int jobIndex = 0; jobIndex < 4; jobIndex++)
 			{
-				Assert.Equal(StringRepresentation(_dataUtil.GetJobTxListInFirstBatch(jobIndex).Select(x => x as Transaction).ToList()), s[jobIndex]);
+				Assert.Equal(StringRepresentation(_dataUtil.GetJobTxListInFirstBatch(jobIndex).Select(x => x).ToList()), s[jobIndex]);
 			}
 		}
 	}

@@ -1,4 +1,5 @@
-﻿using Google.Protobuf;
+﻿using AElf.Kernel.Crypto.ECDSA;
+using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -16,6 +17,13 @@ namespace AElf.Kernel
         ByteString Params { get; set; }
 
         /// <summary>
+        /// Fee
+        /// </summary>
+        ulong Fee { get; set; }
+        
+        ByteString P { get; set; }
+        
+        /// <summary>
         /// The caller
         /// </summary>
         Hash From { get; set; }
@@ -28,6 +36,18 @@ namespace AElf.Kernel
         ulong IncrementId { get; set; }
         
         ITransactionParallelMetaData GetParallelMetaData();
+
+        /// <summary>
+        /// return signature of tx
+        /// </summary>
+        /// <returns></returns>
+        ECSignature GetSignature();
+
+        /// <summary>
+        /// return tx size
+        /// </summary>
+        /// <returns></returns>
+        int Size();
     }
 
 }

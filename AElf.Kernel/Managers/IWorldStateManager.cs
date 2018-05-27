@@ -5,11 +5,11 @@ namespace AElf.Kernel.Managers
 {
     public interface IWorldStateManager
     {
-        Hash HashToGetPreBlockHash { get; }
+        Task<IWorldStateManager> OfChain(Hash chainId);
+        
+        Task<IWorldState> GetWorldStateAsync(Hash blockHash);
 
-        Task<IWorldState> GetWorldStateAsync(Hash chainId, Hash blockHash);
-
-        Task SetWorldStateAsync(Hash chainId, Hash currentBlockHash);
+        Task SetWorldStateAsync(Hash currentBlockHash);
 
         Task UpdatePointerAsync(Hash pathHash, Hash pointerHash);
         
@@ -25,13 +25,13 @@ namespace AElf.Kernel.Managers
 
         Task<List<Hash>> GetPathsAsync(Hash blockHash = null);
 
-        Task<List<Change>> GetChangesAsync(Hash chainId, Hash blockHash);
+        Task<List<Change>> GetChangesAsync(Hash blockHash);
 
         Task<List<Change>> GetChangesAsync();
 
         Task<Dictionary<Hash, Change>> GetChangesDictionaryAsync();
 
-        IAccountDataProvider GetAccountDataProvider(Hash chain, Hash account);
+        IAccountDataProvider GetAccountDataProvider(Hash accountAddress);
 
         Task SetDataAsync(Hash pointerHash, byte[] data);
 

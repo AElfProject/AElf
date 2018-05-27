@@ -5,18 +5,6 @@
     /// </summary>
     public interface IChain : ISerializable
     {
-        /// <summary>
-        /// Current block height
-        /// </summary>
-        ulong CurrentBlockHeight { get; }
-        
-        /// <summary>
-        /// Current block hash
-        /// </summary>
-        Hash CurrentBlockHash { get; set; }
-
-        void UpdateCurrentBlock(Block block);
-        
         Hash Id { get; }
         
         Hash GenesisBlockHash { get; }

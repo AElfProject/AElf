@@ -25,11 +25,6 @@ namespace AElf.Kernel
 
         public Hash PreviousHash { get; set; }
 
-        /// <summary>
-        /// block index in chain
-        /// </summary>
-        public ulong Index { get; set;}
-        
         public Hash GetHash()
         {
             return this.CalculateHash();
