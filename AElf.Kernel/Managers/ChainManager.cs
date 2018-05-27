@@ -22,10 +22,10 @@ namespace AElf.Kernel.Managers
             if(block.Header == null)
                 throw new InvalidDataException("Invalid block");
 
-            await AppednBlockHeaderAsync(chainId, block.Header);
+            await AppendBlockHeaderAsync(chainId, block.Header);
         }
 
-        public async Task AppednBlockHeaderAsync(Hash chainId, BlockHeader header)
+        public async Task AppendBlockHeaderAsync(Hash chainId, BlockHeader header)
         {
             if (await _chainStore.GetAsync(chainId) == null)
                 throw new KeyNotFoundException("Not existed Chain");
