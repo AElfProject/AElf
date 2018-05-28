@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AElf.Database.SsdbClient
 {
@@ -21,9 +22,30 @@ namespace AElf.Database.SsdbClient
             return _link.Connect();
         }
 
-        public void Dispose()
+        public void Close()
         {
             _link.Close();
+        }
+
+        public void Dispose()
+        {
+            Close();
+        }
+
+        private void CheckRequestKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("key can't be empty");
+            }
+        }
+        
+        private void CheckRequestKey(byte[] key)
+        {
+            if (key == null || key.Length == 0)
+            {
+                throw new ArgumentException("key can't be empty");
+            }
         }
 
         private void CheckResponse(byte[] code)
@@ -38,7 +60,7 @@ namespace AElf.Database.SsdbClient
         {
             var size = (resp.Count - 1) / 2;
             var kvs = new KeyValuePair<string, byte[]>[size];
-            for (var i = 0; i < size; i += 1)
+            for (var i = 0; i < size; i ++)
             {
                 var key = Helper.BytesToString(resp[i * 2 + 1]);
                 var val = resp[i * 2 + 2];
@@ -52,7 +74,7 @@ namespace AElf.Database.SsdbClient
         {
             var size = (resp.Count - 1) / 2;
             var kvs = new KeyValuePair<string, long>[size];
-            for (var i = 0; i < size; i += 1)
+            for (var i = 0; i < size; i ++)
             {
                 var key = Helper.BytesToString(resp[i * 2 + 1]);
                 var val = long.Parse(Helper.BytesToString(resp[i * 2 + 2]));
@@ -60,6 +82,87 @@ namespace AElf.Database.SsdbClient
             }
 
             return kvs;
+        }
+        
+        private IList<string> ParseRespToList(List<byte[]> resp)
+        {
+            var size = resp.Count - 1;
+            var list = new List<string>(size);
+            for (var i = 1; i < size; i ++)
+            {
+                list.Add(Helper.BytesToString(resp[i]));
+            }
+            return list;
+        }
+        
+        /***** flush *****/
+
+        internal void FlushDB(SsdbType type)
+        {
+            switch (type)
+            {
+                case SsdbType.None:
+                    FlushDBKeyValue();
+                    FlushDBHash();
+                    FlushDBZSet();
+                    break;
+                case SsdbType.KeyValue:
+                    FlushDBKeyValue();
+                    break;
+                case SsdbType.Hash:
+                    FlushDBHash();
+                    break;
+                case SsdbType.ZSet:
+                    FlushDBZSet();
+                    break;
+            }
+        }
+
+        internal void FlushDBKeyValue()
+        {
+            while (true) {
+                var keys = Keys("", "", 1000);
+                if (keys.Any())
+                {
+                    MultiHDel(keys.ToList());
+                }
+                else
+                {
+                    return;
+                }
+            }
+        }
+        
+        internal void FlushDBHash()
+        {
+            while (true) {
+                var names = HList("", "", 1000);
+                if (names.Count == 0)
+                {
+                    return;
+                }
+                foreach (var name in names)
+                {
+                    HClear(name);
+                }
+            }
+        }
+        
+        internal void FlushDBZSet()
+        {
+            while (true) {
+                var names = ZList("", "", 1000);
+                if (names.Count == 0)
+                {
+                    return;
+                }
+                foreach (var name in names)
+                {
+                    ZClear(name);
+                }
+            }
+            
+            throw new NotImplementedException();
         }
 
         /***** kv *****/
@@ -84,22 +187,26 @@ namespace AElf.Database.SsdbClient
 
         public bool Exists(string key)
         {
+            CheckRequestKey(key);
             return Exists(Helper.StringToBytes(key));
         }
 
         public void Set(byte[] key, byte[] val)
         {
+            CheckRequestKey(key);
             var resp = _link.Request(Command.Set, key, val);
             CheckResponse(resp[0]);
         }
 
         public void Set(string key, string val)
         {
+            CheckRequestKey(key);
             Set(Helper.StringToBytes(key), Helper.StringToBytes(val));
         }
 
         public void Set(string key, byte[] val)
         {
+            CheckRequestKey(key);
             Set(Helper.StringToBytes(key), val);
         }
 
@@ -111,6 +218,7 @@ namespace AElf.Database.SsdbClient
         /// <returns>returns true if name.key is found, otherwise returns false.</returns>
         public bool Get(byte[] key, out byte[] val)
         {
+            CheckRequestKey(key);
             val = null;
             var resp = _link.Request(Command.Get, key);
             var respCode = Helper.BytesToString(resp[0]);
@@ -131,11 +239,13 @@ namespace AElf.Database.SsdbClient
 
         public bool Get(string key, out byte[] val)
         {
+            CheckRequestKey(key);
             return Get(Helper.StringToBytes(key), out val);
         }
 
         public bool Get(string key, out string val)
         {
+            CheckRequestKey(key);
             val = null;
             byte[] bs;
             if (!Get(key, out bs))
@@ -149,12 +259,14 @@ namespace AElf.Database.SsdbClient
 
         public void Del(byte[] key)
         {
+            CheckRequestKey(key);
             var resp = _link.Request(Command.Del, key);
             CheckResponse(resp[0]);
         }
 
         public void Del(string key)
         {
+            CheckRequestKey(key);
             Del(Helper.StringToBytes(key));
         }
 
@@ -170,6 +282,29 @@ namespace AElf.Database.SsdbClient
             var resp = _link.Request(Command.RScan, keyStart, keyEnd, limit.ToString());
             CheckResponse(resp[0]);
             return ParseRespToKeyValuePair(resp);
+        }
+
+        public IList<string> Keys(string keyStart, string keyEnd, long limit)
+        {
+            var resp = _link.Request(Command.Keys, keyStart, keyEnd, limit.ToString());
+            CheckResponse(resp[0]);
+            return ParseRespToList(resp);
+        }
+        
+        public void MultiHDel(byte[][] keys)
+        {
+            var resp = _link.Request(Command.MultiDel, keys);
+            CheckResponse(resp[0]);
+        }
+
+        public void MultiHDel(List<string> keys)
+        {
+            var req = new byte[keys.Count][];
+            for (var i = 0; i < keys.Count; i++)
+            {
+                req[i] = Helper.StringToBytes(keys[i]);
+            }
+            MultiHDel(req);
         }
 
         /***** hash *****/
@@ -375,6 +510,19 @@ namespace AElf.Database.SsdbClient
             }
 
             return MultiHGet(Helper.StringToBytes(name), req);
+        }
+        
+        public IList<string> HList(string nameStart, string nameEnd, long limit)
+        {
+            var resp = _link.Request(Command.HList, nameStart, nameEnd, limit.ToString());
+            CheckResponse(resp[0]);
+            return ParseRespToList(resp);
+        }
+
+        public void HClear(string name)
+        {
+            var resp = _link.Request(Command.HClear, name);
+            CheckResponse(resp[0]);
         }
 
         /***** zset *****/
@@ -616,6 +764,19 @@ namespace AElf.Database.SsdbClient
             }
 
             return MultiZGet(Helper.StringToBytes(name), req);
+        }
+        
+        public IList<string> ZList(string nameStart, string nameEnd, long limit)
+        {
+            var resp = _link.Request(Command.ZList, nameStart, nameEnd, limit.ToString());
+            CheckResponse(resp[0]);
+            return ParseRespToList(resp);
+        }
+
+        public void ZClear(string name)
+        {
+            var resp = _link.Request(Command.ZClear, name);
+            CheckResponse(resp[0]);
         }
     }
 }

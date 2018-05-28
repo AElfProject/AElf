@@ -7,89 +7,85 @@ using Xunit;
 
 namespace AElf.Database.Tests
 {
-    public class SsdbClientTest
+    public class SsdbClientTest:IDisposable
     {
         private static readonly string _host = "127.0.0.1";
-
         private static readonly int _port = 8888;
-        
-        [Fact]
-        public void ConnectTest()
+        private Client _client;
+
+        public SsdbClientTest()
         {
-            using (var client = new Client(_host,_port))
-            {
-                var result = client.Connect();
-                Assert.True(result);
-            }
+            _client =new Client(_host,_port);
+            _client.Connect();
+            FlushDatabase();
+        }
+        
+        public void Dispose()
+        {
+            FlushDatabase();
+            _client.Close();
+        }
+
+        public void FlushDatabase()
+        {
+            _client.FlushDB(SsdbType.None);
         }
 
         [Fact]
-        public void KeyValueTest()
+        public void KeyValueSetTest()
         {
-            var key1 = Guid.NewGuid().ToString();
-            var value1 = Guid.NewGuid().ToString();
-            
-            var key2 = Guid.NewGuid().ToString();
-            var value2 = Helper.StringToBytes(Guid.NewGuid().ToString());
-            
-            var key3 = Helper.StringToBytes(Guid.NewGuid().ToString());
-            var value3 = Helper.StringToBytes(Guid.NewGuid().ToString());
-
-            using (var client = new Client(_host, _port))
-            {
-                client.Connect();
-
-                string compareValue1;
-                byte[] compareValue2;
-                byte[] compareValue3;
-
-                var result = client.Exists(key1);
-                Assert.False(result);
-                result = client.Exists(key2);
-                Assert.False(result);
-                result = client.Exists(key3);
-                Assert.False(result);
+            var key = Guid.NewGuid().ToString();
+            var value = Guid.NewGuid().ToString();
+            _client.Set(key,value);
+        }
                 
-                result = client.Get(key1, out compareValue1);
-                Assert.False(result);
-                result = client.Get(key2, out compareValue2);
-                Assert.False(result);
-                result = client.Get(key3, out compareValue3);
-                Assert.False(result);
-                
-                client.Set(key1,value1);
-                result = client.Exists(key1);
-                Assert.True(result);
-                result = client.Get(key1, out compareValue1);
-                Assert.True(result);
-                Assert.Equal(value1,compareValue1);
-                
-                client.Set(key2,value2);
-                result = client.Exists(key2);
-                Assert.True(result);
-                result = client.Get(key2, out compareValue2);
-                Assert.True(result);
-                Assert.True(value2.SequenceEqual(compareValue2));
-                
-                client.Set(key3,value3);
-                result = client.Exists(key3);
-                Assert.True(result);
-                result = client.Get(key3, out compareValue3);
-                Assert.True(result);
-                Assert.True(value3.SequenceEqual(compareValue3));
-                
-                client.Del(key1);
-                result = client.Exists(key1);
-                Assert.False(result);
-                client.Del(key2);
-                result = client.Exists(key2);
-                Assert.False(result);
-                client.Del(key3);
-                result = client.Exists(key3);
-                Assert.False(result);
-            }
+        [Fact]
+        public void KeyValueExistsTest()
+        {
+            var key = Guid.NewGuid().ToString();
+            var value = Guid.NewGuid().ToString();
+            var existsResult = _client.Exists(key);
+            Assert.False(existsResult);
+            _client.Set(key,value);
+            existsResult = _client.Exists(key);
+            Assert.True(existsResult);
         }
         
+        [Fact]
+        public void KeyValueGetTest()
+        {
+            var key = Guid.NewGuid().ToString();
+            var value = Guid.NewGuid().ToString();
+            _client.Set(key,value);
+            string dbValue;
+            var executeResult = _client.Get(key,out dbValue);
+            Assert.True(executeResult);
+            Assert.Equal(value,dbValue);
+        }
+        
+        [Fact]
+        public void KeyValueDelTest()
+        {
+            var key = Guid.NewGuid().ToString();
+            var value = Guid.NewGuid().ToString();
+            _client.Set(key,value);
+            _client.Del(key);
+            var existsResult = _client.Exists(key);
+            Assert.False(existsResult);
+        }
+        
+        [Fact]
+        public void KeyValueEmptyKeyTest()
+        {
+            var key = string.Empty;
+            var value = Guid.NewGuid().ToString();
+            Assert.Throws<ArgumentException>(() => _client.Set(key, value));
+
+            var keyByte = Helper.StringToBytes(key);
+            Assert.Throws<ArgumentException>(() => _client.Set(keyByte,Helper.StringToBytes(value)));
+        }
+        
+        // Todo rewrite
         [Fact]
         public void KeyValueScanTest()
         {
@@ -339,5 +335,6 @@ namespace AElf.Database.Tests
                 client.MultiZDel(name,new string[]{key1,key2,key3,key4});
             }
         }
+
     }
 }

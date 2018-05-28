@@ -25,16 +25,24 @@ namespace AElf.Database.Tests
         }
         
         [Fact]
-        public void SetAndGetTest()
+        public void SetTest()
         {
-            var key = "UintTest";
+            var key = "settest";
+            var value = Guid.NewGuid().ToString();
+
+            _database.SetAsync(key, Helper.StringToBytes((value)));
+        }
+        
+        [Fact]
+        public void GetTest()
+        {
+            var key = "gettest";
             var value = Guid.NewGuid().ToString();
 
             _database.SetAsync(key, Helper.StringToBytes((value)));
             var getResult = _database.GetAsync(key, null);
-            var getResultStr = Helper.BytesToString(getResult.Result);
             
-            Assert.Equal(value,getResultStr);
+            Assert.Equal(value,Helper.BytesToString(getResult.Result));
         }
     }
 }

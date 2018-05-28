@@ -13,6 +13,10 @@
         public const string Scan = "scan";
 
         public const string RScan = "rscan";
+
+        public const string Keys = "keys";
+
+        public const string MultiDel = "multi_del";
         
         public const string HSet = "hset";
         
@@ -27,6 +31,10 @@
         public const string HScan = "hscan";
         
         public const string HRScan = "hrscan";
+
+        public const string HList = "hlist";
+
+        public const string HClear = "hclear";
         
         public const string MultiHSet = "multi_hset";
         
@@ -59,5 +67,9 @@
         public const string MultiZDel = "multi_zdel";
         
         public const string MultiZGet = "multi_zget";
+        
+        public const string ZList = "zlist";
+
+        public const string ZClear = "zclear";
     }
 }

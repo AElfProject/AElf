@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
+
+[assembly:InternalsVisibleTo("AElf.Database.Tests")]
 
 namespace AElf.Database.SsdbClient
 {
-#if DEBUG
-	public class Link:IDisposable
-#else
 	internal class Link:IDisposable
-#endif
 	{
 		private TcpClient _sock;
 		private readonly string _host;

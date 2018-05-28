@@ -14,9 +14,12 @@
 
         public static readonly byte[] OkByte;
 
+        public static readonly byte[] NotFoundByte;
+
         static ResponseCode()
         {
             OkByte = Helper.StringToBytes(Ok);
+            NotFoundByte = Helper.StringToBytes(NotFound);
         }
     }
 }
