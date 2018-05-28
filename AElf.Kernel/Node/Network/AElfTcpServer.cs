@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.Node.Network.Data;
+using AElf.Kernel.Node.Network.Exceptions;
 using AElf.Kernel.Node.Network.Peers;
 using NLog;
 
@@ -39,14 +40,10 @@ namespace AElf.Kernel.Node.Network
         
         private CancellationTokenSource _tokenSource;
         private CancellationToken _token;
-        
-        public AElfTcpServer(ILogger logger) : this(null, logger)
-        {
-        }
 
         public AElfTcpServer(IAElfNetworkConfig config, ILogger logger)
         {
-            _config = config ?? new AElfNetworkConfig();
+            _config = config;
             _logger = logger;
             
             if (config != null)
@@ -63,21 +60,21 @@ namespace AElf.Kernel.Node.Network
         {
             if (_config == null)
             {
-                _logger.Error("Could not start the server, config object is null");
-                return ;
+                throw new ServerConfigurationException("Could not start the server, config object is null");
             }
                 
             try
             {
+                _logger?.Trace("Starting server on : " + _config.Host + ":" + _config.Port);
                 _listener = new TcpListener(IPAddress.Parse(_config.Host), _config.Port);
                 _listener.Start();
             }
             catch (Exception e)
             {
-                _logger.Error(e, "An error occurred while starting the server");
+                _logger?.Error(e, "An error occurred while starting the server");
             }
             
-            _logger.Info("Server listening on " + _listener.LocalEndpoint);
+            _logger?.Info("Server listening on " + _listener.LocalEndpoint);
             
             _tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token ?? new CancellationToken());
             _token = _tokenSource.Token;
@@ -110,11 +107,11 @@ namespace AElf.Kernel.Node.Network
         {
             if (client == null)
             {
-                _logger.Error("Connection refused: null client");
+                _logger?.Error("Connection refused: null client");
                 return;
             }
             
-            _logger.Trace("Connection established : " + client.Client.RemoteEndPoint);
+            _logger?.Trace("Connection established : " + client.Client.RemoteEndPoint);
             
             Peer connected = await FinalizeConnect(client, client.GetStream());
 
@@ -151,14 +148,12 @@ namespace AElf.Kernel.Node.Network
                     
                     return p;
                 }
-                else
-                {
-                    return null;
-                }
+                
+                return null;
             }
             catch (Exception e)
             {
-                _logger.Warn("Error creating the connection");
+                _logger?.Warn("Error creating the connection");
                 return null;
             }
         }
