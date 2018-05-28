@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0-preview-20180510-03" />
@@ -11,5 +11,10 @@
   <ItemGroup>
     <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="xunit.frameworks.autofac, Version=0.1.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\..\..\.nuget\packages\xunit.frameworks.autofac\0.1.0\lib\netstandard1.6\xunit.frameworks.autofac.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
