@@ -10,7 +10,7 @@ namespace AElf.Kernel.Node.Network.Peers
         void AddPeer(IPeer peer);
         List<IPeer> GetPeers(ushort numPeers);
 
-        Task BroadcastMessage(MessageTypes messageType, byte[] payload);
+        Task<bool> BroadcastMessage(MessageTypes messageType, byte[] payload);
         
         void SetCommandContext(MainChainNode node);
     }

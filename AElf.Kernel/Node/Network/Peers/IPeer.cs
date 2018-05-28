@@ -17,7 +17,8 @@ namespace AElf.Kernel.Node.Network.Peers
         bool IsListening { get; }
         
         Task StartListeningAsync();
-        Task Send(byte[] data);
+        Task<AElfPacketData> SendRequestAsync(byte[] data);
+        Task SendDataAsync(byte[] data);
         
         Task<bool> DoConnect();
         Task<bool> WriteConnectInfoAsync();

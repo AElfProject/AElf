@@ -7,6 +7,7 @@ using AElf.Kernel.Node.Network.Data;
 using AElf.Kernel.Node.Network.Peers.Exceptions;
 using Google.Protobuf;
 using NLog;
+using ServiceStack;
 
 namespace AElf.Kernel.Node.Network.Peers
 {
@@ -185,6 +186,19 @@ namespace AElf.Kernel.Node.Network.Peers
                 if (args.Message.MsgType == (int)MessageTypes.BroadcastTx)
                 {
                     await _node.ReceiveTransaction(args.Message.Payload);
+                    
+                    var resp = new AElfPacketData
+                    {
+                        MsgType = (int)MessageTypes.Ok,
+                        Length = 1,
+                        Payload = ByteString.CopyFrom(0x01)
+                    };
+                    
+                    await args.Peer.SendDataAsync(resp.ToByteArray());
+                }
+                else if (args.Message.MsgType == (int) MessageTypes.Ok)
+                {
+                    ;
                 }
             }
         }
@@ -197,10 +211,10 @@ namespace AElf.Kernel.Node.Network.Peers
         /// <param name="messageType"></param>
         /// <param name="payload"></param>
         /// <returns></returns>
-        public async Task BroadcastMessage(MessageTypes messageType, byte[] payload)
+        public async Task<bool> BroadcastMessage(MessageTypes messageType, byte[] payload)
         {
             if (_peers == null || !_peers.Any())
-                return;
+                return false;
 
             try
             {
@@ -213,14 +227,20 @@ namespace AElf.Kernel.Node.Network.Peers
 
                 byte[] data = packetData.ToByteArray();
 
+                bool allGood = true;
                 foreach (var peer in _peers)
                 {
-                    await peer.Send(data);
+                    AElfPacketData d = await peer.SendRequestAsync(data);
+                    bool bb = Convert.ToBoolean(d.Payload[0]);
+                    allGood = allGood && bb;
                 }
+
+                return allGood;
             }
             catch (Exception e)
             {
                 _logger.Error(e, "Error while sending a message to the peers");
+                return false;
             }
         }
     }

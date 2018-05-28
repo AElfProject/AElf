@@ -121,7 +121,7 @@ namespace AElf.Kernel.Node.Network.Peers
                 
                 while (true)
                 {
-                    AElfPacketData packet = await ListenForPacket();
+                    AElfPacketData packet = await ListenForPacketAsync();
                     
                     // raise the event so the higher levels can process it.
                     var args = new MessageReceivedArgs { Message = packet, Peer = this };
@@ -140,7 +140,7 @@ namespace AElf.Kernel.Node.Network.Peers
             }
         }
 
-        private async Task<AElfPacketData> ListenForPacket()
+        private async Task<AElfPacketData> ListenForPacketAsync()
         {
             byte[] bytes = new byte[1024];
             int bytesRead = await _stream.ReadAsync(bytes, 0, 1024);
@@ -168,14 +168,19 @@ namespace AElf.Kernel.Node.Network.Peers
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public async Task Send(byte[] data)
+        public async Task<AElfPacketData> SendRequestAsync(byte[] data)
         {
             if (_stream == null)
-                return;
+                return null;
 
             await _stream.WriteAsync(data, 0, data.Length);
-            
-            //todo response
+
+            return await ListenForPacketAsync();
+        }
+        
+        public async Task SendDataAsync(byte[] data)
+        {
+            await _stream.WriteAsync(data, 0, data.Length);
         }
 
         /// <summary>

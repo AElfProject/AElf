@@ -4,6 +4,7 @@
     {
         AskForTx = 0,
         AskForPeers = 1,
-        BroadcastTx = 2
+        BroadcastTx = 2,
+        Ok = 3
     }
 }

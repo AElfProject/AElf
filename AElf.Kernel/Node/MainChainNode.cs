@@ -72,7 +72,7 @@ namespace AElf.Kernel.Node
         public async Task BroadcastTransaction(Transaction tx)
         {
             // todo : send to network through server
-            await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, tx.ToByteArray());
+            bool allGood = await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, tx.ToByteArray());
             
             _logger.Trace("Broadcasted transaction to peers: " + JsonFormatter.Default.Format(tx));
         }
