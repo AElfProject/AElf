@@ -8,6 +8,6 @@ namespace AElf.Kernel.Node.Network
     {
         event EventHandler ClientConnected;
         
-        Task Start(CancellationToken? token = null);
+        Task StartAsync(CancellationToken? token = null);
     }
 }

@@ -56,17 +56,18 @@ namespace AElf.Kernel.Node.Network
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        public async Task Start(CancellationToken? token = null)
+        public async Task StartAsync(CancellationToken? token = null)
         {
             if (_config == null)
-            {
-                throw new ServerConfigurationException("Could not start the server, config object is null");
-            }
+                throw new ServerConfigurationException("Could not start the server, config object is null.");
+
+            if (!IPAddress.TryParse(_config.Host, out var listenAddress))
+                throw new ServerConfigurationException("Could not start the server, invalid ip.");
                 
             try
             {
                 _logger?.Trace("Starting server on : " + _config.Host + ":" + _config.Port);
-                _listener = new TcpListener(IPAddress.Parse(_config.Host), _config.Port);
+                _listener = new TcpListener(listenAddress, _config.Port);
                 _listener.Start();
             }
             catch (Exception e)

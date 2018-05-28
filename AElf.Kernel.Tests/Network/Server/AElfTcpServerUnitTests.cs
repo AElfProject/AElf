@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Network;
+using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.Node.Network.Exceptions;
 using Xunit;
 
@@ -15,14 +16,21 @@ namespace AElf.Kernel.Tests.Network.Server
         {
             AElfTcpServer server = new AElfTcpServer(null, null);
             
-            Exception ex = await Assert.ThrowsAsync<ServerConfigurationException>(async () => await server.Start());
-            Assert.Equal("Could not start the server, config object is null", ex.Message);
+            Exception ex = await Assert.ThrowsAsync<ServerConfigurationException>(async () => await server.StartAsync());
+            Assert.Equal("Could not start the server, config object is null.", ex.Message);
         }
 
-        [Fact]
-        public void Start_ShouldThrow_BadIp()
+        [Theory]
+        [InlineData("")]
+        [InlineData("127.0..1")]
+        public async Task Start_ShouldThrow_BadIp(string ip)
         {
-            //todo
+            AElfNetworkConfig conf = new AElfNetworkConfig { Host = ip};
+            AElfTcpServer server = new AElfTcpServer(conf, null);
+
+            Exception ex = await Assert.ThrowsAsync<ServerConfigurationException>(async () => await server.StartAsync());
+
+            Assert.Equal("Could not start the server, invalid ip.", ex.Message);
         }
     }
 }
