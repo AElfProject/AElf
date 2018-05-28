@@ -47,7 +47,7 @@ namespace AElf.Kernel.TxMemPool
 
        
         /// <inheritdoc />
-        public Dictionary<Hash, ulong> Nonces { get; } = new Dictionary<Hash, ulong>();
+        public ConcurrentDictionary <Hash, ulong> Nonces { get; } = new ConcurrentDictionary<Hash, ulong>();
 
 
         /// <inheritdoc />
@@ -172,7 +172,7 @@ namespace AElf.Kernel.TxMemPool
                 (current, p) => current + (ulong) p.Count);
         }
 
-        public void GetPoolState(out ulong waiting, out ulong executable)
+        public void GetPoolState(out ulong executable, out ulong waiting)
         {
             waiting = GetWaitingSize();
             executable = GetExecutableSize();

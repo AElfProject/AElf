@@ -4,6 +4,6 @@ namespace AElf.Kernel.Concurrency.Scheduling
 {
     public interface IBatcher
     {
-        List<List<Transaction>> Process(List<Transaction> transactions);
+        List<List<ITransaction>> Process(List<ITransaction> transactions);
     }
 }

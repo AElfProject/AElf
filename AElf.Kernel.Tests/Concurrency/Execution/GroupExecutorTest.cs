@@ -52,13 +52,13 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			return tx;
 		}
 
-		private DateTime GetTransactionStartTime(Transaction tx)
+		private DateTime GetTransactionStartTime(ITransaction tx)
 		{
 			TransferArgs args = (TransferArgs)_serializer.Deserialize(tx.Params.ToByteArray(), typeof(TransferArgs));
 			return _smartContractZero.TransactionStartTimes[args];
 		}
 
-		private DateTime GetTransactionEndTime(Transaction tx)
+		private DateTime GetTransactionEndTime(ITransaction tx)
 		{
 			TransferArgs args = (TransferArgs)_serializer.Deserialize(tx.Params.ToByteArray(), typeof(TransferArgs));
 			return _smartContractZero.TransactionEndTimes[args];
@@ -86,7 +86,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 				_smartContractZero.SetBalance(addbal.Item1, (ulong)addbal.Item2);
 			}
 
-			var txs = new List<Transaction>(){
+			var txs = new List<ITransaction>(){
 				GetTransaction(addresses[0], addresses[1], 10),
 				GetTransaction(addresses[1], addresses[2], 9),
 				GetTransaction(addresses[3], addresses[4], 8),

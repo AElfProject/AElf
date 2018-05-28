@@ -6,7 +6,7 @@ namespace AElf.Kernel.TxMemPool
 {
     public class TxPoolNoLockService 
     {
-        private readonly ITxPool _txPool;
+        /*private readonly ITxPool _txPool;
         private readonly IAccountContextService _accountContextService;
         private bool flag;
 
@@ -55,7 +55,7 @@ namespace AElf.Kernel.TxMemPool
         /*public ITransaction GetTx(Hash txHash)
         {
             return _txPool.GetTx(txHash);
-        }*/
+        }#1#
 
         public void Clear()
         {
@@ -99,7 +99,7 @@ namespace AElf.Kernel.TxMemPool
             }
             
             _txPool.Enqueueable = true;
-        }*/
+        }#1#
 
         public void Start()
         {
@@ -109,6 +109,6 @@ namespace AElf.Kernel.TxMemPool
         public void Stop()
         {
             flag = false;
-        }
+        }*/
     }
 }

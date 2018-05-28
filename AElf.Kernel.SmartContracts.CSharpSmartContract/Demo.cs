@@ -11,6 +11,7 @@ namespace AElf.Kernel.SmartContracts.CSharpSmartContract
             Name = name;
         }
 
+        
         public string SayHello(String yours)
         {
             Console.WriteLine("Hello " + yours + ", I am " + Name);

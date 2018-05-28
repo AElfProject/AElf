@@ -23,12 +23,8 @@ namespace AElf.Kernel.Tests
 
             var context1 =  await _accountContextService.GetAccountDataContext(accountId, chainId);
             var context2 =  await _accountContextService.GetAccountDataContext(accountId, chainId);
-            Assert.Equal(context1, context2);
+            Assert.Equal(context1.IncrementId, context2.IncrementId);
             
-            context1.IncrementId++;
-            var context3 =  await _accountContextService.GetAccountDataContext(accountId, chainId);
-            Assert.Equal(context1, context3);
-            Assert.Equal(context3.IncrementId, (ulong)1);
         }
 
         [Fact]

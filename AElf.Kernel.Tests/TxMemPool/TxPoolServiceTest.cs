@@ -23,6 +23,8 @@ namespace AElf.Kernel.Tests.TxMemPool
             return new TxPool(TxPoolConfig.Default);
         }
         
+        
+        
         [Fact]
         public async Task ServiceTest()
         {
@@ -34,33 +36,23 @@ namespace AElf.Kernel.Tests.TxMemPool
             var addr11 = Hash.Generate();
             var addr12 = Hash.Generate();
             var addr21 = Hash.Generate();
-             var addr22 = Hash.Generate();
-            
-            var tx1 = new Transaction
-            {
-                From = addr11,
-                To = addr12,
-                IncrementId = 0
-            };
+            var addr22 = Hash.Generate();
+
+            var tx1 = TxPoolTest.BuildTransaction();
             var res = await poolService.AddTxAsync(tx1);
             Assert.True(res);
             
             Assert.Equal(1, (int) await poolService.GetWaitingSizeAsync());
             Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
-            Assert.Equal(0, (int)pool.Size);
+            Assert.Equal(1, (int)pool.Size);
             
-            var tx2 = new Transaction
-            {
-                From = addr21,
-                To = addr22,
-                IncrementId = 0
-            };
+            var tx2 = TxPoolTest.BuildTransaction();
             res = await poolService.AddTxAsync(tx2);
             
             Assert.True(res);
             Assert.Equal(2, (int) await poolService.GetWaitingSizeAsync());
             Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
-            Assert.Equal(0, (int)pool.Size);
+            Assert.Equal(2, (int)pool.Size);
             
             
             /*var tx3 = new Transaction

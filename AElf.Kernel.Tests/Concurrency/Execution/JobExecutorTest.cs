@@ -54,7 +54,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		[Fact]
 		public void ZeroTransactionExecutionTest()
 		{
-			var executor1 = sys.ActorOf(JobExecutor.Props(_chainContext, new List<Transaction>(), TestActor));
+			var executor1 = sys.ActorOf(JobExecutor.Props(_chainContext, new List<ITransaction>(), TestActor));
             Watch(executor1);
 			executor1.Tell(StartExecutionMessage.Instance);
             ExpectTerminated(executor1);
@@ -73,7 +73,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
 			// Normal transfer
 			var tx1 = GetTransaction(from, to, 10);
-			var executor1 = sys.ActorOf(JobExecutor.Props(_chainContext, new List<Transaction>() { tx1 }, TestActor));
+			var executor1 = sys.ActorOf(JobExecutor.Props(_chainContext, new List<ITransaction>() { tx1 }, TestActor));
 			Watch(executor1);
 			executor1.Tell(StartExecutionMessage.Instance);
 			var result = ExpectMsg<TransactionResultMessage>().TransactionResult;
@@ -85,7 +85,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
 			// Insufficient balance
 			var tx2 = GetTransaction(from, to, 100);
-			var executor2 = ActorOf(JobExecutor.Props(_chainContext, new List<Transaction>() { tx2 }, TestActor));
+			var executor2 = ActorOf(JobExecutor.Props(_chainContext, new List<ITransaction>() { tx2 }, TestActor));
 			executor2.Tell(StartExecutionMessage.Instance);
 			result = ExpectMsg<TransactionResultMessage>().TransactionResult;
 			Assert.Equal(Status.ExecutedFailed, result.Status);
@@ -113,7 +113,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			var tx2 = GetTransaction(address3, address4, 10);
 
 			// Normal transfer
-			var job1 = new List<Transaction>{
+			var job1 = new List<ITransaction>{
 				tx1,
 				tx2
 			};

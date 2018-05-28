@@ -5,16 +5,16 @@ namespace AElf.Kernel.Concurrency.Scheduling
 {
 	public class Batcher : IBatcher
 	{
-		public List<List<Transaction>> Process(List<Transaction> transactions)
+		public List<List<ITransaction>> Process(List<ITransaction> transactions)
 		{
 			if(transactions.Count == 0){
-				return new List<List<Transaction>>();
+				return new List<List<ITransaction>>();
 			}
 
 			var enumerators = transactions.GroupBy(x => x.From)
 										  .Select(y => y.GetEnumerator())
 			                              .ToList();
-			var batched = new List<List<Transaction>>();
+			var batched = new List<List<ITransaction>>();
 			try
 			{
 				while (true)

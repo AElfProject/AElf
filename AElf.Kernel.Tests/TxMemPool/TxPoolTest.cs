@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Crypto.ECDSA;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
+using Google.Protobuf;
 using Org.BouncyCastle.Utilities.Collections;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -24,16 +26,39 @@ namespace AElf.Kernel.Tests.TxMemPool
             return new TxPool(TxPoolConfig.Default);
         }
 
-        private Transaction BuildTransaction(Hash adrFrom = null, Hash adrTo = null, ulong nonce = 0)
+        public static Transaction BuildTransaction(Hash adrFrom = null, Hash adrTo = null, ulong nonce = 0)
         {
-            
+            ECKeyPair keyPair = new KeyPairGenerator().Generate();
+
             var tx = new Transaction();
             tx.From = adrFrom == null ? Hash.Generate() : adrFrom;
             tx.To = adrTo == null ? Hash.Generate() : adrTo;
             tx.IncrementId = nonce;
+            tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
+            tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
+            tx.MethodName = "hello world";
+            tx.Params = ByteString.CopyFrom(new Parameters
+            {
+                Params = { new Param
+                {
+                    IntVal = 1
+                }}
+            }.ToByteArray());
 
+            // Serialize and hash the transaction
+            Hash hash = tx.GetHash();
+            
+            // Sign the hash
+            ECSigner signer = new ECSigner();
+            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
             return tx;
         }
+        
+        
         
         
         [Fact]

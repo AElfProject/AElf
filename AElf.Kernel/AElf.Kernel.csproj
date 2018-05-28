@@ -44,4 +44,7 @@
     <Folder Include="Concurrency\Execution\Messages\" />
     <Folder Include="Concurrency\Scheduling\" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Node\Network\config" />
+  </ItemGroup>
 </Project>
