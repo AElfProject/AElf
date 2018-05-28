@@ -141,12 +141,32 @@ namespace AElf.Kernel.Node.Network.Peers
         /// <param name="peer">the peer to add</param>
         public void AddPeer(IPeer peer)
         {
+            // Temporary solution to checking if peer is already in _peers
+            bool exists = false;
+            foreach (var p in _peers)
+            {
+                exists = p.IpAddress == peer.IpAddress && p.Port == peer.Port;
+                if (!p.IsConnected) RemovePeer(p); // temporary solution to removing disconnected peers
+            }
+            if (exists) return;
+            
             _peers.Add(peer);
             peer.MessageReceived += ProcessPeerMessage;
-            
+
             _logger.Trace("Peer added : " + peer);
-            
+
             Task.Run(peer.StartListeningAsync);
+        }
+
+        
+        /// <summary>
+        /// Removes a peer from the list of peers.
+        /// </summary>
+        /// <param name="peer">the peer to remove</param>
+        public void RemovePeer(IPeer peer)
+        {
+            _peers.Remove(peer);
+            _logger.Trace("Peer removed : " + peer);
         }
 
         /// <summary>
