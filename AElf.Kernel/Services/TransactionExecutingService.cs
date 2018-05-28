@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
-using AElf.Kernel.Services;
 using QuickGraph;
 
 
@@ -13,24 +12,34 @@ namespace AElf.Kernel.Services
         private Dictionary<Hash, List<ITransaction>> _pending;
         private UndirectedGraph<ITransaction, Edge<ITransaction>> _graph;
         private readonly ISmartContractService _smartContractService;
+        private readonly IChainContext _chainContext;
 
-        public TransactionExecutingService(ISmartContractService smartContractService)
+        public TransactionExecutingService(ISmartContractService smartContractService, IChainContext chain)
         {
             _smartContractService = smartContractService;
+            _chainContext = chain;
         }
 
 
         /// <summary>
-        /// AElf.kernel.ITransaction executing manager. execute async.
+        /// AElf.kernel.ITransaction executing service. execute async.
         /// </summary>
         /// <returns>The lf. kernel. IT ransaction executing manager. execute async.</returns>
         /// <param name="tx">Tx.</param>
         /// <param name="chain"></param>
-        public async Task ExecuteAsync(ITransaction tx, IChainContext chain)
+        public async Task ExecuteAsync(ITransaction tx)
         {
-            var smartContract = await _smartContractService.GetAsync(tx.To, chain);
-
-            await smartContract.InvokeAsync(tx.From, tx.MethodName, tx.Params);
+            var smartContract = await _smartContractService.GetAsync(tx.To, _chainContext);
+            
+            var context = new SmartContractInvokeContext()
+            {
+                Caller = tx.From,
+                IncrementId = tx.IncrementId,
+                MethodName = tx.MethodName,
+                Params = tx.Params
+            };
+            
+            await smartContract.InvokeAsync(context);
         }
 
         
@@ -100,7 +109,7 @@ namespace AElf.Kernel.Services
                 
                 foreach (var h in r.Value)
                 {
-                    var task = ExecuteAsync(h, chainContext);
+                    var task = ExecuteAsync(h);
                     tasks.Add(task);
                 }
                 Task.WaitAll(tasks.ToArray());

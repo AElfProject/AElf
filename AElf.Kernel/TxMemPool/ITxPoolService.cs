@@ -10,7 +10,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        Task<bool> AddTxAsync(Transaction tx);
+        Task<bool> AddTxAsync(ITransaction tx);
         
         /// <summary>
         /// remove a tx
@@ -27,13 +27,15 @@ namespace AElf.Kernel.TxMemPool
         /// return ready txs can be executed 
         /// </summary>
         /// <returns></returns>
-        Task<List<Transaction>> GetReadyTxsAsync();
+        Task<List<ITransaction>> GetReadyTxsAsync(ulong limit);
 
         /// <summary>
         /// promote txs from waiting list to executable
+        /// return true if promotable
+        /// otherwis return true
         /// </summary>
         /// <returns></returns>
-        Task PromoteAsync();
+        Task<bool> PromoteAsync();
         
         /// <summary>
         /// return pool size
@@ -46,7 +48,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="txHash"></param>
         /// <returns></returns>
-        Task<Transaction> GetTxAsync(Hash txHash);
+        ITransaction GetTx(Hash txHash);
 
         /// <summary>
         /// clear tx pool
@@ -76,7 +78,15 @@ namespace AElf.Kernel.TxMemPool
         /// return tmp pool size
         /// </summary>
         /// <returns></returns>
-        Task<ulong> GetTmpSizeAsync();
+        //Task<ulong> GetTmpSizeAsync();
+
+        /// <summary>
+        /// Reset Enqueueable to true 
+        /// update account IncrementId,
+        /// which happens a block generated 
+        /// </summary>
+        /// <returns></returns>
+        Task ResetAndUpdate(List<TransactionResult> txResultList);
         
         /// <summary>
         /// open transaction pool
@@ -87,5 +97,6 @@ namespace AElf.Kernel.TxMemPool
         /// close transaction pool
         /// </summary>
         Task Stop();
+        
     }
 }

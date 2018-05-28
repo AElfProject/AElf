@@ -24,25 +24,33 @@ namespace AElf.Kernel.Tests.TxMemPool
             {
                 TxLimitSize = txSize,
                 FeeThreshold = feeThreshold
-            }, _accountContextService);
+            });
         }
 
-        private Transaction GetTransaction(Hash from = null, Hash to = null, ulong id = 0, ulong fee = 0 )
+        private Transaction CreateAndSignTransaction(Hash from = null, Hash to = null, ulong id = 0, ulong fee = 0 )
         {
-            return new Transaction
+            ECKeyPair keyPair = new KeyPairGenerator().Generate();
+            var ps = new Parameters();
+            var tx = new Transaction
             {
                 From = from,
                 To = to,
-                IncrementId = id
-            };
-        }
+                IncrementId = id,
+                MethodName = "null",
+                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
+                Fee = fee,
+                Params = ByteString.CopyFrom(new Parameters
+                {
+                    Params =
+                    {
+                        new Param
+                        {
+                            IntVal = 1
 
-        private void SignTx(Transaction tx)
-        {
-            // Generate the key pair 
-            ECKeyPair keyPair = new KeyPairGenerator().Generate();
-            
-            tx.P =  ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
+                        }
+                    }
+                }.ToByteArray())
+            };
             
             // Serialize and hash the transaction
             Hash hash = tx.GetHash();
@@ -54,15 +62,16 @@ namespace AElf.Kernel.Tests.TxMemPool
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
             tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
         }
-        
+
+       
         [Fact]
         public Transaction ValidTx()
         {
             var pool = GetPool(1, 1024);
-            var tx = GetTransaction(Hash.Generate(), Hash.Generate(), 0, 2);
-            tx.MethodName = "valid";
-            tx.Params = ByteString.CopyFrom(new byte[1]);
+            var tx = CreateAndSignTransaction(Hash.Generate(), Hash.Generate(), 0, 2);
             Assert.True(pool.ValidateTx(tx));
             return tx;
         }
@@ -70,44 +79,51 @@ namespace AElf.Kernel.Tests.TxMemPool
         [Fact]
         public void InvalidTxWithoutFromAccount()
         {
-            var pool = GetPool();
+            var pool = GetPool(1, 1024);
             var tx = ValidTx();
+            Assert.True(pool.ValidateTx(tx));
             tx.From = null;
-            SignTx(tx);
             Assert.False(pool.ValidateTx(tx));
         }
 
         [Fact]
         public void InvalidTxWithoutMethodName()
         {
-            var pool = GetPool();
+            var pool = GetPool(1, 1024);
             var tx = ValidTx();
+            Assert.True(pool.ValidateTx(tx));
             tx.MethodName = "";
-            SignTx(tx);
             Assert.False(pool.ValidateTx(tx));
         }
 
         [Fact]
         public void InvalidSignature()
         {
+            var tx = CreateAndSignTransaction(Hash.Generate(), Hash.Generate(), 0, 2);
+            Assert.True(tx.VerifySignature());
+            System.Diagnostics.Debug.WriteLine(tx.To.Value.ToBase64());
+            tx.To = Hash.Generate();
+            System.Diagnostics.Debug.WriteLine(tx.To.Value.ToBase64());
+            Assert.False(tx.VerifySignature());
             
         }
 
         [Fact]
         public void InvalidAccountAddress()
         {
-            var pool = GetPool();
             var tx = ValidTx();
+            Assert.True(tx.CheckAccountAddress());
             tx.From = new Hash(new byte[31]);
-            SignTx(tx);
-            Assert.False(pool.ValidateTx(tx));
+            Assert.False(tx.CheckAccountAddress());
         }
         
         [Fact]
         public void InvalidTxWithFeeNotEnough()
         {
-            var pool = GetPool(feeThreshold: 2);
-            var tx = GetTransaction(fee: 1);
+            var pool = GetPool(2, 1024);
+            var tx = CreateAndSignTransaction(Hash.Generate(), Hash.Generate(),0, 3);
+            Assert.True(pool.ValidateTx(tx));
+            tx.Fee = 1;
             Assert.False(pool.ValidateTx(tx));
         }
         
@@ -115,10 +131,18 @@ namespace AElf.Kernel.Tests.TxMemPool
         [Fact]
         public void InvalidTxWithWrongSize()
         {  
-            var pool = GetPool(txSize: 3);
-            var tx = GetTransaction();
-            tx.Params = ByteString.CopyFrom(new byte[2]);
-            Console.WriteLine(tx.CalculateSize());
+            var pool = GetPool(2, 3);
+            var tx = CreateAndSignTransaction(Hash.Generate(), Hash.Generate(),0, 1);
+            tx.Params = ByteString.CopyFrom(new Parameters
+            {
+                Params =
+                {
+                    new Param
+                    {
+                        IntVal = 2
+                    }
+                }
+            }.ToByteArray());
             Assert.False(pool.ValidateTx(tx));
         }
         

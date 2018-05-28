@@ -19,6 +19,10 @@ namespace AElf.Kernel.Storages
 
         public async Task<byte[]> GetDataAsync(Hash pointerHash)
         {
+            if (pointerHash == null)
+            {
+                return null;
+            }
             return await _keyValueDatabase.GetAsync(pointerHash.Value.ToBase64(), typeof(byte[]));
         }
     }

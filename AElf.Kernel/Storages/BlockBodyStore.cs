@@ -18,7 +18,7 @@ namespace AElf.Kernel.Storages
             await _keyValueDatabase.SetAsync(txsMerkleTreeRoot.Value.ToBase64(), body.Serialize());
         }
 
-        public async Task<IBlockBody> GetAsync(Hash blockHash)
+        public async Task<BlockBody> GetAsync(Hash blockHash)
         {
             var blockBody =  await _keyValueDatabase.GetAsync(blockHash.Value.ToBase64(), typeof(BlockBody));
             return BlockBody.Parser.ParseFrom(blockBody);
