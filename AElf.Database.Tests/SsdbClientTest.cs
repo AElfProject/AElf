@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Database.SsdbClient;
-using ServiceStack;
 using Xunit;
 
 namespace AElf.Database.Tests

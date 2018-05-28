@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 using AElf.Database.SsdbClient;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 
 namespace AElf.Database.Tests
 {
