@@ -43,7 +43,7 @@ namespace AElf.Kernel.Node.Network.Peers
         /// <summary>
         /// Constructor used for creating a peer that is not
         /// connected to any client. The next logical step
-        /// would be to call <see cref="DoConnect"/>.
+        /// would be to call <see cref="DoConnectAsync"/>.
         /// </summary>
         /// <param name="nodeData"></param>
         /// <param name="ipAddress"></param>
@@ -190,7 +190,7 @@ namespace AElf.Kernel.Node.Network.Peers
         /// </summary>
         /// <returns></returns>
         /// <exception cref="OperationCanceledException">Distant peer timeout</exception>
-        public async Task<bool> DoConnect()
+        public async Task<bool> DoConnectAsync()
         {
             if (DistantNodeData == null)
                 return false;

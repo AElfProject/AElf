@@ -20,7 +20,7 @@ namespace AElf.Kernel.Node.Network.Peers
         Task<AElfPacketData> SendRequestAsync(byte[] data);
         Task SendDataAsync(byte[] data);
         
-        Task<bool> DoConnect();
+        Task<bool> DoConnectAsync();
         Task<bool> WriteConnectInfoAsync();
         
         // todo temp - because the peerDatastore return Peers with no "_nodeData" 

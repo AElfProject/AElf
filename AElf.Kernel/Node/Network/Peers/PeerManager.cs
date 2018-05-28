@@ -90,7 +90,7 @@ namespace AElf.Kernel.Node.Network.Peers
                     ushort port = ushort.Parse(splitted[1]);
                     IPeer p = new Peer(_nodeData, splitted[0], port);
                     
-                    bool success = await p.DoConnect();
+                    bool success = await p.DoConnectAsync();
 
                     // If we succesfully connected to the other peer 
                     // add it to be managed.
@@ -116,7 +116,7 @@ namespace AElf.Kernel.Node.Network.Peers
 
                     try
                     {
-                        bool success = await peer.DoConnect();
+                        bool success = await peer.DoConnectAsync();
                     
                         // If we successfully connected to the other peer
                         // add it to be managed
