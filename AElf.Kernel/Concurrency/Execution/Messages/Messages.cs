@@ -34,14 +34,14 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 	#region ExecuteTransactions
 	public sealed class RequestExecuteTransactions
 	{
-		public RequestExecuteTransactions(long requestId, List<Transaction> transactions)
+		public RequestExecuteTransactions(long requestId, List<ITransaction> transactions)
 		{
 			RequestId = requestId;
 			Transactions = transactions;
 		}
 
 		public long RequestId { get; }
-		public List<Transaction> Transactions { get; }
+		public List<ITransaction> Transactions { get; }
 	}
 
 	public sealed class RespondExecuteTransactions
@@ -137,7 +137,7 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 	/// </summary>
 	public sealed class LocalExecuteTransactionsMessage
 	{
-		public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions, TaskCompletionSource<List<TransactionResult>> taskCompletionSource)
+		public LocalExecuteTransactionsMessage(Hash chainId, List<ITransaction> transactions, TaskCompletionSource<List<TransactionResult>> taskCompletionSource)
 		{
 			ChainId = chainId;
 			Transactions = transactions;
@@ -145,7 +145,7 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 		}
 
 		public Hash ChainId { get; }
-		public List<Transaction> Transactions { get; }
+		public List<ITransaction> Transactions { get; }
 		public TaskCompletionSource<List<TransactionResult>> TaskCompletionSource { get; }
 	}
 

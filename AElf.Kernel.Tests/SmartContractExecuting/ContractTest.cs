@@ -70,7 +70,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var copy = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFromUtf8(smartContractZero.FullName),
+                ContractBytes = ByteString.CopyFromUtf8(smartContractZero.AssemblyQualifiedName),
                 ContractHash = Hash.Zero
             };
 
@@ -178,11 +178,11 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var name = "Sam";
             var deployContext = DeploymentContext(name);
             var sm2 = await _smartContractService.GetAsync(deployContext.Caller, chainContext);
-            var account = await sm2.InvokeAsync(deployContext);
-            Assert.Equal(account.GetType(), typeof(Hash));
+            var smartcontract = (CSharpSmartContract)await sm2.InvokeAsync(deployContext);
+            Assert.Equal(typeof(CSharpSmartContract), smartcontract.GetType());
 
-            var sm3 =(CSharpSmartContract) await _smartContractService.GetAsync((Hash) account, chainContext);
-            Assert.Equal(name, ((Class1)sm3.Instance).Name);
+            
+            Assert.Equal(name, ((Class1)smartcontract.Instance).Name);
         }
 
 
@@ -207,9 +207,9 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var name = "Sam";
             var deployContext = DeploymentContext(name);
             var sm2 = await _smartContractService.GetAsync(deployContext.Caller, chainContext);
-            var account = await sm2.InvokeAsync(deployContext);
+            var smartcontract = (ISmartContract) await sm2.InvokeAsync(deployContext);
 
-            var sm3 =(CSharpSmartContract) await _smartContractService.GetAsync((Hash) account, chainContext);
+            //var sm3 =(CSharpSmartContract) await _smartContractService.GetAsync((Hash) account, chainContext);
 
 
             var yours = "Wk";
@@ -232,7 +232,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 )
             };
             
-            var str = await sm3.InvokeAsync(inokeContext);
+            var str = await smartcontract.InvokeAsync(inokeContext);
             
             Assert.Equal(name, str);
 

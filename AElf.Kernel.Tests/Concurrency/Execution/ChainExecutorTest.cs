@@ -105,7 +105,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 _smartContractZero.SetBalance(addbal.Item1, (ulong)addbal.Item2);
             }
 
-            var txs = new List<Transaction>(){
+            var txs = new List<ITransaction>(){
                 GetTransaction(addresses[0], addresses[1], 10),
                 GetTransaction(addresses[1], addresses[2], 9),
                 GetTransaction(addresses[3], addresses[4], 8)

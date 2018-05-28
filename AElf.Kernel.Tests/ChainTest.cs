@@ -48,11 +48,9 @@ namespace AElf.Kernel.Tests
             var worldStateManager = await new WorldStateManager(_worldStateStore, 
                 _changesStore, _dataStore).OfChain(chainId);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
-            
 
             await _smartContractZero.InitializeAsync(accountDataProvider);*/
             Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)1);
-
             return chain;
         }
 
@@ -77,7 +75,6 @@ namespace AElf.Kernel.Tests
         
         private Block CreateBlock(Hash preBlockHash = null)
         {
-
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             
             var block = new Block(Hash.Generate());

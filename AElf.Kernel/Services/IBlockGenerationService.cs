@@ -11,7 +11,7 @@ namespace AElf.Kernel.Services
         /// <param name="chainId"></param>
         /// <param name="txIds"></param>
         /// <returns></returns>
-        Task<IBlock> BlockGeneration(Hash chainId,IEnumerable<TransactionResult> txIds);
+        Task<IBlock> GenerateBlockAsync(Hash chainId,IEnumerable<TransactionResult> txIds);
 
         /// <summary>
         /// generate block header
@@ -19,6 +19,6 @@ namespace AElf.Kernel.Services
         /// <param name="chainId"></param>
         /// <param name="merkleTreeRootForTransaction"></param>
         /// <returns></returns>
-        Task<IBlockHeader> BlockHeaderGeneration(Hash chainId, Hash merkleTreeRootForTransaction);
+        Task<IBlockHeader> GenerateBlockHeaderAsync(Hash chainId, Hash merkleTreeRootForTransaction);
     }
 }

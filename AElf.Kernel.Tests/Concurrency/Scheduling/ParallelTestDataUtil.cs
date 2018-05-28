@@ -187,7 +187,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return txDict;
         }
         
-        public string StringRepresentation(List<Transaction> l)
+        public string StringRepresentation(List<ITransaction> l)
         {
             return String.Join(
                 " ",

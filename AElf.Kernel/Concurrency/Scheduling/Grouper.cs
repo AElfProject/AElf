@@ -8,11 +8,11 @@ namespace AElf.Kernel.Concurrency.Scheduling
 	/// </summary>
 	public class Grouper : IGrouper
 	{
-		public List<List<Transaction>> Process(List<Transaction> transactions)
+		public List<List<ITransaction>> Process(List<ITransaction> transactions)
 		{
 			if (transactions.Count == 0)
 			{
-				return new List<List<Transaction>>();
+				return new List<List<ITransaction>>();
 			}
 
 			Dictionary<Hash, UnionFindNode> accountUnionSet = new Dictionary<Hash, UnionFindNode>();
@@ -38,15 +38,15 @@ namespace AElf.Kernel.Concurrency.Scheduling
 					}
 				}
 			}
-			
-			Dictionary<int, List<Transaction>> grouped = new Dictionary<int, List<Transaction>>();
-			
+
+			Dictionary<int, List<ITransaction>> grouped = new Dictionary<int, List<ITransaction>>();
+
 			foreach (var tx in transactions)
 			{
 				int nodeId = accountUnionSet[tx.From].Find().NodeId;
 				if (!grouped.TryGetValue(nodeId, out var group))
 				{
-					group = new List<Transaction>();
+					group = new List<ITransaction>();
 					grouped.Add(nodeId, group);
 				}
 				group.Add(tx);

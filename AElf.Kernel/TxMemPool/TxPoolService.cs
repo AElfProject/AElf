@@ -44,17 +44,22 @@ namespace AElf.Kernel.TxMemPool
         private readonly ConcurrentDictionary<Hash, ITransaction> _txs = new ConcurrentDictionary<Hash, ITransaction>();
 
         /// <inheritdoc/>
-        public Task<bool> AddTxAsync(Transaction tx)
+        public async Task<bool> AddTxAsync(ITransaction tx)
         {
             // add tx
             _txs.GetOrAdd(tx.GetHash(), tx);
             
             // tx from account state
-            var id = _accountContextService.GetAccountDataContext(tx.From, _txPool.ChainId)
-                .Result.IncrementId;
-            _nonces.AddOrUpdate(tx.From, id, (key, oldValue) => id);
-            
-            return Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() => _txPool.EnQueueTx(tx));
+            if (!_txPool.Nonces.TryGetValue(tx.From, out var id))
+            {
+                id = (await _accountContextService.GetAccountDataContext(tx.From, _txPool.ChainId)).IncrementId;
+                _txPool.Nonces.TryAdd(tx.From, id);
+            }
+           
+            return await (Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
+            {
+                return _txPool.EnQueueTx(tx);
+            }));
         }
         
         /*/// <summary>
@@ -144,7 +149,6 @@ namespace AElf.Kernel.TxMemPool
         {
             return Lock.WriteLock(() =>
             {
-                if (!_txPool.Enqueueable) return false;
                 _txPool.Promote();
                 return true;
             });
@@ -200,26 +204,21 @@ namespace AElf.Kernel.TxMemPool
         }*/
 
         /// <inheritdoc/>
-        public Task ResetAndUpdate(List<TransactionResult> txResultList)
+        public async Task ResetAndUpdate(List<TransactionResult> txResultList)
         {
             foreach (var res in txResultList)
             {
                 var hash = GetTx(res.TransactionId).From;
-                var id = _txPool.Nonces[hash];
+                _txPool.Nonces.TryGetValue(hash, out var id);
                 
                 // update account context
-                _accountContextService.SetAccountContext(new AccountDataContext
+                await _accountContextService.SetAccountContext(new AccountDataContext
                 {
                     IncrementId = id,
                     Address = hash,
                     ChainId = _txPool.ChainId
                 });
             }
-            
-            return Lock.WriteLock(() =>
-            {
-                _txPool.Enqueueable = true;
-            });
         }
         
         /// <inheritdoc/>
@@ -250,6 +249,8 @@ namespace AElf.Kernel.TxMemPool
                 DemoteEvent.Dispose();
             });
         }
+
+        
     }
     
     /// <inheritdoc />
@@ -260,22 +261,5 @@ namespace AElf.Kernel.TxMemPool
     {
         
     }
-    
-    /// <inheritdoc />
-    /// <summary>
-    /// A lock for managing asynchronous access to memory pool.
-    /// </summary>
-    public class EnqueueSchedulerLock : ReaderWriterLock
-    {
-        
-    }
-    
-    /// <inheritdoc />
-    /// <summary>
-    /// A lock for managing asynchronous access to memory pool.
-    /// </summary>
-    public class ReadySchedulerLock : ReaderWriterLock
-    {
-        
-    }
+   
 }

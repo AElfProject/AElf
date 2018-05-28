@@ -22,13 +22,13 @@ namespace AElf.Kernel.Concurrency.Execution
 		private Batcher _batcher = new Batcher();
 		private IChainContext _chainContext;
 		private IActorRef _resultCollector;
-		private List<Transaction> _transactions;
-		private List<List<Transaction>> _batched;
+		private List<ITransaction> _transactions;
+		private List<List<ITransaction>> _batched;
 		private int _currentRunningIndex = -1;
 		private List<IActorRef> _actors = new List<IActorRef>();
 		private Dictionary<Hash, TransactionResult> _transactionResults = new Dictionary<Hash, TransactionResult>();
 
-		public GroupExecutor(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector)
+		public GroupExecutor(IChainContext chainContext, List<ITransaction> transactions, IActorRef resultCollector)
 		{
 			_chainContext = chainContext;
 			_transactions = transactions;
@@ -108,7 +108,7 @@ namespace AElf.Kernel.Concurrency.Execution
             }
         }
 
-		public static Props Props(IChainContext chainContext, List<Transaction> transactions, IActorRef resultCollector)
+		public static Props Props(IChainContext chainContext, List<ITransaction> transactions, IActorRef resultCollector)
 		{
 			return Akka.Actor.Props.Create(() => new GroupExecutor(chainContext, transactions, resultCollector));
 		}
