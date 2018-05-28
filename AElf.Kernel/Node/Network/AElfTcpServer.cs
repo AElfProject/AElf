@@ -46,7 +46,7 @@ namespace AElf.Kernel.Node.Network
             _config = config;
             _logger = logger;
             
-            if (config != null)
+            if (config != null && !string.IsNullOrEmpty(config.Host))
                 _nodeData = new NodeData { IpAddress = config.Host, Port = config.Port };
         }
 
