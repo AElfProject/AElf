@@ -5,36 +5,36 @@ namespace AElf.Kernel.Tests
 {
     public class HashTests
     {
+
+        private Hash hash1 = new Hash(new byte[] { 10, 14, 1, 15 });
+        private Hash hash2 = new Hash(new byte[] { 10, 14, 1, 15 });
+        private Hash hash3 = new Hash(new byte[] { 15, 1, 14, 10 });
+        private const string testValue = "test";
+
+
         [Fact]
         public void EqualTest()
         {
-            var hash1 = new Hash(new byte[] {10, 14, 1, 15});
-            var hash2 = new Hash(new byte[] {10, 14, 1, 15});
-            var hash3 = new Hash(new byte[] {15, 1, 14, 10});
             Assert.True(hash1 == hash2);
             Assert.False(hash1 == hash3);
+            Assert.False(hash2 == hash3);
         }
 
         [Fact]
         public void CompareTest()
         {
-            var hash1 = new Hash(new byte[] {10, 14, 1, 15});
-            var hash2 = new Hash(new byte[] {15, 1, 14, 10});
-            
-            Assert.True(new Hash().Compare(hash1, hash2) == 1);
+            Assert.True(new Hash().Compare(hash1, hash3) == 1);
+            Assert.True(new Hash().Compare(hash1, hash2) == 0);
+            Assert.True(new Hash().Compare(hash3, hash2) == 1);
         }
 
         [Fact]
         public void DictionaryTest()
         {
             var dict = new Dictionary<Hash, string>();
-            var hash = new Hash(new byte[] {10, 14, 1, 15});
-            dict[hash] = "test";
-            
-            var anotherHash = new Hash(new byte[] {10, 14, 1, 15});
-            
-            Assert.True(dict.TryGetValue(anotherHash, out var test));
-            Assert.Equal(test, "test");
+            dict[hash1] = testValue;
+            Assert.True(dict.TryGetValue(hash2, out var test));
+            Assert.Equal(test, testValue);
         }
 
         [Fact]
@@ -42,7 +42,7 @@ namespace AElf.Kernel.Tests
         {
             var hash1 = Hash.Generate();
             var hash2 = Hash.Generate();
-            
+
             Assert.False(hash1 == hash2);
         }
 
@@ -54,11 +54,11 @@ namespace AElf.Kernel.Tests
                 .SetAccount(Hash.Generate())
                 .SetDataProvider(Hash.Generate())
                 .SetDataKey(Hash.Generate());
-            
+
             Assert.False(path.IsPointer);
             Assert.NotNull(path.GetPathHash());
         }
-        
+
         [Fact]
         public void PointerTest()
         {
