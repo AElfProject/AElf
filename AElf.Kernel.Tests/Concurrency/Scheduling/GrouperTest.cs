@@ -1,8 +1,7 @@
-﻿using System;
+﻿using AElf.Kernel.Concurrency.Scheduling;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using AElf.Kernel.Concurrency.Scheduling;
 using Xunit;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling
@@ -11,7 +10,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
     {
         public List<Hash> _accountList = new List<Hash>();
         private ParallelTestDataUtil _dataUtil = new ParallelTestDataUtil();
-        
+
         public Dictionary<Hash, List<ITransaction>> GetTestData()
         {
             Dictionary<Hash, List<ITransaction>> txList = new Dictionary<Hash, List<ITransaction>>();
@@ -35,27 +34,27 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return txList;
         }
 
-        public void GetTransactionReadyInList(Dictionary<Hash, List<ITransaction>> txList, int from, int to)
+        private void GetTransactionReadyInList(Dictionary<Hash, List<ITransaction>> txList, int from, int to)
         {
             var tx = GetTransaction(from, to);
-            if (txList.ContainsKey(tx.From))
+
+            if (txList.TryGetValue(tx.From, out var foundTxList))
             {
-                txList[tx.From].Add(tx);
+                foundTxList.Add(tx);
             }
             else
             {
-                var accountTxList = new List<ITransaction>();
-                accountTxList.Add(tx);
-                txList.Add(tx.From, accountTxList);
+                txList.Add(tx.From, new List<ITransaction>() { tx });
             }
         }
 
         public Transaction GetTransaction(int from, int to)
         {
-            var tx = new Transaction();
-            tx.From = _accountList[from];
-            tx.To = _accountList[to];
-            return tx;
+            return new Transaction()
+            {
+                From = _accountList[from],
+                To = _accountList[to]
+            };
         }
 
         [Fact]
@@ -90,7 +89,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             var s = grouped.Select(
                 x => _dataUtil.StringRepresentation(x)
             ).ToList();
-            
+
             Assert.Equal(_dataUtil.StringRepresentation(_dataUtil.GetFirstGroupTxList().Select(x => x).ToList()), s[0]);
             Assert.Equal(_dataUtil.StringRepresentation(_dataUtil.GetSecondGroupTxList().Select(x => x).ToList()), s[1]);
         }
