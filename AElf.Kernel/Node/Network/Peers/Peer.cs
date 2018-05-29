@@ -142,7 +142,8 @@ namespace AElf.Kernel.Node.Network.Peers
             }
             catch (Exception e)
             {
-                _client?.Client.Disconnect(true);
+                _stream.Close();
+                _client?.Close();
                 _isListening = false;
                 
                 var args = new PeerDisconnectedArgs { Peer = this };
@@ -150,7 +151,8 @@ namespace AElf.Kernel.Node.Network.Peers
             }
             finally
             {
-                _client?.Client.Disconnect(true);
+                _stream.Close();
+                _client?.Close();
                 _isListening = false;
             }
         }
@@ -171,7 +173,8 @@ namespace AElf.Kernel.Node.Network.Peers
             }
             else
             {
-                _client?.Client.Disconnect(true);
+                _stream.Close();
+                _client?.Close();
                 throw new Exception("Stream closed");
             }
 
@@ -220,7 +223,7 @@ namespace AElf.Kernel.Node.Network.Peers
             }
             catch (OperationCanceledException e)
             {
-                _client?.Client.Disconnect(true);
+                _client?.Close();
                 throw new ResponseTimeOutException(e);
             }
             catch (Exception e)
@@ -276,7 +279,8 @@ namespace AElf.Kernel.Node.Network.Peers
 
         public void Dispose()
         {
-            _client?.Client.Disconnect(true);
+            _stream.Dispose();
+            _client?.Dispose();
         }
     }
 }

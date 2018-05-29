@@ -166,6 +166,7 @@ namespace AElf.Kernel.Node.Network
         {
             _listener.Stop();
             _listener.Server.Disconnect(true);
+            _tokenSource?.Dispose();
         }
     }
 }
