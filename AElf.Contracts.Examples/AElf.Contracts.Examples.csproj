@@ -3,8 +3,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Api.CSharp\AElf.Api.CSharp.csproj" />
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+    <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="bin\**" />
