@@ -7,6 +7,11 @@ namespace AElf.Kernel.Managers
     {
         private readonly ISmartContractStore _smartContractStore;
 
+        public SmartContractManager(ISmartContractStore smartContractStore)
+        {
+            _smartContractStore = smartContractStore;
+        }
+
         public async Task<SmartContractRegistration> GetAsync(Hash contractHash)
         {
             return await _smartContractStore.GetAsync(contractHash);
