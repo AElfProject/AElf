@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel.Node.Network
 {
-    public interface IAElfServer : IDisposable
+    public interface IAElfServer
     {
         event EventHandler ClientConnected;
         

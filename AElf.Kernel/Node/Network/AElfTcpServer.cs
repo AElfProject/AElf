@@ -158,12 +158,5 @@ namespace AElf.Kernel.Node.Network
                 return null;
             }
         }
-
-        public void Dispose()
-        {
-            _listener.Stop();
-            _listener.Server.Disconnect(true);
-            _tokenSource?.Dispose();
-        }
     }
 }

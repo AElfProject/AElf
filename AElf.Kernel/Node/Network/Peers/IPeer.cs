@@ -4,7 +4,7 @@ using AElf.Kernel.Node.Network.Data;
 
 namespace AElf.Kernel.Node.Network.Peers
 {
-    public interface IPeer : IDisposable
+    public interface IPeer
     {
         event EventHandler MessageReceived;
         event EventHandler PeerDisconnected;

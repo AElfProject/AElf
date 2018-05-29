@@ -142,7 +142,6 @@ namespace AElf.Kernel.Node.Network.Peers
             }
             catch (Exception e)
             {
-                _client?.GetStream().Close();
                 _client?.Close();
                 _isListening = false;
                 
@@ -151,7 +150,6 @@ namespace AElf.Kernel.Node.Network.Peers
             }
             finally
             {
-                _client?.GetStream().Close();
                 _client?.Close();
                 _isListening = false;
             }
@@ -173,7 +171,6 @@ namespace AElf.Kernel.Node.Network.Peers
             }
             else
             {
-                _client?.GetStream().Close();
                 _client?.Close();
                 throw new Exception("Stream closed");
             }
@@ -223,7 +220,6 @@ namespace AElf.Kernel.Node.Network.Peers
             }
             catch (OperationCanceledException e)
             {
-                _client.GetStream().Close();
                 _client?.Close();
                 throw new ResponseTimeOutException(e);
             }
@@ -276,12 +272,6 @@ namespace AElf.Kernel.Node.Network.Peers
         public override string ToString()
         {
             return DistantNodeData.IpAddress + ":" + DistantNodeData.Port;
-        }
-
-        public void Dispose()
-        {
-            _client?.GetStream().Dispose();
-            _client?.Dispose();
         }
     }
 }
