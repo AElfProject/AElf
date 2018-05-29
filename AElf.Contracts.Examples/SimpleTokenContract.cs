@@ -5,8 +5,9 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Extensions;
-using AElf.Api.CSharp;
-using CSharpSmartContract = AElf.Api.CSharp.CSharpSmartContract;
+using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.Types;
+using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 
 namespace AElf.Contracts.Examples
 {
@@ -14,24 +15,25 @@ namespace AElf.Contracts.Examples
     {
         public Map Balances = new Map("Balances");
         
-        public override async Task InitializeAsync(IAccountDataProvider dataProvider)
+        public async Task<object> InitializeAsync()
         {
-            Balances.SetValueAsync("0".CalculateHash(), ((ulong)200).ToBytes());
-            Balances.SetValueAsync("1".CalculateHash(), ((ulong)100).ToBytes());
-
-            await Task.CompletedTask;
+            await Balances.SetValueAsync("0".CalculateHash(), ((ulong)200).ToBytes());
+            await Balances.SetValueAsync("1".CalculateHash(), ((ulong)100).ToBytes());
+            return null;
         }
         
-        public override async Task<object> InvokeAsync(SmartContractInvokeContext context)
+        public override async Task InvokeAsync()
         {
-            var methodname = context.MethodName;
+            var tx = Api.GetTransaction();
+
+            var methodname = tx.MethodName;
             var type = GetType();
             var member = type.GetMethod(methodname);
             // params array
-            var parameters = Parameters.Parser.ParseFrom(context.Params).Params.Select(p => p.Value()).ToArray();
+            var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
             
             // invoke
-            return await (Task<object>) member.Invoke(this, parameters);
+            await (Task<object>) member.Invoke(this, parameters);
         }
         
         public async Task<object> Transfer(string from, string to, ulong qty)
@@ -50,6 +52,7 @@ namespace AElf.Contracts.Examples
         public async Task<object> GetBalance(string account)
         {
             var balBytes = await Balances.GetValue(account.CalculateHash());
+            Api.LogToResult(balBytes);
             return balBytes.ToUInt64();
         }
     }

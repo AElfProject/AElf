@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp
 {
@@ -65,6 +66,12 @@ namespace AElf.Sdk.CSharp
         public static ITransaction GetTransaction()
         {
             return _transactionContext.Transaction;
+        }
+
+        public static void LogToResult(byte[] log)
+        {
+            // TODO: Improve
+            _transactionContext.TransactionResult.Logs = ByteString.CopyFrom(log);
         }
 
         #endregion Getters used by contract
