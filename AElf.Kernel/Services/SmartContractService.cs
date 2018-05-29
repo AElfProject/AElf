@@ -33,7 +33,7 @@ namespace AElf.Kernel.Services
             return pool;
         }
 
-        public async Task<IExecutive> GetAsync(Hash account, IChainContext context)
+        public async Task<IExecutive> GetExecutiveAsync(Hash account, IChainContext context)
         {
             var pool = GetPoolFor(account);
             if (pool.TryTake(out var executive))
@@ -57,7 +57,7 @@ namespace AElf.Kernel.Services
             return await runner.RunAsync(reg, dataProvider);
         }
 
-        public async Task PutAsync(Hash account, IExecutive executive)
+        public async Task PutExecutiveAsync(Hash account, IExecutive executive)
         {
             // TODO: Maybe reset TransactionContext
             GetPoolFor(account).Add(executive);

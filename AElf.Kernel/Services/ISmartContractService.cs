@@ -4,7 +4,7 @@ namespace AElf.Kernel.Services
 {
     public interface ISmartContractService
     {
-        Task<IExecutive> GetAsync(Hash account, IChainContext context);
-        Task PutAsync(Hash account, IExecutive executive);
+        Task<IExecutive> GetExecutiveAsync(Hash account, IChainContext context);
+        Task PutExecutiveAsync(Hash account, IExecutive executive);
     }
 }
