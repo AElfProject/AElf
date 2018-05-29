@@ -145,7 +145,6 @@ namespace AElf.Kernel.Node.Network.Peers
             foreach (var p in _peers)
             {
                 exists = p.IpAddress == peer.IpAddress && p.Port == peer.Port;
-                if (!p.IsConnected) RemovePeer(p); // temporary solution to removing disconnected peers
             }
             if (exists) return;
             
