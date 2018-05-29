@@ -9,6 +9,6 @@ namespace AElf.Kernel.KernelAccount
 {
     public interface ISmartContractRunner
     {
-        Task<IExecutive> RunAsync(SmartContractRegistration reg, IDataProvider dataProvider);
+        Task<IExecutive> RunAsync(SmartContractRegistration reg);
     }
 }

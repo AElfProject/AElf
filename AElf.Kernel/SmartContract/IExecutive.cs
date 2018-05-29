@@ -5,7 +5,8 @@ namespace AElf.Kernel
 {
     public interface IExecutive
     {
-        IExecutive SetContext(ITransactionContext context);
+        IExecutive SetSmartContractContext(ISmartContractContext contractContext);
+        IExecutive SetTransactionContext(ITransactionContext transactionContext);
         Task Apply();
     }
 }
