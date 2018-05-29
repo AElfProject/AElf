@@ -15,6 +15,12 @@ namespace AElf.Kernel.Node.Network.Peers
         public Peer Peer { get; set; }
     }
     
+    public class PeerDisconnectedArgs : EventArgs
+    {
+        public AElfPacketData Message { get; set; }
+        public Peer Peer { get; set; }
+    }
+    
     /// <summary>
     /// This class is essentially a wrapper around the connection. Its the entry
     /// point for incoming messages and is also used for sending messages to the
@@ -29,6 +35,12 @@ namespace AElf.Kernel.Node.Network.Peers
         /// from the peer.
         /// </summary>
         public event EventHandler MessageReceived;
+        
+        /// <summary>
+        /// The event that's raised when a peers stream
+        /// as ended.
+        /// </summary>
+        public event EventHandler PeerDisconnected;
         
         /// <summary>
         /// The data relative to the current nodes identity.
@@ -132,6 +144,9 @@ namespace AElf.Kernel.Node.Network.Peers
             {
                 _client?.Close();
                 _isListening = false;
+                
+                var args = new PeerDisconnectedArgs { Peer = this };
+                PeerDisconnected?.Invoke(this, args);
             }
             finally
             {

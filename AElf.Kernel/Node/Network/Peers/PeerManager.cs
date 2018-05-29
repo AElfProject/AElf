@@ -7,7 +7,6 @@ using AElf.Kernel.Node.Network.Data;
 using AElf.Kernel.Node.Network.Peers.Exceptions;
 using Google.Protobuf;
 using NLog;
-using ServiceStack;
 
 namespace AElf.Kernel.Node.Network.Peers
 {
@@ -152,13 +151,29 @@ namespace AElf.Kernel.Node.Network.Peers
             
             _peers.Add(peer);
             peer.MessageReceived += ProcessPeerMessage;
+            peer.PeerDisconnected += ProcessClientDisconnection;
 
             _logger.Trace("Peer added : " + peer);
 
             Task.Run(peer.StartListeningAsync);
         }
 
-        
+        /// <summary>
+        /// Callback for when a Peer fires a <see cref="PeerDisconnected"/> event. It unsubscribes
+        /// the manager from the events and removes it from the list.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ProcessClientDisconnection(object sender, EventArgs e)
+        {
+            if (sender != null && e is PeerDisconnectedArgs args && args.Peer != null)
+            {
+                args.Peer.MessageReceived -= ProcessPeerMessage;
+                args.Peer.PeerDisconnected -= ProcessClientDisconnection;
+                RemovePeer(args.Peer);
+            }
+        }
+
         /// <summary>
         /// Removes a peer from the list of peers.
         /// </summary>

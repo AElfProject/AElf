@@ -7,6 +7,7 @@ namespace AElf.Kernel.Node.Network.Peers
     public interface IPeer
     {
         event EventHandler MessageReceived;
+        event EventHandler PeerDisconnected;
         
         string IpAddress { get; }
         ushort Port { get; }
