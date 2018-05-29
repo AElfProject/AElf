@@ -12,9 +12,9 @@ namespace AElf.Kernel.Managers
             return await _smartContractStore.GetAsync(contractHash);
         }
 
-        public async Task InsertAsync(SmartContractRegistration reg)
+        public async Task InsertAsync(Hash address, SmartContractRegistration reg)
         {
-            await _smartContractStore.InsertAsync(reg.ContractHash, reg);
+            await _smartContractStore.InsertAsync(address, reg);
         }
     }
 }
