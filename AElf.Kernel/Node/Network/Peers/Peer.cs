@@ -280,7 +280,7 @@ namespace AElf.Kernel.Node.Network.Peers
 
         public void Dispose()
         {
-            _stream?.Dispose();
+            _client?.GetStream().Dispose();
             _client?.Dispose();
         }
     }
