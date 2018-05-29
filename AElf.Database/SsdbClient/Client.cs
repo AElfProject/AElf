@@ -39,7 +39,7 @@ namespace AElf.Database.SsdbClient
                 throw new ArgumentException("key can't be empty");
             }
         }
-        
+
         private void CheckRequestKey(byte[] key)
         {
             if (key == null || key.Length == 0)
@@ -60,7 +60,7 @@ namespace AElf.Database.SsdbClient
         {
             var size = (resp.Count - 1) / 2;
             var kvs = new KeyValuePair<string, byte[]>[size];
-            for (var i = 0; i < size; i ++)
+            for (var i = 0; i < size; i++)
             {
                 var key = Helper.BytesToString(resp[i * 2 + 1]);
                 var val = resp[i * 2 + 2];
@@ -74,7 +74,7 @@ namespace AElf.Database.SsdbClient
         {
             var size = (resp.Count - 1) / 2;
             var kvs = new KeyValuePair<string, long>[size];
-            for (var i = 0; i < size; i ++)
+            for (var i = 0; i < size; i++)
             {
                 var key = Helper.BytesToString(resp[i * 2 + 1]);
                 var val = long.Parse(Helper.BytesToString(resp[i * 2 + 2]));
@@ -83,18 +83,19 @@ namespace AElf.Database.SsdbClient
 
             return kvs;
         }
-        
+
         private IList<string> ParseRespToList(List<byte[]> resp)
         {
             var size = resp.Count - 1;
             var list = new List<string>(size);
-            for (var i = 1; i < size; i ++)
+            for (var i = 1; i < size; i++)
             {
                 list.Add(Helper.BytesToString(resp[i]));
             }
+
             return list;
         }
-        
+
         /***** flush *****/
 
         internal void FlushDB(SsdbType type)
@@ -120,7 +121,8 @@ namespace AElf.Database.SsdbClient
 
         internal void FlushDBKeyValue()
         {
-            while (true) {
+            while (true)
+            {
                 var keys = Keys("", "", 1000);
                 if (keys.Any())
                 {
@@ -132,36 +134,40 @@ namespace AElf.Database.SsdbClient
                 }
             }
         }
-        
+
         internal void FlushDBHash()
         {
-            while (true) {
+            while (true)
+            {
                 var names = HList("", "", 1000);
                 if (names.Count == 0)
                 {
                     return;
                 }
+
                 foreach (var name in names)
                 {
                     HClear(name);
                 }
             }
         }
-        
+
         internal void FlushDBZSet()
         {
-            while (true) {
+            while (true)
+            {
                 var names = ZList("", "", 1000);
                 if (names.Count == 0)
                 {
                     return;
                 }
+
                 foreach (var name in names)
                 {
                     ZClear(name);
                 }
             }
-            
+
             throw new NotImplementedException();
         }
 
@@ -290,7 +296,7 @@ namespace AElf.Database.SsdbClient
             CheckResponse(resp[0]);
             return ParseRespToList(resp);
         }
-        
+
         public void MultiHDel(byte[][] keys)
         {
             var resp = _link.Request(Command.MultiDel, keys);
@@ -304,6 +310,7 @@ namespace AElf.Database.SsdbClient
             {
                 req[i] = Helper.StringToBytes(keys[i]);
             }
+
             MultiHDel(req);
         }
 
@@ -511,7 +518,7 @@ namespace AElf.Database.SsdbClient
 
             return MultiHGet(Helper.StringToBytes(name), req);
         }
-        
+
         public IList<string> HList(string nameStart, string nameEnd, long limit)
         {
             var resp = _link.Request(Command.HList, nameStart, nameEnd, limit.ToString());
@@ -765,7 +772,7 @@ namespace AElf.Database.SsdbClient
 
             return MultiZGet(Helper.StringToBytes(name), req);
         }
-        
+
         public IList<string> ZList(string nameStart, string nameEnd, long limit)
         {
             var resp = _link.Request(Command.ZList, nameStart, nameEnd, limit.ToString());

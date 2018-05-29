@@ -2,10 +2,10 @@
 {
     public interface IDatabaseConfig
     {
-        string Type { get; }
+        DatabaseType Type { get; set; }
 
-        string Host { get; }
+        string Host { get; set; }
         
-        int Port { get; }
+        int Port { get; set; }
     }
 }

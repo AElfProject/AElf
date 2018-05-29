@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Database.Config;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
 using AElf.Kernel.Node.Network.Config;
@@ -21,9 +22,10 @@ namespace AElf.Launcher
             
             ITxPoolConfig txPoolConf = confParser.TxPoolConfig;
             IAElfNetworkConfig netConf = confParser.NetConfig;
+            IDatabaseConfig databaseConf = confParser.DatabaseConfig;
             
             // Setup ioc 
-            IContainer container = SetupIocContainer(txPoolConf, netConf);
+            IContainer container = SetupIocContainer(txPoolConf, netConf, databaseConf);
 
             if (container == null)
             {
@@ -42,7 +44,7 @@ namespace AElf.Launcher
             }
         }
 
-        private static IContainer SetupIocContainer(ITxPoolConfig txPoolConf, IAElfNetworkConfig netConf)
+        private static IContainer SetupIocContainer(ITxPoolConfig txPoolConf, IAElfNetworkConfig netConf,IDatabaseConfig databaseConf)
         {
             var builder = new ContainerBuilder();
             
@@ -53,7 +55,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterModule(new DatabaseModule());
+            builder.RegisterModule(new DatabaseModule(databaseConf));
             builder.RegisterModule(new NetworkModule(netConf));
             builder.RegisterModule(new MainChainNodeModule());
             builder.RegisterModule(new RpcServerModule());

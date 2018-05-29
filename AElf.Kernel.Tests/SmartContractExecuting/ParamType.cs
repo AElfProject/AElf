@@ -1,5 +1,4 @@
-﻿using System;
-using Google.Protobuf;
+﻿using Google.Protobuf;
 using Xunit;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
