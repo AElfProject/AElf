@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Kernel;
 
-namespace AElf.Api.CSharp
+namespace AElf.Sdk.CSharp.Types
 {
     public class Map
     {

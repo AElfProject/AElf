@@ -26,7 +26,7 @@ namespace AElf.Runtime.CSharp
 
         Assembly LoadFromFolderOrDefault(AssemblyName assemblyName)
         {
-            if (assemblyName.Name.StartsWith("AElf.Api"))
+            if (assemblyName.Name.StartsWith("AElf.Sdk"))
             {
                 // API assembly should NOT be shared
                 // TODO: Handle version
