@@ -2,7 +2,7 @@
 
 namespace AElf.Kernel.Storages
 {
-    public interface ISmartContractStore
+    public interface ISmartContractRegistrationStore
     {
         Task InsertAsync(Hash hash, SmartContractRegistration registration);
         Task<SmartContractRegistration> GetAsync(Hash hash);
