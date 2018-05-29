@@ -74,5 +74,10 @@ namespace AElf.Kernel.Services
             GetPoolFor(account).Add(executive);
             await Task.CompletedTask;
         }
+
+        public async Task DeployContractAsync(Hash account, SmartContractRegistration registration)
+        {
+            await _smartContractManager.InsertAsync(account, registration);
+        }
     }
 }
