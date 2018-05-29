@@ -86,7 +86,7 @@ namespace AElf.Runtime.CSharp.Tests
 
             var service = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
 
-            var executive1 = await service.GetExecutiveAsync(contractAddress1, chainContext);
+            var executive1 = await service.GetExecutiveAsync(contractAddress1, chainContext.ChainId);
             executive1.SetSmartContractContext(new SmartContractContext()
             {
                 ChainId = Hash.Zero,
@@ -95,7 +95,7 @@ namespace AElf.Runtime.CSharp.Tests
                 SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager)
             });
 
-            var executive2 = await service.GetExecutiveAsync(contractAddress2, chainContext);
+            var executive2 = await service.GetExecutiveAsync(contractAddress2, chainContext.ChainId);
             executive2.SetSmartContractContext(new SmartContractContext()
             {
                 ChainId = Hash.Zero,

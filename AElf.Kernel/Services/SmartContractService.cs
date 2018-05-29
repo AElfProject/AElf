@@ -33,7 +33,7 @@ namespace AElf.Kernel.Services
             return pool;
         }
 
-        public async Task<IExecutive> GetExecutiveAsync(Hash account, IChainContext context)
+        public async Task<IExecutive> GetExecutiveAsync(Hash account, Hash chainId)
         {
             var pool = GetPoolFor(account);
             IExecutive executive = null;
@@ -52,14 +52,14 @@ namespace AElf.Kernel.Services
             }
 
             // get account dataprovider
-            var dataProvider = (await _worldStateManager.OfChain(context.ChainId)).GetAccountDataProvider(account).GetDataProvider();
+            var dataProvider = (await _worldStateManager.OfChain(chainId)).GetAccountDataProvider(account).GetDataProvider();
 
             // run smartcontract executive info and return executive
 
             executive = await runner.RunAsync(reg);
             executive.SetSmartContractContext(new SmartContractContext()
             {
-                ChainId = context.ChainId,
+                ChainId = chainId,
                 ContractAddress = account,
                 DataProvider = dataProvider,
                 SmartContractService = this
