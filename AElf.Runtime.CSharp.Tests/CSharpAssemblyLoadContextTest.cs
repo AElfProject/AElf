@@ -43,19 +43,9 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 assembly = _loadContext.LoadFromStream(file);
             }
-            assembly.GetTypes();
-            //Assert.Equal("", string.Join(" ", assembly.GetTypes()[3].Name));
-
+            var type = assembly.GetTypes().FirstOrDefault(x => x.BaseType.Name.EndsWith("CSharpSmartContract"));
+            Assert.NotNull(type);
             Assert.NotNull(_loadContext.Sdk);
-
-            //var sdk = assembly.GetReferencedAssemblies().FirstOrDefault(y => y.Name.StartsWith("AElf.Sdk"));
-            var ApiSingleton = _loadContext.Sdk.GetTypes().FirstOrDefault(x => x.Name.EndsWith("Api"));
-            Assert.NotNull(ApiSingleton);
-            //Assert.Equal("", string.Join(" ", assembly.GetExportedTypes().Select(y => y.ToString())));
-            Assert.Equal("", string.Join(" ", assembly.GetReferencedAssemblies().Where(y => y.Name.StartsWith("AElf.Sdk"))));
-            Assert.Equal("", string.Join(" ", assembly.GetTypes()[3].Name));
-            Assert.Equal("", assembly.GetTypes()[0].ToString());
-            Assert.NotNull(assembly);
         }
     }
 }
