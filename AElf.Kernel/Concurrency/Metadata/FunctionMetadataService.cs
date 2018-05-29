@@ -7,7 +7,7 @@ using QuickGraph;
 using QuickGraph.Algorithms;
 using ServiceStack;
 
-namespace AElf.Kernel.Concurrency
+namespace AElf.Kernel.Concurrency.Metadata
 {
     /// <summary>
     /// Where get and set the metadata when deploy the contracts and check correctness when trying to updating contracts(functions)

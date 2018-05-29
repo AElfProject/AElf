@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel.Concurrency;
+using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Extensions;
 using NLog;
 using ServiceStack;

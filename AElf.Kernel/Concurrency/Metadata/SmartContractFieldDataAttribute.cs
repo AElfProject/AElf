@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AElf.Kernel.Concurrency
+namespace AElf.Kernel.Concurrency.Metadata
 {
     public enum DataAccessMode{
         ReadOnlyAccountSharing,
@@ -11,13 +11,13 @@ namespace AElf.Kernel.Concurrency
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class SmartContractFieldDataAttribute : Attribute
     {
-        public SmartContractFieldDataAttribute(string dataName, DataAccessMode dataAccessMode)
+        public SmartContractFieldDataAttribute(string fieldName, DataAccessMode dataAccessMode)
         {
             DataAccessMode = dataAccessMode;
-            DataFullName = dataName;
+            FieldName = fieldName;
         }
 
         public DataAccessMode DataAccessMode { get; }
-        public string DataFullName { get; }
+        public string FieldName { get; }
     }
 }

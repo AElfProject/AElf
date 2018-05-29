@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace AElf.Kernel.Concurrency
+namespace AElf.Kernel.Concurrency.Metadata
 {
     /// <summary>
     /// The Metadata will not be changed after they are calculated as long as the related contracts don't update.

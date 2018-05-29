@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Kernel.Extensions;
 using AElf.Api.CSharp;
 using AElf.Kernel.Concurrency;
+using AElf.Kernel.Concurrency.Metadata;
 using Akka.Configuration.Hocon;
 using CSharpSmartContract = AElf.Api.CSharp.CSharpSmartContract;
 
@@ -45,7 +46,7 @@ namespace AElf.Contracts.Examples
             TokenContractName = tokenContractName;
         }
         
-        [SmartContractFunction("Transfer(string, string, ulong)", new []{"Balances"})]
+        [SmartContractFunction("Transfer(string, string, ulong)", new string[]{}, new []{"Balances"})]
         public async Task<object> Transfer(string from, string to, ulong qty)
         {
             var fromBalBytes = await Balances.GetValue(from.CalculateHash());
@@ -59,7 +60,7 @@ namespace AElf.Contracts.Examples
             return null;
         }
 
-        [SmartContractFunction("GetBalance(string)", new []{"Balances"})]
+        [SmartContractFunction("GetBalance(string)", new string[]{}, new []{"Balances"})]
         public async Task<object> GetBalance(string account)
         {
             var balBytes = await Balances.GetValue(account.CalculateHash());
