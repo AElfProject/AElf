@@ -3,11 +3,11 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class SmartContractRegistrationStore : ISmartContractRegistrationStore
+    public class SmartContractStore : ISmartContractStore
     {
         private readonly IKeyValueDatabase _keyValueDatabase;
 
-        public SmartContractRegistrationStore(IKeyValueDatabase keyValueDatabase)
+        public SmartContractStore(IKeyValueDatabase keyValueDatabase)
         {
             _keyValueDatabase = keyValueDatabase;
         }
