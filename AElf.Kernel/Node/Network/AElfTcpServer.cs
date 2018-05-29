@@ -96,7 +96,6 @@ namespace AElf.Kernel.Node.Network
             finally
             {
                 _listener.Stop();
-                _listener.Server.Disconnect(true);
             }
         }
         
@@ -156,8 +155,6 @@ namespace AElf.Kernel.Node.Network
             catch (Exception e)
             {
                 _logger?.Warn("Error creating the connection");
-                _listener.Stop();
-                _listener.Server.Disconnect(true);
                 return null;
             }
         }
