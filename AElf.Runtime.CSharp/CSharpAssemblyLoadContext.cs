@@ -12,6 +12,7 @@ namespace AElf.Runtime.CSharp
     {
         private readonly string _apiDllDirectory;
         private readonly Assembly[] _parentLoaded;
+        public Assembly Sdk { get; private set; }
 
         public CSharpAssemblyLoadContext(string apiDllDirectory, Assembly[] parentLoaded)
         {
@@ -31,8 +32,9 @@ namespace AElf.Runtime.CSharp
                 // API assembly should NOT be shared
                 // TODO: Handle version
                 var path = Path.Combine(_apiDllDirectory, assemblyName.Name);
-
-                return LoadFromAssemblyPath(path + ".dll");   
+                var sdk = LoadFromAssemblyPath(path + ".dll");
+                Sdk = sdk;
+                return sdk;
             }
 
             return _parentLoaded.FirstOrDefault(x => x.GetName().Name == assemblyName.Name);

@@ -17,7 +17,7 @@ namespace AElf.Runtime.CSharp
         {
         }
     }
-    
+
     public class SmartContractRunner : ISmartContractRunner
     {
         private readonly string _apiDllDirectory;
@@ -36,41 +36,44 @@ namespace AElf.Runtime.CSharp
             // To make sure each smart contract resides in an isolated context with an Api singleton
             return new CSharpAssemblyLoadContext(_apiDllDirectory, AppDomain.CurrentDomain.GetAssemblies());
         }
-        
-        public async Task<ISmartContract> RunAsync(SmartContractRegistration reg, IDataProvider dataProvider)
+
+        public async Task<IExecutive> RunAsync(SmartContractRegistration reg)
         {
             // TODO: Maybe input arguments can be simplified
 
             var code = reg.ContractBytes.ToByteArray();
-            
+
+            var loadContext = GetLoadContext();
+
             Assembly assembly = null;
             using (Stream stream = new MemoryStream(code))
             {
-                assembly = GetLoadContext().LoadFromStream(stream);
+                assembly = loadContext.LoadFromStream(stream);
             }
 
             if (assembly == null)
             {
                 throw new InvalidCodeException("Invalid binary code.");
             }
-            
+
             var type = assembly.GetTypes().FirstOrDefault(x => x.BaseType.Name.EndsWith("CSharpSmartContract"));
-            if(type == null)
+            if (type == null)
             {
                 throw new InvalidCodeException("No SmartContract type is defined in the code.");
             }
-            
-            // construct instance
-            var constructorParams = Parameters.Parser.ParseFrom(deployment.ConstructParams).Params;
-            var parameterObjs = constructorParams.Select(p => p.Value()).ToArray();
-            var paramTypes = parameterObjs.Select(p => p.GetType()).ToArray();
-            var constructorInfo = type.GetConstructor(paramTypes);
 
-            // TODO: There will be no parameters passed to constructor as the context will be injected
-            var instance = (ISmartContractWithContext) constructorInfo.Invoke(parameterObjs);
-            instance?.SetDataProvider(dataProvider);
+            var instance = (ISmartContract) Activator.CreateInstance(type);
 
-            return await Task.FromResult(instance);
+            var ApiSingleton = loadContext.Sdk.GetTypes().FirstOrDefault(x => x.Name.EndsWith("Api"));
+
+            if (ApiSingleton == null)
+            {
+                throw new InvalidCodeException("No Api was found.");
+            }
+
+            Executive executive = new Executive().SetSmartContract(instance).SetApi(ApiSingleton);
+
+            return await Task.FromResult(executive);
         }
     }
 }
