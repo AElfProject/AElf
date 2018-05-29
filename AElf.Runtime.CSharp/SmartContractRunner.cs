@@ -18,11 +18,11 @@ namespace AElf.Runtime.CSharp
         }
     }
     
-    public class BinaryCSharpSmartContractRunner : ISmartContractRunner
+    public class SmartContractRunner : ISmartContractRunner
     {
         private readonly string _apiDllDirectory;
 
-        public BinaryCSharpSmartContractRunner(string apiDllDirectory)
+        public SmartContractRunner(string apiDllDirectory)
         {
             _apiDllDirectory = Path.GetFullPath(apiDllDirectory);
         }
@@ -37,8 +37,7 @@ namespace AElf.Runtime.CSharp
             return new CSharpAssemblyLoadContext(_apiDllDirectory, AppDomain.CurrentDomain.GetAssemblies());
         }
         
-        public async Task<ISmartContract> RunAsync(SmartContractRegistration reg, SmartContractDeployment deployment, 
-            IAccountDataProvider adp)
+        public async Task<ISmartContract> RunAsync(SmartContractRegistration reg, IDataProvider dataProvider)
         {
             // TODO: Maybe input arguments can be simplified
 
@@ -69,7 +68,7 @@ namespace AElf.Runtime.CSharp
 
             // TODO: There will be no parameters passed to constructor as the context will be injected
             var instance = (ISmartContractWithContext) constructorInfo.Invoke(parameterObjs);
-            instance?.SetDataProvider(adp.GetDataProvider());
+            instance?.SetDataProvider(dataProvider);
 
             return await Task.FromResult(instance);
         }
