@@ -1,70 +1,62 @@
 ﻿using System;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
+using AElf.Database.Config;
+using StackExchange.Redis;
 
 namespace AElf.Database
 {
-    public class SsdbDatabase:IKeyValueDatabase
+    public class SsdbDatabase : IKeyValueDatabase
     {
-        private readonly string _ipAddress;
-        private readonly int _port;
-        
+        private readonly ConfigurationOptions _options;
+
         public SsdbDatabase()
+            : this(new DatabaseConfig {Host = "127.0.0.1", Port = 8888})
         {
-            _ipAddress = "127.0.0.1";
-            _port = 8888;
         }
 
-        public SsdbDatabase(DatabaseConfig config)
+        public SsdbDatabase(IDatabaseConfig config)
         {
-            _ipAddress = config.IpAddress;
-            _port = config.Port;
+            _options = new ConfigurationOptions
+            {
+                EndPoints = {{config.Host, config.Port}},
+                CommandMap = CommandMap.SSDB
+            };
         }
-        
+
         public async Task<byte[]> GetAsync(string key, Type type)
         {
-            return await Task.FromResult(Get(key));
+            using (var conn = ConnectionMultiplexer.Connect(_options))
+            {
+                var db = conn.GetDatabase(0);
+                return await db.StringGetAsync(key);
+            }
         }
 
         public async Task SetAsync(string key, byte[] bytes)
         {
-            await Task.FromResult(Set(key, bytes));
+            using (var conn = ConnectionMultiplexer.Connect(_options))
+            {
+                var db = conn.GetDatabase(0);
+                await db.StringSetAsync(key, bytes);
+            }
         }
 
         public bool IsConnected()
         {
             try
             {
-                using (var client = new SsdbClient.Client(_ipAddress, _port))
+                using (var conn = ConnectionMultiplexer.Connect(_options))
                 {
-                    return client.Connect();
+                    var db = conn.GetDatabase(0);
+                    db.Ping();
                 }
+
+                return true;
             }
             catch
             {
                 return false;
             }
-        }
-
-        private byte[] Get(string key)
-        {
-            using (var client = new SsdbClient.Client(_ipAddress, _port))
-            {
-                client.Connect();
-                client.Get(key, out byte[] result);
-                return result;
-            }
-        }
-
-        private bool Set(string key, byte[] bytes)
-        {
-            using (var client = new SsdbClient.Client(_ipAddress, _port))
-            {
-                client.Connect();
-                client.Set(key, bytes);
-            }
-            return true;
         }
     }
 }

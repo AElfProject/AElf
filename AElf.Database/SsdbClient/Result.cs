@@ -1,6 +1,5 @@
 ﻿namespace AElf.Database.SsdbClient
 {
-    
     public class Result<T>
     {
         public bool Success { get; set; }

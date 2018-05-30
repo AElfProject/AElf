@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Database.Config;
 using AElf.Database.SsdbClient;
 using Xunit;
 
@@ -19,7 +20,7 @@ namespace AElf.Database.Tests
             var result = _database.IsConnected();
             Assert.True(result);
         }
-        
+
         [Fact]
         public void SetTest()
         {
@@ -28,17 +29,17 @@ namespace AElf.Database.Tests
 
             _database.SetAsync(key, Helper.StringToBytes((value)));
         }
-        
+
         [Fact]
         public void GetTest()
         {
             var key = "gettest";
             var value = Guid.NewGuid().ToString();
 
-            _database.SetAsync(key, Helper.StringToBytes((value)));
+            _database.SetAsync(key, Helper.StringToBytes(value));
             var getResult = _database.GetAsync(key, null);
-            
-            Assert.Equal(value,Helper.BytesToString(getResult.Result));
+
+            Assert.Equal(value, Helper.BytesToString(getResult.Result));
         }
     }
 }

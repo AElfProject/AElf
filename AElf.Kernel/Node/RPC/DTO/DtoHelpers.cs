@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Security.Cryptography;
 using AElf.Kernel;
 
 namespace AElf.Node.RPC.DTO

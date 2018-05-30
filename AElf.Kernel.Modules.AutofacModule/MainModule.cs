@@ -1,7 +1,4 @@
-﻿using System;
-using AElf.Database;
-using AElf.Kernel.Storages;
-using Autofac;
+﻿using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
