@@ -252,8 +252,27 @@ namespace AElf.Kernel.Node.RPC
         private async Task<JObject> ProcessGetPeers(JObject reqParams)
         {
             ushort numPeers = Convert.ToUInt16(reqParams["numPeers"]);
+            
+            List<NodeData> lnd = new List<NodeData>();
+            NodeData nd = new NodeData();
+            nd.IpAddress = "127.0.0.1";
+            nd.Port = 1200;
+            NodeData nd1 = new NodeData();
+            nd.IpAddress = "127.0.0.1";
+            nd.Port = 1201;
+            NodeData nd2 = new NodeData();
+            nd.IpAddress = "127.0.0.1";
+            nd.Port = 1202;
+            lnd.Add(nd);
+            lnd.Add(nd1);
+            lnd.Add(nd2);
+            List<NodeData> rl = new List<NodeData>();
+            for (int i = 0; i < numPeers; i++)
+            {
+                rl.Add(lnd[i]);
+            }
 
-            List<NodeData> peers = await _node.GetPeers(numPeers);
+            List<NodeData> peers = rl; //await _node.GetPeers(numPeers);
             List<NodeDataDto> peersDto = new List<NodeDataDto>();
 
             foreach (var peer in peers)
