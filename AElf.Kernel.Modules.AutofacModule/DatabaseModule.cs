@@ -21,10 +21,10 @@ namespace AElf.Kernel.Modules.AutofacModule
                     builder.RegisterType<KeyValueDatabase>().As<IKeyValueDatabase>().SingleInstance();
                     break;
                 case DatabaseType.Redis:
-                    builder.RegisterType<RedisDatabase>().As<IKeyValueDatabase>().SingleInstance();
+                    builder.RegisterType<RedisDatabase>().As<IKeyValueDatabase>();
                     break;
                 case DatabaseType.Ssdb:
-                    builder.RegisterType<SsdbDatabase>().As<IKeyValueDatabase>().SingleInstance();
+                    builder.RegisterType<SsdbDatabase>().As<IKeyValueDatabase>();
                     break;
             }
         }

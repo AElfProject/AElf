@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Database.Config;
 using AElf.Database.SsdbClient;
 using Xunit;
 

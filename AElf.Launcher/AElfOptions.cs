@@ -20,13 +20,13 @@ namespace AElf.Launcher
         [Option(Default = false, HelpText = "Starts the node without exposing the RPC interface")]
         public bool NoRpc { get; set; }
 
-        [Option(HelpText = "The type of database.")]
+        [Option('t',HelpText = "The type of database.")]
         public string DBType { get; set; }
 
-        [Option(HelpText = "The IP address of database.")]
+        [Option('h',HelpText = "The IP address of database.")]
         public string DBHost { get; set; }
 
-        [Option(HelpText = "The port of database.")]
+        [Option('p',HelpText = "The port of database.")]
         public int? DBPort { get; set; }
     }
 }
