@@ -247,9 +247,11 @@ namespace AElf.Kernel.Node.RPC
             return JObject.FromObject(j);
         }
 
-        private async Task<JObject> ProcessGetPeers(ushort numPeers)
+        private async Task<JObject> ProcessGetPeers(JObject reqParams)
         {
-            List<IPeer> peers = await _node.GetPeers(numPeers);
+            PeerListDto dto = reqParams["numPeers"].ToObject<PeerListDto>();
+
+            List<IPeer> peers = await _node.GetPeers(ushort.Parse(dto.ToString()));
 
             JObject j = new JObject
             {
