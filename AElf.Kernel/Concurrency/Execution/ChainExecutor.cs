@@ -43,19 +43,12 @@ namespace AElf.Kernel.Concurrency.Execution
                     {
                         _state = State.Running;
                         // Currently only supports one request at a time
-                        _chainContextService.GetChainContextAsync(_chainId).ContinueWith(
-                            task =>
-                            {
-                                var chainContext = task.Result;
-                                _currentRequestor = Sender;
-                                _currentRequest = req;
-                            _currentExecutor = Context.ActorOf(BatchExecutor.Props(_chainId, _serviceRouter, req.Transactions, Self, BatchExecutor.ChildType.Group));
-                                _currentTransactionResults = new Dictionary<Hash, TransactionResult>();
-                                Context.Watch(_currentExecutor);
-                                _currentExecutor.Tell(StartExecutionMessage.Instance);
-                            },
-                            TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
-                        );
+                        _currentRequestor = Sender;
+                        _currentRequest = req;
+                        _currentExecutor = Context.ActorOf(BatchExecutor.Props(_chainId, _serviceRouter, req.Transactions, Self, BatchExecutor.ChildType.Group));
+                        _currentTransactionResults = new Dictionary<Hash, TransactionResult>();
+                        Context.Watch(_currentExecutor);
+                        _currentExecutor.Tell(StartExecutionMessage.Instance);
                     }
                     break;
                 case TransactionResultMessage res:
