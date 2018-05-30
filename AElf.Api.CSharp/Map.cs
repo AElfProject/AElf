@@ -16,11 +16,12 @@ namespace AElf.Api.CSharp
             
         }
     }
-    public class Map
+    public class Map : IBaseContainer
     {
-        private string _name;
         private int _count;
         private List<Hash> _keySet;
+        
+        public string Name { get; }
 
         [SmartContractFieldData("Count", DataAccessMode.ReadWriteAccountSharing)]
         public int Count
@@ -41,18 +42,21 @@ namespace AElf.Api.CSharp
 
         public Map(string name)
         {
-            _name = name;
+            Name = name;
             _count = 0;
         }
         
+        [SmartContractFunction("SetValueAsync(Hash, byte[])", new string[]{}, new string[]{"${Name}.${0}"})]
         public async Task SetValueAsync(Hash keyHash, byte[] value)
         {
-            await Api.GetDataProvider(_name).SetAsync(keyHash, value);
+            await Api.GetDataProvider(Name).SetAsync(keyHash, value);
         }
 
+        
         public async Task<byte[]> GetValue(Hash keyHash)
         {
-            return await Api.GetDataProvider(_name).GetAsync(keyHash);
+            return await Api.GetDataProvider(Name).GetAsync(keyHash);
         }
+
     }
 }
