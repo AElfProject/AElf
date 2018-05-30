@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using AElf.Kernel;
+using Microsoft.AspNetCore.Http;
 
 namespace AElf.Node.RPC.DTO
 {

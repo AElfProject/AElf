@@ -198,15 +198,18 @@ namespace AElf.Kernel.Node.Network.Peers
         /// list.
         /// </summary>
         /// <param name="numPeers">number of peers requested</param>
-        public List<IPeer> GetPeers(ushort numPeers)
+        public List<NodeData> GetPeers(ushort numPeers)
         {
-            List<IPeer> peers = new List<IPeer>();
+            List<NodeData> peers = new List<NodeData>();
             
             for (ushort i = 0; i < numPeers - 1; i++)
             {
                 try
                 {
-                    peers.Add(_peers[i]);
+                    NodeData p = new NodeData();
+                    p.IpAddress = _peers[i].IpAddress;
+                    p.Port = _peers[i].Port;
+                    peers.Add(p);
                 }
                 catch (Exception e)
                 {

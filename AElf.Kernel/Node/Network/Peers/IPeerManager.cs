@@ -8,7 +8,7 @@ namespace AElf.Kernel.Node.Network.Peers
     {
         void Start();
         void AddPeer(IPeer peer);
-        List<IPeer> GetPeers(ushort numPeers);
+        List<NodeData> GetPeers(ushort numPeers);
 
         Task<bool> BroadcastMessage(MessageTypes messageType, byte[] payload);
         

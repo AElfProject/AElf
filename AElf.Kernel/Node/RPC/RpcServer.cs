@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using AElf.Kernel.Node.Network.Data;
 using AElf.Kernel.Node.Network.Peers;
 using AElf.Node.RPC.DTO;
 using Microsoft.AspNetCore.Builder;
@@ -249,9 +250,9 @@ namespace AElf.Kernel.Node.RPC
 
         private async Task<JObject> ProcessGetPeers(JObject reqParams)
         {
-            PeerListDto dto = reqParams["numPeers"].ToObject<PeerListDto>();
+            TransactionDto dto = reqParams["numPeers"].ToObject<TransactionDto>();
 
-            List<IPeer> peers = await _node.GetPeers(ushort.Parse(dto.ToString()));
+            List<NodeData> peers = await _node.GetPeers(ushort.Parse(dto.ToString()));
 
             JObject j = new JObject
             {
