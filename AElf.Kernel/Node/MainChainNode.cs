@@ -68,12 +68,14 @@ namespace AElf.Kernel.Node
         /// also places it in the transaction pool.
         /// </summary>
         /// <param name="tx">The tx to broadcast</param>
-        public async Task BroadcastTransaction(Transaction tx)
+        public async Task<bool> BroadcastTransaction(Transaction tx)
         {
             // todo : send to network through server
             await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, tx.ToByteArray());
-            
+            var res = await _poolService.AddTxAsync(tx);
+           
             _logger.Trace("Broadcasted transaction to peers: " + JsonFormatter.Default.Format(tx));
+            return res;
         }
         
         /// <summary>
