@@ -9,6 +9,7 @@ using AElf.Node.RPC.DTO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 
@@ -250,16 +251,18 @@ namespace AElf.Kernel.Node.RPC
 
         private async Task<JObject> ProcessGetPeers(JObject reqParams)
         {
-            NodeDataDto dto = reqParams["numPeers"].ToObject<NodeDataDto>();
-            
-            List<NodeData> peers = await _node.GetPeers(ushort.Parse(dto.ToString()));
+            ushort numPeers = Convert.ToUInt16(reqParams["numPeers"]);
 
-            JObject j = new JObject
+            List<NodeData> peers = await _node.GetPeers(numPeers);
+            List<NodeDataDto> peersDto = new List<NodeDataDto>();
+
+            foreach (var peer in peers)
             {
-                ["peers"] = Convert.ToBase64String(DtoHelper.StringToByteArray(peers.ToString()))
-            };
+                NodeDataDto pDto = peer.ToNodeDataDto();
+                peersDto.Add(pDto);
+            }
 
-            return JObject.FromObject(j);
+            return JObject.FromObject(peersDto);
         }
 
         private async Task WriteResponse(HttpContext context, JObject response)
