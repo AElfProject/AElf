@@ -46,7 +46,7 @@ namespace AElf.Contracts.Examples
             TokenContractName = tokenContractName;
         }
         
-        [SmartContractFunction("Transfer(string, string, ulong)", new string[]{}, new []{"Balances.${from}"})]
+        [SmartContractFunction("Transfer(Hash, Hash, ulong)", new string[]{}, new []{"Balances"})]
         public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
         {
             var fromBalBytes = await Balances.GetValue(from);

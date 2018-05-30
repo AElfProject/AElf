@@ -39,7 +39,7 @@ namespace AElf.Sdk.CSharp.Types
             _count = 0;
         }
         
-        [SmartContractFunction("SetValueAsync(Hash, byte[])", new string[]{}, new string[]{"${Name}.${0}"})]
+        //[SmartContractFunction("SetValueAsync(Hash, byte[])", new string[]{}, new string[]{"${Name}.${0}"})]
         public async Task SetValueAsync(Hash keyHash, byte[] value)
         {
             await Api.GetDataProvider(Name).SetAsync(keyHash, value);
