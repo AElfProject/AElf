@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using AElf.Kernel.Node.Network.Data;
 
 namespace AElf.Kernel.Node.Network.Peers
 {
@@ -17,9 +18,9 @@ namespace AElf.Kernel.Node.Network.Peers
             return dbFile.Length != 0;
         }
         
-        public List<IPeer> ReadPeers()
+        public List<NodeData> ReadPeers()
         {
-            List<IPeer> peerList = new List<IPeer>();
+            List<NodeData> peerList = new List<NodeData>();
             
             if (!CheckDbExists()) return peerList; // Returns empty list for robustness. Do empty check during usage
             string[] fileContents = File.ReadAllLines(_filePath);
@@ -27,7 +28,9 @@ namespace AElf.Kernel.Node.Network.Peers
             foreach (string line in fileContents)
             {
                 string[] sPeer = line.Split(',');
-                Peer peer = new Peer(null, sPeer[0], Convert.ToUInt16(sPeer[1]));
+                NodeData peer = new NodeData();
+                peer.IpAddress = sPeer[0];
+                peer.Port = Convert.ToUInt16(sPeer[1]);
                 
                 peerList.Add(peer);
             }
@@ -35,11 +38,11 @@ namespace AElf.Kernel.Node.Network.Peers
             return peerList;
         }
 
-        public void WritePeers(List<IPeer> peerList)
+        public void WritePeers(List<NodeData> peerList)
         {
             StringBuilder sb = new StringBuilder();
             string newline;
-            foreach (IPeer peer in peerList)
+            foreach (var peer in peerList)
             {
                 newline = string.Format($"{peer.IpAddress},{peer.Port}");
                 sb.AppendLine(newline);
