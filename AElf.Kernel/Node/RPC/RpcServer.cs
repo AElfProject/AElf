@@ -251,7 +251,8 @@ namespace AElf.Kernel.Node.RPC
 
         private async Task<JObject> ProcessGetPeers(JObject reqParams)
         {
-            ushort numPeers = Convert.ToUInt16(reqParams["numPeers"]);
+            string numPeersS = reqParams["numPeers"].ToString();
+            ushort numPeers = Convert.ToUInt16(numPeersS);
             
             // Start of Spoofing
             List<NodeData> lnd = new List<NodeData>();
@@ -259,11 +260,11 @@ namespace AElf.Kernel.Node.RPC
             nd.IpAddress = "127.0.0.1";
             nd.Port = 1200;
             NodeData nd1 = new NodeData();
-            nd.IpAddress = "127.0.0.1";
-            nd.Port = 1201;
+            nd1.IpAddress = "127.0.0.1";
+            nd1.Port = 1201;
             NodeData nd2 = new NodeData();
-            nd.IpAddress = "127.0.0.1";
-            nd.Port = 1202;
+            nd2.IpAddress = "127.0.0.1";
+            nd2.Port = 1202;
             lnd.Add(nd);
             lnd.Add(nd1);
             lnd.Add(nd2);
