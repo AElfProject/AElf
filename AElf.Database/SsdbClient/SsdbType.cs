@@ -3,11 +3,11 @@
     public enum SsdbType
     {
         None,
-        
+
         KeyValue,
-        
+
         Hash,
-        
+
         ZSet
     }
 }

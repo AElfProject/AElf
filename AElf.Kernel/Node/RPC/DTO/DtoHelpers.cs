@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Security.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Node.Network.Data;
 using Microsoft.AspNetCore.Http;
