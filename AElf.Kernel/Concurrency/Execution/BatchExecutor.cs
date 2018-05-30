@@ -26,19 +26,21 @@ namespace AElf.Kernel.Concurrency.Execution
 		private State _state = State.PendingGrouping;
 		private bool _startExecutionMessageReceived = false;
 		private Grouper _grouper = new Grouper();
-		private IChainContext _chainContext;
+        private Hash _chainId;
+        private IActorRef _sericeRouter;
 		private List<ITransaction> _transactions;
 		private List<List<ITransaction>> _grouped;
-		private IActorRef _resultCollector;
+        private IActorRef _resultCollector;
 		private ChildType _childType;
 		private Dictionary<IActorRef, List<ITransaction>> _actorToTransactions = new Dictionary<IActorRef, List<ITransaction>>();
 		private Dictionary<Hash, TransactionResult> _transactionResults = new Dictionary<Hash, TransactionResult>();
 
-		public BatchExecutor(IChainContext chainContext, List<ITransaction> transactions, IActorRef resultCollector, ChildType childType)
+        public BatchExecutor(Hash chainId, IActorRef serviceRouter, List<ITransaction> transactions, IActorRef resultCollector, ChildType childType)
 		{
-			_chainContext = chainContext;
+            _chainId = chainId;
+            _sericeRouter = serviceRouter;
 			_transactions = transactions;
-			_resultCollector = resultCollector;
+            _resultCollector = resultCollector;
 			_childType = childType;
 		}
 
@@ -85,11 +87,11 @@ namespace AElf.Kernel.Concurrency.Execution
 				IActorRef actor = null;
 				if (_childType == ChildType.Group)
 				{
-					actor = Context.ActorOf(GroupExecutor.Props(_chainContext, txs, Self));
+                    actor = Context.ActorOf(GroupExecutor.Props(_chainId, _sericeRouter, txs, Self));
 				}
 				else
 				{
-					actor = Context.ActorOf(JobExecutor.Props(_chainContext, txs, Self));
+                    actor = Context.ActorOf(JobExecutor.Props(_chainId, _sericeRouter, txs, Self));
 				}
 
 				_actorToTransactions.Add(actor, txs);
@@ -111,9 +113,9 @@ namespace AElf.Kernel.Concurrency.Execution
 
 		private void ForwardResult(TransactionResultMessage resultMessage)
 		{
-			if (_resultCollector != null)
+            if (_resultCollector != null)
 			{
-				_resultCollector.Forward(resultMessage);
+                _resultCollector.Forward(resultMessage);
 			}
 		}
 
@@ -125,9 +127,9 @@ namespace AElf.Kernel.Concurrency.Execution
 			}
 		}
 
-		public static Props Props(IChainContext chainContext, List<ITransaction> transactions, IActorRef resultCollector, ChildType childType)
+        public static Props Props(Hash chainId, IActorRef serviceRouter, List<ITransaction> transactions, IActorRef resultCollector, ChildType childType)
 		{
-			return Akka.Actor.Props.Create(() => new BatchExecutor(chainContext, transactions, resultCollector, childType));
+            return Akka.Actor.Props.Create(() => new BatchExecutor(chainId, serviceRouter, transactions, resultCollector, childType));
 		}
 	}
 }
