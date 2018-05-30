@@ -200,10 +200,14 @@ namespace AElf.Kernel.Node.RPC
         private async Task<JObject> ProcessBroadcastTx(JObject reqParams)
         {
             TransactionDto dto = reqParams["tx"].ToObject<TransactionDto>();
+            var tx = dto.ToTransaction();
 
-            await _node.BroadcastTransaction(dto.ToTransaction());
+            var res = await _node.BroadcastTransaction(tx);
 
-            return null;
+            var jobj = new JObject();
+            jobj.Add("txId", tx.GetHash().Value.ToBase64());
+            jobj.Add("status", res);
+            return jobj;
         }
 
         private async Task<JObject> ProcessGetTx(JObject reqParams)
