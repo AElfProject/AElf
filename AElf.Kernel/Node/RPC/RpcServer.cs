@@ -250,8 +250,8 @@ namespace AElf.Kernel.Node.RPC
 
         private async Task<JObject> ProcessGetPeers(JObject reqParams)
         {
-            TransactionDto dto = reqParams["numPeers"].ToObject<TransactionDto>();
-
+            NodeDataDto dto = reqParams["numPeers"].ToObject<NodeDataDto>();
+            
             List<NodeData> peers = await _node.GetPeers(ushort.Parse(dto.ToString()));
 
             JObject j = new JObject
