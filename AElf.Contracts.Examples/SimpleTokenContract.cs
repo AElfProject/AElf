@@ -15,10 +15,9 @@ namespace AElf.Contracts.Examples
     {
         public Map Balances = new Map("Balances");
         
-        public async Task<object> InitializeAsync()
+        public async Task<object> InitializeAsync(string account, ulong qty)
         {
-            await Balances.SetValueAsync("0".CalculateHash(), ((ulong)200).ToBytes());
-            await Balances.SetValueAsync("1".CalculateHash(), ((ulong)100).ToBytes());
+            await Balances.SetValueAsync(account.CalculateHash(), qty.ToBytes());
             return null;
         }
         

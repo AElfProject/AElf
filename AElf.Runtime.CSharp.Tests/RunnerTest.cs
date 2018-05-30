@@ -51,7 +51,7 @@ namespace AElf.Runtime.CSharp.Tests
 
             var chainContext = new ChainContext()
             {
-                ChainId=Hash.Zero
+                ChainId = Hash.Zero
             };
 
             //var service = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
@@ -76,11 +76,42 @@ namespace AElf.Runtime.CSharp.Tests
 
             Hash sender = Hash.Generate();
 
-            var init = new Transaction()
+            var init0 = new Transaction()
             {
                 From = sender,
                 MethodName = "InitializeAsync",
-                Params = ByteString.CopyFrom(new Parameters().ToByteArray())
+                Params = ByteString.CopyFrom(new Parameters()
+                {
+                    Params = {
+                                new Param
+                                {
+                                    StrVal = "0"
+                                },
+                                new Param
+                                {
+                                    LongVal = 200
+                                }
+                            }
+                }.ToByteArray())
+            };
+
+            var init1 = new Transaction()
+            {
+                From = sender,
+                MethodName = "InitializeAsync",
+                Params = ByteString.CopyFrom(new Parameters()
+                {
+                    Params = {
+                                new Param
+                                {
+                                    StrVal = "1"
+                                },
+                                new Param
+                                {
+                                    LongVal = 100
+                                }
+                            }
+                }.ToByteArray())
             };
 
             var transfer1 = new Transaction
@@ -137,7 +168,13 @@ namespace AElf.Runtime.CSharp.Tests
 
             await executive1.SetTransactionContext(new TransactionContext()
             {
-                Transaction = init,
+                Transaction = init0,
+                TransactionResult = new TransactionResult()
+            }).Apply();
+
+            await executive1.SetTransactionContext(new TransactionContext()
+            {
+                Transaction = init1,
                 TransactionResult = new TransactionResult()
             }).Apply();
 
@@ -150,7 +187,13 @@ namespace AElf.Runtime.CSharp.Tests
 
             await executive2.SetTransactionContext(new TransactionContext()
             {
-                Transaction = init,
+                Transaction = init0,
+                TransactionResult = new TransactionResult()
+            }).Apply();
+
+            await executive2.SetTransactionContext(new TransactionContext()
+            {
+                Transaction = init1,
                 TransactionResult = new TransactionResult()
             }).Apply();
 
