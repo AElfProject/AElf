@@ -38,24 +38,34 @@ namespace AElf.Runtime.CSharp.Tests
         private Hash ChainId1 { get; } = Hash.Generate();
         private Hash ChainId2 { get; } = Hash.Generate();
 
-        public RunnerTest(SmartContractZero smartContractZero, IWorldStateManager worldStateManager,
-                          IChainCreationService chainCreationService, IBlockManager blockManager, SmartContractStore smartContractStore)
+        public RunnerTest(IWorldStateManager worldStateManager, IChainCreationService chainCreationService, IBlockManager blockManager, SmartContractStore smartContractStore)
         {
             _worldStateManager = worldStateManager;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             _smartContractManager = new SmartContractManager(smartContractStore);
             _runner = new SmartContractRunner("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/");
+            _smartContractRunnerFactory.AddRunner(0, _runner);
         }
 
-        public async Task Init()
+        private async Task Init()
         {
-            var smartContractZero = typeof(Class1);
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, smartContractZero);
+            byte[] code = null;
+            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/AElf.Contracts.Examples.dll")))
+            {
+                code = file.ReadFully();
+            }
+            var reg = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(code),
+                ContractHash = Hash.Zero
+            };
+            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
             _dataProvider1 = (await _worldStateManager.OfChain(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
 
-            var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, smartContractZero);
+            var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, reg);
             var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
             _dataProvider2 = (await _worldStateManager.OfChain(ChainId2)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId2));
         }
@@ -78,15 +88,17 @@ namespace AElf.Runtime.CSharp.Tests
                 ContractHash = Hash.Zero
             };
 
-            await _smartContractManager.InsertAsync(contractAddress1, reg);
             await _smartContractManager.InsertAsync(contractAddress2, reg);
-            _smartContractRunnerFactory.AddRunner(0, _runner);
+            await _smartContractManager.InsertAsync(contractAddress1, reg);
 
-            var chainContext = new ChainContext(new SmartContractZero(), Hash.Zero);
+            var chainContext = new ChainContext()
+            {
+                ChainId=Hash.Zero
+            };
 
             var service = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
 
-            var executive1 = await service.GetExecutiveAsync(contractAddress1, chainContext.ChainId);
+            var executive1 = await service.GetExecutiveAsync(contractAddress1, ChainId1);
             executive1.SetSmartContractContext(new SmartContractContext()
             {
                 ChainId = Hash.Zero,
@@ -95,7 +107,7 @@ namespace AElf.Runtime.CSharp.Tests
                 SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager)
             });
 
-            var executive2 = await service.GetExecutiveAsync(contractAddress2, chainContext.ChainId);
+            var executive2 = await service.GetExecutiveAsync(contractAddress2, ChainId2);
             executive2.SetSmartContractContext(new SmartContractContext()
             {
                 ChainId = Hash.Zero,
