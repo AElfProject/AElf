@@ -100,9 +100,14 @@ namespace AElf.Kernel.Node.Network.Peers
                 }
             }
 
-            var dbPeers = _peerDatabase.ReadPeers()
-                .Where(p => !p.DistantNodeData.Equals(_nodeData))
-                .ToList();
+            var dbNodeData = _peerDatabase.ReadPeers();
+
+            // Parse List<NodeData> to List<IPeer>
+            var dbPeers = new List<IPeer>();
+            foreach (var p in dbNodeData)
+            {
+                dbPeers.Add(new Peer(_nodeData, p.IpAddress, Convert.ToUInt16(p.Port)));
+            }
             
             if (dbPeers.Count > 0)
             {
