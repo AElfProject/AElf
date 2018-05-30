@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using AElf.Kernel;
+using AElf.Kernel.Node.Network.Data;
 using Microsoft.AspNetCore.Http;
 
 namespace AElf.Node.RPC.DTO
@@ -27,6 +28,28 @@ namespace AElf.Node.RPC.DTO
             };
 
             return tx;
+        }
+
+        public static NodeDataDto ToNodeDataDto(this NodeData nd)
+        {
+            NodeDataDto dto = new NodeDataDto()
+            {
+                IpAddress = nd.IpAddress,
+                Port = Convert.ToUInt16(nd.Port)
+            };
+
+            return dto;
+        }
+
+        public static NodeData ToNodeData(this NodeDataDto dto)
+        {
+            NodeData nd = new NodeData()
+            {
+                IpAddress = dto.IpAddress,
+                Port = dto.Port
+            };
+
+            return nd;
         }
         
         public static byte[] StringToByteArray(string hex)
