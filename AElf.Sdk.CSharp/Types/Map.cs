@@ -7,15 +7,8 @@ using AElf.Kernel;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Metadata;
 
-namespace AElf.Api.CSharp
+namespace AElf.Sdk.CSharp.Types
 {
-    public class AttributeException : Exception
-    {
-        public AttributeException(string message):base(message)
-        {
-            
-        }
-    }
     public class Map : IBaseContainer
     {
         private int _count;

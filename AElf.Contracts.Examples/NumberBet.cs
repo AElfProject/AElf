@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Api.CSharp;
 using AElf.Kernel;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Extensions;
+using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.Types;
 using Org.BouncyCastle.Security;
-using CSharpSmartContract = AElf.Api.CSharp.CSharpSmartContract;
 
 namespace AElf.Contracts.Examples
 {
@@ -28,53 +28,37 @@ namespace AElf.Contracts.Examples
         [SmartContractFunction("BuyToken", new []{"MainChain.SimpleTokenContract.Transfer(string, string, ulong)"}, new []{"CasinoToken", "ExchangeRate"})]
         public async Task<bool> BuyToken(Hash from, ulong value)
         {
-            if (GetContractByName("MainChain.AElf", out var aelf))
+            if(await tokenContract.Transfer(from, Api.GetContractAddress(), value))
             {
-                if(await tokenContract.Transfer(from, Api.CSharp.Api.GetContractAddress(), value))
-                {
-                    var originBalance = (await CasinoToken.GetValue(from)).ToUInt64();
-                    originBalance += value * ExchangeRate;
-                    await CasinoToken.SetValueAsync(from, originBalance.ToBytes());
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                var originBalance = (await CasinoToken.GetValue(from)).ToUInt64();
+                originBalance += value * ExchangeRate;
+                await CasinoToken.SetValueAsync(from, originBalance.ToBytes());
+                return true;
             }
             else
             {
-                //should have a exception of "SmartContractNotFound"
-                throw new InvalidParameterException();
+                return false;
             }
         }
 
-        public override async Task InitializeAsync(IAccountDataProvider dataProvider)
+        public async Task InitializeAsync(IAccountDataProvider dataProvider)
         {
             await CasinoToken.SetValueAsync("0".CalculateHash(), ((ulong)200).ToBytes());
             await CasinoToken.SetValueAsync("1".CalculateHash(), ((ulong)100).ToBytes());
         }
 
-        public override async Task<object> InvokeAsync(SmartContractInvokeContext context)
+        public override async Task InvokeAsync()
         {
-            var methodname = context.MethodName;
+            var tx = Api.GetTransaction();
+
+            var methodname = tx.MethodName;
             var type = GetType();
             var member = type.GetMethod(methodname);
             // params array
-            var parameters = Parameters.Parser.ParseFrom(context.Params).Params.Select(p => p.Value()).ToArray();
+            var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
             
             // invoke
-            return await (Task<object>) member.Invoke(this, parameters);
-        }
-
-        /// <summary>
-        /// Dummy function for displaying metadata
-        /// </summary>
-        /// <param name="contractFullName"></param>
-        /// <returns></returns>
-        public bool GetContractByName(string contractFullName, out CSharpSmartContract contract)
-        {
-            throw new NotImplementedException();
+            await (Task<object>) member.Invoke(this, parameters);
         }
     }
 }

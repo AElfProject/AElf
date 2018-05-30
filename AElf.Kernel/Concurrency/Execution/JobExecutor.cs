@@ -87,12 +87,13 @@ namespace AElf.Kernel.Concurrency.Execution
 
             try
             {
-                await smartContractZero.InvokeAsync(new SmartContractInvokeContext()
-                {
-                    Caller = transaction.From,
-                    MethodName = transaction.MethodName,
-                    Params = transaction.Params
-                });
+                // TODO: *** Contract Issues ***
+                //await smartContractZero.InvokeAsync(new SmartContractInvokeContext()
+                //{
+                //    Caller = transaction.From,
+                //    MethodName = transaction.MethodName,
+                //    Params = transaction.Params
+                //});
                 result.Status = Status.Mined;
             }
             catch

@@ -9,5 +9,8 @@ namespace AElf.Kernel
     {
         ISmartContractZero SmartContractZero { get; }
         Hash ChainId { get; }
+        // TODO: Standardize interface
+        ulong BlockHeight { get; set; }
+        Hash BlockHash { get; set; }
     }
 }

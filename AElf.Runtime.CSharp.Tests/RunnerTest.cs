@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Reflection;
 using AElf.Kernel;
+using AElf.Kernel.Storages;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
@@ -16,6 +17,7 @@ using ServiceStack;
 using Xunit;
 using AElf.Runtime.CSharp;
 using Xunit.Frameworks.Autofac;
+using AElf.Contracts;
 using Path = AElf.Kernel.Path;
 
 namespace AElf.Runtime.CSharp.Tests
@@ -25,43 +27,34 @@ namespace AElf.Runtime.CSharp.Tests
     {
         private IAccountDataProvider _dataProvider1;
         private IAccountDataProvider _dataProvider2;
-        private CSharpAssemblyLoadContext _loadContext1;
-        private BinaryCSharpSmartContractRunner _runner1;
-        
-        private CSharpAssemblyLoadContext _loadContext2;
-        private BinaryCSharpSmartContractRunner _runner2;
-        
+        private SmartContractRunner _runner;
+
+        private ISmartContractManager _smartContractManager;
         private IWorldStateManager _worldStateManager;
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
 
+        private ISmartContractRunnerFactory _smartContractRunnerFactory = new SmartContractRunnerFactory();
         private Hash ChainId1 { get; } = Hash.Generate();
         private Hash ChainId2 { get; } = Hash.Generate();
-        
+
         public RunnerTest(SmartContractZero smartContractZero, IWorldStateManager worldStateManager,
-            IChainCreationService chainCreationService, IBlockManager blockManager)
+                          IChainCreationService chainCreationService, IBlockManager blockManager, SmartContractStore smartContractStore)
         {
             _worldStateManager = worldStateManager;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
-            
-            _loadContext1 = new CSharpAssemblyLoadContext(
-                System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples"),
-                AppDomain.CurrentDomain.GetAssemblies());
-            _loadContext2 = new CSharpAssemblyLoadContext(
-                System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples"),
-                AppDomain.CurrentDomain.GetAssemblies());
-            _runner1 = new BinaryCSharpSmartContractRunner(smartContractZero, _loadContext1);
-            _runner2 = new BinaryCSharpSmartContractRunner(smartContractZero, _loadContext2);
+            _smartContractManager = new SmartContractManager(smartContractStore);
+            _runner = new SmartContractRunner("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/");
         }
 
-        public async Task init()
+        public async Task Init()
         {
             var smartContractZero = typeof(Class1);
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, smartContractZero);
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
             _dataProvider1 = (await _worldStateManager.OfChain(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
-            
+
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, smartContractZero);
             var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
             _dataProvider2 = (await _worldStateManager.OfChain(ChainId2)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId2));
@@ -70,7 +63,9 @@ namespace AElf.Runtime.CSharp.Tests
         [Fact]
         public async Task Test()
         {
-            await init();
+            Hash contractAddress1 = Hash.Generate();
+            Hash contractAddress2 = Hash.Generate();
+            await Init();
             byte[] code = null;
             using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/AElf.Contracts.Examples.dll")))
             {
@@ -82,33 +77,50 @@ namespace AElf.Runtime.CSharp.Tests
                 ContractBytes = ByteString.CopyFrom(code),
                 ContractHash = Hash.Zero
             };
-            
-            var dep = new SmartContractDeployment
+
+            await _smartContractManager.InsertAsync(contractAddress1, reg);
+            await _smartContractManager.InsertAsync(contractAddress2, reg);
+            _smartContractRunnerFactory.AddRunner(0, _runner);
+
+            var chainContext = new ChainContext(new SmartContractZero(), Hash.Zero);
+
+            var service = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
+
+            var executive1 = await service.GetExecutiveAsync(contractAddress1, chainContext.ChainId);
+            executive1.SetSmartContractContext(new SmartContractContext()
             {
-                ContractHash = Hash.Zero,
-                Caller = Hash.Zero,
-                ConstructParams = ByteString.CopyFrom(
-                    new Parameters().ToByteArray()
-                ),
-                IncrementId = 1
+                ChainId = Hash.Zero,
+                ContractAddress = contractAddress1,
+                DataProvider = _dataProvider1.GetDataProvider(),
+                SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager)
+            });
+
+            var executive2 = await service.GetExecutiveAsync(contractAddress2, chainContext.ChainId);
+            executive2.SetSmartContractContext(new SmartContractContext()
+            {
+                ChainId = Hash.Zero,
+                ContractAddress = contractAddress2,
+                DataProvider = _dataProvider2.GetDataProvider(),
+                SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager)
+            });
+
+            Hash sender = Hash.Generate();
+
+            var init = new Transaction()
+            {
+                From = sender,
+                MethodName = "InitializeAsync",
+                Params = ByteString.CopyFrom(new Parameters().ToByteArray())
             };
 
-            
-            Assert.Equal("", string.Join("\n", AppDomain.CurrentDomain.GetAssemblies().Where(x=>x.GetName().Name.Contains("Api")).Select(x=>x.GetName().Name.ToString())));
-            
-            var contract1 = await _runner1.RunAsync(reg, dep, _dataProvider1);
-            var contract2 = await _runner2.RunAsync(reg, dep, _dataProvider2);
-            await contract1.InitializeAsync(_dataProvider1);
-            await contract2.InitializeAsync(_dataProvider2);
-            
-            var transfer1 = new SmartContractInvokeContext 
+            var transfer1 = new Transaction
             {
+                From = Hash.Zero,
                 MethodName = "Transfer",
-                Caller = Hash.Zero,
                 Params = ByteString.CopyFrom(
                     new Parameters
-                        {
-                            Params = {
+                    {
+                        Params = {
                                 new Param
                                 {
                                     StrVal = "0"
@@ -122,19 +134,19 @@ namespace AElf.Runtime.CSharp.Tests
                                     LongVal = 10
                                 }
                             }
-                        }
+                    }
                         .ToByteArray()
                 )
             };
-            
-            var transfer2 = new SmartContractInvokeContext 
+
+            var transfer2 = new Transaction
             {
+                From = Hash.Zero,
                 MethodName = "Transfer",
-                Caller = Hash.Zero,
                 Params = ByteString.CopyFrom(
                     new Parameters
-                        {
-                            Params = {
+                    {
+                        Params = {
                                 new Param
                                 {
                                     StrVal = "0"
@@ -148,65 +160,108 @@ namespace AElf.Runtime.CSharp.Tests
                                     LongVal = 20
                                 }
                             }
-                        }
+                    }
                         .ToByteArray()
                 )
             };
-            
-            await contract1.InvokeAsync(transfer1);
-            await contract2.InvokeAsync(transfer2);
 
-            var b0 = new SmartContractInvokeContext 
+            await executive1.SetTransactionContext(new TransactionContext()
             {
+                Transaction = init,
+                TransactionResult = new TransactionResult()
+            }).Apply();
+
+            await executive1.SetTransactionContext(new TransactionContext()
+            {
+                Transaction = transfer1,
+                TransactionResult = new TransactionResult()
+            }).Apply();
+
+
+            await executive2.SetTransactionContext(new TransactionContext()
+            {
+                Transaction = init,
+                TransactionResult = new TransactionResult()
+            }).Apply();
+
+            await executive2.SetTransactionContext(new TransactionContext()
+            {
+                Transaction = transfer2,
+                TransactionResult = new TransactionResult()
+            }).Apply();
+
+            var getb0 = new Transaction
+            {
+                From = Hash.Zero,
                 MethodName = "GetBalance",
-                Caller = Hash.Zero,
                 Params = ByteString.CopyFrom(
                     new Parameters
-                        {
-                            Params = {
+                    {
+                        Params = {
                                 new Param
                                 {
                                     StrVal = "0"
                                 }
                             }
-                        }
+                    }
                         .ToByteArray()
                 )
             };
 
-            
-            var b1 = new SmartContractInvokeContext 
+
+            var getb1 = new Transaction
             {
+                From = Hash.Zero,
                 MethodName = "GetBalance",
-                Caller = Hash.Zero,
                 Params = ByteString.CopyFrom(
                     new Parameters
-                        {
-                            Params = {
+                    {
+                        Params = {
                                 new Param
                                 {
                                     StrVal = "1"
                                 }
                             }
-                        }
+                    }
                         .ToByteArray()
                 )
             };
-            
-            var bal10 = await contract1.InvokeAsync(b0);
-            
-            var bal20 = await contract2.InvokeAsync(b0);
-            var bal11 = await contract1.InvokeAsync(b1);
-            
-            var bal21 = await contract2.InvokeAsync(b1);
-            
-            //            Assert.Equal(bal10, bal20);
-            Assert.Equal((ulong) 190, bal10);
-            Assert.Equal((ulong) 180, bal20);
-            
-            Assert.Equal((ulong) 110, bal11);
-            Assert.Equal((ulong) 120, bal21);
-            
+
+            var bal10 = new TransactionResult();
+            var bal20 = new TransactionResult();
+            var bal11 = new TransactionResult();
+            var bal21 = new TransactionResult();
+
+            await executive1.SetTransactionContext(new TransactionContext()
+            {
+                Transaction = getb0,
+                TransactionResult = bal10
+            }).Apply();
+
+            await executive2.SetTransactionContext(new TransactionContext()
+            {
+                Transaction = getb0,
+                TransactionResult = bal20
+            }).Apply();
+
+            await executive1.SetTransactionContext(new TransactionContext()
+            {
+                Transaction = getb1,
+                TransactionResult = bal11
+            }).Apply();
+
+            await executive2.SetTransactionContext(new TransactionContext()
+            {
+                Transaction = getb1,
+                TransactionResult = bal21
+            }).Apply();
+
+            Assert.Equal((ulong)190, bal10.Logs.ToByteArray().ToUInt64());
+            Assert.Equal((ulong)180, bal20.Logs.ToByteArray().ToUInt64());
+
+            Assert.Equal((ulong)110, bal11.Logs.ToByteArray().ToUInt64());
+            Assert.Equal((ulong)120, bal21.Logs.ToByteArray().ToUInt64());
+
         }
     }
 }

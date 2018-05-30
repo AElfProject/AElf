@@ -27,7 +27,8 @@ namespace AElf.Kernel
             var registerTx = new Transaction
             {
                 IncrementId = 0,
-                MethodName = nameof(ISmartContractZero.RegisterSmartContract),
+                // TODO: *** Contract Issues ***
+                MethodName = nameof(ISmartContractZero.DeploySmartContract),
                 To = Hash.Zero,
                 From = Hash.Zero,
                 Params = ByteString.CopyFrom(

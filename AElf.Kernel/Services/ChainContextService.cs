@@ -30,16 +30,17 @@ namespace AElf.Kernel.Services
             
             var result= Task.Factory.StartNew(async () =>
             {
+                // TODO: *** Contract Issues ***
                 // create smart contract zero
-                var zero = new SmartContractZero(_contractRunnerFactory, _worldStateManager);
-                await _worldStateManager.OfChain(chainId);
+                //var zero = new SmartContractZero(_contractRunnerFactory, _worldStateManager);
+                //await _worldStateManager.OfChain(chainId);
                 
-                // initialize smart contract zero
-                var adp = _worldStateManager.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId));
-                await zero.InitializeAsync(adp);
+                //// initialize smart contract zero
+                //var adp = _worldStateManager.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId));
+                //await zero.InitializeAsync(adp);
                 
                 // create chain context
-                var context = new ChainContext(zero, chainId);
+                var context = new ChainContext(null, chainId);
                 
                 // cache
                 _chainContexts[chainId] = context;
