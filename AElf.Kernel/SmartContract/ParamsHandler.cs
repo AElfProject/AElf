@@ -37,5 +37,62 @@ namespace AElf.Kernel
             }
             return val;
         }
+        
+        public static Param ToParam(this object param)
+        {
+            var type = param.GetType();
+            if (type == typeof(int))
+            {
+                return new Param
+                {
+                    IntVal = (int) param
+                };
+            }
+            if (type == typeof(string))
+            {
+                return new Param
+                {
+                    StrVal = (string) param
+                };
+            }
+            if (type == typeof(Hash))
+            {
+                return new Param
+                {
+                    HashVal = (Hash) param
+                };
+            }
+            if (type == typeof(double))
+            {
+                return new Param
+                {
+                    DVal = (double) param
+                };
+            }
+            if(type == typeof(ulong))
+            {
+                return new Param
+                {
+                    LongVal = (ulong) param
+                };
+            }
+            if(type == typeof(SmartContractRegistration))
+            {
+                return new Param
+                {
+                    RegisterVal = (SmartContractRegistration)param
+                };
+            }
+            if (type == typeof(SmartContractDeployment))
+            {
+                return new Param
+                {
+                    DeploymentVal = (SmartContractDeployment) param
+                };
+            }
+
+            return null;
+
+        }
     }
 }
