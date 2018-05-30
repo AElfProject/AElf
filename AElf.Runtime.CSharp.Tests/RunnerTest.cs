@@ -25,49 +25,12 @@ namespace AElf.Runtime.CSharp.Tests
     [UseAutofacTestFramework]
     public class RunnerTest
     {
-        private IAccountDataProvider _dataProvider1;
-        private IAccountDataProvider _dataProvider2;
-        private SmartContractRunner _runner;
-
-        private ISmartContractManager _smartContractManager;
-        private IWorldStateManager _worldStateManager;
-        private IChainCreationService _chainCreationService;
-        private IBlockManager _blockManager;
-
-        private ISmartContractRunnerFactory _smartContractRunnerFactory = new SmartContractRunnerFactory();
-        private Hash ChainId1 { get; } = Hash.Generate();
-        private Hash ChainId2 { get; } = Hash.Generate();
-
-        public RunnerTest(IWorldStateManager worldStateManager, IChainCreationService chainCreationService, IBlockManager blockManager, SmartContractStore smartContractStore)
+        private MockSetup _mock;
+        private ISmartContractService _service;
+        public RunnerTest(MockSetup mock)
         {
-            _worldStateManager = worldStateManager;
-            _chainCreationService = chainCreationService;
-            _blockManager = blockManager;
-            _smartContractManager = new SmartContractManager(smartContractStore);
-            _runner = new SmartContractRunner("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/");
-            _smartContractRunnerFactory.AddRunner(0, _runner);
-        }
-
-        private async Task Init()
-        {
-            byte[] code = null;
-            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/AElf.Contracts.Examples.dll")))
-            {
-                code = file.ReadFully();
-            }
-            var reg = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = Hash.Zero
-            };
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
-            var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
-            _dataProvider1 = (await _worldStateManager.OfChain(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
-
-            var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, reg);
-            var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
-            _dataProvider2 = (await _worldStateManager.OfChain(ChainId2)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId2));
+            _mock = mock;
+            _service = mock.SmartContractService;
         }
 
         [Fact]
@@ -75,45 +38,40 @@ namespace AElf.Runtime.CSharp.Tests
         {
             Hash contractAddress1 = Hash.Generate();
             Hash contractAddress2 = Hash.Generate();
-            await Init();
-            byte[] code = null;
-            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/AElf.Contracts.Examples.dll")))
-            {
-                code = file.ReadFully();
-            }
+
             var reg = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFrom(code),
+                ContractBytes = ByteString.CopyFrom(_mock.ExampleContractCode),
                 ContractHash = Hash.Zero
             };
 
-            await _smartContractManager.InsertAsync(contractAddress2, reg);
-            await _smartContractManager.InsertAsync(contractAddress1, reg);
+            await _service.DeployContractAsync(contractAddress1, reg);
+            await _service.DeployContractAsync(contractAddress2, reg);
 
             var chainContext = new ChainContext()
             {
                 ChainId=Hash.Zero
             };
 
-            var service = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
+            //var service = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
 
-            var executive1 = await service.GetExecutiveAsync(contractAddress1, ChainId1);
+            var executive1 = await _service.GetExecutiveAsync(contractAddress1, _mock.ChainId1);
             executive1.SetSmartContractContext(new SmartContractContext()
             {
                 ChainId = Hash.Zero,
                 ContractAddress = contractAddress1,
-                DataProvider = _dataProvider1.GetDataProvider(),
-                SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager)
+                DataProvider = _mock.DataProvider1.GetDataProvider(),
+                SmartContractService = _service
             });
 
-            var executive2 = await service.GetExecutiveAsync(contractAddress2, ChainId2);
+            var executive2 = await _service.GetExecutiveAsync(contractAddress2, _mock.ChainId2);
             executive2.SetSmartContractContext(new SmartContractContext()
             {
                 ChainId = Hash.Zero,
                 ContractAddress = contractAddress2,
-                DataProvider = _dataProvider2.GetDataProvider(),
-                SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager)
+                DataProvider = _mock.DataProvider2.GetDataProvider(),
+                SmartContractService = _service
             });
 
             Hash sender = Hash.Generate();
@@ -219,7 +177,6 @@ namespace AElf.Runtime.CSharp.Tests
                         .ToByteArray()
                 )
             };
-
 
             var getb1 = new Transaction
             {
