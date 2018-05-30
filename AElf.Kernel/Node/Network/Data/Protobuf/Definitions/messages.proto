@@ -12,3 +12,7 @@ message AElfPacketData {
     int32 length = 2;
     bytes payload = 3;
 }
+
+message PeerListData {
+    repeated NodeData nodeData = 1;
+}

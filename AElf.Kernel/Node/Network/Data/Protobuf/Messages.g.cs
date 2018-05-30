@@ -26,13 +26,15 @@ namespace AElf.Kernel.Node.Network.Data {
           string.Concat(
             "Cg5tZXNzYWdlcy5wcm90byIrCghOb2RlRGF0YRIRCglJcEFkZHJlc3MYASAB",
             "KAkSDAoEUG9ydBgCIAEoBSJCCg5BRWxmUGFja2V0RGF0YRIPCgdtc2dUeXBl",
-            "GAEgASgFEg4KBmxlbmd0aBgCIAEoBRIPCgdwYXlsb2FkGAMgASgMQiCqAh1B",
+            "GAEgASgFEg4KBmxlbmd0aBgCIAEoBRIPCgdwYXlsb2FkGAMgASgMIisKDFBl",
+            "ZXJMaXN0RGF0YRIbCghub2RlRGF0YRgBIAMoCzIJLk5vZGVEYXRhQiCqAh1B",
             "RWxmLktlcm5lbC5Ob2RlLk5ldHdvcmsuRGF0YWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Node.Network.Data.NodeData), global::AElf.Kernel.Node.Network.Data.NodeData.Parser, new[]{ "IpAddress", "Port" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Node.Network.Data.AElfPacketData), global::AElf.Kernel.Node.Network.Data.AElfPacketData.Parser, new[]{ "MsgType", "Length", "Payload" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Node.Network.Data.AElfPacketData), global::AElf.Kernel.Node.Network.Data.AElfPacketData.Parser, new[]{ "MsgType", "Length", "Payload" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Node.Network.Data.PeerListData), global::AElf.Kernel.Node.Network.Data.PeerListData.Parser, new[]{ "NodeData" }, null, null, null)
           }));
     }
     #endregion
@@ -373,6 +375,127 @@ namespace AElf.Kernel.Node.Network.Data {
           }
           case 26: {
             Payload = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class PeerListData : pb::IMessage<PeerListData> {
+    private static readonly pb::MessageParser<PeerListData> _parser = new pb::MessageParser<PeerListData>(() => new PeerListData());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<PeerListData> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.Node.Network.Data.MessagesReflection.Descriptor.MessageTypes[2]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PeerListData() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PeerListData(PeerListData other) : this() {
+      nodeData_ = other.nodeData_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PeerListData Clone() {
+      return new PeerListData(this);
+    }
+
+    /// <summary>Field number for the "nodeData" field.</summary>
+    public const int NodeDataFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::AElf.Kernel.Node.Network.Data.NodeData> _repeated_nodeData_codec
+        = pb::FieldCodec.ForMessage(10, global::AElf.Kernel.Node.Network.Data.NodeData.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.Node.Network.Data.NodeData> nodeData_ = new pbc::RepeatedField<global::AElf.Kernel.Node.Network.Data.NodeData>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::AElf.Kernel.Node.Network.Data.NodeData> NodeData {
+      get { return nodeData_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as PeerListData);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(PeerListData other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!nodeData_.Equals(other.nodeData_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= nodeData_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      nodeData_.WriteTo(output, _repeated_nodeData_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += nodeData_.CalculateSize(_repeated_nodeData_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(PeerListData other) {
+      if (other == null) {
+        return;
+      }
+      nodeData_.Add(other.nodeData_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            nodeData_.AddEntriesFrom(input, _repeated_nodeData_codec);
             break;
           }
         }
