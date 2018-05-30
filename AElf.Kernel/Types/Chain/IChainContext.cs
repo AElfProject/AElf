@@ -7,9 +7,7 @@ namespace AElf.Kernel
     /// </summary>
     public interface IChainContext
     {
-        ISmartContractZero SmartContractZero { get; }
-        Hash ChainId { get; }
-        // TODO: Standardize interface
+        Hash ChainId { get; set; }
         ulong BlockHeight { get; set; }
         Hash BlockHash { get; set; }
     }
