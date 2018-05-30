@@ -88,7 +88,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			var executor2 = ActorOf(JobExecutor.Props(_chainContext, new List<ITransaction>() { tx2 }, TestActor));
 			executor2.Tell(StartExecutionMessage.Instance);
 			result = ExpectMsg<TransactionResultMessage>().TransactionResult;
-			Assert.Equal(Status.ExecutedFailed, result.Status);
+			Assert.Equal(Status.Failed, result.Status);
 			Assert.Equal((ulong)90, smartContractZero.GetBalance(from));
 			Assert.Equal((ulong)10, smartContractZero.GetBalance(to));         
 		}
