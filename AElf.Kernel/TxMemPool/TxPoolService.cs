@@ -56,6 +56,7 @@ namespace AElf.Kernel.TxMemPool
                 _txPool.Nonces.TryAdd(tx.From, id);
             }
            
+
             return await (Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
             {
                 return _txPool.EnQueueTx(tx);
@@ -225,15 +226,15 @@ namespace AElf.Kernel.TxMemPool
         public void Start()
         {
             // TODO: more initialization
-            EnqueueEvent = new AutoResetEvent(false);
-            DemoteEvent = new AutoResetEvent(false);
+            //EnqueueEvent = new AutoResetEvent(false);
+            //DemoteEvent = new AutoResetEvent(false);
             Cts = new CancellationTokenSource();
             
             // waiting enqueue tx
             //var task1 = Task.Factory.StartNew(async () => await Receive());
             
             // waiting demote txs
-            var task2 = Task.Factory.StartNew(async () => await Demote());
+            //var task2 = Task.Factory.StartNew(async () => await Demote());
         }
 
         

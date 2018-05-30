@@ -41,12 +41,12 @@ namespace AElf.Kernel.TxMemPool
                 return false;
             }
             
-            // fee validation
+            /*// fee validation
             if (tx.Fee < pool.MinimalFee)
             {
                 // TODO: log errors, not enough Fee error 
                 return false;
-            }
+            }*/
             
             // TODO : more validations
             return true;
