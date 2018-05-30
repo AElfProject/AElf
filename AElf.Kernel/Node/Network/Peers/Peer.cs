@@ -60,10 +60,10 @@ namespace AElf.Kernel.Node.Network.Peers
         /// <param name="nodeData"></param>
         /// <param name="ipAddress"></param>
         /// <param name="port"></param>
-        public Peer(NodeData nodeData, string ipAddress, ushort port)
+        public Peer(NodeData nodeData, NodeData peerData)
         {
             _nodeData = nodeData;
-            DistantNodeData = new NodeData { IpAddress = ipAddress, Port = port };
+            DistantNodeData = peerData;
         }
 
         /// <summary>

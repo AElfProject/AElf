@@ -81,13 +81,18 @@ namespace AElf.Kernel.Node.Network.Peers
                 foreach (var peerString in _networkConfig.Peers)
                 {
                     // Parse the IP and port
-                    string[] splitted = peerString.Split(':');
+                    string[] split = peerString.Split(':');
 
-                    if (splitted.Length != 2)
+                    if (split.Length != 2)
                         continue;
                     
-                    ushort port = ushort.Parse(splitted[1]);
-                    IPeer p = new Peer(_nodeData, splitted[0], port);
+                    ushort port = ushort.Parse(split[1]);
+                    
+                    NodeData peer = new NodeData();
+                    peer.IpAddress = split[0];
+                    peer.Port = port;
+                    
+                    IPeer p = new Peer(_nodeData, peer);
                     
                     bool success = await p.DoConnectAsync();
 
@@ -106,7 +111,7 @@ namespace AElf.Kernel.Node.Network.Peers
             var dbPeers = new List<IPeer>();
             foreach (var p in dbNodeData)
             {
-                dbPeers.Add(new Peer(_nodeData, p.IpAddress, Convert.ToUInt16(p.Port)));
+                dbPeers.Add(new Peer(_nodeData, p));
             }
             
             if (dbPeers.Count > 0)
