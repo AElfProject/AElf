@@ -4,7 +4,6 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Network.Data;
-using AElf.Kernel.Node.Network.Peers;
 using AElf.Node.RPC.DTO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -284,7 +283,15 @@ namespace AElf.Kernel.Node.RPC
                 peersDto.Add(pDto);
             }
 
-            return JObject.FromObject(peersDto);
+            var json = JsonConvert.SerializeObject(peersDto);
+            JArray arrPeersDto = JArray.Parse(json);
+
+            JObject j = new JObject()
+            {
+                ["data"] = arrPeersDto
+            };
+            
+            return JObject.FromObject(j);
         }
 
         private async Task WriteResponse(HttpContext context, JObject response)
