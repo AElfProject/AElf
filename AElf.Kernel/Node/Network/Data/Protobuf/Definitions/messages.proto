@@ -16,3 +16,7 @@ message AElfPacketData {
 message PeerListData {
     repeated NodeData nodeData = 1;
 }
+
+message ReqPeerListData {
+    int32 numPeers = 1;
+}
