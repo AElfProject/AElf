@@ -20,10 +20,14 @@ namespace AElf.Kernel.Modules.AutofacModule
                 case DatabaseType.KeyValue:
                     builder.RegisterType<KeyValueDatabase>().As<IKeyValueDatabase>().SingleInstance();
                     break;
-                case DatabaseType.Redis:
-                    builder.RegisterType<RedisDatabase>().As<IKeyValueDatabase>();
-                    break;
                 case DatabaseType.Ssdb:
+#if DEBUG
+                    if (!new SsdbDatabase(_config).IsConnected())
+                    {
+                        builder.RegisterType<KeyValueDatabase>().As<IKeyValueDatabase>().SingleInstance();
+                        break;
+                    }
+#endif
                     builder.RegisterType<SsdbDatabase>().As<IKeyValueDatabase>();
                     break;
             }
