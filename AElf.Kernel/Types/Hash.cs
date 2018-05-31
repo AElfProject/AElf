@@ -64,7 +64,7 @@ namespace AElf.Kernel
         
         public static implicit operator Hash(byte[] value)
         {
-            return value == null ? Default : new Hash(value);
+            return value == null ? Zero : new Hash(value);
         }
     }
 }

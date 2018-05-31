@@ -82,15 +82,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             return tx;
         }
         
-        [Fact]
-        public void InvalidTxWithoutFromAccount()
-        {
-            var pool = GetPool(1, 1024);
-            var tx = ValidTx();
-            Assert.Equal(pool.ValidateTx(tx), TxValidation.ValidationError.Success);
-            tx.From = null;
-            Assert.Equal(pool.ValidateTx(tx), TxValidation.ValidationError.InvalidTxFormat);
-        }
+        
 
         [Fact]
         public void InvalidTxWithoutMethodName()

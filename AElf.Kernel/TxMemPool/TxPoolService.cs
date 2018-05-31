@@ -104,7 +104,7 @@ namespace AElf.Kernel.TxMemPool
             }
         }*/
         
-        /// <summary>
+        /*/// <summary>
         /// wait signal to demote txs
         /// </summary>
         /// <returns></returns>
@@ -115,7 +115,7 @@ namespace AElf.Kernel.TxMemPool
             {
                 DemoteEvent.WaitOne();
             }
-        }
+        }*/
         
 
         /// <inheritdoc/>
@@ -148,27 +148,33 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task<List<ITransaction>> GetReadyTxsAsync(ulong limit)
         {
-            return Lock.ReadLock(() =>
+            //return Lock.ReadLock(() =>
+            lock (this)
             {
                 _txPool.Enqueueable = false;
-                return _txPool.ReadyTxs(limit);
-            });
+                return Task.FromResult(_txPool.ReadyTxs(limit));
+            }
         }
 
         /// <inheritdoc/>
         public Task<bool> PromoteAsync()
         {
-            return Lock.WriteLock(() =>
+            //return Lock.WriteLock(() =>
+            lock (this)
             {
                 _txPool.Promote();
-                return true;
-            });
+                return Task.FromResult(true);
+            }
         }
 
         /// <inheritdoc/>
         public Task<ulong> GetPoolSize()
         {
-            return Lock.ReadLock(() => _txPool.Size);
+            lock (this)
+            {
+                return Task.FromResult(_txPool.Size);
+            }
+            //return Lock.ReadLock(() => _txPool.Size);
         }
 
         /// <inheritdoc/>
@@ -184,10 +190,15 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task ClearAsync()
         {
-            return Lock.WriteLock(()=>
+            /*return Lock.WriteLock(()=>
             {
                 _txPool.ClearAll();
-            });
+            });*/
+            lock (this)
+            {
+                _txPool.ClearAll();
+                return Task.CompletedTask;
+            }
         }
 
         /// <inheritdoc/>
@@ -199,13 +210,21 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task<ulong> GetWaitingSizeAsync()
         {
-            return Lock.ReadLock(() => _txPool.GetWaitingSize());
+            //return Lock.ReadLock(() => _txPool.GetWaitingSize());
+            lock (this)
+            {
+                return Task.FromResult(_txPool.GetWaitingSize());
+            }
         }
 
         /// <inheritdoc/>
         public Task<ulong> GetExecutableSizeAsync()
         {
-            return Lock.ReadLock(() => _txPool.GetExecutableSize());
+            //return Lock.ReadLock(() => _txPool.GetExecutableSize());
+            lock (this)
+            {
+                return Task.FromResult(_txPool.GetExecutableSize());
+            }
         }
         
         /// <inheritdoc/>
@@ -249,16 +268,22 @@ namespace AElf.Kernel.TxMemPool
 
         
         /// <inheritdoc/>
-        public async Task Stop()
+        public Task Stop()
         {
-            await Lock.WriteLock(() =>
+            /*await Lock.WriteLock(() =>
             {
                 // TODO: release resources
                 Cts.Cancel();
                 Cts.Dispose();
                 //EnqueueEvent.Dispose();
                 //DemoteEvent.Dispose();
-            });
+            });*/
+            lock (this)
+            {
+                Cts.Cancel();
+                Cts.Dispose();
+                return Task.CompletedTask;
+            }
         }
 
         
