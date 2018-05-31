@@ -253,7 +253,7 @@ namespace AElf.Kernel.Node.RPC
             string numPeersS = reqParams["numPeers"].ToString();
             ushort numPeers = Convert.ToUInt16(numPeersS);
 
-            List<NodeData> peers = await _node.ReturnPeers(numPeers);
+            List<NodeData> peers = await _node.RequestPeers(numPeers);
             List<NodeDataDto> peersDto = new List<NodeDataDto>();
 
             foreach (var peer in peers)

@@ -102,9 +102,9 @@ namespace AElf.Kernel.Node
         /// </summary>
         /// <param name="numPeers"></param>
         /// <returns></returns>
-        public async Task<List<NodeData>> ReturnPeers(ushort numPeers)
+        public async Task<List<NodeData>> RequestPeers(ushort numPeers)
         {
-            return _peerManager.ReturnPeers(numPeers);
+            return _peerManager.RequestPeers(numPeers);
         }
     }
 }
