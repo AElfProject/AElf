@@ -14,6 +14,8 @@ namespace AElf.Kernel
         }
         
         public static readonly Hash Zero = new Hash("AElf".CalculateHash());
+        
+        public static readonly Hash Default = new Hash();
 
         public Hash(byte[] buffer)
         {
@@ -62,7 +64,7 @@ namespace AElf.Kernel
         
         public static implicit operator Hash(byte[] value)
         {
-            return value == null ? Zero : new Hash(value);
+            return value == null ? Default : new Hash(value);
         }
     }
 }

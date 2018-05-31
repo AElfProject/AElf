@@ -56,12 +56,22 @@ namespace AElf.Kernel.TxMemPool
                 _txPool.Nonces.TryAdd(tx.From, id);
             }
            
+            if(!Cts.IsCancellationRequested)
+            {
+                lock (this)
+                {
+                    return _txPool.EnQueueTx(tx);
+                }
+                
+            }
 
-            return await (Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
+            return false;
+            /*return await (Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
             {
                 return _txPool.EnQueueTx(tx);
-            }));
+            }));*/
         }
+       
         
         /*/// <summary>
         /// wait new tx
@@ -246,8 +256,8 @@ namespace AElf.Kernel.TxMemPool
                 // TODO: release resources
                 Cts.Cancel();
                 Cts.Dispose();
-                EnqueueEvent.Dispose();
-                DemoteEvent.Dispose();
+                //EnqueueEvent.Dispose();
+                //DemoteEvent.Dispose();
             });
         }
 

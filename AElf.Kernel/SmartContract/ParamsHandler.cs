@@ -92,7 +92,6 @@ namespace AElf.Kernel
             }
 
             return null;
-
         }
     }
 }

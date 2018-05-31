@@ -6,6 +6,7 @@ using AElf.Kernel.Node.Network.Peers;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
+using Newtonsoft.Json.Linq;
 using NLog;
 using ServiceStack.Templates;
 
@@ -68,14 +69,40 @@ namespace AElf.Kernel.Node
         /// also places it in the transaction pool.
         /// </summary>
         /// <param name="tx">The tx to broadcast</param>
-        public async Task<bool> BroadcastTransaction(Transaction tx)
+        public async Task<bool> BroadcastTransaction(ITransaction tx)
         {
             // todo : send to network through server
-            await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, tx.ToByteArray());
             var res = await _poolService.AddTxAsync(tx);
-           
-            _logger.Trace("Broadcasted transaction to peers: " + JsonFormatter.Default.Format(tx));
-            return res;
+
+            if (res)
+            {
+                await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, tx.Serialize());
+                var jobj = new JObject
+                {
+                    {
+                        "tx",
+                        new JObject
+                        {
+                            {"txId", tx.GetHash().Value.ToBase64()},
+                            {"From", tx.From.Value.ToBase64()},
+                            {"To", tx.To.Value.ToBase64()},
+                            {"Method", tx.MethodName}
+
+                        }
+                    }
+                };
+                _logger.Trace("Broadcasted transaction to peers: " + jobj);
+                return true;
+            }
+
+            var error = new JObject
+            {
+                {"status", "Failed"},
+                {"txId", tx.GetHash().Value.ToBase64()},
+            };
+            _logger.Trace("Broadcasting transaction failed: " + error);
+
+            return false;
         }
         
         /// <summary>
