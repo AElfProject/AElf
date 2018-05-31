@@ -21,9 +21,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="TransactionTests.cs" />
-    <Compile Remove="Miner\MinerLifetime.cs" />
-    <Compile Remove="BlockTest.cs" />
-    <Compile Remove="ChainTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Concurrency\" />
