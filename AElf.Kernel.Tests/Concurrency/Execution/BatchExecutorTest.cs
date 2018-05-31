@@ -64,12 +64,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			return _smartContractZero.TransactionEndTimes[args];
 		}
 
-		[Fact]
-		public void TwoJobBatchExecutionTest()
-		{
-			TwoJobBatchExecutionTestWithChildType(BatchExecutor.ChildType.Group);
-			TwoJobBatchExecutionTestWithChildType(BatchExecutor.ChildType.Job);
-		}
+//		[Fact]
+//		public void TwoJobBatchExecutionTest()
+//		{
+//			TwoJobBatchExecutionTestWithChildType(BatchExecutor.ChildType.Group);
+//			TwoJobBatchExecutionTestWithChildType(BatchExecutor.ChildType.Job);
+//		}
 
 		public void TwoJobBatchExecutionTestWithChildType(BatchExecutor.ChildType childType)
 		{
