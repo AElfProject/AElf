@@ -58,8 +58,7 @@ namespace AElf.Kernel.Node.Network.Peers
         /// would be to call <see cref="DoConnectAsync"/>.
         /// </summary>
         /// <param name="nodeData"></param>
-        /// <param name="ipAddress"></param>
-        /// <param name="port"></param>
+        /// /// <param name="peerData"></param>
         public Peer(NodeData nodeData, NodeData peerData)
         {
             _nodeData = nodeData;
