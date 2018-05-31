@@ -15,9 +15,9 @@ namespace AElf.Contracts.Examples
     {
         public Map Balances = new Map("Balances");
         
-        public async Task<object> InitializeAsync(string account, ulong qty)
+        public async Task<object> InitializeAsync(Hash account, ulong qty)
         {
-            await Balances.SetValueAsync(account.CalculateHash(), qty.ToBytes());
+            await Balances.SetValueAsync(account, qty.ToBytes());
             return null;
         }
         
@@ -35,22 +35,22 @@ namespace AElf.Contracts.Examples
             await (Task<object>) member.Invoke(this, parameters);
         }
         
-        public async Task<object> Transfer(string from, string to, ulong qty)
+        public async Task<object> Transfer(Hash from, Hash to, ulong qty)
         {
-            var fromBalBytes = await Balances.GetValue(from.CalculateHash());
+            var fromBalBytes = await Balances.GetValue(from);
             var fromBal = fromBalBytes.ToUInt64();
-            var toBalBytes = await Balances.GetValue(to.CalculateHash());
+            var toBalBytes = await Balances.GetValue(to);
             var toBal = toBalBytes.ToUInt64();
             var newFromBal = fromBal - qty;
             var newToBal = toBal + qty;
-            await Balances.SetValueAsync(from.CalculateHash(), newFromBal.ToBytes());
-            await Balances.SetValueAsync(to.CalculateHash(), newToBal.ToBytes());
+            await Balances.SetValueAsync(from, newFromBal.ToBytes());
+            await Balances.SetValueAsync(to, newToBal.ToBytes());
             return null;
         }
 
-        public async Task<object> GetBalance(string account)
+        public async Task<object> GetBalance(Hash account)
         {
-            var balBytes = await Balances.GetValue(account.CalculateHash());
+            var balBytes = await Balances.GetValue(account);
             Api.LogToResult(balBytes);
             return balBytes.ToUInt64();
         }

@@ -36,6 +36,8 @@ namespace AElf.Runtime.CSharp.Tests
         [Fact]
         public async Task Test()
         {
+            Hash account0 = Hash.Generate();
+            Hash account1 = Hash.Generate();
             Hash contractAddress1 = Hash.Generate();
             Hash contractAddress2 = Hash.Generate();
 
@@ -85,7 +87,7 @@ namespace AElf.Runtime.CSharp.Tests
                     Params = {
                                 new Param
                                 {
-                                    StrVal = "0"
+                                    HashVal = account0
                                 },
                                 new Param
                                 {
@@ -104,7 +106,7 @@ namespace AElf.Runtime.CSharp.Tests
                     Params = {
                                 new Param
                                 {
-                                    StrVal = "1"
+                                    HashVal = account1
                                 },
                                 new Param
                                 {
@@ -124,11 +126,11 @@ namespace AElf.Runtime.CSharp.Tests
                         Params = {
                                 new Param
                                 {
-                                    StrVal = "0"
+                                    HashVal = account0
                                 },
                                 new Param
                                 {
-                                    StrVal = "1"
+                                    HashVal = account1
                                 },
                                 new Param
                                 {
@@ -150,11 +152,11 @@ namespace AElf.Runtime.CSharp.Tests
                         Params = {
                                 new Param
                                 {
-                                    StrVal = "0"
+                                    HashVal = account0
                                 },
                                 new Param
                                 {
-                                    StrVal = "1"
+                                    HashVal = account1
                                 },
                                 new Param
                                 {
@@ -213,7 +215,7 @@ namespace AElf.Runtime.CSharp.Tests
                         Params = {
                                 new Param
                                 {
-                                    StrVal = "0"
+                                    HashVal = account0
                                 }
                             }
                     }
@@ -231,7 +233,7 @@ namespace AElf.Runtime.CSharp.Tests
                         Params = {
                                 new Param
                                 {
-                                    StrVal = "1"
+                                    HashVal = account1
                                 }
                             }
                     }
