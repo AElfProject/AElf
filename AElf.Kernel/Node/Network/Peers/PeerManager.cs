@@ -191,25 +191,7 @@ namespace AElf.Kernel.Node.Network.Peers
         {
             return new Peer(_nodeData, nodeData);
         }
-
-        /// <summary>
-        /// Callback for when a Peer fires a <see cref="PeerDisconnected"/> event. It unsubscribes
-        /// the manager from the events and removes it from the list.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ProcessClientDisconnection(object sender, EventArgs e)
-        {
-            if (sender != null && e is PeerDisconnectedArgs args && args.Peer != null)
-            {
-                args.Peer.MessageReceived -= ProcessPeerMessage;
-                args.Peer.PeerDisconnected -= ProcessClientDisconnection;
-                RemovePeer(args.Peer);
-                
-                // TRIGGER PEER MAINTENANCE
-            }
-        }
-
+        
         /// <summary>
         /// Removes a peer from the list of peers.
         /// </summary>
@@ -246,6 +228,22 @@ namespace AElf.Kernel.Node.Network.Peers
             }
 
             return peers;
+        }
+        
+        /// <summary>
+        /// Callback for when a Peer fires a <see cref="PeerDisconnected"/> event. It unsubscribes
+        /// the manager from the events and removes it from the list.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ProcessClientDisconnection(object sender, EventArgs e)
+        {
+            if (sender != null && e is PeerDisconnectedArgs args && args.Peer != null)
+            {
+                args.Peer.MessageReceived -= ProcessPeerMessage;
+                args.Peer.PeerDisconnected -= ProcessClientDisconnection;
+                RemovePeer(args.Peer);
+            }
         }
 
         /// <summary>
