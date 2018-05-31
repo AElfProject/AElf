@@ -8,7 +8,6 @@ using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
 using Newtonsoft.Json.Linq;
 using NLog;
-using ServiceStack.Templates;
 
 namespace AElf.Kernel.Node
 {

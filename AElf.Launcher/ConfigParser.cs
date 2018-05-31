@@ -1,4 +1,6 @@
 ﻿using System.Linq;
+using AElf.Database;
+using AElf.Database.Config;
 using AElf.Kernel.Node.Network;
 using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.TxMemPool;
@@ -10,7 +12,8 @@ namespace AElf.Launcher
     {
         public IAElfNetworkConfig NetConfig { get; private set; }
         public ITxPoolConfig TxPoolConfig { get; private set; }
-        
+        public IDatabaseConfig DatabaseConfig { get; private set; }
+
         public bool Rpc { get; private set; }
 
         public bool Success { get; private set; }
@@ -53,6 +56,23 @@ namespace AElf.Launcher
             NetConfig = netConfig;
             
             // Todo ITxPoolConfig
+            
+            // Database
+            var databaseConfig =new DatabaseConfig();
+            
+            databaseConfig.Type = DatabaseTypeHelper.GetType(opts.DBType);
+            
+            if (!string.IsNullOrWhiteSpace(opts.DBHost))
+            {
+                databaseConfig.Host = opts.DBHost;
+            }
+            
+            if (opts.DBPort.HasValue)
+            {
+                databaseConfig.Port = opts.DBPort.Value;
+            }
+
+            DatabaseConfig = databaseConfig;
         }
     }
 }

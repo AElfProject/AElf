@@ -1,7 +1,5 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Database;
-using Google.Protobuf;
 
 namespace AElf.Kernel.Storages
 {
