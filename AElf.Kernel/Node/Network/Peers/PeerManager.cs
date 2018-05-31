@@ -213,17 +213,20 @@ namespace AElf.Kernel.Node.Network.Peers
             
             for (ushort i = 0; i < numPeers - 1; i++)
             {
-                try
+                if (i <= _peers.Count)
                 {
-                    NodeData p = new NodeData();
-                    p.IpAddress = _peers[i].IpAddress;
-                    p.Port = _peers[i].Port;
-                    peers.Add(p);
-                }
-                catch (Exception e)
-                {
-                    _logger.Error(e, e?.Message);
-                    break;
+                    try
+                    {
+                        NodeData p = new NodeData();
+                        p.IpAddress = _peers[i].IpAddress;
+                        p.Port = _peers[i].Port;
+                        peers.Add(p);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Error(e, e?.Message);
+                        break;
+                    }
                 }
             }
 
