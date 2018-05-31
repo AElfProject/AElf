@@ -2,6 +2,7 @@
 using System.Text;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using AElf.Kernel;
@@ -19,11 +20,23 @@ using AElf.Runtime.CSharp;
 using AElf.Kernel.Concurrency.Execution;
 using Xunit.Frameworks.Autofac;
 using Path = AElf.Kernel.Path;
+using AElf.Kernel.Tests.Concurrency.Scheduling;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
     public class MockSetup
     {
+        // IncrementId is used to differentiate txn
+        // which is identified by From/To/IncrementId
+        private static int _incrementId = 0;
+        public ulong IncrementId { get; private set; }
+
+        public ulong NewIncrementId()
+        {
+            var n = Interlocked.Increment(ref _incrementId);
+            return (ulong) n;
+        }
+
         public Hash ChainId1 { get; } = Hash.Generate();
         public Hash ChainId2 { get; } = Hash.Generate();
         public ISmartContractManager SmartContractManager;
@@ -69,7 +82,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             ServicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
-                SmartContractService = SmartContractService
+                SmartContractService = SmartContractService,
+                ResourceDetectionService = new MockResourceUsageDetectionService()
             };
         }
 
@@ -134,6 +148,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 From = Hash.Zero,
                 To = contractAddress,
+                IncrementId = NewIncrementId(),
                 MethodName = "InitializeAsync",
                 Params = ByteString.CopyFrom(new Parameters()
                 {
@@ -156,7 +171,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             };
         }
 
-        public Transaction GetTransferTxn1( Hash from, Hash to, ulong qty)
+        public Transaction GetTransferTxn1(Hash from, Hash to, ulong qty)
         {
             return GetTransferTxn(SampleContractAddress1, from, to, qty);
         }
@@ -173,6 +188,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 From = from,
                 To = contractAddress,
+                IncrementId = NewIncrementId(),
                 MethodName = "Transfer",
                 Params = ByteString.CopyFrom(
                     new Parameters

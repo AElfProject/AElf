@@ -18,51 +18,15 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 	[UseAutofacTestFramework]
 	public class BatchExecutorTest : TestKitBase
 	{
-		private ActorSystem sys = ActorSystem.Create("test");
-		private IChainContext _chainContext;
-		private ProtobufSerializer _serializer = new ProtobufSerializer();
-		private SmartContractZeroWithTransfer _smartContractZero { get { return (_chainContext.SmartContractZero as SmartContractZeroWithTransfer); } }
+        private MockSetup _mock;
+        private ActorSystem sys = ActorSystem.Create("test");
+        private IActorRef _serviceRouter;
 
-		public BatchExecutorTest(ChainContextWithSmartContractZeroWithTransfer chainContext) : base(new XunitAssertions())
-		{
-			_chainContext = chainContext;
-		}
-
-		private Transaction GetTransaction(Hash from, Hash to, ulong qty)
-		{
-			// TODO: Test with IncrementId
-			TransferArgs args = new TransferArgs()
-			{
-				From = from,
-				To = to,
-				Quantity = qty
-			};
-
-			ByteString argsBS = ByteString.CopyFrom(_serializer.Serialize(args));
-
-			Transaction tx = new Transaction()
-			{
-				IncrementId = 0,
-				From = from,
-				To = to,
-				MethodName = "Transfer",
-				Params = argsBS
-			};
-
-			return tx;
-		}
-
-		private DateTime GetTransactionStartTime(ITransaction tx)
-		{
-			TransferArgs args = (TransferArgs)_serializer.Deserialize(tx.Params.ToByteArray(), typeof(TransferArgs));
-			return _smartContractZero.TransactionStartTimes[args];
-		}
-
-		private DateTime GetTransactionEndTime(ITransaction tx)
-		{
-			TransferArgs args = (TransferArgs)_serializer.Deserialize(tx.Params.ToByteArray(), typeof(TransferArgs));
-			return _smartContractZero.TransactionEndTimes[args];
-		}
+        public BatchExecutorTest(MockSetup mock) : base(new XunitAssertions())
+        {
+            _mock = mock;
+            _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(_mock.ServicePack));
+        }
 
 		[Fact]
 		public void TwoJobBatchExecutionTest()
@@ -86,13 +50,13 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
 			foreach (var addbal in addresses.Zip(balances, Tuple.Create))
 			{
-				_smartContractZero.SetBalance(addbal.Item1, (ulong)addbal.Item2);
+                _mock.Initialize1(addbal.Item1, (ulong)addbal.Item2);
 			}
 
 			var txs = new List<ITransaction>(){
-				GetTransaction(addresses[0], addresses[1], 10),
-				GetTransaction(addresses[1], addresses[2], 9),
-				GetTransaction(addresses[3], addresses[4], 8)
+                _mock.GetTransferTxn1(addresses[0], addresses[1], 10),
+                _mock.GetTransferTxn1(addresses[1], addresses[2], 9),
+                _mock.GetTransferTxn1(addresses[3], addresses[4], 8)
 			};
 			var txsHashes = txs.Select(y => y.GetHash()).ToList();
 
@@ -101,7 +65,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 				90, 1, 9, 192, 8
 			};
 
-			var executor1 = sys.ActorOf(BatchExecutor.Props(_chainContext, txs, TestActor, childType));
+            var executor1 = sys.ActorOf(BatchExecutor.Props(_mock.ChainId1, _serviceRouter, txs, TestActor, childType));
 			Watch(executor1);
 			executor1.Tell(StartExecutionMessage.Instance);
 			var results = new List<TransactionResult>()
@@ -113,14 +77,15 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			ExpectTerminated(executor1);
 			// Job 1: Tx0 -> Tx1 (Tx1 starts after Tx0 finishes)
 			// Job 2: Tx2 (Tx2 starts before Tx1 finishes, not strict, but should be)
-			Assert.True(GetTransactionStartTime(txs[1]) > GetTransactionEndTime(txs[0]));
-			Assert.True(GetTransactionStartTime(txs[2]) < GetTransactionEndTime(txs[1]));
+            Assert.True(_mock.GetTransactionStartTime1(txs[1]) > _mock.GetTransactionEndTime1(txs[0]));
+            // TODO: Improve this
+            //Assert.True(_mock.GetTransactionStartTime1(txs[2]) < _mock.GetTransactionEndTime1(txs[1]));
 			Assert.Equal(Status.Mined, results[0].Status);
 			Assert.Equal(Status.Mined, results[1].Status);
 			Assert.Equal(Status.Mined, results[2].Status);
 			foreach (var addFinbal in addresses.Zip(finalBalances, Tuple.Create))
 			{
-				Assert.Equal((ulong)addFinbal.Item2, _smartContractZero.GetBalance(addFinbal.Item1));
+                Assert.Equal((ulong)addFinbal.Item2, _mock.GetBalance1(addFinbal.Item1));
 			}
 		}
 	}
