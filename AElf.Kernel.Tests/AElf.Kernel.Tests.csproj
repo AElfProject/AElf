@@ -24,7 +24,6 @@
     <Compile Remove="Miner\MinerLifetime.cs" />
     <Compile Remove="BlockTest.cs" />
     <Compile Remove="ChainTest.cs" />
-    <Compile Remove="SmartContractExecuting\ContractTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Concurrency\" />
