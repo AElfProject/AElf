@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node.Network.Data;
@@ -8,6 +9,8 @@ using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
 using AElf.Node.RPC.DTO;
 using Google.Protobuf;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NLog;
 
 namespace AElf.Kernel.Node
@@ -118,11 +121,16 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                List<NodeDataDto> peers = new List<NodeDataDto>();
-                //iterate over items in array in json
-                //store in nodedatadto objects
-                //convert to NodeData object using DtoHelper.ToNodeData()
-                //Add to peers list
+                List<NodeData> peers = new List<NodeData>();
+                var messageAsString = Encoding.UTF8.GetString(messagePayload.ToByteArray());
+                JObject j = JObject.Parse(messageAsString);
+                var peerDtos = j["data"].ToObject<List<NodeDataDto>>();
+
+                foreach (var pDto in peerDtos)
+                {
+                    peers.Add(pDto.ToNodeData());
+                }
+                
                 //Add to actual peers list - or do that in previous step without having a scoped list<nodedata>
                 
                 _logger.Trace("Received " + peers.Count + " peers.");
