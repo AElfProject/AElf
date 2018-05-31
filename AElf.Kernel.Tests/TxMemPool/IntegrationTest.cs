@@ -11,6 +11,7 @@ using AElf.Kernel.TxMemPool;
 using Akka.Actor;
 using Akka.Util;
 using Google.Protobuf;
+using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -20,15 +21,17 @@ namespace AElf.Kernel.Tests.TxMemPool
     public class IntegrationTest
     {
         private readonly IAccountContextService _accountContextService;
+        private readonly ILogger _logger;
 
-        public IntegrationTest(IAccountContextService accountContextService)
+        public IntegrationTest(IAccountContextService accountContextService, ILogger logger)
         {
             _accountContextService = accountContextService;
+            _logger = logger;
         }
         
         private TxPool GetPool()
         {
-            return new TxPool(TxPoolConfig.Default);
+            return new TxPool(TxPoolConfig.Default, _logger);
         }
 
         public static Transaction BuildTransaction(Hash adrFrom = null, Hash adrTo = null, ulong nonce = 0)
