@@ -79,7 +79,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			// Job 2: Tx2 (Tx2 starts before Tx1 finishes, not strict, but should be)
             Assert.True(_mock.GetTransactionStartTime1(txs[1]) > _mock.GetTransactionEndTime1(txs[0]));
             // TODO: Improve this
-            //Assert.True(_mock.GetTransactionStartTime1(txs[2]) < _mock.GetTransactionEndTime1(txs[1]));
+            Assert.True(_mock.GetTransactionStartTime1(txs[2]) < _mock.GetTransactionEndTime1(txs[1]));
 			Assert.Equal(Status.Mined, results[0].Status);
 			Assert.Equal(Status.Mined, results[1].Status);
 			Assert.Equal(Status.Mined, results[2].Status);

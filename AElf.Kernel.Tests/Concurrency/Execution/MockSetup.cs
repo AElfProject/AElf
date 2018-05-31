@@ -29,8 +29,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
         private static int _incrementId = 0;
-        public ulong IncrementId { get; private set; }
-
         public ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
@@ -83,7 +81,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
-                ResourceDetectionService = new MockResourceUsageDetectionService()
+                ResourceDetectionService = new NewMockResourceUsageDetectionService()
             };
         }
 
