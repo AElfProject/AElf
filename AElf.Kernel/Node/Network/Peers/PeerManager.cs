@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.Node.Network.Data;
 using AElf.Kernel.Node.Network.Peers.Exceptions;
+using AElf.Node.RPC.DTO;
 using Google.Protobuf;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NLog;
 
 namespace AElf.Kernel.Node.Network.Peers
@@ -201,10 +205,8 @@ namespace AElf.Kernel.Node.Network.Peers
                 args.Peer.MessageReceived -= ProcessPeerMessage;
                 args.Peer.PeerDisconnected -= ProcessClientDisconnection;
                 RemovePeer(args.Peer);
-
-                ushort missingPeers = (ushort) (8 - _peers.Count);
                 
-// TRIGGER PEER MAINTENANCE
+                // TRIGGER PEER MAINTENANCE
             }
         }
 
@@ -268,9 +270,39 @@ namespace AElf.Kernel.Node.Network.Peers
                     
                     await args.Peer.SendDataAsync(resp.ToByteArray());
                 }
+                else if (args.Message.MsgType == (int) MessageTypes.RequestPeers)
+                {
+                    string payloadAsString = Encoding.UTF8.GetString(args.Message.Payload.ToByteArray());
+                    JObject j = JObject.Parse(payloadAsString);
+                    ushort numPeers = j["numPeers"].ToObject<ushort>();
+                    List<NodeData> peers = await _node.GetPeers(numPeers);
+                    List<NodeDataDto> peersDto = new List<NodeDataDto>();
+
+                    foreach (var peer in peers)
+                    {
+                        NodeDataDto pDto = peer.ToNodeDataDto();
+                        peersDto.Add(pDto);
+                    }
+
+                    var json = JsonConvert.SerializeObject(peersDto);
+                    JArray arrPeersDto = JArray.Parse(json);
+
+                    JObject jobject = new JObject()
+                    {
+                        ["data"] = arrPeersDto
+                    };
+
+                    var resp = new AElfPacketData
+                    {
+                        MsgType = (int)MessageTypes.ReturnPeers,
+                        Length = 1,
+                        Payload = ByteString.CopyFrom((byte[]) jobject)
+                    };
+
+                    await args.Peer.SendDataAsync(resp.ToByteArray());
+                }
                 else if (args.Message.MsgType == (int) MessageTypes.ReturnPeers)
                 {
-                    // todo this
                     await _node.ReceivePeers(args.Message.Payload);
 
                     var resp = new AElfPacketData
