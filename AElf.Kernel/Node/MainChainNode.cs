@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node.Network.Data;
 using AElf.Kernel.Node.Network.Peers;
+using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
@@ -17,15 +19,15 @@ namespace AElf.Kernel.Node
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
-        private readonly IPeerManager _peerManager;
+        private readonly IProtocolManager _protocolManager;
         
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
-            IPeerManager peerManager, ILogger logger)
+            IProtocolManager protocolManager, ILogger logger)
         {
             _poolService = poolService;
+            _protocolManager = protocolManager;
             _transactionManager = txManager;
             _rpcServer = rpcServer;
-            _peerManager = peerManager;
             _logger = logger;
         }
 
@@ -35,11 +37,11 @@ namespace AElf.Kernel.Node
                 _rpcServer.Start();
             
             _poolService.Start();
-            _peerManager.Start();
+            _protocolManager.Start();
             
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
-            _peerManager.SetCommandContext(this);
+            _protocolManager.SetCommandContext(this);
             
             _logger.Log(LogLevel.Debug, "AElf node started.");
         }
@@ -69,8 +71,10 @@ namespace AElf.Kernel.Node
         /// <param name="tx">The tx to broadcast</param>
         public async Task BroadcastTransaction(Transaction tx)
         {
+            AutoResetEvent resetEvent = new AutoResetEvent(false);
+
             // todo : send to network through server
-            await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, tx.ToByteArray());
+            await _protocolManager.BroadcastTransaction(tx.ToByteArray());
             
             _logger.Trace("Broadcasted transaction to peers: " + JsonFormatter.Default.Format(tx));
         }
