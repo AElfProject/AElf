@@ -39,9 +39,7 @@ namespace AElf.Runtime.CSharp.Tests
             Hash account0 = Hash.Generate();
             Hash account1 = Hash.Generate();
             Hash contractAddress1 = _mock.SampleContractAddress1;
-            Hash contractAddress2 = _mock.SampleContractAddress1;
-
-            //var service = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
+            Hash contractAddress2 = _mock.SampleContractAddress2;
 
             var executive1 = await _service.GetExecutiveAsync(contractAddress1, _mock.ChainId1);
             executive1.SetSmartContractContext(new SmartContractContext()
