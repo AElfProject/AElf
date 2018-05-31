@@ -30,6 +30,9 @@ namespace AElf.Runtime.CSharp.Tests
         public IAccountDataProvider DataProvider1;
         public IAccountDataProvider DataProvider2;
 
+        public Hash SampleContractAddress1 { get; } = Hash.Generate();
+        public Hash SampleContractAddress2 { get; } = Hash.Generate();
+
         private ISmartContractManager _smartContractManager;
         private IWorldStateManager _worldStateManager;
         private IChainCreationService _chainCreationService;
@@ -50,6 +53,10 @@ namespace AElf.Runtime.CSharp.Tests
                 await Init();
             }).Unwrap().Wait();
             SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
+            Task.Factory.StartNew(async () =>
+            {
+                await DeploySampleContracts();
+            }).Unwrap().Wait();
         }
 
         private async Task Init()
@@ -67,6 +74,19 @@ namespace AElf.Runtime.CSharp.Tests
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, reg);
             var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
             DataProvider2 = (await _worldStateManager.OfChain(ChainId2)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId2));
+        }
+
+        private async Task DeploySampleContracts()
+        {
+            var reg = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(ExampleContractCode),
+                ContractHash = Hash.Zero
+            };
+
+            await SmartContractService.DeployContractAsync(SampleContractAddress1, reg);
+            await SmartContractService.DeployContractAsync(SampleContractAddress2, reg);
         }
 
         public byte[] ExampleContractCode
