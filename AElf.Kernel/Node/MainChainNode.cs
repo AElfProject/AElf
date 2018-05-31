@@ -125,13 +125,14 @@ namespace AElf.Kernel.Node
                 var messageAsString = Encoding.UTF8.GetString(messagePayload.ToByteArray());
                 JObject j = JObject.Parse(messageAsString);
                 var peerDtos = j["data"].ToObject<List<NodeDataDto>>();
+                NodeData peer = null;
 
                 foreach (var pDto in peerDtos)
                 {
-                    peers.Add(pDto.ToNodeData());
+                    peer = pDto.ToNodeData();
+                    peers.Add(peer);
+                    await _peerManager.AddPeer(peer);
                 }
-                
-                //Add to actual peers list - or do that in previous step without having a scoped list<nodedata>
                 
                 _logger.Trace("Received " + peers.Count + " peers.");
             }

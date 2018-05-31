@@ -148,7 +148,7 @@ namespace AElf.Kernel.Node.Network.Peers
         /// listening process.
         /// </summary>
         /// <param name="peer">the peer to add</param>
-        public void AddPeer(IPeer peer)
+        public Task AddPeer(IPeer peer)
         {
             // Temporary solution to checking if peer is already in _peers
             bool exists = false;
@@ -156,7 +156,7 @@ namespace AElf.Kernel.Node.Network.Peers
             {
                 exists = p.IpAddress == peer.IpAddress && p.Port == peer.Port;
             }
-            if (exists) return;
+            if (exists) return null;
             
             _peers.Add(peer);
             peer.MessageReceived += ProcessPeerMessage;
@@ -164,7 +164,28 @@ namespace AElf.Kernel.Node.Network.Peers
 
             _logger.Trace("Peer added : " + peer);
 
-            Task.Run(peer.StartListeningAsync);
+            return Task.Run(peer.StartListeningAsync);
+        }
+
+        /// <summary>
+        /// Creates a peer from the nodeData parameter and then
+        /// calls the AddPeer method.
+        /// </summary>
+        /// <param name="nodeData"></param>
+        public Task AddPeer(NodeData nodeData)
+        {
+            IPeer peer = CreatePeer(nodeData);
+            return AddPeer(peer);
+        }
+        
+        /// <summary>
+        /// Creates a Peer.
+        /// </summary>
+        /// <param name="nodeData"></param>
+        /// <returns></returns>
+        private IPeer CreatePeer(NodeData nodeData)
+        {
+            return new Peer(_nodeData, nodeData);
         }
 
         /// <summary>
