@@ -180,6 +180,10 @@ namespace AElf.Kernel.Node.Network.Peers
                 args.Peer.MessageReceived -= ProcessPeerMessage;
                 args.Peer.PeerDisconnected -= ProcessClientDisconnection;
                 RemovePeer(args.Peer);
+
+                ushort missingPeers = (ushort) (8 - _peers.Count);
+                
+// TRIGGER PEER MAINTENANCE
             }
         }
 
@@ -198,7 +202,7 @@ namespace AElf.Kernel.Node.Network.Peers
         /// list.
         /// </summary>
         /// <param name="numPeers">number of peers requested</param>
-        public List<NodeData> GetPeers(ushort numPeers)
+        public List<NodeData> ReturnPeers(ushort numPeers)
         {
             List<NodeData> peers = new List<NodeData>();
             
