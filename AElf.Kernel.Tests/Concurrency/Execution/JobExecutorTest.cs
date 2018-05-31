@@ -106,8 +106,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             ExpectTerminated(executor1);
 
             // Check sequence
-            var end1 = _mock.GetTransactionEndTime1(tx1.GetHash());
-            var start2 = _mock.GetTransactionStartTime1(tx2.GetHash());
+            var end1 = _mock.GetTransactionEndTime1(tx1);
+            var start2 = _mock.GetTransactionStartTime1(tx2);
             Assert.True(end1 < start2);
         }
     }

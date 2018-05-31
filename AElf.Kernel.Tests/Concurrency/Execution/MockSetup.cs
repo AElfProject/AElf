@@ -288,9 +288,9 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             };
         }
 
-        public DateTime GetTransactionStartTime1(Hash transactionHash)
+        public DateTime GetTransactionStartTime1(ITransaction tx)
         {
-            var txn = GetSTTxn(SampleContractAddress1, transactionHash);
+            var txn = GetSTTxn(SampleContractAddress1, tx.GetHash());
             var txnRes = new TransactionResult();
             var txnCtxt = new TransactionContext()
             {
@@ -304,9 +304,9 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
         }
 
-        public DateTime GetTransactionEndTime1(Hash transactionHash)
+        public DateTime GetTransactionEndTime1(ITransaction tx)
         {
-            var txn = GetETTxn(SampleContractAddress1, transactionHash);
+            var txn = GetETTxn(SampleContractAddress1, tx.GetHash());
             var txnRes = new TransactionResult();
             var txnCtxt = new TransactionContext()
             {
