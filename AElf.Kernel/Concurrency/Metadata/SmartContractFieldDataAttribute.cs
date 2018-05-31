@@ -5,7 +5,7 @@ namespace AElf.Kernel.Concurrency.Metadata
     public enum DataAccessMode{
         ReadOnlyAccountSharing,
         ReadWriteAccountSharing,
-        AccountSpecific
+        AccountSpecific,
     }
     
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]

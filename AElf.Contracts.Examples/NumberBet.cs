@@ -21,9 +21,20 @@ namespace AElf.Contracts.Examples
         [SmartContractFieldData("ExchangeRate", DataAccessMode.ReadOnlyAccountSharing)]
         public ulong ExchangeRate = 100;
 
+        #region Smart contract reference
+        
+        [SmartContractReference("_tokenContractA", "SimpleTokenContract")]
         private SimpleTokenContract _tokenContractA;
+        [SmartContractReference("_tokenContractB", "SimpleTokenContract")]
         private SimpleTokenContract _tokenContractB;
         
+        #endregion
+
+        public Casino(SimpleTokenContract tokenContractA, SimpleTokenContract tokenContractB)
+        {
+            _tokenContractA = tokenContractA;
+            _tokenContractB = tokenContractB;
+        }
         
         [SmartContractFunction("BuyTokenFromA(Hash, ulong)", new []{"${ChainId}.${_tokenContractA}.Transfer(Hash, Hash, ulong)"}, new []{"CasinoToken", "ExchangeRate"})]
         public async Task<bool> BuyTokenFromA(Hash from, ulong value)
@@ -66,6 +77,7 @@ namespace AElf.Contracts.Examples
         public override async Task InvokeAsync()
         {
             var tx = Api.GetTransaction();
+            
 
             var methodname = tx.MethodName;
             var type = GetType();
