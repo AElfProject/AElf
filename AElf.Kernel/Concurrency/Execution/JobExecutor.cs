@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Akka.Actor;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.KernelAccount;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Concurrency.Execution
 {
@@ -40,7 +42,14 @@ namespace AElf.Kernel.Concurrency.Execution
 
         protected override void PreStart()
         {
-            Context.System.Scheduler.ScheduleTellOnce(new TimeSpan(0, 0, 0), _serviceRouter, new RequestLocalSerivcePack(0), Self);
+            if (_transactions.Count == 0)
+            {
+                Context.System.Scheduler.ScheduleTellOnce(new TimeSpan(0, 0, 0), Self, PoisonPill.Instance, Self);
+            }
+            else
+            {
+                Context.System.Scheduler.ScheduleTellOnce(new TimeSpan(0, 0, 0), _serviceRouter, new RequestLocalSerivcePack(0), Self);
+            }
         }
 
         protected override void OnReceive(object message)
@@ -51,6 +60,7 @@ namespace AElf.Kernel.Concurrency.Execution
                     if (_state == State.Initializing)
                     {
                         _servicePack = res.ServicePack;
+                        _state = State.NotStarted;
                         if (_startExecutionMessageReceived)
                         {
                             RunNextOrStop();
@@ -116,7 +126,6 @@ namespace AElf.Kernel.Concurrency.Execution
                 TransactionId = transaction.GetHash(),
                 Status = Status.Pending
             };
-            result.TransactionId = transaction.GetHash();
             // TODO: Reject tx if IncrementId != Nonce
 
             try
@@ -125,18 +134,16 @@ namespace AElf.Kernel.Concurrency.Execution
                 {
                     PreviousBlockHash = _chainContext.BlockHash,
                     Transaction = transaction,
-                    TransactionResult = new TransactionResult()
-                    {
-                        TransactionId = transaction.GetHash(),
-                        Status = Status.Pending
-                    }
+                    TransactionResult = result
                 };
                 await executive.SetTransactionContext(txCtxt).Apply();
                 // TODO: Check run results / logs etc.
                 result.Status = Status.Mined;
             }
-            catch
+            catch (Exception ex)
             {
+                // TODO: Improve log
+                result.Logs = ByteString.CopyFrom(Encoding.ASCII.GetBytes(ex.ToString()));
                 result.Status = Status.ExecutedFailed;
             }
             finally

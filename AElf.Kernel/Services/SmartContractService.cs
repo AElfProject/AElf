@@ -65,7 +65,7 @@ namespace AElf.Kernel.Services
                 SmartContractService = this
             });
 
-            return await runner.RunAsync(reg);
+            return executive;
         }
 
         public async Task PutExecutiveAsync(Hash account, IExecutive executive)
