@@ -64,6 +64,7 @@ namespace AElf.Runtime.CSharp.Tests
             var init0 = new Transaction()
             {
                 From = sender,
+                To = Hash.Zero,
                 MethodName = "InitializeAsync",
                 Params = ByteString.CopyFrom(new Parameters()
                 {
@@ -83,6 +84,7 @@ namespace AElf.Runtime.CSharp.Tests
             var init1 = new Transaction()
             {
                 From = sender,
+                To = Hash.Zero,
                 MethodName = "InitializeAsync",
                 Params = ByteString.CopyFrom(new Parameters()
                 {
@@ -102,6 +104,7 @@ namespace AElf.Runtime.CSharp.Tests
             var transfer1 = new Transaction
             {
                 From = Hash.Zero,
+                To = Hash.Zero,
                 MethodName = "Transfer",
                 Params = ByteString.CopyFrom(
                     new Parameters
@@ -128,6 +131,7 @@ namespace AElf.Runtime.CSharp.Tests
             var transfer2 = new Transaction
             {
                 From = Hash.Zero,
+                To = Hash.Zero,
                 MethodName = "Transfer",
                 Params = ByteString.CopyFrom(
                     new Parameters
@@ -191,6 +195,7 @@ namespace AElf.Runtime.CSharp.Tests
             var getb0 = new Transaction
             {
                 From = Hash.Zero,
+                To = Hash.Zero,
                 MethodName = "GetBalance",
                 Params = ByteString.CopyFrom(
                     new Parameters
@@ -209,6 +214,7 @@ namespace AElf.Runtime.CSharp.Tests
             var getb1 = new Transaction
             {
                 From = Hash.Zero,
+                To = Hash.Zero,
                 MethodName = "GetBalance",
                 Params = ByteString.CopyFrom(
                     new Parameters
