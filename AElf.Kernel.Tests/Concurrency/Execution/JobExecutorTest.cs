@@ -14,15 +14,14 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
     [UseAutofacTestFramework]
     public class JobExecutorTest : TestKitBase
     {
+        private MockSetup _mock;
         private ActorSystem sys = ActorSystem.Create("test");
         private IActorRef _serviceRouter;
-        private MockSetup _mock;
-        private Hash _contractAddress = Hash.Generate();
-        private ProtobufSerializer _serializer = new ProtobufSerializer();
 
         public JobExecutorTest(MockSetup mock) : base(new XunitAssertions())
         {
             _mock = mock;
+            _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(_mock.ServicePack));
         }
 
         [Fact]
@@ -45,8 +44,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         [Fact]
         public void SingleTransactionExecutionTest()
         {
-            _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(_mock.ServicePack));
-
             Hash from = Hash.Generate();
             Hash to = Hash.Generate();
             Hash chainId = _mock.ChainId1;
@@ -72,8 +69,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         [Fact]
         public void MultipleTransactionExecutionTest()
         {
-            _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(_mock.ServicePack));
-
             Hash address1 = Hash.Generate();
             Hash address2 = Hash.Generate();
             Hash address3 = Hash.Generate();
