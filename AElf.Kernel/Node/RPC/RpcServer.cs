@@ -252,29 +252,8 @@ namespace AElf.Kernel.Node.RPC
         {
             string numPeersS = reqParams["numPeers"].ToString();
             ushort numPeers = Convert.ToUInt16(numPeersS);
-            
-            // Start of Spoofing
-            List<NodeData> lnd = new List<NodeData>();
-            NodeData nd = new NodeData();
-            nd.IpAddress = "127.0.0.1";
-            nd.Port = 1200;
-            NodeData nd1 = new NodeData();
-            nd1.IpAddress = "127.0.0.1";
-            nd1.Port = 1201;
-            NodeData nd2 = new NodeData();
-            nd2.IpAddress = "127.0.0.1";
-            nd2.Port = 1202;
-            lnd.Add(nd);
-            lnd.Add(nd1);
-            lnd.Add(nd2);
-            List<NodeData> rl = new List<NodeData>();
-            for (int i = 0; i < numPeers; i++)
-            {
-                rl.Add(lnd[i]);
-            }
-            // End of spoofing - also replace "rl" with await... below
 
-            List<NodeData> peers = rl; //await _node.GetPeers(numPeers);
+            List<NodeData> peers = await _node.GetPeers(numPeers);
             List<NodeDataDto> peersDto = new List<NodeDataDto>();
 
             foreach (var peer in peers)
