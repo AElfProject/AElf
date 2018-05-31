@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AElf.Kernel
+namespace AElf.Common.Attributes
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public class LoggerNameAttribute : Attribute

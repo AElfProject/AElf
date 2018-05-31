@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.Node.Network.Data;
 using AElf.Kernel.Node.Network.Peers;

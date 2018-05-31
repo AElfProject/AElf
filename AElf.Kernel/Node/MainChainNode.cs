@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Node.Network.Data;
-using AElf.Kernel.Node.Network.Peers;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
