@@ -9,6 +9,9 @@
       <Name>AElf.Kernel.Modules.AutofacModule</Name>
     </ProjectReference>
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+    <None Update="Dockerfile">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.0" />
