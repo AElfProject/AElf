@@ -255,7 +255,7 @@ namespace AElf.Kernel.Node.Network.Peers
         {
             if (sender != null && e is MessageReceivedArgs args && args.Message != null)
             {
-                if (args.Message.MsgType == (int)MessageTypes.BroadcastTx)
+                if (args.Message.MsgType == (int) MessageTypes.BroadcastTx)
                 {
                     await _node.ReceiveTransaction(args.Message.Payload);
                     
@@ -266,6 +266,20 @@ namespace AElf.Kernel.Node.Network.Peers
                         Payload = ByteString.CopyFrom(0x01)
                     };
                     
+                    await args.Peer.SendDataAsync(resp.ToByteArray());
+                }
+                else if (args.Message.MsgType == (int) MessageTypes.ReturnPeers)
+                {
+                    // todo this
+                    await _node.ReceivePeers(args.Message.Payload);
+
+                    var resp = new AElfPacketData
+                    {
+                        MsgType = (int) MessageTypes.Ok,
+                        Length = 1,
+                        Payload = ByteString.CopyFrom(0x01)
+                    };
+
                     await args.Peer.SendDataAsync(resp.ToByteArray());
                 }
                 else if (args.Message.MsgType == (int) MessageTypes.Ok)
