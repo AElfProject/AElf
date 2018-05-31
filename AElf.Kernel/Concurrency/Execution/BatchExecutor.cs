@@ -19,15 +19,16 @@ namespace AElf.Kernel.Concurrency.Execution
 		}
 		enum State
 		{
-			PendingGrouping,
+			Initializing,
 			ReadyToRun,
 			Running
 		}
-		private State _state = State.PendingGrouping;
+        private State _state = State.Initializing;
 		private bool _startExecutionMessageReceived = false;
-		private Grouper _grouper = new Grouper();
+		private Grouper _grouper;
         private Hash _chainId;
-        private IActorRef _sericeRouter;
+        private IActorRef _serviceRouter;
+        private ServicePack _servicePack;
 		private List<ITransaction> _transactions;
 		private List<List<ITransaction>> _grouped;
         private IActorRef _resultCollector;
@@ -38,7 +39,7 @@ namespace AElf.Kernel.Concurrency.Execution
         public BatchExecutor(Hash chainId, IActorRef serviceRouter, List<ITransaction> transactions, IActorRef resultCollector, ChildType childType)
 		{
             _chainId = chainId;
-            _sericeRouter = serviceRouter;
+            _serviceRouter = serviceRouter;
 			_transactions = transactions;
             _resultCollector = resultCollector;
 			_childType = childType;
@@ -46,23 +47,25 @@ namespace AElf.Kernel.Concurrency.Execution
 
 		protected override void PreStart()
 		{
-			Context.System.Scheduler.ScheduleTellOnce(new TimeSpan(0, 0, 0), Self, StartGroupingMessage.Instance, Self);
+            Context.System.Scheduler.ScheduleTellOnce(new TimeSpan(0, 0, 0), _serviceRouter, new RequestLocalSerivcePack(0), Self);
 		}
 
 		protected override void OnReceive(object message)
 		{
 			switch (message)
 			{
-				case StartGroupingMessage startGrouping:
-					if (_state == State.PendingGrouping)
-					{
-						_grouped = _grouper.Process(_transactions);
-						// TODO: Report and/or log grouping outcomes
-						CreateChildren();
-						_state = State.ReadyToRun;
-						MaybeStartChildren();
-					}
-					break;
+                case RespondLocalSerivcePack res:
+                    if (_state == State.Initializing)
+                    {
+                        _servicePack = res.ServicePack;
+                        _grouper = new Grouper(_servicePack.ResourceDetectionService);
+                        _grouped = _grouper.Process(_transactions);
+                        // TODO: Report and/or log grouping outcomes
+                        CreateChildren();
+                        _state = State.ReadyToRun;
+                        MaybeStartChildren();
+                    }
+                    break;
 				case StartExecutionMessage start:
 					_startExecutionMessageReceived = true;
 					MaybeStartChildren();
@@ -87,11 +90,11 @@ namespace AElf.Kernel.Concurrency.Execution
 				IActorRef actor = null;
 				if (_childType == ChildType.Group)
 				{
-                    actor = Context.ActorOf(GroupExecutor.Props(_chainId, _sericeRouter, txs, Self));
+                    actor = Context.ActorOf(GroupExecutor.Props(_chainId, _serviceRouter, txs, Self));
 				}
 				else
 				{
-                    actor = Context.ActorOf(JobExecutor.Props(_chainId, _sericeRouter, txs, Self));
+                    actor = Context.ActorOf(JobExecutor.Props(_chainId, _serviceRouter, txs, Self));
 				}
 
 				_actorToTransactions.Add(actor, txs);
