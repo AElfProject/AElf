@@ -202,7 +202,7 @@ namespace AElf.Kernel.Node.Network.Peers
         /// list.
         /// </summary>
         /// <param name="numPeers">number of peers requested</param>
-        public List<NodeData> RequestPeers(ushort numPeers)
+        public List<NodeData> GetPeers(ushort numPeers)
         {
             List<NodeData> peers = new List<NodeData>();
             

@@ -6,6 +6,7 @@ using AElf.Kernel.Node.Network.Data;
 using AElf.Kernel.Node.Network.Peers;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
+using AElf.Node.RPC.DTO;
 using Google.Protobuf;
 using NLog;
 
@@ -102,9 +103,34 @@ namespace AElf.Kernel.Node
         /// </summary>
         /// <param name="numPeers"></param>
         /// <returns></returns>
-        public async Task<List<NodeData>> RequestPeers(ushort numPeers)
+        public async Task<List<NodeData>> GetPeers(ushort numPeers)
         {
-            return _peerManager.RequestPeers(numPeers);
+            return _peerManager.GetPeers(numPeers);
+        }
+
+        /// <summary>
+        /// This method processes the peers received from one of
+        /// the connected peers.
+        /// </summary>
+        /// <param name="messagePayload"></param>
+        /// <returns></returns>
+        public async Task ReceivePeers(ByteString messagePayload)
+        {
+            try
+            {
+                List<NodeDataDto> peers = new List<NodeDataDto>();
+                //iterate over items in array in json
+                //store in nodedatadto objects
+                //convert to NodeData object using DtoHelper.ToNodeData()
+                //Add to peers list
+                //Add to actual peers list - or do that in previous step without having a scoped list<nodedata>
+                
+                _logger.Trace("Received " + peers.Count + " peers.");
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, "Invalid peer(s) - Could not receive peer(s) from the network", null);
+            }
         }
     }
 }
