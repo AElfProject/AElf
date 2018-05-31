@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace AElf.Database.SsdbClient
+namespace AElf.Database
 {
     public static class Helper
     {

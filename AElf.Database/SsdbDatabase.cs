@@ -10,7 +10,7 @@ namespace AElf.Database
         private readonly ConfigurationOptions _options;
 
         public SsdbDatabase()
-            : this(new DatabaseConfig {Host = "127.0.0.1", Port = 8888})
+            : this(new DatabaseConfig())
         {
         }
 
