@@ -42,6 +42,21 @@ namespace AElf.Kernel.Node.Protocol
             return _peerManager.GetPeers(numPeers);
         }
         
+        public async Task BroadcastTransaction(ITransaction tx)
+        {
+            byte[] transaction = tx.Serialize();
+            
+            var pendingRequest = BuildRequest();
+            
+            bool success 
+                = await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, transaction, pendingRequest.Id);
+            
+            if (success)
+                _resetEvents.Add(pendingRequest);
+
+            pendingRequest.ResetEvent.WaitOne();
+        }
+        
         #region Response handling
         
         /// <summary>
@@ -75,21 +90,6 @@ namespace AElf.Kernel.Node.Protocol
         #endregion
 
         #region Requests
-
-        public async Task BroadcastTransaction(ITransaction tx)
-        {
-            byte[] transaction = tx.Serialize();
-            
-            var pendingRequest = BuildRequest();
-            
-            bool success 
-                = await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, transaction, pendingRequest.Id);
-            
-            if (success)
-                _resetEvents.Add(pendingRequest);
-
-            pendingRequest.ResetEvent.WaitOne();
-        }
         
         #endregion
 
