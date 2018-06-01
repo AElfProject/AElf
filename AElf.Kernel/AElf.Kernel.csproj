@@ -14,7 +14,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.1.0-rc1-final" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.3" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="NLog" Version="4.5.4" />
+    <PackageReference Include="NLog" Version="4.5.6" />
     <PackageReference Include="QuickGraphCore" Version="1.0.0" />
     <PackageReference Include="SharpRepository.Repository" Version="2.0.2" />
     <PackageReference Include="Akka" Version="1.3.6" />
@@ -37,14 +37,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
     <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
     <ProjectReference Include="..\AElf.Kernel.SmartContracts.CSharpSmartContract\AElf.Kernel.SmartContracts.CSharpSmartContract.csproj" />
+    <ProjectReference Include="..\AElf.Network\AElf.Network.csproj">
+      <Project>{5FEFB079-F6EB-48AF-97C7-6C582B9BDB8A}</Project>
+      <Name>AElf.Network</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Concurrency\Execution\Messages\" />
     <Folder Include="Concurrency\Scheduling\" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Node\Network" />
     <Folder Include="Node\Network\config" />
   </ItemGroup>
 </Project>

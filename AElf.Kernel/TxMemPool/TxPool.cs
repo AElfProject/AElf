@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using AElf.Kernel.Services;
+using AElf.Common.Attributes;
 using NLog;
 
 namespace AElf.Kernel.TxMemPool

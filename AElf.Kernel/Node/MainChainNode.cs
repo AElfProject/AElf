@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Node.Network.Data;
-using AElf.Kernel.Node.Network.Peers;
+using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
-using Newtonsoft.Json.Linq;
 using NLog;
 
 namespace AElf.Kernel.Node
@@ -18,15 +17,15 @@ namespace AElf.Kernel.Node
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
-        private readonly IPeerManager _peerManager;
+        private readonly IProtocolDirector _protocolDirector;
         
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
-            IPeerManager peerManager, ILogger logger)
+            IProtocolDirector protocolDirector, ILogger logger)
         {
             _poolService = poolService;
+            _protocolDirector = protocolDirector;
             _transactionManager = txManager;
             _rpcServer = rpcServer;
-            _peerManager = peerManager;
             _logger = logger;
         }
 
@@ -36,11 +35,11 @@ namespace AElf.Kernel.Node
                 _rpcServer.Start();
             
             _poolService.Start();
-            _peerManager.Start();
+            _protocolDirector.Start();
             
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
-            _peerManager.SetCommandContext(this);
+            _protocolDirector.SetCommandContext(this);
             
             _logger.Log(LogLevel.Debug, "AElf node started.");
         }
@@ -70,37 +69,27 @@ namespace AElf.Kernel.Node
         /// <param name="tx">The tx to broadcast</param>
         public async Task<bool> BroadcastTransaction(ITransaction tx)
         {
-            // todo : send to network through server
-            var res = await _poolService.AddTxAsync(tx);
+            bool res;
+            
+            try
+            {
+                res = await _poolService.AddTxAsync(tx);
+            }
+            catch (Exception e)
+            {
+                _logger.Trace("Pool insertion failed: " + tx.GetHash().Value.ToBase64());
+                return false;
+            }
 
             if (res)
             {
-                await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, tx.Serialize());
-                var jobj = new JObject
-                {
-                    {
-                        "tx",
-                        new JObject
-                        {
-                            {"txId", tx.GetHash().Value.ToBase64()},
-                            {"From", tx.From.Value.ToBase64()},
-                            {"To", tx.To.Value.ToBase64()},
-                            {"Method", tx.MethodName}
-
-                        }
-                    }
-                };
-                _logger.Trace("Broadcasted transaction to peers: " + jobj);
+                await _protocolDirector.BroadcastTransaction(tx);
+                
+                _logger.Trace("Broadcasted transaction to peers: " + tx.GetLoggerString());
                 return true;
             }
-
-            var error = new JObject
-            {
-                {"status", "Failed"},
-                {"txId", tx.GetHash().Value.ToBase64()},
-            };
-            _logger.Trace("Broadcasting transaction failed: " + error);
-
+            
+            _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToBase64() + " }");
             return false;
         }
         
