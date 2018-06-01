@@ -26,12 +26,14 @@ namespace AElf.Common.Synchronisation
         /// <inheritdoc />
         public Task<T> WriteLock<T>(Func<T> func)
         {
+            Console.WriteLine("write lock");
             return ExclusiveWritrer.StartNew(func);
         }
         
         /// <inheritdoc />
         public Task WriteLock(Action action)
         {
+            Console.WriteLine("reader lock");
             return ExclusiveWritrer.StartNew(action);
         }
     }

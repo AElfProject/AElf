@@ -9,14 +9,14 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.Node.Protocol
 {
-    public class AElfProtocolManager : IProtocolManager
+    public class AElfProtocolDirector : IProtocolDirector
     {
         private IPeerManager _peerManager;
         private List<PendingRequest> _resetEvents = new List<PendingRequest>();
         
         private MainChainNode _node;
 
-        public AElfProtocolManager(IPeerManager peerManager)
+        public AElfProtocolDirector(IPeerManager peerManager)
         {
             _peerManager = peerManager;
         }
@@ -92,8 +92,10 @@ namespace AElf.Kernel.Node.Protocol
 
         #region Requests
 
-        public async Task BroadcastTransaction(byte[] transaction)
+        public async Task BroadcastTransaction(ITransaction tx)
         {
+            byte[] transaction = tx.Serialize();
+            
             var pendingRequest = BuildRequest();
             
             bool success = await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, transaction, pendingRequest.Id);

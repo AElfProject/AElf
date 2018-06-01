@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using AElf.Kernel.Services;
+using AElf.Common.Attributes;
+using NLog;
 
 namespace AElf.Kernel.TxMemPool
 {
+    [LoggerName("TxPool")]
     public class TxPool : ITxPool
     {
         private readonly Dictionary<Hash, List<ITransaction>> _executable =
@@ -14,13 +14,15 @@ namespace AElf.Kernel.TxMemPool
         private readonly Dictionary<Hash, Dictionary<ulong, ITransaction>> _waiting =
             new Dictionary<Hash, Dictionary<ulong, ITransaction>>();
         //private readonly Dictionary<Hash, ITransaction> _pool = new Dictionary<Hash, ITransaction>();
+        private readonly ILogger _logger;
         
         private readonly ITxPoolConfig _config;
         
 
-        public TxPool(ITxPoolConfig config)
+        public TxPool(ITxPoolConfig config, ILogger logger)
         {
             _config = config;
+            _logger = logger;
         }
 
         //private HashSet<Hash> Tmp { get; } = new HashSet<Hash>();
@@ -138,11 +140,12 @@ namespace AElf.Kernel.TxMemPool
 
         public bool EnQueueTx(ITransaction tx)
         {
-            if (!this.ValidateTx(tx))
-                return false;
-            
+            var error = this.ValidateTx(tx);
+            if (error == TxValidation.ValidationError.Success) return AddWaitingTx(tx);
+            _logger.Error("InValid transaction: " +  error);
+            return false;
+
             //_pool[txHash] = tx;
-            return AddWaitingTx(tx);
         }
 
         /// <inheritdoc/>
@@ -200,6 +203,7 @@ namespace AElf.Kernel.TxMemPool
             {
                 
             }*/
+            _logger.Error("Replacing transaction failed");
             return false;
         }
 

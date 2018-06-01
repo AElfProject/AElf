@@ -2,11 +2,11 @@
 
 namespace AElf.Kernel.Node.Protocol
 {
-    public interface IProtocolManager
+    public interface IProtocolDirector
     {
         void Start();
 
-        Task BroadcastTransaction(byte[] transaction);
+        Task BroadcastTransaction(ITransaction transaction);
         void SetCommandContext(MainChainNode node);
     }
 }

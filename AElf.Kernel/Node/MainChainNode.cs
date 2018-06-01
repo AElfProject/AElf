@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Kernel.Managers;
@@ -18,13 +17,13 @@ namespace AElf.Kernel.Node
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
-        private readonly IProtocolManager _protocolManager;
+        private readonly IProtocolDirector _protocolDirector;
         
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
-            IProtocolManager protocolManager, ILogger logger)
+            IProtocolDirector protocolDirector, ILogger logger)
         {
             _poolService = poolService;
-            _protocolManager = protocolManager;
+            _protocolDirector = protocolDirector;
             _transactionManager = txManager;
             _rpcServer = rpcServer;
             _logger = logger;
@@ -36,11 +35,11 @@ namespace AElf.Kernel.Node
                 _rpcServer.Start();
             
             _poolService.Start();
-            _protocolManager.Start();
+            _protocolDirector.Start();
             
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
-            _protocolManager.SetCommandContext(this);
+            _protocolDirector.SetCommandContext(this);
             
             _logger.Log(LogLevel.Debug, "AElf node started.");
         }
@@ -68,14 +67,30 @@ namespace AElf.Kernel.Node
         /// also places it in the transaction pool.
         /// </summary>
         /// <param name="tx">The tx to broadcast</param>
-        public async Task BroadcastTransaction(Transaction tx)
+        public async Task<bool> BroadcastTransaction(ITransaction tx)
         {
-            AutoResetEvent resetEvent = new AutoResetEvent(false);
-
-            // todo : send to network through server
-            await _protocolManager.BroadcastTransaction(tx.ToByteArray());
+            bool res;
             
-            _logger.Trace("Broadcasted transaction to peers: " + JsonFormatter.Default.Format(tx));
+            try
+            {
+                res = await _poolService.AddTxAsync(tx);
+            }
+            catch (Exception e)
+            {
+                _logger.Trace("Pool insertion failed: " + tx.GetHash().Value.ToBase64());
+                return false;
+            }
+
+            if (res)
+            {
+                await _protocolDirector.BroadcastTransaction(tx);
+                
+                _logger.Trace("Broadcasted transaction to peers: " + tx.GetLoggerString());
+                return true;
+            }
+            
+            _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToBase64() + " }");
+            return false;
         }
         
         /// <summary>

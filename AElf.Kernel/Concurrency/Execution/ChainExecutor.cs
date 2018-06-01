@@ -78,7 +78,7 @@ namespace AElf.Kernel.Concurrency.Execution
                     r = new TransactionResult()
                     {
                         TransactionId = txId,
-                        Status = Status.ExecutedFailed
+                        Status = Status.Failed
                     };
                 }
                 txRes.Add(r);
