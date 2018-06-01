@@ -4,14 +4,14 @@ using System.Collections.Generic;
 namespace AElf.Kernel.Concurrency.Metadata
 {
     
-    public interface IFunctionMetaDataService
+    public interface IChainFunctionMetadataTemplateService
     {
         /// <summary>
         /// use Map to store the function's metadata
         /// </summary>
-        Dictionary<string, FunctionMetadata> FunctionMetadataMap { get; }
+        Dictionary<string, FunctionMetadata> FunctionMetadataTemplateMap { get; }
 
-        List<string> GenerateMetadataForGenesis(HashSet<string> contractClassFullName);
+        bool TryAddNewContract(Type contractCode);
         
         /// <summary>
         /// Called when deploy a new contract
@@ -22,7 +22,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <param name="nonRecursivePathSet">The non-recursive path set of this function</param>
         /// <exception cref="InvalidOperationException">Throw when FunctionMetadataMap already contains a function with same fullname</exception>
         /// <returns>True when success, false when something is wrong (usually is cannot find record with respect to functionName in the parameter otherFunctionsCallByThis)</returns>
-        bool SetNewFunctionMetadata(string functionFullName, HashSet<string> otherFunctionsCallByThis, HashSet<Hash> nonRecursivePathSet);
+        bool SetNewFunctionMetadata(string functionFullName, HashSet<string> otherFunctionsCallByThis, HashSet<string> nonRecursivePathSet);
         
         /// <summary>
         /// Get a function's metadata, throw  if this function is not found in the map.
@@ -38,7 +38,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <param name="functionFullName"></param>
         /// <param name="otherFunctionsCallByThis"></param>
         /// <param name="nonRecursivePathSet"></param>
-        bool UpdataExistingMetadata(string functionFullName, HashSet<string> otherFunctionsCallByThis, HashSet<Hash> nonRecursivePathSet);
+        bool UpdataExistingMetadata(string functionFullName, HashSet<string> otherFunctionsCallByThis, HashSet<string> nonRecursivePathSet);
         
     }
 }

@@ -5,13 +5,13 @@ namespace AElf.Kernel.Concurrency.Metadata
     [AttributeUsage(AttributeTargets.Field)]
     public class SmartContractReferenceAttribute : Attribute
     {
-        public SmartContractReferenceAttribute(string fieldName, string className)
+        public SmartContractReferenceAttribute(string fieldName, Type contractType)
         {
             FieldName = fieldName;
-            ClassName = className;
+            ContractType = contractType;
         }
 
         public string FieldName { get; }
-        public string ClassName { get; }
+        public Type ContractType { get; }
     }
 }

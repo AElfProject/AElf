@@ -5,15 +5,15 @@ namespace AElf.Kernel.Concurrency.Metadata
     [AttributeUsage(AttributeTargets.Method)]
     public class SmartContractFunctionAttribute : Attribute
     {
-        public SmartContractFunctionAttribute(string functionSignature, string[] callingSet, string[] resources)
+        public SmartContractFunctionAttribute(string functionSignature, string[] callingSet, string[] localResources)
         {
             FunctionSignature = functionSignature;
-            Resources = resources;
+            LocalResources = localResources;
             CallingSet = callingSet;
         }
 
         public string FunctionSignature { get; }
-        public string[] Resources { get; }
+        public string[] LocalResources { get; }
         public string[] CallingSet { get; }
     }
 }

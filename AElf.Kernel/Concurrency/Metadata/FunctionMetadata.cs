@@ -9,11 +9,19 @@ namespace AElf.Kernel.Concurrency.Metadata
     /// </summary>
     public class FunctionMetadata
     {
-        public FunctionMetadata(HashSet<string> callingSet, HashSet<Hash> pathSet, HashSet<Hash> nonRecursivePathSet)
+        public FunctionMetadata(HashSet<string> callingSet, HashSet<string> fullResourceSet, HashSet<string> localResourceSet)
         {
+            IsTemplate = false;
             CallingSet = callingSet ?? new HashSet<string>();
-            PathSet = pathSet ?? new HashSet<Hash>();
-            NonRecursivePathSet = nonRecursivePathSet ?? new HashSet<Hash>();
+            FullResourceSet = fullResourceSet ?? new HashSet<string>();
+            LocalResourceSet = localResourceSet ?? new HashSet<string>();
+        }
+
+        public FunctionMetadata(HashSet<string> callingSet, HashSet<string> localResourceSet)
+        {
+            IsTemplate = true;
+            CallingSet = callingSet ?? new HashSet<string>();
+            LocalResourceSet = localResourceSet ?? new HashSet<string>();
         }
 
         /// <summary>
@@ -24,11 +32,13 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <summary>
         /// used to find what resource this function will access (recursive)
         /// </summary>
-        public HashSet<Hash> PathSet { get; }
+        public HashSet<string> FullResourceSet { get; }
         
         /// <summary>
         /// used when updating a function, the caller functions of this updating function should use this NonRecursivePathSet to regenerate the new metadata
         /// </summary>
-        public HashSet<Hash> NonRecursivePathSet { get; }
+        public HashSet<string> LocalResourceSet { get; }
+
+        public bool IsTemplate;
     }
 }

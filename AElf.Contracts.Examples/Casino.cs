@@ -1,12 +1,10 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Extensions;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using Org.BouncyCastle.Security;
 
 namespace AElf.Contracts.Examples
 {
@@ -15,17 +13,17 @@ namespace AElf.Contracts.Examples
     /// </summary>
     public class Casino : CSharpSmartContract
     {
-        [SmartContractFieldData("CasinoToken", DataAccessMode.AccountSpecific)]
+        [SmartContractFieldData("${this}.CasinoToken", DataAccessMode.AccountSpecific)]
         public readonly Map CasinoToken = new Map("CasinoToken");
 
-        [SmartContractFieldData("ExchangeRate", DataAccessMode.ReadOnlyAccountSharing)]
+        [SmartContractFieldData("${this}.ExchangeRate", DataAccessMode.ReadOnlyAccountSharing)]
         public ulong ExchangeRate = 100;
 
         #region Smart contract reference
         
-        [SmartContractReference("_tokenContractA", "SimpleTokenContract")]
+        [SmartContractReference("_tokenContractA", typeof(SimpleTokenContract))]
         private SimpleTokenContract _tokenContractA;
-        [SmartContractReference("_tokenContractB", "SimpleTokenContract")]
+        [SmartContractReference("_tokenContractB", typeof(SimpleTokenContract))]
         private SimpleTokenContract _tokenContractB;
         
         #endregion
@@ -36,7 +34,8 @@ namespace AElf.Contracts.Examples
             _tokenContractB = tokenContractB;
         }
         
-        [SmartContractFunction("BuyTokenFromA(Hash, ulong)", new []{"${ChainId}.${_tokenContractA}.Transfer(Hash, Hash, ulong)"}, new []{"CasinoToken", "ExchangeRate"})]
+        //To test multiple resource set
+        [SmartContractFunction("${this}.BuyTokenFromA(Hash, ulong)", new []{"${_tokenContractA}.Transfer(AElf.Kernel.Hash, AElf.Kernel.Hash, UInt64)"}, new []{"${this}.CasinoToken", "${this}.ExchangeRate"})]
         public async Task<bool> BuyTokenFromA(Hash from, ulong value)
         {
             if(await _tokenContractA.Transfer(from, Api.GetContractAddress(), value))
@@ -52,13 +51,14 @@ namespace AElf.Contracts.Examples
             }
         }
         
-        [SmartContractFunction("BuyTokenFromB(Hash, ulong)", new []{"${ChainId}.${_tokenContractB}.Transfer(Hash, Hash, ulong)"}, new []{"CasinoToken", "ExchangeRate"})]
+        //To test in-class function call
+        [SmartContractFunction("${this}.BuyTokenFromB(Hash, ulong)", new []{"${_tokenContractB}.Transfer(Hash, Hash, ulong)", "${this}.GetExchangeRate()"}, new []{"${this}.CasinoToken"})]
         public async Task<bool> BuyTokenFromB(Hash from, ulong value)
         {
             if(await _tokenContractB.Transfer(from, Api.GetContractAddress(), value))
             {
                 var originBalance = (await CasinoToken.GetValue(from)).ToUInt64();
-                originBalance += value * ExchangeRate;
+                originBalance += value * GetExchangeRate();
                 await CasinoToken.SetValueAsync(from, originBalance.ToBytes());
                 return true;
             }
@@ -66,6 +66,12 @@ namespace AElf.Contracts.Examples
             {
                 return false;
             }
+        }
+
+        [SmartContractFunction("${this}.GetExchangeRate()", new string[]{}, new []{"${this}.ExchangeRate"})]
+        private ulong GetExchangeRate()
+        {
+            return ExchangeRate;
         }
 
         public async Task InitializeAsync(IAccountDataProvider dataProvider)

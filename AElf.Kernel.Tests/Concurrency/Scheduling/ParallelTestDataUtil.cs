@@ -288,9 +288,9 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                     callingSet.Add(functionCallingGraph[i][j]);
                 }
 
-                var pathSet = TranslateStringToPathSet(functionCallingGraph[i][0], pathSetStrings);
+                var pathSet = TranslateStringToResourceSet(functionCallingGraph[i][0], pathSetStrings);
                     //ToDictionary(a=> a, a=> a);
-                var funMetadata = new FunctionMetadata(callingSet, new HashSet<Hash>(), pathSet);
+                var funMetadata = new FunctionMetadata(callingSet, new HashSet<string>(), pathSet);
                 
                 result.Add(new KeyValuePair<string, FunctionMetadata>(functionCallingGraph[i][0],funMetadata));
             }
@@ -298,9 +298,9 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return result;
         }
 
-        public HashSet<Hash> TranslateStringToPathSet(string function, string[][] pathSetStrings)
+        public HashSet<string> TranslateStringToResourceSet(string function, string[][] pathSetStrings)
         {
-            return pathSetStrings.First(a => a[0] == function).Where(b => b != function).Select(a => new Hash(a.CalculateHash())).ToHashSet();
+            return pathSetStrings.First(a => a[0] == function).Where(b => b != function).ToHashSet();
 
         }
 
@@ -323,14 +323,13 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                     .Select(item => String.Format("[{0},({1}),({2})]", 
                         item.Key,
                         CallingSetToString(item.Value.CallingSet), 
-                        PathSetToString((expectedValue)? TranslateStringToPathSet(item.Key, GetFunctionFullPathSet()): item.Value.PathSet))));
+                        PathSetToString((expectedValue)? TranslateStringToResourceSet(item.Key, GetFunctionFullPathSet()): item.Value.FullResourceSet))));
         }
 
-        public string PathSetToString(HashSet<Hash> pathSet)
+        public string PathSetToString(HashSet<string> resourceSet)
         {
             return string.Join(", ",
-                pathSet.Select(pathHash =>
-                    resourceBook.First(resourceName => pathHash.Equals(resourceName.CalculateHash()))).OrderBy(a =>a));
+                resourceSet.OrderBy(a =>a));
         }
 
         public string CallingSetToString(HashSet<string> callingSet)
