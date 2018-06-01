@@ -60,11 +60,10 @@ namespace AElf.Network.Peers
             _server.ClientConnected += HandleConnection;
 
             var startTimeSpan = TimeSpan.Zero;
-            var periodTimeSpan = TimeSpan.FromMinutes(5);
+            var periodTimeSpan = TimeSpan.FromMinutes(1);
 
             var timer = new System.Threading.Timer((e) =>
             {
-                undergoingPM = true;
                 PeerMaintenance();   
             }, null, startTimeSpan, periodTimeSpan);
         }
@@ -73,6 +72,8 @@ namespace AElf.Network.Peers
         {
             if (!undergoingPM)
             {
+                undergoingPM = true;
+                
                 foreach (var peer in _peers)
                 {
                     int peersCount = _peers.Count;
