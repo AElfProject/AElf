@@ -82,53 +82,15 @@ namespace AElf.Network.Peers
                     peer.IpAddress = split[0];
                     peer.Port = port;
                     
-                    IPeer p = new Peer(_nodeData, peer);
-                    
-                    bool success = await p.DoConnectAsync();
-
-                    // If we succesfully connected to the other peer 
-                    // add it to be managed.
-                    if (success)
-                    {
-                        AddPeer(p);
-                    }
+                    await CreatePeer(peer);
                 }
             }
 
             var dbNodeData = _peerDatabase.ReadPeers();
 
-            // Parse List<NodeData> to List<IPeer>
-            var dbPeers = new List<IPeer>();
             foreach (var p in dbNodeData)
             {
-                dbPeers.Add(new Peer(_nodeData, p));
-            }
-            
-            if (dbPeers.Count > 0)
-            {
-                foreach (var peer in dbPeers)
-                {
-                    if (_peers.Contains(peer))
-                        continue;
-                    
-                    peer.SetNodeData(_nodeData); // todo temp
-
-                    try
-                    {
-                        bool success = await peer.DoConnectAsync();
-                    
-                        // If we successfully connected to the other peer
-                        // add it to be managed
-                        if (success)
-                        {
-                            AddPeer(peer);
-                        }
-                    }
-                    catch (ResponseTimeOutException rex)
-                    {
-                        _logger.Error(rex, rex?.Message + " - "  + peer);
-                    }
-                }
+                await CreatePeer(p);
             }
         }
         
@@ -149,19 +111,7 @@ namespace AElf.Network.Peers
                     NodeData p = new NodeData();
                     p.IpAddress = peer.IpAddress;
                     p.Port = peer.Port;
-                    IPeer newPeer = CreatePeer(p);
-                    try
-                    {
-                        bool success = await newPeer.DoConnectAsync();
-                        if (success)
-                        {
-                            AddPeer(newPeer);
-                        }
-                    }
-                    catch (ResponseTimeOutException rex)
-                    {
-                        _logger.Error(rex, rex?.Message + " - "  + peer);
-                    }
+                    await CreatePeer(p);
                 }
             }
             catch (Exception e)
@@ -203,9 +153,27 @@ namespace AElf.Network.Peers
         /// </summary>
         /// <param name="nodeData"></param>
         /// <returns></returns>
-        private IPeer CreatePeer(NodeData nodeData)
+        private async Task<IPeer> CreatePeer(NodeData nodeData)
         {
-            return new Peer(_nodeData, nodeData);
+            IPeer peer = new Peer(_nodeData, nodeData);
+            try
+            {
+                bool success = await peer.DoConnectAsync();
+                    
+                // If we successfully connected to the other peer
+                // add it to be managed
+                if (success)
+                {
+                    AddPeer(peer);
+                    return peer;
+                }
+            }
+            catch (ResponseTimeOutException rex)
+            {
+                _logger.Error(rex, rex?.Message + " - "  + peer);
+            }
+
+            return null;
         }
         
         /// <summary>
@@ -294,8 +262,6 @@ namespace AElf.Network.Peers
                     MessageReceived?.Invoke(this, e);
                 }
             }
-            
-
         }
 
         /// <summary>
