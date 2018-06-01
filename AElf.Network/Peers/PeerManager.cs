@@ -138,7 +138,7 @@ namespace AElf.Network.Peers
         /// </summary>
         /// <param name="messagePayload"></param>
         /// <returns></returns>
-        public async Task ReceivePeers(ByteString messagePayload)
+        internal async Task ReceivePeers(ByteString messagePayload)
         {
             try
             {
@@ -286,20 +286,7 @@ namespace AElf.Network.Peers
                 }
                 else if (args.Message.MsgType == (int) MessageTypes.ReturnPeers)
                 {
-                    // PROCESS RESPONSE
-
                     ReceivePeers(args.Message.Payload);
-
-                    /*await _node.ReceivePeers(args.Message.Payload);
-
-                    var resp = new AElfPacketData
-                    {
-                        MsgType = (int) MessageTypes.Ok,
-                        Length = 1,
-                        Payload = ByteString.CopyFrom(0x01)
-                    };
-
-                    await args.Peer.SendDataAsync(resp.ToByteArray());*/
                 }
                 else
                 {
