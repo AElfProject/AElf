@@ -111,7 +111,8 @@ namespace AElf.Network.Peers
                     NodeData p = new NodeData();
                     p.IpAddress = peer.IpAddress;
                     p.Port = peer.Port;
-                    await CreatePeer(p);
+                    IPeer newPeer = await CreatePeer(p);
+                    _logger.Trace("Peer received : " + newPeer);
                 }
             }
             catch (Exception e)
