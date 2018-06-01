@@ -242,18 +242,10 @@ namespace AElf.Network.Peers
             {
                 if (i <= _peers.Count)
                 {
-                    try
-                    {
-                        NodeData p = new NodeData();
-                        p.IpAddress = _peers[i].IpAddress;
-                        p.Port = _peers[i].Port;
-                        peers.Add(p);
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.Error(e, e?.Message);
-                        break;
-                    }
+                    NodeData p = new NodeData();
+                    p.IpAddress = _peers[i].IpAddress;
+                    p.Port = _peers[i].Port;
+                    peers.Add(p);
                 }
             }
 
@@ -282,35 +274,16 @@ namespace AElf.Network.Peers
             {
                 if (args.Message.MsgType == (int) MessageTypes.RequestPeers)
                 {
-                    // RESPONSE TO REQUEST
-                    
-                    /*string payloadAsString = Encoding.UTF8.GetString(args.Message.Payload.ToByteArray());
-                    
-                    JObject j = JObject.Parse(payloadAsString);
-                    ushort numPeers = j["numPeers"].ToObject<ushort>();
-                    
-                    List<NodeData> peers = await _node.GetPeers(numPeers);
-                    
-                    List<NodeDataDto> peersDto = new List<NodeDataDto>();
-                    foreach (var peer in peers)
-                    {
-                        NodeDataDto pDto = peer.ToNodeDataDto();
-                        peersDto.Add(pDto);
-                    }
-
-                    var json = JsonConvert.SerializeObject(peersDto);
-                    JArray arrPeersDto = JArray.Parse(json);
-
-                    JObject jobject = new JObject()
-                    {
-                        ["data"] = arrPeersDto
-                    }; */
+                    ReqPeerListData req = ReqPeerListData.Parser.ParseFrom(args.Message.Payload);
+                    ushort numPeers = (ushort) req.NumPeers;
                     
                     PeerListData pListData = new PeerListData();
 
                     foreach (var peer in _peers)
                     {
                         pListData.NodeData.Add(peer.DistantNodeData);
+                        if (pListData.NodeData.Count == numPeers)
+                            break;
                     }
 
                     var resp = new AElfPacketData
@@ -320,7 +293,7 @@ namespace AElf.Network.Peers
                         Payload = pListData.ToByteString()
                     };
 
-                     Task.Run(async () => await args.Peer.SendAsync(resp.ToByteArray()));
+                    Task.Run(async () => await args.Peer.SendAsync(resp.ToByteArray()));
                 }
                 else if (args.Message.MsgType == (int) MessageTypes.ReturnPeers)
                 {
