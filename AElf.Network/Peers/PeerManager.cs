@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Timers;
 using AElf.Network.Config;
 using AElf.Network.Data;
 using AElf.Network.Peers.Exceptions;
@@ -22,6 +23,8 @@ namespace AElf.Network.Peers
         private readonly List<IPeer> _peers = new List<IPeer>();
         
         private readonly NodeData _nodeData;
+
+        private bool undergoingPM = false;
 
         public PeerManager(IAElfServer server, IPeerDatabase peerDatabase, IAElfNetworkConfig config, ILogger logger)
         {
@@ -55,6 +58,50 @@ namespace AElf.Network.Peers
             Task.Run(Setup);
             
             _server.ClientConnected += HandleConnection;
+
+            var startTimeSpan = TimeSpan.Zero;
+            var periodTimeSpan = TimeSpan.FromMinutes(5);
+
+            var timer = new System.Threading.Timer((e) =>
+            {
+                undergoingPM = true;
+                PeerMaintenance();   
+            }, null, startTimeSpan, periodTimeSpan);
+        }
+
+        private void PeerMaintenance()
+        {
+            if (!undergoingPM)
+            {
+                foreach (var peer in _peers)
+                {
+                    int peersCount = _peers.Count;
+                    if (peersCount < 8)
+                    {
+                        ushort missingPeers = (ushort) (8 - peersCount);
+                    
+                        var reqPeerListData = new ReqPeerListData
+                        {
+                            NumPeers = missingPeers
+                        };
+                    
+                        var req = new AElfPacketData
+                        {
+                            MsgType = (int)MessageTypes.RequestPeers,
+                            Length = 1,
+                            Payload = reqPeerListData.ToByteString()
+                        };
+
+                        Task.Run(async () => await peer.SendAsync(req.ToByteArray()));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                undergoingPM = false;
+            }
         }
 
         /// <summary>
