@@ -40,13 +40,14 @@ namespace AElf.Kernel.KernelAccount
             var instance = constructorInfo.Invoke(parameterObjs);
             
             // inject instance
-            var smartContract = new CSharpSmartContract
+            var smartContract = new CSharpSmartContract(adp)
             {
-                Instance = instance
+                Instance = instance,
+                
             };
             
             // initialize account info 
-            await smartContract.InitializeAsync(adp);
+            //await smartContract.InitializeAsync(adp);
             return smartContract;
         }
     } 

@@ -1,29 +1,31 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Google.Protobuf;
 
 namespace AElf.Kernel
 {
     public abstract class SmartContract : ISmartContract
     {
-        private IAccountDataProvider _accountDataProvider;
+        private readonly IAccountDataProvider _accountDataProvider;
 
 
-        public async Task InitializeAsync(IAccountDataProvider dataProvider)
+        public SmartContract(IAccountDataProvider dataProvider)
         {
             _accountDataProvider = dataProvider;
-            await Task.CompletedTask;
         }
 
         public abstract Task<object> InvokeAsync(SmartContractInvokeContext context);
 
     }
+
+
+
     
     public class CSharpSmartContract : SmartContract
     {
+        public CSharpSmartContract(IAccountDataProvider dataProvider) : base (dataProvider)
+        {
+
+        }
 
         public object Instance { get; set; }
         public override async Task<object> InvokeAsync(SmartContractInvokeContext context)
