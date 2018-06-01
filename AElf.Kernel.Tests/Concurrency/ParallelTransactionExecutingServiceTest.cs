@@ -10,10 +10,6 @@ using Akka.TestKit.Xunit;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
-using AElf.Kernel.Services;
-using AElf.Kernel.Extensions;
-using AElf.Kernel.KernelAccount;
-using Google.Protobuf;
 using AElf.Kernel.Tests.Concurrency.Execution;
 
 namespace AElf.Kernel.Tests.Concurrency
@@ -21,45 +17,17 @@ namespace AElf.Kernel.Tests.Concurrency
 	[UseAutofacTestFramework]
 	public class ParallelTransactionExecutingServiceTest : TestKitBase
 	{
-		private ActorSystem sys = ActorSystem.Create("test");
-		private ChainContextServiceWithAdd _chainContextService;
-		private ChainContextWithSmartContractZeroWithTransfer _chainContext;
-		private ProtobufSerializer _serializer = new ProtobufSerializer();
-		private SmartContractZeroWithTransfer _smartContractZero { get { return (_chainContext.SmartContractZero as SmartContractZeroWithTransfer); } }
-		private AccountContextService _accountContextService;
-		private IActorRef _generalExecutor;
+        private IActorRef _generalExecutor;
+        private MockSetup _mock;
+        private ActorSystem sys = ActorSystem.Create("test");
+        private IActorRef _serviceRouter;
 
-		public ParallelTransactionExecutingServiceTest(ChainContextServiceWithAdd chainContextService, ChainContextWithSmartContractZeroWithTransfer chainContext, AccountContextService accountContextService) : base(new XunitAssertions())
-		{
-			_chainContextService = chainContextService;
-			_chainContext = chainContext;
-			_accountContextService = accountContextService;
-			_generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
-		}
-
-		private Transaction GetTransaction(Hash from, Hash to, ulong qty)
-		{
-			// TODO: Test with IncrementId
-			TransferArgs args = new TransferArgs()
-			{
-				From = from,
-				To = to,
-				Quantity = qty
-			};
-
-			ByteString argsBS = ByteString.CopyFrom(_serializer.Serialize(args));
-
-			Transaction tx = new Transaction()
-			{
-				IncrementId = 0,
-				From = from,
-				To = to,
-				MethodName = "Transfer",
-				Params = argsBS
-			};
-
-			return tx;
-		}
+        public ParallelTransactionExecutingServiceTest(MockSetup mock) : base(new XunitAssertions())
+        {
+            _mock = mock;
+            _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(_mock.ServicePack));
+            _generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _serviceRouter), "exec");
+        }
 
 		[Fact]
 		public void Test()
@@ -72,11 +40,11 @@ namespace AElf.Kernel.Tests.Concurrency
 
 			foreach (var addbal in addresses.Zip(balances, Tuple.Create))
 			{
-				_smartContractZero.SetBalance(addbal.Item1, (ulong)addbal.Item2);
+                _mock.Initialize1(addbal.Item1, (ulong)addbal.Item2);
 			}
 
 			var txs = new List<ITransaction>(){
-				GetTransaction(addresses[0], addresses[1], 10),
+                _mock.GetTransferTxn1(addresses[0], addresses[1], 10),
 			};
 			var txsHashes = txs.Select(y => y.GetHash()).ToList();
 
@@ -84,16 +52,15 @@ namespace AElf.Kernel.Tests.Concurrency
 			{
 				90, 10
 			};
-         
-			_chainContextService.AddChainContext(_chainContext.ChainId, _chainContext);
-            _generalExecutor.Tell(new RequestAddChainExecutor(_chainContext.ChainId));
+
+            _generalExecutor.Tell(new RequestAddChainExecutor(_mock.ChainId1));
             ExpectMsg<RespondAddChainExecutor>();
 
 			var service = new ParallelTransactionExecutingService(sys);
 
 			var txsResults = Task.Factory.StartNew(async () =>
 			{
-				return await service.ExecuteAsync(txs, _chainContext.ChainId);
+                return await service.ExecuteAsync(txs, _mock.ChainId1);
 			}).Unwrap().Result;
 			foreach (var txRes in txs.Zip(txsResults, Tuple.Create))
 			{
@@ -102,7 +69,7 @@ namespace AElf.Kernel.Tests.Concurrency
 			}
 			foreach (var addFinbal in addresses.Zip(finalBalances, Tuple.Create))
 			{
-				Assert.Equal((ulong)addFinbal.Item2, _smartContractZero.GetBalance(addFinbal.Item1));
+                Assert.Equal((ulong)addFinbal.Item2, _mock.GetBalance1(addFinbal.Item1));
 			}
 		}
 	}

@@ -20,52 +20,17 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 	[UseAutofacTestFramework]
 	public class GeneralRequestorTest : TestKitBase
 	{
-		private ActorSystem sys = ActorSystem.Create("test");
-		private ChainContextServiceWithAdd _chainContextService;
-		private ChainContextWithSmartContractZeroWithTransfer _chainContext;
-		private ChainContextWithSmartContractZeroWithTransfer2 _chainContext2;
-		private ProtobufSerializer _serializer = new ProtobufSerializer();
-		private SmartContractZeroWithTransfer _smartContractZero { get { return (_chainContext.SmartContractZero as SmartContractZeroWithTransfer); } }
-		private SmartContractZeroWithTransfer2 _smartContractZero2 { get { return (_chainContext2.SmartContractZero as SmartContractZeroWithTransfer2); } }
-		private AccountContextService _accountContextService;
-		private IActorRef _generalExecutor;
+        private IActorRef _generalExecutor;
+        private MockSetup _mock;
+        private ActorSystem sys = ActorSystem.Create("test");
+        private IActorRef _serviceRouter;
 
-		public GeneralRequestorTest(
-			ChainContextServiceWithAdd chainContextService,
-			ChainContextWithSmartContractZeroWithTransfer chainContext,
-			ChainContextWithSmartContractZeroWithTransfer2 chainContext2,
-			AccountContextService accountContextService) : base(new XunitAssertions())
-		{
-			_chainContextService = chainContextService;
-			_chainContext = chainContext;
-            _chainContext2 = chainContext2;
-			_accountContextService = accountContextService;
-			_generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
-		}
-
-		private Transaction GetTransaction(Hash from, Hash to, ulong qty)
-		{
-			// TODO: Test with IncrementId
-			TransferArgs args = new TransferArgs()
-			{
-				From = from,
-				To = to,
-				Quantity = qty
-			};
-
-			ByteString argsBS = ByteString.CopyFrom(_serializer.Serialize(args));
-
-			Transaction tx = new Transaction()
-			{
-				IncrementId = 0,
-				From = from,
-				To = to,
-				MethodName = "Transfer",
-				Params = argsBS
-			};
-
-			return tx;
-		}
+        public GeneralRequestorTest(MockSetup mock) : base(new XunitAssertions())
+        {
+            _mock = mock;
+            _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(_mock.ServicePack));
+            _generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _serviceRouter), "exec");
+        }
 
 		[Fact]
 		public void Test()
@@ -78,15 +43,15 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
 			foreach (var addbal in addresses.Zip(balances, Tuple.Create))
 			{
-				_smartContractZero.SetBalance(addbal.Item1, (ulong)addbal.Item2);
-				_smartContractZero2.SetBalance(addbal.Item1, (ulong)addbal.Item2);
+                _mock.Initialize1(addbal.Item1, (ulong)addbal.Item2);
+                _mock.Initialize2(addbal.Item1, (ulong)addbal.Item2);
 			}
 
 			var txs1 = new List<ITransaction>(){
-				GetTransaction(addresses[0], addresses[1], 10),
+                _mock.GetTransferTxn1(addresses[0], addresses[1], 10),
 			};
 			var txs2 = new List<ITransaction>(){
-                GetTransaction(addresses[0], addresses[1], 20),
+                _mock.GetTransferTxn2(addresses[0], addresses[1], 20),
             };
 			var txsHashes1 = txs1.Select(y => y.GetHash()).ToList();
 			var txsHashes2 = txs2.Select(y => y.GetHash()).ToList();
@@ -101,34 +66,29 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 80, 20
             };
 
-			_chainContextService.AddChainContext(_chainContext.ChainId, _chainContext);
-			_generalExecutor.Tell(new RequestAddChainExecutor(_chainContext.ChainId));
+            _generalExecutor.Tell(new RequestAddChainExecutor(_mock.ChainId1));
             ExpectMsg<RespondAddChainExecutor>();
 
-			_chainContextService.AddChainContext(_chainContext2.ChainId, _chainContext2);
-            _generalExecutor.Tell(new RequestAddChainExecutor(_chainContext2.ChainId));
+            _generalExecutor.Tell(new RequestAddChainExecutor(_mock.ChainId2));
             ExpectMsg<RespondAddChainExecutor>();
-
-			//var chainExecutor = sys.ActorOf(ParallelExecutionChainExecutor.Props(_chainContext, _accountContextService), "chainexecutor-" + _chainContext.ChainId.ToByteArray().ToHex());
-			//var chainExecutor2 = sys.ActorOf(ParallelExecutionChainExecutor.Props(_chainContext2, _accountContextService), "chainexecutor-" + _chainContext2.ChainId.ToByteArray().ToHex());
 
 			var requestor = sys.ActorOf(GeneralRequestor.Props(sys));
 
 			var tcs = new TaskCompletionSource<List<TransactionResult>>();         
-			requestor.Tell(new LocalExecuteTransactionsMessage(_chainContext.ChainId, txs1, tcs));
+            requestor.Tell(new LocalExecuteTransactionsMessage(_mock.ChainId1, txs1, tcs));
 			tcs.Task.Wait();
 			var tcs2 = new TaskCompletionSource<List<TransactionResult>>();
-			requestor.Tell(new LocalExecuteTransactionsMessage(_chainContext2.ChainId, txs2, tcs2));
+            requestor.Tell(new LocalExecuteTransactionsMessage(_mock.ChainId2, txs2, tcs2));
 			tcs2.Task.Wait();
 
 			foreach (var addFinbal in addresses.Zip(finalBalances1, Tuple.Create))
 			{
-				Assert.Equal((ulong)addFinbal.Item2, _smartContractZero.GetBalance(addFinbal.Item1));
+                Assert.Equal((ulong)addFinbal.Item2, _mock.GetBalance1(addFinbal.Item1));
 			}
 
             foreach (var addFinbal in addresses.Zip(finalBalances2, Tuple.Create))
             {
-                Assert.Equal((ulong)addFinbal.Item2, _smartContractZero2.GetBalance(addFinbal.Item1));
+                Assert.Equal((ulong)addFinbal.Item2, _mock.GetBalance2(addFinbal.Item1));
             }
 		}
 	}
