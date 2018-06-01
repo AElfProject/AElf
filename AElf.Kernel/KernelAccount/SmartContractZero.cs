@@ -63,9 +63,10 @@ namespace AElf.Kernel.KernelAccount
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
             
             // throw exception if not registered
-            var regData = await smartContractMap.GetAsync(smartContractRegister.ContractHash);
-            if( regData == null)
-                throw new KeyNotFoundException("Not Registered SmartContract");
+            var regData = await smartContractMap.GetAsync(smartContractRegister.ContractHash)
+                ?? throw new KeyNotFoundException("Not Registered SmartContract"); ;
+            
+                
             var reg = SmartContractRegistration.Parser.ParseFrom(regData);
             
             var smartContractDeploymentMap =
