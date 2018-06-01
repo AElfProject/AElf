@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Node.Network.Data;
-using AElf.Kernel.Node.Network.Peers;
+using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
-using AElf.Node.RPC.DTO;
+using AElf.Network.Data;
 using Google.Protobuf;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NLog;
 
 namespace AElf.Kernel.Node
@@ -22,15 +19,15 @@ namespace AElf.Kernel.Node
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
-        private readonly IPeerManager _peerManager;
+        private readonly IProtocolDirector _protocolDirector;
         
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
-            IPeerManager peerManager, ILogger logger)
+            IProtocolDirector protocolDirector, ILogger logger)
         {
             _poolService = poolService;
+            _protocolDirector = protocolDirector;
             _transactionManager = txManager;
             _rpcServer = rpcServer;
-            _peerManager = peerManager;
             _logger = logger;
         }
 
@@ -40,11 +37,11 @@ namespace AElf.Kernel.Node
                 _rpcServer.Start();
             
             _poolService.Start();
-            _peerManager.Start();
+            _protocolDirector.Start();
             
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
-            _peerManager.SetCommandContext(this);
+            _protocolDirector.SetCommandContext(this);
             
             _logger.Log(LogLevel.Debug, "AElf node started.");
         }
@@ -72,12 +69,30 @@ namespace AElf.Kernel.Node
         /// also places it in the transaction pool.
         /// </summary>
         /// <param name="tx">The tx to broadcast</param>
-        public async Task BroadcastTransaction(Transaction tx)
+        public async Task<bool> BroadcastTransaction(ITransaction tx)
         {
-            // todo : send to network through server
-            bool allGood = await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, tx.ToByteArray());
+            bool res;
             
-            _logger.Trace("Broadcasted transaction to peers: " + JsonFormatter.Default.Format(tx));
+            try
+            {
+                res = await _poolService.AddTxAsync(tx);
+            }
+            catch (Exception e)
+            {
+                _logger.Trace("Pool insertion failed: " + tx.GetHash().Value.ToBase64());
+                return false;
+            }
+
+            if (res)
+            {
+                await _protocolDirector.BroadcastTransaction(tx);
+                
+                _logger.Trace("Broadcasted transaction to peers: " + tx.GetLoggerString());
+                return true;
+            }
+            
+            _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToBase64() + " }");
+            return false;
         }
         
         /// <summary>
@@ -108,38 +123,7 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         public async Task<List<NodeData>> GetPeers(ushort numPeers)
         {
-            return _peerManager.GetPeers(numPeers);
-        }
-
-        /// <summary>
-        /// This method processes the peers received from one of
-        /// the connected peers.
-        /// </summary>
-        /// <param name="messagePayload"></param>
-        /// <returns></returns>
-        public async Task ReceivePeers(ByteString messagePayload)
-        {
-            try
-            {
-                List<NodeData> peers = new List<NodeData>();
-                var messageAsString = Encoding.UTF8.GetString(messagePayload.ToByteArray());
-                JObject j = JObject.Parse(messageAsString);
-                var peerDtos = j["data"].ToObject<List<NodeDataDto>>();
-                NodeData peer = null;
-
-                foreach (var pDto in peerDtos)
-                {
-                    peer = pDto.ToNodeData();
-                    peers.Add(peer);
-                    await _peerManager.AddPeer(peer);
-                }
-                
-                _logger.Trace("Received " + peers.Count + " peers.");
-            }
-            catch (Exception e)
-            {
-                _logger.Error(e, "Invalid peer(s) - Could not receive peer(s) from the network", null);
-            }
+            return _protocolDirector.GetPeers(numPeers);
         }
     }
 }

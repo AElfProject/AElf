@@ -1,9 +1,10 @@
 ﻿using System;
+using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
-using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.TxMemPool;
+using AElf.Network.Config;
 using Autofac;
 using IContainer = Autofac.IContainer;
 
@@ -30,6 +31,12 @@ namespace AElf.Launcher
             if (container == null)
             {
                 Console.WriteLine("IoC setup failed");
+                return;
+            }
+
+            if (!CheckDBConnect(container))
+            {
+                Console.WriteLine("Database connection failed");
                 return;
             }
 
@@ -72,6 +79,12 @@ namespace AElf.Launcher
             }
 
             return container;
+        }
+
+        private static bool CheckDBConnect(IContainer container)
+        {
+            var db = container.Resolve<IKeyValueDatabase>();
+            return db.IsConnected();
         }
     }
 }

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using AElf.Kernel.Node.Network.Data;
+using AElf.Common.Attributes;
+using AElf.Kernel.Node.RPC.DTO;
+using AElf.Network.Data;
 using AElf.Node.RPC.DTO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -206,11 +208,15 @@ namespace AElf.Kernel.Node.RPC
 
         private async Task<JObject> ProcessBroadcastTx(JObject reqParams)
         {
-            TransactionDto dto = reqParams["tx"].ToObject<TransactionDto>();
+            var raw = reqParams["tx"].First;
+            var tx = raw.ToTransaction();
 
-            await _node.BroadcastTransaction(dto.ToTransaction());
+            var res = await _node.BroadcastTransaction(tx);
 
-            return null;
+            var jobj = new JObject();
+            jobj.Add("txId", tx.GetHash().Value.ToBase64());
+            jobj.Add("status", res);
+            return jobj;
         }
 
         /// <summary>
@@ -236,9 +242,11 @@ namespace AElf.Kernel.Node.RPC
         
         private async Task<JObject> ProcessInsertTx(JObject reqParams)
         {
-            TransactionDto dto = reqParams["tx"].ToObject<TransactionDto>();
+            //TransactionDto dto = reqParams["tx"].ToObject<TransactionDto>();
+            var raw = reqParams["tx"].First;
+            var tx = raw.ToTransaction();
 
-            IHash txHash = await _node.InsertTransaction(dto.ToTransaction());
+            IHash txHash = await _node.InsertTransaction(tx);
 
             JObject j = new JObject
             {

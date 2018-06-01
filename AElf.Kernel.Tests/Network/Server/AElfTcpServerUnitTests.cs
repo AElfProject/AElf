@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Kernel.Node.Network;
-using AElf.Kernel.Node.Network.Config;
-using AElf.Kernel.Node.Network.Exceptions;
+using AElf.Network;
+using AElf.Network.Config;
+using AElf.Network.Exceptions;
 using Xunit;
 
 namespace AElf.Kernel.Tests.Network.Server

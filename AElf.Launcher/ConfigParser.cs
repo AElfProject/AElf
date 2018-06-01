@@ -1,9 +1,8 @@
 ﻿using System.Linq;
 using AElf.Database;
 using AElf.Database.Config;
-using AElf.Kernel.Node.Network;
-using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.TxMemPool;
+using AElf.Network.Config;
 using CommandLine;
 
 namespace AElf.Launcher

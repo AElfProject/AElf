@@ -1,9 +1,10 @@
 ﻿using System;
-using AElf.Kernel;
-using AElf.Kernel.Node.Network.Data;
-using Microsoft.AspNetCore.Http;
+using AElf.Network.Data;
+using AElf.Node.RPC.DTO;
+using Google.Protobuf;
+using Newtonsoft.Json.Linq;
 
-namespace AElf.Node.RPC.DTO
+namespace AElf.Kernel.Node.RPC.DTO
 {
     public static class DtoHelper
     {
@@ -11,22 +12,16 @@ namespace AElf.Node.RPC.DTO
         {
             TransactionDto dto = new TransactionDto()
             {
-                From = tx.From.GetHashBytes(),
-                To = tx.To.GetHashBytes()
+                Raw = tx.Serialize()
             };
 
             return dto;
         }
 
-        public static Transaction ToTransaction(this TransactionDto dto)
+        public static Transaction ToTransaction(this JToken raw)
         {
-            Transaction tx = new Transaction
-            {
-                From = dto.From,
-                To = dto.To
-            };
-
-            return tx;
+            var rawData = raw.First.ToString();
+            return Transaction.Parser.ParseFrom(ByteString.FromBase64(rawData));
         }
 
         public static NodeDataDto ToNodeDataDto(this NodeData nd)

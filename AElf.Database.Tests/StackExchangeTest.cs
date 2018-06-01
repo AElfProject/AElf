@@ -1,5 +1,4 @@
 ﻿using System;
-using AElf.Database.SsdbClient;
 using StackExchange.Redis;
 using Xunit;
 

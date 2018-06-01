@@ -1,6 +1,6 @@
-﻿using AElf.Kernel.Node.Network;
-using AElf.Kernel.Node.Network.Config;
-using AElf.Kernel.Node.Network.Peers;
+﻿using AElf.Network;
+using AElf.Network.Config;
+using AElf.Network.Peers;
 using Autofac;
  
  namespace AElf.Kernel.Modules.AutofacModule
