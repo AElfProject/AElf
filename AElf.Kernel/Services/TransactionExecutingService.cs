@@ -29,17 +29,18 @@ namespace AElf.Kernel.Services
         /// <param name="chain"></param>
         public async Task ExecuteAsync(ITransaction tx)
         {
-            var smartContract = await _smartContractService.GetAsync(tx.To, _chainContext);
+            // TODO: *** Contract Issues ***
+            //var smartContract = await _smartContractService.GetAsync(tx.To, _chainContext);
             
-            var context = new SmartContractInvokeContext()
-            {
-                Caller = tx.From,
-                IncrementId = tx.IncrementId,
-                MethodName = tx.MethodName,
-                Params = tx.Params
-            };
+            //var context = new SmartContractInvokeContext()
+            //{
+            //    Caller = tx.From,
+            //    IncrementId = tx.IncrementId,
+            //    MethodName = tx.MethodName,
+            //    Params = tx.Params
+            //};
             
-            await smartContract.InvokeAsync(context);
+            //await smartContract.InvokeAsync(context);
         }
 
         

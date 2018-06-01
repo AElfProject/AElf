@@ -15,30 +15,25 @@ namespace AElf.Kernel.Concurrency.Execution
             Running,
         }
         private State _state = State.Idle;
-        private IChainContext _chainContext;
+        private Hash _chainId;
+        private IChainContextService _chainContextService;
         private IAccountContextService _accountContextService;
+        private IActorRef _serviceRouter;
         private IActorRef _currentRequestor;
         private RequestExecuteTransactions _currentRequest;
         private IActorRef _currentExecutor;
         private Dictionary<Hash, TransactionResult> _currentTransactionResults;
 
-        public ChainExecutor(IChainContext chainContext, IAccountContextService accountContextService)
+        public ChainExecutor(Hash chainId, IActorRef serviceRouter)
         {
-            _chainContext = chainContext;
-            _accountContextService = accountContextService;
+            _chainId = chainId;
+            _serviceRouter = serviceRouter;
         }
 
         protected override void OnReceive(object message)
         {
             switch (message)
             {
-                case RequestAccountDataContext req:
-                    var origSender = Sender;
-                    _accountContextService.GetAccountDataContext(req.AccountHash, _chainContext.ChainId).ContinueWith(
-                        task => new RespondAccountDataContext(req.RequestId, task.Result),
-                        TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
-                    ).PipeTo(origSender);
-                    break;
                 case RequestExecuteTransactions req:
                     if (_state == State.Running)
                     {
@@ -46,10 +41,11 @@ namespace AElf.Kernel.Concurrency.Execution
                     }
                     else
                     {
+                        _state = State.Running;
                         // Currently only supports one request at a time
                         _currentRequestor = Sender;
                         _currentRequest = req;
-                        _currentExecutor = Context.ActorOf(BatchExecutor.Props(_chainContext, req.Transactions, Self, BatchExecutor.ChildType.Group));
+                        _currentExecutor = Context.ActorOf(BatchExecutor.Props(_chainId, _serviceRouter, req.Transactions, Self, BatchExecutor.ChildType.Group));
                         _currentTransactionResults = new Dictionary<Hash, TransactionResult>();
                         Context.Watch(_currentExecutor);
                         _currentExecutor.Tell(StartExecutionMessage.Instance);
@@ -88,9 +84,9 @@ namespace AElf.Kernel.Concurrency.Execution
             _state = State.Idle;
         }
 
-        public static Props Props(IChainContext chainContext, IAccountContextService accountContextService)
+        public static Props Props(Hash chainId, IActorRef serviceRouter)
         {
-            return Akka.Actor.Props.Create(() => new ChainExecutor(chainContext, accountContextService));
+            return Akka.Actor.Props.Create(() => new ChainExecutor(chainId, serviceRouter));
         }
 
     }

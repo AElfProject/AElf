@@ -22,7 +22,7 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         public static ValidationError ValidateTx(this ITxPool pool, ITransaction tx)
         {
-            if (tx.From == Hash.Default || tx.MethodName == "" || Parameters.Parser.ParseFrom(tx.Params).Params.Count == 0 
+            if (tx.From == Hash.Zero || tx.MethodName == "" || Parameters.Parser.ParseFrom(tx.Params).Params.Count == 0 
                 || tx.IncrementId < 0)
             {
                 // TODO: log errors

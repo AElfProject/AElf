@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Akka.Actor;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.KernelAccount;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Concurrency.Execution
 {
@@ -14,38 +16,71 @@ namespace AElf.Kernel.Concurrency.Execution
     {
         enum State
         {
+            Initializing,
             NotStarted,
             Running
         }
-        private State _state = State.NotStarted;
-        private IChainContext _chainContext;
+        private State _state = State.Initializing;
+        private bool _startExecutionMessageReceived = false;
+        private Hash _chainId;
+        private IActorRef _serviceRouter;
+        private ServicePack _servicePack;
         private IActorRef _resultCollector;
         private List<ITransaction> _transactions;
         private int _currentRunningIndex = -1;
         private Hash _currentTransactionHash;
+        private IChainContext _chainContext;
         private Dictionary<Hash, TransactionResult> _transactionResults = new Dictionary<Hash, TransactionResult>();
 
-        public JobExecutor(IChainContext chainContext, List<ITransaction> transactions, IActorRef resultCollector)
+        public JobExecutor(Hash chainId, IActorRef serviceRouter, List<ITransaction> transactions, IActorRef resultCollector)
         {
-            _chainContext = chainContext;
+            _chainId = chainId;
+            _serviceRouter = serviceRouter;
             _transactions = transactions;
             _resultCollector = resultCollector;
+        }
+
+        protected override void PreStart()
+        {
+            if (_transactions.Count == 0)
+            {
+                Context.System.Scheduler.ScheduleTellOnce(new TimeSpan(0, 0, 0), Self, PoisonPill.Instance, Self);
+            }
+            else
+            {
+                Context.System.Scheduler.ScheduleTellOnce(new TimeSpan(0, 0, 0), _serviceRouter, new RequestLocalSerivcePack(0), Self);
+            }
         }
 
         protected override void OnReceive(object message)
         {
             switch (message)
             {
+                case RespondLocalSerivcePack res:
+                    if (_state == State.Initializing)
+                    {
+                        _servicePack = res.ServicePack;
+                        _state = State.NotStarted;
+                        if (_startExecutionMessageReceived)
+                        {
+                            RunNextOrStop();
+                        }
+                    }
+                    break;
                 case StartExecutionMessage start:
+                    _startExecutionMessageReceived = true;
                     if (_state == State.NotStarted)
                     {
                         RunNextOrStop();
                     }
                     break;
                 case TransactionResultMessage res when res.TransactionResult.TransactionId == _currentTransactionHash:
-                    ForwardResult(res);
-                    _transactionResults.Add(res.TransactionResult.TransactionId, res.TransactionResult);
-                    RunNextOrStop();
+                    if (_state == State.Running)
+                    {
+                        ForwardResult(res);
+                        _transactionResults.Add(res.TransactionResult.TransactionId, res.TransactionResult);
+                        RunNextOrStop();
+                    }
                     break;
             }
         }
@@ -79,33 +114,49 @@ namespace AElf.Kernel.Concurrency.Execution
 
         private async Task<TransactionResult> ExecuteTransaction(ITransaction transaction)
         {
+            if (_chainContext == null)
+            {
+                _chainContext = await _servicePack.ChainContextService.GetChainContextAsync(_chainId);
+            }
+
+            var executive = await _servicePack.SmartContractService.GetExecutiveAsync(transaction.To, _chainId);
             // TODO: Handle timeout
-            ISmartContractZero smartContractZero = _chainContext.SmartContractZero;
-            TransactionResult result = new TransactionResult();
-            result.TransactionId = transaction.GetHash();
+            TransactionResult result = new TransactionResult()
+            {
+                TransactionId = transaction.GetHash(),
+                Status = Status.Pending
+            };
             // TODO: Reject tx if IncrementId != Nonce
 
             try
             {
-                await smartContractZero.InvokeAsync(new SmartContractInvokeContext()
+                var txCtxt = new TransactionContext()
                 {
-                    Caller = transaction.From,
-                    MethodName = transaction.MethodName,
-                    Params = transaction.Params
-                });
+                    PreviousBlockHash = _chainContext.BlockHash,
+                    Transaction = transaction,
+                    TransactionResult = result
+                };
+                await executive.SetTransactionContext(txCtxt).Apply();
+                // TODO: Check run results / logs etc.
                 result.Status = Status.Mined;
             }
-            catch
+            catch (Exception ex)
             {
+                // TODO: Improve log
+                result.Logs = ByteString.CopyFrom(Encoding.ASCII.GetBytes(ex.ToString()));
                 result.Status = Status.Failed;
+            }
+            finally
+            {
+                await _servicePack.SmartContractService.PutExecutiveAsync(transaction.To, executive);
             }
 
             return result;
         }
 
-        public static Props Props(IChainContext chainContext, List<ITransaction> transactions, IActorRef resultCollector)
+        public static Props Props(Hash chainId, IActorRef serviceRouter, List<ITransaction> transactions, IActorRef resultCollector)
         {
-            return Akka.Actor.Props.Create(() => new JobExecutor(chainContext, transactions, resultCollector));
+            return Akka.Actor.Props.Create(() => new JobExecutor(chainId, serviceRouter, transactions, resultCollector));
         }
     }
 }
