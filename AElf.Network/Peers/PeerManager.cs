@@ -280,7 +280,6 @@ namespace AElf.Network.Peers
         {
             if (sender != null && e is MessageReceivedArgs args && args.Message != null)
             {
-                
                 if (args.Message.MsgType == (int) MessageTypes.RequestPeers)
                 {
                     // RESPONSE TO REQUEST
@@ -328,7 +327,7 @@ namespace AElf.Network.Peers
                     // PROCESS RESPONSE
 
                     ReceivePeers(args.Message.Payload);
-                    
+
                     /*await _node.ReceivePeers(args.Message.Payload);
 
                     var resp = new AElfPacketData
@@ -340,10 +339,14 @@ namespace AElf.Network.Peers
 
                     await args.Peer.SendDataAsync(resp.ToByteArray());*/
                 }
+                else
+                {
+                    // raise the event so the higher levels can process it.
+                    MessageReceived?.Invoke(this, e);
+                }
             }
             
-            // raise the event so the higher levels can process it.
-            MessageReceived?.Invoke(this, e);
+
         }
 
         /// <summary>
