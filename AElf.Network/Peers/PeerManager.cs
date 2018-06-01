@@ -142,27 +142,27 @@ namespace AElf.Network.Peers
         {
             try
             {
-                /*List<NodeData> peers = new List<NodeData>();
-                var messageAsString = Encoding.UTF8.GetString(messagePayload.ToByteArray());
-                JObject j = JObject.Parse(messageAsString);
-                var peerDtos = j["data"].ToObject<List<NodeDataDto>>();
-                NodeData peer = null;
-
-                foreach (var pDto in peerDtos)
-                {
-                    peer = pDto.ToNodeData();
-                    peers.Add(peer);
-                    await _peerManager.AddPeer(peer);
-                }*/
-
                 PeerListData peerList = PeerListData.Parser.ParseFrom(messagePayload);
 
-                /*foreach (var peer in peerList)
+                foreach (var peer in peerList.NodeData)
                 {
-                    // Algorithm for processing peers
-                }*/
-                
-                //_logger.Trace("Received " + peers.Count + " peers.");
+                    NodeData p = new NodeData();
+                    p.IpAddress = peer.IpAddress;
+                    p.Port = peer.Port;
+                    IPeer newPeer = CreatePeer(p);
+                    try
+                    {
+                        bool success = await newPeer.DoConnectAsync();
+                        if (success)
+                        {
+                            AddPeer(newPeer);
+                        }
+                    }
+                    catch (ResponseTimeOutException rex)
+                    {
+                        _logger.Error(rex, rex?.Message + " - "  + peer);
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -196,17 +196,6 @@ namespace AElf.Network.Peers
             _logger.Trace("Peer added : " + peer);
 
             Task.Run(peer.StartListeningAsync);
-        }
-
-        /// <summary>
-        /// Creates a peer from the nodeData parameter and then
-        /// calls the AddPeer method.
-        /// </summary>
-        /// <param name="nodeData"></param>
-        public void AddPeer(NodeData nodeData)
-        {
-            IPeer peer = CreatePeer(nodeData);
-            AddPeer(peer);
         }
         
         /// <summary>
