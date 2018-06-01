@@ -62,11 +62,6 @@ namespace AElf.Kernel.Tests
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
 
             // add chain to storage
-            var genesisBlock = new Block(Hash.Zero);
-            await _chainManager.AddChainAsync(chain.Id, genesisBlock.GetHash());
-            
-            var block = new Block(genesisBlock.GetHash()) {Header = {PreviousHash = genesisBlock.GetHash()}};
-            await _chainManager.AppendBlockToChainAsync(chain.Id, block);
             
             //var address = Hash.Generate();
             //var worldStateManager = await new WorldStateManager(_worldStateStore, 
