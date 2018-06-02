@@ -21,7 +21,7 @@ namespace AElf.Network.Peers
         private readonly ILogger _logger;
         
         private readonly List<IPeer> _peers = new List<IPeer>();
-        private NodeData _bootNode;
+        private readonly NodeData _bootNode = Bootnodes.BootNodes[0];
         
         private readonly NodeData _nodeData;
 
@@ -123,7 +123,6 @@ namespace AElf.Network.Peers
                 // If there are no connected peers then reconnect to bootnode
                 if (peersCount == 0)
                 {
-                    _bootNode = Bootnodes.BootNodes[0];
                     await CreatePeer(_bootNode);
                 } 
                 else if (peersCount > 4) // If more than half of the peer list is full, drop the boot node
