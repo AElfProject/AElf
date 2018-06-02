@@ -56,7 +56,7 @@ namespace AElf.Network.Peers
         public void Start()
         {
             Task.Run(() => _server.StartAsync());
-            Task.Run(Setup);
+            Setup();
             
             _server.ClientConnected += HandleConnection;
 
