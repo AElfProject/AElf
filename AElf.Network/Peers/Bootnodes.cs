@@ -5,13 +5,6 @@ namespace AElf.Network.Peers
 {
     public static class Bootnodes
     {
-        public static readonly List<NodeData> BootNodes = new List<NodeData>()
-        {
-            BootNode1,
-            BootNode2,
-            BootNode3
-        };
-
         private static readonly NodeData BootNode1 = new NodeData()
         {
             IpAddress = "127.0.0.1",
@@ -28,6 +21,13 @@ namespace AElf.Network.Peers
         {
             IpAddress = "127.0.0.1",
             Port = 6802
+        };
+        
+        public static readonly List<NodeData> BootNodes = new List<NodeData>()
+        {
+            BootNode1,
+            BootNode2,
+            BootNode3
         };
     }
 }
