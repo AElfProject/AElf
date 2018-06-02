@@ -77,7 +77,7 @@ namespace AElf.Network.Peers
                 foreach (var peer in _peers)
                 {
                     int peersCount = _peers.Count;
-                    if (peersCount < 8)
+                    if (peersCount < 8 && peersCount > 0)
                     {
                         ushort missingPeers = (ushort) (8 - peersCount);
                     
@@ -94,6 +94,10 @@ namespace AElf.Network.Peers
                         };
 
                         Task.Run(async () => await peer.SendAsync(req.ToByteArray()));
+                    }
+                    else if (peersCount == 0)
+                    {
+                        // Reconnect to bootnode
                     }
                     else
                     {
