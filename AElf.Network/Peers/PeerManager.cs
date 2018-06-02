@@ -21,7 +21,7 @@ namespace AElf.Network.Peers
         private readonly ILogger _logger;
         
         private readonly List<IPeer> _peers = new List<IPeer>();
-        private readonly NodeData _bootNode;
+        private NodeData _bootNode;
         
         private readonly NodeData _nodeData;
 
@@ -39,8 +39,6 @@ namespace AElf.Network.Peers
                 IpAddress = config.Host,
                 Port = config.Port
             };
-
-            _bootNode = Bootnodes.BootNodes[0]; // Temporary solution for setting bootnode
         }
         
         private void HandleConnection(object sender, EventArgs e)
@@ -64,6 +62,13 @@ namespace AElf.Network.Peers
 
             var startTimeSpan = TimeSpan.Zero;
             var periodTimeSpan = TimeSpan.FromMinutes(1);
+            
+            // If there were no peers in the database or
+            // in the network config then connect to bootnode.
+            if (_peers.Count == 0)
+            {
+                CreatePeer(_bootNode);
+            }
 
             var timer = new System.Threading.Timer((e) =>
             {
@@ -106,13 +111,6 @@ namespace AElf.Network.Peers
             {
                 await CreatePeer(p);
             }
-
-            // If there were no peers in the database or
-            // in the network config then connect to bootnode.
-            if (_peers.Count == 0)
-            {
-                await CreatePeer(_bootNode);
-            }
         }
         
         private async void PeerMaintenance()
@@ -125,6 +123,7 @@ namespace AElf.Network.Peers
                 // If there are no connected peers then reconnect to bootnode
                 if (peersCount == 0)
                 {
+                    _bootNode = Bootnodes.BootNodes[0];
                     await CreatePeer(_bootNode);
                 } 
                 else if (peersCount > 4) // If more than half of the peer list is full, drop the boot node

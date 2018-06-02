@@ -67,7 +67,7 @@ namespace AElf.Network
                 
             try
             {
-                _logger?.Trace("Starting server on : " + _config.Host + ":" + _config.Port);
+                //_logger?.Trace("Starting server on : " + _config.Host + ":" + _config.Port);
                 _listener = new TcpListener(listenAddress, _config.Port);
                 _listener.Start();
             }
