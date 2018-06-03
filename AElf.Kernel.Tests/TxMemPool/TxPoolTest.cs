@@ -218,7 +218,7 @@ LX1A6oWUNiLIjwAI0Qh5fgO5g5PerkNebXLPDE2dTzVVyYYw==";
         }*/
 
 
-        [Fact]
+        /*[Fact]
         public async Task PromoteTest()
         {
             var pool = GetPool();
@@ -235,7 +235,7 @@ LX1A6oWUNiLIjwAI0Qh5fgO5g5PerkNebXLPDE2dTzVVyYYw==";
             pool.GetPoolState(out var executable, out var waiting);
             Assert.Equal(0, (int)waiting);
             Assert.Equal(1, (int)executable);
-        }
+        }*/
 
         [Fact]
         public async Task ReadyTxsTest()
@@ -249,7 +249,7 @@ LX1A6oWUNiLIjwAI0Qh5fgO5g5PerkNebXLPDE2dTzVVyYYw==";
             pool.Nonces[tx.From] = ctx.IncrementId;
             pool.EnQueueTxs(tmp);
             
-            pool.Promote();
+            //pool.Promote();
             
             var ready = pool.ReadyTxs(10);
             
