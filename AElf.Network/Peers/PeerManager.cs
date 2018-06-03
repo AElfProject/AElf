@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using AElf.Network.Config;
@@ -68,7 +69,7 @@ namespace AElf.Network.Peers
             // in the network config then connect to bootnode.
             if (_peers.Count == 0)
             {
-                CreatePeer(_bootNode);
+                CreateAndAddPeer(_bootNode);
             }
 
             var timer = new System.Threading.Timer((e) =>
@@ -102,7 +103,7 @@ namespace AElf.Network.Peers
                     peer.IpAddress = split[0];
                     peer.Port = port;
                     
-                    await CreatePeer(peer);
+                    await CreateAndAddPeer(peer);
                 }
             }
 
@@ -110,7 +111,7 @@ namespace AElf.Network.Peers
 
             foreach (var p in dbNodeData)
             {
-                await CreatePeer(p);
+                await CreateAndAddPeer(p);
             }
         }
         
@@ -124,7 +125,7 @@ namespace AElf.Network.Peers
                 // If there are no connected peers then reconnect to bootnode
                 if (peersCount == 0)
                 {
-                    await CreatePeer(_bootNode);
+                    await CreateAndAddPeer(_bootNode);
                 } 
                 else if (peersCount > 4) // If more than half of the peer list is full, drop the boot node
                 {
@@ -173,14 +174,13 @@ namespace AElf.Network.Peers
             try
             {
                 PeerListData peerList = PeerListData.Parser.ParseFrom(messagePayload);
+                
+                _logger.Trace("Peers received : " + peerList.GetLoggerString());
 
                 foreach (var peer in peerList.NodeData)
                 {
-                    NodeData p = new NodeData();
-                    p.IpAddress = peer.IpAddress;
-                    p.Port = peer.Port;
-                    IPeer newPeer = await CreatePeer(p);
-                    _logger.Trace("Peer received : " + newPeer);
+                    NodeData p = new NodeData { IpAddress = peer.IpAddress, Port = peer.Port };
+                    IPeer newPeer = await CreateAndAddPeer(p);
                 }
             }
             catch (Exception e)
@@ -197,10 +197,6 @@ namespace AElf.Network.Peers
         /// <param name="peer">the peer to add</param>
         public void AddPeer(IPeer peer)
         {
-            /*if (_peers.Any(p => p.DistantNodeData.IpAddress == peer.DistantNodeData.IpAddress 
-                                && p.DistantNodeData.Port == peer.DistantNodeData.Port)) 
-                return;*/
-
             if (_peers.Any(p => p.Equals(peer)))
                 return;
             
@@ -219,7 +215,7 @@ namespace AElf.Network.Peers
         /// </summary>
         /// <param name="nodeData"></param>
         /// <returns></returns>
-        private async Task<IPeer> CreatePeer(NodeData nodeData)
+        private async Task<IPeer> CreateAndAddPeer(NodeData nodeData)
         {
             if (nodeData == null)
             {

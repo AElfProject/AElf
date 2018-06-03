@@ -284,7 +284,7 @@ namespace AElf.Network.Peers
             if (p?.DistantNodeData == null || DistantNodeData == null)
                 return false;
 
-            return p.DistantNodeData == DistantNodeData;
+            return p.DistantNodeData.Equals(DistantNodeData);
         }
     }
 }
