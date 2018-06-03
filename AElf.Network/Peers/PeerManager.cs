@@ -22,7 +22,7 @@ namespace AElf.Network.Peers
         private readonly ILogger _logger;
         
         private readonly List<IPeer> _peers = new List<IPeer>();
-        private readonly NodeData _bootNode = Bootnodes.BootNodes[0];
+        private NodeData _bootNode = Bootnodes.BootNodes[0];
         
         private readonly NodeData _nodeData;
 
@@ -64,13 +64,6 @@ namespace AElf.Network.Peers
 
             var startTimeSpan = TimeSpan.Zero;
             var periodTimeSpan = TimeSpan.FromMinutes(1);
-            
-            // If there were no peers in the database or
-            // in the network config then connect to bootnode.
-            if (_peers.Count == 0)
-            {
-                CreateAndAddPeer(_bootNode);
-            }
 
             var timer = new System.Threading.Timer((e) =>
             {
@@ -122,10 +115,40 @@ namespace AElf.Network.Peers
                 
                 undergoingPM = true;
 
-                // If there are no connected peers then reconnect to bootnode
+                // If there are no connected peers then try to connect to
+                // the preferred bootnode. If that fails, try all other bootnodes
                 if (_peers.Count == 0)
                 {
-                    await CreateAndAddPeer(_bootNode);
+                    bool success = false;
+                    try
+                    {
+                        IPeer p = await CreateAndAddPeer(_bootNode);
+                        success = p != null;
+                    }
+                    catch
+                    {
+                        ;
+                    }
+
+                    if (!success)
+                    {
+                        foreach (var bootNode in Bootnodes.BootNodes)
+                        {
+                            try
+                            {
+                                IPeer p = await CreateAndAddPeer(bootNode);
+                                if (p != null)
+                                {
+                                    _bootNode = bootNode;
+                                    break;
+                                }
+                            }
+                            catch
+                            {
+                                ;
+                            }
+                        }
+                    }
                 } 
                 else if (_peers.Count > 4) // If more than half of the peer list is full, drop the boot node
                 {
