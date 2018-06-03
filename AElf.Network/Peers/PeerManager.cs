@@ -196,7 +196,6 @@ namespace AElf.Network.Peers
                 }
 
                 RemoveDuplicatePeers();
-                _logger.Trace("peers: " + _peers.Count);
 
                 undergoingPM = false;
             }
