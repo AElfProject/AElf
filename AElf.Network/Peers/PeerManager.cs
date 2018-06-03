@@ -12,15 +12,18 @@ namespace AElf.Kernel.Node.Network.Peers
 {
     public class PeerManager : IPeerManager
     {
+        public event EventHandler MessageReceived;
+        
         private readonly IAElfNetworkConfig _networkConfig;
         private readonly IAElfServer _server;
         private readonly IPeerDatabase _peerDatabase;
         private readonly ILogger _logger;
+        
         private readonly List<IPeer> _peers = new List<IPeer>();
-
+        
         private readonly NodeData _nodeData;
         
-        private MainChainNode _node;
+        //private MainChainNode _node;
 
         public PeerManager(IAElfServer server, IPeerDatabase peerDatabase, IAElfNetworkConfig config, ILogger logger)
         {
@@ -36,17 +39,6 @@ namespace AElf.Kernel.Node.Network.Peers
             };
         }
         
-        /// <summary>
-        /// Temporary solution, this is used for injecting a
-        /// reference to the node.
-        /// todo : remove dependency on the node
-        /// </summary>
-        /// <param name="node"></param>
-        public void SetCommandContext(MainChainNode node)
-        {
-            _node = node;
-        }
-
         private void HandleConnection(object sender, EventArgs e)
         {
             if (sender != null && e is ClientConnectedArgs args)
@@ -148,20 +140,10 @@ namespace AElf.Kernel.Node.Network.Peers
             Task.Run(peer.StartListeningAsync);
         }
 
-        /// <summary>
-        /// Callback that is executed when a peer receives a message.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void ProcessPeerMessage(object sender, EventArgs e)
+        private void ProcessPeerMessage(object sender, EventArgs e)
         {
-            if (sender != null && e is MessageReceivedArgs args && args.Message != null)
-            {
-                if (args.Message.MsgType == (int)MessageTypes.BroadcastTx)
-                {
-                    await _node.ReceiveTransaction(args.Message.Payload);
-                }
-            }
+            // raise the event so the higher levels can process it.
+            MessageReceived?.Invoke(this, e);
         }
 
         /// <summary>
@@ -171,16 +153,18 @@ namespace AElf.Kernel.Node.Network.Peers
         /// </summary>
         /// <param name="messageType"></param>
         /// <param name="payload"></param>
+        /// <param name="messageId"></param>
         /// <returns></returns>
-        public async Task BroadcastMessage(MessageTypes messageType, byte[] payload)
+        public async Task<bool> BroadcastMessage(MessageTypes messageType, byte[] payload, int messageId)
         {
             if (_peers == null || !_peers.Any())
-                return;
+                return false;
 
             try
             {
                 AElfPacketData packetData = new AElfPacketData
                 {
+                    Id = messageId,
                     MsgType = (int)messageType,
                     Length = payload.Length,
                     Payload = ByteString.CopyFrom(payload)
@@ -192,10 +176,13 @@ namespace AElf.Kernel.Node.Network.Peers
                 {
                     await peer.Send(data);
                 }
+
+                return true;
             }
             catch (Exception e)
             {
                 _logger.Error(e, "Error while sending a message to the peers");
+                return false;
             }
         }
     }

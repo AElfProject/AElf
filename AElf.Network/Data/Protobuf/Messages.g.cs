@@ -25,14 +25,15 @@ namespace AElf.Kernel.Node.Network.Data {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "Cg5tZXNzYWdlcy5wcm90byIrCghOb2RlRGF0YRIRCglJcEFkZHJlc3MYASAB",
-            "KAkSDAoEUG9ydBgCIAEoBSJCCg5BRWxmUGFja2V0RGF0YRIPCgdtc2dUeXBl",
-            "GAEgASgFEg4KBmxlbmd0aBgCIAEoBRIPCgdwYXlsb2FkGAMgASgMQiCqAh1B",
-            "RWxmLktlcm5lbC5Ob2RlLk5ldHdvcmsuRGF0YWIGcHJvdG8z"));
+            "KAkSDAoEUG9ydBgCIAEoBSJOCg5BRWxmUGFja2V0RGF0YRIPCgdtc2dUeXBl",
+            "GAEgASgFEgoKAklkGAIgASgFEg4KBmxlbmd0aBgDIAEoBRIPCgdwYXlsb2Fk",
+            "GAQgASgMQiCqAh1BRWxmLktlcm5lbC5Ob2RlLk5ldHdvcmsuRGF0YWIGcHJv",
+            "dG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Node.Network.Data.NodeData), global::AElf.Kernel.Node.Network.Data.NodeData.Parser, new[]{ "IpAddress", "Port" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Node.Network.Data.AElfPacketData), global::AElf.Kernel.Node.Network.Data.AElfPacketData.Parser, new[]{ "MsgType", "Length", "Payload" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Node.Network.Data.AElfPacketData), global::AElf.Kernel.Node.Network.Data.AElfPacketData.Parser, new[]{ "MsgType", "Id", "Length", "Payload" }, null, null, null)
           }));
     }
     #endregion
@@ -222,6 +223,7 @@ namespace AElf.Kernel.Node.Network.Data {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public AElfPacketData(AElfPacketData other) : this() {
       msgType_ = other.msgType_;
+      id_ = other.id_;
       length_ = other.length_;
       payload_ = other.payload_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -243,8 +245,19 @@ namespace AElf.Kernel.Node.Network.Data {
       }
     }
 
+    /// <summary>Field number for the "Id" field.</summary>
+    public const int IdFieldNumber = 2;
+    private int id_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int Id {
+      get { return id_; }
+      set {
+        id_ = value;
+      }
+    }
+
     /// <summary>Field number for the "length" field.</summary>
-    public const int LengthFieldNumber = 2;
+    public const int LengthFieldNumber = 3;
     private int length_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int Length {
@@ -255,7 +268,7 @@ namespace AElf.Kernel.Node.Network.Data {
     }
 
     /// <summary>Field number for the "payload" field.</summary>
-    public const int PayloadFieldNumber = 3;
+    public const int PayloadFieldNumber = 4;
     private pb::ByteString payload_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pb::ByteString Payload {
@@ -279,6 +292,7 @@ namespace AElf.Kernel.Node.Network.Data {
         return true;
       }
       if (MsgType != other.MsgType) return false;
+      if (Id != other.Id) return false;
       if (Length != other.Length) return false;
       if (Payload != other.Payload) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -288,6 +302,7 @@ namespace AElf.Kernel.Node.Network.Data {
     public override int GetHashCode() {
       int hash = 1;
       if (MsgType != 0) hash ^= MsgType.GetHashCode();
+      if (Id != 0) hash ^= Id.GetHashCode();
       if (Length != 0) hash ^= Length.GetHashCode();
       if (Payload.Length != 0) hash ^= Payload.GetHashCode();
       if (_unknownFields != null) {
@@ -307,12 +322,16 @@ namespace AElf.Kernel.Node.Network.Data {
         output.WriteRawTag(8);
         output.WriteInt32(MsgType);
       }
-      if (Length != 0) {
+      if (Id != 0) {
         output.WriteRawTag(16);
+        output.WriteInt32(Id);
+      }
+      if (Length != 0) {
+        output.WriteRawTag(24);
         output.WriteInt32(Length);
       }
       if (Payload.Length != 0) {
-        output.WriteRawTag(26);
+        output.WriteRawTag(34);
         output.WriteBytes(Payload);
       }
       if (_unknownFields != null) {
@@ -325,6 +344,9 @@ namespace AElf.Kernel.Node.Network.Data {
       int size = 0;
       if (MsgType != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(MsgType);
+      }
+      if (Id != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Id);
       }
       if (Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Length);
@@ -345,6 +367,9 @@ namespace AElf.Kernel.Node.Network.Data {
       }
       if (other.MsgType != 0) {
         MsgType = other.MsgType;
+      }
+      if (other.Id != 0) {
+        Id = other.Id;
       }
       if (other.Length != 0) {
         Length = other.Length;
@@ -368,10 +393,14 @@ namespace AElf.Kernel.Node.Network.Data {
             break;
           }
           case 16: {
+            Id = input.ReadInt32();
+            break;
+          }
+          case 24: {
             Length = input.ReadInt32();
             break;
           }
-          case 26: {
+          case 34: {
             Payload = input.ReadBytes();
             break;
           }
