@@ -195,8 +195,9 @@ namespace AElf.Network.Peers
                     ;
                 }
 
+                RemoveDuplicatePeers();
+
                 undergoingPM = false;
-                _logger.Trace("peers " + _peers.Count);
             }
         }
         
@@ -300,6 +301,20 @@ namespace AElf.Network.Peers
                     _logger.Trace("Peer Removed : " + peer);
                     break;
                 }
+            }
+        }
+
+        public void RemoveDuplicatePeers()
+        {
+            var duplicates = _peers 
+                .GroupBy(i => i)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key);
+
+            
+            foreach (var peer in duplicates)
+            {
+                RemovePeer(peer);
             }
         }
 
