@@ -37,10 +37,6 @@ namespace AElf.Kernel.TxMemPool
         
         private TxPoolSchedulerLock Lock { get; } = new TxPoolSchedulerLock();
         
-        //private HashSet<ITransaction> Tmp { get; } = new HashSet<ITransaction>();
-        
-        private readonly ConcurrentDictionary<Hash, ulong> _nonces = new ConcurrentDictionary<Hash, ulong>();
-        
         private readonly ConcurrentDictionary<Hash, ITransaction> _txs = new ConcurrentDictionary<Hash, ITransaction>();
 
         /// <inheritdoc/>
@@ -151,7 +147,7 @@ namespace AElf.Kernel.TxMemPool
             //return Lock.ReadLock(() =>
             lock (this)
             {
-                _txPool.Enqueueable = false;
+                //_txPool.Enqueueable = false;
                 return Task.FromResult(_txPool.ReadyTxs(limit));
             }
         }
@@ -236,16 +232,22 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public async Task ResetAndUpdate(List<TransactionResult> txResultList)
         {
+            var addrs = new HashSet<Hash>();
             foreach (var res in txResultList)
             {
-                var hash = GetTx(res.TransactionId).From;
-                _txPool.Nonces.TryGetValue(hash, out var id);
+                var tx = GetTx(res.TransactionId);
+                addrs.Add(tx.From);
+            }
+
+            foreach (var addr in addrs)
+            {
+                _txPool.Nonces.TryGetValue(addr, out var id);
                 
                 // update account context
                 await _accountContextService.SetAccountContext(new AccountDataContext
                 {
                     IncrementId = id,
-                    Address = hash,
+                    Address = addr,
                     ChainId = _txPool.ChainId
                 });
             }

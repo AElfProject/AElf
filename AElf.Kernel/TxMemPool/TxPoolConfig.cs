@@ -8,7 +8,7 @@ namespace AElf.Kernel.TxMemPool
         {
             PoolLimitSize = 1024 * 1024,
             TxLimitSize = 1024 * 1,
-            EntryThreshold = 5,
+            EntryThreshold = 3,
             ChainId = Hash.Generate()
         };
         

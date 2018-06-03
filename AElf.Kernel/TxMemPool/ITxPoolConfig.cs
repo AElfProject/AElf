@@ -25,7 +25,7 @@ namespace AElf.Kernel.TxMemPool
         Hash ChainId { get;} 
         
         /// <summary>
-        /// minimal number of txs for entering pool
+        /// minimal number of txs for entering ready list
         /// </summary>
         ulong EntryThreshold { get; }
         
