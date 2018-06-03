@@ -113,8 +113,6 @@ namespace AElf.Network
                 return;
             }
             
-            _logger?.Trace("Connection established : " + client.Client.RemoteEndPoint);
-            
             Peer connected = await FinalizeConnect(client, client.GetStream());
 
             if (connected == null)
