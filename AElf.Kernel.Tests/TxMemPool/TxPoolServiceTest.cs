@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Crypto.ECDSA;
 using AElf.Kernel.KernelAccount;
@@ -40,101 +41,108 @@ namespace AElf.Kernel.Tests.TxMemPool
             poolService.Start();
             await poolService.AddTxAsync(tx);
         }
-        
+
         [Fact]
-        public async Task ServiceTest()
+        public async Task AddTxTest()
         {
             var pool = GetPool();
-            
+
             var poolService = new TxPoolService(pool, _accountContextService);
             poolService.Start();
-           
+
             var addr11 = Hash.Generate();
-            var addr12 = Hash.Generate();
-            var addr21 = Hash.Generate();
-            var addr22 = Hash.Generate();
 
             var tx1 = TxPoolTest.BuildTransaction();
             var res = await poolService.AddTxAsync(tx1);
             Assert.True(res);
+
+            Assert.Equal(0, (int) await poolService.GetWaitingSizeAsync());
+            Assert.Equal(1, (int) await poolService.GetExecutableSizeAsync());
+            Assert.Equal(1, (int) pool.Size);
+        }
+
+        [Fact]
+        public async Task WaitingTest()
+        {
+            var pool = GetPool();
+
+            var poolService = new TxPoolService(pool, _accountContextService);
+            poolService.Start();
+            var tx1 = TxPoolTest.BuildTransaction();
+            var res = await poolService.AddTxAsync(tx1);
             
-            Assert.Equal(1, (int) await poolService.GetWaitingSizeAsync());
-            Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
-            Assert.Equal(1, (int)pool.Size);
-            
-            var tx2 = TxPoolTest.BuildTransaction();
+            var tx2 = TxPoolTest.BuildTransaction(nonce:2);
             res = await poolService.AddTxAsync(tx2);
             
             Assert.True(res);
-            Assert.Equal(2, (int) await poolService.GetWaitingSizeAsync());
-            Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
+            Assert.Equal(1, (int) await poolService.GetWaitingSizeAsync());
+            Assert.Equal(1, (int) await poolService.GetExecutableSizeAsync());
             Assert.Equal(2, (int)pool.Size);
+
+        }
+
+
+        [Fact]
+        public async Task ReadyTxs()
+        {
+            var pool = GetPool();
+
             
-            
-            /*var tx3 = new Transaction
+            var poolService = new TxPoolService(pool, _accountContextService);
+            poolService.Start();
+
+            var addr1 = Hash.Generate();
+            var tx1 = TxPoolTest.BuildTransaction(adrFrom:addr1);
+            var tx2 = TxPoolTest.BuildTransaction(adrFrom: addr1, nonce: 1);
+            await poolService.AddTxAsync(tx1);
+            await poolService.AddTxAsync(tx2);
+            var txs1 = await poolService.GetReadyTxsAsync(10);
+            Assert.Equal(2, txs1.Count);
+
+            var txResults1 = txs1.Select(t => new TransactionResult
             {
-                From = addr11,
-                To = Hash.Generate(),
-                IncrementId = 0
-            };
-            res = await poolService.AddTxAsync(tx3);
+                TransactionId = t.GetHash()
+            }).ToList();
+
+            await poolService.ResetAndUpdate(txResults1);
             
-            Assert.True(res);
-            Assert.Equal(3, (int) await poolService.GetWaitingSizeAsync());
-            Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
-            Assert.Equal(0, (int)pool.Size);
+            var context1 = await _accountContextService.GetAccountDataContext(addr1, pool.ChainId);
+            Assert.Equal(2, (int)context1.IncrementId);
+
             
+            var tx3 = TxPoolTest.BuildTransaction(adrFrom:addr1, nonce:2);
+            var tx4 = TxPoolTest.BuildTransaction(adrFrom: addr1, nonce: 3);
             
-            var tx4 = new Transaction
+            await poolService.AddTxAsync(tx3);
+            await poolService.AddTxAsync(tx4);
+            
+            var txs2 = await poolService.GetReadyTxsAsync(10);
+            Assert.Equal(2, txs2.Count);
+
+            var txResults2 = txs2.Select(t => new TransactionResult
             {
-                From = addr11,
-                To = Hash.Generate(),
-                IncrementId = 1
-            };
-            
-            res = await poolService.AddTxAsync(tx4);
-            Assert.True(res);
-            Assert.Equal(4, (int) await poolService.GetWaitingSizeAsync());
-            Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
-            Assert.Equal(0, (int)pool.Size);
-            
-            var tx5 = new Transaction
-            {
-                From = addr11,
-                To = Hash.Generate(),
-                IncrementId = 2
-            };
-            res = await poolService.AddTxAsync(tx5);
-            Assert.True(res);
-            Thread.Sleep(1000);
-            Assert.Equal(0, (int) await poolService.GetTmpSizeAsync());
-            Assert.Equal(5, (int) await poolService.GetPoolSize());
-            Assert.Equal(4, (int) await poolService.GetWaitingSizeAsync());
-            Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());
-            
-            var tx6 = new Transaction
-            {
-                From = addr11,
-                To = Hash.Generate(),
-                IncrementId = 2
-            };
-            res = await poolService.AddTxAsync(tx6);
-            Assert.True(res);
-            Assert.Equal(1, (int) await poolService.GetTmpSizeAsync());
-            Assert.Equal(4, (int) await poolService.GetWaitingSizeAsync());
-            Assert.Equal(0, (int) await poolService.GetExecutableSizeAsync());*/
+                TransactionId = t.GetHash()
+            }).ToList();
+
+            await poolService.ResetAndUpdate(txResults2);
+            var context2 = await _accountContextService.GetAccountDataContext(addr1, pool.ChainId);
+            Assert.Equal(4, (int)context2.IncrementId);
+
+        }
+
+        [Fact]
+        public async Task StopTest()
+        {
+            var pool = GetPool();
+
+            var poolService = new TxPoolService(pool, _accountContextService);
+            poolService.Start();
             
             await poolService.Stop();
-            
-            var tx7 = new Transaction
-            {
-                From = addr11,
-                To = Hash.Generate(),
-                IncrementId = 3
-            };
-            res = await poolService.AddTxAsync(tx7);
+
+            var tx = TxPoolTest.BuildTransaction();
+            var res = await poolService.AddTxAsync(tx);
             Assert.False(res);
-            
         }
     }
 }
