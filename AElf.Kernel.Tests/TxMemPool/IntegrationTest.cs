@@ -68,6 +68,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             return tx;
         }
         
+        
         [Fact]
         public async Task Start()
         {
@@ -75,16 +76,84 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             var poolService = new TxPoolService(pool, _accountContextService);
             poolService.Start();
+            var Num = 3;
+            var threadNum = 5;
+
+            int count = 0;
+            
+            var addrList = new List<Hash>();
+
+            var sortedSet = new Dictionary<Hash, SortedSet<int>>();
+
+            int r = 5;
+
+            int i = 0;
+            while (i < Num )
+            {
+                var addr = Hash.Generate();
+                addrList.Add(addr);
+                sortedSet[addr] = new SortedSet<int>();
+                i++;
+            }
+            
+            var txList = new List<ITransaction>();
+
+            var txCount = threadNum * r;
+            while (count++ < txCount)
+            {
+                var index = count % Num;
+                var id =  new Random().Next(25);
+                sortedSet[addrList[index]].Add(id);
+                var tx = BuildTransaction(addrList[index], nonce: (ulong)id);
+                txList.Add(tx);
+            }
+
+            
+
+            var j1 = 0;
+            while (j1 < txCount)
+            {
+                
+                var tx = txList[j1];
+                var res = await poolService.AddTxAsync(tx);
+
+                if (j1 % txCount == 0)
+                {
+                    var txs = await poolService.GetReadyTxsAsync(2000);
+
+                    var resLists =new List<TransactionResult>();
+                    foreach (var t in txs)
+                    {
+                        resLists.Add(new TransactionResult
+                        {
+                            TransactionId = t.GetHash()
+                        });
+                    }
+                    await poolService.ResetAndUpdate(resLists);
+                }
+                
+                j1++;
+            }
+        }
+        
+        
+        [Fact]
+        public async Task StartMultiThread()
+        {
+            var pool = GetPool();
+            
+            var poolService = new TxPoolService(pool, _accountContextService);
+            poolService.Start();
             ulong queued = 0;
             ulong exec = 0;
-            var tasks = new List<Task>();
             
             var results = new List<TransactionResult>();
 
             var IdDict = new Dictionary<Hash, ulong>();
             int k = 0;
-            var Num = 50;
-            var threadNum = 50;
+            var Num = 2;
+            var r = 5;
+            var threadNum = Num *r;
 
             int count = 0;
             
@@ -106,7 +175,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             while (count++ < threadNum)
             {
                 var index = count % Num;
-                var id =  new Random().Next(50);
+                var id =  new Random().Next(r);
                 sortedSet[addrList[index]].Add(id);
                 var tx = BuildTransaction(addrList[index], nonce: (ulong)id);
                 txList.Add(tx);
@@ -123,38 +192,65 @@ namespace AElf.Kernel.Tests.TxMemPool
                 }
                 IdDict[addr] = c;
             }
-            
-            for (var j = 0; j < threadNum; j++)
+
+            var rr = 0;
+            while (rr< r)
             {
-                var j1 = j;
-                var task = Task.Run(async () =>
+                var tasks = new List<Task>();
+
+                for (var j = 0; j < Num; j++)
                 {
-                    if (j1 % Num == 0)
+                    var j1 = j;
+                    var rr1 = rr;
+                    var task = Task.Run(async () =>
                     {
-                        await poolService.PromoteAsync();
-                    }
                     
-                    // sorted set for tx id
-                    var stopwatch = new Stopwatch();
-                    stopwatch.Start();
+                        // sorted set for tx id
+                        var stopwatch = new Stopwatch();
+                        stopwatch.Start();
                     
-                    var res = await poolService.AddTxAsync(txList[j1]);
-                    results.Add(new TransactionResult
-                    {
-                        TransactionId = txList[j1].GetHash()
+                        var res = await poolService.AddTxAsync(txList[j1 + Num * rr1]);
+                        results.Add(new TransactionResult
+                        {
+                            TransactionId = txList[j1].GetHash()
+                        });
+                        stopwatch.Stop();
+                        Debug.WriteLine(stopwatch.ElapsedMilliseconds);
+                    
+                        
                     });
-                    stopwatch.Stop();
-                    Debug.WriteLine(stopwatch.ElapsedMilliseconds);
-                    
-                });
-                tasks.Add(task);
+                    tasks.Add(task);
+                }
+                Task.WaitAll(tasks.ToArray());
+                
+                if (rr % r == 0)
+                {
+                    var txs = await poolService.GetReadyTxsAsync(2000);
+
+                    var resLists =new List<TransactionResult>();
+                    foreach (var t in txs)
+                    {
+                        resLists.Add(new TransactionResult
+                        {
+                            TransactionId = t.GetHash()
+                        });
+                    }
+                    await poolService.ResetAndUpdate(resLists);
+                }
+                
+                rr++;
             }
-
-            Task.WaitAll(tasks.ToArray());
             
-            Assert.Equal(sortedSet.Values.Aggregate(0, (current, p) =>  current + p.Count), (int)pool.Size);
+            
 
-            await poolService.PromoteAsync();
+            
+
+            var execSize = pool.GetExecutableSize();
+            var waitingSize = pool.GetWaitingSize();
+            var sortedCount = sortedSet.Values.Aggregate(0, (current, p) => current + p.Count);
+            Assert.True(sortedCount >= (int)pool.Size);
+
+            //await poolService.PromoteAsync();
 
             // executable list size 
             /*Assert.Equal(exec, await poolService.GetExecutableSizeAsync());
@@ -162,7 +258,12 @@ namespace AElf.Kernel.Tests.TxMemPool
 
             var list = await poolService.GetReadyTxsAsync(2000);
 
-            await poolService.ResetAndUpdate(results);
+            var txReuslts = list.Select(t => new TransactionResult
+            {
+                TransactionId = t.GetHash()
+            }).ToList();
+            
+            await poolService.ResetAndUpdate(txReuslts);
             
             foreach (var address in addrList)
             {
@@ -176,62 +277,6 @@ namespace AElf.Kernel.Tests.TxMemPool
         }
         
         
-        public void StartNoLock()
-        {
-            /*var pool = GetPool();
-            
-            var poolService = new TxPoolNoLockService(pool, _accountContextService);
-            poolService.Start();
-            ulong queued = 0;
-            ulong exec = 0;
-            var tasks = new List<Task>();
-            int k = 0;
-            var threadNum = 10;
-            for (var j = 0; j < threadNum; j++)
-            {
-                var task = Task.Run( () =>
-                {
-                    // sorted set for tx id
-                    var sortedSet = new SortedSet<ulong>();
-                    var addr = Hash.Generate();
-                    var i = 0;
-                    while (i++ < 100)
-                    {
-                        var id = (ulong) new Random().Next(50);
-                        sortedSet.Add(id);
-                        var tx = new Transaction
-                        {
-                            From = addr,
-                            To = Hash.Generate(),
-                            IncrementId = id
-                        };
-
-                        poolService.AddTx(tx);
-                    }
-
-                    ulong c = 0;
-                    foreach (var t in sortedSet)
-                    {
-                        if (t != c)
-                            break;
-                        c++;
-                    }
-                    
-                    lock (this)
-                    {
-                        queued += (ulong) sortedSet.Count;
-                        exec += c;
-                        k++;
-                    }
-                });
-                tasks.Add(task);
-            }
-
-            Task.WaitAll(tasks.ToArray());
-            //poolService.Promote();
-            Assert.Equal(k, threadNum);
-            Assert.Equal(exec, poolService.GetExecutableSize());
-            Assert.Equal(queued - exec, poolService.GetWaitingSize());*/
-        }
+        
     }
 }
