@@ -57,7 +57,7 @@ namespace AElf.Network.Peers
         public void Start()
         {
             Task.Run(() => _server.StartAsync());
-            Task.Run(Setup);
+            Setup();
             //Setup();
             
             _server.ClientConnected += HandleConnection;
@@ -119,47 +119,61 @@ namespace AElf.Network.Peers
         {
             if (!undergoingPM)
             {
+                
                 undergoingPM = true;
-                int peersCount = _peers.Count;
 
                 // If there are no connected peers then reconnect to bootnode
-                if (peersCount == 0)
+                if (_peers.Count == 0)
                 {
                     await CreateAndAddPeer(_bootNode);
                 } 
-                else if (peersCount > 4) // If more than half of the peer list is full, drop the boot node
+                else if (_peers.Count > 4) // If more than half of the peer list is full, drop the boot node
                 {
                     RemovePeer(_bootNode);
                 }
-                
-                foreach (var peer in _peers)
-                {
-                    peersCount = _peers.Count;
-                    if (peersCount < 8)
-                    {
-                        ushort missingPeers = (ushort) (8 - peersCount);
-                    
-                        var reqPeerListData = new ReqPeerListData
-                        {
-                            NumPeers = missingPeers
-                        };
-                    
-                        var req = new AElfPacketData
-                        {
-                            MsgType = (int)MessageTypes.RequestPeers,
-                            Length = 1,
-                            Payload = reqPeerListData.ToByteString()
-                        };
 
-                        Task.Run(async () => await peer.SendAsync(req.ToByteArray()));
-                    }
-                    else
+                try
+                {
+                    foreach (var peer in _peers)
                     {
-                        break;
+                        if (_peers.Count < 8)
+                        {
+                            ushort missingPeers = (ushort) (8 - _peers.Count);
+
+                            var reqPeerListData = new ReqPeerListData
+                            {
+                                NumPeers = missingPeers
+                            };
+
+                            var req = new AElfPacketData
+                            {
+                                MsgType = (int) MessageTypes.RequestPeers,
+                                Length = 1,
+                                Payload = reqPeerListData.ToByteString()
+                            };
+
+                            Task.Run(async () => await peer.SendAsync(req.ToByteArray()));
+                        }
+                        else if (_peers.Count > 8)
+                        {
+                            while (_peers.Count > 8)
+                            {
+                                RemovePeer(_peers[_peers.Count - 1]);
+                            }
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    ;
                 }
 
                 undergoingPM = false;
+                _logger.Trace("peers " + _peers.Count);
             }
         }
         
