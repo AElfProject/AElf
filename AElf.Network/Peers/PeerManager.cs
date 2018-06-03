@@ -196,6 +196,7 @@ namespace AElf.Network.Peers
                 }
 
                 RemoveDuplicatePeers();
+                _logger.Trace("peers: " + _peers.Count);
 
                 undergoingPM = false;
             }
@@ -306,7 +307,14 @@ namespace AElf.Network.Peers
 
         public void RemoveDuplicatePeers()
         {
-            var duplicates = _peers 
+            List<NodeData> peerList = new List<NodeData>();
+
+            foreach (var peer in _peers)
+            {
+                peerList.Add(new NodeData { IpAddress = peer.IpAddress, Port = peer.Port});
+            }
+            
+            var duplicates = peerList 
                 .GroupBy(i => i)
                 .Where(g => g.Count() > 1)
                 .Select(g => g.Key);
