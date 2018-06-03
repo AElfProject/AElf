@@ -264,5 +264,27 @@ namespace AElf.Network.Peers
         {
             return DistantNodeData.IpAddress + ":" + DistantNodeData.Port;
         }
+
+        /// <summary>
+        /// Equality of two peers is based on the equality of the underlying
+        /// distant node data it represents.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(obj, null))
+                return false;
+
+            if (ReferenceEquals(obj, this))
+                return true;
+            
+            Peer p = obj as Peer;
+
+            if (p?.DistantNodeData == null || DistantNodeData == null)
+                return false;
+
+            return p.DistantNodeData == DistantNodeData;
+        }
     }
 }

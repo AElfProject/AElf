@@ -56,7 +56,8 @@ namespace AElf.Network.Peers
         public void Start()
         {
             Task.Run(() => _server.StartAsync());
-            Setup();
+            Task.Run(Setup);
+            //Setup();
             
             _server.ClientConnected += HandleConnection;
 
@@ -196,14 +197,11 @@ namespace AElf.Network.Peers
         /// <param name="peer">the peer to add</param>
         public void AddPeer(IPeer peer)
         {
-            // Temporary solution to checking if peer is already in _peers
-            bool exists = false;
-            foreach (var p in _peers)
-            {
-                exists = p.IpAddress == peer.IpAddress && p.Port == peer.Port;
-            }
-            
-            if (exists) 
+            /*if (_peers.Any(p => p.DistantNodeData.IpAddress == peer.DistantNodeData.IpAddress 
+                                && p.DistantNodeData.Port == peer.DistantNodeData.Port)) 
+                return;*/
+
+            if (_peers.Any(p => p.Equals(peer)))
                 return;
             
             _peers.Add(peer);
@@ -322,7 +320,7 @@ namespace AElf.Network.Peers
                     
                     PeerListData pListData = new PeerListData();
 
-                    foreach (var peer in _peers)
+                    foreach (var peer in _peers.Where(p => !p.DistantNodeData.Equals(args.Peer.DistantNodeData)))
                     {
                         pListData.NodeData.Add(peer.DistantNodeData);
                         if (pListData.NodeData.Count == numPeers)
