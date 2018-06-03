@@ -195,8 +195,8 @@ LX1A6oWUNiLIjwAI0Qh5fgO5g5PerkNebXLPDE2dTzVVyYYw==";
             pool.EnQueueTxs(tmp);
             
             pool.GetPoolState(out var executable, out var waiting);
-            Assert.Equal(1, (int)waiting);
-            Assert.Equal(0, (int)executable);
+            Assert.Equal(0, (int)waiting);
+            Assert.Equal(1, (int)executable);
         }
 
         
