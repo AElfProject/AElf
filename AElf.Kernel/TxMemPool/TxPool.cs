@@ -143,7 +143,16 @@ namespace AElf.Kernel.TxMemPool
         public bool EnQueueTx(ITransaction tx)
         {
             var error = this.ValidateTx(tx);
-            if (error == TxValidation.ValidationError.Success) return AddWaitingTx(tx);
+            if (error == TxValidation.ValidationError.Success)
+            {
+                var res = AddWaitingTx(tx);
+                if (res)
+                {
+                    Promote(tx.From);
+                }
+                
+                return res;
+            }
             _logger.Error("InValid transaction: " +  error);
             return false;
 
@@ -166,8 +175,6 @@ namespace AElf.Kernel.TxMemPool
             }
             // in waiting 
             return RemoveFromWaiting(tx);
-
-
         }
 
         /// <inheritdoc/>
@@ -379,33 +386,37 @@ namespace AElf.Kernel.TxMemPool
 
         private ulong? GetNextPromotableTxId(Hash addr)
         {
-            if (_waiting == null)
-                return null;
-
+            
             if (!_waiting.TryGetValue(addr, out var waitingList))
             {
                 return null;
             }
             
-            ulong w = 0;
-            
-            if (_executable.TryGetValue(addr, out var executableList))
-            {
-                w = executableList.Last().IncrementId + 1;
-            }
-            
             // no tx left
             if (waitingList.Count <= 0)
                 return null;
-
+            
             ulong next = waitingList.Keys.Min();
+            
+            ulong w = 0;
+
+            if (_executable.TryGetValue(addr, out var executableList) && executableList.Count != 0)
+            {
+                w = executableList.Last().IncrementId + 1;
+            }
+            else if(Nonces.TryGetValue(addr, out var n))
+            {
+                w = n;
+                _executable[addr] = new List<ITransaction>();
+            }
+            else
+            {
+                return null;
+            }
+            
             
             if (next != w)
                 return null;
-            
-            if(executableList == null)
-                _executable[addr] = new List<ITransaction>();
-            
             return next;
         }
 
@@ -433,6 +444,8 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="addr">From account addr</param>
         private void Promote(Hash addr)
         {
+            if (!_waiting.ContainsKey(addr))
+                return;
             ulong? next = GetNextPromotableTxId(addr);
 
             if (!next.HasValue)
@@ -442,7 +455,7 @@ namespace AElf.Kernel.TxMemPool
 
             if (!_executable.TryGetValue(addr, out var executableList) || !_waiting.TryGetValue(addr, out var waitingList))
             {
-                return ;
+                return;
             }
 
             ulong incr = next.Value;
