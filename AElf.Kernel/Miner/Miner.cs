@@ -54,7 +54,8 @@ namespace AElf.Kernel.Miner
             
             // generate block
             var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);
-             
+            
+            
             // reset Promotable and update account context
             await _txPoolService.ResetAndUpdate(results);
 
