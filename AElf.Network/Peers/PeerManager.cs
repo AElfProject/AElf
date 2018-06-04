@@ -390,9 +390,12 @@ namespace AElf.Network.Peers
             {
                 if (i <= _peers.Count)
                 {
-                    NodeData p = new NodeData();
-                    p.IpAddress = _peers[i].IpAddress;
-                    p.Port = _peers[i].Port;
+                    NodeData p = new NodeData
+                    {
+                        IpAddress = _peers[i].IpAddress,
+                        Port = _peers[i].Port
+                    };
+                    
                     peers.Add(p);
                 }
             }
