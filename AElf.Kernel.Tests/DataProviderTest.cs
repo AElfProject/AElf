@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using Google.Protobuf;
+using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -51,28 +53,28 @@ namespace AElf.Kernel.Tests
             for (var i = 0; i < count; i++)
             {
                 var getData = await dataProvider.GetAsync(keys[i]);
-                Assert.True(getData.SequenceEqual(setList[i]));
+                Assert.True(getData.Equals(setList[i]));
             }
 
             for (var i = 0; i < count - 1; i++)
             {
                 var getData = await dataProvider.GetAsync(keys[i]);
-                Assert.False(getData.SequenceEqual(setList[i + 1]));
+                Assert.False(getData.Equals(setList[i + 1]));
             }
         }
         
-        private IEnumerable<byte[]> CreateSet(int count)
+        private IEnumerable<Data> CreateSet(int count)
         {
-            var list = new List<byte[]>(count);
+            var list = new List<Data>(count);
             for (var i = 0; i < count; i++)
             {
-                list.Add(Hash.Generate().Value.ToByteArray());
+                list.Add(new Data {Value = Hash.Generate().Value});
             }
 
             return list;
         }
 
-        private IEnumerable<Hash> GenerateKeys(IEnumerable<byte[]> set)
+        private IEnumerable<Hash> GenerateKeys(IEnumerable<Data> set)
         {
            return set.Select(data => new Hash(data.CalculateHash())).ToList();
         }

@@ -22,14 +22,13 @@ namespace AElf.Kernel.Storages
 
         public async Task<IChain> UpdateAsync(IChain chain)
         {
-            var bytes = chain.Serialize();
-            await _keyValueDatabase.SetAsync(chain.Id.Value.ToBase64(), bytes);
+            await _keyValueDatabase.SetAsync(chain.Id.Value.ToBase64(), chain);
             return chain;
         }
 
         public async Task<IChain> InsertAsync(IChain chain)
         {
-            await _keyValueDatabase.SetAsync(chain.Id.Value.ToBase64(), chain.Serialize());
+            await _keyValueDatabase.SetAsync(chain.Id.Value.ToBase64(), chain);
             return chain;
         }
     }

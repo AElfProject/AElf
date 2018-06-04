@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -25,12 +26,12 @@ namespace AElf.Kernel.Tests
         public async Task DataTest()
         {
             var key = Hash.Generate();
-            var data = Hash.Generate().Value.ToArray();
+            var data = new Data {Value = Hash.Generate().Value};
             await _worldStateManager.SetDataAsync(key, data);
 
             var getData = await _worldStateManager.GetDataAsync(key);
             
-            Assert.True(data.SequenceEqual(getData));
+            Assert.True(data.Equals(getData));
         }
 
         [Fact]
@@ -49,12 +50,12 @@ namespace AElf.Kernel.Tests
             Assert.True(accountDataProvider.Context.ChainId == chain.Id);
             
             var dataProvider = accountDataProvider.GetDataProvider();
-            var data = Hash.Generate().Value.ToArray();
+            var data = new Data {Value = Hash.Generate().Value};
             var key = new Hash("testkey".CalculateHash());
             await dataProvider.SetAsync(key, data);
             var getData = await dataProvider.GetAsync(key);
             
-            Assert.True(data.SequenceEqual(getData));
+            Assert.True(data.Equals(getData));
         }
     }
 }

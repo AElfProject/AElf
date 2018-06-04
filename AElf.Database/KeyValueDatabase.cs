@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Google.Protobuf;
 
 namespace AElf.Database
 {
@@ -14,9 +14,9 @@ namespace AElf.Database
             return _dictionary.TryGetValue(key, out var value) ? Task.FromResult(value) : Task.FromResult<byte[]>(null);
         }
 
-        public Task SetAsync(string key, byte[] bytes)
+        public Task SetAsync(string key, ISerializable data)
         {
-            _dictionary[key] = bytes;
+            _dictionary[key] = data.Serialize();
             return Task.CompletedTask;
         }
 

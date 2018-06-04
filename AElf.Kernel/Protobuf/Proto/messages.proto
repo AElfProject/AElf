@@ -107,3 +107,11 @@ enum Status {
     ExecutedFailed = 3;
     Mined = 4;
 }
+
+message UInt64 {
+    uint64 Value = 1;
+}
+
+message Data {
+    bytes Value = 1;
+}

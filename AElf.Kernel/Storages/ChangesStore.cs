@@ -15,7 +15,7 @@ namespace AElf.Kernel.Storages
 
         public async Task InsertChangeAsync(Hash pathHash, Change change)
         {
-            await _keyValueDatabase.SetAsync(pathHash.Value.ToBase64(), change.Serialize());
+            await _keyValueDatabase.SetAsync(pathHash.Value.ToBase64(), change);
         }
 
         public async Task<Change> GetChangeAsync(Hash pathHash)
@@ -28,7 +28,7 @@ namespace AElf.Kernel.Storages
         {
             var change = await GetChangeAsync(pathHash);
             change.UpdateHashAfter(pointerHash);
-            await _keyValueDatabase.SetAsync(pathHash.Value.ToBase64(), change.Serialize());
+            await _keyValueDatabase.SetAsync(pathHash.Value.ToBase64(), change);
         }
 
         public async Task<Hash> GetPointerAsync(Hash pathHash)

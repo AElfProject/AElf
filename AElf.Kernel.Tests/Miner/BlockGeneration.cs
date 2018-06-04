@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Merkle;
 using AElf.Kernel.Services;
-using Akka.IO;
 using Google.Protobuf;
 using Moq;
 using Xunit;
@@ -35,16 +33,16 @@ namespace AElf.Kernel.Tests.Miner
             var data1 = Hash.Generate().Value.ToArray();
             var key = new Hash("testkey".CalculateHash());
             var subDataProvider1 = dataProvider.GetDataProvider("test1");
-            await subDataProvider1.SetAsync(key, data1);
+            await subDataProvider1.SetAsync(key, new Data {Value = ByteString.CopyFrom(data1)});
             var data2 = Hash.Generate().Value.ToArray();
             var subDataProvider2 = dataProvider.GetDataProvider("test2");
-            await subDataProvider2.SetAsync(key, data2);
+            await subDataProvider2.SetAsync(key, new Data {Value = ByteString.CopyFrom(data2)});
             var data3= Hash.Generate().Value.ToArray();
             var subDataProvider3 = dataProvider.GetDataProvider("test3");
-            await subDataProvider3.SetAsync(key, data3);
+            await subDataProvider3.SetAsync(key, new Data {Value = ByteString.CopyFrom(data3)});
             var data4 = Hash.Generate().Value.ToArray();
             var subDataProvider4 = dataProvider.GetDataProvider("test4");
-            await subDataProvider4.SetAsync(key, data4);
+            await subDataProvider4.SetAsync(key, new Data {Value = ByteString.CopyFrom(data4)});
         }
         
         

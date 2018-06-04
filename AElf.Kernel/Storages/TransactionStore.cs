@@ -20,7 +20,7 @@ namespace AElf.Kernel.Storages
         public async Task<IHash> InsertAsync(ITransaction tx)
         {
             var key = tx.GetHash();
-            await _keyValueDatabase.SetAsync(key.Value.ToBase64(), tx.Serialize());
+            await _keyValueDatabase.SetAsync(key.Value.ToBase64(), tx);
             return key;
         }
 

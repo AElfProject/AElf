@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -68,16 +69,16 @@ namespace AElf.Kernel.Tests
 
             var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             var dataProvider = accountDataProvider.GetDataProvider();
-            var data1 = Hash.Generate().Value.ToArray();
+            var data1 = new Data {Value = Hash.Generate().Value};
             var subDataProvider1 = dataProvider.GetDataProvider("test1");
             await subDataProvider1.SetAsync(key, data1);
-            var data2 = Hash.Generate().Value.ToArray();
+            var data2 = new Data {Value = Hash.Generate().Value};
             var subDataProvider2 = dataProvider.GetDataProvider("test2");
             await subDataProvider2.SetAsync(key, data2);
-            var data3= Hash.Generate().Value.ToArray();
+            var data3= new Data {Value = Hash.Generate().Value};
             var subDataProvider3 = dataProvider.GetDataProvider("test3");
             await subDataProvider3.SetAsync(key, data3);
-            var data4 = Hash.Generate().Value.ToArray();
+            var data4 = new Data {Value = Hash.Generate().Value};
             var subDataProvider4 = dataProvider.GetDataProvider("test4");
             await subDataProvider4.SetAsync(key, data4);
             
@@ -86,13 +87,13 @@ namespace AElf.Kernel.Tests
 
             accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
-            var data5 = Hash.Generate().Value.ToArray();
+            var data5 = new Data {Value = Hash.Generate().Value};
             subDataProvider1 = dataProvider.GetDataProvider("test1");
             await subDataProvider1.SetAsync(key, data5);
-            var data6 = Hash.Generate().Value.ToArray();
+            var data6 = new Data {Value = Hash.Generate().Value};
             subDataProvider2 = dataProvider.GetDataProvider("test2");
             await subDataProvider2.SetAsync(key, data6);
-            var data7= Hash.Generate().Value.ToArray();
+            var data7= new Data {Value = Hash.Generate().Value};
             subDataProvider3 = dataProvider.GetDataProvider("test3");
             await subDataProvider3.SetAsync(key, data7);
             
@@ -126,10 +127,10 @@ namespace AElf.Kernel.Tests
             var getData1InHeight1 = await subDataProvider1.GetAsync(key, genesisBlockHash);
             var getData1InHeight2 = await subDataProvider1.GetAsync(key, block1.GetHash());
             var getData1 = await subDataProvider1.GetAsync(key);
-            Assert.True(data1.SequenceEqual(getData1InHeight1));
-            Assert.False(data1.SequenceEqual(getData1InHeight2));
-            Assert.True(data5.SequenceEqual(getData1InHeight2));
-            Assert.True(getData1InHeight2.SequenceEqual(getData1));
+            Assert.True(data1.Equals(getData1InHeight1));
+            Assert.False(data1.Equals(getData1InHeight2));
+            Assert.True(data5.Equals(getData1InHeight2));
+            Assert.True(getData1InHeight2.Equals(getData1));
 
             Assert.True(changes2.Count == 3);
             
@@ -143,7 +144,7 @@ namespace AElf.Kernel.Tests
 
             accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
-            var data8 = Hash.Generate().Value.ToArray();
+            var data8 = new Data {Value = Hash.Generate().Value};
             var subDataProvider5 = dataProvider.GetDataProvider("test5");
             await subDataProvider5.SetAsync(key, data8);
             
@@ -155,19 +156,19 @@ namespace AElf.Kernel.Tests
             
             Assert.True(changes4.Count == 1);
             var getData8 = await subDataProvider5.GetAsync(key);
-            Assert.True(data8.SequenceEqual(getData8));
+            Assert.True(data8.Equals(getData8));
             
             accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
-            var data9 = Hash.Generate().Value.ToArray();
+            var data9 = new Data {Value = Hash.Generate().Value};
             subDataProvider5 = dataProvider.GetDataProvider("test5");
             await subDataProvider5.SetAsync(key, data9);
             
             await worldStateManager.RollbackCurrentChangesAsync();
             
             var getData9 = await subDataProvider5.GetAsync(key);
-            Assert.False(data9.SequenceEqual(getData9));
-            Assert.True(data8.SequenceEqual(getData9));
+            Assert.False(data9.Equals(getData9));
+            Assert.True(data8.Equals(getData9));
         }
 
         [Fact]
@@ -189,8 +190,8 @@ namespace AElf.Kernel.Tests
 
             var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             var dataProvider = accountDataProvider.GetDataProvider();
-            var data1 = Hash.Generate().Value.ToArray();
-            var data2 = Hash.Generate().Value.ToArray();
+            var data1 = new Data {Value = Hash.Generate().Value};
+            var data2 = new Data {Value = Hash.Generate().Value};
             var subDataProvider = dataProvider.GetDataProvider("test");
             await subDataProvider.SetAsync(key1, data1);
             await subDataProvider.SetAsync(key2, data2);
@@ -200,16 +201,16 @@ namespace AElf.Kernel.Tests
             
             accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
-            var data3 = Hash.Generate().Value.ToArray();
-            var data4 = Hash.Generate().Value.ToArray();
+            var data3 = new Data {Value = Hash.Generate().Value};
+            var data4 = new Data {Value = Hash.Generate().Value};
             subDataProvider = dataProvider.GetDataProvider("test");
             await subDataProvider.SetAsync(key1, data3);
             await subDataProvider.SetAsync(key2, data4);
 
             var getData3 = await subDataProvider.GetAsync(key1);
-            Assert.True(data3.SequenceEqual(getData3));
+            Assert.True(data3.Equals(getData3));
             var getData4 = await subDataProvider.GetAsync(key2);
-            Assert.True(data4.SequenceEqual(getData4));
+            Assert.True(data4.Equals(getData4));
 
             //Do the rollback
             await worldStateManager.RollbackCurrentChangesAsync();
@@ -217,36 +218,36 @@ namespace AElf.Kernel.Tests
             //Now the "key"'s value of subDataProvider rollback to previous data.
             var getData1 = await subDataProvider.GetAsync(key1);
             var getData2 = await subDataProvider.GetAsync(key2);
-            Assert.False(data3.SequenceEqual(getData1));
-            Assert.False(data4.SequenceEqual(getData2));
-            Assert.True(data1.SequenceEqual(getData1));
-            Assert.True(data2.SequenceEqual(getData2));
+            Assert.False(data3.Equals(getData1));
+            Assert.False(data4.Equals(getData2));
+            Assert.True(data1.Equals(getData1));
+            Assert.True(data2.Equals(getData2));
             
             //Set again
             await subDataProvider.SetAsync(key1, data3);
             await subDataProvider.SetAsync(key2, data4);
             
-            Assert.True((await subDataProvider.GetAsync(key1)).SequenceEqual(data3));
-            Assert.True((await subDataProvider.GetAsync(key2)).SequenceEqual(data4));
+            Assert.True((await subDataProvider.GetAsync(key1)).Equals(data3));
+            Assert.True((await subDataProvider.GetAsync(key2)).Equals(data4));
 
             await worldStateManager.SetWorldStateAsync(block2.GetHash());
             await chainManger.AppendBlockToChainAsync(chain.Id, block2);
 
             accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
-            var data5 = Hash.Generate().Value.ToArray();
-            var data6 = Hash.Generate().Value.ToArray();
+            var data5 = new Data {Value = Hash.Generate().Value};
+            var data6 = new Data {Value = Hash.Generate().Value};
             subDataProvider = dataProvider.GetDataProvider("test");
             await subDataProvider.SetAsync(key1, data6);
             await subDataProvider.SetAsync(key1, data5);
 
             var getData5 = await subDataProvider.GetAsync(key1);
-            Assert.True(getData5.SequenceEqual(data5));
+            Assert.True(getData5.Equals(data5));
 
             await worldStateManager.RollbackCurrentChangesAsync();
 
             getData3 = await subDataProvider.GetAsync(key1);
-            Assert.True(getData3.SequenceEqual(data3));
+            Assert.True(getData3.Equals(data3));
         }
         
         private Block CreateBlock(Hash preBlockHash = null)

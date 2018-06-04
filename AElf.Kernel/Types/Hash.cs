@@ -1,11 +1,12 @@
 using AElf.Kernel.Extensions;
 using System;
+using AElf.Database;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public partial class Hash : IHash
+    public partial class Hash : IHash, ISerializable
     {
         public static Hash Generate()
         {
@@ -63,6 +64,11 @@ namespace AElf.Kernel
         public static implicit operator Hash(byte[] value)
         {
             return value == null ? Zero : new Hash(value);
+        }
+
+        public byte[] Serialize()
+        {
+            return this.ToByteArray();
         }
     }
 }

@@ -15,7 +15,7 @@ namespace AElf.Kernel.Storages
 
         public async Task InsertAsync(Hash txsMerkleTreeRoot, IBlockBody body)
         {
-            await _keyValueDatabase.SetAsync(txsMerkleTreeRoot.Value.ToBase64(), body.Serialize());
+            await _keyValueDatabase.SetAsync(txsMerkleTreeRoot.Value.ToBase64(), body);
         }
 
         public async Task<BlockBody> GetAsync(Hash blockHash)

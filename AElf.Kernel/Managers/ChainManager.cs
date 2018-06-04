@@ -3,6 +3,8 @@ using System.IO;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Managers
 {
@@ -65,28 +67,30 @@ namespace AElf.Kernel.Managers
         {
             var key = Path.CalculatePointerForCurrentBlockHeight(chainId);
             var heightBytes = await _dataStore.GetDataAsync(key);
-            return heightBytes?.ToUInt64() ?? 0;
+            return heightBytes == null ? 0 : UInt64.Parser.ParseFrom(heightBytes.Value).Value;
         }
 
         /// <inheritdoc/>
         public async Task SetChainCurrentHeight(Hash chainId, ulong height)
         {
             var key = Path.CalculatePointerForCurrentBlockHeight(chainId);
-            await _dataStore.SetDataAsync(key, height.ToBytes());
+            await _dataStore.SetDataAsync(key,
+                new Data {Value = ByteString.CopyFrom(new UInt64 {Value = height}.ToByteArray())});
         }
 
         /// <inheritdoc/>
         public async Task<Hash> GetChainLastBlockHash(Hash chainId)
         {
             var key = Path.CalculatePointerForLastBlockHash(chainId);
-            return await _dataStore.GetDataAsync(key);
+            var data = await _dataStore.GetDataAsync(key);
+            return data == null ? Hash.Zero : new Hash(data.Value);
         }
 
         /// <inheritdoc/>
         public async Task SetChainLastBlockHash(Hash chainId, Hash blockHash)
         {
             var key = Path.CalculatePointerForLastBlockHash(chainId);
-            await _dataStore.SetDataAsync(key, blockHash.GetHashBytes());
+            await _dataStore.SetDataAsync(key, new Data {Value = blockHash.Value});
         }
         
     }

@@ -15,7 +15,7 @@ namespace AElf.Kernel.Storages
 
         public async Task<BlockHeader> InsertAsync(BlockHeader header)
         {
-            await _keyValueDatabase.SetAsync(header.GetHash().Value.ToBase64(), header.Serialize());
+            await _keyValueDatabase.SetAsync(header.GetHash().Value.ToBase64(), header);
             return header;
         }
 

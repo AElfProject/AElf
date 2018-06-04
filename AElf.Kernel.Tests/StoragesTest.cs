@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -105,10 +106,10 @@ namespace AElf.Kernel.Tests
             //Set data to the DataProvider and get it.
             var data = new byte[] {1, 1, 1, 1};
             var key = new Hash("testkey".CalculateHash());
-            await dataProvider.SetAsync(key, data);
+            await dataProvider.SetAsync(key, new Data {Value = ByteString.CopyFrom(data)});
             var getData = await dataProvider.GetAsync(key);
             
-            Assert.True(data.SequenceEqual(getData));
+            Assert.True(data.SequenceEqual(getData.Value));
 
             //Get a sub-DataProvider from aforementioned DataProvider.
             var subDataProvider = dataProvider.GetDataProvider("testdp");
@@ -116,17 +117,17 @@ namespace AElf.Kernel.Tests
             //Same as before.
             var data2 = new byte[] {1, 2, 3, 4};
 
-            await subDataProvider.SetAsync(key, data2);
+            await subDataProvider.SetAsync(key, new Data {Value = ByteString.CopyFrom(data2)});
             var getData2 = await subDataProvider.GetAsync(key);
             
-            Assert.True(data2.SequenceEqual(getData2));
+            Assert.True(data2.SequenceEqual(getData2.Value));
 
             var data3 = new byte[] {4, 3, 2, 1};
 
-            await subDataProvider.SetAsync(key, data3);
+            await subDataProvider.SetAsync(key, new Data {Value = ByteString.CopyFrom(data3)});
             var getData3 = await subDataProvider.GetAsync(key);
             
-            Assert.True(data3.SequenceEqual(getData3));
+            Assert.True(data3.SequenceEqual(getData3.Value));
         }
 
         [Fact]
@@ -154,11 +155,11 @@ namespace AElf.Kernel.Tests
             var subDataProvider = dataProvider.GetDataProvider("test");
             var data = new byte[] {1, 2, 3, 4};
             var key = new Hash("testkey".CalculateHash());
-            await subDataProvider.SetAsync(key, data);
+            await subDataProvider.SetAsync(key, new Data {Value = ByteString.CopyFrom(data)});
             
             var getDataFromHeight1 = await subDataProvider.GetAsync(key);
             
-            Assert.True(data.SequenceEqual(getDataFromHeight1));
+            Assert.True(data.SequenceEqual(getDataFromHeight1.Value));
 
             await worldStateManager.SetWorldStateAsync(block1.GetHash());
             await chainManager.AppendBlockToChainAsync(chain.Id, block2);
@@ -169,17 +170,17 @@ namespace AElf.Kernel.Tests
             
             var getDataFromHeight2 = await subDataProvider.GetAsync(key);
 
-            Assert.True(getDataFromHeight1.SequenceEqual(getDataFromHeight2));
+            Assert.True(getDataFromHeight1.Equals(getDataFromHeight2));
 
             var data2 = new byte[] {1, 2, 3, 4, 5};
-            await subDataProvider.SetAsync(key, data2);
+            await subDataProvider.SetAsync(key, new Data {Value = ByteString.CopyFrom(data2)});
             getDataFromHeight2 = await subDataProvider.GetAsync(key);
             
-            Assert.False(getDataFromHeight1.SequenceEqual(getDataFromHeight2));
+            Assert.False(getDataFromHeight1.Equals(getDataFromHeight2));
 
             var getDataFromHeight1ByBlockHash = await subDataProvider.GetAsync(key, genesisBlockHash);
             
-            Assert.True(getDataFromHeight1.SequenceEqual(getDataFromHeight1ByBlockHash));
+            Assert.True(getDataFromHeight1.Equals(getDataFromHeight1ByBlockHash));
         }
 
         [Fact]
@@ -211,7 +212,7 @@ namespace AElf.Kernel.Tests
             var subDataProvider = dataProvider.GetDataProvider(str);
             var data1 = Hash.Generate().Value.ToByteArray();
             var key = new Hash("testkey".CalculateHash());
-            await subDataProvider.SetAsync(key, data1);
+            await subDataProvider.SetAsync(key, new Data {Value = ByteString.CopyFrom(data1)});
 
             //Set WorldState and add a new block.
             await worldStateManager.SetWorldStateAsync(block1.GetHash());
@@ -226,15 +227,15 @@ namespace AElf.Kernel.Tests
             subDataProvider = dataProvider.GetDataProvider(str);
             //Change the data.
             var data2 = Hash.Generate().Value.ToByteArray();
-            await subDataProvider.SetAsync(key, data2);
+            await subDataProvider.SetAsync(key, new Data {Value = ByteString.CopyFrom(data2)});
             Assert.False(data1.SequenceEqual(data2));
 
             //Check the ability to get data of previous WorldState.
             var getData1 = await subDataProvider.GetAsync(key, genesisBlockHash);
-            Assert.True(data1.SequenceEqual(getData1));
+            Assert.True(data1.SequenceEqual(getData1.Value));
             //And the ability to get data of current WorldState.(not equal to previous data)
             var getData2 = await subDataProvider.GetAsync(key);
-            Assert.False(data1.SequenceEqual(getData2));
+            Assert.False(data1.SequenceEqual(getData2.Value));
             
             //Now set WorldState again and add a third block.
             await worldStateManager.SetWorldStateAsync(block2.GetHash());
@@ -247,19 +248,19 @@ namespace AElf.Kernel.Tests
             dataProvider = accountDataProvider.GetDataProvider();
             subDataProvider = dataProvider.GetDataProvider(str);
             var data3 = Hash.Generate().Value.ToByteArray();
-            await subDataProvider.SetAsync(key, data3);
+            await subDataProvider.SetAsync(key, new Data {Value = ByteString.CopyFrom(data3)});
 
             //See the ability to get data of first WorldState.
             getData1 = await subDataProvider.GetAsync(key, genesisBlockHash);
-            Assert.True(data1.SequenceEqual(getData1));
+            Assert.True(data1.SequenceEqual(getData1.Value));
             //And second WorldState.
             getData2 = await subDataProvider.GetAsync(key, block1.GetHash());
-            Assert.True(data2.SequenceEqual(getData2));
+            Assert.True(data2.SequenceEqual(getData2.Value));
             //And the ability to get data of current WorldState.(not equal to previous data)
             var getData3 = await subDataProvider.GetAsync(key);
-            Assert.False(data1.SequenceEqual(getData3));
-            Assert.False(data2.SequenceEqual(getData3));
-            Assert.True(data3.SequenceEqual(getData3));
+            Assert.False(data1.SequenceEqual(getData3.Value));
+            Assert.False(data2.SequenceEqual(getData3.Value));
+            Assert.True(data3.SequenceEqual(getData3.Value));
         }
 
         private Block CreateBlock(Hash preBlockHash = null)

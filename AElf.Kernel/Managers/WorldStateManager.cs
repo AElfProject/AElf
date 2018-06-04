@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Database;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
+using Akka.IO;
+using Google.Protobuf;
+using ByteString = Google.Protobuf.ByteString;
 
 namespace AElf.Kernel.Managers
 {
@@ -31,10 +35,22 @@ namespace AElf.Kernel.Managers
         public async Task<IWorldStateManager> OfChain(Hash chainId)
         {
             _chainId = chainId;
-            _preBlockHash = await _dataStore.GetDataAsync(await _dataStore.GetDataAsync(
-                Path.CalculatePointerForLastBlockHash(chainId)));
+            var pointer = Path.CalculatePointerForLastBlockHash(chainId);
+            var keyData = await _dataStore.GetDataAsync(pointer);
+            var key = keyData == null ? Hash.Zero : new Hash(keyData.Value);
+            var preBlockHashData =
+                key == Hash.Zero ? new Data {Value = Hash.Zero.Value} : await _dataStore.GetDataAsync(key);
+            if (preBlockHashData == null)
+            {
+                _preBlockHash = Hash.Zero;
+            }
+            else
+            {
+                _preBlockHash = Equals(preBlockHashData, new Data {Value = Hash.Zero.Value}) ? Hash.Zero : new Hash(preBlockHashData.Value);
+            }
 
-            await _dataStore.SetDataAsync(Path.CalculatePointerForPathsCount(_chainId, _preBlockHash), ((ulong)0).ToBytes());
+            await _dataStore.SetDataAsync(Path.CalculatePointerForPathsCount(_chainId, _preBlockHash),
+                new Data {Value = ByteString.CopyFrom(new UInt64 {Value = 0}.ToByteArray())});
 
             _isChainIdSetted = true;
 
@@ -57,12 +73,16 @@ namespace AElf.Kernel.Managers
             await _changesStore.InsertChangeAsync(pathHash, change);
             
             var countBytes = await _dataStore.GetDataAsync(Path.CalculatePointerForPathsCount(_chainId, _preBlockHash));
-            countBytes = countBytes ??  ((ulong)0).ToBytes();
-            var key = CalculateKeyForPath(_preBlockHash, countBytes);
-            var count = countBytes.ToUInt64();
-            await _dataStore.SetDataAsync(key, pathHash.Value.ToByteArray());
+            if (countBytes == null)
+            {
+                countBytes = new Data {Value = new UInt64 {Value = 0}.ToByteString()};
+            }
+            var key = CalculateKeyForPath(_preBlockHash, countBytes.Value.ToByteArray());
+            var count = UInt64.Parser.ParseFrom(countBytes.Value).Value;
+            await _dataStore.SetDataAsync(key, new Data {Value = pathHash.Value});
             count++;
-            await _dataStore.SetDataAsync(Path.CalculatePointerForPathsCount(_chainId, _preBlockHash), count.ToBytes());
+            await _dataStore.SetDataAsync(Path.CalculatePointerForPathsCount(_chainId, _preBlockHash),
+                new Data {Value = ByteString.CopyFrom(new UInt64 {Value = count}.ToByteArray())});
         }
 
         public async Task<Change> GetChangeAsync(Hash pathHash)
@@ -169,7 +189,7 @@ namespace AElf.Kernel.Managers
         /// <param name="pointerHash"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public async Task SetDataAsync(Hash pointerHash, byte[] data)
+        public async Task SetDataAsync(Hash pointerHash, Data data)
         {
             await _dataStore.SetDataAsync(pointerHash, data);
         }
@@ -179,7 +199,7 @@ namespace AElf.Kernel.Managers
         /// </summary>
         /// <param name="pointerHash"></param>
         /// <returns></returns>
-        public async Task<byte[]> GetDataAsync(Hash pointerHash)
+        public async Task<Data> GetDataAsync(Hash pointerHash)
         {
             return await _dataStore.GetDataAsync(pointerHash);
         }
@@ -201,9 +221,9 @@ namespace AElf.Kernel.Managers
             
             for (ulong i = 0; i < changedPathsCount; i++)
             {
-                var key = CalculateKeyForPath(blockHash, i.ToBytes());
+                var key = CalculateKeyForPath(blockHash, new UInt64 {Value = i}.ToByteArray());
                 var path = await _dataStore.GetDataAsync(key);
-                paths.Add(path);
+                paths.Add(new Hash(path.Value));
             }
 
             return paths;
@@ -310,7 +330,7 @@ namespace AElf.Kernel.Managers
             Check();
             
             var changedPathsCountBytes = await _dataStore.GetDataAsync(Path.CalculatePointerForPathsCount(_chainId, blockHash));
-            return changedPathsCountBytes?.ToUInt64() ?? 0;
+            return changedPathsCountBytes == null ? 0 :UInt64.Parser.ParseFrom(changedPathsCountBytes.Value).Value;
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Database;
 
 namespace AElf.Kernel
 {

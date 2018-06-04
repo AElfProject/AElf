@@ -4,7 +4,7 @@ using Google.Protobuf;
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public partial class SmartContractDeployment : ISerializable
+    public partial class Data : ISerializable
     {
         public byte[] Serialize()
         {

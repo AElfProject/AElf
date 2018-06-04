@@ -76,7 +76,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var hash = Hash.Zero;
             var bytes = await smartContractMap.GetAsync(hash); 
-            var reg = SmartContractRegistration.Parser.ParseFrom(bytes);
+            var reg = SmartContractRegistration.Parser.ParseFrom(bytes.Value);
             
             // throw exception if not registered
             Assert.Equal(reg, copy);

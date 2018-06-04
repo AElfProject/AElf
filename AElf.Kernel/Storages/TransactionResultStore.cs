@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AElf.Database;
 using AElf.Kernel.Extensions;
- using Google.Protobuf;
+using Google.Protobuf;
  
  namespace AElf.Kernel.Storages
  {
@@ -16,7 +16,7 @@ using AElf.Kernel.Extensions;
  
          public async Task InsertAsync(Hash trKey, TransactionResult result)
          {
-             await _keyValueDatabase.SetAsync(trKey.Value.ToBase64(), result.Serialize());
+             await _keyValueDatabase.SetAsync(trKey.Value.ToBase64(), result);
          }
  
          public async Task<TransactionResult> GetAsync(Hash hash)

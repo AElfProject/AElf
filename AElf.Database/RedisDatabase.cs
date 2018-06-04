@@ -25,9 +25,9 @@ namespace AElf.Database
             return await Task.FromResult(_client.Get<byte[]>(key));
         }
 
-        public async Task SetAsync(string key, byte[] bytes)
+        public async Task SetAsync(string key, ISerializable data)
         {
-            await Task.FromResult(_client.Set(key, bytes));
+            await Task.FromResult(_client.Set(key, data));
         }
 
         public bool IsConnected()

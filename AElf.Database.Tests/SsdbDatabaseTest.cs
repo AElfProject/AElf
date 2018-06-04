@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Linq;
 using AElf.Database.SsdbClient;
+using AElf.Kernel;
+using ServiceStack;
 using Xunit;
 
 namespace AElf.Database.Tests
@@ -26,7 +29,7 @@ namespace AElf.Database.Tests
             var key = "settest";
             var value = Guid.NewGuid().ToString();
 
-            _database.SetAsync(key, Helper.StringToBytes((value)));
+            _database.SetAsync(key, new Hash(Helper.StringToBytes(value)));
         }
         
         [Fact]
@@ -35,10 +38,10 @@ namespace AElf.Database.Tests
             var key = "gettest";
             var value = Guid.NewGuid().ToString();
 
-            _database.SetAsync(key, Helper.StringToBytes((value)));
+            _database.SetAsync(key, new Hash(Helper.StringToBytes(value)));
             var getResult = _database.GetAsync(key, null);
             
-            Assert.Equal(value,Helper.BytesToString(getResult.Result));
+            Assert.Equal(value, Helper.BytesToString(getResult.Result));
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Database;
 
 namespace AElf.Kernel.Managers
 {
@@ -33,8 +34,8 @@ namespace AElf.Kernel.Managers
 
         IAccountDataProvider GetAccountDataProvider(Hash accountAddress);
 
-        Task SetDataAsync(Hash pointerHash, byte[] data);
+        Task SetDataAsync(Hash pointerHash, Data data);
 
-        Task<byte[]> GetDataAsync(Hash pointerHash);
+        Task<Data> GetDataAsync(Hash pointerHash);
     }
 }

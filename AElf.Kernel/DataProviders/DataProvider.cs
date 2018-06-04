@@ -1,7 +1,10 @@
 using System.Threading.Tasks;
+using AElf.Database;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
+using Google.Protobuf;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public class DataProvider : IDataProvider
@@ -55,7 +58,7 @@ namespace AElf.Kernel
         /// <param name="keyHash"></param>
         /// <param name="preBlockHash"></param>
         /// <returns></returns>
-        public async Task<byte[]> GetAsync(Hash keyHash, Hash preBlockHash)
+        public async Task<Data> GetAsync(Hash keyHash, Hash preBlockHash)
         {
             //Get correspoding WorldState instance
             var worldState = await _worldStateManager.GetWorldStateAsync(preBlockHash);
@@ -72,7 +75,7 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="keyHash"></param>
         /// <returns></returns>
-        public async Task<byte[]> GetAsync(Hash keyHash)
+        public async Task<Data> GetAsync(Hash keyHash)
         {
             var foo = _path.SetDataKey(keyHash).GetPathHash();
             var pointerHash = await _worldStateManager.GetPointerAsync(foo);
@@ -85,7 +88,7 @@ namespace AElf.Kernel
         /// <param name="keyHash"></param>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public async Task<Change> SetAsync(Hash keyHash, byte[] obj)
+        public async Task<Change> SetAsync(Hash keyHash, ISerializable obj)
         {
             //Clean the path.
             _path.SetBlockHashToNull();
@@ -99,8 +102,9 @@ namespace AElf.Kernel
             var preBlockHash = PreBlockHash;
             if (preBlockHash == null)
             {
-                PreBlockHash = await _worldStateManager.GetDataAsync(
+                var data = await _worldStateManager.GetDataAsync(
                     Path.CalculatePointerForLastBlockHash(_accountDataContext.ChainId));
+                PreBlockHash = data == null ? Hash.Zero : new Hash(data.Value);
                 preBlockHash = PreBlockHash;
             }
             
@@ -127,7 +131,7 @@ namespace AElf.Kernel
             change.LatestChangedBlockHash = preBlockHash;
             
             await _worldStateManager.InsertChangeAsync(pathHash, change);
-            await _worldStateManager.SetDataAsync(pointerHashAfter, obj);
+            await _worldStateManager.SetDataAsync(pointerHashAfter, Data.Parser.ParseFrom(obj.Serialize()));
             
             return change;
         }

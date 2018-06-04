@@ -52,7 +52,7 @@ namespace AElf.Kernel.KernelAccount
             var smartContractMap = _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_MAP_KEY);
             //TODO: For now just hard coded to Hash.Zero
             var hash = reg.ContractHash;
-            await smartContractMap.SetAsync(hash, reg.Serialize());
+            await smartContractMap.SetAsync(hash, reg);
             return null;
         }
         
@@ -66,7 +66,7 @@ namespace AElf.Kernel.KernelAccount
             var regData = await smartContractMap.GetAsync(smartContractRegister.ContractHash);
             if( regData == null)
                 throw new KeyNotFoundException("Not Registered SmartContract");
-            var reg = SmartContractRegistration.Parser.ParseFrom(regData);
+            var reg = SmartContractRegistration.Parser.ParseFrom(regData.Value);
             
             var smartContractDeploymentMap =
                 _accountDataProvider.GetDataProvider().GetDataProvider(SMART_CONTRACT_INSTANCES);
@@ -88,7 +88,7 @@ namespace AElf.Kernel.KernelAccount
             _smartContracts[account] = smartContract;
             
             // set storage
-            await smartContractDeploymentMap.SetAsync(account ?? Hash.Zero, smartContractRegister.ToByteArray());
+            await smartContractDeploymentMap.SetAsync(account ?? Hash.Zero, smartContractRegister);
 
             return smartContract;
         }
@@ -109,7 +109,7 @@ namespace AElf.Kernel.KernelAccount
             {
                 throw new KeyNotFoundException("Not Deployed SmartContract");
             }
-            var deployment = SmartContractDeployment.Parser.ParseFrom(deploymentData);
+            var deployment = SmartContractDeployment.Parser.ParseFrom(deploymentData.Value);
             
             /*// get SmartContractRegistration
             var contractHash = deployment.ContractHash;

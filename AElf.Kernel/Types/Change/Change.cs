@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using AElf.Database;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
