@@ -54,19 +54,6 @@ namespace AElf.Kernel
                 
             return txData.ToByteArray();
         }
-
-        public string GetLoggerString()
-        {
-            var jObj = new JObject {
-                ["tx"] = new JObject {
-                    {"txId", GetHash().Value.ToBase64()},
-                    {"From", From.Value.ToBase64()},
-                    {"To", To.Value.ToBase64()},
-                    {"Method", MethodName}
-                }
-            };
-
-            return jObj.ToString();
-        }
+        
     }
 }
