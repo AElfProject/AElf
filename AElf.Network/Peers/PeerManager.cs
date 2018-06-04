@@ -163,17 +163,7 @@ namespace AElf.Network.Peers
                         {
                             ushort missingPeers = (ushort) (TargetPeerCount - _peers.Count);
 
-                            var reqPeerListData = new ReqPeerListData
-                            {
-                                NumPeers = missingPeers
-                            };
-
-                            var req = new AElfPacketData
-                            {
-                                MsgType = (int) MessageTypes.RequestPeers,
-                                Length = 1,
-                                Payload = reqPeerListData.ToByteString()
-                            };
+                            var req = NetRequestFactory.CreateMissingPeersReq(missingPeers);
 
                             Task.Run(async () => await peer.SendAsync(req.ToByteArray()));
                         }
