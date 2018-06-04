@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using AElf.Common.Attributes;
 using Autofac;
 using Autofac.Core;
 using NLog;

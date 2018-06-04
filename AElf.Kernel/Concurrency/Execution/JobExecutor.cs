@@ -97,7 +97,7 @@ namespace AElf.Kernel.Concurrency.Execution
             }
             catch
             {
-                result.Status = Status.ExecutedFailed;
+                result.Status = Status.Failed;
             }
 
             return result;

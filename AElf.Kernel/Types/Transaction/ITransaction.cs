@@ -49,6 +49,8 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns></returns>
         int Size();
+
+        string GetLoggerString();
     }
 
 }

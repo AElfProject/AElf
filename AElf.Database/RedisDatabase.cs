@@ -1,43 +1,59 @@
 ﻿using System;
 using System.Threading.Tasks;
-using ServiceStack.Redis;
+using AElf.Database.Config;
+using StackExchange.Redis;
 
 namespace AElf.Database
 {
     public class RedisDatabase : IKeyValueDatabase
     {
-        private readonly IRedisClient _client;
-        
-        public RedisDatabase():this(new DatabaseConfig())
+        private readonly ConfigurationOptions _options;
+
+        public RedisDatabase()
+        : this(new DatabaseConfig {Host = "127.0.0.1", Port = 8888})
         {
         }
 
-        public RedisDatabase(DatabaseConfig config)
+        public RedisDatabase(IDatabaseConfig config)
         {
-            using (var redisManager = new RedisManagerPool($"{config.IpAddress}:{config.Port}"))
+            _options = new ConfigurationOptions
             {
-                _client = redisManager.GetClient();
-            }
+                EndPoints = {{config.Host, config.Port}},
+                CommandMap = CommandMap.Default
+            };
         }
-        
+
         public async Task<byte[]> GetAsync(string key, Type type)
         {
-            return await Task.FromResult(_client.Get<byte[]>(key));
+            using (var conn = ConnectionMultiplexer.Connect(_options))
+            {
+                var db = conn.GetDatabase(0);
+                return await db.StringGetAsync(key);
+            }
         }
 
-        public async Task SetAsync(string key, ISerializable data)
+        public async Task SetAsync(string key, byte[] bytes)
         {
-            await Task.FromResult(_client.Set(key, data));
+            using (var conn = ConnectionMultiplexer.Connect(_options))
+            {
+                var db = conn.GetDatabase(0);
+                await db.StringSetAsync(key, bytes);
+            }
         }
 
         public bool IsConnected()
         {
             try
             {
-                _client.Set<byte[]>("test", null);
+                using (var conn = ConnectionMultiplexer.Connect(_options))
+                {
+                    var db = conn.GetDatabase(0);
+                    db.Ping();
+                }
+
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }

@@ -57,10 +57,9 @@ namespace AElf.Kernel {
             "Eh8KEEdlbmVzaXNCbG9ja0hhc2gYAiABKAsyBS5IYXNoIlgKEVRyYW5zYWN0",
             "aW9uUmVzdWx0EhwKDVRyYW5zYWN0aW9uSWQYASABKAsyBS5IYXNoEhcKBnN0",
             "YXR1cxgCIAEoDjIHLlN0YXR1cxIMCgRsb2dzGAMgASgMIhcKBlVJbnQ2NBIN",
-            "CgVWYWx1ZRgBIAEoBCIVCgREYXRhEg0KBVZhbHVlGAEgASgMKlEKBlN0YXR1",
-            "cxIOCgpOb3RFeGlzdGVkEAASCwoHUmVmdXNlZBABEgsKB1BlbmRpbmcQAhIS",
-            "Cg5FeGVjdXRlZEZhaWxlZBADEgkKBU1pbmVkEARCDqoCC0FFbGYuS2VybmVs",
-            "YgZwcm90bzM="));
+            "CgVWYWx1ZRgBIAEoBCIVCgREYXRhEg0KBVZhbHVlGAEgASgMKjwKBlN0YXR1",
+            "cxIOCgpOb3RFeGlzdGVkEAASCwoHUGVuZGluZxABEgoKBkZhaWxlZBACEgkK",
+            "BU1pbmVkEANCDqoCC0FFbGYuS2VybmVsYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), }, new pbr::GeneratedClrTypeInfo[] {
@@ -89,10 +88,9 @@ namespace AElf.Kernel {
   #region Enums
   public enum Status {
     [pbr::OriginalName("NotExisted")] NotExisted = 0,
-    [pbr::OriginalName("Refused")] Refused = 1,
-    [pbr::OriginalName("Pending")] Pending = 2,
-    [pbr::OriginalName("ExecutedFailed")] ExecutedFailed = 3,
-    [pbr::OriginalName("Mined")] Mined = 4,
+    [pbr::OriginalName("Pending")] Pending = 1,
+    [pbr::OriginalName("Failed")] Failed = 2,
+    [pbr::OriginalName("Mined")] Mined = 3,
   }
 
   #endregion

@@ -41,7 +41,7 @@ namespace AElf.Database.Tests
             _database.SetAsync(key, new Hash(Helper.StringToBytes(value)));
             var getResult = _database.GetAsync(key, null);
             
-            Assert.Equal(value, Helper.BytesToString(getResult.Result));
+            Assert.Equal(value,Helper.BytesToString(getResult.Result));
         }
     }
 }

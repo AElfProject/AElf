@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using Org.BouncyCastle.Security;
 
 namespace AElf.Kernel.KernelAccount
 {
@@ -21,7 +21,7 @@ namespace AElf.Kernel.KernelAccount
                     return runner;
             }
 
-            throw new InvalidParameterException("Invalid Category for smart contract");
+            throw new ArgumentException("Invalid Category for smart contract");
         }
     }
 }

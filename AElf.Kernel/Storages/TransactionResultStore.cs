@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Database;
-using AElf.Kernel.Extensions;
-using Google.Protobuf;
- 
+
  namespace AElf.Kernel.Storages
  {
      public class TransactionResultStore : ITransactionResultStore
