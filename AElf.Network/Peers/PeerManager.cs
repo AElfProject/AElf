@@ -109,47 +109,17 @@ namespace AElf.Network.Peers
             }
         }
         
-        private async void PeerMaintenance()
+        private void PeerMaintenance()
         {
             if (!UndergoingPm)
             {
-                
                 UndergoingPm = true;
 
                 // If there are no connected peers then try to connect to
                 // the preferred bootnode. If that fails, try all other bootnodes
                 if (_peers.Count == 0)
                 {
-                    bool success = false;
-                    try
-                    {
-                        IPeer p = await CreateAndAddPeer(_bootNode);
-                        success = p != null;
-                    }
-                    catch
-                    {
-                        ;
-                    }
-
-                    if (!success)
-                    {
-                        foreach (var bootNode in Bootnodes.BootNodes)
-                        {
-                            try
-                            {
-                                IPeer p = await CreateAndAddPeer(bootNode);
-                                if (p != null)
-                                {
-                                    _bootNode = bootNode;
-                                    break;
-                                }
-                            }
-                            catch
-                            {
-                                ;
-                            }
-                        }
-                    }
+                    InitialMaintenance();
                 } 
                 else if (_peers.Count > 4) // If more than half of the peer list is full, drop the boot node
                 {
@@ -158,28 +128,7 @@ namespace AElf.Network.Peers
 
                 try
                 {
-                    foreach (var peer in _peers)
-                    {
-                        if (_peers.Count < TargetPeerCount)
-                        {
-                            ushort missingPeers = (ushort) (TargetPeerCount - _peers.Count);
-
-                            var req = NetRequestFactory.CreateMissingPeersReq(missingPeers);
-
-                            Task.Run(async () => await peer.SendAsync(req.ToByteArray()));
-                        }
-                        else if (_peers.Count > TargetPeerCount)
-                        {
-                            while (_peers.Count > TargetPeerCount)
-                            {
-                                RemovePeer(_peers[_peers.Count - 1]);
-                            }
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
+                    AdjustPeers();
                 }
                 catch (Exception e)
                 {
@@ -189,6 +138,67 @@ namespace AElf.Network.Peers
                 RemoveDuplicatePeers();
 
                 UndergoingPm = false;
+            }
+        }
+
+        internal void AdjustPeers()
+        {
+            foreach (var peer in _peers)
+            {
+                if (_peers.Count < TargetPeerCount)
+                {
+                    ushort missingPeers = (ushort) (TargetPeerCount - _peers.Count);
+
+                    var req = NetRequestFactory.CreateMissingPeersReq(missingPeers);
+
+                    Task.Run(async () => await peer.SendAsync(req.ToByteArray()));
+                }
+                else if (_peers.Count > TargetPeerCount)
+                {
+                    while (_peers.Count > TargetPeerCount)
+                    {
+                        RemovePeer(_peers[_peers.Count - 1]);
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        internal void InitialMaintenance()
+        {
+            bool success = false;
+            
+            try
+            {
+                IPeer p = await CreateAndAddPeer(_bootNode);
+                success = p != null;
+            }
+            catch
+            {
+                ;
+            }
+
+            if (!success)
+            {
+                foreach (var bootNode in Bootnodes.BootNodes)
+                {
+                    try
+                    {
+                        IPeer p = await CreateAndAddPeer(bootNode);
+                        if (p != null)
+                        {
+                            _bootNode = bootNode;
+                            break;
+                        }
+                    }
+                    catch
+                    {
+                        ;
+                    }
+                }
             }
         }
         
