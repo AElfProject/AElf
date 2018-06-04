@@ -386,16 +386,18 @@ namespace AElf.Network.Peers
         public List<NodeData> GetPeers(ushort numPeers)
         {
             bool notBootNode = true;
-            List<NodeData> peers = new List<NodeData>();
+            Random rand = new Random();
+            List<IPeer> peers = _peers.OrderBy(c => rand.Next()).Select(c => c).ToList();
+            List<NodeData> returnPeers = new List<NodeData>();
             
             for (ushort i = 0; i < numPeers - 1; i++)
             {
-                if (i <= _peers.Count)
+                if (i <= peers.Count)
                 {
                     NodeData p = new NodeData
                     {
-                        IpAddress = _peers[i].IpAddress,
-                        Port = _peers[i].Port
+                        IpAddress = peers[i].IpAddress,
+                        Port = peers[i].Port
                     };
 
                     foreach (var bootnode in _bootnodes)
@@ -405,11 +407,11 @@ namespace AElf.Network.Peers
                     }
                     
                     if (notBootNode)
-                        peers.Add(p);
+                        returnPeers.Add(p);
                 }
             }
 
-            return peers;
+            return returnPeers;
         }
         
         /// <summary>
