@@ -143,27 +143,37 @@ namespace AElf.Network.Peers
 
         internal void AdjustPeers()
         {
-            foreach (var peer in _peers)
+            int missingPeers = TargetPeerCount - _peers.Count;
+
+            if (missingPeers > 0)
             {
-                if (_peers.Count < TargetPeerCount)
-                {
-                    ushort missingPeers = (ushort) (TargetPeerCount - _peers.Count);
+                var req = NetRequestFactory.CreateMissingPeersReq(missingPeers);
+                var taskAwaiter = BroadcastMessage(req).GetAwaiter().GetResult();
+            }
+            else if (missingPeers < 0)
+            {
+                RemoveExcessPeers(Math.Abs(missingPeers));
+            }
+            else
+            {
+                // Healthy peer list - nothing to do
+            }
+        }
 
-                    var req = NetRequestFactory.CreateMissingPeersReq(missingPeers);
+        /// <summary>
+        /// Removes peer from the manager according to certain
+        /// rules.
+        /// </summary>
+        /// <param name="count"></param>
+        internal void RemoveExcessPeers(int count)
+        {
+            // Calculate peers to remove
+            List<IPeer> peersToRemove = _peers.Take(count).ToList();
 
-                    Task.Run(async () => await peer.SendAsync(req.ToByteArray()));
-                }
-                else if (_peers.Count > TargetPeerCount)
-                {
-                    while (_peers.Count > TargetPeerCount)
-                    {
-                        RemovePeer(_peers[_peers.Count - 1]);
-                    }
-                }
-                else
-                {
-                    break;
-                }
+            // Remove them
+            foreach (var peer in peersToRemove)
+            {
+                RemovePeer(peer);
             }
         }
 
@@ -210,6 +220,11 @@ namespace AElf.Network.Peers
         /// <returns></returns>
         internal async Task ReceivePeers(ByteString messagePayload)
         {
+            // If we're in a maintenance cycle - do nothing
+            // todo : maybe later we can queue this work...
+            if (UndergoingPm)
+                return;
+                
             ReceivingPeers = true;
             
             try
