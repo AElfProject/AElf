@@ -103,7 +103,7 @@ namespace AElf.Kernel.Node.Protocol
             if (success)
                 _resetEvents.Add(pendingRequest);
 
-            pendingRequest.ResetEvent.WaitOne();
+            //pendingRequest.ResetEvent.WaitOne();
         }
         
         #endregion

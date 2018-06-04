@@ -26,7 +26,7 @@ namespace AElf.Kernel.Services
         {
             var key = chainId.CalculateHashWith(account);    
             if (_accountDataContexts.TryGetValue(key, out var ctx))
-             {
+            {
                 return ctx;
             }
             

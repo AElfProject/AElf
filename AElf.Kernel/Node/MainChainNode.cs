@@ -5,6 +5,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
+using AElf.Node.RPC.DTO;
 using Google.Protobuf;
 using NLog;
 
@@ -44,8 +45,18 @@ namespace AElf.Kernel.Node
             _logger.Log(LogLevel.Debug, "AElf node started.");
         }
 
+        
+        /// <summary>
+        /// get the tx from tx pool or database
+        /// </summary>
+        /// <param name="txId"></param>
+        /// <returns></returns>
         public async Task<ITransaction> GetTransaction(Hash txId)
         {
+            if (_poolService.TryGetTx(txId, out var tx))
+            {
+                return tx;
+            }
             return await _transactionManager.GetTransaction(txId);
         }
 
@@ -85,7 +96,7 @@ namespace AElf.Kernel.Node
             {
                 await _protocolDirector.BroadcastTransaction(tx);
                 
-                _logger.Trace("Broadcasted transaction to peers: " + tx.GetLoggerString());
+                _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return true;
             }
             
