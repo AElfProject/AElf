@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Network.Config;
 using AElf.Network.Data;
@@ -28,6 +29,10 @@ namespace AElf.Network.Peers
 
         public bool UndergoingPm { get; private set; } = false;
         public bool ReceivingPeers { get; private set; } = false;
+
+        private Timer _maintenanceTimer = null;
+        private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.Zero;
+        private readonly TimeSpan _maintenancePeriod = TimeSpan.FromMinutes(1);
 
         public PeerManager(IAElfServer server, IPeerDatabase peerDatabase, IAElfNetworkConfig config, ILogger logger)
         {
@@ -62,13 +67,7 @@ namespace AElf.Network.Peers
             
             _server.ClientConnected += HandleConnection;
 
-            var startTimeSpan = TimeSpan.Zero;
-            var periodTimeSpan = TimeSpan.FromMinutes(1);
-
-            var timer = new System.Threading.Timer((e) =>
-            {
-                DoPeerMaintenance();
-            }, null, startTimeSpan, periodTimeSpan);
+            _maintenanceTimer = new Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
         }
 
         /// <summary>
