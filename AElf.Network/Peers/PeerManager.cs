@@ -119,6 +119,8 @@ namespace AElf.Network.Peers
         
         internal void DoPeerMaintenance()
         {
+            List<IPeer> peersSnapshot = _peers;
+            
             if (_peers == null)
                 return;
             
@@ -198,7 +200,10 @@ namespace AElf.Network.Peers
                 ;
             }
 
-            WritePeersToDb(_peers);
+            if (_peers.Count >= peersSnapshot.Count)
+            {
+                WritePeersToDb(_peers);
+            }
             
             UndergoingPm = false;
         }
