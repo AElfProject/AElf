@@ -11,7 +11,7 @@ using NLog;
 
 namespace AElf.Network.Peers
 {
-    public class PeerManager : IPeerManager
+    public class PeerManager : IPeerManager, IDisposable
     {
         public const int TargetPeerCount = 8; 
         
@@ -481,6 +481,11 @@ namespace AElf.Network.Peers
             }
 
             return true;
+        }
+
+        public void Dispose()
+        {
+            _maintenanceTimer?.Dispose();
         }
     }
 }
