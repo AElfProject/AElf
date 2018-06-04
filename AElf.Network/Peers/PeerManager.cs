@@ -198,6 +198,8 @@ namespace AElf.Network.Peers
                 ;
             }
 
+            WritePeersToDb(_peers);
+            
             UndergoingPm = false;
         }
 
@@ -412,6 +414,23 @@ namespace AElf.Network.Peers
             }
 
             return returnPeers;
+        }
+
+        private void WritePeersToDb(List<IPeer> peerList)
+        {   
+            List<NodeData> peers = new List<NodeData>();
+
+            foreach (var p in peerList)
+            {
+                NodeData peer = new NodeData
+                {
+                    IpAddress = p.DistantNodeData.IpAddress,
+                    Port = p.DistantNodeData.Port
+                };
+                peers.Add(peer);
+            }
+            
+            _peerDatabase.WritePeers(peers);
         }
         
         /// <summary>
