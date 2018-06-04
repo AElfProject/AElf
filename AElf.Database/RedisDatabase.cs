@@ -32,12 +32,12 @@ namespace AElf.Database
             }
         }
 
-        public async Task SetAsync(string key, byte[] bytes)
+        public async Task SetAsync(string key, ISerializable data)
         {
             using (var conn = ConnectionMultiplexer.Connect(_options))
             {
                 var db = conn.GetDatabase(0);
-                await db.StringSetAsync(key, bytes);
+                await db.StringSetAsync(key, data.Serialize());
             }
         }
 
