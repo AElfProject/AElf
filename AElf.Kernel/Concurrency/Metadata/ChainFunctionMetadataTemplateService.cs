@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Akka.Util.Internal;
 using NLog;
-using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Security;
 using QuickGraph;
 using QuickGraph.Algorithms;
@@ -22,7 +21,7 @@ namespace AElf.Kernel.Concurrency.Metadata
     public class ChainFunctionMetadataTemplateService : IChainFunctionMetadataTemplateService
     {
         public Dictionary<string, FunctionMetadataTemplate> FunctionMetadataTemplateMap { get; } = new Dictionary<string, FunctionMetadataTemplate>();
-        public Dictionary<string, DataAccessMode> ResourceAccessModes;
+        public readonly Dictionary<string, DataAccessMode> ResourceAccessModes;
         private AdjacencyGraph<string, Edge<string>> _callingGraph;
         
         private readonly ILogger _logger;
@@ -31,157 +30,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         {
             _logger = logger;
             _callingGraph = new AdjacencyGraph<string, Edge<string>>();
-            ResourceAccessModes = new Dictionary<string, DataAccessMode>(); 
-        }
-
-        public bool TryAddNewContract(Type contractCode)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SetNewFunctionMetadata(string functionFullName, HashSet<string> otherFunctionsCallByThis, HashSet<string> nonRecursivePathSet)
-        {
-            if (FunctionMetadataTemplateMap.ContainsKey(functionFullName))
-            {
-                //This should be the completely new function
-                throw new InvalidOperationException("FunctionMetadataMap already contain a function named " + functionFullName);
-            }
-
-            HashSet<string> resourceSet = new HashSet<string>(nonRecursivePathSet);
-
-            try
-            {
-                //Any metadata that already in the FunctionMetadataMap are already recursively process and set, so we just union their path set.
-                foreach (var calledFunc in otherFunctionsCallByThis ?? Enumerable.Empty<string>())
-                {
-                    var metadataOfCalledFunc = GetFunctionMetadata(calledFunc);
-                    resourceSet.UnionWith(metadataOfCalledFunc.FullResourceSet);
-                }
-            }
-            catch (InvalidParameterException e)
-            {
-                _logger?.Error(e, "when tries to add function: " + functionFullName + ", it cause non-DAG calling graph thus fail.");
-                return false;
-            }
-            
-            var metadata = new FunctionMetadata(otherFunctionsCallByThis, resourceSet, nonRecursivePathSet);
-            
-            FunctionMetadataTemplateMap.Add(functionFullName, metadata);
-
-            //add the new function into calling graph
-            //this graph will still be DAG cause GetFunctionMetadata above will throw exception if it's not
-            _callingGraph.AddVertex(functionFullName);
-            foreach (var callingFunc in metadata.CallingSet)
-            {
-                _callingGraph.AddEdge(new Edge<string>(functionFullName, callingFunc));
-            }
-            return true;
-        }
-
-        public FunctionMetadata GetFunctionMetadata(string functionFullName)
-        {
-            if (FunctionMetadataTemplateMap.TryGetValue(functionFullName, out var txMetadata))
-            {
-                return txMetadata;
-            }
-            else
-            {
-                throw new InvalidParameterException("There are no function named " + functionFullName +
-                                                    " in the FunctionMetadataMap");
-            }
-        }
-
-        public bool UpdataExistingMetadata(string functionFullName, HashSet<string> newOtherFunctionsCallByThis, HashSet<string> newNonRecursivePathSet)
-        {
-            if (!FunctionMetadataTemplateMap.ContainsKey(functionFullName))
-            {
-                throw new InvalidOperationException("FunctionMetadataMap don't contain a function named " + functionFullName + " when trying to update this function's metadata");
-            }
-            
-            var oldMetadata = FunctionMetadataTemplateMap[functionFullName];
-
-            if (!TryUpdateCallingGraph(functionFullName, oldMetadata.CallingSet, newOtherFunctionsCallByThis))
-            {
-                //new graph have circle, nothing take effect
-                return false;
-            }
-
-            FunctionMetadataTemplateMap.Remove(functionFullName);
-            
-            if(!SetNewFunctionMetadata(functionFullName, newOtherFunctionsCallByThis, newNonRecursivePathSet)){
-                //This should be unReachable, because function above already check whether new graph is DAG
-                FunctionMetadataTemplateMap.Add(functionFullName, oldMetadata);
-                return false;
-            }
-
-            UpdateInfluencedMetadata(functionFullName);
-
-            return true;
-        }
-
-        /// <summary>
-        /// Update other functions that call the updated function (backward recursively).
-        /// </summary>
-        /// <param name="updatedFunctionFullName"></param>
-        /// <exception cref="NotImplementedException"></exception>
-        private void UpdateInfluencedMetadata(string updatedFunctionFullName)
-        {
-            if(TryFindCallerFunctions(updatedFunctionFullName, out var callerFuncs))
-            {
-                foreach (var caller in callerFuncs)
-                {
-                    var oldMetadata = FunctionMetadataTemplateMap[caller];
-                    FunctionMetadataTemplateMap.Remove(caller);
-                    SetNewFunctionMetadata(caller, oldMetadata.CallingSet, oldMetadata.LocalResourceSet);
-                    UpdateInfluencedMetadata(caller);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Find the functions in the calling graph that call this func
-        /// </summary>
-        /// <param name="calledFunctionFullName">Full name of the called function</param>
-        /// <param name="callerFunctions">result</param>
-        /// <returns>True if find any</returns>
-        private bool TryFindCallerFunctions(string calledFunctionFullName, out List<string> callerFunctions)
-        {
-            callerFunctions = FunctionMetadataTemplateMap.Where(funcMeta => funcMeta.Value.CallingSet.Contains(calledFunctionFullName))
-                .Select(a => a.Key).ToList();
-            
-            return !callerFunctions.IsEmpty();
-        }
-
-        /// <summary>
-        /// Try to update the calling graph when updating the function.
-        /// If the new graph after applying the update has circle, the update will not be approved and nothing will take effect
-        /// </summary>
-        /// <param name="updatingFunc"></param>
-        /// <param name="oldCallingSet"></param>
-        /// <param name="newOtherFunctionsCallByThis"></param>
-        /// <returns></returns>
-        private bool TryUpdateCallingGraph(string updatingFunc, HashSet<string> oldCallingSet, HashSet<string> newOtherFunctionsCallByThis)
-        {
-            var newGraph = _callingGraph.CreateCopy();
-            newGraph.RemoveOutEdgeIf(updatingFunc, outEdge => oldCallingSet.Contains(outEdge.Target));
-            
-            foreach (var newCallingFunc in newOtherFunctionsCallByThis)
-            {
-                newGraph.AddEdge(new Edge<string>(updatingFunc, newCallingFunc));
-            }
-            try
-            {
-                newGraph.TopologicalSort();
-            }
-            catch (NonAcyclicGraphException e)
-            {
-                _logger?.Warn(e, "When update function " + updatingFunc + ", its new calling set form a acyclic graph, thus update don't take effect");
-                return false;
-            }
-
-            _callingGraph = newGraph;
-            
-            return true;
+            ResourceAccessModes = new Dictionary<string, DataAccessMode>();
         }
 
         #region Metadata extraction from contract code
@@ -194,9 +43,8 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <param name="contractType"></param>
         /// <returns></returns>
         /// <exception cref="FunctionMetadataException"></exception>
-        public bool TryAddNewFunctionMetadataFromContractType(Type contractType)
+        public bool TryAddNewContract(Type contractType)
         {
-
             ExtractRawMetadataFromType(contractType, out var localFieldMap, out var smartContractReferenceMap,
                 out var localFunctionMetadataTemplateMap);
 
@@ -267,6 +115,15 @@ namespace AElf.Kernel.Concurrency.Metadata
             }
         }
 
+        /// <summary>
+        /// Try to update the calling graph when updating the function.
+        /// If the new graph after applying the update has circle, the update will not be approved and nothing will take effect
+        /// </summary>
+        /// <param name="contractType"></param>
+        /// <param name="smartContractReferenceMap"></param>
+        /// <param name="localFunctionMetadataTemplateMap"></param>
+        /// <returns></returns>
+        /// <exception cref="FunctionMetadataException"></exception>
         private bool TryUpdateCallingGraph(Type contractType, Dictionary<string, Type> smartContractReferenceMap, Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap)
         {
             //check for DAG and update callingGraph if new graph is DAG

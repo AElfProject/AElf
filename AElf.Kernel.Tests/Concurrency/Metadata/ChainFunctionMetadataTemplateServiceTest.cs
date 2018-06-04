@@ -10,8 +10,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         public void TestMetadataExtraction()
         {
             ChainFunctionMetadataTemplateService cfts = new ChainFunctionMetadataTemplateService();
-            cfts.TryAddNewFunctionMetadataFromContractType(typeof(SimpleTokenContract));
-            cfts.TryAddNewFunctionMetadataFromContractType(typeof(Casino));
+            cfts.TryAddNewContract(typeof(SimpleTokenContract));
+            cfts.TryAddNewContract(typeof(Casino));
 
         }
     }
