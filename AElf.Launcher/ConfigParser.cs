@@ -1,8 +1,11 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Config;
+using AElf.Network.Data;
+using AElf.Network.Peers;
 using CommandLine;
 
 namespace AElf.Launcher
@@ -41,7 +44,20 @@ namespace AElf.Launcher
             AElfNetworkConfig netConfig = new AElfNetworkConfig();
 
             if (opts.Bootnodes != null && opts.Bootnodes.Any())
-                netConfig.Bootnodes = opts.Bootnodes.ToList();
+            {
+                netConfig.Bootnodes = new List<NodeData>();
+                
+                foreach (var strNodeData in opts.Bootnodes)
+                {
+                    NodeData nd = NodeData.FromString(strNodeData);
+                    if(nd != null)
+                        netConfig.Bootnodes.Add(nd);
+                }
+            }
+            else
+            {
+                netConfig.Bootnodes = Bootnodes.BootNodes;
+            }
 
             if (opts.Peers != null)
                 netConfig.Peers = opts.Peers.ToList();
@@ -57,7 +73,7 @@ namespace AElf.Launcher
             // Todo ITxPoolConfig
             
             // Database
-            var databaseConfig =new DatabaseConfig();
+            var databaseConfig = new DatabaseConfig();
             
             databaseConfig.Type = DatabaseTypeHelper.GetType(opts.DBType);
             

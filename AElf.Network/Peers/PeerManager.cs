@@ -20,9 +20,12 @@ namespace AElf.Network.Peers
         public event EventHandler MessageReceived;
         
         private readonly IAElfNetworkConfig _networkConfig;
+        private readonly INodeDialer _nodeDialer;
         private readonly IAElfServer _server;
         private readonly IPeerDatabase _peerDatabase;
         private readonly ILogger _logger;
+
+        private readonly List<NodeData> Bootnodes = new List<NodeData>();
         
         private readonly List<IPeer> _peers = new List<IPeer>();
         
@@ -37,8 +40,10 @@ namespace AElf.Network.Peers
         private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.Zero;
         private readonly TimeSpan _maintenancePeriod = TimeSpan.FromMinutes(1);
 
-        public PeerManager(IAElfServer server, IPeerDatabase peerDatabase, IAElfNetworkConfig config, ILogger logger)
+        public PeerManager(IAElfServer server, IPeerDatabase peerDatabase, IAElfNetworkConfig config, 
+            INodeDialer nodeDialer, ILogger logger)
         {
+            _nodeDialer = nodeDialer;
             _networkConfig = config;
             _logger = logger;
             _server = server;
@@ -51,6 +56,14 @@ namespace AElf.Network.Peers
                     IpAddress = config.Host,
                     Port = config.Port
                 };
+            }
+            
+            if (_networkConfig.Bootnodes != null)
+            {
+                foreach (var node in _networkConfig.Bootnodes)
+                {
+                    Bootnodes.Add(node);
+                }
             }
         }
         
@@ -87,21 +100,10 @@ namespace AElf.Network.Peers
             
             if (_networkConfig.Peers.Any())
             {
-                foreach (var peerString in _networkConfig.Peers)
+                foreach (var peer in _networkConfig.Peers)
                 {
-                    // Parse the IP and port
-                    string[] split = peerString.Split(':');
-
-                    if (split.Length != 2)
-                        continue;
-                    
-                    ushort port = ushort.Parse(split[1]);
-                    
-                    NodeData peer = new NodeData();
-                    peer.IpAddress = split[0];
-                    peer.Port = port;
-                    
-                    await CreateAndAddPeer(peer);
+                    NodeData nodeData = NodeData.FromString(peer);
+                    await CreateAndAddPeer(nodeData);
                 }
             }
 
@@ -197,7 +199,7 @@ namespace AElf.Network.Peers
 
         internal void AddBootnode()
         {
-            foreach (var bootNode in Bootnodes.BootNodes)
+            foreach (var bootNode in Bootnodes)
             {
                 try
                 {
@@ -289,18 +291,20 @@ namespace AElf.Network.Peers
         private async Task<IPeer> CreateAndAddPeer(NodeData nodeData)
         {
             if (nodeData == null)
-            {
                 return null;
-            }
             
-            IPeer peer = new Peer(_nodeData, nodeData);
+            //IPeer peer = new Peer(_nodeData, nodeData);
+            
+            
             try
             {
-                bool success = await peer.DoConnectAsync();
-                    
+                //bool success = await peer.DoConnectAsync();
+                
+                IPeer peer = await _nodeDialer.DialAsync(nodeData);
+                
                 // If we successfully connected to the other peer
                 // add it to be managed
-                if (success)
+                if (peer != null)
                 {
                     AddPeer(peer);
                     return peer;
@@ -308,7 +312,7 @@ namespace AElf.Network.Peers
             }
             catch (ResponseTimeOutException rex)
             {
-                _logger?.Error(rex, rex?.Message + " - "  + peer);
+                _logger?.Error(rex, rex?.Message + " - "  + nodeData);
             }
 
             return null;

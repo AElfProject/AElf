@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AElf.Network.Data;
 
 namespace AElf.Network.Config
 {
     public class AElfNetworkConfig : IAElfNetworkConfig
     {
-        public List<string> Bootnodes { get; set; }
+        public List<NodeData> Bootnodes { get; set; }
         public List<string> Peers { get; set; }
         
         public bool UseCustomBootnodes
