@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Timers;
 using AElf.Network.Config;
 using AElf.Network.Data;
 using AElf.Network.Peers.Exceptions;
@@ -14,6 +12,8 @@ namespace AElf.Network.Peers
 {
     public class PeerManager : IPeerManager
     {
+        public const int TargetPeerCount = 8; 
+        
         public event EventHandler MessageReceived;
         
         private readonly IAElfNetworkConfig _networkConfig;
@@ -159,9 +159,9 @@ namespace AElf.Network.Peers
                 {
                     foreach (var peer in _peers)
                     {
-                        if (_peers.Count < 8)
+                        if (_peers.Count < TargetPeerCount)
                         {
-                            ushort missingPeers = (ushort) (8 - _peers.Count);
+                            ushort missingPeers = (ushort) (TargetPeerCount - _peers.Count);
 
                             var reqPeerListData = new ReqPeerListData
                             {
@@ -177,9 +177,9 @@ namespace AElf.Network.Peers
 
                             Task.Run(async () => await peer.SendAsync(req.ToByteArray()));
                         }
-                        else if (_peers.Count > 8)
+                        else if (_peers.Count > TargetPeerCount)
                         {
-                            while (_peers.Count > 8)
+                            while (_peers.Count > TargetPeerCount)
                             {
                                 RemovePeer(_peers[_peers.Count - 1]);
                             }
