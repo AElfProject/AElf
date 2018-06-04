@@ -173,7 +173,7 @@ namespace AElf.Network.Peers
             
             try
             {
-                IPeer p = await CreateAndAddPeer(_bootNode);
+                IPeer p = CreateAndAddPeer(_bootNode).GetAwaiter().GetResult();
                 success = p != null;
             }
             catch
@@ -187,7 +187,7 @@ namespace AElf.Network.Peers
                 {
                     try
                     {
-                        IPeer p = await CreateAndAddPeer(bootNode);
+                        IPeer p = CreateAndAddPeer(bootNode).GetAwaiter().GetResult();
                         if (p != null)
                         {
                             _bootNode = bootNode;
