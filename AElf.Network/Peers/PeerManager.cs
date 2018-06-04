@@ -137,12 +137,14 @@ namespace AElf.Network.Peers
             // the preferred bootnode. If that fails, try all other bootnodes
             if (_peers.Count == 0)
             {
-                AddBootnode();
+                UndergoingPm = true;
+                AddBootnodes();
+                UndergoingPm = false;
             } 
             else if (_peers.Count > BootnodeDropThreshold)
             {
                 // Remove the first bootnode we find
-                RemovePeer(_peers.FirstOrDefault(p => p.IsBootnode));
+                //RemovePeer(_peers.FirstOrDefault(p => p.IsBootnode));
             }
 
             // After either the initial maintenance operation or the removal operation
@@ -198,15 +200,14 @@ namespace AElf.Network.Peers
             return peersToRemove;
         }
 
-        internal void AddBootnode()
+        internal async void AddBootnodes()
         {
             foreach (var bootNode in _bootnodes)
             {
                 try
                 {
-                    // First bootnode we connect to we add it, for now we add only one
-                    if (CreateAndAddPeer(bootNode).GetAwaiter().GetResult() != null)
-                        break;
+                    // Connect to bootnode
+                    await CreateAndAddPeer(bootNode);
                 }
                 catch(Exception e)
                 {
