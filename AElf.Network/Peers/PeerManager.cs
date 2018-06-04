@@ -109,6 +109,9 @@ namespace AElf.Network.Peers
         
         private void DoPeerMaintenance()
         {
+            if (_peers == null)
+                return;
+            
             // If we're in the process of receiving peers (potentially modifiying _peers)
             // we return directly, we'll try again in the next cycle.
             if (ReceivingPeers)
@@ -239,7 +242,7 @@ namespace AElf.Network.Peers
             {
                 PeerListData peerList = PeerListData.Parser.ParseFrom(messagePayload);
                 
-                _logger.Trace("Peers received : " + peerList.GetLoggerString());
+                _logger?.Trace("Peers received : " + peerList.GetLoggerString());
 
                 foreach (var peer in peerList.NodeData)
                 {
@@ -250,7 +253,7 @@ namespace AElf.Network.Peers
             catch (Exception e)
             {
                 ReceivingPeers = false;
-                _logger.Error(e, "Invalid peer(s) - Could not receive peer(s) from the network", null);
+                _logger?.Error(e, "Invalid peer(s) - Could not receive peer(s) from the network", null);
             }
 
             ReceivingPeers = false;
@@ -272,7 +275,7 @@ namespace AElf.Network.Peers
             peer.MessageReceived += ProcessPeerMessage;
             peer.PeerDisconnected += ProcessClientDisconnection;
 
-            _logger.Trace("Peer added : " + peer);
+            _logger?.Trace("Peer added : " + peer);
 
             Task.Run(peer.StartListeningAsync);
         }
@@ -304,7 +307,7 @@ namespace AElf.Network.Peers
             }
             catch (ResponseTimeOutException rex)
             {
-                _logger.Error(rex, rex?.Message + " - "  + peer);
+                _logger?.Error(rex, rex?.Message + " - "  + peer);
             }
 
             return null;
@@ -317,7 +320,7 @@ namespace AElf.Network.Peers
         public void RemovePeer(IPeer peer)
         {
             _peers.Remove(peer);
-            _logger.Trace("Peer removed : " + peer);
+            _logger?.Trace("Peer removed : " + peer);
         }
 
         public void RemovePeer(NodeData nodeData)
@@ -327,7 +330,7 @@ namespace AElf.Network.Peers
                 if (peer.IpAddress == nodeData.IpAddress && peer.Port == nodeData.Port)
                 {
                     _peers.Remove(peer);
-                    _logger.Trace("Peer Removed : " + peer);
+                    _logger?.Trace("Peer Removed : " + peer);
                     break;
                 }
             }
@@ -455,7 +458,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Error while sending a message to the peers");
+                _logger?.Error(e, "Error while sending a message to the peers");
                 return false;
             }
         }
@@ -476,7 +479,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Error while sending a message to the peers");
+                _logger?.Error(e, "Error while sending a message to the peers");
                 throw;
             }
 

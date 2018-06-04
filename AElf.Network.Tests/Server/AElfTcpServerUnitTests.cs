@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Network;
 using AElf.Network.Config;
 using AElf.Network.Exceptions;
 using Xunit;
 
-namespace AElf.Kernel.Tests.Network.Server
+namespace AElf.Network.Tests.Server
 {
     public class AElfTcpServerUnitTests
     {
