@@ -37,7 +37,7 @@ namespace AElf.Network.Peers
         public int BootnodeDropThreshold = TargetPeerCount / 2;
 
         private Timer _maintenanceTimer = null;
-        private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.Zero;
+        private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(5);
         private readonly TimeSpan _maintenancePeriod = TimeSpan.FromMinutes(1);
 
         public PeerManager(IAElfServer server, IPeerDatabase peerDatabase, IAElfNetworkConfig config, 
@@ -85,8 +85,6 @@ namespace AElf.Network.Peers
             Setup();
             
             _server.ClientConnected += HandleConnection;
-
-            _maintenanceTimer = new Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
         }
 
         /// <summary>
@@ -113,6 +111,8 @@ namespace AElf.Network.Peers
             {
                 await CreateAndAddPeer(p);
             }
+
+            _maintenanceTimer = new Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
         }
         
         internal void DoPeerMaintenance()
