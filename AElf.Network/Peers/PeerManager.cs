@@ -37,7 +37,7 @@ namespace AElf.Network.Peers
         public int BootnodeDropThreshold = TargetPeerCount / 2;
 
         private Timer _maintenanceTimer = null;
-        private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(5);
+        private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(0);
         private readonly TimeSpan _maintenancePeriod = TimeSpan.FromMinutes(1);
 
         public PeerManager(IAElfServer server, IPeerDatabase peerDatabase, IAElfNetworkConfig config, 
@@ -137,14 +137,27 @@ namespace AElf.Network.Peers
             // the preferred bootnode. If that fails, try all other bootnodes
             if (_peers.Count == 0)
             {
-                UndergoingPm = true;
                 AddBootnodes();
-                UndergoingPm = false;
             } 
             else if (_peers.Count > BootnodeDropThreshold)
             {
-                // Remove the first bootnode we find
-                //RemovePeer(_peers.FirstOrDefault(p => p.IsBootnode));
+                List<IPeer> peersToRemove = new List<IPeer>();
+                foreach (var peer in _peers)
+                {
+                    // if peer is in _bootNodes
+                    foreach (var bootnode in _bootnodes)
+                    {
+                        if (peer.DistantNodeData.Equals(bootnode))
+                        {
+                            peersToRemove.Add(peer);
+                        }
+                    }
+                }
+
+                foreach (var peer in peersToRemove)
+                {
+                    RemovePeer(peer);
+                }
             }
 
             // After either the initial maintenance operation or the removal operation
@@ -274,6 +287,12 @@ namespace AElf.Network.Peers
             // Don't add a peer already in the list
             if (GetPeer(peer) != null)
                 return;
+
+            foreach (var p in _bootnodes)
+            {
+                if (peer.DistantNodeData.Equals(p) && _peers.Count > BootnodeDropThreshold)
+                    return;
+            }
             
             _peers.Add(peer);
             
@@ -295,8 +314,11 @@ namespace AElf.Network.Peers
             if (nodeData == null)
                 return null;
             
-            //IPeer peer = new Peer(_nodeData, nodeData);
-            
+            foreach (var p in _bootnodes)
+            {
+                if (nodeData.Equals(p) && _peers.Count > BootnodeDropThreshold)
+                    return null;
+            }
             
             try
             {
@@ -326,12 +348,24 @@ namespace AElf.Network.Peers
         /// <param name="peer">the peer to remove</param>
         public void RemovePeer(IPeer peer)
         {
-            _peers.Remove(peer);
-            _logger?.Trace("Peer removed : " + peer);
+            if (peer == null)
+                return;
+            try
+            {
+                _peers.Remove(peer);
+                _logger?.Trace("Peer removed : " + peer);
+            }
+            catch
+            {
+                ;
+            }
         }
 
         public void RemovePeer(NodeData nodeData)
         {
+            if (nodeData == null)
+                return;
+            
             foreach (var peer in _peers)
             {
                 if (peer.IpAddress == nodeData.IpAddress && peer.Port == nodeData.Port)
