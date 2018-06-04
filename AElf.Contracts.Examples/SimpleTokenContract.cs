@@ -16,10 +16,10 @@ namespace AElf.Contracts.Examples
     {
         [SmartContractFieldData("${this}.Balances", DataAccessMode.AccountSpecific)]
         public Map Balances = new Map("Balances");
-        
-            
+
+
         [SmartContractFieldData("${this}.TokenContractName", DataAccessMode.ReadOnlyAccountSharing)]
-        public string TokenContractName { get; }
+        public string TokenContractName;
         public async Task<object> InitializeAsync()
         {
             await Balances.SetValueAsync("0".CalculateHash(), ((ulong)200).ToBytes());
@@ -46,7 +46,7 @@ namespace AElf.Contracts.Examples
             TokenContractName = tokenContractName;
         }
         
-        [SmartContractFunction("${this}.Transfer(Hash, Hash, ulong)", new string[]{}, new []{"${this}.Balances"})]
+        [SmartContractFunction("${this}.Transfer(AElf.Kernel.Hash, AElf.Kernel.Hash, UInt64)", new string[]{}, new []{"${this}.Balances"})]
         public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
         {
             var fromBalBytes = await Balances.GetValue(from);
@@ -67,7 +67,7 @@ namespace AElf.Contracts.Examples
             }
         }
 
-        [SmartContractFunction("${this}.GetBalance(string)", new string[]{}, new []{"${this}.Balances"})]
+        [SmartContractFunction("${this}.GetBalance(AElf.Kernel.Hash)", new string[]{}, new []{"${this}.Balances"})]
         public async Task<object> GetBalance(Hash account)
         {
             var balBytes = await Balances.GetValue(account.CalculateHash());

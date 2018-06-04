@@ -35,7 +35,7 @@ namespace AElf.Contracts.Examples
         }
         
         //To test multiple resource set
-        [SmartContractFunction("${this}.BuyTokenFromA(Hash, ulong)", new []{"${_tokenContractA}.Transfer(AElf.Kernel.Hash, AElf.Kernel.Hash, UInt64)"}, new []{"${this}.CasinoToken", "${this}.ExchangeRate"})]
+        [SmartContractFunction("${this}.BuyTokenFromA(AElf.Kernel.Hash, UInt64)", new []{"${_tokenContractA}.Transfer(AElf.Kernel.Hash, AElf.Kernel.Hash, UInt64)"}, new []{"${this}.CasinoToken", "${this}.ExchangeRate"})]
         public async Task<bool> BuyTokenFromA(Hash from, ulong value)
         {
             if(await _tokenContractA.Transfer(from, Api.GetContractAddress(), value))
@@ -52,7 +52,7 @@ namespace AElf.Contracts.Examples
         }
         
         //To test in-class function call
-        [SmartContractFunction("${this}.BuyTokenFromB(Hash, ulong)", new []{"${_tokenContractB}.Transfer(Hash, Hash, ulong)", "${this}.GetExchangeRate()"}, new []{"${this}.CasinoToken"})]
+        [SmartContractFunction("${this}.BuyTokenFromB(AElf.Kernel.Hash, UInt64)", new []{"${_tokenContractB}.Transfer(AElf.Kernel.Hash, AElf.Kernel.Hash, UInt64)", "${this}.GetExchangeRate()"}, new []{"${this}.CasinoToken"})]
         public async Task<bool> BuyTokenFromB(Hash from, ulong value)
         {
             if(await _tokenContractB.Transfer(from, Api.GetContractAddress(), value))
