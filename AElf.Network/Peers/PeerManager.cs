@@ -133,8 +133,9 @@ namespace AElf.Network.Peers
             
             UndergoingPm = true;
 
-            // If there are no connected peers then try to connect to
-            // the preferred bootnode. If that fails, try all other bootnodes
+            // If there are no connected peers or it there have been 5 iterations
+            // of maintenance without adding new peers then try to connect to
+            // all bootnodes
             if (_peers.Count == 0)
             {
                 AddBootnodes();
