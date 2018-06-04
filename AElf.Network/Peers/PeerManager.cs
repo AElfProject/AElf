@@ -409,28 +409,39 @@ namespace AElf.Network.Peers
 
             try
             {
-                AElfPacketData packetData = new AElfPacketData
-                {
-                    Id = messageId,
-                    MsgType = (int)messageType,
-                    Length = payload.Length,
-                    Payload = ByteString.CopyFrom(payload)
-                };
-
-                byte[] data = packetData.ToByteArray();
-
-                foreach (var peer in _peers)
-                {
-                    await peer.SendAsync(data);
-                }
+                AElfPacketData packet = NetRequestFactory.CreateRequest(messageType, payload, messageId);
+                bool success = await BroadcastMessage(packet);
                 
-                return true;
+                return success;
             }
             catch (Exception e)
             {
                 _logger.Error(e, "Error while sending a message to the peers");
                 return false;
             }
+        }
+
+        public async Task<bool> BroadcastMessage(AElfPacketData packet)
+        {
+            if (_peers == null || !_peers.Any())
+                return false;
+
+            try
+            {
+                byte[] data = packet.ToByteArray();
+
+                foreach (var peer in _peers)
+                {
+                    await peer.SendAsync(data);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, "Error while sending a message to the peers");
+                throw;
+            }
+
+            return true;
         }
     }
 }

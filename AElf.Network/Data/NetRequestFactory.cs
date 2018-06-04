@@ -18,5 +18,18 @@ namespace AElf.Network.Data
 
             return request;
         }
+
+        public static AElfPacketData CreateRequest(MessageTypes messageType, byte[] payload, int? messageId)
+        {
+            AElfPacketData packetData = new AElfPacketData
+            {
+                Id = messageId ?? 0,
+                MsgType = (int)messageType,
+                Length = payload.Length,
+                Payload = ByteString.CopyFrom(payload)
+            };
+
+            return packetData;
+        }
     }
 }
