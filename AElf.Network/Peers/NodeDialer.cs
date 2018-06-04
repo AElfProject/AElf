@@ -22,6 +22,9 @@ namespace AElf.Network.Peers
             try
             {
                 bool success = await peer.DoConnectAsync();
+
+                if (success)
+                    return peer;
             }
             catch (ResponseTimeOutException rex)
             {
