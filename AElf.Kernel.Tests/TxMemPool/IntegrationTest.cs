@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Crypto.ECDSA;
 using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using Akka.Actor;
@@ -22,11 +23,16 @@ namespace AElf.Kernel.Tests.TxMemPool
     {
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
-
-        public IntegrationTest(IAccountContextService accountContextService, ILogger logger)
+        private readonly ITransactionManager _transactionManager;
+        private readonly ITransactionResultManager _transactionResultManager;
+        
+        public IntegrationTest(IAccountContextService accountContextService, ILogger logger,
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             _accountContextService = accountContextService;
             _logger = logger;
+            _transactionManager = transactionManager;
+            _transactionResultManager = transactionResultManager;
         }
         
         private TxPool GetPool()
@@ -73,8 +79,9 @@ namespace AElf.Kernel.Tests.TxMemPool
         public async Task Start()
         {
             var pool = GetPool();
-            
-            var poolService = new TxPoolService(pool, _accountContextService);
+
+            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
+                _transactionResultManager);
             poolService.Start();
             var Num = 3;
             var threadNum = 5;
@@ -141,8 +148,9 @@ namespace AElf.Kernel.Tests.TxMemPool
         public async Task StartMultiThread()
         {
             var pool = GetPool();
-            
-            var poolService = new TxPoolService(pool, _accountContextService);
+
+            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
+                _transactionResultManager);
             poolService.Start();
             ulong queued = 0;
             ulong exec = 0;
