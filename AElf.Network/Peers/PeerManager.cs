@@ -26,8 +26,8 @@ namespace AElf.Network.Peers
         
         private readonly NodeData _nodeData;
 
-        private bool _undergoingPm = false;
-        private bool _receivingPeers = false;
+        public bool UndergoingPm { get; private set; } = false;
+        public bool ReceivingPeers { get; private set; } = false;
 
         public PeerManager(IAElfServer server, IPeerDatabase peerDatabase, IAElfNetworkConfig config, ILogger logger)
         {
@@ -111,10 +111,10 @@ namespace AElf.Network.Peers
         
         private async void PeerMaintenance()
         {
-            if (!_undergoingPm)
+            if (!UndergoingPm)
             {
                 
-                _undergoingPm = true;
+                UndergoingPm = true;
 
                 // If there are no connected peers then try to connect to
                 // the preferred bootnode. If that fails, try all other bootnodes
@@ -188,7 +188,7 @@ namespace AElf.Network.Peers
 
                 RemoveDuplicatePeers();
 
-                _undergoingPm = false;
+                UndergoingPm = false;
             }
         }
         
@@ -200,7 +200,7 @@ namespace AElf.Network.Peers
         /// <returns></returns>
         internal async Task ReceivePeers(ByteString messagePayload)
         {
-            _receivingPeers = true;
+            ReceivingPeers = true;
             
             try
             {
@@ -216,11 +216,11 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _receivingPeers = false;
+                ReceivingPeers = false;
                 _logger.Error(e, "Invalid peer(s) - Could not receive peer(s) from the network", null);
             }
 
-            _receivingPeers = false;
+            ReceivingPeers = false;
         }
 
         /// <summary>
