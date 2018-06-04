@@ -59,7 +59,6 @@ namespace AElf.Network.Peers
         {
             Task.Run(() => _server.StartAsync());
             Setup();
-            //Setup();
             
             _server.ClientConnected += HandleConnection;
 
@@ -68,7 +67,7 @@ namespace AElf.Network.Peers
 
             var timer = new System.Threading.Timer((e) =>
             {
-                PeerMaintenance();
+                DoPeerMaintenance();
             }, null, startTimeSpan, periodTimeSpan);
         }
 
@@ -109,72 +108,82 @@ namespace AElf.Network.Peers
             }
         }
         
-        private void PeerMaintenance()
+        private void DoPeerMaintenance()
         {
-            if (!UndergoingPm)
-            {
-                UndergoingPm = true;
+            // If we're in the process of receiving peers (potentially modifiying _peers)
+            // we return directly, we'll try again in the next cycle.
+            if (ReceivingPeers)
+                return;
+            
+            // If we're already in a maintenance cycle: do nothing
+            if (UndergoingPm)
+                return;
+            
+            UndergoingPm = true;
 
-                // If there are no connected peers then try to connect to
-                // the preferred bootnode. If that fails, try all other bootnodes
-                if (_peers.Count == 0)
+            // If there are no connected peers then try to connect to
+            // the preferred bootnode. If that fails, try all other bootnodes
+            if (_peers.Count == 0)
+            {
+                InitialMaintenance();
+            } 
+            else if (_peers.Count > 4) // If more than half of the peer list is full, drop the boot node
+            {
+                RemovePeer(_bootNode);
+            }
+
+            // After either the initial maintenance operation or the removal operation
+            // (mutually exclusive) adjust the peers to get to TargetPeerCount.
+            try
+            {
+                int missingPeers = TargetPeerCount - _peers.Count;
+                
+                if (missingPeers > 0)
                 {
-                    InitialMaintenance();
-                } 
-                else if (_peers.Count > 4) // If more than half of the peer list is full, drop the boot node
-                {
-                    RemovePeer(_bootNode);
+                    // We set UndergoingPm here because at this point it will be ok for 
+                    // us to receive peers 
+                    UndergoingPm = false;
+                    
+                    var req = NetRequestFactory.CreateMissingPeersReq(missingPeers);
+                    var taskAwaiter = BroadcastMessage(req).GetAwaiter().GetResult();
                 }
-
-                try
+                else if (missingPeers < 0)
                 {
-                    AdjustPeers();
+                    // Here we will be modifying the _peers collection and we don't want
+                    // anybody else modifying it.
+                    
+                    // Calculate peers to remove
+                    List<IPeer> peersToRemove = GetPeersToRemove(Math.Abs(missingPeers));
+                    
+                    // Remove them
+                    foreach (var peer in peersToRemove)
+                        RemovePeer(peer);
                 }
-                catch (Exception e)
+                else
                 {
-                    ;
+                    // Healthy peer list - nothing to do
                 }
-
-                RemoveDuplicatePeers();
-
-                UndergoingPm = false;
             }
-        }
-
-        internal void AdjustPeers()
-        {
-            int missingPeers = TargetPeerCount - _peers.Count;
-
-            if (missingPeers > 0)
+            catch (Exception e)
             {
-                var req = NetRequestFactory.CreateMissingPeersReq(missingPeers);
-                var taskAwaiter = BroadcastMessage(req).GetAwaiter().GetResult();
+                ;
             }
-            else if (missingPeers < 0)
-            {
-                RemoveExcessPeers(Math.Abs(missingPeers));
-            }
-            else
-            {
-                // Healthy peer list - nothing to do
-            }
+
+            UndergoingPm = false;
+            RemoveDuplicatePeers();
         }
 
         /// <summary>
-        /// Removes peer from the manager according to certain
+        /// Gets the peers to remove from the manager according to certain
         /// rules.
+        /// todo : for now the rule is the first <see cref="count"/> peers
         /// </summary>
         /// <param name="count"></param>
-        internal void RemoveExcessPeers(int count)
+        internal List<IPeer> GetPeersToRemove(int count)
         {
             // Calculate peers to remove
             List<IPeer> peersToRemove = _peers.Take(count).ToList();
-
-            // Remove them
-            foreach (var peer in peersToRemove)
-            {
-                RemovePeer(peer);
-            }
+            return peersToRemove;
         }
 
         internal void InitialMaintenance()
