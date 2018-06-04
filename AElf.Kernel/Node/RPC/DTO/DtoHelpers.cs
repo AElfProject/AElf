@@ -10,6 +10,21 @@ namespace AElf.Node.RPC.DTO
 {
     public static class DtoHelper
     {
+
+        public static JObject GetTransactionInfo(this ITransaction tx)
+        {
+            return new JObject {
+                ["tx"] = new JObject {
+                    {"txId", tx.GetHash().Value.ToBase64()},
+                    {"From", tx.From.Value.ToBase64()},
+                    {"To", tx.To.Value.ToBase64()},
+                    {"Method", tx.MethodName}
+                }
+            };
+        }
+        
+        
+        
         public static TransactionDto ToTransactionDto(this ITransaction tx)
         {
             TransactionDto dto = new TransactionDto()
