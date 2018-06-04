@@ -72,5 +72,14 @@ namespace AElf.Network.Tests.PeerManagement
 
             return mock.Object;
         }
+
+        [Fact]
+        public void AddPeer_ShouldReturnTrue_NewPeer()
+        {
+            PeerManager peerManager = new PeerManager(null, null, null, null, null);
+            IPeer peer = CreateMockPeer();
+
+            Assert.True(peerManager.AddPeer(peer));
+        }
     }
 }
