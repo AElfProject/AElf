@@ -292,6 +292,9 @@ namespace AElf.Network.Peers
         /// <param name="peer">the peer to add</param>
         public bool AddPeer(IPeer peer)
         {
+            if (peer == null)
+                return false;
+            
             // Don't add a peer already in the list
             if (GetPeer(peer) != null)
                 return false;
