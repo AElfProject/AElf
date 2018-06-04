@@ -290,16 +290,16 @@ namespace AElf.Network.Peers
         /// listening process.
         /// </summary>
         /// <param name="peer">the peer to add</param>
-        public void AddPeer(IPeer peer)
+        public bool AddPeer(IPeer peer)
         {
             // Don't add a peer already in the list
             if (GetPeer(peer) != null)
-                return;
+                return false;
 
             foreach (var p in _bootnodes)
             {
                 if (peer.DistantNodeData.Equals(p) && _peers.Count > BootnodeDropThreshold)
-                    return;
+                    return false;
             }
             
             _peers.Add(peer);
@@ -310,6 +310,8 @@ namespace AElf.Network.Peers
             _logger?.Trace("Peer added : " + peer);
 
             Task.Run(peer.StartListeningAsync);
+
+            return true;
         }
         
         /// <summary>

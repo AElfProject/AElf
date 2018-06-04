@@ -10,7 +10,7 @@ namespace AElf.Network.Peers
         event EventHandler MessageReceived;
         
         void Start();
-        void AddPeer(IPeer peer);
+        bool AddPeer(IPeer peer);
 
         List<NodeData> GetPeers(ushort numPeers);
 
