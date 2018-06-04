@@ -87,6 +87,11 @@ namespace AElf.Network.Peers
         /// </summary>
         public NodeData DistantNodeData { get; private set; }
 
+        public bool IsBootnode
+        {
+            get { return DistantNodeData?.IsBootnode ?? false; }
+        }
+
         public bool IsConnected
         {
             get { return _client != null && _stream != null && _client.Connected; }

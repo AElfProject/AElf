@@ -17,6 +17,8 @@ namespace AElf.Network.Peers
         bool IsConnected { get; }
         bool IsListening { get; }
         
+        bool IsBootnode { get; }
+        
         Task StartListeningAsync();
         Task SendAsync(byte[] data);
         
