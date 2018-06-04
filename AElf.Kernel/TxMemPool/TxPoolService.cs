@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
@@ -12,11 +13,16 @@ namespace AElf.Kernel.TxMemPool
     {
         private readonly ITxPool _txPool;
         private readonly IAccountContextService _accountContextService;
+        private readonly ITransactionManager _transactionManager;
+        private readonly ITransactionResultManager _transactionResultManager;
 
-        public TxPoolService(ITxPool txPool, IAccountContextService accountContextService)
+        public TxPoolService(ITxPool txPool, IAccountContextService accountContextService, 
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             _txPool = txPool;
             _accountContextService = accountContextService;
+            _transactionManager = transactionManager;
+            _transactionResultManager = transactionResultManager;
         }
 
         /// <summary>
@@ -173,13 +179,9 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public ITransaction GetTx(Hash txHash)
+        public bool TryGetTx(Hash txHash, out ITransaction tx)
         {
-            if (_txs.TryGetValue(txHash, out var tx) )
-            {
-                return tx;
-            }
-            return null;
+            return _txs.TryGetValue(txHash, out tx);
         }
 
         /// <inheritdoc/>
@@ -234,8 +236,11 @@ namespace AElf.Kernel.TxMemPool
             var addrs = new HashSet<Hash>();
             foreach (var res in txResultList)
             {
-                var tx = GetTx(res.TransactionId);
+                if (!TryGetTx(res.TransactionId, out var tx))
+                    continue;
                 addrs.Add(tx.From);
+                await _transactionManager.AddTransactionAsync(tx);
+                await _transactionResultManager.AddTransactionResultAsync(res);
             }
 
             foreach (var addr in addrs)
