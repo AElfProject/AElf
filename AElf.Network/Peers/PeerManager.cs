@@ -181,7 +181,6 @@ namespace AElf.Network.Peers
             }
 
             UndergoingPm = false;
-            //RemoveDuplicatePeers();
         }
 
         /// <summary>
@@ -338,27 +337,6 @@ namespace AElf.Network.Peers
                     _logger?.Trace("Peer Removed : " + peer);
                     break;
                 }
-            }
-        }
-
-        public void RemoveDuplicatePeers()
-        {
-            List<NodeData> peerList = new List<NodeData>();
-
-            foreach (var peer in _peers)
-            {
-                peerList.Add(new NodeData { IpAddress = peer.IpAddress, Port = peer.Port});
-            }
-            
-            var duplicates = peerList 
-                .GroupBy(i => i)
-                .Where(g => g.Count() > 1)
-                .Select(g => g.Key);
-
-            
-            foreach (var peer in duplicates)
-            {
-                RemovePeer(peer);
             }
         }
 
