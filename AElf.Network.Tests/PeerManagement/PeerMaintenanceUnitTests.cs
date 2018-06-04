@@ -74,7 +74,7 @@ namespace AElf.Network.Tests.PeerManagement
         }
 
         [Fact]
-        public void AddPeer_ShouldReturnTrue_NotBootnode()
+        public void AddPeer_ShouldReturnTrue_NotBootnode_NotInList()
         {
             PeerManager peerManager = new PeerManager(null, null, null, null, null);
             IPeer peer = CreateMockPeer();
@@ -83,7 +83,17 @@ namespace AElf.Network.Tests.PeerManagement
         }
         
         [Fact]
-        public void AddPeer_ShouldReturnFalse_Bootnode()
+        public void AddPeer_ShouldReturnFalse_NotBootnode_InList()
+        {
+            PeerManager peerManager = new PeerManager(null, null, null, null, null);
+            IPeer peer = CreateMockPeer();
+            peerManager.AddPeer(peer);
+
+            Assert.False(peerManager.AddPeer(peer));
+        }
+        
+        [Fact]
+        public void AddPeer_ShouldReturnFalse_Bootnode_NotInList()
         {
             PeerManager peerManager = new PeerManager(null, null, null, null, null);
             IPeer peer = CreateMockPeer(true);
