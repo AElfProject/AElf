@@ -110,5 +110,14 @@ namespace AElf.Network.Tests.PeerManagement
 
             Assert.False(peerManager.AddPeer(peer));
         }
+        
+        [Fact]
+        public void AddPeer_ShouldReturnFalse_NullParam()
+        {
+            PeerManager peerManager = new PeerManager(null, null, null, null, null);
+            IPeer peer = null;
+
+            Assert.False(peerManager.AddPeer(peer));
+        }
     }
 }
