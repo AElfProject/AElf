@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Network.Config;
@@ -9,6 +10,7 @@ using AElf.Network.Peers.Exceptions;
 using Google.Protobuf;
 using NLog;
 
+[assembly:InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Network.Peers
 {
     public class PeerManager : IPeerManager, IDisposable
@@ -23,12 +25,13 @@ namespace AElf.Network.Peers
         private readonly ILogger _logger;
         
         private readonly List<IPeer> _peers = new List<IPeer>();
-        private NodeData _bootNode = Bootnodes.BootNodes[0];
         
         private readonly NodeData _nodeData;
 
         public bool UndergoingPm { get; private set; } = false;
         public bool ReceivingPeers { get; private set; } = false;
+
+        public int BootnodeDropThreshold = TargetPeerCount / 2;
 
         private Timer _maintenanceTimer = null;
         private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.Zero;
@@ -41,11 +44,14 @@ namespace AElf.Network.Peers
             _server = server;
             _peerDatabase = peerDatabase;
 
-            _nodeData = new NodeData()
+            if (_networkConfig != null)
             {
-                IpAddress = config.Host,
-                Port = config.Port
-            };
+                _nodeData = new NodeData()
+                {
+                    IpAddress = config.Host,
+                    Port = config.Port
+                };
+            }
         }
         
         private void HandleConnection(object sender, EventArgs e)
@@ -107,7 +113,7 @@ namespace AElf.Network.Peers
             }
         }
         
-        private void DoPeerMaintenance()
+        internal void DoPeerMaintenance()
         {
             if (_peers == null)
                 return;
@@ -127,11 +133,12 @@ namespace AElf.Network.Peers
             // the preferred bootnode. If that fails, try all other bootnodes
             if (_peers.Count == 0)
             {
-                InitialMaintenance();
+                AddBootnode();
             } 
-            else if (_peers.Count > 4) // If more than half of the peer list is full, drop the boot node
+            else if (_peers.Count > BootnodeDropThreshold)
             {
-                RemovePeer(_bootNode);
+                // Remove the first bootnode we find
+                RemovePeer(_peers.FirstOrDefault(p => p.IsBootnode));
             }
 
             // After either the initial maintenance operation or the removal operation
@@ -172,7 +179,7 @@ namespace AElf.Network.Peers
             }
 
             UndergoingPm = false;
-            RemoveDuplicatePeers();
+            //RemoveDuplicatePeers();
         }
 
         /// <summary>
@@ -188,37 +195,19 @@ namespace AElf.Network.Peers
             return peersToRemove;
         }
 
-        internal void InitialMaintenance()
+        internal void AddBootnode()
         {
-            bool success = false;
-            
-            try
+            foreach (var bootNode in Bootnodes.BootNodes)
             {
-                IPeer p = CreateAndAddPeer(_bootNode).GetAwaiter().GetResult();
-                success = p != null;
-            }
-            catch
-            {
-                ;
-            }
-
-            if (!success)
-            {
-                foreach (var bootNode in Bootnodes.BootNodes)
+                try
                 {
-                    try
-                    {
-                        IPeer p = CreateAndAddPeer(bootNode).GetAwaiter().GetResult();
-                        if (p != null)
-                        {
-                            _bootNode = bootNode;
-                            break;
-                        }
-                    }
-                    catch
-                    {
-                        ;
-                    }
+                    // First bootnode we connect to we add it, for now we add only one
+                    if (CreateAndAddPeer(bootNode).GetAwaiter().GetResult() != null)
+                        break;
+                }
+                catch(Exception e)
+                {
+                    ;
                 }
             }
         }
@@ -260,6 +249,17 @@ namespace AElf.Network.Peers
         }
 
         /// <summary>
+        /// Returns the first occurence of the peer. IPeer
+        /// implementations may override the equality logic.
+        /// </summary>
+        /// <param name="peer"></param>
+        /// <returns></returns>
+        public IPeer GetPeer(IPeer peer)
+        {
+            return _peers?.FirstOrDefault(p => p.Equals(peer));
+        }
+
+        /// <summary>
         /// Adds a peer to the manager and hooks up the callback for
         /// receiving messages from it. It also starts the peers
         /// listening process.
@@ -267,8 +267,9 @@ namespace AElf.Network.Peers
         /// <param name="peer">the peer to add</param>
         public void AddPeer(IPeer peer)
         {
-            if (_peers.Any(p => p.Equals(peer)))
-                return;
+            // Don't add a peer already in the list
+            if (GetPeer(peer) != null)
+                return; 
             
             _peers.Add(peer);
             

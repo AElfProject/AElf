@@ -128,7 +128,8 @@ namespace AElf.Network.Peers
         {
             // If the peer is not connected or is already in 
             // a listening state.
-            if (!IsConnected || IsListening) return; // todo error
+            if (!IsConnected || IsListening) 
+                return; // todo error
             
             try
             {
