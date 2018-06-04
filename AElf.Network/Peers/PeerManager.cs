@@ -385,6 +385,7 @@ namespace AElf.Network.Peers
         /// <param name="numPeers">number of peers requested</param>
         public List<NodeData> GetPeers(ushort numPeers)
         {
+            bool notBootNode = true;
             List<NodeData> peers = new List<NodeData>();
             
             for (ushort i = 0; i < numPeers - 1; i++)
@@ -396,8 +397,15 @@ namespace AElf.Network.Peers
                         IpAddress = _peers[i].IpAddress,
                         Port = _peers[i].Port
                     };
+
+                    foreach (var bootnode in _bootnodes)
+                    {
+                        if (p.Equals(bootnode))
+                            notBootNode = false;
+                    }
                     
-                    peers.Add(p);
+                    if (notBootNode)
+                        peers.Add(p);
                 }
             }
 
