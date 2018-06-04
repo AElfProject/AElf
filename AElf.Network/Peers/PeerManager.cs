@@ -25,7 +25,7 @@ namespace AElf.Network.Peers
         private readonly IPeerDatabase _peerDatabase;
         private readonly ILogger _logger;
 
-        private readonly List<NodeData> Bootnodes = new List<NodeData>();
+        private readonly List<NodeData> _bootnodes = new List<NodeData>();
         
         private readonly List<IPeer> _peers = new List<IPeer>();
         
@@ -56,13 +56,15 @@ namespace AElf.Network.Peers
                     IpAddress = config.Host,
                     Port = config.Port
                 };
-            }
-            
-            if (_networkConfig.Bootnodes != null)
-            {
-                foreach (var node in _networkConfig.Bootnodes)
+
+                _nodeData.IsBootnode = _networkConfig?.Bootnodes?.Any(p => p.Equals(_nodeData)) ?? false;
+
+                if (_networkConfig.Bootnodes != null)
                 {
-                    Bootnodes.Add(node);
+                    foreach (var node in _networkConfig.Bootnodes.Where(p => !p.Equals(_nodeData)))
+                    {
+                        _bootnodes.Add(node);
+                    }
                 }
             }
         }
@@ -168,7 +170,7 @@ namespace AElf.Network.Peers
                     
                     // Remove them
                     foreach (var peer in peersToRemove)
-                        RemovePeer(peer);
+                       RemovePeer(peer);
                 }
                 else
                 {
@@ -198,7 +200,7 @@ namespace AElf.Network.Peers
 
         internal void AddBootnode()
         {
-            foreach (var bootNode in Bootnodes)
+            foreach (var bootNode in _bootnodes)
             {
                 try
                 {
@@ -270,7 +272,7 @@ namespace AElf.Network.Peers
         {
             // Don't add a peer already in the list
             if (GetPeer(peer) != null)
-                return; 
+                return;
             
             _peers.Add(peer);
             
