@@ -28,5 +28,8 @@ namespace AElf.Launcher
 
         [Option('p',HelpText = "The port of database.")]
         public int? DBPort { get; set; }
+        
+        [Option('l', Default = false, HelpText = "Full node mode for a new chain if node is true, otherwise light node mode for main chain.")]
+        public bool node { get; set; }
     }
 }
