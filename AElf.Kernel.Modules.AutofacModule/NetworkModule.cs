@@ -1,5 +1,6 @@
 ﻿using AElf.Network;
 using AElf.Network.Config;
+using AElf.Network.Data;
 using AElf.Network.Peers;
 using Autofac;
  
@@ -21,6 +22,10 @@ using Autofac;
              builder.RegisterType<AElfTcpServer>().As<IAElfServer>();
              builder.RegisterType<PeerManager>().As<IPeerManager>();
              builder.RegisterType<PeerDataStore>().As<IPeerDatabase>();
+             
+             NodeData nd = NodeData.FromString(NetConfig.Host + ":" + NetConfig.Port);
+             NodeDialer dialer = new NodeDialer(nd);
+             builder.RegisterInstance(dialer).As<INodeDialer>();
          }
      }
  }
