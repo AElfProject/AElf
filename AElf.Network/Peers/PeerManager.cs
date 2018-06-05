@@ -465,16 +465,30 @@ namespace AElf.Network.Peers
             {
                 if (args.Message.MsgType == (int) MessageTypes.RequestPeers)
                 {
+                    Random rand = new Random();
+                    List<IPeer> peers = _peers.OrderBy(c => rand.Next()).Select(c => c).ToList();
+                    
+                    bool notBootNode = true;
+                    
                     ReqPeerListData req = ReqPeerListData.Parser.ParseFrom(args.Message.Payload);
                     ushort numPeers = (ushort) req.NumPeers;
                     
                     PeerListData pListData = new PeerListData();
 
-                    foreach (var peer in _peers.Where(p => !p.DistantNodeData.Equals(args.Peer.DistantNodeData)))
+                    foreach (var peer in peers.Where(p => !p.DistantNodeData.Equals(args.Peer.DistantNodeData)))
                     {
-                        pListData.NodeData.Add(peer.DistantNodeData);
-                        if (pListData.NodeData.Count == numPeers)
-                            break;
+                        foreach (var bootnode in _bootnodes)
+                        {
+                            if (peer.Equals(bootnode))
+                                notBootNode = false;
+                        }
+
+                        if (notBootNode)
+                        {
+                            pListData.NodeData.Add(peer.DistantNodeData);
+                            if (pListData.NodeData.Count == numPeers)
+                                break;
+                        }
                     }
 
                     var resp = new AElfPacketData
