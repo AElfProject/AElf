@@ -50,8 +50,11 @@ namespace AElf.Launcher
                 foreach (var strNodeData in opts.Bootnodes)
                 {
                     NodeData nd = NodeData.FromString(strNodeData);
-                    if(nd != null)
+                    if (nd != null)
+                    {
+                        nd.IsBootnode = true;
                         netConfig.Bootnodes.Add(nd);
+                    }
                 }
             }
             else
