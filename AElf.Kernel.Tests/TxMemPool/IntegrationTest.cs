@@ -88,9 +88,9 @@ namespace AElf.Kernel.Tests.TxMemPool
         [Fact]
         public async Task Start()
         {
-            var chainId = Hash.Generate();
-            var chain = CreateChain(chainId);
-            var pool = GetPool(chainId);
+            /*var chainId = Hash.Generate();
+            var chain = CreateChain(chainId);*/
+            var pool = GetPool();
 
             var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
                 _transactionResultManager);
@@ -198,7 +198,7 @@ namespace AElf.Kernel.Tests.TxMemPool
 
             var idDict = new Dictionary<Hash, ulong>();
             int k = 0;
-            var Num = 2;
+            var Num = 100;
             var r = 5;
             var threadNum = Num *r;
 

@@ -34,7 +34,7 @@ namespace AElf.Kernel.Services
             var adp = _worldStateManager.GetAccountDataProvider(account);
 
             var idBytes = await adp.GetDataProvider().GetAsync(GetKeyForIncrementId());
-            var id = idBytes?.ToUInt64() ?? 0;
+            var id = idBytes == null ? 0 : UInt64Value.Parser.ParseFrom(idBytes).Value;
             
             var accountDataContext = new AccountDataContext
             {
@@ -57,11 +57,11 @@ namespace AElf.Kernel.Services
             await _worldStateManager.OfChain(accountDataContext.ChainId);
             var adp = _worldStateManager.GetAccountDataProvider(accountDataContext.Address);
 
-            await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), accountDataContext.IncrementId.ToBytes());
-            /*await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), new UInt64Value
+            //await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), accountDataContext.IncrementId.ToBytes());
+            await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), new UInt64Value
             {
                 Value = accountDataContext.IncrementId
-            }.ToByteArray());*/
+            }.ToByteArray());
 
         }
 
