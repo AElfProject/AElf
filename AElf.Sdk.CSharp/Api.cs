@@ -87,6 +87,7 @@ namespace AElf.Sdk.CSharp
                     To = contractAddress,
                     // TODO: Get increment id from AccountDataContext
                     IncrementId = 0,
+                    MethodName = methodName,
                     Params = ByteString.CopyFrom(args)
                 },
                 TransactionResult = new TransactionResult()
