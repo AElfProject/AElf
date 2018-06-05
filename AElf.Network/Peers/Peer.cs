@@ -104,18 +104,12 @@ namespace AElf.Network.Peers
 
         public string IpAddress
         {
-            get { return _nodeData?.IpAddress; }
+            get { return DistantNodeData?.IpAddress; }
         }
 
         public ushort Port
         {
-            get { return _nodeData != null ? (ushort)_nodeData.Port : (ushort)0; }
-        }
-
-        // todo cf interface comment
-        public void SetNodeData(NodeData data)
-        {
-            _nodeData = data;
+            get { return DistantNodeData?.Port != null ? (ushort) DistantNodeData?.Port : (ushort)0; }
         }
         
         /// <summary>
