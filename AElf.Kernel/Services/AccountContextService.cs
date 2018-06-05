@@ -57,10 +57,12 @@ namespace AElf.Kernel.Services
             await _worldStateManager.OfChain(accountDataContext.ChainId);
             var adp = _worldStateManager.GetAccountDataProvider(accountDataContext.Address);
 
-            await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), new UInt64Value
+            await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), accountDataContext.IncrementId.ToBytes());
+            /*await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), new UInt64Value
             {
                 Value = accountDataContext.IncrementId
-            }.ToByteArray());
+            }.ToByteArray());*/
+
         }
 
         private Hash GetKeyForIncrementId()
