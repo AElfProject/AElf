@@ -363,15 +363,8 @@ namespace AElf.Network.Peers
         {
             if (peer == null)
                 return;
-            try
-            {
-                _peers.Remove(peer);
-                _logger?.Trace("Peer removed : " + peer);
-            }
-            catch
-            {
-                ;
-            }
+            _peers.Remove(peer);
+            _logger?.Trace("Peer removed : " + peer);
         }
 
         public void RemovePeer(NodeData nodeData)
