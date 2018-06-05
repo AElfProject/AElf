@@ -77,11 +77,32 @@ namespace AElf.Sdk.CSharp
         #endregion Getters used by contract
 
         #region Transaction API
-        public static void Call(Hash contractAddress, string methodName, byte[] args)
+        public static TransactionResult Call(Hash contractAddress, string methodName, byte[] args)
         {
-            throw new System.NotImplementedException();
+            var txnCtxt = new TransactionContext()
+            {
+                Transaction = new Transaction()
+                {
+                    From = _smartContractContext.ContractAddress,
+                    To = contractAddress,
+                    // TODO: Get increment id from AccountDataContext
+                    IncrementId = 0,
+                    Params = ByteString.CopyFrom(args)
+                },
+                TransactionResult = new TransactionResult()
+            };
+
+            Task.Factory.StartNew(async () =>
+            {
+                var executive = await _smartContractContext.SmartContractService.GetExecutiveAsync(contractAddress, _smartContractContext.ChainId);
+                await executive.SetTransactionContext(txnCtxt).Apply();
+            }).Unwrap().Wait();
+
+            // TODO: Put inline transactions into Transaction Result of calling transaction
+
+            return txnCtxt.TransactionResult;
         }
-        #endregion
+        #endregion Transaction API
 
     }
 }
