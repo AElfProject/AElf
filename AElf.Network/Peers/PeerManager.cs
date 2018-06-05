@@ -145,13 +145,7 @@ namespace AElf.Network.Peers
             } 
             else if (_peers.Count > BootnodeDropThreshold)
             {
-                List<IPeer> peersToRemove = new List<IPeer>();
-                foreach (var peer in _peers)
-                {
-                    // Remove peer if it is a bootnode
-                    if (peer.IsBootnode)
-                        peersToRemove.Add(peer);
-                }
+                List<IPeer> peersToRemove = _peers.Where(p => p.IsBootnode).ToList();
 
                 foreach (var peer in peersToRemove)
                 {
