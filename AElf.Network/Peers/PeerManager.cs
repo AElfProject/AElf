@@ -367,22 +367,6 @@ namespace AElf.Network.Peers
             _logger?.Trace("Peer removed : " + peer);
         }
 
-        public void RemovePeer(NodeData nodeData)
-        {
-            if (nodeData == null)
-                return;
-            
-            foreach (var peer in _peers)
-            {
-                if (peer.IpAddress == nodeData.IpAddress && peer.Port == nodeData.Port)
-                {
-                    _peers.Remove(peer);
-                    _logger?.Trace("Peer Removed : " + peer);
-                    break;
-                }
-            }
-        }
-
         /// <summary>
         /// Returns a specified number of random peers from the peer
         /// list.
