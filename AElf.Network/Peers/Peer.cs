@@ -207,7 +207,7 @@ namespace AElf.Network.Peers
                 _stream = _client?.GetStream();
 
                 await WriteConnectInfoAsync();
-                DistantNodeData = await AwaitForConnectionInfoAsync();
+                await AwaitForConnectionInfoAsync();
             }
             catch (OperationCanceledException e)
             {

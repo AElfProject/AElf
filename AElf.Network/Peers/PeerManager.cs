@@ -63,6 +63,7 @@ namespace AElf.Network.Peers
                 {
                     foreach (var node in _networkConfig.Bootnodes.Where(p => !p.Equals(_nodeData)))
                     {
+                        node.IsBootnode = true;
                         _bootnodes.Add(node);
                     }
                 }
@@ -225,15 +226,7 @@ namespace AElf.Network.Peers
         {
             foreach (var bootNode in _bootnodes)
             {
-                try
-                {
-                    // Connect to bootnode
-                    await CreateAndAddPeer(bootNode);
-                }
-                catch(Exception e)
-                {
-                    ;
-                }
+                await CreateAndAddPeer(bootNode);
             }
         }
         
@@ -411,8 +404,8 @@ namespace AElf.Network.Peers
             {
                 NodeData peer = new NodeData
                 {
-                    IpAddress = p.DistantNodeData.IpAddress,
-                    Port = p.DistantNodeData.Port
+                    IpAddress = p.IpAddress,
+                    Port = p.Port
                 };
                 peers.Add(peer);
             }
@@ -456,7 +449,7 @@ namespace AElf.Network.Peers
                     {
                         foreach (var bootnode in _bootnodes)
                         {
-                            if (peer.Equals(bootnode))
+                            if (peer.DistantNodeData.Equals(bootnode))
                                 notBootNode = false;
                         }
 
