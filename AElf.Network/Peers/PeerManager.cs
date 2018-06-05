@@ -405,7 +405,8 @@ namespace AElf.Network.Peers
                 NodeData peer = new NodeData
                 {
                     IpAddress = p.IpAddress,
-                    Port = p.Port
+                    Port = p.Port,
+                    IsBootnode = p.IsBootnode
                 };
                 peers.Add(peer);
             }

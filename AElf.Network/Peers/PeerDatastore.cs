@@ -31,6 +31,7 @@ namespace AElf.Network.Peers
                 NodeData peer = new NodeData();
                 peer.IpAddress = sPeer[0];
                 peer.Port = Convert.ToUInt16(sPeer[1]);
+                peer.IsBootnode = Convert.ToBoolean(sPeer[2]);
                 
                 peerList.Add(peer);
             }
@@ -44,7 +45,7 @@ namespace AElf.Network.Peers
             string newline;
             foreach (var peer in peerList)
             {
-                newline = string.Format($"{peer.IpAddress},{peer.Port}");
+                newline = string.Format($"{peer.IpAddress},{peer.Port},{peer.IsBootnode}");
                 sb.AppendLine(newline);
             }
             
