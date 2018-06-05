@@ -148,14 +148,9 @@ namespace AElf.Network.Peers
                 List<IPeer> peersToRemove = new List<IPeer>();
                 foreach (var peer in _peers)
                 {
-                    // if peer is in _bootNodes
-                    foreach (var bootnode in _bootnodes)
-                    {
-                        if (peer.DistantNodeData.Equals(bootnode))
-                        {
-                            peersToRemove.Add(peer);
-                        }
-                    }
+                    // Remove peer if it is a bootnode
+                    if (peer.IsBootnode)
+                        peersToRemove.Add(peer);
                 }
 
                 foreach (var peer in peersToRemove)
@@ -253,7 +248,13 @@ namespace AElf.Network.Peers
 
                 foreach (var peer in peerList.NodeData)
                 {
-                    NodeData p = new NodeData { IpAddress = peer.IpAddress, Port = peer.Port };
+                    NodeData p = new NodeData
+                    {
+                        IpAddress = peer.IpAddress, 
+                        Port = peer.Port,
+                        IsBootnode = peer.IsBootnode
+                    };
+                    
                     IPeer newPeer = await CreateAndAddPeer(p);
                 }
             }
@@ -292,10 +293,16 @@ namespace AElf.Network.Peers
             if (GetPeer(peer) != null)
                 return false;
 
-            foreach (var p in _bootnodes)
+            if (_peers.Count > BootnodeDropThreshold)
             {
-                if (peer.DistantNodeData.Equals(p) && _peers.Count > BootnodeDropThreshold)
-                    return false;
+                foreach (var p in _bootnodes)
+                {
+                    if (peer.DistantNodeData.Equals(p))
+                        return false;
+                }
+
+//                if (peer.IsBootnode)
+//                    return false;
             }
             
             _peers.Add(peer);
@@ -319,17 +326,21 @@ namespace AElf.Network.Peers
         {
             if (nodeData == null)
                 return null;
-            
-            foreach (var p in _bootnodes)
+
+            if (_peers.Count > BootnodeDropThreshold)
             {
-                if (nodeData.Equals(p) && _peers.Count > BootnodeDropThreshold)
-                    return null;
+                foreach (var p in _bootnodes)
+                {
+                    if (nodeData.Equals(p))
+                        return null;
+                }
+
+//                if (nodeData.IsBootnode)
+//                    return null;
             }
             
             try
             {
-                //bool success = await peer.DoConnectAsync();
-                
                 IPeer peer = await _nodeDialer.DialAsync(nodeData);
                 
                 // If we successfully connected to the other peer
@@ -367,7 +378,6 @@ namespace AElf.Network.Peers
         /// <param name="numPeers">number of peers requested</param>
         public List<NodeData> GetPeers(ushort numPeers)
         {
-            bool notBootNode = true;
             Random rand = new Random();
             List<IPeer> peers = _peers.OrderBy(c => rand.Next()).Select(c => c).ToList();
             List<NodeData> returnPeers = new List<NodeData>();
@@ -379,16 +389,11 @@ namespace AElf.Network.Peers
                     NodeData p = new NodeData
                     {
                         IpAddress = peers[i].IpAddress,
-                        Port = peers[i].Port
+                        Port = peers[i].Port,
+                        IsBootnode = peers[i].IsBootnode
                     };
 
-                    foreach (var bootnode in _bootnodes)
-                    {
-                        if (p.Equals(bootnode))
-                            notBootNode = false;
-                    }
-                    
-                    if (notBootNode)
+                    if (!p.IsBootnode)
                         returnPeers.Add(p);
                 }
             }
@@ -439,8 +444,6 @@ namespace AElf.Network.Peers
                     Random rand = new Random();
                     List<IPeer> peers = _peers.OrderBy(c => rand.Next()).Select(c => c).ToList();
                     
-                    bool notBootNode = true;
-                    
                     ReqPeerListData req = ReqPeerListData.Parser.ParseFrom(args.Message.Payload);
                     ushort numPeers = (ushort) req.NumPeers;
                     
@@ -448,13 +451,7 @@ namespace AElf.Network.Peers
 
                     foreach (var peer in peers.Where(p => !p.DistantNodeData.Equals(args.Peer.DistantNodeData)))
                     {
-                        foreach (var bootnode in _bootnodes)
-                        {
-                            if (peer.DistantNodeData.Equals(bootnode))
-                                notBootNode = false;
-                        }
-
-                        if (notBootNode)
+                        if (!peer.IsBootnode)
                         {
                             pListData.NodeData.Add(peer.DistantNodeData);
                             if (pListData.NodeData.Count == numPeers)
@@ -473,7 +470,7 @@ namespace AElf.Network.Peers
                 }
                 else if (args.Message.MsgType == (int) MessageTypes.ReturnPeers)
                 {
-                    ReceivePeers(args.Message.Payload);
+                    Task.Run(() => ReceivePeers(args.Message.Payload));
                 }
                 else
                 {
