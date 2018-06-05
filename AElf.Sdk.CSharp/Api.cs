@@ -76,5 +76,12 @@ namespace AElf.Sdk.CSharp
 
         #endregion Getters used by contract
 
+        #region Transaction API
+        public static void Call(Hash contractAddress, string methodName, byte[] args)
+        {
+            throw new System.NotImplementedException();
+        }
+        #endregion
+
     }
 }
