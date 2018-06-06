@@ -62,6 +62,9 @@ namespace AElf.Launcher
                 netConfig.Bootnodes = Bootnodes.BootNodes;
             }
 
+            if (opts.PeersDbPath != null)
+                netConfig.PeersDbPath = opts.PeersDbPath;
+            
             if (opts.Peers != null)
                 netConfig.Peers = opts.Peers.ToList();
             

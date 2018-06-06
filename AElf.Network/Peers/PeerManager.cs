@@ -40,14 +40,13 @@ namespace AElf.Network.Peers
         private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(5);
         private readonly TimeSpan _maintenancePeriod = TimeSpan.FromMinutes(1);
 
-        public PeerManager(IAElfServer server, IPeerDatabase peerDatabase, IAElfNetworkConfig config, 
+        public PeerManager(IAElfServer server, IAElfNetworkConfig config, 
             INodeDialer nodeDialer, ILogger logger)
         {
             _nodeDialer = nodeDialer;
             _networkConfig = config;
             _logger = logger;
             _server = server;
-            _peerDatabase = peerDatabase;
 
             if (_networkConfig != null)
             {
@@ -66,6 +65,11 @@ namespace AElf.Network.Peers
                         node.IsBootnode = true;
                         _bootnodes.Add(node);
                     }
+                }
+
+                if (_networkConfig.PeersDbPath != null)
+                {
+                    _peerDatabase = new PeerDataStore(_networkConfig.PeersDbPath);
                 }
             }
         }
@@ -108,11 +112,14 @@ namespace AElf.Network.Peers
                 }
             }
 
-            var dbNodeData = _peerDatabase.ReadPeers();
-
-            foreach (var p in dbNodeData)
+            if (_peerDatabase != null)
             {
-                await CreateAndAddPeer(p);
+                var dbNodeData = _peerDatabase.ReadPeers();
+
+                foreach (var p in dbNodeData)
+                {
+                    await CreateAndAddPeer(p);
+                }
             }
 
             _maintenanceTimer = new Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
@@ -190,11 +197,14 @@ namespace AElf.Network.Peers
                 ;
             }
 
-            if (_peers.Count >= peersSnapshot.Count)
+            if (_peerDatabase != null)
             {
-                WritePeersToDb(_peers);
+                if (_peers.Count >= peersSnapshot.Count)
+                {
+                    WritePeersToDb(_peers);
+                }
             }
-            
+
             UndergoingPm = false;
         }
 

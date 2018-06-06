@@ -9,12 +9,31 @@ namespace AElf.Network.Peers
     public class PeerDataStore : IPeerDatabase
     {
         private const string FileName = "peerDB.txt";
-        private readonly string _filePath = System.IO.Path.Combine(System.Environment.CurrentDirectory, FileName);
-        
+        private readonly string _filePath;
+        private static string _folderPath;
+
+        public PeerDataStore(string folderPath)
+        {
+            if (folderPath != null)
+            {
+                _folderPath = folderPath;
+                _filePath = Path.Combine(folderPath, FileName);
+            }
+        }
+
         private static bool CheckDbExists()
         {
-            DirectoryInfo di = new DirectoryInfo(System.Environment.CurrentDirectory);
-            FileInfo[] dbFile = di.GetFiles(FileName);
+            FileInfo[] dbFile = null;
+            try
+            {
+                DirectoryInfo di = new DirectoryInfo(_folderPath);
+                dbFile = di.GetFiles(FileName);
+            }
+            catch
+            {
+                ;
+            }
+
             return dbFile.Length != 0;
         }
         
@@ -23,17 +42,27 @@ namespace AElf.Network.Peers
             List<NodeData> peerList = new List<NodeData>();
             
             if (!CheckDbExists()) return peerList; // Returns empty list for robustness. Do empty check during usage
-            string[] fileContents = File.ReadAllLines(_filePath);
-
-            foreach (string line in fileContents)
+            try
             {
-                string[] sPeer = line.Split(',');
-                NodeData peer = new NodeData();
-                peer.IpAddress = sPeer[0];
-                peer.Port = Convert.ToUInt16(sPeer[1]);
-                peer.IsBootnode = Convert.ToBoolean(sPeer[2]);
-                
-                peerList.Add(peer);
+                string[] fileContents = File.ReadAllLines(_filePath);
+
+                foreach (string line in fileContents)
+                {
+                    string[] sPeer = line.Split(',');
+
+                    NodeData peer = new NodeData
+                    {
+                        IpAddress = sPeer[0],
+                        Port = Convert.ToUInt16(sPeer[1]),
+                        IsBootnode = Convert.ToBoolean(sPeer[2])
+                    };
+
+                    peerList.Add(peer);
+                }
+            }
+            catch
+            {
+                ;
             }
 
             return peerList;
@@ -48,8 +77,15 @@ namespace AElf.Network.Peers
                 newline = string.Format($"{peer.IpAddress},{peer.Port},{peer.IsBootnode}");
                 sb.AppendLine(newline);
             }
-            
-            File.WriteAllText(_filePath, sb.ToString());
+
+            try
+            {
+                File.WriteAllText(_filePath, sb.ToString());
+            }
+            catch
+            {
+                ;
+            }
         }
     }
 }

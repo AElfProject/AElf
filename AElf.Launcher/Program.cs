@@ -51,7 +51,7 @@ namespace AElf.Launcher
             }
         }
 
-        private static IContainer SetupIocContainer(ITxPoolConfig txPoolConf, IAElfNetworkConfig netConf,IDatabaseConfig databaseConf)
+        private static IContainer SetupIocContainer(ITxPoolConfig txPoolConf, IAElfNetworkConfig netConf, IDatabaseConfig databaseConf)
         {
             var builder = new ContainerBuilder();
             

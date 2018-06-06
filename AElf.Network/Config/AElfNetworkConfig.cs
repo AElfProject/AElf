@@ -8,7 +8,9 @@ namespace AElf.Network.Config
     {
         public List<NodeData> Bootnodes { get; set; }
         public List<string> Peers { get; set; }
-        
+
+        public string PeersDbPath { get; set; }
+
         public bool UseCustomBootnodes
         {
             get { return Bootnodes != null && Bootnodes.Any(); }

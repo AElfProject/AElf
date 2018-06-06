@@ -9,7 +9,9 @@ namespace AElf.Network.Config
         bool UseCustomBootnodes { get; }
         
         List<string> Peers { get; }
-        
+
+        string PeersDbPath { get; }
+
         string Host { get; }
         int Port { get; }
     }

@@ -21,8 +21,10 @@ using Autofac;
              
              builder.RegisterType<AElfTcpServer>().As<IAElfServer>();
              builder.RegisterType<PeerManager>().As<IPeerManager>();
-             builder.RegisterType<PeerDataStore>().As<IPeerDatabase>();
-             
+
+             PeerDataStore peerDb = new PeerDataStore(NetConfig.PeersDbPath);
+             builder.RegisterInstance(peerDb).As<IPeerDatabase>();
+
              NodeData nd = NodeData.FromString(NetConfig.Host + ":" + NetConfig.Port);
              NodeDialer dialer = new NodeDialer(nd);
              builder.RegisterInstance(dialer).As<INodeDialer>();
