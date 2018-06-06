@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Akka.Actor;
@@ -74,7 +74,7 @@ namespace AElf.Kernel.Concurrency.Execution
                     r = new TransactionResult()
                     {
                         TransactionId = txId,
-                        Status = Status.Failed
+                        Status = Status.ExecutedFailed
                     };
                 }
                 txRes.Add(r);

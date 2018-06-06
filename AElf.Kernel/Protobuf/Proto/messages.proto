@@ -102,7 +102,8 @@ message TransactionResult{
 
 enum Status {
     NotExisted = 0;
-    Pending = 1;
-    Failed = 2;
-    Mined = 3;
+    Refused = 1;
+    Pending = 2;
+    ExecutedFailed = 3;
+    Mined = 4;
 }

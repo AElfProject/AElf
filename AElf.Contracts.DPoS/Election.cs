@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,7 +6,6 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Extensions;
 using AElf.Sdk.CSharp.Types;
-using Akka.Util.Internal;
 using ServiceStack;
 
 namespace AElf.Contracts.DPoS
