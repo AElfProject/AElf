@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
@@ -190,7 +191,7 @@ namespace AElf.Kernel.Node.RPC
                            responseData = await ProcessGetPeers(reqParams);
                            break;
                        case GetCommandsMethodName:
-                           responseData = await ProcessGetCommands();
+                           responseData = ProcessGetCommands();
                            break;
                        default:
                            Console.WriteLine("Method name not found"); // todo log
@@ -286,16 +287,14 @@ namespace AElf.Kernel.Node.RPC
             return JObject.FromObject(j);
         }
 
-        private async Task<JObject> ProcessGetCommands()
+        /// <summary>
+        /// This method returns the list of all RPC commands
+        /// except "get_commands"
+        /// </summary>
+        /// <returns></returns>
+        private JObject ProcessGetCommands()
         {
-            List<string> commands = new List<string>
-            {
-                GetTxMethodName,
-                InsertTxMethodName,
-                BroadcastTxMethodName,
-                GetPeersMethodName
-            };
-
+            List<string> commands = _rpcCommands.Where(x => x != GetCommandsMethodName).ToList();
             var json = JsonConvert.SerializeObject(commands);
             JArray arrCommands = JArray.Parse(json);
 
