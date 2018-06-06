@@ -190,7 +190,7 @@ LX1A6oWUNiLIjwAI0Qh5fgO5g5PerkNebXLPDE2dTzVVyYYw==";
             // Add a valid transaction
             var tx = BuildTransaction();
             var tmp = new HashSet<ITransaction> {tx};
-            var ctx = await _accountContextService.GetAccountDataContext(tx.From, conf.ChainId);
+            var ctx = await _accountContextService.GetAccountDataContextAsync(tx.From, conf.ChainId);
             pool.Nonces[tx.From] = ctx.IncrementId;
             pool.EnQueueTxs(tmp);
             
@@ -226,7 +226,7 @@ LX1A6oWUNiLIjwAI0Qh5fgO5g5PerkNebXLPDE2dTzVVyYYw==";
             // Add a valid transaction
             var tx = BuildTransaction();
             var tmp = new HashSet<ITransaction> {tx};
-            var ctx = await _accountContextService.GetAccountDataContext(tx.From, TxPoolConfig.Default.ChainId);
+            var ctx = await _accountContextService.GetAccountDataContextAsync(tx.From, TxPoolConfig.Default.ChainId);
             pool.Nonces[tx.From] = ctx.IncrementId;
             pool.EnQueueTxs(tmp);
             
@@ -245,7 +245,7 @@ LX1A6oWUNiLIjwAI0Qh5fgO5g5PerkNebXLPDE2dTzVVyYYw==";
             // Add a valid transaction
             var tx = BuildTransaction();
             var tmp = new HashSet<ITransaction> {tx};
-            var ctx =  await _accountContextService.GetAccountDataContext(tx.From, TxPoolConfig.Default.ChainId);
+            var ctx =  await _accountContextService.GetAccountDataContextAsync(tx.From, TxPoolConfig.Default.ChainId);
             pool.Nonces[tx.From] = ctx.IncrementId;
             pool.EnQueueTxs(tmp);
             

@@ -141,7 +141,7 @@ namespace AElf.Kernel.Tests.Miner
             var config = GetMinerConfig(_chainContext.ChainId, 10);
             var miner = GetMiner(config);
             
-            var block = await miner.Mine();
+            var block = await miner.MineAsync();
             Assert.Null(block);
         }
 
@@ -155,7 +155,7 @@ namespace AElf.Kernel.Tests.Miner
             _generalExecutor.Tell(new RequestAddChainExecutor(_chainContext.ChainId));
             ExpectMsg<RespondAddChainExecutor>();
             miner.Start();
-            var block = await miner.Mine();
+            var block = await miner.MineAsync();
             Assert.NotNull(block);
         }
         

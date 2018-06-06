@@ -21,8 +21,8 @@ namespace AElf.Kernel.Tests
             var chainId = Hash.Generate();
             var accountId = Hash.Generate();
 
-            var context1 =  await _accountContextService.GetAccountDataContext(accountId, chainId);
-            var context2 =  await _accountContextService.GetAccountDataContext(accountId, chainId);
+            var context1 =  await _accountContextService.GetAccountDataContextAsync(accountId, chainId);
+            var context2 =  await _accountContextService.GetAccountDataContextAsync(accountId, chainId);
             Assert.Equal(context1.IncrementId, context2.IncrementId);
             
         }
@@ -33,11 +33,11 @@ namespace AElf.Kernel.Tests
             var chainId = Hash.Generate();
             var accountId = Hash.Generate();
 
-            var context1 =  await _accountContextService.GetAccountDataContext(accountId, chainId);
+            var context1 =  await _accountContextService.GetAccountDataContextAsync(accountId, chainId);
             context1.IncrementId++;
-            await _accountContextService.SetAccountContext(context1);
+            await _accountContextService.SetAccountContextAsync(context1);
             
-            var context2 =  await _accountContextService.GetAccountDataContext(accountId, chainId);
+            var context2 =  await _accountContextService.GetAccountDataContextAsync(accountId, chainId);
             Assert.Equal((ulong)1, context2.IncrementId);
         }
         

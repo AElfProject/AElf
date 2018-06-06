@@ -11,6 +11,6 @@ namespace AElf.Kernel.Miner
         /// mining functionality
         /// </summary>
         /// <returns></returns>
-        Task<IBlock> Mine();
+        Task<IBlock> MineAsync();
     }
 }

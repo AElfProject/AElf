@@ -38,7 +38,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			Assert.Equal(accountHash, accountDataContext.AccountDataContext.Address);
             Assert.Equal((ulong)0, accountDataContext.AccountDataContext.IncrementId);
 
-			var localAccountDataContext = _accountContextService.GetAccountDataContext(accountHash, _chainContext.ChainId);
+			var localAccountDataContext = _accountContextService.GetAccountDataContextAsync(accountHash, _chainContext.ChainId);
             localAccountDataContext.Result.IncrementId += 1;
 
 			chainExecutor.Tell(new RequestAccountDataContext(43, accountHash));

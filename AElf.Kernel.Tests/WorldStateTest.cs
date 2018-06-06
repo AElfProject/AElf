@@ -35,7 +35,7 @@ namespace AElf.Kernel.Tests
             var block = CreateBlock(block0.GetHash());
             var chainManger = new ChainManager(_chainStore, _dataStore);
 
-            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
+            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChainAsync(chain.Id);
 
             await worldStateManager.SetWorldStateAsync(block0.GetHash());
             
@@ -61,7 +61,7 @@ namespace AElf.Kernel.Tests
             await chainManger.AddChainAsync(chain.Id, genesisBlockHash);
 
             var address = Hash.Generate();
-            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
+            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChainAsync(chain.Id);
             await worldStateManager.SetWorldStateAsync(genesisBlockHash);
             
             var key = new Hash("testkey".CalculateHash());
@@ -181,7 +181,7 @@ namespace AElf.Kernel.Tests
             await chainManger.AddChainAsync(chain.Id, genesisBlockHash);
             
             var address = Hash.Generate();
-            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
+            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChainAsync(chain.Id);
             await worldStateManager.SetWorldStateAsync(genesisBlockHash);
             
             var key1 = new Hash("testkey1".CalculateHash());

@@ -38,7 +38,7 @@ namespace AElf.Kernel.Tests
             await chainManager.AddChainAsync(chain.Id, genesisBlockHash);
 
             var address = Hash.Generate();
-            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
+            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChainAsync(chain.Id);
             await worldStateManager.SetWorldStateAsync(genesisBlockHash);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             var dataProvider = accountDataProvider.GetDataProvider();

@@ -95,7 +95,7 @@ namespace AElf.Kernel.Tests
 
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
-            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
+            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChainAsync(chain.Id);
             await worldStateManager.SetWorldStateAsync(genesisBlockHash);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             
@@ -145,7 +145,7 @@ namespace AElf.Kernel.Tests
 
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
-            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
+            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChainAsync(chain.Id);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
 
             await worldStateManager.SetWorldStateAsync(genesisBlockHash);
@@ -201,7 +201,7 @@ namespace AElf.Kernel.Tests
 
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
-            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
+            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChainAsync(chain.Id);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             
             await worldStateManager.SetWorldStateAsync(genesisBlockHash);

@@ -86,12 +86,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			return Task.CompletedTask;
 		}
 
-        public Task<object> RegisterSmartContract(SmartContractRegistration reg)
+        public Task<object> RegisterSmartContractAsync(SmartContractRegistration reg)
 		{
             return Task.FromResult<object>(null);
 		}
 
-        public Task<object> DeploySmartContract(SmartContractDeployment smartContractRegister)
+        public Task<object> DeploySmartContractAsync(SmartContractDeployment smartContractRegister)
 		{
             return Task.FromResult<object>(null);
 		}

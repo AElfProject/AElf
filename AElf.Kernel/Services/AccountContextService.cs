@@ -20,7 +20,7 @@ namespace AElf.Kernel.Services
         }
         
         /// <inheritdoc/>
-        public async Task<IAccountDataContext> GetAccountDataContext(Hash account, Hash chainId)
+        public async Task<IAccountDataContext> GetAccountDataContextAsync(Hash account, Hash chainId)
         {
             var key = chainId.CalculateHashWith(account);    
             if (_accountDataContexts.TryGetValue(key, out var ctx))
@@ -28,7 +28,7 @@ namespace AElf.Kernel.Services
                 return ctx;
             }
             
-            await _worldStateManager.OfChain(chainId);
+            await _worldStateManager.OfChainAsync(chainId);
             var adp = _worldStateManager.GetAccountDataProvider(account);
 
             var idBytes = await adp.GetDataProvider().GetAsync(GetKeyForIncrementId());
@@ -47,12 +47,12 @@ namespace AElf.Kernel.Services
 
         
         /// <inheritdoc/>
-        public async Task SetAccountContext(IAccountDataContext accountDataContext)
+        public async Task SetAccountContextAsync(IAccountDataContext accountDataContext)
         {
             _accountDataContexts.AddOrUpdate(accountDataContext.ChainId.CalculateHashWith(accountDataContext.Address),
                 accountDataContext, (hash, context) => accountDataContext);
             
-            await _worldStateManager.OfChain(accountDataContext.ChainId);
+            await _worldStateManager.OfChainAsync(accountDataContext.ChainId);
             var adp = _worldStateManager.GetAccountDataProvider(accountDataContext.Address);
 
             await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), accountDataContext.IncrementId.ToBytes());

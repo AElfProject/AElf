@@ -27,7 +27,7 @@ namespace AElf.Kernel
             var registerTx = new Transaction
             {
                 IncrementId = 0,
-                MethodName = nameof(ISmartContractZero.RegisterSmartContract),
+                MethodName = nameof(ISmartContractZero.RegisterSmartContractAsync),
                 To = Hash.Zero,
                 From = Hash.Zero,
                 Params = ByteString.CopyFrom(
@@ -53,7 +53,7 @@ namespace AElf.Kernel
             var deployTx = new Transaction
             {
                 IncrementId = 1,
-                MethodName = nameof(ISmartContractZero.DeploySmartContract),
+                MethodName = nameof(ISmartContractZero.DeploySmartContractAsync),
                 From = Hash.Zero,
                 To = Hash.Zero,
                 Params = ByteString.CopyFrom(

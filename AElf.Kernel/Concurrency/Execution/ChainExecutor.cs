@@ -34,7 +34,7 @@ namespace AElf.Kernel.Concurrency.Execution
             {
                 case RequestAccountDataContext req:
                     var origSender = Sender;
-                    _accountContextService.GetAccountDataContext(req.AccountHash, _chainContext.ChainId).ContinueWith(
+                    _accountContextService.GetAccountDataContextAsync(req.AccountHash, _chainContext.ChainId).ContinueWith(
                         task => new RespondAccountDataContext(req.RequestId, task.Result),
                         TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
                     ).PipeTo(origSender);

@@ -51,7 +51,7 @@ namespace AElf.Kernel.TxMemPool
             // tx from account state
             if (!_txPool.Nonces.TryGetValue(tx.From, out var id))
             {
-                id = (await _accountContextService.GetAccountDataContext(tx.From, _txPool.ChainId)).IncrementId;
+                id = (await _accountContextService.GetAccountDataContextAsync(tx.From, _txPool.ChainId)).IncrementId;
                 _txPool.Nonces.TryAdd(tx.From, id);
             }
            
@@ -241,7 +241,7 @@ namespace AElf.Kernel.TxMemPool
                 _txPool.Nonces.TryGetValue(hash, out var id);
                 
                 // update account context
-                await _accountContextService.SetAccountContext(new AccountDataContext
+                await _accountContextService.SetAccountContextAsync(new AccountDataContext
                 {
                     IncrementId = id,
                     Address = hash,

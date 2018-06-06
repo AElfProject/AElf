@@ -50,7 +50,7 @@ namespace AElf.Kernel.Tests
             var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             
             await _smartContractZero.InitializeAsync(accountDataProvider);*/
-            Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)1);
+            Assert.Equal(await _chainManager.GetChainCurrentHeightAsync(chain.Id), (ulong)1);
             return chain;
         }
 
@@ -68,8 +68,8 @@ namespace AElf.Kernel.Tests
 
             var block = CreateBlock(chain.GenesisBlockHash);
             await _chainManager.AppendBlockToChainAsync(chain.Id, block);
-            Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)2);
-            Assert.Equal(await _chainManager.GetChainLastBlockHash(chain.Id), block.GetHash());
+            Assert.Equal(await _chainManager.GetChainCurrentHeightAsync(chain.Id), (ulong)2);
+            Assert.Equal(await _chainManager.GetChainLastBlockHashAsync(chain.Id), block.GetHash());
             Assert.Equal(block.Header.Index, (ulong)1);
         }
         
