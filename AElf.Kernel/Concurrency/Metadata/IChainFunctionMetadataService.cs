@@ -14,7 +14,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <param name="nonRecursivePathSet">The non-recursive path set of this function</param>
         /// <exception cref="InvalidOperationException">Throw when FunctionMetadataMap already contains a function with same fullname</exception>
         /// <returns>True when success, false when something is wrong (usually is cannot find record with respect to functionName in the parameter otherFunctionsCallByThis)</returns>
-        bool SetNewFunctionMetadata(string functionFullName, HashSet<string> otherFunctionsCallByThis, HashSet<string> nonRecursivePathSet);
+        bool DeployNewFunction(string functionFullName, Hash contractAddr, Dictionary<string, Hash> contractReferences);
         
         /// <summary>
         /// Get a function's metadata, throw  if this function is not found in the map.

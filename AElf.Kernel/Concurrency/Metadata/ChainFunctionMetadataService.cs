@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using Org.BouncyCastle.Security;
+using ServiceStack;
 
 namespace AElf.Kernel.Concurrency.Metadata
 {
@@ -20,7 +21,16 @@ namespace AElf.Kernel.Concurrency.Metadata
             _logger = logger;
         }
 
-        public bool SetNewFunctionMetadata(string functionFullName, HashSet<string> otherFunctionsCallByThis, HashSet<string> nonRecursivePathSet)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="functionFullName">should be "[Addr].FunctionSig"</param>
+        /// <param name="contractAddr"></param>
+        /// <param name="contractReferences"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="FunctionMetadataException"></exception>
+        public bool DeployNewFunction(string functionFullName, Hash contractAddr, Dictionary<string, Hash> contractReferences)
         {
             if (FunctionMetadataMap.ContainsKey(functionFullName))
             {
@@ -28,29 +38,53 @@ namespace AElf.Kernel.Concurrency.Metadata
                 throw new InvalidOperationException("FunctionMetadataMap already contain a function named " + functionFullName);
             }
 
-            HashSet<string> resourceSet = new HashSet<string>(nonRecursivePathSet);
-
-            try
+            if (!_templateService.FunctionMetadataTemplateMap.TryGetValue(functionFullName, out var metadataTemplate))
             {
-                //Any metadata that already in the FunctionMetadataMap are already recursively process and set, so we just union their path set.
-                foreach (var calledFunc in otherFunctionsCallByThis ?? Enumerable.Empty<string>())
-                {
-                    var metadataOfCalledFunc = GetFunctionMetadata(calledFunc);
-                    resourceSet.UnionWith(metadataOfCalledFunc.FullResourceSet);
-                }
+                throw new InvalidOperationException("No function named " + functionFullName + " in the metadata template map");
             }
-            catch (InvalidParameterException e)
+
+            var resourceSet = metadataTemplate.LocalResourceSet.Select(resource =>
+                {
+                    var resName = Replacement.ReplaceValueIntoReplacement(resource.Name, Replacement.This, contractAddr.ToString());
+                    return new Resource(resName, resource.DataAccessMode);
+                }).ToHashSet();
+            
+            var localResourceSet = new HashSet<Resource>(resourceSet);
+            var callingSet = new HashSet<string>();
+            
+            foreach (var calledFunc in metadataTemplate.CallingSet ?? Enumerable.Empty<string>())
             {
-                _logger?.Error(e, "when tries to add function: " + functionFullName + ", it cause non-DAG calling graph thus fail.");
-                return false;
+                if (! Replacement.TryGetReplacementWithIndex(calledFunc, 0, out var locationReplacement))
+                {
+                    throw new FunctionMetadataException("not valid template in calling set of function " +
+                                                        functionFullName + " because the calling function" +
+                                                        calledFunc +
+                                                        "have no location replacement (${this} or ${[calling contract name]})");
+                }
+
+                //just add foreign resource into set because local resources are already recursively analyzed
+                if (!locationReplacement.Equals(Replacement.This))
+                {
+                    Replacement.TryGetReplacementWithIndex(calledFunc, 0, out var memberReplacement);
+                    var replacedCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, memberReplacement,
+                        contractReferences[Replacement.Value(memberReplacement)].ToString());
+                    
+                    var metadataOfCalledFunc = GetFunctionMetadata(replacedCalledFunc); //could throw exception
+                    
+                    resourceSet.UnionWith(metadataOfCalledFunc.FullResourceSet);
+                    callingSet.Add(replacedCalledFunc);
+                }
+                //TODO: do we still need local function that called recorded in the calling set?
             }
             
-            var metadata = new FunctionMetadata(otherFunctionsCallByThis, resourceSet, nonRecursivePathSet);
+            var metadata = new FunctionMetadata(callingSet, resourceSet, localResourceSet);
             
             FunctionMetadataMap.Add(functionFullName, metadata);
 
             return true;
         }
+        
+        
 
         public FunctionMetadata GetFunctionMetadata(string functionFullName)
         {
@@ -68,6 +102,8 @@ namespace AElf.Kernel.Concurrency.Metadata
         
         public bool UpdataExistingMetadata(string functionFullName, HashSet<string> newOtherFunctionsCallByThis, HashSet<string> newNonRecursivePathSet)
         {
+            throw new NotImplementedException();
+            /*
             if (!FunctionMetadataMap.ContainsKey(functionFullName))
             {
                 throw new InvalidOperationException("FunctionMetadataMap don't contain a function named " + functionFullName + " when trying to update this function's metadata");
@@ -77,7 +113,7 @@ namespace AElf.Kernel.Concurrency.Metadata
 
             FunctionMetadataMap.Remove(functionFullName);
             
-            if(!SetNewFunctionMetadata(functionFullName, newOtherFunctionsCallByThis, newNonRecursivePathSet)){
+            if(!DeployNewFunction(functionFullName, newOtherFunctionsCallByThis, newNonRecursivePathSet)){
                 //This should be unReachable, because function above already check whether new graph is DAG
                 FunctionMetadataMap.Add(functionFullName, oldMetadata);
                 return false;
@@ -86,25 +122,29 @@ namespace AElf.Kernel.Concurrency.Metadata
             UpdateInfluencedMetadata(functionFullName);
 
             return true;
+            */
         }
 
         /// <summary>
         /// Update other functions that call the updated function (backward recursively).
-        /// </summary>
+        /// </summary> 
         /// <param name="updatedFunctionFullName"></param>
         /// <exception cref="NotImplementedException"></exception>
         private void UpdateInfluencedMetadata(string updatedFunctionFullName)
         {
+            throw new NotImplementedException();
+            /*
             if(TryFindCallerFunctions(updatedFunctionFullName, out var callerFuncs))
             {
                 foreach (var caller in callerFuncs)
                 {
                     var oldMetadata = FunctionMetadataMap[caller];
                     FunctionMetadataMap.Remove(caller);
-                    SetNewFunctionMetadata(caller, oldMetadata.CallingSet, oldMetadata.LocalResourceSet);
+                    DeployNewFunction(caller, oldMetadata.CallingSet, oldMetadata.LocalResourceSet);
                     UpdateInfluencedMetadata(caller);
                 }
             }
+            */
         }
 
         /// <summary>
