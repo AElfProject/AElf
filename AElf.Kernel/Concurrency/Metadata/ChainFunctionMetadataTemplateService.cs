@@ -55,6 +55,18 @@ namespace AElf.Kernel.Concurrency.Metadata
             return true;
         }
 
+        /// <summary>
+        /// FunctionMetadataException will be thrown in following cases: 
+        /// (1) Duplicate member function name.
+        /// (2) Local resource are not declared in the code.
+        /// (3) Duplicate smart contract reference name
+        /// (4) Duplicate declared field name.
+        /// (5) Unknown reference in calling set
+        /// </summary>
+        /// <param name="contractType"></param>
+        /// <param name="smartContractReferenceMap"></param>
+        /// <param name="localFunctionMetadataTemplateMap"></param>
+        /// <exception cref="FunctionMetadataException"></exception>
         private void ExtractRawMetadataFromType(Type contractType, out Dictionary<string, Type> smartContractReferenceMap, out Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap )
         {
             var templocalFieldMap = new Dictionary<string, DataAccessMode>();
@@ -109,6 +121,35 @@ namespace AElf.Kernel.Concurrency.Metadata
                     throw new FunctionMetadataException("Duplicate name of function attribute in contract" + contractType.Name);
                 }
             }
+            
+            //check for validaty of the calling set (whether have unknow reference)
+            foreach (var kvPair in localFunctionMetadataTemplateMap)
+            {
+                foreach (var calledFunc in kvPair.Value.CallingSet)
+                {
+                    if (calledFunc.Contains(Replacement.This))
+                    {
+                        if (!localFunctionMetadataTemplateMap.ContainsKey(calledFunc))
+                        {
+                            throw new FunctionMetadataException(
+                                "calling set of function " + kvPair.Key + " when adding contract " +
+                                contractType.Name + " contains unknown reference to it's own function: " +
+                                calledFunc);
+                        }
+                    }
+                    else
+                    {
+                        if (!Replacement.TryGetReplacementWithIndex(calledFunc, 0, out var memberReplacement) ||
+                            !smartContractReferenceMap.ContainsKey(Replacement.Value(memberReplacement)))
+                        {
+                            throw new FunctionMetadataException(
+                                "calling set of function " + kvPair.Key + " when adding contract " +
+                                contractType.Name + " contains unknown reference to other contract's function: " +
+                                calledFunc);
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -122,120 +163,71 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <exception cref="FunctionMetadataException"></exception>
         private bool TryUpdateCallingGraph(Type contractType, Dictionary<string, Type> smartContractReferenceMap, Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap)
         {
-            //check for DAG and update callingGraph if new graph is DAG
-            var newGraph = _callingGraph.Clone();
-
-            var replacedCallingSetMap = localFunctionMetadataTemplateMap.Select(kvPair =>
+            //check for DAG  (the updating calling graph is DAG iff local calling graph is DAG)
+            if (!TryGetLocalCallingGraph(localFunctionMetadataTemplateMap, out var localCallGraph))
             {
-                var functonName = Replacement.ReplaceValueIntoReplacement(kvPair.Key, Replacement.This, contractType.Name);
-                var callingSet = kvPair.Value.CallingSet.Select(calledFunc =>
-                    Replacement.ReplaceValueIntoReplacement(calledFunc, Replacement.This, contractType.Name));
-                return new KeyValuePair<string, IEnumerable<string>>(functonName, callingSet);
-            }).ToDictionary(kv => kv.Key, kv=>kv.Value);
+                return false;
+            }
             
-            foreach (var functionCallingSet in replacedCallingSetMap)
+            List<Edge<string>> outEdgesToAdd = new List<Edge<string>>();
+            
+            foreach (var kvPair in localFunctionMetadataTemplateMap)
             {
-                newGraph.AddVertex(functionCallingSet.Key);
-                foreach (var callFunc in functionCallingSet.Value)
+                var sourceFunc = Replacement.ReplaceValueIntoReplacement(kvPair.Key, Replacement.This, contractType.Name);
+                foreach (var calledFunc in kvPair.Value.CallingSet)
                 {
-                    if (callFunc.Contains(contractType.Name))
+                    if (!calledFunc.Contains(Replacement.This))
                     {
-                        if (replacedCallingSetMap.ContainsKey(callFunc))
+                        Replacement.TryGetReplacementWithIndex(calledFunc, 0, out var memberReplacement);
+                        Type referenceType = smartContractReferenceMap[Replacement.Value(memberReplacement)];
+                        var globalCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, memberReplacement,
+                            referenceType.Name);
+                        if (!_callingGraph.ContainsVertex(globalCalledFunc))
                         {
-                            newGraph.AddVerticesAndEdge(new Edge<string>(functionCallingSet.Key, callFunc));
+                            _logger?.Error("can not add edge <" + sourceFunc + ","+calledFunc+" when trying to add contract " + contractType.Name + " into calling graph");
+                            return false;
                         }
-                        else
-                        {
-                            throw new FunctionMetadataException(
-                                "calling set of function " + functionCallingSet.Key + " when adding contract " +
-                                contractType.Name + " contains unknown reference to it's own function: " +
-                                callFunc);
-                        }
-                    }
-                    else
-                    {
-                        string callFuncWithClassName;
-                        if (Replacement.TryGetReplacementWithIndex(callFunc, 0, out var memberReplacement) && smartContractReferenceMap.ContainsKey(Replacement.Value(memberReplacement)))
-                        {
-                            Type referenceType = smartContractReferenceMap[Replacement.Value(memberReplacement)];
-                            callFuncWithClassName = Replacement.ReplaceValueIntoReplacement(callFunc, memberReplacement,
-                                referenceType.Name);
-                        }
-                        else
-                        {
-                            throw new FunctionMetadataException(
-                                "calling set of function " + functionCallingSet.Key + " when adding contract " +
-                                contractType.Name + " contains unknown reference to other contract's function: " +
-                                callFunc);
-                        }
-                        
-                        if (newGraph.ContainsVertex(callFuncWithClassName))
-                        {
-                            newGraph.AddEdge(new Edge<string>(functionCallingSet.Key, callFuncWithClassName));
-                        }
-                        else
-                        {
-                            throw new FunctionMetadataException(
-                                "calling set of function " + functionCallingSet.Key + " when adding contract " +
-                                contractType.Name + " contains unknown reference to other contract's function: " +
-                                callFunc);
-                        }
+                        outEdgesToAdd.Add(new Edge<string>(sourceFunc, globalCalledFunc));
                     }
                 }
             }
             
+            //Merge local calling graph
+            localCallGraph.Vertices.ForEach(func => func = Replacement.ReplaceValueIntoReplacement(func, Replacement.This, contractType.Name));
+            _callingGraph.AddVerticesAndEdgeRange(localCallGraph.Edges);
+
+            _callingGraph.AddEdgeRange(outEdgesToAdd);
+            return true;
+        }
+        
+        
+        private bool TryGetLocalCallingGraph(Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap, out AdjacencyGraph<string, Edge<string>> callGraph)
+        {
+            callGraph = new AdjacencyGraph<string, Edge<string>>();
+            foreach (var kvPair in localFunctionMetadataTemplateMap)
+            {
+                callGraph.AddVertex(kvPair.Key);
+                foreach (var calledFunc in kvPair.Value.CallingSet)
+                { 
+                    if (calledFunc.Contains(Replacement.This))
+                    {
+                        callGraph.AddVerticesAndEdge(new Edge<string>(kvPair.Key, calledFunc));
+                    }
+                }
+            }
+
             try
             {
-                newGraph.TopologicalSort();
+                callGraph.TopologicalSort();
             }
             catch (NonAcyclicGraphException e)
             {
-                _logger?.Warn(e, "When Add template for " + contractType.Name + ", its calling set form a acyclic graph");
+                callGraph.Clear();
+                callGraph = null;
                 return false;
             }
 
-            _callingGraph = newGraph;
             return true;
-        }
-
-        private Dictionary<string, FunctionMetadataTemplate> CompleteLocalResource(Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap)
-        {
-            var completeTemplateMap = new Dictionary<string, FunctionMetadataTemplate>();
-            foreach (var kvPair in localFunctionMetadataTemplateMap)
-            {
-                if (!completeTemplateMap.ContainsKey(kvPair.Key))
-                {
-                    GetAndAddCompleteLocalResourceSetForFunction(kvPair.Key, localFunctionMetadataTemplateMap, ref completeTemplateMap);
-                }
-            }
-
-            return completeTemplateMap;
-        }
-
-        private FunctionMetadataTemplate GetAndAddCompleteLocalResourceSetForFunction(string localFuncName,
-            Dictionary<string, FunctionMetadataTemplate> nonCompleteMetadataTemplateMap, ref Dictionary<string, FunctionMetadataTemplate> completeTemplateMap)
-        {
-            if (!completeTemplateMap.ContainsKey(localFuncName))
-            {
-                HashSet<Resource> resourceSet = new HashSet<Resource>(nonCompleteMetadataTemplateMap[localFuncName].LocalResourceSet);
-                foreach (var calledFunc in nonCompleteMetadataTemplateMap[localFuncName].CallingSet)
-                {
-                    if (calledFunc.Contains(Replacement.This))
-                    {
-                        var completeCallingTemplate = GetAndAddCompleteLocalResourceSetForFunction(calledFunc, nonCompleteMetadataTemplateMap,
-                            ref completeTemplateMap);
-                        resourceSet.UnionWith(completeCallingTemplate.LocalResourceSet);
-                    }
-                }
-                
-                var completeTemplate = new FunctionMetadataTemplate(nonCompleteMetadataTemplateMap[localFuncName].CallingSet, resourceSet);
-                completeTemplateMap.Add(localFuncName, completeTemplate);
-                return completeTemplate;
-            }
-            else
-            {
-                return completeTemplateMap[localFuncName];
-            }
         }
         
         #endregion
