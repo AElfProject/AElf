@@ -34,7 +34,7 @@ namespace AElf.Network.Peers
         public bool UndergoingPm { get; private set; } = false;
         public bool ReceivingPeers { get; private set; } = false;
 
-        public int BootnodeDropThreshold = TargetPeerCount / 2;
+        //public int BootnodeDropThreshold = TargetPeerCount / 2;
 
         private Timer _maintenanceTimer = null;
         private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(5);
@@ -150,7 +150,7 @@ namespace AElf.Network.Peers
             {
                 AddBootnodes();
             } 
-            else if (_peers.Count > BootnodeDropThreshold)
+            /*else if (_peers.Count > BootnodeDropThreshold)
             {
                 List<IPeer> peersToRemove = _peers.Where(p => p.IsBootnode).ToList();
 
@@ -158,7 +158,7 @@ namespace AElf.Network.Peers
                 {
                     RemovePeer(peer);
                 }
-            }
+            }*/
 
             // After either the initial maintenance operation or the removal operation
             // (mutually exclusive) adjust the peers to get to TargetPeerCount.
@@ -296,18 +296,6 @@ namespace AElf.Network.Peers
             // Don't add a peer already in the list
             if (GetPeer(peer) != null)
                 return false;
-
-            if (_peers.Count > BootnodeDropThreshold)
-            {
-                foreach (var p in _bootnodes)
-                {
-                    if (peer.DistantNodeData.Equals(p))
-                        return false;
-                }
-
-//                if (peer.IsBootnode)
-//                    return false;
-            }
             
             _peers.Add(peer);
             
@@ -330,18 +318,6 @@ namespace AElf.Network.Peers
         {
             if (nodeData == null)
                 return null;
-
-            if (_peers.Count > BootnodeDropThreshold)
-            {
-                foreach (var p in _bootnodes)
-                {
-                    if (nodeData.Equals(p))
-                        return null;
-                }
-
-//                if (nodeData.IsBootnode)
-//                    return null;
-            }
             
             try
             {
