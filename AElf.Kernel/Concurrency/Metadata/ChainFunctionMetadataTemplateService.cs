@@ -8,20 +8,16 @@ using NLog;
 using Org.BouncyCastle.Security;
 using QuickGraph;
 using QuickGraph.Algorithms;
-using ServiceStack;
-using FunctionMetadataTemplate = AElf.Kernel.Concurrency.Metadata.FunctionMetadata;
 
 namespace AElf.Kernel.Concurrency.Metadata
 {
     /// <summary>
     /// Where get and set the metadata when deploy the contracts and check correctness when trying to updating contracts(functions)
-    /// TODO: currently just sopport update one function of a contract, if trying to update multiple function at a time, the calling graph and the FunctionMetadataMap should be backup before the update in case one of the function fail the update and all the preceding updated function need to roll back their effect. Or maybe just check Whether applying all the updating functions can result in non-DAG calling graph. 
     /// TODO: Whether need the functionality of deleting the existing function?
     /// </summary>
     public class ChainFunctionMetadataTemplateService : IChainFunctionMetadataTemplateService
     {
         public Dictionary<string, FunctionMetadataTemplate> FunctionMetadataTemplateMap { get; } = new Dictionary<string, FunctionMetadataTemplate>();
-        public readonly Dictionary<string, DataAccessMode> ResourceAccessModes;
         private AdjacencyGraph<string, Edge<string>> _callingGraph;
         
         private readonly ILogger _logger;
@@ -30,7 +26,6 @@ namespace AElf.Kernel.Concurrency.Metadata
         {
             _logger = logger;
             _callingGraph = new AdjacencyGraph<string, Edge<string>>();
-            ResourceAccessModes = new Dictionary<string, DataAccessMode>();
         }
 
         #region Metadata extraction from contract code
@@ -45,42 +40,39 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <exception cref="FunctionMetadataException"></exception>
         public bool TryAddNewContract(Type contractType)
         {
-            ExtractRawMetadataFromType(contractType, out var localFieldMap, out var smartContractReferenceMap,
+            ExtractRawMetadataFromType(contractType, out var smartContractReferenceMap,
                 out var localFunctionMetadataTemplateMap);
 
             TryUpdateCallingGraph(contractType, smartContractReferenceMap, localFunctionMetadataTemplateMap);
+
             
             //merge the function metadata template map
-            foreach (var localMetadata in localFunctionMetadataTemplateMap)
+            localFunctionMetadataTemplateMap.ForEach( kv =>
             {
-                FunctionMetadataTemplateMap.Add(localMetadata.Key, localMetadata.Value);
-            }
-
-            foreach (var field in localFieldMap)
-            {
-                ResourceAccessModes.TryAdd(field.Key, field.Value);
-            }
+                var key = Replacement.ReplaceValueIntoReplacement(kv.Key, Replacement.This, contractType.Name);
+                FunctionMetadataTemplateMap.Add(key, kv.Value);
+            });
             return true;
         }
 
-        private void ExtractRawMetadataFromType(Type contractType, out Dictionary<string, DataAccessMode> localFieldMap, out Dictionary<string, Type> smartContractReferenceMap, out Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap )
+        private void ExtractRawMetadataFromType(Type contractType, out Dictionary<string, Type> smartContractReferenceMap, out Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap )
         {
-            localFieldMap = new Dictionary<string, DataAccessMode>();
+            var templocalFieldMap = new Dictionary<string, DataAccessMode>();
             smartContractReferenceMap = new Dictionary<string, Type>();
             localFunctionMetadataTemplateMap = new Dictionary<string, FunctionMetadataTemplate>();
 
-            
-            
+            //load localFieldMap: <"${this}.[ResourceName]", DataAccessMode>
             foreach (var fieldInfo in contractType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 var fieldAttr = fieldInfo.GetCustomAttribute<SmartContractFieldDataAttribute>();
                 if (fieldAttr == null) continue;
-                if (!localFieldMap.TryAdd(ReplaceValueIntoReplacement(fieldAttr.FieldName, Replacement.This, Replacement.ContractType(contractType)), fieldAttr.DataAccessMode))
+                if (!templocalFieldMap.TryAdd(fieldAttr.FieldName, fieldAttr.DataAccessMode))
                 {
                     throw new FunctionMetadataException("Duplicate name of field attributes in contract " + contractType.Name);
                 }
             }
             
+            //load smartContractReferenceMap: <"[contract_member_name]", Referenced contract type>
             foreach (var fieldInfo in contractType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 var smartContractRefAttr = fieldInfo.GetCustomAttribute<SmartContractReferenceAttribute>();
@@ -91,24 +83,28 @@ namespace AElf.Kernel.Concurrency.Metadata
                 }
             }
             
+            //load localFunctionMetadataTemplateMap: <"${[this]}.FunctionSignature", FunctionMetadataTemplate>
+            //FunctionMetadataTemplate: <calling_set, local_resource_set>
+            //calling_set: { "${[contract_member_name]}.[FunctionSignature]", ${this}.[FunctionSignature]... }
+            //local_resource_set: {"${this}.[ResourceName]"}
             foreach (var methodInfo in contractType.GetMethods(
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 var functionAttribute = methodInfo.GetCustomAttribute<SmartContractFunctionAttribute>();
                 if (functionAttribute == null) continue;
 
-
-                var replacedCallingSet = functionAttribute.CallingSet.Select(func =>
-                    ReplaceValueIntoReplacement(func, Replacement.This, Replacement.ContractType(contractType)));
-
-                var replacedResourceSet = functionAttribute.LocalResources.Select(resource =>
-                    ReplaceValueIntoReplacement(resource, Replacement.This, Replacement.ContractType(contractType)));
-
-                var replacedFunctionName = ReplaceValueIntoReplacement(functionAttribute.FunctionSignature,
-                    Replacement.This, Replacement.ContractType(contractType));
+                var resourceSet = functionAttribute.LocalResources.Select(resource =>
+                {
+                    if (!templocalFieldMap.TryGetValue(resource, out var dataAccessMode))
+                    {
+                        throw new FunctionMetadataException("Unknown reference field " + resource +
+                                                            " in function " + functionAttribute.FunctionSignature);
+                    }
+                    return new Resource(resource, dataAccessMode);
+                });
                 
-                if (!localFunctionMetadataTemplateMap.TryAdd(replacedFunctionName, 
-                    new FunctionMetadataTemplate(new HashSet<string>(replacedCallingSet), new HashSet<string>(replacedResourceSet))))
+                if (!localFunctionMetadataTemplateMap.TryAdd(functionAttribute.FunctionSignature, 
+                    new FunctionMetadataTemplate(new HashSet<string>(functionAttribute.CallingSet), new HashSet<Resource>(resourceSet))))
                 {
                     throw new FunctionMetadataException("Duplicate name of function attribute in contract" + contractType.Name);
                 }
@@ -128,21 +124,30 @@ namespace AElf.Kernel.Concurrency.Metadata
         {
             //check for DAG and update callingGraph if new graph is DAG
             var newGraph = _callingGraph.Clone();
-            foreach (var functionMetadata in localFunctionMetadataTemplateMap)
+
+            var replacedCallingSetMap = localFunctionMetadataTemplateMap.Select(kvPair =>
             {
-                newGraph.AddVertex(functionMetadata.Key);
-                foreach (var callFunc in functionMetadata.Value.CallingSet)
+                var functonName = Replacement.ReplaceValueIntoReplacement(kvPair.Key, Replacement.This, contractType.Name);
+                var callingSet = kvPair.Value.CallingSet.Select(calledFunc =>
+                    Replacement.ReplaceValueIntoReplacement(calledFunc, Replacement.This, contractType.Name));
+                return new KeyValuePair<string, IEnumerable<string>>(functonName, callingSet);
+            }).ToDictionary(kv => kv.Key, kv=>kv.Value);
+            
+            foreach (var functionCallingSet in replacedCallingSetMap)
+            {
+                newGraph.AddVertex(functionCallingSet.Key);
+                foreach (var callFunc in functionCallingSet.Value)
                 {
-                    if (callFunc.Contains(Replacement.ContractType(contractType)))
+                    if (callFunc.Contains(contractType.Name))
                     {
-                        if (localFunctionMetadataTemplateMap.ContainsKey(callFunc))
+                        if (replacedCallingSetMap.ContainsKey(callFunc))
                         {
-                            newGraph.AddVerticesAndEdge(new Edge<string>(functionMetadata.Key, callFunc));
+                            newGraph.AddVerticesAndEdge(new Edge<string>(functionCallingSet.Key, callFunc));
                         }
                         else
                         {
                             throw new FunctionMetadataException(
-                                "calling set of function " + functionMetadata.Key + " when adding contract " +
+                                "calling set of function " + functionCallingSet.Key + " when adding contract " +
                                 contractType.Name + " contains unknown reference to it's own function: " +
                                 callFunc);
                         }
@@ -150,28 +155,28 @@ namespace AElf.Kernel.Concurrency.Metadata
                     else
                     {
                         string callFuncWithClassName;
-                        if (TryGetReplacementWithIndex(callFunc, 0, out var memberReplacement) && smartContractReferenceMap.ContainsKey(Replacement.Value(memberReplacement)))
+                        if (Replacement.TryGetReplacementWithIndex(callFunc, 0, out var memberReplacement) && smartContractReferenceMap.ContainsKey(Replacement.Value(memberReplacement)))
                         {
                             Type referenceType = smartContractReferenceMap[Replacement.Value(memberReplacement)];
-                            callFuncWithClassName = ReplaceValueIntoReplacement(callFunc, memberReplacement,
-                                Replacement.ContractType(referenceType));
+                            callFuncWithClassName = Replacement.ReplaceValueIntoReplacement(callFunc, memberReplacement,
+                                referenceType.Name);
                         }
                         else
                         {
                             throw new FunctionMetadataException(
-                                "calling set of function " + functionMetadata.Key + " when adding contract " +
+                                "calling set of function " + functionCallingSet.Key + " when adding contract " +
                                 contractType.Name + " contains unknown reference to other contract's function: " +
                                 callFunc);
                         }
                         
                         if (newGraph.ContainsVertex(callFuncWithClassName))
                         {
-                            newGraph.AddEdge(new Edge<string>(functionMetadata.Key, callFuncWithClassName));
+                            newGraph.AddEdge(new Edge<string>(functionCallingSet.Key, callFuncWithClassName));
                         }
                         else
                         {
                             throw new FunctionMetadataException(
-                                "calling set of function " + functionMetadata.Key + " when adding contract " +
+                                "calling set of function " + functionCallingSet.Key + " when adding contract " +
                                 contractType.Name + " contains unknown reference to other contract's function: " +
                                 callFunc);
                         }
@@ -192,26 +197,47 @@ namespace AElf.Kernel.Concurrency.Metadata
             _callingGraph = newGraph;
             return true;
         }
-        
-        private string ReplaceValueIntoReplacement(string str, string replacement, string value)
+
+        private Dictionary<string, FunctionMetadataTemplate> CompleteLocalResource(Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap)
         {
-            return str.Replace(replacement, value);
+            var completeTemplateMap = new Dictionary<string, FunctionMetadataTemplate>();
+            foreach (var kvPair in localFunctionMetadataTemplateMap)
+            {
+                if (!completeTemplateMap.ContainsKey(kvPair.Key))
+                {
+                    GetAndAddCompleteLocalResourceSetForFunction(kvPair.Key, localFunctionMetadataTemplateMap, ref completeTemplateMap);
+                }
+            }
+
+            return completeTemplateMap;
         }
 
-        private bool TryGetReplacementWithIndex(string str, int index, out string res)
+        private FunctionMetadataTemplate GetAndAddCompleteLocalResourceSetForFunction(string localFuncName,
+            Dictionary<string, FunctionMetadataTemplate> nonCompleteMetadataTemplateMap, ref Dictionary<string, FunctionMetadataTemplate> completeTemplateMap)
         {
-            var replacements = Regex.Matches(str, Replacement.ReplacementRegexPattern);
-            if (index < replacements.Count)
+            if (!completeTemplateMap.ContainsKey(localFuncName))
             {
-                res = replacements[index].Value;
-                return true;
+                HashSet<Resource> resourceSet = new HashSet<Resource>(nonCompleteMetadataTemplateMap[localFuncName].LocalResourceSet);
+                foreach (var calledFunc in nonCompleteMetadataTemplateMap[localFuncName].CallingSet)
+                {
+                    if (calledFunc.Contains(Replacement.This))
+                    {
+                        var completeCallingTemplate = GetAndAddCompleteLocalResourceSetForFunction(calledFunc, nonCompleteMetadataTemplateMap,
+                            ref completeTemplateMap);
+                        resourceSet.UnionWith(completeCallingTemplate.LocalResourceSet);
+                    }
+                }
+                
+                var completeTemplate = new FunctionMetadataTemplate(nonCompleteMetadataTemplateMap[localFuncName].CallingSet, resourceSet);
+                completeTemplateMap.Add(localFuncName, completeTemplate);
+                return completeTemplate;
             }
             else
             {
-                res = null;
-                return false;
+                return completeTemplateMap[localFuncName];
             }
         }
+        
         #endregion
     }
 
@@ -243,6 +269,26 @@ namespace AElf.Kernel.Concurrency.Metadata
             else
             {
                 throw new InvalidParameterException("The input value: " + replacement + "is not a replacement");
+            }
+        }
+        
+        public static string ReplaceValueIntoReplacement(string str, string replacement, string value)
+        {
+            return str.Replace(replacement, value);
+        }
+        
+        public static bool TryGetReplacementWithIndex(string str, int index, out string res)
+        {
+            var replacements = Regex.Matches(str, Replacement.ReplacementRegexPattern);
+            if (index < replacements.Count)
+            {
+                res = replacements[index].Value;
+                return true;
+            }
+            else
+            {
+                res = null;
+                return false;
             }
         }
     }
