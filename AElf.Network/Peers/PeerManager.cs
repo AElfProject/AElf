@@ -121,6 +121,11 @@ namespace AElf.Network.Peers
                     await CreateAndAddPeer(p);
                 }
             }
+            
+            await AddBootnodes();
+
+            if (_peers.Count < 1)
+                throw new NoPeersConnectedException("Could not connect to any of the bootnodes");
 
             _maintenanceTimer = new Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
         }
@@ -142,23 +147,6 @@ namespace AElf.Network.Peers
                 return;
             
             UndergoingPm = true;
-
-            // If there are no connected peers or it there have been 5 iterations
-            // of maintenance without adding new peers then try to connect to
-            // all bootnodes
-            if (_peers.Count == 0)
-            {
-                AddBootnodes();
-            } 
-            /*else if (_peers.Count > BootnodeDropThreshold)
-            {
-                List<IPeer> peersToRemove = _peers.Where(p => p.IsBootnode).ToList();
-
-                foreach (var peer in peersToRemove)
-                {
-                    RemovePeer(peer);
-                }
-            }*/
 
             // After either the initial maintenance operation or the removal operation
             // (mutually exclusive) adjust the peers to get to TargetPeerCount.
@@ -221,7 +209,7 @@ namespace AElf.Network.Peers
             return peersToRemove;
         }
 
-        internal async void AddBootnodes()
+        internal async Task AddBootnodes()
         {
             foreach (var bootNode in _bootnodes)
             {
