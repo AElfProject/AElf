@@ -1,14 +1,17 @@
 ﻿using System.Collections.Generic;
+using AElf.Network.Data;
 
-namespace AElf.Kernel.Node.Network.Config
+namespace AElf.Network.Config
 {
     public interface IAElfNetworkConfig
     {
-        List<string> Bootnodes { get; }
+        List<NodeData> Bootnodes { get; }
         bool UseCustomBootnodes { get; }
         
         List<string> Peers { get; }
-        
+
+        string PeersDbPath { get; }
+
         string Host { get; }
         int Port { get; }
     }

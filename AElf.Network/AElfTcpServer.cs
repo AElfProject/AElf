@@ -4,12 +4,13 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
-using AElf.Kernel.Node.Network.Config;
-using AElf.Kernel.Node.Network.Data;
-using AElf.Kernel.Node.Network.Peers;
+using AElf.Network.Config;
+using AElf.Network.Data;
+using AElf.Network.Exceptions;
+using AElf.Network.Peers;
 using NLog;
 
-namespace AElf.Kernel.Node.Network
+namespace AElf.Network
 {
     /// <summary>
     /// The event that's raised when a new connection is
@@ -40,17 +41,13 @@ namespace AElf.Kernel.Node.Network
         
         private CancellationTokenSource _tokenSource;
         private CancellationToken _token;
-        
-        public AElfTcpServer(ILogger logger) : this(null, logger)
-        {
-        }
 
         public AElfTcpServer(IAElfNetworkConfig config, ILogger logger)
         {
-            _config = config ?? new AElfNetworkConfig();
+            _config = config;
             _logger = logger;
             
-            if (config != null)
+            if (config != null && !string.IsNullOrEmpty(config.Host))
                 _nodeData = new NodeData { IpAddress = config.Host, Port = config.Port };
         }
 
@@ -60,25 +57,26 @@ namespace AElf.Kernel.Node.Network
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        public async Task Start(CancellationToken? token = null)
+        public async Task StartAsync(CancellationToken? token = null)
         {
             if (_config == null)
-            {
-                _logger.Error("Could not start the server, config object is null");
-                return ;
-            }
+                throw new ServerConfigurationException("Could not start the server, config object is null.");
+
+            if (!IPAddress.TryParse(_config.Host, out var listenAddress))
+                throw new ServerConfigurationException("Could not start the server, invalid ip.");
                 
             try
             {
-                _listener = new TcpListener(IPAddress.Parse(_config.Host), _config.Port);
+                _logger?.Trace("Starting server on : " + _config.Host + ":" + _config.Port);
+                _listener = new TcpListener(listenAddress, _config.Port);
                 _listener.Start();
             }
             catch (Exception e)
             {
-                _logger.Error(e, "An error occurred while starting the server");
+                _logger?.Error(e, "An error occurred while starting the server");
             }
             
-            _logger.Info("Server listening on " + _listener.LocalEndpoint);
+            _logger?.Info("Server listening on " + _listener.LocalEndpoint);
             
             _tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token ?? new CancellationToken());
             _token = _tokenSource.Token;
@@ -111,11 +109,9 @@ namespace AElf.Kernel.Node.Network
         {
             if (client == null)
             {
-                _logger.Error("Connection refused: null client");
+                _logger?.Error("Connection refused: null client");
                 return;
             }
-            
-            _logger.Trace("Connection established : " + client.Client.RemoteEndPoint);
             
             Peer connected = await FinalizeConnect(client, client.GetStream());
 
@@ -152,14 +148,12 @@ namespace AElf.Kernel.Node.Network
                     
                     return p;
                 }
-                else
-                {
-                    return null;
-                }
+                
+                return null;
             }
             catch (Exception e)
             {
-                _logger.Warn("Error creating the connection");
+                _logger?.Warn("Error creating the connection");
                 return null;
             }
         }
