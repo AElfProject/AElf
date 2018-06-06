@@ -39,16 +39,6 @@ message LogEvent
     repeated EventField Details = 3;
 }
 
-message TransactionContext
-{
-    Hash Origin = 1;
-    Hash Miner = 2;
-    Hash PreviousBlockHash = 3;
-    Transaction Transaction = 4;
-    uint32 CallDepth = 5;
-    TransactionTrace Trace = 6;
-}
-
 message TransactionResult{
     Hash TransactionId = 1;
     Status status = 2;

@@ -13,8 +13,8 @@ namespace AElf.Sdk.CSharp
     {
         private static Dictionary<string, IDataProvider> _dataProviders;
         private static ISmartContractContext _smartContractContext;
-        private static TransactionContext _transactionContext;
-        private static TransactionContext _lastInlineCallContext;
+        private static ITransactionContext _transactionContext;
+        private static ITransactionContext _lastInlineCallContext;
 
         #region Setters used by runner and executor
 
@@ -27,7 +27,7 @@ namespace AElf.Sdk.CSharp
             };
         }
 
-        public static void SetTransactionContext(TransactionContext transactionContext)
+        public static void SetTransactionContext(ITransactionContext transactionContext)
         {
             _transactionContext = transactionContext;
         }
