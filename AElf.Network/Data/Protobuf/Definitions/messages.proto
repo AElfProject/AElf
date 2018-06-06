@@ -9,6 +9,7 @@ message NodeData {
 
 message AElfPacketData {
     int32 msgType = 1;
-    int32 length = 2;
-    bytes payload = 3;
+    int32 Id = 2;
+    int32 length = 3;
+    bytes payload = 4;
 }

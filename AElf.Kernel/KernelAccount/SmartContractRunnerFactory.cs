@@ -1,11 +1,11 @@
-using System.Collections.Concurrent;
-using Org.BouncyCastle.Security;
+using System;
+using System.Collections.Generic;
 
 namespace AElf.Kernel.KernelAccount
 {
     public class SmartContractRunnerFactory : ISmartContractRunnerFactory
     {
-        private readonly ConcurrentDictionary<int, ISmartContractRunner> _runners = new ConcurrentDictionary<int, ISmartContractRunner>();
+        private readonly Dictionary<int, ISmartContractRunner> _runners = new Dictionary<int, ISmartContractRunner>();
         public ISmartContractRunner GetRunner(int category)
         {
             if (_runners.TryGetValue(category, out var runner))
@@ -13,23 +13,15 @@ namespace AElf.Kernel.KernelAccount
                 return runner;
             }
 
-            throw new InvalidParameterException($"The runnder for category {category} is not registered.");
-        }
-
-        public void AddRunner(int category, ISmartContractRunner runner)
-        {
-            if (!_runners.TryAdd(category, runner))
+            switch (category)
             {
-                throw new InvalidParameterException($"The runner for category {category} is already registered.");
+                case 1 :
+                    runner = new CSharpSmartContractRunner();
+                    _runners[category] = runner;
+                    return runner;
             }
-        }
 
-        public void UpdateRunner(int category, ISmartContractRunner runner)
-        {
-            if (_runners.ContainsKey(category))
-            {
-                _runners.AddOrUpdate(category, runner, (key, oldVal) => runner);
-            }
+            throw new ArgumentException("Invalid Category for smart contract");
         }
     }
 }

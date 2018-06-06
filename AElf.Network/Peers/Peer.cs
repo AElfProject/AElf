@@ -174,8 +174,6 @@ namespace AElf.Kernel.Node.Network.Peers
                 return;
 
             await _stream.WriteAsync(data, 0, data.Length);
-            
-            //todo response
         }
 
         /// <summary>

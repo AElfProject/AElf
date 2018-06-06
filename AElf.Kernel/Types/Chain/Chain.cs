@@ -1,7 +1,6 @@
 ﻿// ReSharper disable once CheckNamespace
 
 using Google.Protobuf;
-using ServiceStack.DataAnnotations;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
