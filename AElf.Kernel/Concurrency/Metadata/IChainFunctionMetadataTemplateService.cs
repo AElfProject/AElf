@@ -9,7 +9,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <summary>
         /// use Map to store the function's metadata
         /// </summary>
-        Dictionary<string, FunctionMetadata> FunctionMetadataTemplateMap { get; }
+        Dictionary<string, FunctionMetadataTemplate> FunctionMetadataTemplateMap { get; }
 
         bool TryAddNewContract(Type contractType);
     }

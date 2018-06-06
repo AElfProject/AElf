@@ -290,7 +290,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 
                 var pathSet = TranslateStringToResourceSet(functionCallingGraph[i][0], pathSetStrings);
                     //ToDictionary(a=> a, a=> a);
-                var funMetadata = new FunctionMetadata(callingSet, new HashSet<string>(), pathSet);
+                var funMetadata = new FunctionMetadata(callingSet, new HashSet<Resource>(), pathSet);
                 
                 result.Add(new KeyValuePair<string, FunctionMetadata>(functionCallingGraph[i][0],funMetadata));
             }
@@ -298,9 +298,16 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return result;
         }
 
-        public HashSet<string> TranslateStringToResourceSet(string function, string[][] pathSetStrings)
+        public HashSet<Resource> TranslateStringToResourceSet(string function, string[][] pathSetStrings)
         {
-            return pathSetStrings.First(a => a[0] == function).Where(b => b != function).ToHashSet();
+            return pathSetStrings.First(a => a[0] == function).Where(b => b != function).Select(res =>
+            {
+                var name = res;
+                var dataAccessMode = (res.Contains("map"))
+                    ? DataAccessMode.AccountSpecific
+                    : DataAccessMode.ReadWriteAccountSharing;
+                return new Resource(name, dataAccessMode);
+            }).ToHashSet();
 
         }
 
@@ -326,10 +333,10 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                         PathSetToString((expectedValue)? TranslateStringToResourceSet(item.Key, GetFunctionFullPathSet()): item.Value.FullResourceSet))));
         }
 
-        public string PathSetToString(HashSet<string> resourceSet)
+        public string PathSetToString(HashSet<Resource> resourceSet)
         {
             return string.Join(", ",
-                resourceSet.OrderBy(a =>a));
+                resourceSet.OrderBy(a =>a.Name));
         }
 
         public string CallingSetToString(HashSet<string> callingSet)

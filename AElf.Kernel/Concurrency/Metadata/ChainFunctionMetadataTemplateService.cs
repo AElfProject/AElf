@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text.RegularExpressions;
 using Akka.Util.Internal;
 using NLog;
@@ -18,7 +19,7 @@ namespace AElf.Kernel.Concurrency.Metadata
     public class ChainFunctionMetadataTemplateService : IChainFunctionMetadataTemplateService
     {
         public Dictionary<string, FunctionMetadataTemplate> FunctionMetadataTemplateMap { get; } = new Dictionary<string, FunctionMetadataTemplate>();
-        private AdjacencyGraph<string, Edge<string>> _callingGraph;
+        private AdjacencyGraph<string, Edge<string>> _callingGraph; //calling graph is prepared for update contract code (check for DAG at that time)
         
         private readonly ILogger _logger;
 
@@ -40,18 +41,25 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <exception cref="FunctionMetadataException"></exception>
         public bool TryAddNewContract(Type contractType)
         {
-            ExtractRawMetadataFromType(contractType, out var smartContractReferenceMap,
-                out var localFunctionMetadataTemplateMap);
-
-            TryUpdateCallingGraph(contractType, smartContractReferenceMap, localFunctionMetadataTemplateMap);
-
-            
-            //merge the function metadata template map
-            localFunctionMetadataTemplateMap.ForEach( kv =>
+            try
             {
-                var key = Replacement.ReplaceValueIntoReplacement(kv.Key, Replacement.This, contractType.Name);
-                FunctionMetadataTemplateMap.Add(key, kv.Value);
-            });
+                ExtractRawMetadataFromType(contractType, out var smartContractReferenceMap,
+                    out var localFunctionMetadataTemplateMap);
+                
+                UpdateTemplate(contractType, smartContractReferenceMap, ref localFunctionMetadataTemplateMap);
+                
+                //merge the function metadata template map
+                foreach (var kv in localFunctionMetadataTemplateMap)
+                {
+                    var key = Replacement.ReplaceValueIntoReplacement(kv.Key, Replacement.This, contractType.Name);
+                    FunctionMetadataTemplateMap.Add(key, kv.Value);
+                }
+            }
+            catch (FunctionMetadataException e)
+            {
+                _logger?.Error(e, e.Message);
+                throw;
+            }
             return true;
         }
 
@@ -154,24 +162,27 @@ namespace AElf.Kernel.Concurrency.Metadata
 
         /// <summary>
         /// Try to update the calling graph when updating the function.
-        /// If the new graph after applying the update has circle, the update will not be approved and nothing will take effect
+        /// If the new graph after applying the update has circle (or have unknow reference of foreign edge(call other contract's function)), the update will not be approved and nothing will take effect
         /// </summary>
         /// <param name="contractType"></param>
         /// <param name="smartContractReferenceMap"></param>
-        /// <param name="localFunctionMetadataTemplateMap"></param>
+        /// <param name="targetLocalFunctionMetadataTemplateMap"></param>
         /// <returns></returns>
         /// <exception cref="FunctionMetadataException"></exception>
-        private bool TryUpdateCallingGraph(Type contractType, Dictionary<string, Type> smartContractReferenceMap, Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap)
+        private void UpdateTemplate(Type contractType, Dictionary<string, Type> smartContractReferenceMap, ref Dictionary<string, FunctionMetadataTemplate> targetLocalFunctionMetadataTemplateMap)
         {
             //check for DAG  (the updating calling graph is DAG iff local calling graph is DAG)
-            if (!TryGetLocalCallingGraph(localFunctionMetadataTemplateMap, out var localCallGraph))
+            if (!TryGetLocalCallingGraph(targetLocalFunctionMetadataTemplateMap, out var localCallGraph, out var localTopologicRes))
             {
-                return false;
+                throw new FunctionMetadataException("Calling graph of " + contractType.Name + " is Non-DAG thus nothing take effect");
             }
+
+            CompleteLocalResourceInTemplates(ref targetLocalFunctionMetadataTemplateMap, localTopologicRes);
             
             List<Edge<string>> outEdgesToAdd = new List<Edge<string>>();
             
-            foreach (var kvPair in localFunctionMetadataTemplateMap)
+            //check for unknown reference
+            foreach (var kvPair in targetLocalFunctionMetadataTemplateMap)
             {
                 var sourceFunc = Replacement.ReplaceValueIntoReplacement(kvPair.Key, Replacement.This, contractType.Name);
                 foreach (var calledFunc in kvPair.Value.CallingSet)
@@ -184,8 +195,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                             referenceType.Name);
                         if (!_callingGraph.ContainsVertex(globalCalledFunc))
                         {
-                            _logger?.Error("can not add edge <" + sourceFunc + ","+calledFunc+" when trying to add contract " + contractType.Name + " into calling graph");
-                            return false;
+                            throw new FunctionMetadataException("Unknow reference of the target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractType.Name + " into calling graph");
                         }
                         outEdgesToAdd.Add(new Edge<string>(sourceFunc, globalCalledFunc));
                     }
@@ -193,15 +203,18 @@ namespace AElf.Kernel.Concurrency.Metadata
             }
             
             //Merge local calling graph
-            localCallGraph.Vertices.ForEach(func => func = Replacement.ReplaceValueIntoReplacement(func, Replacement.This, contractType.Name));
-            _callingGraph.AddVerticesAndEdgeRange(localCallGraph.Edges);
-
+            foreach (var localEdge in localCallGraph.Edges)
+            {
+                var from = Replacement.ReplaceValueIntoReplacement(localEdge.Source, Replacement.This, contractType.Name);
+                var to = Replacement.ReplaceValueIntoReplacement(localEdge.Target, Replacement.This, contractType.Name);
+                _callingGraph.AddVerticesAndEdge(new Edge<string>(from, to));
+            }
+            //add foreign edges
             _callingGraph.AddEdgeRange(outEdgesToAdd);
-            return true;
         }
         
         
-        private bool TryGetLocalCallingGraph(Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap, out AdjacencyGraph<string, Edge<string>> callGraph)
+        private bool TryGetLocalCallingGraph(Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap, out AdjacencyGraph<string, Edge<string>> callGraph, out IEnumerable<string> topologicRes)
         {
             callGraph = new AdjacencyGraph<string, Edge<string>>();
             foreach (var kvPair in localFunctionMetadataTemplateMap)
@@ -218,18 +231,51 @@ namespace AElf.Kernel.Concurrency.Metadata
 
             try
             {
-                callGraph.TopologicalSort();
+                topologicRes = callGraph.TopologicalSort();
             }
             catch (NonAcyclicGraphException e)
             {
                 callGraph.Clear();
                 callGraph = null;
+                topologicRes = null;
                 return false;
             }
-
+            
             return true;
         }
-        
+
+        /// <summary>
+        /// Use topologicalOrder (reverse it inside this function) to calculate compelete local resource without dependency issue.
+        /// Should determine whether calling graph is DAG or not, this function take the topologicalOrder to complete local resource without checking
+        /// 
+        /// Note: function ExtractRawMetadataFromType has confirmed that no unknow reference in calling set so just access it without checking
+        /// </summary>
+        /// <param name="nonCompleteMetadataTemplateMap"></param>
+        /// <param name="topologicOrder"></param>
+        /// <returns>local template with complete resource. (by local, we mean replacement is still ${this} or else local replacement)</returns>
+        private void CompleteLocalResourceInTemplates(ref Dictionary<string, FunctionMetadataTemplate> nonCompleteMetadataTemplateMap, IEnumerable<string> topologicOrder)
+        {
+            
+            var completeTemplateMap = new Dictionary<string, FunctionMetadataTemplate>();
+            foreach (var funcName in topologicOrder.Reverse())
+            {
+                HashSet<Resource> resourceSet = new HashSet<Resource>(nonCompleteMetadataTemplateMap[funcName].LocalResourceSet);
+                var callingSet = nonCompleteMetadataTemplateMap[funcName].CallingSet;
+                foreach (var calledFunc in callingSet)
+                {
+                    if (calledFunc.Contains(Replacement.This))
+                    {
+                        if (nonCompleteMetadataTemplateMap.TryGetValue(calledFunc, out var functionMetadataTemplate))
+                        {
+                            resourceSet.UnionWith(functionMetadataTemplate.LocalResourceSet);
+                        }
+                    }
+                }
+                completeTemplateMap.Add(funcName, new FunctionMetadataTemplate(callingSet, resourceSet));
+            }
+
+            nonCompleteMetadataTemplateMap = completeTemplateMap;
+        }
         #endregion
     }
 
