@@ -1,9 +1,15 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Extensions;
 using AElf.Sdk.CSharp.Types;
+using Akka.Util.Internal;
+using ServiceStack;
 
 namespace AElf.Contracts.DPoS
 {
@@ -16,14 +22,6 @@ namespace AElf.Contracts.DPoS
         
         //Remain votes of voters
         public Map RemainVotes = new Map("RemainVotes");
-        
-        // TODO: Should use another smart contract to get ELF token balace.
-        public Map PreviousTermBalance = new Map("PreviousTermBalance");
-
-        public async Task<object> InitializeAsync()
-        {
-            throw new NotImplementedException();
-        }
 
         public async Task<object> RegisterToCampaign(Hash accountHash, string alias)
         {
@@ -49,12 +47,16 @@ namespace AElf.Contracts.DPoS
             return await RemainVotes.GetValue(voterAddress);
         }
 
-        public async Task<object> InitialVoting(Hash voterAddress)
+        public async Task<object> GetMiningNodes()
         {
-            var balance = (await PreviousTermBalance.GetValue(voterAddress)).ToUInt64();
-            await RemainVotes.SetValueAsync(voterAddress, (balance * 30).ToBytes());
-            return true;
-        }
+            List<string> miningNodes;
+            using (var file = 
+                File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.DPoS/MiningNodes.txt")))
+            {
+                miningNodes = file.ReadLines().ToList();
+            }
 
+            return miningNodes;
+        }
     }
 }
