@@ -23,6 +23,8 @@ namespace AElf.Kernel.Node.RPC
         private const string InsertTxMethodName = "insert_tx";
         private const string BroadcastTxMethodName = "broadcast_tx";
         private const string GetPeersMethodName = "get_peers";
+
+        private const string GetCommandsMethodName = "get_commands";
         
         /// <summary>
         /// The names of the exposed RPC methods and also the
@@ -33,7 +35,8 @@ namespace AElf.Kernel.Node.RPC
             GetTxMethodName,
             InsertTxMethodName,
             BroadcastTxMethodName,
-            GetPeersMethodName
+            GetPeersMethodName,
+            GetCommandsMethodName
         };
         
         /// <summary>
@@ -186,6 +189,9 @@ namespace AElf.Kernel.Node.RPC
                        case GetPeersMethodName:
                            responseData = await ProcessGetPeers(reqParams);
                            break;
+                       case GetCommandsMethodName:
+                           responseData = await ProcessGetCommands();
+                           break;
                        default:
                            Console.WriteLine("Method name not found"); // todo log
                            break;
@@ -221,7 +227,7 @@ namespace AElf.Kernel.Node.RPC
 
         /// <summary>
         /// This method processes the request for a specified
-        /// number of peers
+        /// number of transactions
         /// </summary>
         /// <param name="reqParams"></param>
         /// <returns></returns>
@@ -242,7 +248,6 @@ namespace AElf.Kernel.Node.RPC
         
         private async Task<JObject> ProcessInsertTx(JObject reqParams)
         {
-            //TransactionDto dto = reqParams["tx"].ToObject<TransactionDto>();
             var raw = reqParams["tx"].First;
             var tx = raw.ToTransaction();
 
@@ -276,6 +281,27 @@ namespace AElf.Kernel.Node.RPC
             JObject j = new JObject()
             {
                 ["data"] = arrPeersDto
+            };
+            
+            return JObject.FromObject(j);
+        }
+
+        private async Task<JObject> ProcessGetCommands()
+        {
+            List<string> commands = new List<string>
+            {
+                GetTxMethodName,
+                InsertTxMethodName,
+                BroadcastTxMethodName,
+                GetPeersMethodName
+            };
+
+            var json = JsonConvert.SerializeObject(commands);
+            JArray arrCommands = JArray.Parse(json);
+
+            JObject j = new JObject()
+            {
+                ["commands"] = arrCommands
             };
             
             return JObject.FromObject(j);
