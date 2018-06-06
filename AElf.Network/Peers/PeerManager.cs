@@ -127,7 +127,7 @@ namespace AElf.Network.Peers
         
         internal void DoPeerMaintenance()
         {
-            List<IPeer> peersSnapshot = _peers;
+            List<IPeer> peersSnapshot = _peers.ToList();
             
             if (_peers == null)
                 return;
