@@ -11,13 +11,11 @@ namespace AElf.CLI
 {
     class Program
     {
-        private static readonly HttpClient Client = new HttpClient();
-        private static readonly string RpcServerUrl = "http://localhost:5000";
         private static List<string> _commands = new List<string>();
         
         public static void Main(string[] args)
         {
-            _commands = GetCommands().Result;
+            _commands = RpcCalls.GetCommands().Result;
             Menu();
         }
 
@@ -25,10 +23,7 @@ namespace AElf.CLI
         {
             Console.WriteLine("Welcome to AElf!\n" +
                               "------------------------------------------------\n");
-            ushort index = 0;
-
-            Console.WriteLine(index + ". Return to Main Menu");
-            index++;
+            ushort index = 1;
             
             foreach (var comm in _commands)
             {
@@ -36,36 +31,9 @@ namespace AElf.CLI
                 index++;
             }
             
-            Console.WriteLine("Q. Quit\n");
+            Console.WriteLine("0. Quit\n");
 
-            Console.ReadLine();
-        }
-
-        private static async Task<List<string>> GetCommands()
-        {   
-            List<string> commands = new List<string>();
-            
-            var text = "{\"jsonrpc\":\"2.0\",\"method\":\"get_commands\",\"params\":{ },\"id\":0}";
-            Client.BaseAddress = new Uri(RpcServerUrl);
-            Client.DefaultRequestHeaders
-                .Accept
-                .Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/");
-            request.Content = new StringContent(text,
-                Encoding.UTF8,
-                "application/json");
-
-            await Client.SendAsync(request)
-                .ContinueWith(async responseTask =>
-                {
-                    string result = await responseTask.Result.Content.ReadAsStringAsync();
-                    var j = JObject.Parse(result);
-                    var comms = j["result"]["commands"].ToList();
-
-                    commands = comms.Select(c => (string) c).ToList();
-                });
-            
-            return commands;
+            string exec = Console.ReadLine();
         }
     }
 }
