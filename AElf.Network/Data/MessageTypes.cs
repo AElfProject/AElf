@@ -6,7 +6,6 @@
         RequestPeers = 1,
         ReturnPeers = 2,
         BroadcastTx = 3,
-        GetCommands = 4,
-        Ok = 5
+        Ok = 4
     }
 }
