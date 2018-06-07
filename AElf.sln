@@ -36,6 +36,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Tests", "AElf.Runtime.CSharp.Tests\AElf.Runtime.CSharp.Tests.csproj", "{8709F0EA-4058-45A7-825C-003D215670BA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.SmartContractZero", "AElf.Contracts.SmartContractZero\AElf.Contracts.SmartContractZero.csproj", "{82990513-1BCD-4731-A7F8-98B2B47F3442}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network", "AElf.Network\AElf.Network.csproj", "{5FEFB079-F6EB-48AF-97C7-6C582B9BDB8A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Common", "AElf.Common\AElf.Common.csproj", "{4EC22E9F-7019-470B-B990-B9E020DBBFB2}"
