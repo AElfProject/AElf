@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel.Design.Serialization;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -19,30 +21,14 @@ namespace AElf.CLI
         
         public static void Main(string[] args)
         {
+            _commands = GetCommands().Result;
             Menu();
         }
 
-        private static async Task Menu()
+        private static void Menu()
         {
             Console.WriteLine("Welcome to AElf!\n" +
                               "------------------------------------------------\n");
-            ListCommands();
-            
-            var text = "{\"jsonrpc\":\"2.0\",\"method\":\"get_commands\",\"params\":{ },\"id\":0}";
-            var j = JObject.Parse(text);
-            var content = new StringContent(j.ToString());
-            
-            Client.BaseAddress = new Uri(RpcServerUrl);
-            Client.DefaultRequestHeaders.Accept.Clear();
-            Client.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/json"));
-            HttpResponseMessage response = await Client.PostAsync(RpcServerUrl, content);
-            
-            Console.WriteLine(response.Content.ToString());
-        }
-
-        private static void ListCommands()
-        {
             ushort index = 0;
 
             Console.WriteLine(index + ". Return to Main Menu");
@@ -56,25 +42,39 @@ namespace AElf.CLI
             
             Console.WriteLine("Q. Quit\n");
 
-            string exec = Console.ReadLine();
-            Console.WriteLine();
-            
-            switch (exec)
-            {
-                case "0":
-                    Menu();
-                    break;
-                case "Q":
-                    Environment.Exit(1);
-                    break;
-            }
+            Console.ReadLine();
         }
 
         private static async Task<List<string>> GetCommands()
         {   
-//            var content = "jsonrpc?request={\"jsonrpc\":\"2.0\",\"method\":\"get_commands\",\"params\":{ },\"id\":4}";
-//            var response = await Client.GetStringAsync(RpcServerUrl + content);
-            return null;
+            List<string> commands = new List<string>();
+            
+            var text = "{\"jsonrpc\":\"2.0\",\"method\":\"get_commands\",\"params\":{ },\"id\":0}";
+            Client.BaseAddress = new Uri(RpcServerUrl);
+            Client.DefaultRequestHeaders
+                .Accept
+                .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/");
+            request.Content = new StringContent(text,
+                Encoding.UTF8,
+                "application/json");
+
+            await Client.SendAsync(request)
+                .ContinueWith(async responseTask =>
+                {
+                    var response = responseTask.Result;
+                    var jsonString = response.Content.ReadAsStringAsync();
+                    string result = await jsonString;
+                    var j = JObject.Parse(result);
+                    var comms = j["result"]["commands"].ToList();
+
+                    foreach (var c in comms)
+                    {
+                        commands.Add(c.ToString());
+                    }
+                });
+            
+            return commands;
         }
     }
 }
