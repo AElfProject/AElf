@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AElf.Kernel;
 using CommandLine;
 
 namespace AElf.Launcher
@@ -29,7 +30,28 @@ namespace AElf.Launcher
         [Option('p',HelpText = "The port of database.")]
         public int? DBPort { get; set; }
         
-        [Option('l', Default = false, HelpText = "Full node mode for a new chain if node is true, otherwise light node mode for main chain.")]
-        public bool node { get; set; }
+        /*[Option('m', Default = 'l', HelpText = "Full node mode for a new chain if mode is \'f\', otherwise light node mode for main chain.")]
+        public char Mode { get; set; }*/
+        
+        [Option('n', Default = false, HelpText = "Create a new chain if true")]
+        public bool NewChain { get; set; }
+        
+        [Option('m', Default = false, HelpText = "To be a miner verification needed ")]
+        public bool IsMiner { get; set; }
+        
+        [Option("pc", Default = (ulong)4096, HelpText  = "Transaction pool capacity limit")]
+        public ulong PoolCapacity { get; set; }
+        
+        [Option("ts", Default = (uint)1024, HelpText = "Transaction size limit")]
+        public uint TxSizeLimit { get; set; }
+        
+        [Option("fee", Default = (ulong)0, HelpText = "Minimal fee for entry into pool")]
+        public ulong MinimalFee { get; set; }
+       
+        [Option("coinbase", HelpText = "Miner coinbase when a new chain created")]
+        public string CoinBase { get; set; }
+        
+        [Option("tx", Default = (ulong) 1024, HelpText = "Maximal transaction count in block")]
+        public ulong TxCount { get; set; }
     }
 }
