@@ -8,11 +8,10 @@ namespace AElf.Kernel.TxMemPool
         {
             PoolLimitSize = 1024 * 1024,
             TxLimitSize = 1024 * 1,
-            EntryThreshold = 3,
-            ChainId = Hash.Generate()
+            FeeThreshold = 0
         };
         
-        public Hash ChainId { get; set; }
+        public Hash ChainId { get; set; } 
 
         public ulong PoolLimitSize { get; set; }
 
@@ -20,7 +19,7 @@ namespace AElf.Kernel.TxMemPool
 
         public ulong FeeThreshold { get; set; }
        
-        public ulong EntryThreshold { get; set; }
+        //public ulong EntryThreshold { get; set; }
     
     }
 }
