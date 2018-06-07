@@ -8,7 +8,7 @@ namespace AElf.Configuration
 {
     internal class ConfigManager
     {
-        private static readonly string _configFilePath = "/etc/aelfconfig/";
+        internal static string ConfigFilePath = "/etc/aelfconfig/";
         private static Dictionary<string, ConfigInfo> ConfigInfos = new Dictionary<string, ConfigInfo>();
         private static readonly object _configLock = new object();
 
@@ -64,13 +64,13 @@ namespace AElf.Configuration
 
         private static string GetFromLocalFile(string name)
         {
-            var filePath = _configFilePath + name;
+            var filePath = ConfigFilePath + name;
             if (!File.Exists(filePath))
             {
                 return null;
             }
 
-            var text = File.ReadAllText(_configFilePath + name);
+            var text = File.ReadAllText(ConfigFilePath + name);
             return text;
         }
     }
