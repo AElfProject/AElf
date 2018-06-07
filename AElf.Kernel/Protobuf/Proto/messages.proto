@@ -107,3 +107,7 @@ enum Status {
     ExecutedFailed = 3;
     Mined = 4;
 }
+
+message MiningNodes {
+    repeated Hash Nodes = 1;
+}

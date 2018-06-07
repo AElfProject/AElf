@@ -1,16 +1,18 @@
 ﻿using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Extensions;
+using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using ServiceStack;
 
 namespace AElf.Contracts.DPoS
 {
-    public class Election
+    public class Election : CSharpSmartContract
     {
         public Map GoLivePoolMembers = new Map("GoLivePoolMembers");
         
@@ -20,6 +22,20 @@ namespace AElf.Contracts.DPoS
         //Remain votes of voters
         public Map RemainVotes = new Map("RemainVotes");
 
+        public override async Task InvokeAsync()
+        {
+            var tx = Api.GetTransaction();
+
+            var methodname = tx.MethodName;
+            var type = GetType();
+            var member = type.GetMethod(methodname);
+            // params array
+            var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
+
+            // invoke
+            if (member != null) await (Task<object>) member.Invoke(this, parameters);
+        }
+        
         public async Task<object> RegisterToCampaign(Hash accountHash, string alias)
         {
             await GoLivePoolMembers.SetValueAsync(accountHash, Encoding.UTF8.GetBytes(alias));
@@ -42,18 +58,6 @@ namespace AElf.Contracts.DPoS
         public async Task<object> GetRemainVotes(Hash voterAddress)
         {
             return await RemainVotes.GetValue(voterAddress);
-        }
-
-        public async Task<object> GetMiningNodes()
-        {
-            List<string> miningNodes;
-            using (var file = 
-                File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.DPoS/MiningNodes.txt")))
-            {
-                miningNodes = file.ReadLines().ToList();
-            }
-
-            return miningNodes;
         }
     }
 }
