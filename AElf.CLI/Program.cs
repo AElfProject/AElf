@@ -8,6 +8,9 @@ namespace AElf.CLI
         private static List<string> _commands = new List<string>();
         private static readonly RpcCalls Rpc = new RpcCalls();
         
+        private const string InvalidCommandError = "***** WARNING: INVALID COMMAND - SEE USAGE *****";
+        private const string InvalidParamsError = "***** ERROR: INVALID PARAMETERS - SEE USAGE *****";
+        
         public static void Main(string[] args)
         {
             _commands = Rpc.GetCommands().Result;
@@ -45,7 +48,7 @@ namespace AElf.CLI
                     }
                     else
                     {
-                        Console.WriteLine("\n***** ERROR: INVALID PARAMETERS - SEE USAGE *****\n");
+                        Console.WriteLine("\n" + InvalidParamsError + "\n");
                     }
 
                     break;
@@ -53,7 +56,7 @@ namespace AElf.CLI
                     Environment.Exit(0);
                     break;
                 default:
-                    Console.WriteLine("\n***** WARNING: INVALID COMMAND - SEE USAGE *****\n");
+                    Console.WriteLine("\n" + InvalidCommandError + "\n");
                     break;
             }
         }
