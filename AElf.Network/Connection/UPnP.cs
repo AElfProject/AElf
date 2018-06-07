@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace AElf.Kernel.Node.Network.Connection
+namespace AElf.Network.Connection
 {
     public class UPnP
     {
@@ -98,7 +98,7 @@ namespace AElf.Kernel.Node.Network.Connection
 
         public static async Task CreateForwardingRuleAsync(int port, ProtocolType protocol, string description)
         {
-            if (string.IsNullOrEmpty(_serviceUrl)) throw new Exception("No UPnP service available or Discover() has not been called");
+            if (string.IsNullOrEmpty(_serviceUrl)) throw new Exception("No UPnP service available or DiscoverAsync() has not been called");
             XmlDocument xdoc = await SOAPRequestAsync(_serviceUrl, 
                 "<u:AddPortMapping xmlns:u=\"urn:schemas-upnp-org:service:WANIPConnection:1\">" +
                 "<NewRemoteHost></NewRemoteHost><NewExternalPort>" + port.ToString() + 
@@ -112,7 +112,7 @@ namespace AElf.Kernel.Node.Network.Connection
 
         public static async Task DeleteForwardingRuleAsync(int port, ProtocolType protocol)
         {
-            if (string.IsNullOrEmpty(_serviceUrl)) throw new Exception("No UPnP service available or Discover() has not been called");
+            if (string.IsNullOrEmpty(_serviceUrl)) throw new Exception("No UPnP service available or DiscoverAsync() has not been called");
             XmlDocument xdoc = await SOAPRequestAsync(_serviceUrl,
                 "<u:DeletePortMapping xmlns:u=\"urn:schemas-upnp-org:service:WANIPConnection:1\">" +
                 "<NewRemoteHost>" +
@@ -124,7 +124,7 @@ namespace AElf.Kernel.Node.Network.Connection
 
         public static async Task<IPAddress> GetExternalIPAsync()
         {
-            if (string.IsNullOrEmpty(_serviceUrl)) throw new Exception("No UPnP service available or Discover() has not been called");
+            if (string.IsNullOrEmpty(_serviceUrl)) throw new Exception("No UPnP service available or DiscoverAsync() has not been called");
             XmlDocument xdoc = await SOAPRequestAsync(_serviceUrl, 
                 "<u:GetExternalIPAddress xmlns:u=\"urn:schemas-upnp-org:service:WANIPConnection:1\">" +
                 "</u:GetExternalIPAddress>", "GetExternalIPAddress");

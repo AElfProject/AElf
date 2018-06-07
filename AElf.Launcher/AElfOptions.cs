@@ -28,5 +28,8 @@ namespace AElf.Launcher
 
         [Option('p',HelpText = "The port of database.")]
         public int? DBPort { get; set; }
+
+        [Option(HelpText = "The absolute path where to store the peer database.")]
+        public string PeersDbPath { get; set; }
     }
 }

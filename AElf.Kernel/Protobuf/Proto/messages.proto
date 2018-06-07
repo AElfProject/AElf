@@ -1,6 +1,9 @@
 syntax = "proto3";
 
 option csharp_namespace = "AElf.Kernel";
+
+import "google/protobuf/any.proto";
+
 message Transaction
 {
     Hash From = 1;
@@ -12,6 +15,42 @@ message Transaction
     bytes R = 7;
     bytes S = 8;
     bytes P = 9;
+}
+
+message TransactionTrace
+{
+    google.protobuf.Any RetVal = 1;
+    string StdOut = 2;
+    string StdErr = 3;
+    repeated LogEvent Logs = 4;
+    repeated TransactionTrace InlineTraces = 5;
+    int64 Elapsed = 6;
+}
+
+message EventField
+{
+    string Name = 1;
+    google.protobuf.Any Value = 2;
+}
+
+message LogEvent
+{
+    Hash Address = 1;
+    Hash Topic = 2;
+    repeated EventField Details = 3;
+}
+
+message TransactionResult{
+    Hash TransactionId = 1;
+    Status status = 2;
+    repeated LogEvent Logs = 3;
+}
+
+enum Status {
+    NotExisted = 0;
+    Pending = 1;
+    Failed = 2;
+    Mined = 3;
 }
 
 message Hash{
@@ -91,23 +130,4 @@ message ChangesDict{
 message Chain{
     Hash Id = 1;
     Hash GenesisBlockHash = 2;
-}
-
-
-message TransactionResult{
-    Hash TransactionId = 1;
-    Status status = 2;
-    bytes logs = 3;
-}
-
-enum Status {
-    NotExisted = 0;
-    Refused = 1;
-    Pending = 2;
-    ExecutedFailed = 3;
-    Mined = 4;
-}
-
-message MiningNodes {
-    repeated Hash Nodes = 1;
 }

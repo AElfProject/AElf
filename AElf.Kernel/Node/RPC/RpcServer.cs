@@ -4,10 +4,13 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Kernel.Node.RPC.DTO;
+using AElf.Network.Data;
 using AElf.Node.RPC.DTO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 
@@ -19,6 +22,7 @@ namespace AElf.Kernel.Node.RPC
         private const string GetTxMethodName = "get_tx";
         private const string InsertTxMethodName = "insert_tx";
         private const string BroadcastTxMethodName = "broadcast_tx";
+        private const string GetPeersMethodName = "get_peers";
         
         /// <summary>
         /// The names of the exposed RPC methods and also the
@@ -28,7 +32,8 @@ namespace AElf.Kernel.Node.RPC
         {
             GetTxMethodName,
             InsertTxMethodName,
-            BroadcastTxMethodName
+            BroadcastTxMethodName,
+            GetPeersMethodName
         };
         
         /// <summary>
@@ -107,7 +112,7 @@ namespace AElf.Kernel.Node.RPC
         }
         
         /// <summary>
-        /// Verifies the request, especially it checks to see it the command is
+        /// Verifies the request, it especially checks to see if the command is
         /// registered.
         /// </summary>
         /// <param name="request">The request to verify</param>
@@ -178,6 +183,9 @@ namespace AElf.Kernel.Node.RPC
                        case BroadcastTxMethodName:
                            responseData = await ProcessBroadcastTx(reqParams);
                            break;
+                       case GetPeersMethodName:
+                           responseData = await ProcessGetPeers(reqParams);
+                           break;
                        default:
                            Console.WriteLine("Method name not found"); // todo log
                            break;
@@ -211,6 +219,12 @@ namespace AElf.Kernel.Node.RPC
             return jobj;
         }
 
+        /// <summary>
+        /// This method processes the request for a specified
+        /// number of peers
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProcessGetTx(JObject reqParams)
         {
             byte[] txid = reqParams["txid"].ToObject<byte[]>();
@@ -237,6 +251,31 @@ namespace AElf.Kernel.Node.RPC
             JObject j = new JObject
             {
                 ["hash"] = txHash.Value.ToBase64()
+            };
+            
+            return JObject.FromObject(j);
+        }
+
+        private async Task<JObject> ProcessGetPeers(JObject reqParams)
+        {
+            string numPeersS = reqParams["numPeers"].ToString();
+            ushort numPeers = Convert.ToUInt16(numPeersS);
+
+            List<NodeData> peers = await _node.GetPeers(numPeers);
+            List<NodeDataDto> peersDto = new List<NodeDataDto>();
+
+            foreach (var peer in peers)
+            {
+                NodeDataDto pDto = peer.ToNodeDataDto();
+                peersDto.Add(pDto);
+            }
+
+            var json = JsonConvert.SerializeObject(peersDto);
+            JArray arrPeersDto = JArray.Parse(json);
+
+            JObject j = new JObject()
+            {
+                ["data"] = arrPeersDto
             };
             
             return JObject.FromObject(j);

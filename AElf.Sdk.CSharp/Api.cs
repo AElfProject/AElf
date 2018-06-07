@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Sdk.CSharp
 {
@@ -13,6 +14,7 @@ namespace AElf.Sdk.CSharp
         private static Dictionary<string, IDataProvider> _dataProviders;
         private static ISmartContractContext _smartContractContext;
         private static ITransactionContext _transactionContext;
+        private static ITransactionContext _lastInlineCallContext;
 
         #region Setters used by runner and executor
 
@@ -68,40 +70,57 @@ namespace AElf.Sdk.CSharp
             return _transactionContext.Transaction;
         }
 
-        public static void LogToResult(byte[] log)
+        public static void RaiseEvent(LogEvent logEvent)
         {
             // TODO: Improve
-            _transactionContext.TransactionResult.Logs = ByteString.CopyFrom(log);
+            _transactionContext.Trace.Logs.Add(logEvent);
         }
 
         #endregion Getters used by contract
 
         #region Transaction API
-        public static TransactionResult Call(Hash contractAddress, string methodName, byte[] args)
+        public static bool Call(Hash contractAddress, string methodName, byte[] args)
         {
-            var txnCtxt = new TransactionContext()
+            _lastInlineCallContext = new TransactionContext()
             {
                 Transaction = new Transaction()
                 {
                     From = _smartContractContext.ContractAddress,
                     To = contractAddress,
                     // TODO: Get increment id from AccountDataContext
-                    IncrementId = 0,
+                    IncrementId = ulong.MinValue,
                     MethodName = methodName,
                     Params = ByteString.CopyFrom(args)
-                },
-                TransactionResult = new TransactionResult()
+                }
             };
 
             Task.Factory.StartNew(async () =>
             {
                 var executive = await _smartContractContext.SmartContractService.GetExecutiveAsync(contractAddress, _smartContractContext.ChainId);
-                await executive.SetTransactionContext(txnCtxt).Apply();
+                await executive.SetTransactionContext(_lastInlineCallContext).Apply();
             }).Unwrap().Wait();
+
+            _transactionContext.Trace.Logs.AddRange(_lastInlineCallContext.Trace.Logs);
 
             // TODO: Put inline transactions into Transaction Result of calling transaction
 
-            return txnCtxt.TransactionResult;
+            // True: success
+            // False: error
+            return string.IsNullOrEmpty(_lastInlineCallContext.Trace.StdErr);
+        }
+
+        public static Any GetCallResult()
+        {
+            if (_lastInlineCallContext == null)
+            {
+                return _lastInlineCallContext.Trace.RetVal;
+            }
+            return new Any();
+        }
+
+        public static void Return(IMessage retVal)
+        {
+            _transactionContext.Trace.RetVal = Any.Pack(retVal);
         }
         #endregion Transaction API
 

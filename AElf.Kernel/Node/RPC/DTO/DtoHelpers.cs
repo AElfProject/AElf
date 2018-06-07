@@ -1,12 +1,10 @@
 ﻿using System;
-using AElf.Kernel;
-using AElf.Kernel.Crypto.ECDSA;
+using AElf.Network.Data;
+using AElf.Node.RPC.DTO;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Newtonsoft.Json.Linq;
-using Parameters = AElf.Kernel.Parameters;
 
-namespace AElf.Node.RPC.DTO
+namespace AElf.Kernel.Node.RPC.DTO
 {
     public static class DtoHelper
     {
@@ -22,42 +20,30 @@ namespace AElf.Node.RPC.DTO
 
         public static Transaction ToTransaction(this JToken raw)
         {
-            
-
-            //var tx = Transaction.Parser.ParseFrom(dto.Raw);
-            // ECKeyPair keyPair = new KeyPairGenerator().Generate();
-
-            /*var tx = new Transaction
-            {
-                From = Hash.Generate(),
-                To = Hash.Generate(),
-                IncrementId = 0,
-                MethodName = "transfer",
-                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                        Params = { new Param
-                        {
-                            StrVal = "hello"
-                        }}
-                    }.ToByteArray())
-            };
-
-            // Serialize and hash the transaction
-            Hash hash = tx.GetHash();
-            
-            // Sign the hash
-            ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
-            
-            // Update the signature
-            tx.R = ByteString.CopyFrom(signature.R);
-            tx.S = ByteString.CopyFrom(signature.S);*/
-
-            //var tx = Transaction.Parser.ParseFrom(ByteString.FromBase64(@"CiIKIKkqNVMSxCWn/TizqYJl0ymJrnrRqZN+W3incFJX3MRIEiIKIIFxBhlGhI1auR05KafXd/lFGU+apqX96q1YK6aiZLMhIgh0cmFuc2ZlcioJCgcSBWhlbGxvOiEAxfMt77nwSKl/WUg1TmJHfxYVQsygPj0wpZ/Pbv+ZK4pCICzGxsZBCBlASmlDdn0YIv6vRUodJl/9jWd8Q1z2ofFwSkEE+PDQtkHQxvw0txt8bmixMA8lL0VM5ScOYiEI82LX1A6oWUNiLIjwAI0Qh5fgO5g5PerkNebXLPDE2dTzVVyYYw=="));
             var rawData = raw.First.ToString();
             return Transaction.Parser.ParseFrom(ByteString.FromBase64(rawData));
+        }
+
+        public static NodeDataDto ToNodeDataDto(this NodeData nd)
+        {
+            NodeDataDto dto = new NodeDataDto()
+            {
+                IpAddress = nd.IpAddress,
+                Port = Convert.ToUInt16(nd.Port)
+            };
+
+            return dto;
+        }
+
+        public static NodeData ToNodeData(this NodeDataDto dto)
+        {
+            NodeData nd = new NodeData()
+            {
+                IpAddress = dto.IpAddress,
+                Port = dto.Port
+            };
+
+            return nd;
         }
         
         public static byte[] StringToByteArray(string hex)

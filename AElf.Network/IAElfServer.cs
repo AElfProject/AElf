@@ -2,12 +2,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AElf.Kernel.Node.Network
+namespace AElf.Network
 {
     public interface IAElfServer
     {
         event EventHandler ClientConnected;
         
-        Task Start(CancellationToken? token = null);
+        Task StartAsync(CancellationToken? token = null);
     }
 }

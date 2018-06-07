@@ -3,8 +3,8 @@ using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
-using AElf.Kernel.Node.Network.Config;
 using AElf.Kernel.TxMemPool;
+using AElf.Network.Config;
 using Autofac;
 using IContainer = Autofac.IContainer;
 
@@ -51,7 +51,7 @@ namespace AElf.Launcher
             }
         }
 
-        private static IContainer SetupIocContainer(ITxPoolConfig txPoolConf, IAElfNetworkConfig netConf,IDatabaseConfig databaseConf)
+        private static IContainer SetupIocContainer(ITxPoolConfig txPoolConf, IAElfNetworkConfig netConf, IDatabaseConfig databaseConf)
         {
             var builder = new ContainerBuilder();
             

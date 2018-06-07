@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace AElf.Kernel.Node.Network.Helpers
+namespace AElf.Network.Helpers
 {
     public static class StringHelpers
     {

@@ -1,18 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Node.Network.Data;
+using AElf.Network.Data;
 
-namespace AElf.Kernel.Node.Network.Peers
+namespace AElf.Network.Peers
 {
     public interface IPeerManager
     {
         event EventHandler MessageReceived;
         
         void Start();
-        void AddPeer(IPeer peer);
+        bool AddPeer(IPeer peer);
+
+        List<NodeData> GetPeers(ushort numPeers);
 
         Task<bool> BroadcastMessage(MessageTypes messageType, byte[] payload, int requestId);
-        
-        //void SetCommandContext(MainChainNode node);
     }
 }

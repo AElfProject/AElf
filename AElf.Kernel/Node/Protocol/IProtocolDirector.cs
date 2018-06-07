@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using AElf.Network.Data;
 
 namespace AElf.Kernel.Node.Protocol
 {
@@ -8,5 +10,7 @@ namespace AElf.Kernel.Node.Protocol
 
         Task BroadcastTransaction(ITransaction transaction);
         void SetCommandContext(MainChainNode node);
+
+        List<NodeData> GetPeers(ushort numPeers);
     }
 }

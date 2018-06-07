@@ -157,39 +157,33 @@ namespace AElf.Runtime.CSharp.Tests
 
             await executive1.SetTransactionContext(new TransactionContext()
             {
-                Transaction = init0,
-                TransactionResult = new TransactionResult()
+                Transaction = init0
             }).Apply();
 
             await executive1.SetTransactionContext(new TransactionContext()
             {
-                Transaction = init1,
-                TransactionResult = new TransactionResult()
+                Transaction = init1
             }).Apply();
 
             await executive1.SetTransactionContext(new TransactionContext()
             {
-                Transaction = transfer1,
-                TransactionResult = new TransactionResult()
+                Transaction = transfer1
             }).Apply();
 
 
             await executive2.SetTransactionContext(new TransactionContext()
             {
-                Transaction = init0,
-                TransactionResult = new TransactionResult()
+                Transaction = init0
             }).Apply();
 
             await executive2.SetTransactionContext(new TransactionContext()
             {
-                Transaction = init1,
-                TransactionResult = new TransactionResult()
+                Transaction = init1
             }).Apply();
 
             await executive2.SetTransactionContext(new TransactionContext()
             {
-                Transaction = transfer2,
-                TransactionResult = new TransactionResult()
+                Transaction = transfer2
             }).Apply();
 
             var getb0 = new Transaction
@@ -230,40 +224,31 @@ namespace AElf.Runtime.CSharp.Tests
                 )
             };
 
-            var bal10 = new TransactionResult();
-            var bal20 = new TransactionResult();
-            var bal11 = new TransactionResult();
-            var bal21 = new TransactionResult();
+            var tc10 = new TransactionContext(){
+                Transaction = getb0  
+            };
+            var tc20 = new TransactionContext(){
+                Transaction = getb0  
+            };
+            var tc11 = new TransactionContext(){
+                Transaction = getb1
+            };
+            var tc21 = new TransactionContext(){
+                Transaction = getb1  
+            };
+            await executive1.SetTransactionContext(tc10).Apply();
 
-            await executive1.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = getb0,
-                TransactionResult = bal10
-            }).Apply();
+            await executive2.SetTransactionContext(tc20).Apply();
 
-            await executive2.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = getb0,
-                TransactionResult = bal20
-            }).Apply();
+            await executive1.SetTransactionContext(tc11).Apply();
 
-            await executive1.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = getb1,
-                TransactionResult = bal11
-            }).Apply();
+            await executive2.SetTransactionContext(tc21).Apply();
 
-            await executive2.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = getb1,
-                TransactionResult = bal21
-            }).Apply();
+            Assert.Equal((ulong)190, tc10.Trace.RetVal.Unpack<UInt64Value>().Value);
+            Assert.Equal((ulong)180, tc20.Trace.RetVal.Unpack<UInt64Value>().Value);
 
-            Assert.Equal((ulong)190, bal10.Logs.ToByteArray().ToUInt64());
-            Assert.Equal((ulong)180, bal20.Logs.ToByteArray().ToUInt64());
-
-            Assert.Equal((ulong)110, bal11.Logs.ToByteArray().ToUInt64());
-            Assert.Equal((ulong)120, bal21.Logs.ToByteArray().ToUInt64());
+            Assert.Equal((ulong)110, tc11.Trace.RetVal.Unpack<UInt64Value>().Value);
+            Assert.Equal((ulong)120, tc21.Trace.RetVal.Unpack<UInt64Value>().Value);
 
         }
     }

@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AElf.Kernel.Node.Network.Helpers
+namespace AElf.Network.Helpers
 {
     public static class TaskHelpers
     {

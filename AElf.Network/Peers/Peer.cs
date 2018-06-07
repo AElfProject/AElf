@@ -2,14 +2,20 @@
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.Node.Network.Data;
-using AElf.Kernel.Node.Network.Helpers;
-using AElf.Kernel.Node.Network.Peers.Exceptions;
+using AElf.Network.Data;
+using AElf.Network.Helpers;
+using AElf.Network.Peers.Exceptions;
 using Google.Protobuf;
 
-namespace AElf.Kernel.Node.Network.Peers
+namespace AElf.Network.Peers
 {
     public class MessageReceivedArgs : EventArgs
+    {
+        public AElfPacketData Message { get; set; }
+        public Peer Peer { get; set; }
+    }
+    
+    public class PeerDisconnectedArgs : EventArgs
     {
         public AElfPacketData Message { get; set; }
         public Peer Peer { get; set; }
@@ -31,6 +37,12 @@ namespace AElf.Kernel.Node.Network.Peers
         public event EventHandler MessageReceived;
         
         /// <summary>
+        /// The event that's raised when a peers stream
+        /// as ended.
+        /// </summary>
+        public event EventHandler PeerDisconnected;
+        
+        /// <summary>
         /// The data relative to the current nodes identity.
         /// </summary>
         private NodeData _nodeData; // todo readonly
@@ -43,15 +55,14 @@ namespace AElf.Kernel.Node.Network.Peers
         /// <summary>
         /// Constructor used for creating a peer that is not
         /// connected to any client. The next logical step
-        /// would be to call <see cref="DoConnect"/>.
+        /// would be to call <see cref="DoConnectAsync"/>.
         /// </summary>
         /// <param name="nodeData"></param>
-        /// <param name="ipAddress"></param>
-        /// <param name="port"></param>
-        public Peer(NodeData nodeData, string ipAddress, ushort port)
+        /// /// <param name="peerData"></param>
+        public Peer(NodeData nodeData, NodeData peerData)
         {
             _nodeData = nodeData;
-            DistantNodeData = new NodeData { IpAddress = ipAddress, Port = port };
+            DistantNodeData = peerData;
         }
 
         /// <summary>
@@ -76,6 +87,11 @@ namespace AElf.Kernel.Node.Network.Peers
         /// </summary>
         public NodeData DistantNodeData { get; private set; }
 
+        public bool IsBootnode
+        {
+            get { return DistantNodeData?.IsBootnode ?? false; }
+        }
+
         public bool IsConnected
         {
             get { return _client != null && _stream != null && _client.Connected; }
@@ -88,18 +104,12 @@ namespace AElf.Kernel.Node.Network.Peers
 
         public string IpAddress
         {
-            get { return _nodeData?.IpAddress; }
+            get { return DistantNodeData?.IpAddress; }
         }
 
         public ushort Port
         {
-            get { return _nodeData != null ? (ushort)_nodeData.Port : (ushort)0; }
-        }
-
-        // todo cf interface comment
-        public void SetNodeData(NodeData data)
-        {
-            _nodeData = data;
+            get { return DistantNodeData?.Port != null ? (ushort) DistantNodeData?.Port : (ushort)0; }
         }
         
         /// <summary>
@@ -112,7 +122,7 @@ namespace AElf.Kernel.Node.Network.Peers
         {
             // If the peer is not connected or is already in 
             // a listening state.
-            if (!IsConnected || IsListening)
+            if (!IsConnected || IsListening) 
                 return; // todo error
             
             try
@@ -121,7 +131,7 @@ namespace AElf.Kernel.Node.Network.Peers
                 
                 while (true)
                 {
-                    AElfPacketData packet = await ListenForPacket();
+                    AElfPacketData packet = await ListenForPacketAsync();
                     
                     // raise the event so the higher levels can process it.
                     var args = new MessageReceivedArgs { Message = packet, Peer = this };
@@ -132,6 +142,9 @@ namespace AElf.Kernel.Node.Network.Peers
             {
                 _client?.Close();
                 _isListening = false;
+                
+                var args = new PeerDisconnectedArgs { Peer = this };
+                PeerDisconnected?.Invoke(this, args);
             }
             finally
             {
@@ -140,7 +153,7 @@ namespace AElf.Kernel.Node.Network.Peers
             }
         }
 
-        private async Task<AElfPacketData> ListenForPacket()
+        private async Task<AElfPacketData> ListenForPacketAsync()
         {
             byte[] bytes = new byte[1024];
             int bytesRead = await _stream.ReadAsync(bytes, 0, 1024);
@@ -168,7 +181,7 @@ namespace AElf.Kernel.Node.Network.Peers
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public async Task Send(byte[] data)
+        public async Task SendAsync(byte[] data)
         {
             if (_stream == null)
                 return;
@@ -183,7 +196,7 @@ namespace AElf.Kernel.Node.Network.Peers
         /// </summary>
         /// <returns></returns>
         /// <exception cref="OperationCanceledException">Distant peer timeout</exception>
-        public async Task<bool> DoConnect()
+        public async Task<bool> DoConnectAsync()
         {
             if (DistantNodeData == null)
                 return false;
@@ -194,11 +207,11 @@ namespace AElf.Kernel.Node.Network.Peers
                 _stream = _client?.GetStream();
 
                 await WriteConnectInfoAsync();
-                DistantNodeData = await AwaitForConnectionInfoAsync();
+                await AwaitForConnectionInfoAsync();
             }
             catch (OperationCanceledException e)
             {
-                _client.Close();
+                _client?.Close();
                 throw new ResponseTimeOutException(e);
             }
             catch (Exception e)
@@ -250,6 +263,28 @@ namespace AElf.Kernel.Node.Network.Peers
         public override string ToString()
         {
             return DistantNodeData.IpAddress + ":" + DistantNodeData.Port;
+        }
+
+        /// <summary>
+        /// Equality of two peers is based on the equality of the underlying
+        /// distant node data it represents.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(obj, null))
+                return false;
+
+            if (ReferenceEquals(obj, this))
+                return true;
+            
+            Peer p = obj as Peer;
+
+            if (p?.DistantNodeData == null || DistantNodeData == null)
+                return false;
+
+            return p.DistantNodeData.Equals(DistantNodeData);
         }
     }
 }

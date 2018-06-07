@@ -24,7 +24,7 @@ namespace AElf.Contracts
             var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
 
             // invoke
-            await (Task) member.Invoke(this, parameters);
+            await (Task)member.Invoke(this, parameters);
         }
 
         /// <inheritdoc/>
@@ -46,7 +46,7 @@ namespace AElf.Contracts
             await Api.DeployContractAsync(account, registration);
 
             // TODO: Log New Account Address to TransactionResult
-            Api.LogToResult(account.Value.ToByteArray());
+            Api.Return(account);
         }
 
         public Hash GetHash()
