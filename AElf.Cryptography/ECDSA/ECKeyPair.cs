@@ -1,4 +1,5 @@
-﻿using Org.BouncyCastle.Crypto.Parameters;
+﻿using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace AElf.Cryptography.ECDSA
 {
@@ -13,7 +14,7 @@ namespace AElf.Cryptography.ECDSA
             PrivateKey = privateKey;
         }
 
-        public byte[] GetPublicKey(bool compressed = false)
+        public byte[] GetEncodedPublicKey(bool compressed = false)
         {
             return PublicKey.Q.GetEncoded(compressed);
         }
