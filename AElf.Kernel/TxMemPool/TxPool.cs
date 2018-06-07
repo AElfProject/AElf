@@ -28,7 +28,7 @@ namespace AElf.Kernel.TxMemPool
         //private HashSet<Hash> Tmp { get; } = new HashSet<Hash>();
 
         /// <inheritdoc />
-        public ulong EntryThreshold => _config.EntryThreshold;
+        //public ulong EntryThreshold => _config.EntryThreshold;
 
         public bool Enqueueable { get; set; } = true;
 

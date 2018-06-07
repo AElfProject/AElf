@@ -54,7 +54,7 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// threshold for entering pool
         /// </summary>
-        ulong EntryThreshold { get; }
+        //ulong EntryThreshold { get; }
 
         /// <summary>
         /// txs can be enqueued to waiting list if Enqueueable is true,
