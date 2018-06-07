@@ -19,6 +19,7 @@ namespace AElf.Configuration
         {
             _name = name;
             _type = type;
+            _value = JsonSerializer.Instance.Deserialize(content, type);
         }
     }
 }
