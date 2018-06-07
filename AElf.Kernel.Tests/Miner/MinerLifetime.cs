@@ -172,17 +172,13 @@ namespace AElf.Kernel.Tests.Miner
 
             var txnCtxt = new TransactionContext()
             {
-                Transaction = txnDep,
-                TransactionResult = new TransactionResult()
+                Transaction = txnDep
             };
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, chainId);
             await executive.SetTransactionContext(txnCtxt).Apply();
 
-            var address = new Hash()
-            {
-                Value = txnCtxt.TransactionResult.Logs
-            };
+            var address = txnCtxt.Trace.RetVal.Unpack<Hash>();
 
             //var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
             //var chainContext = _chainContextService.GetChainContext(chainId);
@@ -259,7 +255,7 @@ namespace AElf.Kernel.Tests.Miner
         {
             var config = GetMinerConfig(_mock.ChainId1, 10);
             var miner = GetMiner(config);
-            
+
             //_chainContextService.AddChainContext(_mock.ChainId1, _chainContext);
             _generalExecutor.Tell(new RequestAddChainExecutor(_mock.ChainId1));
             ExpectMsg<RespondAddChainExecutor>();

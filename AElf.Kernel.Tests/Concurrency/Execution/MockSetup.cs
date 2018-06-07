@@ -164,8 +164,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             };
             return new TransactionContext()
             {
-                Transaction = tx,
-                TransactionResult = new TransactionResult()
+                Transaction = tx
             };
         }
 
@@ -234,16 +233,14 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public ulong GetBalance1(Hash account)
         {
             var txn = GetBalanceTxn(SampleContractAddress1, account);
-            var txnRes = new TransactionResult();
             var txnCtxt = new TransactionContext()
             {
-                Transaction = txn,
-                TransactionResult = txnRes
+                Transaction = txn
             };
 
             Executive1.SetTransactionContext(txnCtxt).Apply().Wait();
 
-            return txnRes.Logs.ToByteArray().ToUInt64();
+            return txnCtxt.Trace.RetVal.Unpack<UInt64Value>().Value;
         }
 
         public ulong GetBalance2(Hash account)
@@ -252,12 +249,11 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var txnRes = new TransactionResult();
             var txnCtxt = new TransactionContext()
             {
-                Transaction = txn,
-                TransactionResult = txnRes
+                Transaction = txn
             };
             Executive2.SetTransactionContext(txnCtxt).Apply().Wait();
 
-            return txnRes.Logs.ToByteArray().ToUInt64();
+            return txnCtxt.Trace.RetVal.Unpack<UInt64Value>().Value;
         }
 
         private Transaction GetSTTxn(Hash contractAddress, Hash transactionHash)
@@ -305,32 +301,31 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public DateTime GetTransactionStartTime1(ITransaction tx)
         {
             var txn = GetSTTxn(SampleContractAddress1, tx.GetHash());
-            var txnRes = new TransactionResult();
             var txnCtxt = new TransactionContext()
             {
-                Transaction = txn,
-                TransactionResult = txnRes
+                Transaction = txn
             };
 
             Executive1.SetTransactionContext(txnCtxt).Apply().Wait();
 
-            var dtStr = Encoding.ASCII.GetString(txnRes.Logs.ToByteArray());
+            var dtStr = Encoding.UTF8.GetString(txnCtxt.Trace.RetVal.Unpack<BytesValue>().Value.ToByteArray());
+            //var dtStr = BitConverter.ToString(txnCtxt.Trace.RetVal.Unpack<BytesValue>().Value.ToByteArray()).Replace("-", "");
+
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
         }
 
         public DateTime GetTransactionEndTime1(ITransaction tx)
         {
             var txn = GetETTxn(SampleContractAddress1, tx.GetHash());
-            var txnRes = new TransactionResult();
             var txnCtxt = new TransactionContext()
             {
-                Transaction = txn,
-                TransactionResult = txnRes
+                Transaction = txn
             };
 
             Executive1.SetTransactionContext(txnCtxt).Apply().Wait();
 
-            var dtStr = Encoding.ASCII.GetString(txnRes.Logs.ToByteArray());
+            var dtStr = Encoding.UTF8.GetString(txnCtxt.Trace.RetVal.Unpack<BytesValue>().Value.ToByteArray());
+
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
         }
     }

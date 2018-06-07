@@ -39,7 +39,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Watch(executor1);
             executor1.Tell(StartExecutionMessage.Instance);
             ExpectTerminated(executor1);
-
         }
 
         [Fact]

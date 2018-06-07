@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Kernel.Managers;
@@ -6,8 +7,9 @@ using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Config;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
+using AElf.Kernel.Node.RPC.DTO;
 using AElf.Kernel.TxMemPool;
-using AElf.Node.RPC.DTO;
+using AElf.Network.Data;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
@@ -138,6 +140,17 @@ namespace AElf.Kernel.Node
             {
                 _logger.Error(e, "Invalid tx - Could not receive transaction from the network", null);
             }
+        }
+
+        /// <summary>
+        /// This method requests a specified number of peers from
+        /// the node's peer list.
+        /// </summary>
+        /// <param name="numPeers"></param>
+        /// <returns></returns>
+        public async Task<List<NodeData>> GetPeers(ushort numPeers)
+        {
+            return _protocolDirector.GetPeers(numPeers);
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿
-﻿using System;
+using System;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -10,6 +9,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Type = System.Type;
@@ -148,17 +148,13 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var txnCtxt = new TransactionContext()
             {
-                Transaction = txnDep,
-                TransactionResult = new TransactionResult()
+                Transaction = txnDep
             };
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply();
 
-            var address = new Hash()
-            {
-                Value = txnCtxt.TransactionResult.Logs
-            };
+            var address =txnCtxt.Trace.RetVal.Unpack<Hash>();
 
             var copy = await _smartContractManager.GetAsync(address);
 
@@ -209,17 +205,13 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var txnCtxt = new TransactionContext()
             {
-                Transaction = txnDep,
-                TransactionResult = new TransactionResult()
+                Transaction = txnDep
             };
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply();
 
-            var address = new Hash()
-            {
-                Value = txnCtxt.TransactionResult.Logs
-            };
+            var address = txnCtxt.Trace.RetVal.Unpack<Hash>();
 
             #region initialize account balance
             var account = Hash.Generate();
@@ -245,8 +237,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
             var txnInitCtxt = new TransactionContext()
             {
-                Transaction = txnInit,
-                TransactionResult = new TransactionResult()
+                Transaction = txnInit
             };
             var executiveUser = await _smartContractService.GetExecutiveAsync(address, ChainId);
             await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
@@ -273,11 +264,11 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
             var txnBalCtxt = new TransactionContext()
             {
-                Transaction = txnBal,
-                TransactionResult = new TransactionResult()
+                Transaction = txnBal
             };
             await executiveUser.SetTransactionContext(txnBalCtxt).Apply();
-            Assert.Equal((ulong)101, txnBalCtxt.TransactionResult.Logs.ToByteArray().ToUInt64());
+
+            Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.Unpack<UInt64Value>().Value);
             #endregion
         }
     }

@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using NodeData = AElf.Network.Data.NodeData;
 
-namespace AElf.Kernel.Node.Network.Peers
+namespace AElf.Network.Peers
 {
     public interface IPeerDatabase
     {
-        List<IPeer> ReadPeers();
-        void WritePeers(List<IPeer> peerList);
+        List<NodeData> ReadPeers();
+        void WritePeers(List<NodeData> peerList);
     }
 }

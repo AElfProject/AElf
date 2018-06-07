@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AElf.Kernel.Node.Network.Peers.Exceptions
+namespace AElf.Network.Peers.Exceptions
 {
     public class ResponseTimeOutException : Exception
     {

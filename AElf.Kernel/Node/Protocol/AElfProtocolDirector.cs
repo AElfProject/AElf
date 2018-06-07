@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.Node.Network.Data;
-using AElf.Kernel.Node.Network.Peers;
-using Google.Protobuf;
+using AElf.Network.Data;
+using AElf.Network.Peers;
 
 namespace AElf.Kernel.Node.Protocol
 {
@@ -37,6 +36,26 @@ namespace AElf.Kernel.Node.Protocol
         {
             _node = node;
         }
+
+        public List<NodeData> GetPeers(ushort numPeers)
+        {
+            return _peerManager.GetPeers(numPeers);
+        }
+        
+        public async Task BroadcastTransaction(ITransaction tx)
+        {
+            byte[] transaction = tx.Serialize();
+            
+            var pendingRequest = BuildRequest();
+            
+            bool success 
+                = await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, transaction, pendingRequest.Id);
+            
+            if (success)
+                _resetEvents.Add(pendingRequest);
+
+            pendingRequest.ResetEvent.WaitOne();
+        }
         
         #region Response handling
         
@@ -51,11 +70,8 @@ namespace AElf.Kernel.Node.Protocol
             {
                 AElfPacketData message = args.Message;
                 
-                if (message.MsgType == (int)MessageTypes.BroadcastTx)
-                {
-                    ProcessBroadcastTx(args.Peer, message);
-                }
-
+                // Process any messages
+                
                 ClearResetEvent(message.Id);
             }
         }
@@ -70,41 +86,11 @@ namespace AElf.Kernel.Node.Protocol
                 _resetEvents.Remove(resetEvent);
             }
         }
-
-        private async void ProcessBroadcastTx(Peer p, AElfPacketData message)
-        {
-            if (message.MsgType == (int)MessageTypes.BroadcastTx)
-            {
-                await _node.ReceiveTransaction(message.Payload);
-                    
-                var resp = new AElfPacketData {
-                    Id = message.Id,
-                    MsgType = (int)MessageTypes.Ok,
-                    Length = 1,
-                    Payload = ByteString.CopyFrom(0x01)
-                };
-                    
-                await p.Send(resp.ToByteArray());
-            }
-        }
         
         #endregion
 
         #region Requests
 
-        public async Task BroadcastTransaction(ITransaction tx)
-        {
-            byte[] transaction = tx.Serialize();
-            
-            var pendingRequest = BuildRequest();
-            
-            bool success = await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, transaction, pendingRequest.Id);
-            
-            if (success)
-                _resetEvents.Add(pendingRequest);
-
-            //pendingRequest.ResetEvent.WaitOne();
-        }
         
         #endregion
 
@@ -119,8 +105,5 @@ namespace AElf.Kernel.Node.Protocol
         }
 
         #endregion
-
-
-        
     }
 }

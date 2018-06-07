@@ -1,12 +1,15 @@
 ﻿using System.Collections.Generic;
+using AElf.Network.Data;
 
-namespace AElf.Kernel.Node.Network.Peers
+namespace AElf.Network.Peers
 {
     public static class Bootnodes
     {
-        public static readonly List<IPeer> BootNodes = new List<IPeer>()
+        public static readonly List<NodeData> BootNodes = new List<NodeData>()
         {
-            // Boot nodes
+            new NodeData { IpAddress = "127.0.0.1", Port = 6800, IsBootnode = true},
+            new NodeData { IpAddress = "127.0.0.1", Port = 6801, IsBootnode = true},
+            new NodeData { IpAddress = "127.0.0.1", Port = 6802, IsBootnode = true}
         };
     }
 }

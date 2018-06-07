@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using AElf.Kernel;
 using CommandLine;
 
 namespace AElf.Launcher
@@ -53,5 +52,8 @@ namespace AElf.Launcher
         
         [Option("tx", Default = (ulong) 1024, HelpText = "Maximal transaction count in block")]
         public ulong TxCount { get; set; }
+
+        [Option(HelpText = "The absolute path where to store the peer database.")]
+        public string PeersDbPath { get; set; }
     }
 }

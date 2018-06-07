@@ -1,10 +1,11 @@
-﻿namespace AElf.Kernel.Node.Network.Data
+﻿namespace AElf.Network.Data
 {
-    public enum MessageTypes
+    public enum MessageTypes : int
     {
         AskForTx = 0,
-        AskForPeers = 1,
-        BroadcastTx = 2,
-        Ok
+        RequestPeers = 1,
+        ReturnPeers = 2,
+        BroadcastTx = 3,
+        Ok = 3
     }
 }

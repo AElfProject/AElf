@@ -128,22 +128,24 @@ namespace AElf.Kernel.Concurrency.Execution
             };
             // TODO: Reject tx if IncrementId != Nonce
 
+            var txCtxt = new TransactionContext()
+            {
+                PreviousBlockHash = _chainContext.BlockHash,
+                Transaction = transaction
+            };
+
             try
             {
-                var txCtxt = new TransactionContext()
-                {
-                    PreviousBlockHash = _chainContext.BlockHash,
-                    Transaction = transaction,
-                    TransactionResult = result
-                };
+
                 await executive.SetTransactionContext(txCtxt).Apply();
+                result.Logs.AddRange(txCtxt.Trace.FlattenedLogs);
                 // TODO: Check run results / logs etc.
                 result.Status = Status.Mined;
             }
             catch (Exception ex)
             {
                 // TODO: Improve log
-                result.Logs = ByteString.CopyFrom(Encoding.ASCII.GetBytes(ex.ToString()));
+                txCtxt.Trace.StdErr += ex.ToString() + "\n";
                 result.Status = Status.Failed;
             }
             finally
