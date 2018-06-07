@@ -7,6 +7,8 @@ namespace AElf.CLI
     {
         private static List<string> _commands = new List<string>();
         private static readonly RpcCalls Rpc = new RpcCalls();
+
+        private const string CliPrefix = "> AElf$ ";
         
         private const string InvalidCommandError = "***** ERROR: INVALID COMMAND - SEE USAGE *****";
         private const string InvalidParamsError = "***** ERROR: INVALID PARAMETERS - SEE USAGE *****";
@@ -39,7 +41,7 @@ namespace AElf.CLI
             
             Console.WriteLine();
 
-            Console.Write("AElf$ ");
+            Console.Write(CliPrefix);
             string exec = Console.ReadLine();
             exec = exec ?? string.Empty;
             string[] tokens = exec.Split();
