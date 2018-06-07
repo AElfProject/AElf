@@ -1,22 +1,27 @@
-﻿using System;
+﻿using System.IO;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Xml.Serialization;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("AElf.Configuration.Tests")]
 
 namespace AElf.Configuration
 {
-    public class ConfigManager
+    internal class ConfigManager
     {
         private static readonly string _configFilePath = "/etc/aelfconfig/";
         private static Dictionary<string, ConfigInfo> ConfigInfos = new Dictionary<string, ConfigInfo>();
-
         private static readonly object _configLock = new object();
 
-        public static string GetConfigName<T>()
+        internal static T GetConfigInstance<T>()
         {
-            Type t = typeof(T);
-            object[] attrs = t.GetCustomAttributes(typeof(XmlRootAttribute), false);
+            var configName = GetConfigName<T>();
+            return GetConfigInstance<T>(configName);
+        }
+        
+        private static string GetConfigName<T>()
+        {
+            var t = typeof(T);
+            var attrs = t.GetCustomAttributes(typeof(ConfigFileAttribute), false);
             if (attrs.Length > 0)
             {
                 return ((ConfigFileAttribute) attrs[0]).FileName;
@@ -25,13 +30,7 @@ namespace AElf.Configuration
             return t.Name;
         }
 
-        public static T GetConfigInstance<T>()
-        {
-            var configName = GetConfigName<T>();
-            return GetConfigInstance<T>(configName);
-        }
-
-        public static T GetConfigInstance<T>(string name)
+        private static T GetConfigInstance<T>(string name)
         {
             var configName = name.ToLower();
             var config = GetConfigInfo(configName);
