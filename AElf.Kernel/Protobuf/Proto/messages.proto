@@ -24,6 +24,7 @@ message TransactionTrace
     string StdErr = 3;
     repeated LogEvent Logs = 4;
     repeated TransactionTrace InlineTraces = 5;
+    int64 Elapsed = 6;
 }
 
 message EventField

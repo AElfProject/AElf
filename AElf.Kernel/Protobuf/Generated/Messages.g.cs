@@ -28,50 +28,51 @@ namespace AElf.Kernel {
             "AQoLVHJhbnNhY3Rpb24SEwoERnJvbRgBIAEoCzIFLkhhc2gSEQoCVG8YAiAB",
             "KAsyBS5IYXNoEhMKC0luY3JlbWVudElkGAMgASgEEhIKCk1ldGhvZE5hbWUY",
             "BCABKAkSDgoGUGFyYW1zGAUgASgMEgsKA0ZlZRgGIAEoBBIJCgFSGAcgASgM",
-            "EgkKAVMYCCABKAwSCQoBUBgJIAEoDCKaAQoQVHJhbnNhY3Rpb25UcmFjZRIk",
+            "EgkKAVMYCCABKAwSCQoBUBgJIAEoDCKrAQoQVHJhbnNhY3Rpb25UcmFjZRIk",
             "CgZSZXRWYWwYASABKAsyFC5nb29nbGUucHJvdG9idWYuQW55Eg4KBlN0ZE91",
             "dBgCIAEoCRIOCgZTdGRFcnIYAyABKAkSFwoETG9ncxgEIAMoCzIJLkxvZ0V2",
-            "ZW50EicKDElubGluZVRyYWNlcxgFIAMoCzIRLlRyYW5zYWN0aW9uVHJhY2Ui",
-            "PwoKRXZlbnRGaWVsZBIMCgROYW1lGAEgASgJEiMKBVZhbHVlGAIgASgLMhQu",
-            "Z29vZ2xlLnByb3RvYnVmLkFueSJWCghMb2dFdmVudBIWCgdBZGRyZXNzGAEg",
-            "ASgLMgUuSGFzaBIUCgVUb3BpYxgCIAEoCzIFLkhhc2gSHAoHRGV0YWlscxgD",
-            "IAMoCzILLkV2ZW50RmllbGQiYwoRVHJhbnNhY3Rpb25SZXN1bHQSHAoNVHJh",
-            "bnNhY3Rpb25JZBgBIAEoCzIFLkhhc2gSFwoGc3RhdHVzGAIgASgOMgcuU3Rh",
-            "dHVzEhcKBExvZ3MYAyADKAsyCS5Mb2dFdmVudCIVCgRIYXNoEg0KBVZhbHVl",
-            "GAEgASgMIqMBCgtCbG9ja0hlYWRlchIPCgdWZXJzaW9uGAEgASgFEhwKDVBl",
-            "cnZpb3VzQmxvY2sYAiABKAsyBS5IYXNoEisKHE1lcmtsZVRyZWVSb290T2ZU",
-            "cmFuc2FjdGlvbnMYAyABKAsyBS5IYXNoEikKGk1lcmtsZVRyZWVSb290T2ZX",
-            "b3JsZFN0YXRlGAQgASgLMgUuSGFzaBINCgVJbmRleBgFIAEoBCJECglCbG9j",
-            "a0JvZHkSGgoLQmxvY2tIZWFkZXIYASABKAsyBS5IYXNoEhsKDFRyYW5zYWN0",
-            "aW9ucxgCIAMoCzIFLkhhc2giPwoFQmxvY2sSHAoGSGVhZGVyGAEgASgLMgwu",
-            "QmxvY2tIZWFkZXISGAoEQm9keRgCIAEoCzIKLkJsb2NrQm9keSJhChlTbWFy",
-            "dENvbnRyYWN0UmVnaXN0cmF0aW9uEhAKCENhdGVnb3J5GAEgASgFEhsKDENv",
-            "bnRyYWN0SGFzaBgCIAEoCzIFLkhhc2gSFQoNQ29udHJhY3RCeXRlcxgDIAEo",
-            "DCJ7ChdTbWFydENvbnRyYWN0RGVwbG95bWVudBIbCgxDb250cmFjdEhhc2gY",
-            "ASABKAsyBS5IYXNoEhUKBkNhbGxlchgCIAEoCzIFLkhhc2gSFwoPQ29uc3Ry",
-            "dWN0UGFyYW1zGAMgASgMEhMKC0luY3JlbWVudElkGAQgASgEIiQKClBhcmFt",
-            "ZXRlcnMSFgoGUGFyYW1zGAEgAygLMgYuUGFyYW0i1gEKBVBhcmFtEhAKBmlu",
-            "dFZhbBgBIAEoBUgAEhAKBnN0clZhbBgCIAEoCUgAEg4KBGRWYWwYAyABKAFI",
-            "ABIYCgdoYXNoVmFsGAQgASgLMgUuSGFzaEgAEhEKB2xvbmdWYWwYBSABKARI",
-            "ABIxCgtyZWdpc3RlclZhbBgGIAEoCzIaLlNtYXJ0Q29udHJhY3RSZWdpc3Ry",
-            "YXRpb25IABIxCg1kZXBsb3ltZW50VmFsGAcgASgLMhguU21hcnRDb250cmFj",
-            "dERlcGxveW1lbnRIAEIGCgRkYXRhImwKGlNtYXJ0Q29udHJhY3RJbnZva2VD",
-            "b250ZXh0EhUKBkNhbGxlchgBIAEoCzIFLkhhc2gSEwoLSW5jcmVtZW50SWQY",
-            "AiABKAQSEgoKTWV0aG9kTmFtZRgDIAEoCRIOCgZQYXJhbXMYBCABKAwifAoG",
-            "Q2hhbmdlEhYKB0JlZm9yZXMYASADKAsyBS5IYXNoEhQKBUFmdGVyGAIgASgL",
-            "MgUuSGFzaBIdCg5UcmFuc2FjdGlvbklkcxgDIAEoCzIFLkhhc2gSJQoWTGF0",
-            "ZXN0Q2hhbmdlZEJsb2NrSGFzaBgEIAEoCzIFLkhhc2giPAoOUGFpckhhc2hD",
-            "aGFuZ2USEgoDS2V5GAEgASgLMgUuSGFzaBIWCgVWYWx1ZRgCIAEoCzIHLkNo",
-            "YW5nZSIsCgtDaGFuZ2VzRGljdBIdCgREaWN0GAEgAygLMg8uUGFpckhhc2hD",
-            "aGFuZ2UiOwoFQ2hhaW4SEQoCSWQYASABKAsyBS5IYXNoEh8KEEdlbmVzaXNC",
-            "bG9ja0hhc2gYAiABKAsyBS5IYXNoKlEKBlN0YXR1cxIOCgpOb3RFeGlzdGVk",
-            "EAASCwoHUmVmdXNlZBABEgsKB1BlbmRpbmcQAhISCg5FeGVjdXRlZEZhaWxl",
-            "ZBADEgkKBU1pbmVkEARCDqoCC0FFbGYuS2VybmVsYgZwcm90bzM="));
+            "ZW50EicKDElubGluZVRyYWNlcxgFIAMoCzIRLlRyYW5zYWN0aW9uVHJhY2US",
+            "DwoHRWxhcHNlZBgGIAEoAyI/CgpFdmVudEZpZWxkEgwKBE5hbWUYASABKAkS",
+            "IwoFVmFsdWUYAiABKAsyFC5nb29nbGUucHJvdG9idWYuQW55IlYKCExvZ0V2",
+            "ZW50EhYKB0FkZHJlc3MYASABKAsyBS5IYXNoEhQKBVRvcGljGAIgASgLMgUu",
+            "SGFzaBIcCgdEZXRhaWxzGAMgAygLMgsuRXZlbnRGaWVsZCJjChFUcmFuc2Fj",
+            "dGlvblJlc3VsdBIcCg1UcmFuc2FjdGlvbklkGAEgASgLMgUuSGFzaBIXCgZz",
+            "dGF0dXMYAiABKA4yBy5TdGF0dXMSFwoETG9ncxgDIAMoCzIJLkxvZ0V2ZW50",
+            "IhUKBEhhc2gSDQoFVmFsdWUYASABKAwiowEKC0Jsb2NrSGVhZGVyEg8KB1Zl",
+            "cnNpb24YASABKAUSHAoNUGVydmlvdXNCbG9jaxgCIAEoCzIFLkhhc2gSKwoc",
+            "TWVya2xlVHJlZVJvb3RPZlRyYW5zYWN0aW9ucxgDIAEoCzIFLkhhc2gSKQoa",
+            "TWVya2xlVHJlZVJvb3RPZldvcmxkU3RhdGUYBCABKAsyBS5IYXNoEg0KBUlu",
+            "ZGV4GAUgASgEIkQKCUJsb2NrQm9keRIaCgtCbG9ja0hlYWRlchgBIAEoCzIF",
+            "Lkhhc2gSGwoMVHJhbnNhY3Rpb25zGAIgAygLMgUuSGFzaCI/CgVCbG9jaxIc",
+            "CgZIZWFkZXIYASABKAsyDC5CbG9ja0hlYWRlchIYCgRCb2R5GAIgASgLMgou",
+            "QmxvY2tCb2R5ImEKGVNtYXJ0Q29udHJhY3RSZWdpc3RyYXRpb24SEAoIQ2F0",
+            "ZWdvcnkYASABKAUSGwoMQ29udHJhY3RIYXNoGAIgASgLMgUuSGFzaBIVCg1D",
+            "b250cmFjdEJ5dGVzGAMgASgMInsKF1NtYXJ0Q29udHJhY3REZXBsb3ltZW50",
+            "EhsKDENvbnRyYWN0SGFzaBgBIAEoCzIFLkhhc2gSFQoGQ2FsbGVyGAIgASgL",
+            "MgUuSGFzaBIXCg9Db25zdHJ1Y3RQYXJhbXMYAyABKAwSEwoLSW5jcmVtZW50",
+            "SWQYBCABKAQiJAoKUGFyYW1ldGVycxIWCgZQYXJhbXMYASADKAsyBi5QYXJh",
+            "bSLWAQoFUGFyYW0SEAoGaW50VmFsGAEgASgFSAASEAoGc3RyVmFsGAIgASgJ",
+            "SAASDgoEZFZhbBgDIAEoAUgAEhgKB2hhc2hWYWwYBCABKAsyBS5IYXNoSAAS",
+            "EQoHbG9uZ1ZhbBgFIAEoBEgAEjEKC3JlZ2lzdGVyVmFsGAYgASgLMhouU21h",
+            "cnRDb250cmFjdFJlZ2lzdHJhdGlvbkgAEjEKDWRlcGxveW1lbnRWYWwYByAB",
+            "KAsyGC5TbWFydENvbnRyYWN0RGVwbG95bWVudEgAQgYKBGRhdGEibAoaU21h",
+            "cnRDb250cmFjdEludm9rZUNvbnRleHQSFQoGQ2FsbGVyGAEgASgLMgUuSGFz",
+            "aBITCgtJbmNyZW1lbnRJZBgCIAEoBBISCgpNZXRob2ROYW1lGAMgASgJEg4K",
+            "BlBhcmFtcxgEIAEoDCJ8CgZDaGFuZ2USFgoHQmVmb3JlcxgBIAMoCzIFLkhh",
+            "c2gSFAoFQWZ0ZXIYAiABKAsyBS5IYXNoEh0KDlRyYW5zYWN0aW9uSWRzGAMg",
+            "ASgLMgUuSGFzaBIlChZMYXRlc3RDaGFuZ2VkQmxvY2tIYXNoGAQgASgLMgUu",
+            "SGFzaCI8Cg5QYWlySGFzaENoYW5nZRISCgNLZXkYASABKAsyBS5IYXNoEhYK",
+            "BVZhbHVlGAIgASgLMgcuQ2hhbmdlIiwKC0NoYW5nZXNEaWN0Eh0KBERpY3QY",
+            "ASADKAsyDy5QYWlySGFzaENoYW5nZSI7CgVDaGFpbhIRCgJJZBgBIAEoCzIF",
+            "Lkhhc2gSHwoQR2VuZXNpc0Jsb2NrSGFzaBgCIAEoCzIFLkhhc2gqUQoGU3Rh",
+            "dHVzEg4KCk5vdEV4aXN0ZWQQABILCgdSZWZ1c2VkEAESCwoHUGVuZGluZxAC",
+            "EhIKDkV4ZWN1dGVkRmFpbGVkEAMSCQoFTWluZWQQBEIOqgILQUVsZi5LZXJu",
+            "ZWxiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.AnyReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params", "Fee", "R", "S", "P" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionTrace), global::AElf.Kernel.TransactionTrace.Parser, new[]{ "RetVal", "StdOut", "StdErr", "Logs", "InlineTraces" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionTrace), global::AElf.Kernel.TransactionTrace.Parser, new[]{ "RetVal", "StdOut", "StdErr", "Logs", "InlineTraces", "Elapsed" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.EventField), global::AElf.Kernel.EventField.Parser, new[]{ "Name", "Value" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.LogEvent), global::AElf.Kernel.LogEvent.Parser, new[]{ "Address", "Topic", "Details" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionResult), global::AElf.Kernel.TransactionResult.Parser, new[]{ "TransactionId", "Status", "Logs" }, null, null, null),
@@ -500,6 +501,7 @@ namespace AElf.Kernel {
       stdErr_ = other.stdErr_;
       logs_ = other.logs_.Clone();
       inlineTraces_ = other.inlineTraces_.Clone();
+      elapsed_ = other.elapsed_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -561,6 +563,17 @@ namespace AElf.Kernel {
       get { return inlineTraces_; }
     }
 
+    /// <summary>Field number for the "Elapsed" field.</summary>
+    public const int ElapsedFieldNumber = 6;
+    private long elapsed_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Elapsed {
+      get { return elapsed_; }
+      set {
+        elapsed_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as TransactionTrace);
@@ -579,6 +592,7 @@ namespace AElf.Kernel {
       if (StdErr != other.StdErr) return false;
       if(!logs_.Equals(other.logs_)) return false;
       if(!inlineTraces_.Equals(other.inlineTraces_)) return false;
+      if (Elapsed != other.Elapsed) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -590,6 +604,7 @@ namespace AElf.Kernel {
       if (StdErr.Length != 0) hash ^= StdErr.GetHashCode();
       hash ^= logs_.GetHashCode();
       hash ^= inlineTraces_.GetHashCode();
+      if (Elapsed != 0L) hash ^= Elapsed.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -617,6 +632,10 @@ namespace AElf.Kernel {
       }
       logs_.WriteTo(output, _repeated_logs_codec);
       inlineTraces_.WriteTo(output, _repeated_inlineTraces_codec);
+      if (Elapsed != 0L) {
+        output.WriteRawTag(48);
+        output.WriteInt64(Elapsed);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -636,6 +655,9 @@ namespace AElf.Kernel {
       }
       size += logs_.CalculateSize(_repeated_logs_codec);
       size += inlineTraces_.CalculateSize(_repeated_inlineTraces_codec);
+      if (Elapsed != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Elapsed);
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -661,6 +683,9 @@ namespace AElf.Kernel {
       }
       logs_.Add(other.logs_);
       inlineTraces_.Add(other.inlineTraces_);
+      if (other.Elapsed != 0L) {
+        Elapsed = other.Elapsed;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -693,6 +718,10 @@ namespace AElf.Kernel {
           }
           case 42: {
             inlineTraces_.AddEntriesFrom(input, _repeated_inlineTraces_codec);
+            break;
+          }
+          case 48: {
+            Elapsed = input.ReadInt64();
             break;
           }
         }
