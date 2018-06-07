@@ -53,13 +53,13 @@ namespace AElf.Configuration
         private static ConfigInfo GetConfigInfo(string configName)
         {
             configName = configName.ToLower();
-            ConfigInfo entry;
+            ConfigInfo configInfo;
             lock (_configLock)
             {
-                ConfigInfos.TryGetValue(configName, out entry);
+                ConfigInfos.TryGetValue(configName, out configInfo);
             }
 
-            return entry;
+            return configInfo;
         }
 
         private static string GetFromLocalFile(string name)

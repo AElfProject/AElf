@@ -7,7 +7,10 @@ namespace AElf.Configuration
         private static T _instance = ConfigManager.GetConfigInstance<T>();
         public static T Instance
         {
-            get { return _instance; }
+            get
+            {
+                return _instance;
+            }
             set
             {
                 _instance = value;
