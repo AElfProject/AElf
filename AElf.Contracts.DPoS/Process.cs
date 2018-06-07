@@ -13,17 +13,33 @@ namespace AElf.Contracts.DPoS
     public class Process : CSharpSmartContract
     {
         public Map MiningNodes = new Map("MiningNodes");
+        
+        public Map TimeSlots = new Map("TimeSlots");
+        
+        public Map Signatures = new Map("Signatures");
 
-        public async Task<object> GenerateOrder()
+        public async Task<object> RandomizeOrderForFirstTwoRounds()
         {
-            var salt = GetTime();
+            var foo = GetTime();
+            var length = foo.Length;
+            var bar = new int[foo.Length / 2];
+            for (var i = 0; i < length; i++)
+            {
+                bar[i] = foo[i] + foo[length - i - 1];
+            }
             
             throw new NotImplementedException();
         }
 
         public async Task<object> GetTimeSlot(Hash accountHash)
         {
-            throw new NotImplementedException();
+            return await TimeSlots.GetValue(accountHash);
+        }
+
+        public async Task<object> CanStartMining(Hash accountHash)
+        {
+            var assignedTimeSlot = (byte[]) await GetTimeSlot(accountHash);
+            return CompareBytes(assignedTimeSlot, GetTime());
         }
         
         public async Task<object> CalculateSignature(Hash accountHash)
@@ -40,10 +56,8 @@ namespace AElf.Contracts.DPoS
             var methodname = tx.MethodName;
             var type = GetType();
             var member = type.GetMethod(methodname);
-            // params array
             var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
 
-            // invoke
             if (member != null) await (Task<object>) member.Invoke(this, parameters);
         }
         
@@ -70,6 +84,26 @@ namespace AElf.Contracts.DPoS
         private byte[] GetTime()
         {
             return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff").ToUtf8Bytes();
+        }
+
+        private bool CompareBytes(byte[] bytes1, byte[] bytes2)
+        {
+            //Caonnot compare
+            if (bytes1.Length != bytes2.Length)
+            {
+                return false;
+            }
+
+            var length = bytes1.Length;
+            for (var i = 0; i < length; i++)
+            {
+                if (bytes1[i] > bytes2[i])
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

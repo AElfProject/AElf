@@ -1,9 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -261,6 +263,13 @@ namespace AElf.Kernel.Tests
             block.FillTxsMerkleTreeRootInHeader();
             block.Header.PreviousHash = preBlockHash;
             return block;
+        }
+
+        [Fact]
+        public void Test()
+        {
+            var a = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff").ToUtf8Bytes();
+            Assert.True(a.Length > 0);
         }
     }
 }
