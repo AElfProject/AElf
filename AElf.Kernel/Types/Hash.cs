@@ -13,7 +13,7 @@ namespace AElf.Kernel
                 Guid.NewGuid().ToByteArray().CalculateHash());
         }
         public static readonly Hash Zero = new Hash(new byte[]{});
-
+        
         public Hash(byte[] buffer)
         {
             Value = ByteString.CopyFrom(buffer);

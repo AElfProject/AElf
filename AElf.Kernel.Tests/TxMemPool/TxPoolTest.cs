@@ -165,7 +165,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             {
                 Assert.Equal(TxValidation.ValidationError.Success, pool.ValidateTx(t));
             }*/
-            
+            System.Diagnostics.Debug.WriteLine(Hash.Generate().ToByteString().ToBase64());
             var tx = Transaction.Parser.ParseFrom(ByteString.FromBase64(
                 @"CiIKIKkqNVMSxCWn/TizqYJl0ymJrnrRqZN+W3incFJX3MRIEiIKIIFxBhlGhI1auR05KafXd/lFGU+apqX96q1YK6aiZLMhIgh0cmFuc2ZlcioJCgcSBWhlbGxvOiEAxfMt77nwSKl/WUg1TmJHfxYVQsygPj0wpZ/Pbv+ZK4pCICzGxsZBCBlASmlDdn0YIv6vRUodJl/9jWd8Q1z2ofFwSkEE+PDQtkHQxvw0txt8bmixMA8lL0VM5ScOYiEI82LX1A6oWUNiLIjwAI0Qh5fgO5g5PerkNebXLPDE2dTzVVyYYw=="));
             var pool = GetPool();
@@ -183,7 +183,6 @@ LX1A6oWUNiLIjwAI0Qh5fgO5g5PerkNebXLPDE2dTzVVyYYw==";
         {
             // setup config
             var conf = TxPoolConfig.Default;
-            conf.EntryThreshold = 1;
 
             var pool = new TxPool(conf, _logger);
             

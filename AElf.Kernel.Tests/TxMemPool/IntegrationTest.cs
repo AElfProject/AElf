@@ -45,8 +45,6 @@ namespace AElf.Kernel.Tests.TxMemPool
         private TxPool GetPool(Hash chainId = null)
         {
             var config = TxPoolConfig.Default;
-            if(chainId != null)
-                config.ChainId = chainId;
             return new TxPool(config, _logger);
         }
 

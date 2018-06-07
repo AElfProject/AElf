@@ -213,11 +213,9 @@ namespace AElf.Kernel.Tests.Miner
 
         public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit)
         {
-            return new MinerConifg
+            return new MinerConfig
             {
-                ChainId = chainId,
-                TxCountLimit = txCountLimit,
-                IsParallel = true
+                TxCount = txCountLimit
             };
         }
         
