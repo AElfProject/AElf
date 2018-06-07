@@ -26,7 +26,8 @@ namespace AElf.Kernel.Miner
         public AutoResetEvent MiningResetEvent { get; private set; }
         
         public IMinerConfig Config { get; }
-        
+
+        public Hash Coinbase => Config.CoinBase;
 
         public Miner(IBlockGenerationService blockGenerationService, IMinerConfig config, 
             ITxPoolService txPoolService, IParallelTransactionExecutingService parallelTransactionExecutingService)
@@ -43,7 +44,7 @@ namespace AElf.Kernel.Miner
             if (Cts == null || Cts.IsCancellationRequested)
                 return null;
             
-            var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCountLimit);
+            var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
             // TODO：dispatch txs with ISParallel, return list of tx results
             
             var results =  await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);

@@ -10,13 +10,13 @@
         /// <summary>
         /// true if parallel execution, otherwise false
         /// </summary>
-        bool IsParallel { get; set; }
+        bool IsParallel { get; }
         
         
         Hash ChainId { get; set; }
         /// <summary>
         /// represent number limit in a block
         /// </summary>
-        ulong TxCountLimit { get; }
+        ulong TxCount { get; set; }
     }
 }
