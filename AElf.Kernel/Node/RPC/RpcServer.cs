@@ -275,6 +275,9 @@ namespace AElf.Kernel.Node.RPC
                 ;
             }
 
+            if (numPeers == 0)
+                return null;
+
             List<NodeData> peers = await _node.GetPeers(numPeers);
             List<NodeDataDto> peersDto = new List<NodeDataDto>();
 
