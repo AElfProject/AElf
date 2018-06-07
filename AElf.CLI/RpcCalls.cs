@@ -13,16 +13,18 @@ namespace AElf.CLI
     {
         private static readonly HttpClient Client = new HttpClient();
         private static readonly string RpcServerUrl = "http://localhost:5000";
+
+        public RpcCalls()
+        {
+            Client.BaseAddress = new Uri(RpcServerUrl);
+            Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        }
         
-        public static async Task<List<string>> GetCommands()
+        public async Task<List<string>> GetCommands()
         {   
             List<string> commands = new List<string>();
             
             var text = "{\"jsonrpc\":\"2.0\",\"method\":\"get_commands\",\"params\":{ },\"id\":0}";
-            Client.BaseAddress = new Uri(RpcServerUrl);
-            Client.DefaultRequestHeaders
-                .Accept
-                .Add(new MediaTypeWithQualityHeaderValue("application/json"));
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/");
             request.Content = new StringContent(text,
                 Encoding.UTF8,
@@ -41,15 +43,11 @@ namespace AElf.CLI
             return commands;
         }
 
-        public static async Task<List<string>> GetPeers(string numPeers)
+        public async Task<List<string>> GetPeers(string numPeers)
         {
             List<string> peers = new List<string>();
 
             var text = "{\"jsonrpc\":\"2.0\",\"method\":\"get_peers\",\"params\":{\"numPeers\":\"" + numPeers + "\"},\"id\":1}";
-            Client.BaseAddress = new Uri(RpcServerUrl);
-            Client.DefaultRequestHeaders
-                .Accept
-                .Add(new MediaTypeWithQualityHeaderValue("application/json"));
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/");
             request.Content = new StringContent(text,
                 Encoding.UTF8,
