@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using AElf.Kernel.Crypto.ECDSA;
+using AElf.Cryptography.ECDSA;
 using Org.BouncyCastle.Math;
 using Xunit;
 

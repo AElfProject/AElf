@@ -1,4 +1,4 @@
-﻿using AElf.Kernel.Crypto.ECDSA;
+﻿using AElf.Cryptography.ECDSA;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace

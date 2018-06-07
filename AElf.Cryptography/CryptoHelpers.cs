@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AElf.Kernel.Crypto
+namespace AElf.Cryptography
 {
     public static class CryptoHelpers
     {
