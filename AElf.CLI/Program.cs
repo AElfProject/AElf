@@ -58,9 +58,7 @@ namespace AElf.CLI
             await Client.SendAsync(request)
                 .ContinueWith(async responseTask =>
                 {
-                    var response = responseTask.Result;
-                    var responseString = response.Content.ReadAsStringAsync();
-                    string result = await responseString;
+                    string result = await responseTask.Result.Content.ReadAsStringAsync();
                     var j = JObject.Parse(result);
                     var comms = j["result"]["commands"].ToList();
 
