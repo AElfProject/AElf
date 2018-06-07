@@ -310,18 +310,8 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             }).ToHashSet();
 
         }
-
+        
         public string FunctionMetadataMapToString(Dictionary<string, FunctionMetadata> map)
-        {
-            return FunctionMetadataMapToString(map, false);
-        }
-        
-        public string FunctionMetadataMapToStringForTestData(Dictionary<string, FunctionMetadata> map)
-        {
-            return FunctionMetadataMapToString(map, true);
-        }
-        
-        public string FunctionMetadataMapToString(Dictionary<string, FunctionMetadata> map, bool expectedValue)
         {
             
             return string.Join(
@@ -330,9 +320,21 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                     .Select(item => String.Format("[{0},({1}),({2})]", 
                         item.Key,
                         CallingSetToString(item.Value.CallingSet), 
-                        PathSetToString((expectedValue)? TranslateStringToResourceSet(item.Key, GetFunctionFullPathSet()): item.Value.FullResourceSet))));
+                        PathSetToString(item.Value.FullResourceSet))));
         }
-
+        
+        public string FunctionMetadataTemplateMapToString(Dictionary<string, FunctionMetadataTemplate> map)
+        {
+            
+            return string.Join(
+                " ",
+                map.OrderBy(a => a.Key)
+                    .Select(item => String.Format("[{0},({1}),({2})]", 
+                        item.Key,
+                        CallingSetToString(item.Value.CallingSet), 
+                        PathSetToString(item.Value.LocalResourceSet))));
+        }
+        
         public string PathSetToString(HashSet<Resource> resourceSet)
         {
             return string.Join(", ",

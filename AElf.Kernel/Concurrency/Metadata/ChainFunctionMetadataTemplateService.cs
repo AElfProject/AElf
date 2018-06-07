@@ -45,7 +45,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 ExtractRawMetadataFromType(contractType, out var smartContractReferenceMap,
                     out var localFunctionMetadataTemplateMap);
                 
-                UpdateTemplate(contractType, smartContractReferenceMap, ref localFunctionMetadataTemplateMap);
+                CompleteLocalResourceAndUpdateTemplate(contractType, smartContractReferenceMap, ref localFunctionMetadataTemplateMap);
                 
                 //merge the function metadata template map
                 foreach (var kv in localFunctionMetadataTemplateMap)
@@ -168,7 +168,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <param name="targetLocalFunctionMetadataTemplateMap"></param>
         /// <returns></returns>
         /// <exception cref="FunctionMetadataException"></exception>
-        private void UpdateTemplate(Type contractType, Dictionary<string, Type> smartContractReferenceMap, ref Dictionary<string, FunctionMetadataTemplate> targetLocalFunctionMetadataTemplateMap)
+        private void CompleteLocalResourceAndUpdateTemplate(Type contractType, Dictionary<string, Type> smartContractReferenceMap, ref Dictionary<string, FunctionMetadataTemplate> targetLocalFunctionMetadataTemplateMap)
         {
             //check for DAG  (the updating calling graph is DAG iff local calling graph is DAG)
             if (!TryGetLocalCallingGraph(targetLocalFunctionMetadataTemplateMap, out var localCallGraph, out var localTopologicRes))
@@ -202,11 +202,15 @@ namespace AElf.Kernel.Concurrency.Metadata
             }
             
             //Merge local calling graph
-            foreach (var localEdge in localCallGraph.Edges)
+            foreach (var localVertex in localCallGraph.Vertices)
             {
-                var from = Replacement.ReplaceValueIntoReplacement(localEdge.Source, Replacement.This, contractType.Name);
-                var to = Replacement.ReplaceValueIntoReplacement(localEdge.Target, Replacement.This, contractType.Name);
-                _callingGraph.AddVerticesAndEdge(new Edge<string>(from, to));
+                var globalVertex = Replacement.ReplaceValueIntoReplacement(localVertex, Replacement.This, contractType.Name);
+                _callingGraph.AddVertex(globalVertex);
+                foreach (var outEdge in localCallGraph.OutEdges(localVertex))
+                {
+                    var toVertex = Replacement.ReplaceValueIntoReplacement(outEdge.Target, Replacement.This, contractType.Name);
+                    _callingGraph.AddVerticesAndEdge(new Edge<string>(globalVertex, toVertex));
+                }
             }
             //add foreign edges
             _callingGraph.AddEdgeRange(outEdgesToAdd);
@@ -264,7 +268,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 {
                     if (calledFunc.Contains(Replacement.This))
                     {
-                        if (nonCompleteMetadataTemplateMap.TryGetValue(calledFunc, out var functionMetadataTemplate))
+                        if (completeTemplateMap.TryGetValue(calledFunc, out var functionMetadataTemplate))
                         {
                             resourceSet.UnionWith(functionMetadataTemplate.LocalResourceSet);
                         }
@@ -278,7 +282,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         #endregion
     }
 
-    internal class FunctionMetadataException : Exception
+    public class FunctionMetadataException : Exception
     {
         internal FunctionMetadataException(string msg) : base(msg)
         {

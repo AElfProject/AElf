@@ -77,5 +77,10 @@ namespace AElf.Kernel.Concurrency.Metadata
 
             return false;
         }
+
+        public override string ToString()
+        {
+            return Name + ":" + DataAccessMode;
+        }
     }
 }
