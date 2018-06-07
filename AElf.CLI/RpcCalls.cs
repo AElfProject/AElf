@@ -40,5 +40,35 @@ namespace AElf.CLI
             
             return commands;
         }
+
+        public static async Task<List<string>> GetPeers(string numPeers)
+        {
+            List<string> peers = new List<string>();
+
+            var text = "{\"jsonrpc\":\"2.0\",\"method\":\"get_peers\",\"params\":{\"numPeers\":\"" + numPeers + "\"},\"id\":1}";
+            Client.BaseAddress = new Uri(RpcServerUrl);
+            Client.DefaultRequestHeaders
+                .Accept
+                .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/");
+            request.Content = new StringContent(text,
+                Encoding.UTF8,
+                "application/json");
+
+            await Client.SendAsync(request)
+                .ContinueWith(async responseTask =>
+                {
+                    string result = await responseTask.Result.Content.ReadAsStringAsync();
+                    var j = JObject.Parse(result);
+                    var peersList = j["result"]["data"];
+
+                    foreach (var p in peersList.Children())
+                    {
+                        peers.Add(p["IpAddress"] + ":" + p["Port"]);
+                    }
+                });
+
+            return peers;
+        }
     }
 }

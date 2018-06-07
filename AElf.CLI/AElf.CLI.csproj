@@ -11,4 +11,10 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Network\AElf.Network.csproj">
+      <Project>{5FEFB079-F6EB-48AF-97C7-6C582B9BDB8A}</Project>
+      <Name>AElf.Network</Name>
+    </ProjectReference>
+  </ItemGroup>
 </Project>
