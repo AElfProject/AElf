@@ -43,7 +43,7 @@ namespace AElf.CLI
             return commands;
         }
 
-        public async Task<List<string>> GetPeers(string numPeers)
+        public async Task<List<string>> GetPeers(uint numPeers)
         {
             List<string> peers = new List<string>();
 

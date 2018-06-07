@@ -8,8 +8,9 @@ namespace AElf.CLI
         private static List<string> _commands = new List<string>();
         private static readonly RpcCalls Rpc = new RpcCalls();
         
-        private const string InvalidCommandError = "***** WARNING: INVALID COMMAND - SEE USAGE *****";
+        private const string InvalidCommandError = "***** ERROR: INVALID COMMAND - SEE USAGE *****";
         private const string InvalidParamsError = "***** ERROR: INVALID PARAMETERS - SEE USAGE *****";
+        private const string CommandNotAvailable = "***** ERROR: COMMAND NO LONGER AVAILABLE - PLEASE RESTART *****";
         
         public static void Main(string[] args)
         {
@@ -33,6 +34,8 @@ namespace AElf.CLI
             {
                 Console.WriteLine(comm);
             }
+            
+            Console.WriteLine();
 
             string exec = Console.ReadLine();
             exec = exec ?? string.Empty;
@@ -63,13 +66,29 @@ namespace AElf.CLI
 
         private static void GetPeers(string numPeers)
         {
+            List<string> peers;
+            uint n;
+            bool parsed = uint.TryParse(numPeers, out n);
+            if (!parsed || n == 0)
+            {
+                Console.WriteLine("\n" + InvalidParamsError + "\n");
+                return;
+            }
+
+            peers = Rpc.GetPeers(n).Result;
+            
+            if (peers.Count == 0)
+            {
+                Console.WriteLine("\n" + CommandNotAvailable + "\n");
+                return;
+            }
+            
             Console.WriteLine("\nList of Peers:");
-            List<string> peers = Rpc.GetPeers(numPeers).Result;
             foreach (var p in peers)
             {
                 Console.WriteLine(p);
             }
-            Console.WriteLine("\n");
+            Console.WriteLine();
         }
     }
 }
