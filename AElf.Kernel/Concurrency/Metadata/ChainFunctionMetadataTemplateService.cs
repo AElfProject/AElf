@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text.RegularExpressions;
 using Akka.Util.Internal;
 using NLog;
@@ -19,7 +18,7 @@ namespace AElf.Kernel.Concurrency.Metadata
     public class ChainFunctionMetadataTemplateService : IChainFunctionMetadataTemplateService
     {
         public Dictionary<string, FunctionMetadataTemplate> FunctionMetadataTemplateMap { get; } = new Dictionary<string, FunctionMetadataTemplate>();
-        private AdjacencyGraph<string, Edge<string>> _callingGraph; //calling graph is prepared for update contract code (check for DAG at that time)
+        private readonly AdjacencyGraph<string, Edge<string>> _callingGraph; //calling graph is prepared for update contract code (check for DAG at that time)
         
         private readonly ILogger _logger;
 
@@ -233,7 +232,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             {
                 topologicRes = callGraph.TopologicalSort();
             }
-            catch (NonAcyclicGraphException e)
+            catch (NonAcyclicGraphException)
             {
                 callGraph.Clear();
                 callGraph = null;
@@ -287,9 +286,9 @@ namespace AElf.Kernel.Concurrency.Metadata
         }
     }
 
-    internal class Replacement
+    internal static class Replacement
     {
-        public static string ReplacementRegexPattern = @"\$\{[a-zA-Z_][a-zA-Z0-9_]*((\.[a-zA-Z_][a-zA-Z0-9_]*)*)\}";
+        private static string ReplacementRegexPattern = @"\$\{[a-zA-Z_][a-zA-Z0-9_]*((\.[a-zA-Z_][a-zA-Z0-9_]*)*)\}";
         
         public static readonly string This = "${this}";
 
@@ -317,7 +316,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         
         public static bool TryGetReplacementWithIndex(string str, int index, out string res)
         {
-            var replacements = Regex.Matches(str, Replacement.ReplacementRegexPattern);
+            var replacements = Regex.Matches(str, ReplacementRegexPattern);
             if (index < replacements.Count)
             {
                 res = replacements[index].Value;

@@ -70,9 +70,9 @@ namespace AElf.Kernel.Concurrency.Metadata
 
         public override bool Equals(object obj)
         {
-            if (obj is Resource)
+            if (obj is Resource resource)
             {
-                return this.Name == ((Resource) obj).Name && this.DataAccessMode == ((Resource) obj).DataAccessMode;
+                return Name == resource.Name && DataAccessMode == resource.DataAccessMode;
             }
 
             return false;
