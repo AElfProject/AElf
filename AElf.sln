@@ -43,6 +43,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Common", "AElf.Common\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network.Tests", "AElf.Network.Tests\AElf.Network.Tests.csproj", "{3E029881-EA87-45C5-B79F-64426A10757A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Configuration", "AElf.Configuration\AElf.Configuration.csproj", "{3F9A7502-300D-4A09-9BFF-B17F929D71AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Configuration.Tests", "AElf.Configuration.Tests\AElf.Configuration.Tests.csproj", "{4DC91BEA-C123-4CF1-9346-DFFBA61185CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +133,14 @@ Global
 		{3E029881-EA87-45C5-B79F-64426A10757A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E029881-EA87-45C5-B79F-64426A10757A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E029881-EA87-45C5-B79F-64426A10757A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F9A7502-300D-4A09-9BFF-B17F929D71AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F9A7502-300D-4A09-9BFF-B17F929D71AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F9A7502-300D-4A09-9BFF-B17F929D71AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F9A7502-300D-4A09-9BFF-B17F929D71AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DC91BEA-C123-4CF1-9346-DFFBA61185CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DC91BEA-C123-4CF1-9346-DFFBA61185CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DC91BEA-C123-4CF1-9346-DFFBA61185CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DC91BEA-C123-4CF1-9346-DFFBA61185CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
