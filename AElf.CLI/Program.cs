@@ -22,15 +22,14 @@ namespace AElf.CLI
             Console.WriteLine("------------------------------------------------\n" +
                               "Welcome to AElf!\n" +
                               "------------------------------------------------\n" +
-                              "Usage: command_name param1 param2 ...\n\n" +
+                              "Usage: command_name param1 param2 ...\n" +
+                              "To Quit: Type 'Quit'\n\n" +
                               "Available commands:\n");
             
             foreach (var comm in _commands)
             {
                 Console.WriteLine(comm);
             }
-            
-            Console.WriteLine("0. Quit\n");
 
             string exec = Console.ReadLine();
             exec = exec ?? string.Empty;
@@ -50,13 +49,11 @@ namespace AElf.CLI
                     }
 
                     break;
-                case "0":
-                    Environment.Exit(0);
-                    break;
                 case "Quit":
                     Environment.Exit(0);
                     break;
                 default:
+                    Console.WriteLine("\n***** WARNING: INVALID COMMAND - SEE USAGE *****\n");
                     break;
             }
         }
