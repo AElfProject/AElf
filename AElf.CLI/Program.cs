@@ -39,6 +39,7 @@ namespace AElf.CLI
             
             Console.WriteLine();
 
+            Console.Write("AElf$ ");
             string exec = Console.ReadLine();
             exec = exec ?? string.Empty;
             string[] tokens = exec.Split();
