@@ -2,11 +2,14 @@
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Miner;
+using AElf.Kernel.Node.Config;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
 using AElf.Node.RPC.DTO;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using NLog;
 
 namespace AElf.Kernel.Node
@@ -19,15 +22,19 @@ namespace AElf.Kernel.Node
         private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
         private readonly IProtocolDirector _protocolDirector;
-        
+        private readonly INodeConfig _nodeConfig;
+        private readonly IMiner _miner;
+
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
-            IProtocolDirector protocolDirector, ILogger logger)
+            IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner)
         {
             _poolService = poolService;
             _protocolDirector = protocolDirector;
             _transactionManager = txManager;
             _rpcServer = rpcServer;
             _logger = logger;
+            _nodeConfig = nodeConfig;
+            _miner = miner;
         }
 
         public void Start(bool startRpc)
@@ -42,10 +49,19 @@ namespace AElf.Kernel.Node
             _rpcServer.SetCommandContext(this);
             _protocolDirector.SetCommandContext(this);
             
+            if(_nodeConfig.IsMiner)
+                _miner.Start();    
+            
             _logger.Log(LogLevel.Debug, "AElf node started.");
+            if (_nodeConfig.IsMiner)
+            {
+                _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToByteString().ToBase64());
+                _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToBase64());
+            }
         }
 
-        
+
+
         /// <summary>
         /// get the tx from tx pool or database
         /// </summary>
