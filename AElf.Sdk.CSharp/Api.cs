@@ -118,6 +118,10 @@ namespace AElf.Sdk.CSharp
             return new Any();
         }
 
+        public static void Return(IMessage retVal)
+        {
+            _transactionContext.Trace.RetVal = Any.Pack(retVal);
+        }
         #endregion Transaction API
 
     }
