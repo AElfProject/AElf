@@ -350,20 +350,17 @@ namespace AElf.Network.Peers
             List<IPeer> peers = _peers.OrderBy(c => rand.Next()).Select(c => c).ToList();
             List<NodeData> returnPeers = new List<NodeData>();
             
-            for (ushort i = 0; i < numPeers - 1; i++)
+            foreach (var peer in _peers)
             {
-                if (i <= peers.Count)
+                NodeData p = new NodeData
                 {
-                    NodeData p = new NodeData
-                    {
-                        IpAddress = peers[i].IpAddress,
-                        Port = peers[i].Port,
-                        IsBootnode = peers[i].IsBootnode
-                    };
-
-                    if (!p.IsBootnode)
-                        returnPeers.Add(p);
-                }
+                    IpAddress = peer.IpAddress,
+                    Port = peer.Port,
+                    IsBootnode = peer.IsBootnode
+                };
+                
+                if (!p.IsBootnode)
+                    returnPeers.Add(p);
             }
 
             return returnPeers;
