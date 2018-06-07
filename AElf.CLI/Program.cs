@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel.Design.Serialization;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace AElf.CLI
@@ -63,15 +59,12 @@ namespace AElf.CLI
                 .ContinueWith(async responseTask =>
                 {
                     var response = responseTask.Result;
-                    var jsonString = response.Content.ReadAsStringAsync();
-                    string result = await jsonString;
+                    var responseString = response.Content.ReadAsStringAsync();
+                    string result = await responseString;
                     var j = JObject.Parse(result);
                     var comms = j["result"]["commands"].ToList();
 
-                    foreach (var c in comms)
-                    {
-                        commands.Add(c.ToString());
-                    }
+                    commands = comms.Select(c => (string) c).ToList();
                 });
             
             return commands;
