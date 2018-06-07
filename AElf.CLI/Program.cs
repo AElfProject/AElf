@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 
 namespace AElf.CLI
 {
@@ -9,6 +10,8 @@ namespace AElf.CLI
         private static readonly RpcCalls Rpc = new RpcCalls();
 
         private const string CliPrefix = "> AElf$ ";
+        private const string Usage = "Usage: command_name <param1> <param2> ...";
+        private const string Quit = "To Quit: Type 'Quit'";
         
         private const string InvalidCommandError = "***** ERROR: INVALID COMMAND - SEE USAGE *****";
         private const string InvalidParamsError = "***** ERROR: INVALID PARAMETERS - SEE USAGE *****";
@@ -30,8 +33,8 @@ namespace AElf.CLI
         private static void Menu()
         {
             Console.WriteLine("------------------------------------------------\n" +
-                              "Usage: command_name <param1> <param2> ...\n" +
-                              "To Quit: Type 'Quit'\n\n" +
+                              Usage + "\n" +
+                              Quit + "\n\n" +
                               "Available commands:\n");
             
             foreach (var comm in _commands)
@@ -45,7 +48,7 @@ namespace AElf.CLI
             string exec = Console.ReadLine();
             exec = exec ?? string.Empty;
             string[] tokens = exec.Split();
-            string choice = tokens[0];
+            string choice = tokens[0].ToLower();
 
             switch (choice)
             {
@@ -60,7 +63,10 @@ namespace AElf.CLI
                     }
 
                     break;
-                case "Quit":
+                case "help":
+                    Console.WriteLine("\n" + Usage + "\n");
+                    break;
+                case "quit":
                     Environment.Exit(0);
                     break;
                 default:
