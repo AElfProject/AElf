@@ -15,6 +15,10 @@ namespace AElf.CLI
         public static void Main(string[] args)
         {
             _commands = Rpc.GetCommands().Result;
+
+            Console.WriteLine("------------------------------------------------\n" +
+                              "Welcome to AElf!");
+            
             while (true)
             {
                 Menu();
@@ -24,9 +28,7 @@ namespace AElf.CLI
         private static void Menu()
         {
             Console.WriteLine("------------------------------------------------\n" +
-                              "Welcome to AElf!\n" +
-                              "------------------------------------------------\n" +
-                              "Usage: command_name param1 param2 ...\n" +
+                              "Usage: command_name <param1> <param2> ...\n" +
                               "To Quit: Type 'Quit'\n\n" +
                               "Available commands:\n");
             
@@ -67,8 +69,8 @@ namespace AElf.CLI
         private static void GetPeers(string numPeers)
         {
             List<string> peers;
-            uint n;
-            bool parsed = uint.TryParse(numPeers, out n);
+            ushort n;
+            bool parsed = ushort.TryParse(numPeers, out n);
             if (!parsed || n == 0)
             {
                 Console.WriteLine("\n" + InvalidParamsError + "\n");
