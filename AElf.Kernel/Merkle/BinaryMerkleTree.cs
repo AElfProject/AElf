@@ -43,11 +43,10 @@ namespace AElf.Kernel.Merkle
         {
             while (true)
             {
-                if (hashes.Count < 1)
+                if (hashes.Count == 0)
                 {
-                    throw new InvalidOperationException("Cannot generate merkle tree without any nodes.");
+                    return Hash.Default;
                 }
-
                 if (hashes.Count == 1) //Finally
                 {
                     return new Hash(hashes[0].Value);

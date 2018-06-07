@@ -11,7 +11,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
     {
         public List<Hash> _accountList = new List<Hash>();
         private ParallelTestDataUtil _dataUtil = new ParallelTestDataUtil();
-        
+
         public Dictionary<Hash, List<ITransaction>> GetTestData()
         {
             Dictionary<Hash, List<ITransaction>> txList = new Dictionary<Hash, List<ITransaction>>();
@@ -62,7 +62,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         public void MergeByAccountTest()
         {
             var txDic = GetTestData();
-            Grouper grouper = new Grouper();
+            Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
             var grouped = grouper.Process(txDic.Values.SelectMany(x => x).ToList());
             var s = grouped.Select(
                 x =>
@@ -85,12 +85,12 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         public void MergeByAccountTestFullTxList()
         {
             var txList = _dataUtil.GetFullTxList();
-            Grouper grouper = new Grouper();
+            Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
             var grouped = grouper.Process(txList.Select(x => x).ToList());
             var s = grouped.Select(
                 x => _dataUtil.StringRepresentation(x)
             ).ToList();
-            
+
             Assert.Equal(_dataUtil.StringRepresentation(_dataUtil.GetFirstGroupTxList().Select(x => x).ToList()), s[0]);
             Assert.Equal(_dataUtil.StringRepresentation(_dataUtil.GetSecondGroupTxList().Select(x => x).ToList()), s[1]);
         }

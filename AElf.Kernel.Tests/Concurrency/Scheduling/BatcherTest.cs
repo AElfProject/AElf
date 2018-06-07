@@ -52,7 +52,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 		{
 			var txList = _dataUtil.GetFirstBatchTxList();
 			var batcher = new Batcher();
-			var grouper = new Grouper();
+            var grouper = new Grouper(new MockResourceUsageDetectionService());
 			var batched = batcher.Process(txList.Select(x => x).ToList());
 
 			var firstBatch = batched.First();
