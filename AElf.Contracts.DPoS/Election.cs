@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
@@ -8,6 +9,7 @@ using AElf.Kernel;
 using AElf.Kernel.Extensions;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
+using Google.Protobuf;
 using ServiceStack;
 
 namespace AElf.Contracts.DPoS
@@ -21,6 +23,8 @@ namespace AElf.Contracts.DPoS
         
         //Remain votes of voters
         public Map RemainVotes = new Map("RemainVotes");
+        
+        public Map MiningNodes = new Map("MiningNodes");
 
         public override async Task InvokeAsync()
         {
@@ -58,6 +62,32 @@ namespace AElf.Contracts.DPoS
         public async Task<object> GetRemainVotes(Hash voterAddress)
         {
             return await RemainVotes.GetValue(voterAddress);
+        }
+
+        public async Task<object> SetMiningNodes()
+        {
+            List<string> miningNodes;
+                
+            using (var file = 
+                File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.DPoS/MiningNodes.txt")))
+            {
+                miningNodes = file.ReadLines().ToList();
+            }
+
+            var nodes = new MiningNodes();
+            foreach (var node in miningNodes)
+            {
+                nodes.Nodes.Add(new Hash(ByteString.CopyFromUtf8(node)));
+            }
+
+            if (nodes.Nodes.Count < 1)
+            {
+                throw new InvalidOperationException("Cannot find mining nodes in related config file.");
+            }
+
+            await MiningNodes.SetValueAsync(Hash.Zero, nodes.ToByteArray());
+            
+            return null;
         }
     }
 }

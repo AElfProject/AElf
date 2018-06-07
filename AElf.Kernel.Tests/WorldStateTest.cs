@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
@@ -269,6 +270,9 @@ namespace AElf.Kernel.Tests
         public void Test()
         {
             var a = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff").ToUtf8Bytes();
+            var b = DateTime.Parse(Encoding.UTF8.GetString(a));
+            var c = b.AddMinutes(4);
+            
             Assert.True(a.Length > 0);
         }
     }

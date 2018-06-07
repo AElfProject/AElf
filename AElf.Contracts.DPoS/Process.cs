@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -17,6 +18,8 @@ namespace AElf.Contracts.DPoS
         public Map TimeSlots = new Map("TimeSlots");
         
         public Map Signatures = new Map("Signatures");
+        
+        public Map RoundsCount = new Map("RoundsCount");
 
         public async Task<object> RandomizeOrderForFirstTwoRounds()
         {
@@ -36,10 +39,16 @@ namespace AElf.Contracts.DPoS
             return await TimeSlots.GetValue(accountHash);
         }
 
-        public async Task<object> CanStartMining(Hash accountHash)
+        public async Task<object> CanMining(Hash accountHash)
         {
             var assignedTimeSlot = (byte[]) await GetTimeSlot(accountHash);
-            return CompareBytes(assignedTimeSlot, GetTime());
+            var timeSlotEnd = DateTime
+                .Parse(Encoding.UTF8.GetString(assignedTimeSlot))
+                .AddMinutes(4)
+                .ToString("yyyy-MM-dd HH:mm:ss.ffffff")
+                .ToUtf8Bytes();
+
+            return CompareBytes(assignedTimeSlot, GetTime()) && CompareBytes(timeSlotEnd, assignedTimeSlot);
         }
         
         public async Task<object> CalculateSignature(Hash accountHash)
@@ -47,7 +56,18 @@ namespace AElf.Contracts.DPoS
             throw new NotImplementedException();
         }
         
-        
+        public async Task<object> GetMiningNodes()
+        {
+            var miningNodes = AElf.Kernel.MiningNodes.Parser.ParseFrom(
+                await MiningNodes.GetValue(Hash.Zero)).Nodes.ToList();
+
+            if (miningNodes.Count < 1)
+            {
+                throw new ConfigurationErrorsException("No mining nodes.");
+            }
+
+            return miningNodes;
+        }
         
         public override async Task InvokeAsync()
         {
@@ -59,26 +79,6 @@ namespace AElf.Contracts.DPoS
             var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
 
             if (member != null) await (Task<object>) member.Invoke(this, parameters);
-        }
-        
-        public async Task<object> GetMiningNodes()
-        {
-            //TODO: Should set mining nodes before.
-            var miningNodes = AElf.Kernel.MiningNodes.Parser.ParseFrom(
-                await MiningNodes.GetValue(Hash.Zero)).Nodes.ToList();
-
-//            using (var file = 
-//                File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.DPoS/MiningNodes.txt")))
-//            {
-//                miningNodes = file.ReadLines().ToList();
-//            }
-
-            if (miningNodes.Count < 1)
-            {
-                throw new ConfigurationErrorsException("No mining nodes.");
-            }
-
-            return miningNodes;
         }
 
         private byte[] GetTime()
