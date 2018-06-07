@@ -12,7 +12,7 @@ namespace AElf.CLI
     public class RpcCalls
     {
         private static readonly HttpClient Client = new HttpClient();
-        private static readonly string RpcServerUrl = "http://localhost:5000";
+        private const string RpcServerUrl = "http://localhost:5000";
 
         public RpcCalls()
         {

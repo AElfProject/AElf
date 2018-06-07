@@ -40,11 +40,11 @@ namespace AElf.CLI
             switch (choice)
             {
                 case "get_peers":
-                    try
+                    if (tokens.Length > 1)
                     {
                         GetPeers(tokens[1]);
                     }
-                    catch
+                    else
                     {
                         Console.WriteLine("\n***** ERROR: INVALID PARAMETERS - SEE USAGE *****\n");
                     }

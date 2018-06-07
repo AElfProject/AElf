@@ -350,7 +350,7 @@ namespace AElf.Network.Peers
             List<IPeer> peers = _peers.OrderBy(c => rand.Next()).Select(c => c).ToList();
             List<NodeData> returnPeers = new List<NodeData>();
             
-            foreach (var peer in _peers)
+            foreach (var peer in peers)
             {
                 NodeData p = new NodeData
                 {
@@ -361,6 +361,9 @@ namespace AElf.Network.Peers
                 
                 if (!p.IsBootnode)
                     returnPeers.Add(p);
+
+                if (returnPeers.Count == numPeers)
+                    break;
             }
 
             return returnPeers;
