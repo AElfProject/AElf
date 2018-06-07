@@ -45,7 +45,7 @@ namespace AElf.Kernel.Merkle
             {
                 if (hashes.Count == 0)
                 {
-                    return Hash.Zero;
+                    return Hash.Default;
                 }
                 if (hashes.Count == 1) //Finally
                 {

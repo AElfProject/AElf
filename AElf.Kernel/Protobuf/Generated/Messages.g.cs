@@ -64,10 +64,9 @@ namespace AElf.Kernel {
             "SGFzaCI8Cg5QYWlySGFzaENoYW5nZRISCgNLZXkYASABKAsyBS5IYXNoEhYK",
             "BVZhbHVlGAIgASgLMgcuQ2hhbmdlIiwKC0NoYW5nZXNEaWN0Eh0KBERpY3QY",
             "ASADKAsyDy5QYWlySGFzaENoYW5nZSI7CgVDaGFpbhIRCgJJZBgBIAEoCzIF",
-            "Lkhhc2gSHwoQR2VuZXNpc0Jsb2NrSGFzaBgCIAEoCzIFLkhhc2gqUQoGU3Rh",
-            "dHVzEg4KCk5vdEV4aXN0ZWQQABILCgdSZWZ1c2VkEAESCwoHUGVuZGluZxAC",
-            "EhIKDkV4ZWN1dGVkRmFpbGVkEAMSCQoFTWluZWQQBEIOqgILQUVsZi5LZXJu",
-            "ZWxiBnByb3RvMw=="));
+            "Lkhhc2gSHwoQR2VuZXNpc0Jsb2NrSGFzaBgCIAEoCzIFLkhhc2gqPAoGU3Rh",
+            "dHVzEg4KCk5vdEV4aXN0ZWQQABILCgdQZW5kaW5nEAESCgoGRmFpbGVkEAIS",
+            "CQoFTWluZWQQA0IOqgILQUVsZi5LZXJuZWxiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.AnyReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), }, new pbr::GeneratedClrTypeInfo[] {
@@ -97,10 +96,9 @@ namespace AElf.Kernel {
   #region Enums
   public enum Status {
     [pbr::OriginalName("NotExisted")] NotExisted = 0,
-    [pbr::OriginalName("Refused")] Refused = 1,
-    [pbr::OriginalName("Pending")] Pending = 2,
-    [pbr::OriginalName("ExecutedFailed")] ExecutedFailed = 3,
-    [pbr::OriginalName("Mined")] Mined = 4,
+    [pbr::OriginalName("Pending")] Pending = 1,
+    [pbr::OriginalName("Failed")] Failed = 2,
+    [pbr::OriginalName("Mined")] Mined = 3,
   }
 
   #endregion

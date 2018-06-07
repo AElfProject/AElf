@@ -1,7 +1,11 @@
-﻿using System.Linq;
-using AElf.Kernel.Node.Network;
-using AElf.Kernel.Node.Network.Config;
+﻿using System.Collections.Generic;
+using System.Linq;
+using AElf.Database;
+using AElf.Database.Config;
 using AElf.Kernel.TxMemPool;
+using AElf.Network.Config;
+using AElf.Network.Data;
+using AElf.Network.Peers;
 using CommandLine;
 
 namespace AElf.Launcher
@@ -10,7 +14,8 @@ namespace AElf.Launcher
     {
         public IAElfNetworkConfig NetConfig { get; private set; }
         public ITxPoolConfig TxPoolConfig { get; private set; }
-        
+        public IDatabaseConfig DatabaseConfig { get; private set; }
+
         public bool Rpc { get; private set; }
 
         public bool Success { get; private set; }
@@ -39,8 +44,27 @@ namespace AElf.Launcher
             AElfNetworkConfig netConfig = new AElfNetworkConfig();
 
             if (opts.Bootnodes != null && opts.Bootnodes.Any())
-                netConfig.Bootnodes = opts.Bootnodes.ToList();
+            {
+                netConfig.Bootnodes = new List<NodeData>();
+                
+                foreach (var strNodeData in opts.Bootnodes)
+                {
+                    NodeData nd = NodeData.FromString(strNodeData);
+                    if (nd != null)
+                    {
+                        nd.IsBootnode = true;
+                        netConfig.Bootnodes.Add(nd);
+                    }
+                }
+            }
+            else
+            {
+                netConfig.Bootnodes = Bootnodes.BootNodes;
+            }
 
+            if (opts.PeersDbPath != null)
+                netConfig.PeersDbPath = opts.PeersDbPath;
+            
             if (opts.Peers != null)
                 netConfig.Peers = opts.Peers.ToList();
             
@@ -53,6 +77,23 @@ namespace AElf.Launcher
             NetConfig = netConfig;
             
             // Todo ITxPoolConfig
+            
+            // Database
+            var databaseConfig = new DatabaseConfig();
+            
+            databaseConfig.Type = DatabaseTypeHelper.GetType(opts.DBType);
+            
+            if (!string.IsNullOrWhiteSpace(opts.DBHost))
+            {
+                databaseConfig.Host = opts.DBHost;
+            }
+            
+            if (opts.DBPort.HasValue)
+            {
+                databaseConfig.Port = opts.DBPort.Value;
+            }
+
+            DatabaseConfig = databaseConfig;
         }
     }
 }

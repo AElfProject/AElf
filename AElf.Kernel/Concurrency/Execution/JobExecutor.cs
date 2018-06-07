@@ -147,7 +147,7 @@ namespace AElf.Kernel.Concurrency.Execution
                 // TODO: Improve log
                 txCtxt.Trace.StdErr += ex.ToString() + "\n";
                 //result.Logs = ByteString.CopyFrom(Encoding.ASCII.GetBytes(ex.ToString()));
-                result.Status = Status.ExecutedFailed;
+                result.Status = Status.Failed;
             }
             finally
             {

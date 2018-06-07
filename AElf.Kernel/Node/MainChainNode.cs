@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Node.Network.Data;
-using AElf.Kernel.Node.Network.Peers;
+using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.TxMemPool;
+using AElf.Network.Data;
 using Google.Protobuf;
 using NLog;
-using ServiceStack.Templates;
 
 namespace AElf.Kernel.Node
 {
@@ -18,15 +19,15 @@ namespace AElf.Kernel.Node
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
-        private readonly IPeerManager _peerManager;
+        private readonly IProtocolDirector _protocolDirector;
         
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
-            IPeerManager peerManager, ILogger logger)
+            IProtocolDirector protocolDirector, ILogger logger)
         {
             _poolService = poolService;
+            _protocolDirector = protocolDirector;
             _transactionManager = txManager;
             _rpcServer = rpcServer;
-            _peerManager = peerManager;
             _logger = logger;
         }
 
@@ -36,11 +37,11 @@ namespace AElf.Kernel.Node
                 _rpcServer.Start();
             
             _poolService.Start();
-            _peerManager.Start();
+            _protocolDirector.Start();
             
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
-            _peerManager.SetCommandContext(this);
+            _protocolDirector.SetCommandContext(this);
             
             _logger.Log(LogLevel.Debug, "AElf node started.");
         }
@@ -68,12 +69,30 @@ namespace AElf.Kernel.Node
         /// also places it in the transaction pool.
         /// </summary>
         /// <param name="tx">The tx to broadcast</param>
-        public async Task BroadcastTransaction(Transaction tx)
+        public async Task<bool> BroadcastTransaction(ITransaction tx)
         {
-            // todo : send to network through server
-            await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, tx.ToByteArray());
+            bool res;
             
-            _logger.Trace("Broadcasted transaction to peers: " + JsonFormatter.Default.Format(tx));
+            try
+            {
+                res = await _poolService.AddTxAsync(tx);
+            }
+            catch (Exception e)
+            {
+                _logger.Trace("Pool insertion failed: " + tx.GetHash().Value.ToBase64());
+                return false;
+            }
+
+            if (res)
+            {
+                await _protocolDirector.BroadcastTransaction(tx);
+                
+                _logger.Trace("Broadcasted transaction to peers: " + tx.GetLoggerString());
+                return true;
+            }
+            
+            _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToBase64() + " }");
+            return false;
         }
         
         /// <summary>
@@ -94,6 +113,17 @@ namespace AElf.Kernel.Node
             {
                 _logger.Error(e, "Invalid tx - Could not receive transaction from the network", null);
             }
+        }
+
+        /// <summary>
+        /// This method requests a specified number of peers from
+        /// the node's peer list.
+        /// </summary>
+        /// <param name="numPeers"></param>
+        /// <returns></returns>
+        public async Task<List<NodeData>> GetPeers(ushort numPeers)
+        {
+            return _protocolDirector.GetPeers(numPeers);
         }
     }
 }

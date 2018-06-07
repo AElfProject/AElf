@@ -1,8 +1,10 @@
 ﻿using System;
-using System.Security.Cryptography;
-using AElf.Kernel;
+using AElf.Network.Data;
+using AElf.Node.RPC.DTO;
+using Google.Protobuf;
+using Newtonsoft.Json.Linq;
 
-namespace AElf.Node.RPC.DTO
+namespace AElf.Kernel.Node.RPC.DTO
 {
     public static class DtoHelper
     {
@@ -10,22 +12,38 @@ namespace AElf.Node.RPC.DTO
         {
             TransactionDto dto = new TransactionDto()
             {
-                From = tx.From.GetHashBytes(),
-                To = tx.To.GetHashBytes()
+                Raw = tx.Serialize()
             };
 
             return dto;
         }
 
-        public static Transaction ToTransaction(this TransactionDto dto)
+        public static Transaction ToTransaction(this JToken raw)
         {
-            Transaction tx = new Transaction
+            var rawData = raw.First.ToString();
+            return Transaction.Parser.ParseFrom(ByteString.FromBase64(rawData));
+        }
+
+        public static NodeDataDto ToNodeDataDto(this NodeData nd)
+        {
+            NodeDataDto dto = new NodeDataDto()
             {
-                From = dto.From,
-                To = dto.To
+                IpAddress = nd.IpAddress,
+                Port = Convert.ToUInt16(nd.Port)
             };
 
-            return tx;
+            return dto;
+        }
+
+        public static NodeData ToNodeData(this NodeDataDto dto)
+        {
+            NodeData nd = new NodeData()
+            {
+                IpAddress = dto.IpAddress,
+                Port = dto.Port
+            };
+
+            return nd;
         }
         
         public static byte[] StringToByteArray(string hex)
