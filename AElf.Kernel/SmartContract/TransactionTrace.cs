@@ -6,6 +6,9 @@ namespace AElf.Kernel
 {
     public partial class TransactionTrace
     {
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+
         public RepeatedField<LogEvent> FlattenedLogs
         {
             get
