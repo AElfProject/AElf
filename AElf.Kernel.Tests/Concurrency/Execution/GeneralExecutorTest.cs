@@ -17,30 +17,26 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 	[UseAutofacTestFramework]
 	public class GeneralExecutorTest : TestKitBase
 	{
-		private ActorSystem sys = ActorSystem.Create("test");
-		private ChainContextWithSmartContractZeroWithTransfer _chainContext;
-		private ChainContextServiceWithAdd _chainContextService;
-		private IAccountContextService _accountContextService;
 		private IActorRef _generalExecutor;
+        private MockSetup _mock;
+        private ActorSystem sys = ActorSystem.Create("test");
+        private IActorRef _serviceRouter;
 
-		public GeneralExecutorTest(ChainContextServiceWithAdd chainContextService, AccountContextService accountContextService, ChainContextWithSmartContractZeroWithTransfer chainContext) : base(new XunitAssertions())
-		{
-			_chainContextService = chainContextService;
-			_accountContextService = accountContextService;
-			_chainContext = chainContext;
-			_generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
+        public GeneralExecutorTest(MockSetup mock) : base(new XunitAssertions())
+        {
+            _mock = mock;
+            _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(_mock.ServicePack));
+            _generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _serviceRouter), "exec");
 		}
 
 		[Fact]
 		public void Test(){
-			TestWithChainId(Hash.Zero);
-			TestWithChainId(Hash.Generate());
+            TestWithChainId(_mock.ChainId1);
+            TestWithChainId(_mock.ChainId2);
 		}
 
 		private void TestWithChainId(Hash chainId)
 		{
-			_chainContextService.AddChainContext(chainId, _chainContext);
-
 			// Add the chain executor
 			_generalExecutor.Tell(new RequestAddChainExecutor(chainId));
 			var add = ExpectMsg<RespondAddChainExecutor>();

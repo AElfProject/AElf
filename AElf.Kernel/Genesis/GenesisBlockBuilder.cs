@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Services;
 using Google.Protobuf;
 
 namespace AElf.Kernel
@@ -9,10 +10,7 @@ namespace AElf.Kernel
     {
         public Block Block { get; set; }
 
-        public List<Transaction> Txs { get; set; } =new List<Transaction>();
-
-
-        public GenesisBlockBuilder Build(Type smartContractZero)
+        public GenesisBlockBuilder Build()
         {
             var block = new Block(Hash.Zero)
             {
@@ -24,66 +22,12 @@ namespace AElf.Kernel
                 Body = new BlockBody()
             };
 
-            var registerTx = new Transaction
-            {
-                IncrementId = 0,
-                MethodName = nameof(ISmartContractZero.RegisterSmartContract),
-                To = Hash.Zero,
-                From = Hash.Zero,
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                        Params = 
-                        {
-                            new Param
-                            {
-                                RegisterVal = new SmartContractRegistration
-                                {
-                                    Category = 0,
-                                    ContractBytes = ByteString.CopyFromUtf8(smartContractZero.AssemblyQualifiedName),
-                                    ContractHash = Hash.Zero
-                                }
-                            }
-                        }
-                    }.ToByteArray()
-                )
-            };
-            block.AddTransaction(registerTx.GetHash());
+            // Genesis block is empty
+            // TODO: Maybe add info like Consensus protocol in Genesis block
 
-            var deployTx = new Transaction
-            {
-                IncrementId = 1,
-                MethodName = nameof(ISmartContractZero.DeploySmartContract),
-                From = Hash.Zero,
-                To = Hash.Zero,
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                       Params = { 
-                           new Param
-                           {
-                               HashVal = Hash.Zero
-                           },
-                           new Param
-                           {
-                               DeploymentVal = new SmartContractDeployment
-                               {
-                                   ContractHash = Hash.Zero
-                               }
-                           }}
-                    }
-                    .ToByteArray()
-                )
-            };
-            block.AddTransaction(deployTx.GetHash());
-
-            
             block.FillTxsMerkleTreeRootInHeader();
             
             Block = block;
-
-            Txs.Add(registerTx);
-            Txs.Add(deployTx);
 
             return this;
         }

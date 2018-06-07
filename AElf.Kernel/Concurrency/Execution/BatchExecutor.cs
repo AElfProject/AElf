@@ -19,48 +19,53 @@ namespace AElf.Kernel.Concurrency.Execution
 		}
 		enum State
 		{
-			PendingGrouping,
+			Initializing,
 			ReadyToRun,
 			Running
 		}
-		private State _state = State.PendingGrouping;
+        private State _state = State.Initializing;
 		private bool _startExecutionMessageReceived = false;
-		private Grouper _grouper = new Grouper();
-		private IChainContext _chainContext;
+		private Grouper _grouper;
+        private Hash _chainId;
+        private IActorRef _serviceRouter;
+        private ServicePack _servicePack;
 		private List<ITransaction> _transactions;
 		private List<List<ITransaction>> _grouped;
-		private IActorRef _resultCollector;
+        private IActorRef _resultCollector;
 		private ChildType _childType;
 		private Dictionary<IActorRef, List<ITransaction>> _actorToTransactions = new Dictionary<IActorRef, List<ITransaction>>();
 		private Dictionary<Hash, TransactionResult> _transactionResults = new Dictionary<Hash, TransactionResult>();
 
-		public BatchExecutor(IChainContext chainContext, List<ITransaction> transactions, IActorRef resultCollector, ChildType childType)
+        public BatchExecutor(Hash chainId, IActorRef serviceRouter, List<ITransaction> transactions, IActorRef resultCollector, ChildType childType)
 		{
-			_chainContext = chainContext;
+            _chainId = chainId;
+            _serviceRouter = serviceRouter;
 			_transactions = transactions;
-			_resultCollector = resultCollector;
+            _resultCollector = resultCollector;
 			_childType = childType;
 		}
 
 		protected override void PreStart()
 		{
-			Context.System.Scheduler.ScheduleTellOnce(new TimeSpan(0, 0, 0), Self, StartGroupingMessage.Instance, Self);
+            Context.System.Scheduler.ScheduleTellOnce(new TimeSpan(0, 0, 0), _serviceRouter, new RequestLocalSerivcePack(0), Self);
 		}
 
 		protected override void OnReceive(object message)
 		{
 			switch (message)
 			{
-				case StartGroupingMessage startGrouping:
-					if (_state == State.PendingGrouping)
-					{
-						_grouped = _grouper.Process(_transactions);
-						// TODO: Report and/or log grouping outcomes
-						CreateChildren();
-						_state = State.ReadyToRun;
-						MaybeStartChildren();
-					}
-					break;
+                case RespondLocalSerivcePack res:
+                    if (_state == State.Initializing)
+                    {
+                        _servicePack = res.ServicePack;
+                        _grouper = new Grouper(_servicePack.ResourceDetectionService);
+                        _grouped = _grouper.Process(_transactions);
+                        // TODO: Report and/or log grouping outcomes
+                        CreateChildren();
+                        _state = State.ReadyToRun;
+                        MaybeStartChildren();
+                    }
+                    break;
 				case StartExecutionMessage start:
 					_startExecutionMessageReceived = true;
 					MaybeStartChildren();
@@ -85,11 +90,11 @@ namespace AElf.Kernel.Concurrency.Execution
 				IActorRef actor = null;
 				if (_childType == ChildType.Group)
 				{
-					actor = Context.ActorOf(GroupExecutor.Props(_chainContext, txs, Self));
+                    actor = Context.ActorOf(GroupExecutor.Props(_chainId, _serviceRouter, txs, Self));
 				}
 				else
 				{
-					actor = Context.ActorOf(JobExecutor.Props(_chainContext, txs, Self));
+                    actor = Context.ActorOf(JobExecutor.Props(_chainId, _serviceRouter, txs, Self));
 				}
 
 				_actorToTransactions.Add(actor, txs);
@@ -111,9 +116,9 @@ namespace AElf.Kernel.Concurrency.Execution
 
 		private void ForwardResult(TransactionResultMessage resultMessage)
 		{
-			if (_resultCollector != null)
+            if (_resultCollector != null)
 			{
-				_resultCollector.Forward(resultMessage);
+                _resultCollector.Forward(resultMessage);
 			}
 		}
 
@@ -125,9 +130,9 @@ namespace AElf.Kernel.Concurrency.Execution
 			}
 		}
 
-		public static Props Props(IChainContext chainContext, List<ITransaction> transactions, IActorRef resultCollector, ChildType childType)
+        public static Props Props(Hash chainId, IActorRef serviceRouter, List<ITransaction> transactions, IActorRef resultCollector, ChildType childType)
 		{
-			return Akka.Actor.Props.Create(() => new BatchExecutor(chainContext, transactions, resultCollector, childType));
+            return Akka.Actor.Props.Create(() => new BatchExecutor(chainId, serviceRouter, transactions, resultCollector, childType));
 		}
 	}
 }
