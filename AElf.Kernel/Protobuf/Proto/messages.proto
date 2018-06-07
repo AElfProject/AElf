@@ -131,3 +131,7 @@ message Chain{
     Hash Id = 1;
     Hash GenesisBlockHash = 2;
 }
+
+message MiningNodes {
+    repeated Hash Nodes = 1;
+}
