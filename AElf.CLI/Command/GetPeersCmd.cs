@@ -7,8 +7,18 @@ namespace AElf.CLI.Command
     {
         private const string GetPeersName = "peers";
         
-        public GetPeersCmd() : base(GetPeersName, "peers <numpeers>")
+        public GetPeersCmd() : base(GetPeersName)
         {
+        }
+
+        public override string GetUsage()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override string GetUsage(string subCommand)
+        {
+            throw new System.NotImplementedException();
         }
 
         public override JObject BuildRequestObject(CmdParseResult parsedCommand)
@@ -17,6 +27,11 @@ namespace AElf.CLI.Command
             // contained in this instance.
 
             return null;
+        }
+
+        public override string Validate(CmdParseResult parsedCommand)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

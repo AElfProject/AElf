@@ -1,20 +1,32 @@
-﻿using AElf.CLI.Parsing;
+﻿using AElf.CLI.Command.Account;
+using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
+using AElf.CLI.Wallet;
 
 namespace AElf.CLI
 {
     class Program
     {
+        // todo Parse command line options
         public static void Main(string[] args)
         {
             ScreenManager screenManager = new ScreenManager();
             CommandParser parser = new CommandParser();
+            AccountManager manager = new AccountManager();
             
-            AElfCliProgram program = new AElfCliProgram(screenManager, parser);
+            AElfCliProgram program = new AElfCliProgram(screenManager, parser, manager);
+
+            // Register local commands
+            RegisterAccountCommands(program);
             
+            // Start the CLI
             program.StartRepl();
         }
-        
+
+        private static void RegisterAccountCommands(AElfCliProgram program)
+        {
+            program.RegisterCommand(new AccountCmd());
+        }
 
         /*private static void Menu()
         {

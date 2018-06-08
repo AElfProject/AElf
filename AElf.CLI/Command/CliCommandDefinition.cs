@@ -6,13 +6,25 @@ namespace AElf.CLI.Command
     public abstract class CliCommandDefinition
     {
         public string Name { get; }
-        public string Usage { get; }
+        public virtual bool IsLocal { get; } = false;
     
-        public CliCommandDefinition(string name, string usage)
+        public CliCommandDefinition(string name)
         {
-            
+            Name = name;
+        }
+        
+        public abstract string GetUsage();
+        
+        public virtual string GetUsage(string subCommand)
+        {
+            return string.Empty;
         }
 
-        public abstract JObject BuildRequestObject(CmdParseResult ParsedCommand);
+        public virtual JObject BuildRequestObject(CmdParseResult parsedCommand)
+        {
+            return null;
+        }
+
+        public abstract string Validate(CmdParseResult parsedCommand);
     }
 }

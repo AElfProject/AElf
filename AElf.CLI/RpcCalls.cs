@@ -9,6 +9,8 @@ using Newtonsoft.Json.Linq;
 
 namespace AElf.CLI
 {
+    
+    // TODO split the protocols logic from the HTTP/transport logic
     public class RpcCalls
     {
         private static readonly HttpClient Client = new HttpClient();

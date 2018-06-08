@@ -39,5 +39,15 @@ namespace AElf.CLI.Screen
             
             return command;
         }
+
+        public void PrintCommandNotFount(string command)
+        {
+            Console.WriteLine(command + " : command not found");
+        }
+
+        public void PrintError(string error)
+        {
+            Console.WriteLine(error);
+        }
     }
 }
