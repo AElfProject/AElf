@@ -15,6 +15,8 @@ namespace AElf.CLI.Command
         {
             // If parsedCommand is not valid return null and let other layers/components print the usage 
             // contained in this instance.
+
+            return null;
         }
     }
 }

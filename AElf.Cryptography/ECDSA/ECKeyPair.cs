@@ -1,6 +1,10 @@
-﻿using Org.BouncyCastle.Crypto.Parameters;
+﻿using System;
+using System.IO;
+using System.Linq;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
 
-namespace AElf.Kernel.Crypto.ECDSA
+namespace AElf.Cryptography.ECDSA
 {
     public class ECKeyPair
     {
@@ -13,7 +17,7 @@ namespace AElf.Kernel.Crypto.ECDSA
             PrivateKey = privateKey;
         }
 
-        public byte[] GetPublicKey(bool compressed = false)
+        public byte[] GetEncodedPublicKey(bool compressed = false)
         {
             return PublicKey.Q.GetEncoded(compressed);
         }
@@ -26,6 +30,16 @@ namespace AElf.Kernel.Crypto.ECDSA
             ECKeyPair k = new ECKeyPair(null, pubKey);
 
             return k;
+        }
+
+        public byte[] GetAddress()
+        {
+            return this.GetEncodedPublicKey().Take(10).ToArray();
+        }
+
+        public string GetHexaAddress()
+        {
+            return BitConverter.ToString(this.GetAddress()).Replace("-","");
         }
     }
 }

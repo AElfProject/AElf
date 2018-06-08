@@ -1,9 +1,9 @@
-﻿using AElf.Kernel.Crypto;
-using AElf.Kernel.Crypto.ECDSA;
+﻿using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using Google.Protobuf;
 using Xunit;
 
-namespace AElf.Kernel.Tests.Crypto.ECDSA
+namespace AElf.Cryptography.Tests.ECDSA
 {
     public class TransactionSignatureTest
     {

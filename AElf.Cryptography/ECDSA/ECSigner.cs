@@ -2,7 +2,7 @@
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
 
-namespace AElf.Kernel.Crypto.ECDSA
+namespace AElf.Cryptography.ECDSA
 {
     public class ECSigner
     {

@@ -1,6 +1,6 @@
 ﻿using Org.BouncyCastle.Crypto.Signers;
 
-namespace AElf.Kernel.Crypto.ECDSA
+namespace AElf.Cryptography.ECDSA
 {
     public class ECVerifier
     {
