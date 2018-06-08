@@ -89,5 +89,17 @@ namespace AElf.Contracts.DPoS
             
             return null;
         }
+
+        public async Task<object> SetMiningNodes(MiningNodes miningNodes)
+        {
+            if (miningNodes.Nodes.Count < 1)
+            {
+                throw new InvalidOperationException("Cannot find mining nodes in related config file.");
+            }
+
+            await MiningNodes.SetValueAsync(Hash.Zero, miningNodes.ToByteArray());
+
+            return null;
+        }
     }
 }
