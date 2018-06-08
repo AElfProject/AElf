@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECDSA.Exceptions;
@@ -16,8 +15,11 @@ namespace AElf.Cryptography
     {
         private static readonly SecureRandom _random = new SecureRandom();
 
+        private const string KeyFileExtension = ".ak";
+        private const string KeyFolderName = "keys";
+
         private const string _algo = "AES-256-CFB";
-        private string _keyStorePath;
+        private string _dataDirectory;
         
         public bool IsOpen { get; private set; }
 
@@ -25,9 +27,9 @@ namespace AElf.Cryptography
         
         private TimeSpan _defaultAccountTimeout = TimeSpan.FromMinutes(5);
         
-        public AElfKeyStore(string keyStorePath)
+        public AElfKeyStore(string dataDirectory)
         {
-            _keyStorePath = keyStorePath;
+            _dataDirectory = dataDirectory;
             _openAccounts = new List<OpenAccount>();
         }
 
@@ -50,12 +52,10 @@ namespace AElf.Cryptography
         {
             try
             {
-                string baseDir = Path.Combine(_keyStorePath, "aelf", "keys");
-                string kpFile = Path.Combine(baseDir, address);
-                string filePath = Path.ChangeExtension(kpFile, ".ak");
+                string keyFilePath = GetKeyFileFullPath(address);
 
                 AsymmetricCipherKeyPair p;
-                using (var textReader = File.OpenText(filePath))
+                using (var textReader = File.OpenText(keyFilePath))
                 {
                     PemReader pr = new PemReader(textReader, new Password(password.ToCharArray()));
                     p = pr.ReadObject() as AsymmetricCipherKeyPair;
@@ -90,34 +90,65 @@ namespace AElf.Cryptography
 
         public void WriteKeyPair(ECKeyPair keyPair, string password)
         {
+            if (keyPair == null || keyPair.PrivateKey == null || keyPair.PublicKey == null)
+                throw new InvalidKeyPairException("Invalid keypair (null reference).", null);
+            
+            if (string.IsNullOrEmpty(password))
+                throw new InvalidPasswordException("Invalid password.", null);
+            
+            // Ensure path exists
+            GetOrCreateKeystoreDir();
+            
+            string fullPath = null;
             try
             {
-                var akp = new AsymmetricCipherKeyPair(keyPair.PublicKey, keyPair.PrivateKey);
-
-                string baseDir = Path.Combine(_keyStorePath, "aelf", "keys");
-
-                Directory.CreateDirectory(baseDir);
-                    
-                string kpFile = Path.Combine(baseDir, BitConverter.ToString(keyPair.GetEncodedPublicKey().Take(10).ToArray()).Replace("-",""));
-                string filePath = Path.ChangeExtension(kpFile, ".ak");
-                
-                using (TextWriter writer = File.CreateText(filePath))
-                {
-                    PemWriter pw = new PemWriter(writer);
-
-                    pw.WriteObject(akp, _algo, password.ToCharArray(), _random);
-                    pw.Writer.Close();
-
-                    writer.Dispose();
-                }
+                var address = keyPair.GetHexaAddress();
+                fullPath = GetKeyFileFullPath(address);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                throw new InvalidKeyPairException("Could not calculate the address from the keypair.", e);
+            }
+            
+            var akp = new AsymmetricCipherKeyPair(keyPair.PublicKey, keyPair.PrivateKey);
+            
+            using (StreamWriter writer = File.CreateText(fullPath))
+            {
+                PemWriter pw = new PemWriter(writer);
+
+                pw.WriteObject(akp, _algo, password.ToCharArray(), _random);
+                pw.Writer.Close();
             }
         }
+        
+        /// <summary>
+        /// Return the full path of the files 
+        /// </summary>
+        internal string GetKeyFileFullPath(string address)
+        {
+            string dirPath = GetKeystoreDirectoryPath();
+            string filePath = Path.Combine(dirPath, address);
+            string filePathWithExtension = Path.ChangeExtension(filePath, KeyFileExtension);
+
+            return filePathWithExtension;
+        }
+
+        internal DirectoryInfo GetOrCreateKeystoreDir()
+        {
+            try
+            {
+                string dirPath = GetKeystoreDirectoryPath();
+                return Directory.CreateDirectory(dirPath);
+            }
+            catch (Exception e)
+            {
+                throw new KeyStoreNotFoundException("Invalid data directory path", e);
+            }
+        }
+
+        internal string GetKeystoreDirectoryPath()
+        {
+            return Path.Combine(_dataDirectory, KeyFolderName);
+        }
     }
-
-
 }
