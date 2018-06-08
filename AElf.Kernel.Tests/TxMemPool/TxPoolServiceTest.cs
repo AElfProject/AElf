@@ -99,9 +99,9 @@ namespace AElf.Kernel.Tests.TxMemPool
                 _transactionResultManager);
             poolService.Start();
 
-            var addr1 = Hash.Generate();
-            var tx1 = TxPoolTest.BuildTransaction(adrFrom:addr1);
-            var tx2 = TxPoolTest.BuildTransaction(adrFrom: addr1, nonce: 1);
+            var keyPair = new KeyPairGenerator().Generate();
+            var tx1 = TxPoolTest.BuildTransaction(keyPair: keyPair);
+            var tx2 = TxPoolTest.BuildTransaction(nonce: 1, keyPair:keyPair);
             await poolService.AddTxAsync(tx1);
             await poolService.AddTxAsync(tx2);
             var txs1 = await poolService.GetReadyTxsAsync(10);
@@ -113,13 +113,14 @@ namespace AElf.Kernel.Tests.TxMemPool
             }).ToList();
 
             await poolService.ResetAndUpdate(txResults1);
-            
+
+            var addr1 = keyPair.GetAddress();
             var context1 = await _accountContextService.GetAccountDataContext(addr1, pool.ChainId);
             Assert.Equal(2, (int)context1.IncrementId);
 
             
-            var tx3 = TxPoolTest.BuildTransaction(adrFrom:addr1, nonce:2);
-            var tx4 = TxPoolTest.BuildTransaction(adrFrom: addr1, nonce: 3);
+            var tx3 = TxPoolTest.BuildTransaction(nonce:2, keyPair:keyPair);
+            var tx4 = TxPoolTest.BuildTransaction(nonce: 3, keyPair:keyPair);
             
             await poolService.AddTxAsync(tx3);
             await poolService.AddTxAsync(tx4);

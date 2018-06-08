@@ -48,14 +48,14 @@ namespace AElf.Kernel.Tests.TxMemPool
             return new TxPool(config, _logger);
         }
 
-        public static Transaction BuildTransaction(Hash adrFrom = null, Hash adrTo = null, ulong nonce = 0)
+        public static Transaction BuildTransaction(Hash adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
         {
             
-            ECKeyPair keyPair = new KeyPairGenerator().Generate();
+            keyPair = keyPair ?? new KeyPairGenerator().Generate();
 
             var tx = new Transaction();
-            tx.From = adrFrom == null ? Hash.Generate() : adrFrom;
-            tx.To = adrTo == null ? Hash.Generate() : adrTo;
+            tx.From = keyPair.GetAddress();
+            tx.To = adrTo == null ? Hash.Generate().ToAccount() : adrTo;
             tx.IncrementId = nonce;
             tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
@@ -98,7 +98,7 @@ namespace AElf.Kernel.Tests.TxMemPool
 
             int count = 0;
             
-            var addrList = new List<Hash>();
+            var addrList = new List<ECKeyPair>();
 
             var sortedSet = new Dictionary<Hash, SortedSet<int>>();
 
@@ -107,9 +107,9 @@ namespace AElf.Kernel.Tests.TxMemPool
             int i = 0;
             while (i < Num )
             {
-                var addr = Hash.Generate();
-                addrList.Add(addr);
-                sortedSet[addr] = new SortedSet<int>();
+                var keypair = new KeyPairGenerator().Generate();
+                addrList.Add(keypair);
+                sortedSet[keypair.GetAddress()] = new SortedSet<int>();
                 i++;
             }
             
@@ -120,8 +120,8 @@ namespace AElf.Kernel.Tests.TxMemPool
             {
                 var index = count % Num;
                 var id =  new Random().Next(25);
-                sortedSet[addrList[index]].Add(id);
-                var tx = BuildTransaction(addrList[index], nonce: (ulong)id);
+                sortedSet[addrList[index].GetAddress()].Add(id);
+                var tx = BuildTransaction(keyPair:addrList[index], nonce: (ulong)id);
                 txList.Add(tx);
             }
 
@@ -202,16 +202,16 @@ namespace AElf.Kernel.Tests.TxMemPool
 
             int count = 0;
             
-            var addrList = new List<Hash>();
+            var addrList = new List<ECKeyPair>();
 
             var sortedSet = new Dictionary<Hash, SortedSet<int>>();
 
             int i = 0;
             while (i < Num )
             {
-                var addr = Hash.Generate();
-                addrList.Add(addr);
-                sortedSet[addr] = new SortedSet<int>();
+                var keypair = new KeyPairGenerator().Generate();
+                addrList.Add(keypair);
+                sortedSet[keypair.GetAddress()] = new SortedSet<int>();
                 i++;
             }
             
@@ -221,21 +221,21 @@ namespace AElf.Kernel.Tests.TxMemPool
             {
                 var index = count % Num;
                 var id =  new Random().Next(r);
-                sortedSet[addrList[index]].Add(id);
-                var tx = BuildTransaction(addrList[index], nonce: (ulong)id);
+                sortedSet[addrList[index].GetAddress()].Add(id);
+                var tx = BuildTransaction(keyPair:addrList[index], nonce: (ulong)id);
                 txList.Add(tx);
             }
 
             foreach (var addr in addrList)
             {
                 ulong c = 0;
-                foreach (var t in sortedSet[addr])
+                foreach (var t in sortedSet[addr.GetAddress()])
                 {
                     if (t != (int)c)
                         break;
                     c++;
                 }
-                idDict[addr] = c;
+                idDict[addr.GetAddress()] = c;
             }
 
             var rr = 0;
@@ -285,11 +285,8 @@ namespace AElf.Kernel.Tests.TxMemPool
             }
             
             
-
-            
-
-            var execSize = pool.GetExecutableSize();
-            var waitingSize = pool.GetWaitingSize();
+            // var execSize = pool.GetExecutableSize();
+            // var waitingSize = pool.GetWaitingSize();
             var sortedCount = sortedSet.Values.Aggregate(0, (current, p) => current + p.Count);
             Assert.True(sortedCount >= (int)pool.Size);
 
@@ -311,11 +308,11 @@ namespace AElf.Kernel.Tests.TxMemPool
             foreach (var address in addrList)
             {
                 // pool state
-                Assert.Equal(idDict[address], pool.Nonces[address]);
+                Assert.Equal(idDict[address.GetAddress()], pool.Nonces[address.GetAddress()]);
                 
                 // account state
-                Assert.Equal(idDict[address],
-                    (await _accountContextService.GetAccountDataContext(address, pool.ChainId)).IncrementId);
+                Assert.Equal(idDict[address.GetAddress()],
+                    (await _accountContextService.GetAccountDataContext(address.GetAddress(), pool.ChainId)).IncrementId);
             }
         }
         

@@ -32,13 +32,13 @@ namespace AElf.Kernel.Tests.TxMemPool
             return new TxPool(TxPoolConfig.Default, _logger);
         }
 
-        public static Transaction BuildTransaction(Hash adrFrom = null, Hash adrTo = null, ulong nonce = 0)
+        public static Transaction BuildTransaction(Hash adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
         {
-            ECKeyPair keyPair = new KeyPairGenerator().Generate();
+            keyPair = keyPair ?? new KeyPairGenerator().Generate();
 
             var tx = new Transaction();
-            tx.From = adrFrom == null ? Hash.Generate() : adrFrom;
-            tx.To = adrTo == null ? Hash.Generate() : adrTo;
+            tx.From = keyPair.GetAddress();
+            tx.To = (adrTo == null ? Hash.Generate().ToAccount() : adrTo);
             tx.IncrementId = nonce;
             tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
@@ -64,107 +64,9 @@ namespace AElf.Kernel.Tests.TxMemPool
             return tx;
         }
         
-        [Fact]
+        //[Fact]
         public void Serialize()
         {
-            /*var task = Task.Run(() =>
-            {
-                var tx = new Transaction
-                {
-                    To = new Hash(ByteString.FromBase64("gXEGGUaEjVq5HTkpp9d3+UUZT5qmpf3qrVgrpqJksyE=")),
-                    From = new Hash(ByteString.FromBase64("qSo1UxLEJaf9OLOpgmXTKYmuetGpk35beKdwUlfcxEg=")),
-                    IncrementId = 0,
-                    Params = ByteString.CopyFrom(
-                        new Parameters
-                        {
-                            Params = {"hello".ToParam()}
-                        }.ToByteArray()
-                    ),
-                    MethodName = "transfer"
-                };
-                ECKeyPair keyPair = new KeyPairGenerator().Generate();
-
-
-                // Serialize and hash the transaction
-                Hash hash = tx.GetHash();
-
-                // Sign the hash
-                ECSigner signer = new ECSigner();
-                ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
-
-                // Update the signature
-                tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-                tx.R = ByteString.CopyFrom(signature.R);
-                tx.S = ByteString.CopyFrom(signature.S);
-                //System.Diagnostics.Debug.WriteLine();
-
-                keyPair = null;
-                signer = null;
-                signature = null;
-
-                return tx.ToByteString();
-            });*/
-
-            //var data = task.Result;
-            
-            /*byte[] uncompressedPrivKey = tx.P.ToByteArray();
-            ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
-            ECVerifier verifier = new ECVerifier(recipientKeyPair);
-            Assert.True(verifier.Verify(tx.GetSignature(), tx.GetHash().GetHashBytes()));*/
-            
-            /*var tx = new Transaction
-            {
-                To = new Hash(ByteString.FromBase64("gXEGGUaEjVq5HTkpp9d3+UUZT5qmpf3qrVgrpqJksyE=")),
-                From = new Hash(ByteString.FromBase64("qSo1UxLEJaf9OLOpgmXTKYmuetGpk35beKdwUlfcxEg=")),
-                IncrementId = 0,
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                        Params = {"hello".ToParam()}
-                    }.ToByteArray()
-                ),
-                MethodName = "transfer"
-            };
-            ECKeyPair keyPair = new KeyPairGenerator().Generate();
-
-            var privateKey = keyPair.PrivateKey;
-            System.Diagnostics.Debug.WriteLine(privateKey.D.IntValue);
-            
-
-            
-            var keyPair2 = new ECKeyPair(privateKey, null);
-            
-            // Serialize and hash the transaction
-            Hash hash = tx.GetHash();
-
-            // Sign the hash
-            ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
-
-            // Update the signature
-            tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            tx.R = ByteString.CopyFrom(signature.R);
-            tx.S = ByteString.CopyFrom(signature.S);
-
-            var txxx = tx.ToByteString().ToBase64();
-            
-
-            var pool = GetPool();
-            var json = new JObject
-            {
-                ["raw"] = txxx
-            };
-            var dto = json.ToObject<TransactionDto>();
-            var t = Transaction.Parser.ParseFrom(dto.Raw);
-
-            Assert.Equal(t.P, tx.P);
-            Assert.Equal(t.S, tx.S);
-            Assert.Equal(t.R, tx.R);
-            
-            lock (this)
-            {
-                Assert.Equal(TxValidation.ValidationError.Success, pool.ValidateTx(t));
-            }*/
             System.Diagnostics.Debug.WriteLine(Hash.Generate().ToByteString().ToBase64());
             var tx = Transaction.Parser.ParseFrom(ByteString.FromBase64(
                 @"CiIKIKkqNVMSxCWn/TizqYJl0ymJrnrRqZN+W3incFJX3MRIEiIKIIFxBhlGhI1auR05KafXd/lFGU+apqX96q1YK6aiZLMhIgh0cmFuc2ZlcioJCgcSBWhlbGxvOiEAxfMt77nwSKl/WUg1TmJHfxYVQsygPj0wpZ/Pbv+ZK4pCICzGxsZBCBlASmlDdn0YIv6vRUodJl/9jWd8Q1z2ofFwSkEE+PDQtkHQxvw0txt8bmixMA8lL0VM5ScOYiEI82LX1A6oWUNiLIjwAI0Qh5fgO5g5PerkNebXLPDE2dTzVVyYYw=="));
@@ -172,10 +74,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.Equal(TxValidation.ValidationError.Success, pool.ValidateTx(tx));
         }
 
-        private string txx =
-            @"CiIKIKkqNVMSxCWn/TizqYJl0ymJrnrRqZN+W3incFJX3MRIEiIKIIFxBhlGhI1auR05KafXd/lFGU+apqX96q1YK6aiZLMhIgh0c
-mFuc2ZlcioJCgcSBWhlbGxvOiEAxfMt77nwSKl/WUg1TmJHfxYVQsygPj0wpZ/Pbv+ZK4pCICzGxsZBCBlASmlDdn0YIv6vRUodJl/9jWd8Q1z2ofFwSkEE+PDQtkHQxvw0txt8bmixMA8lL0VM5ScOYiEI82
-LX1A6oWUNiLIjwAI0Qh5fgO5g5PerkNebXLPDE2dTzVVyYYw==";
+        
         
         
         [Fact]
