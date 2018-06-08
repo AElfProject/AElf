@@ -1,7 +1,9 @@
-﻿namespace AElf.Kernel.Services
+﻿using System.Threading.Tasks;
+
+namespace AElf.Kernel.Services
 {
     public interface IChainContextService
     {
-        IChainContext GetChainContext(Hash chainId);
+        Task<IChainContext> GetChainContextAsync(Hash chainId);
     }
 }

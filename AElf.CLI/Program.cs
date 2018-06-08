@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
+using AElf.CLI.Screen;
 
 namespace AElf.CLI
 {
@@ -20,25 +20,16 @@ namespace AElf.CLI
         
         public static void Main(string[] args)
         {
-            _commands = Rpc.GetCommands().Result;
-
-            Console.WriteLine("------------------------------------------------\n" +
-                              "Welcome to AElf!");
+            //_commands = Rpc.GetCommands().Result;
             
-            while (true)
-            {
-                Menu();
-            }
+            ScreenManager screenManager = new ScreenManager();
+            AElfCliProgram program = new AElfCliProgram(screenManager);
+            
+            program.StartRepl();
         }
 
         private static void Menu()
         {
-            Console.WriteLine("------------------------------------------------\n" +
-                              Usage + "\n" +
-                              Quit + "\n\n" +
-                              "Available commands:\n");
-            
-            
             if (_commands.Count == 0)
                 Console.WriteLine(ErrorLoadingCommands);
             
@@ -51,6 +42,8 @@ namespace AElf.CLI
 
             Console.Write(CliPrefix);
             string exec = Console.ReadLine();
+            
+            
             exec = exec ?? string.Empty;
             string[] tokens = exec.Split();
             string choice = tokens[0].ToLower();

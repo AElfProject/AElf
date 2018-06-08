@@ -1,10 +1,12 @@
-﻿using System.Threading;
+﻿using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using Google.Protobuf.Collections;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using ServiceStack;
 
 namespace AElf.Kernel.Tests
 {
@@ -12,25 +14,38 @@ namespace AElf.Kernel.Tests
     public class BlockTest
     {
         private readonly IBlockManager _blockManager;
-        private readonly ISmartContractZero _smartContractZero;
+        //private readonly ISmartContractZero _smartContractZero;
         private readonly ChainTest _chainTest;
 
-        public BlockTest(IBlockManager blockManager, ISmartContractZero smartContractZero, ChainTest chainTest)
+        public BlockTest(IBlockManager blockManager, ChainTest chainTest)
         {
             _blockManager = blockManager;
-            _smartContractZero = smartContractZero;
+            //_smartContractZero = smartContractZero;
             _chainTest = chainTest;
+        }
+
+        public byte[] SmartContractZeroCode
+        {
+            get
+            {
+                byte[] code = null;
+                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.SmartContractZero/bin/Debug/netstandard2.0/AElf.Contracts.SmartContractZero.dll")))
+                {
+                    code = file.ReadFully();
+                }
+                return code;
+            }
         }
      
        [Fact]
         public void GenesisBlockBuilderTest()
         {
-            var builder = new GenesisBlockBuilder().Build(_smartContractZero.GetType());
+            var builder = new GenesisBlockBuilder().Build();
             var genesisBlock = builder.Block;
-            var txs = builder.Txs;
+            //var txs = builder.Txs;
             Assert.NotNull(genesisBlock);
             Assert.Equal(genesisBlock.Header.PreviousHash, Hash.Zero);
-            Assert.NotNull(txs);
+            //Assert.NotNull(txs);
         }
 
         [Fact]
