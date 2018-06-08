@@ -16,6 +16,7 @@ namespace AElf.CLI
         private const string InvalidCommandError = "***** ERROR: INVALID COMMAND - SEE USAGE *****";
         private const string InvalidParamsError = "***** ERROR: INVALID PARAMETERS - SEE USAGE *****";
         private const string CommandNotAvailable = "***** ERROR: COMMAND NO LONGER AVAILABLE - PLEASE RESTART *****";
+        private const string ErrorLoadingCommands = "***** ERROR: COULD NOT LOAD COMMANDS - PLEASE RESTART SERVER *****";
         
         public static void Main(string[] args)
         {
@@ -36,6 +37,10 @@ namespace AElf.CLI
                               Usage + "\n" +
                               Quit + "\n\n" +
                               "Available commands:\n");
+            
+            
+            if (_commands.Count == 0)
+                Console.WriteLine(ErrorLoadingCommands);
             
             foreach (var comm in _commands)
             {
