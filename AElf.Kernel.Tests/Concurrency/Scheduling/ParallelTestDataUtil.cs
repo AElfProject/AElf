@@ -334,6 +334,16 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                         CallingSetToString(item.Value.CallingSet), 
                         PathSetToString(item.Value.LocalResourceSet))));
         }
+
+        public string ContractMetadataTemplateMapToString(
+            Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> map)
+        {
+            return string.Join(
+                " | ",
+                map.OrderBy(a => a.Key)
+                    .Select(item =>
+                        String.Format("({0} - {1})", item.Key, FunctionMetadataTemplateMapToString(item.Value))));
+        }
         
         public string PathSetToString(HashSet<Resource> resourceSet)
         {

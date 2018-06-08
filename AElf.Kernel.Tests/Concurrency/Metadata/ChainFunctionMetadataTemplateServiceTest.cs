@@ -15,89 +15,131 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         public ChainFunctionMetadataTemplateService TestTryAddNewContractShouldSuccess()
         {
             ChainFunctionMetadataTemplateService cfts = new ChainFunctionMetadataTemplateService();
-            var groundTruthMap = new Dictionary<string, FunctionMetadataTemplate>(cfts.FunctionMetadataTemplateMap);
+            var groundTruthMap = new Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> (cfts.ContractMetadataTemplateMap);
             //Throw exception because 
             var exception = Assert.Throws<FunctionMetadataException>(() => { cfts.TryAddNewContract(typeof(TestContractA)); });
             Assert.True(exception.Message.StartsWith("Unknow reference of the foreign target"));
             
             //Not changed
-            Assert.Equal(util.FunctionMetadataTemplateMapToString(groundTruthMap), util.FunctionMetadataTemplateMapToString(cfts.FunctionMetadataTemplateMap));
+            Assert.Equal(util.ContractMetadataTemplateMapToString(groundTruthMap), util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap));
 
 
             cfts.TryAddNewContract(typeof(TestContractC));
+                                                                                                  // Structure of the test data
+            groundTruthMap.Add(
+                "TestContractC",                                                                  // Contract name
+                new Dictionary<string, FunctionMetadataTemplate>(new[]                            // function metadata map for contract
+                {
+                    new KeyValuePair<string, FunctionMetadataTemplate>(
+                        "${this}.Func0()",                                                        //     local function name
+                        new FunctionMetadataTemplate(                                             //     local function metadata
+                            new HashSet<string>(),                                                //         calling set of this function metadata
+                            new HashSet<Resource>(new[]                                           //         local resource set of this function metadata
+                            {
+                                new Resource("${this}.resource4", DataAccessMode.AccountSpecific) //             resource of the local resource set
+                                    
+                            }))),
+
+                    new KeyValuePair<string, FunctionMetadataTemplate>(
+                        "${this}.Func1()",
+                        new FunctionMetadataTemplate(
+                            new HashSet<string>(),
+                            new HashSet<Resource>(new[]
+                            {
+                                new Resource("${this}.resource5",
+                                    DataAccessMode.ReadOnlyAccountSharing)
+                            })))
+                }));
             
-            groundTruthMap.Add("TestContractC.Func0()", new FunctionMetadataTemplate(
-                new HashSet<string>(), 
-                new HashSet<Resource>(new [] {new Resource("${this}.resource4",
-                    DataAccessMode.AccountSpecific) })));
-            groundTruthMap.Add("TestContractC.Func1()", new FunctionMetadataTemplate(
-                new HashSet<string>(), 
-                new HashSet<Resource>(new [] {new Resource("${this}.resource5",
-                    DataAccessMode.ReadOnlyAccountSharing) })));
-            
-            Assert.Equal(util.FunctionMetadataTemplateMapToString(groundTruthMap), util.FunctionMetadataTemplateMapToString(cfts.FunctionMetadataTemplateMap));
+            Assert.Equal(util.ContractMetadataTemplateMapToString(groundTruthMap), util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap));
 
             cfts.TryAddNewContract(typeof(TestContractB));
+
+            groundTruthMap.Add("TestContractB", new Dictionary<string, FunctionMetadataTemplate>(new[]
+            {
+                new KeyValuePair<string, FunctionMetadataTemplate>(
+                    "${this}.Func0()", 
+                    new FunctionMetadataTemplate(
+                        new HashSet<string>(new[] {"${ContractC}.Func1()"}),
+                        new HashSet<Resource>(new[] {new Resource("${this}.resource2", DataAccessMode.AccountSpecific)})))
+            }));
             
-            groundTruthMap.Add("TestContractB.Func0()", new FunctionMetadataTemplate(
-                new HashSet<string>(new []{"${ContractC}.Func1()"}), 
-                new HashSet<Resource>(new []{new Resource("${this}.resource2", DataAccessMode.AccountSpecific) })));
-            Assert.Equal(util.FunctionMetadataTemplateMapToString(groundTruthMap), util.FunctionMetadataTemplateMapToString(cfts.FunctionMetadataTemplateMap));
+            Assert.Equal(util.ContractMetadataTemplateMapToString(groundTruthMap), util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap));
 
             cfts.TryAddNewContract(typeof(TestContractA));
-            
-            groundTruthMap.Add("TestContractA.Func0(int)", new FunctionMetadataTemplate(
-                new HashSet<string>(), new HashSet<Resource>()));
-            groundTruthMap.Add("TestContractA.Func0()", new FunctionMetadataTemplate(
-                new HashSet<string>(new []{"${this}.Func1()"}), 
-                new HashSet<Resource>(new []
-                {
-                    new Resource("${this}.resource0", DataAccessMode.AccountSpecific),
-                    new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
-                    new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
-                })));
-            
-            groundTruthMap.Add("TestContractA.Func1()", new FunctionMetadataTemplate(
-                new HashSet<string>(new []{"${this}.Func2()"}), 
-                new HashSet<Resource>(new []
-                {
-                    new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
-                    new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
-                })));
 
-            groundTruthMap.Add("TestContractA.Func2()", new FunctionMetadataTemplate(
-                new HashSet<string>(),
-                new HashSet<Resource>(new[]
-                {
-                    new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
-                    new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
-                })));
+            groundTruthMap.Add("TestContractA", new Dictionary<string, FunctionMetadataTemplate>(new[]
+            {
+                new KeyValuePair<string, FunctionMetadataTemplate>(
+                    "${this}.Func0(int)", 
+                    new FunctionMetadataTemplate(
+                        new HashSet<string>(), new HashSet<Resource>())),
+
+                new KeyValuePair<string, FunctionMetadataTemplate>(
+                    "${this}.Func0()", 
+                    new FunctionMetadataTemplate(
+                        new HashSet<string>(new[] {"${this}.Func1()"}),
+                        new HashSet<Resource>(new[]
+                        {
+                            new Resource("${this}.resource0", DataAccessMode.AccountSpecific),
+                            new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
+                            new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
+                        }))),
+
+                new KeyValuePair<string, FunctionMetadataTemplate>(
+                    "${this}.Func1()", 
+                    new FunctionMetadataTemplate(
+                        new HashSet<string>(new[] {"${this}.Func2()"}),
+                        new HashSet<Resource>(new[]
+                        {
+                            new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
+                            new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
+                        }))),
+
+                new KeyValuePair<string, FunctionMetadataTemplate>(
+                    "${this}.Func2()", 
+                    new FunctionMetadataTemplate(
+                        new HashSet<string>(),
+                        new HashSet<Resource>(new[]
+                        {
+                            new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
+                            new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
+                        }))),
+
+                new KeyValuePair<string, FunctionMetadataTemplate>(
+                    "${this}.Func3()", 
+                    new FunctionMetadataTemplate(
+                        new HashSet<string>(new[] {"${_contractB}.Func0()", "${this}.Func0()", "${ContractC}.Func0()"}),
+                        new HashSet<Resource>(new[]
+                        {
+                            new Resource("${this}.resource0", DataAccessMode.AccountSpecific),
+                            new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
+                            new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
+                        }))),
+
+                new KeyValuePair<string, FunctionMetadataTemplate>(
+                    "${this}.Func4()", 
+                    new FunctionMetadataTemplate(
+                        new HashSet<string>(new[] {"${this}.Func2()", "${this}.Func2()"}),
+                        new HashSet<Resource>(new[]
+                        {
+                            new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
+                            new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
+                        }))),
+
+                new KeyValuePair<string, FunctionMetadataTemplate>(
+                    "${this}.Func5()", 
+                    new FunctionMetadataTemplate(
+                        new HashSet<string>(new[] {"${_contractB}.Func0()", "${this}.Func3()"}),
+                        new HashSet<Resource>(new[]
+                        {
+                            new Resource("${this}.resource0", DataAccessMode.AccountSpecific),
+                            new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
+                            new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
+                        }))),
+            }));
             
-            groundTruthMap.Add("TestContractA.Func3()", new FunctionMetadataTemplate(
-                new HashSet<string>(new []{"${_contractB}.Func0()", "${this}.Func0()", "${ContractC}.Func0()"}), 
-                new HashSet<Resource>(new []
-                {
-                    new Resource("${this}.resource0", DataAccessMode.AccountSpecific),
-                    new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
-                    new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
-                })));
-            groundTruthMap.Add("TestContractA.Func4()", new FunctionMetadataTemplate(
-                new HashSet<string>(new []{"${this}.Func2()", "${this}.Func2()"}), 
-                new HashSet<Resource>(new []
-                {
-                    new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
-                    new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
-                })));
-            groundTruthMap.Add("TestContractA.Func5()", new FunctionMetadataTemplate(
-                new HashSet<string>(new []{"${_contractB}.Func0()", "${this}.Func3()"}), 
-                new HashSet<Resource>(new []
-                {
-                    new Resource("${this}.resource0", DataAccessMode.AccountSpecific),
-                    new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
-                    new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
-                })));
-            
-            Assert.Equal(util.FunctionMetadataTemplateMapToString(groundTruthMap), util.FunctionMetadataTemplateMapToString(cfts.FunctionMetadataTemplateMap));
+            Assert.Equal(util.ContractMetadataTemplateMapToString(groundTruthMap), util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap));
             
             return cfts;
         }
@@ -106,7 +148,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         public ChainFunctionMetadataTemplateService TestFailCases()
         {
             var cfts = TestTryAddNewContractShouldSuccess();
-            var groundTruthMap = new Dictionary<string, FunctionMetadataTemplate>(cfts.FunctionMetadataTemplateMap);
+            var groundTruthMap = new Dictionary<string, Dictionary<string, FunctionMetadataTemplate>>(cfts.ContractMetadataTemplateMap);
             
 
             var exception = Assert.Throws<FunctionMetadataException>(()=> cfts.TryAddNewContract(typeof(TestContractD)));
@@ -134,7 +176,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             Assert.True(exception.Message.Contains("consider the target function does not exist in the foreign contract"));
 
             
-            Assert.Equal(util.FunctionMetadataTemplateMapToString(groundTruthMap), util.FunctionMetadataTemplateMapToString(cfts.FunctionMetadataTemplateMap));
+            Assert.Equal(util.ContractMetadataTemplateMapToString(groundTruthMap), util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap));
             return cfts;
         }
     }
