@@ -229,7 +229,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                                 },
                                 new Param
                                 {
-                                    LongVal = 101
+                                    UlongVal = 101
                                 }
                             }
                 }.ToByteArray())
