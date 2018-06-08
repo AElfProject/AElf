@@ -5,17 +5,16 @@ namespace AElf.Cryptography
 {
     public class OpenAccount
     {
-        private Timer _timer;
+        public Timer Timer { get; set; }
         public ECKeyPair KeyPair { get; set; }
 
         public OpenAccount()
         {
-            
         }
 
         public void Close()
         {
-            _timer.Dispose();
+            Timer.Dispose();
         }
     }
 }

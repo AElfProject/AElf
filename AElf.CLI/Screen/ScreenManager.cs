@@ -57,6 +57,11 @@ namespace AElf.CLI.Screen
             Console.WriteLine(str);
         }
 
+        public void PrintLine()
+        {
+            PrintLine("\n");
+        }
+
         public void Print(string str)
         {
             Console.Write(str);
@@ -65,6 +70,7 @@ namespace AElf.CLI.Screen
         public string AskInvisible(string prefix)
         {
             Print(prefix);
+            
             var pwd = new SecureString();
             while (true)
             {
@@ -86,6 +92,9 @@ namespace AElf.CLI.Screen
                     //Console.Write("*");
                 }
             }
+            
+            Console.WriteLine();
+            
             return new NetworkCredential("", pwd).Password;
         }
     }

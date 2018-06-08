@@ -37,6 +37,16 @@ namespace AElf.CLI.Wallet
             {
                 ListAccounts();
             }
+            else if (subCommand.Equals(UnlockAccountCmdName, StringComparison.OrdinalIgnoreCase))
+            {
+                UnlockAccount(parsedCmd.Args.ElementAt(1));
+            }
+        }
+
+        private void UnlockAccount(string address)
+        {
+            var password = _screenManager.AskInvisible("password: ");
+            _keyStore.OpenAsync(address, password);
         }
 
         private void CreateNewAccount()
@@ -51,7 +61,7 @@ namespace AElf.CLI.Wallet
 
             for (int i = 0; i < accnts.Count; i++)
             {
-                _screenManager.Print("account #" + i + " : " + accnts.ElementAt(i));
+                _screenManager.PrintLine("account #" + i + " : " + accnts.ElementAt(i));
             }
         }
     }

@@ -39,6 +39,7 @@ namespace AElf.CLI
         {
             _screenManager.PrintHeader();
             _screenManager.PrintUsage();
+            _screenManager.PrintLine();
             
             while (true)
             {
@@ -80,11 +81,11 @@ namespace AElf.CLI
                 if (def.IsLocal)
                 {
                     _accountManager.ProcessCommand(parsedCmd);
+                    //_screenManager.Print("\n");
                 }
                 else
                 {
                     // RPC
-                    
                 }
             }
         }
