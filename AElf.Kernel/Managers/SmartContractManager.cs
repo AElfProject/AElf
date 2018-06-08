@@ -1,17 +1,25 @@
 ﻿using System.Threading.Tasks;
+using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Managers
 {
     public class SmartContractManager : ISmartContractManager
     {
-        public Task<SmartContractRegistration> GetAsync(Hash account)
+        private readonly ISmartContractStore _smartContractStore;
+
+        public SmartContractManager(ISmartContractStore smartContractStore)
         {
-            throw new System.NotImplementedException();
+            _smartContractStore = smartContractStore;
         }
 
-        public Task<SmartContractRegistration> InsertAsync(SmartContractRegistration reg)
+        public async Task<SmartContractRegistration> GetAsync(Hash contractHash)
         {
-            throw new System.NotImplementedException();
+            return await _smartContractStore.GetAsync(contractHash);
+        }
+
+        public async Task InsertAsync(Hash address, SmartContractRegistration reg)
+        {
+            await _smartContractStore.InsertAsync(address, reg);
         }
     }
 }

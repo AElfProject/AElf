@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
@@ -6,6 +8,8 @@ using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using Google.Protobuf;
+using ServiceStack;
 
 namespace AElf.Kernel.Tests
 {
@@ -13,17 +17,17 @@ namespace AElf.Kernel.Tests
     public class ChainTest
     {
         private readonly IChainCreationService _chainCreationService;
-        private readonly ISmartContractZero _smartContractZero;
+        //private readonly ISmartContractZero _smartContractZero;
         private readonly IChainManager _chainManager;
         private readonly IWorldStateStore _worldStateStore;
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
 
-        public ChainTest(ISmartContractZero smartContractZero, IChainCreationService chainCreationService,
+        public ChainTest(IChainCreationService chainCreationService,
             IChainManager chainManager, IWorldStateStore worldStateStore, 
             IChangesStore changesStore, IDataStore dataStore)
         {
-            _smartContractZero = smartContractZero;
+            //_smartContractZero = smartContractZero;
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
             _worldStateStore = worldStateStore;
@@ -31,25 +35,45 @@ namespace AElf.Kernel.Tests
             _dataStore = dataStore;
         }
 
+        public byte[] SmartContractZeroCode
+        {
+            get
+            {
+                byte[] code = null;
+                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.SmartContractZero/bin/Debug/netstandard2.0/AElf.Contracts.SmartContractZero.dll")))
+                {
+                    code = file.ReadFully();
+                }
+                return code;
+            }
+        }
+
         [Fact]
         public async Task<IChain> CreateChainTest()
         {
-            var chainId = Hash.Generate();
-            var chain = await _chainCreationService.CreateNewChainAsync(chainId, _smartContractZero.GetType());
+            var reg = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
+                ContractHash = Hash.Zero
+            };
 
-            /*// add chain to storage
+            var chainId = Hash.Generate();
+            var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
+
+            // add chain to storage
             var genesisBlock = new Block(Hash.Zero);
             await _chainManager.AddChainAsync(chain.Id, genesisBlock.GetHash());
             
             var block = new Block(genesisBlock.GetHash()) {Header = {PreviousHash = genesisBlock.GetHash()}};
             await _chainManager.AppendBlockToChainAsync(chain.Id, block);
             
-            var address = Hash.Generate();
-            var worldStateManager = await new WorldStateManager(_worldStateStore, 
-                _changesStore, _dataStore).OfChain(chainId);
-            var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
+            //var address = Hash.Generate();
+            //var worldStateManager = await new WorldStateManager(_worldStateStore, 
+            //    _changesStore, _dataStore).OfChain(chainId);
+            //var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             
-            await _smartContractZero.InitializeAsync(accountDataProvider);*/
+            //await _smartContractZero.InitializeAsync(accountDataProvider);
             Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)1);
             return chain;
         }

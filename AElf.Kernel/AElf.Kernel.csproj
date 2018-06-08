@@ -6,6 +6,7 @@
     <Compile Remove="MerkleNode.cs" />
     <Compile Remove="MerkleTree.cs" />
     <Compile Remove="Merkle\Node.cs" />
+    <Compile Remove="SmartContract\SmartContract.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.5.1" />
