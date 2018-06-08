@@ -21,29 +21,54 @@ namespace AElf.Kernel.Concurrency.Metadata
             _logger = logger;
         }
 
+        public void DeployNewContract(string contractClassName, Hash contractAddr, Dictionary<string, Hash> contractReferences)
+        {
+            Dictionary<string, FunctionMetadata> tempMap = new Dictionary<string, FunctionMetadata>();
+            try
+            {
+                if (!_templateService.ContractMetadataTemplateMap.TryGetValue(contractClassName, out var classTemplate))
+                {
+                    throw new FunctionMetadataException("Cannot find contract named " + contractClassName + " in the template storage");
+                }
+
+                //local calling graph in template map of templateService must be topological, so ignore the callGraph
+                _templateService.TryGetLocalCallingGraph(classTemplate, out var callGraph, out var topologicRes);
+
+                foreach (var localFuncName in topologicRes.Reverse())
+                {
+                    var funcNameWithAddr =
+                        Replacement.ReplaceValueIntoReplacement(localFuncName, Replacement.This, contractAddr.ToString());
+                    var funcMetadata = GetMetadataForNewFunction(funcNameWithAddr, classTemplate[funcNameWithAddr], contractAddr, contractReferences);
+                
+                    tempMap.Add(funcNameWithAddr, funcMetadata);
+                }
+            
+                //if no exception is thrown, merge the tempMap into FunctionMetadataMap
+                foreach (var functionMetadata in tempMap)
+                {
+                    FunctionMetadataMap.Add(functionMetadata.Key, functionMetadata.Value);
+                }
+            }
+            catch (FunctionMetadataException e)
+            {
+                _logger?.Error(e, e.Message);
+                throw;
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="functionFullName">should be "[Addr].FunctionSig"</param>
+        /// <param name="functionTemplate"></param>
         /// <param name="contractAddr"></param>
         /// <param name="contractReferences"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         /// <exception cref="FunctionMetadataException"></exception>
-        public bool DeployNewFunction(string functionFullName, Hash contractAddr, Dictionary<string, Hash> contractReferences)
+        private FunctionMetadata GetMetadataForNewFunction(string functionFullName, FunctionMetadataTemplate functionTemplate, Hash contractAddr, Dictionary<string, Hash> contractReferences)
         {
-            if (FunctionMetadataMap.ContainsKey(functionFullName))
-            {
-                //This should be the completely new function
-                throw new InvalidOperationException("FunctionMetadataMap already contain a function named " + functionFullName);
-            }
-
-            if (!_templateService.FunctionMetadataTemplateMap.TryGetValue(functionFullName, out var metadataTemplate))
-            {
-                throw new InvalidOperationException("No function named " + functionFullName + " in the metadata template map");
-            }
-
-            var resourceSet = metadataTemplate.LocalResourceSet.Select(resource =>
+            var resourceSet = functionTemplate.LocalResourceSet.Select(resource =>
                 {
                     var resName = Replacement.ReplaceValueIntoReplacement(resource.Name, Replacement.This, contractAddr.ToString());
                     return new Resource(resName, resource.DataAccessMode);
@@ -52,7 +77,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             var localResourceSet = new HashSet<Resource>(resourceSet);
             var callingSet = new HashSet<string>();
             
-            foreach (var calledFunc in metadataTemplate.CallingSet ?? Enumerable.Empty<string>())
+            foreach (var calledFunc in functionTemplate.CallingSet ?? Enumerable.Empty<string>())
             {
                 if (! Replacement.TryGetReplacementWithIndex(calledFunc, 0, out var locationReplacement))
                 {
@@ -65,9 +90,12 @@ namespace AElf.Kernel.Concurrency.Metadata
                 //just add foreign resource into set because local resources are already recursively analyzed
                 if (!locationReplacement.Equals(Replacement.This))
                 {
-                    Replacement.TryGetReplacementWithIndex(calledFunc, 0, out var memberReplacement);
-                    var replacedCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, memberReplacement,
-                        contractReferences[Replacement.Value(memberReplacement)].ToString());
+                    if (!contractReferences.TryGetValue(Replacement.Value(locationReplacement), out var referenceAddr))
+                    {
+                        throw new FunctionMetadataException("There are no member reference " + Replacement.Value(locationReplacement) + " in the given contractReferences map");
+                    }
+                    var replacedCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, locationReplacement,
+                        referenceAddr.ToString());
                     
                     var metadataOfCalledFunc = GetFunctionMetadata(replacedCalledFunc); //could throw exception
                     
@@ -78,10 +106,8 @@ namespace AElf.Kernel.Concurrency.Metadata
             }
             
             var metadata = new FunctionMetadata(callingSet, resourceSet, localResourceSet);
-            
-            FunctionMetadataMap.Add(functionFullName, metadata);
 
-            return true;
+            return metadata;
         }
         
         

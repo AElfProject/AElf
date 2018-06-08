@@ -9,12 +9,13 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// Called when deploy a new contract
         /// TODO: need to be async when this access datastore
         /// </summary>
-        /// <param name="functionFullName">Function's full name: "[ChainName].[ContractName].[Function(ParameterType1,ParameterType2)]"</param>
+        /// <param name="contractClassName">Class name, should by reture value of Type.Name of the contract class</param>
         /// <param name="contractAddr">The address to be assigned to the contract</param>
         /// <param name="contractReferences">the map where smart contract member reference to its acutal address</param>
         /// <exception cref="InvalidOperationException">Throw when FunctionMetadataMap already contains a function with same fullname</exception>
         /// <returns>True when success, false when something is wrong (usually is cannot find record with respect to functionName in the parameter otherFunctionsCallByThis)</returns>
-        bool DeployNewFunction(string functionFullName, Hash contractAddr, Dictionary<string, Hash> contractReferences);
+        void DeployNewContract(string contractClassName, Hash contractAddr,
+            Dictionary<string, Hash> contractReferences);
         
         /// <summary>
         /// Get a function's metadata, throw  if this function is not found in the map.
