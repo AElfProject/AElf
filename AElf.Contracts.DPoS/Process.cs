@@ -54,7 +54,7 @@ namespace AElf.Contracts.DPoS
                 await TimeSlots.SetValueAsync(key, GetTime(i * 4 + 4));
             }
             
-            // Second roud
+            // Second round
             foreach (var node in miningNodes.Nodes)
             {
                 dict[node] = new Random(GetTime().LastOrDefault()).Next(0, 1000);
@@ -193,13 +193,21 @@ namespace AElf.Contracts.DPoS
             var key = accountHash.CalculateHashWith((Hash) roundsCount.CalculateHash());
             var timeSlot = await TimeSlots.GetValue(key);
 
-            if (CompareBytes(GetTime(-4), timeSlot))
-            {
-                await Ins.SetValueAsync(key, inValue.ToByteArray());
-                return true;
-            }
+            if (!CompareBytes(GetTime(-4), timeSlot)) 
+                return false;
 
-            return false;
+            await Ins.SetValueAsync(key, inValue.ToByteArray());
+
+            return true;
+        }
+
+        public async Task<object> PreVerification(Hash inValue, Hash outValue)
+        {
+            var valid = inValue.CalculateHash() == outValue;
+
+            Api.Return(new BoolValue {Value = valid});
+
+            return valid;
         }
         
         public override async Task InvokeAsync()
