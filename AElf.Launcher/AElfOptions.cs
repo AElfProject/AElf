@@ -5,6 +5,13 @@ namespace AElf.Launcher
 {
     public class AElfOptions
     {
+        #region General
+        
+        [Option(HelpText = "The directory the node uses to store data.")]
+        public string DataDir { get; set; }
+        
+        #endregion
+        
         #region Network and RPC
 
         [Option('b', HelpText = "Replaces the bootnode list.")]
