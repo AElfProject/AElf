@@ -1,24 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using AElf.CLI.Parsing;
+﻿using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
 
 namespace AElf.CLI
 {
     class Program
     {
-        private static List<string> _commands = new List<string>();
-        private static readonly RpcCalls Rpc = new RpcCalls();
-
-        private const string CliPrefix = "> AElf$ ";
-        private const string Usage = "Usage: command_name <param1> <param2> ...";
-        private const string Quit = "To Quit: Type 'Quit'";
-        
-        private const string InvalidCommandError = "***** ERROR: INVALID COMMAND - SEE USAGE *****";
-        private const string InvalidParamsError = "***** ERROR: INVALID PARAMETERS - SEE USAGE *****";
-        private const string CommandNotAvailable = "***** ERROR: COMMAND NO LONGER AVAILABLE - PLEASE RESTART *****";
-        private const string ErrorLoadingCommands = "***** ERROR: COULD NOT LOAD COMMANDS - PLEASE RESTART SERVER *****";
-        
         public static void Main(string[] args)
         {
             ScreenManager screenManager = new ScreenManager();
@@ -28,8 +14,9 @@ namespace AElf.CLI
             
             program.StartRepl();
         }
+        
 
-        private static void Menu()
+        /*private static void Menu()
         {
             if (_commands.Count == 0)
                 Console.WriteLine(ErrorLoadingCommands);
@@ -99,6 +86,6 @@ namespace AElf.CLI
                 Console.WriteLine(p);
             }
             Console.WriteLine();
-        }
+        }*/
     }
 }
