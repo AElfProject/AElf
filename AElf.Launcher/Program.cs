@@ -24,6 +24,7 @@ namespace AElf.Launcher
         static void Main(string[] args)
         {
             // Parse options
+            
             ConfigParser confParser = new ConfigParser();
             bool parsed = confParser.Parse(args);
 

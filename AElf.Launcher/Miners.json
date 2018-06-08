@@ -1,14 +1,16 @@
 {
-  "1": {
-    "coinbase": "GdsgFf\\=",
-    "pubkey": "MTIzNA=="
-  },
-  "2": {
-    "coinbase": "KAOFepo==",
-    "pubkey": "SrF!ve=="
-  },
-  "3": {
-    "coinbase": "FfEpvVG!=",
-    "pubkey": "NTY3OA=="
+  "producers":{
+    "1": {
+      "coinbase": "GdsgFf\\=",
+      "pubkey": "MTIzNA=="
+    },
+    "2": {
+      "coinbase": "KAOFepo==",
+      "pubkey": "SrF!ve=="
+    },
+    "3": {
+      "coinbase": "FfEpvVG!=",
+      "pubkey": "NTY3OA=="
+    }
   }
 }
