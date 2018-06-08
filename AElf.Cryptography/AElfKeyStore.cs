@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECDSA.Exceptions;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
@@ -46,6 +48,22 @@ namespace AElf.Cryptography
             if (accObj is OpenAccount openAccount)
             {
             }
+        }
+
+        public ECKeyPair Create(string password)
+        {
+            ECKeyPair keyPair = new KeyPairGenerator().Generate();
+            WriteKeyPair(keyPair, password);
+
+            return keyPair;
+        }
+
+        public List<string> ListAccounts()
+        {
+            var dir = GetOrCreateKeystoreDir();
+            FileInfo[] files = dir.GetFiles("*" + KeyFileExtension);
+
+            return files.Select(f => Path.GetFileNameWithoutExtension(f.Name)).ToList();
         }
 
         public ECKeyPair ReadKeyPairAsync(string address, string password)

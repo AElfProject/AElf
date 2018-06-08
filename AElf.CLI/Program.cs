@@ -1,7 +1,10 @@
-﻿using AElf.CLI.Command.Account;
+﻿using System.Linq.Expressions;
+using AElf.CLI.Command.Account;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
 using AElf.CLI.Wallet;
+using AElf.Common.Application;
+using AElf.Cryptography;
 
 namespace AElf.CLI
 {
@@ -12,7 +15,9 @@ namespace AElf.CLI
         {
             ScreenManager screenManager = new ScreenManager();
             CommandParser parser = new CommandParser();
-            AccountManager manager = new AccountManager();
+            
+            AElfKeyStore kstore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
+            AccountManager manager = new AccountManager(kstore, screenManager);
             
             AElfCliProgram program = new AElfCliProgram(screenManager, parser, manager);
 

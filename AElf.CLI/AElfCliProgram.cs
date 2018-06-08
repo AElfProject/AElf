@@ -84,6 +84,7 @@ namespace AElf.CLI
                 else
                 {
                     // RPC
+                    
                 }
             }
         }

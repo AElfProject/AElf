@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Net;
+using System.Security;
 
 namespace AElf.CLI.Screen
 {
@@ -48,6 +50,43 @@ namespace AElf.CLI.Screen
         public void PrintError(string error)
         {
             Console.WriteLine(error);
+        }
+
+        public void PrintLine(string str)
+        {
+            Console.WriteLine(str);
+        }
+
+        public void Print(string str)
+        {
+            Console.Write(str);
+        }
+
+        public string AskInvisible(string prefix)
+        {
+            Print(prefix);
+            var pwd = new SecureString();
+            while (true)
+            {
+                ConsoleKeyInfo i = Console.ReadKey(true);
+                if (i.Key == ConsoleKey.Enter)
+                {
+                    break;
+                }
+                else if (i.Key == ConsoleKey.Backspace)
+                {
+                    if (pwd.Length > 0)
+                    {
+                        pwd.RemoveAt(pwd.Length - 1);
+                    }
+                }
+                else
+                {
+                    pwd.AppendChar(i.KeyChar);
+                    //Console.Write("*");
+                }
+            }
+            return new NetworkCredential("", pwd).Password;
         }
     }
 }
