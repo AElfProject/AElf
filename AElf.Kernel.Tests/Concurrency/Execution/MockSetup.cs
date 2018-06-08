@@ -157,7 +157,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                                 },
                                 new Param
                                 {
-                                    LongVal = qty
+                                    UlongVal = qty
                                 }
                             }
                 }.ToByteArray())
@@ -201,7 +201,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                                 },
                                 new Param
                                 {
-                                    LongVal = qty
+                                    UlongVal = qty
                                 }
                             }
                     }.ToByteArray()
