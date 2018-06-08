@@ -12,17 +12,29 @@ namespace AElf.Kernel
                 case Param.DataOneofCase.IntVal:
                     val = param.IntVal;
                     break;
+                case Param.DataOneofCase.UintVal:
+                    val = param.UintVal;
+                    break;
+                case Param.DataOneofCase.LongVal:
+                    val = param.LongVal;
+                    break;
+                case Param.DataOneofCase.UlongVal:
+                    val = param.UlongVal;
+                    break;
+                case Param.DataOneofCase.BoolVal:
+                    val = param.BoolVal;
+                    break;
+                case Param.DataOneofCase.BytesVal:
+                    val = param.BytesVal.ToByteArray();
+                    break;
                 case Param.DataOneofCase.StrVal:
                     val = param.StrVal;
-                    break;
-                case Param.DataOneofCase.HashVal:
-                    val = param.HashVal;
                     break;
                 case Param.DataOneofCase.DVal:
                     val = param.DVal;
                     break;
-                case Param.DataOneofCase.LongVal:
-                    val = param.LongVal;
+                case Param.DataOneofCase.HashVal:
+                    val = param.HashVal;
                     break;
                 case Param.DataOneofCase.RegisterVal:
                     val = param.RegisterVal;

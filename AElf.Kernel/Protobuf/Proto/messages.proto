@@ -95,12 +95,16 @@ message Parameters{
 message Param {
     oneof data{
         int32 intVal = 1;
-        string strVal = 2;
-        double dVal = 3;
-        Hash hashVal = 4;
-        uint64 longVal = 5;
-        SmartContractRegistration registerVal = 6;
-        SmartContractDeployment deploymentVal = 7;
+        uint32 uintVal = 2;
+        int64 longVal = 3;
+        uint64 ulongVal = 4;
+        bool boolVal = 5;
+        bytes bytesVal = 6;
+        string strVal = 7;
+        double dVal = 8; // Maybe don't allow floating point
+        Hash hashVal = 9;
+        SmartContractRegistration registerVal = 10;
+        SmartContractDeployment deploymentVal = 11;
     }
 }
 
