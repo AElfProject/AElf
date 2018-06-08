@@ -10,14 +10,16 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
     public class ChainFunctionMetadataTemplateServiceTest
     {
+        private ParallelTestDataUtil util = new ParallelTestDataUtil();
         [Fact]
-        public void TestTryAddNewContract()
+        public ChainFunctionMetadataTemplateService TestTryAddNewContractShouldSuccess()
         {
-            ParallelTestDataUtil util = new ParallelTestDataUtil();
             ChainFunctionMetadataTemplateService cfts = new ChainFunctionMetadataTemplateService();
             var groundTruthMap = new Dictionary<string, FunctionMetadataTemplate>(cfts.FunctionMetadataTemplateMap);
             //Throw exception because 
-            Assert.Throws<FunctionMetadataException>(() => { cfts.TryAddNewContract(typeof(TestContractA)); });
+            var exception = Assert.Throws<FunctionMetadataException>(() => { cfts.TryAddNewContract(typeof(TestContractA)); });
+            Assert.True(exception.Message.StartsWith("Unknow reference of the foreign target"));
+            
             //Not changed
             Assert.Equal(util.FunctionMetadataTemplateMapToString(groundTruthMap), util.FunctionMetadataTemplateMapToString(cfts.FunctionMetadataTemplateMap));
 
@@ -96,12 +98,50 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                 })));
             
             Assert.Equal(util.FunctionMetadataTemplateMapToString(groundTruthMap), util.FunctionMetadataTemplateMapToString(cfts.FunctionMetadataTemplateMap));
+            
+            return cfts;
+        }
+
+        [Fact]
+        public ChainFunctionMetadataTemplateService TestFailCases()
+        {
+            var cfts = TestTryAddNewContractShouldSuccess();
+            var groundTruthMap = new Dictionary<string, FunctionMetadataTemplate>(cfts.FunctionMetadataTemplateMap);
+            
+
+            var exception = Assert.Throws<FunctionMetadataException>(()=> cfts.TryAddNewContract(typeof(TestContractD)));
+            Assert.True(exception.Message.StartsWith("Duplicate name of field attributes in contract"));
+
+            exception = Assert.Throws<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractE)));
+            Assert.True(exception.Message.StartsWith("Duplicate name of smart contract reference attributes in contract "));
+
+            exception = Assert.Throws<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractF)));
+            Assert.True(exception.Message.StartsWith("Unknown reference local field ${this}.resource1"));
+
+            exception = Assert.Throws<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractG)));
+            Assert.True(exception.Message.StartsWith("Duplicate name of function attribute"));
+            
+            exception = Assert.Throws<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractH)));
+            Assert.True(exception.Message.Contains("contains unknown reference to it's own function"));
+            
+            exception = Assert.Throws<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractI)));
+            Assert.True(exception.Message.Contains("contains unknown local member reference to other contract"));
+            
+            exception = Assert.Throws<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractJ)));
+            Assert.True(exception.Message.Contains("is Non-DAG thus nothing take effect"));
+            
+            exception = Assert.Throws<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractK)));
+            Assert.True(exception.Message.Contains("consider the target function does not exist in the foreign contract"));
+
+            
+            Assert.Equal(util.FunctionMetadataTemplateMapToString(groundTruthMap), util.FunctionMetadataTemplateMapToString(cfts.FunctionMetadataTemplateMap));
+            return cfts;
         }
     }
 
     #region Dummy Contract for test
     
-    public class TestContractC
+    internal class TestContractC
     {
         [SmartContractFieldData("${this}.resource4", DataAccessMode.AccountSpecific)]
         public int resource4;
@@ -114,7 +154,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         public void Func1(){}
     }
 
-    public class TestContractB
+    internal class TestContractB
     {
         [SmartContractFieldData("${this}.resource2", DataAccessMode.AccountSpecific)]
         public int resource2;
@@ -128,7 +168,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         public void Func0(){}
     }
     
-    public class TestContractA
+    internal class TestContractA
     {
         //test for different accessibility
         [SmartContractFieldData("${this}.resource0", DataAccessMode.AccountSpecific)]
@@ -175,6 +215,93 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         //test for duplicate foreign call
         [SmartContractFunction("${this}.Func5()", new []{"${_contractB}.Func0()", "${this}.Func3()"}, new string[]{})]
         public void Func5(){}
+    }
+    
+    
+    
+    //wrong cases
+    internal class TestContractD
+    {
+        //duplicate field name
+        [SmartContractFieldData("${this}.resource0", DataAccessMode.AccountSpecific)]
+        public int resource0;
+        [SmartContractFieldData("${this}.resource0", DataAccessMode.AccountSpecific)]
+        public int resource1;
+    }
+    
+    internal class TestContractE
+    {
+        
+        [SmartContractFieldData("${this}.resource0", DataAccessMode.AccountSpecific)]
+        public int resource0;
+        [SmartContractFieldData("${this}.resource1", DataAccessMode.AccountSpecific)]
+        public int resource1;
+        
+        //duplicate contract reference name
+        [SmartContractReference("_contractB", typeof(TestContractB))]
+        private TestContractB _contractB;
+
+        [SmartContractReference("_contractB", typeof(TestContractC))]
+        public TestContractC ContractC;
+        
+        public void Func0(){}
+        public void Func1(){}
+    }
+    
+    internal class TestContractF
+    {
+        [SmartContractFieldData("${this}.resource0", DataAccessMode.AccountSpecific)]
+        public int resource0;
+        
+        //unknown local field
+        [SmartContractFunction("${this}.Func0()", new string[]{}, new []{"${this}.resource1"})]
+        public void Func0(){}
+    }
+    
+    internal class TestContractG
+    {
+        //duplicate function attribute
+        [SmartContractFunction("${this}.Func0()", new string[]{}, new string[]{})]
+        public void Func0(){}
+        
+        [SmartContractFunction("${this}.Func0()", new string[]{}, new string[]{})]
+        public void Func1(){}
+    }
+    
+    internal class TestContractH
+    {
+        //unknown local function reference
+        [SmartContractFunction("${this}.Func0()", new string[]{"${this}.Func1()"}, new string[]{})]
+        public void Func0(){}
+    }
+    
+    internal class TestContractI
+    {
+        //unknown foreign function reference
+        [SmartContractFunction("${this}.Func0()", new string[]{"${_contractA}.Func1()"}, new string[]{})]
+        public void Func0(){}
+    }
+
+    internal class TestContractJ
+    {
+        //for Non-DAG
+        [SmartContractFunction("${this}.Func0()", new string[]{"${this}.Func1()"}, new string[]{})]
+        public void Func0(){}
+        [SmartContractFunction("${this}.Func1()", new string[]{"${this}.Func2()"}, new string[]{})]
+        public void Func1(){}
+        [SmartContractFunction("${this}.Func2()", new string[]{"${this}.Func3()"}, new string[]{})]
+        public void Func2(){}
+        [SmartContractFunction("${this}.Func3()", new string[]{"${this}.Func1()"}, new string[]{})]
+        public void Func3(){}
+    }
+    
+    internal class TestContractK
+    {
+        [SmartContractReference("_contractB", typeof(TestContractB))]
+        private TestContractB _contractB;
+        //want to call foreign function that Not Exist
+        [SmartContractFunction("${this}.Func0()", new string[]{"${_contractB}.Func10()"}, new string[]{})]
+        public void Func0(){}
     }
 
     #endregion

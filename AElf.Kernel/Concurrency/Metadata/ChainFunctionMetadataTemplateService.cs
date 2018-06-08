@@ -116,7 +116,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 {
                     if (!templocalFieldMap.TryGetValue(resource, out var dataAccessMode))
                     {
-                        throw new FunctionMetadataException("Unknown reference field " + resource +
+                        throw new FunctionMetadataException("Unknown reference local field " + resource +
                                                             " in function " + functionAttribute.FunctionSignature);
                     }
                     return new Resource(resource, dataAccessMode);
@@ -125,7 +125,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 if (!localFunctionMetadataTemplateMap.TryAdd(functionAttribute.FunctionSignature, 
                     new FunctionMetadataTemplate(new HashSet<string>(functionAttribute.CallingSet), new HashSet<Resource>(resourceSet))))
                 {
-                    throw new FunctionMetadataException("Duplicate name of function attribute in contract" + contractType.Name);
+                    throw new FunctionMetadataException("Duplicate name of function attribute" + functionAttribute.FunctionSignature + " in contract" + contractType.Name);
                 }
             }
             
@@ -151,7 +151,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                         {
                             throw new FunctionMetadataException(
                                 "calling set of function " + kvPair.Key + " when adding contract " +
-                                contractType.Name + " contains unknown reference to other contract's function: " +
+                                contractType.Name + " contains unknown local member reference to other contract: " +
                                 calledFunc);
                         }
                     }
@@ -194,7 +194,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                             referenceType.Name);
                         if (!_callingGraph.ContainsVertex(globalCalledFunc))
                         {
-                            throw new FunctionMetadataException("Unknow reference of the target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractType.Name + " into calling graph");
+                            throw new FunctionMetadataException("Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractType.Name + " into calling graph, consider the target function does not exist in the foreign contract");
                         }
                         outEdgesToAdd.Add(new Edge<string>(sourceFunc, globalCalledFunc));
                     }
