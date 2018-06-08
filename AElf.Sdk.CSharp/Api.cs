@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using ProtobufSerializer = AElf.Sdk.CSharp.ProtobufSerializer;
 
 namespace AElf.Sdk.CSharp
 {
@@ -15,6 +16,8 @@ namespace AElf.Sdk.CSharp
         private static ISmartContractContext _smartContractContext;
         private static ITransactionContext _transactionContext;
         private static ITransactionContext _lastInlineCallContext;
+
+        public static ProtobufSerializer Serializer { get; } = new ProtobufSerializer();
 
         #region Setters used by runner and executor
 
@@ -123,6 +126,18 @@ namespace AElf.Sdk.CSharp
             _transactionContext.Trace.RetVal = Any.Pack(retVal);
         }
         #endregion Transaction API
-
+        #region Utility API
+        public static void Assert(bool asserted, string message = "Assertion failed!")
+        {
+            if (!asserted)
+            {
+                throw new AssertionError(message);
+            }
+        }
+        internal static void FireEvent(LogEvent logEvent)
+        {
+            _transactionContext.Trace.Logs.Add(logEvent);
+        }
+        #endregion Utility API
     }
 }
