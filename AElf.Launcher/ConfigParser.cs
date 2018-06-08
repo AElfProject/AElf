@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AElf.Common.Application;
 using AElf.Database;
 using AElf.Database.Config;
  using AElf.Kernel;
@@ -23,6 +24,7 @@ namespace AElf.Launcher
         public INodeConfig NodeConfig { get; private set; }
 
         public bool Rpc { get; private set; }
+        public string DataDir { get; private set; }
 
         public bool Success { get; private set; }
         public bool IsMiner { get; private set; }
@@ -62,6 +64,8 @@ namespace AElf.Launcher
         private void MapOptions(AElfOptions opts)
         {
             Rpc = !opts.NoRpc;
+
+            DataDir = string.IsNullOrEmpty(opts.DataDir) ? ApplicationHelpers.GetDefaultDataDir() : opts.DataDir;
             
             // Network
             AElfNetworkConfig netConfig = new AElfNetworkConfig();

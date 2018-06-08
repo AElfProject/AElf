@@ -1,6 +1,6 @@
 ﻿using Org.BouncyCastle.Math;
 
-namespace AElf.Kernel.Crypto.ECDSA
+namespace AElf.Cryptography.ECDSA
 {
     public class ECSignature
     {
