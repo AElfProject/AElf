@@ -2,7 +2,7 @@
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 
-namespace AElf.Kernel.Crypto.ECDSA
+namespace AElf.Cryptography.ECDSA
 {
     public class KeyPairGenerator
     {

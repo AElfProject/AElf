@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Security.Cryptography;
-using AElf.Kernel.Crypto.ECDSA;
-using AElf.Kernel.Extensions;
+using AElf.Cryptography.ECDSA;
 using Google.Protobuf;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Math;
