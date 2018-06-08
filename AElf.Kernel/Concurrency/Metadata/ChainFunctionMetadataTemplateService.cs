@@ -17,7 +17,7 @@ namespace AElf.Kernel.Concurrency.Metadata
     /// </summary>
     public class ChainFunctionMetadataTemplateService : IChainFunctionMetadataTemplateService
     {
-        public Dictionary<string, FunctionMetadataTemplate> FunctionMetadataTemplateMap { get; } = new Dictionary<string, FunctionMetadataTemplate>();
+        public Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> ContractMetadataTemplateMap { get; } = new Dictionary<string, Dictionary<string, FunctionMetadataTemplate>>();
         private readonly AdjacencyGraph<string, Edge<string>> _callingGraph; //calling graph is prepared for update contract code (check for DAG at that time)
         
         private readonly ILogger _logger;
@@ -48,11 +48,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 CompleteLocalResourceAndUpdateTemplate(contractType, smartContractReferenceMap, ref localFunctionMetadataTemplateMap);
                 
                 //merge the function metadata template map
-                foreach (var kv in localFunctionMetadataTemplateMap)
-                {
-                    var key = Replacement.ReplaceValueIntoReplacement(kv.Key, Replacement.This, contractType.Name);
-                    FunctionMetadataTemplateMap.Add(key, kv.Value);
-                }
+                ContractMetadataTemplateMap.Add(contractType.Name, localFunctionMetadataTemplateMap);
             }
             catch (FunctionMetadataException e)
             {
@@ -217,7 +213,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         }
         
         
-        private bool TryGetLocalCallingGraph(Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap, out AdjacencyGraph<string, Edge<string>> callGraph, out IEnumerable<string> topologicRes)
+        public bool TryGetLocalCallingGraph(Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap, out AdjacencyGraph<string, Edge<string>> callGraph, out IEnumerable<string> topologicRes)
         {
             callGraph = new AdjacencyGraph<string, Edge<string>>();
             foreach (var kvPair in localFunctionMetadataTemplateMap)
