@@ -29,10 +29,15 @@ namespace AElf.CLI.Screen
 
         public string GetCommand()
         {
-            Console.Write(CliPrefix);
-            string cmd = Console.ReadLine();
-
-            return cmd;
+            string command = null;
+            
+            while (string.IsNullOrWhiteSpace(command))
+            {
+                Console.Write(CliPrefix);
+                command = Console.ReadLine();
+            }
+            
+            return command;
         }
     }
 }

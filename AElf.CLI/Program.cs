@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
 
 namespace AElf.CLI
@@ -20,10 +21,10 @@ namespace AElf.CLI
         
         public static void Main(string[] args)
         {
-            //_commands = Rpc.GetCommands().Result;
-            
             ScreenManager screenManager = new ScreenManager();
-            AElfCliProgram program = new AElfCliProgram(screenManager);
+            CommandParser parser = new CommandParser();
+            
+            AElfCliProgram program = new AElfCliProgram(screenManager, parser);
             
             program.StartRepl();
         }
