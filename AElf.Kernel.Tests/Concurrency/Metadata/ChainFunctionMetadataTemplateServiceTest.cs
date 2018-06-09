@@ -61,7 +61,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     "${this}.Func0()", 
                     new FunctionMetadataTemplate(
                         new HashSet<string>(new[] {"${ContractC}.Func1()"}),
-                        new HashSet<Resource>(new[] {new Resource("${this}.resource2", DataAccessMode.AccountSpecific)})))
+                        new HashSet<Resource>(new[] {new Resource("${this}.resource2", DataAccessMode.AccountSpecific)}))),
+                
+                new KeyValuePair<string, FunctionMetadataTemplate>(
+                    "${this}.Func1()", 
+                    new FunctionMetadataTemplate(
+                        new HashSet<string>(),
+                        new HashSet<Resource>(new[] {new Resource("${this}.resource3", DataAccessMode.ReadOnlyAccountSharing)})))
             }));
             
             Assert.Equal(util.ContractMetadataTemplateMapToString(groundTruthMap), util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap));
@@ -130,7 +136,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                 new KeyValuePair<string, FunctionMetadataTemplate>(
                     "${this}.Func5()", 
                     new FunctionMetadataTemplate(
-                        new HashSet<string>(new[] {"${_contractB}.Func0()", "${this}.Func3()"}),
+                        new HashSet<string>(new[] {"${_contractB}.Func1()", "${this}.Func3()"}),
                         new HashSet<Resource>(new[]
                         {
                             new Resource("${this}.resource0", DataAccessMode.AccountSpecific),
@@ -208,6 +214,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         
         [SmartContractFunction("${this}.Func0()", new []{"${ContractC}.Func1()"}, new []{"${this}.resource2"})]
         public void Func0(){}
+        
+        [SmartContractFunction("${this}.Func1()", new string[]{}, new []{"${this}.resource3"})]
+        public void Func1(){}
     }
     
     internal class TestContractA
@@ -255,7 +264,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         public void Func4(){}
         
         //test for duplicate foreign call
-        [SmartContractFunction("${this}.Func5()", new []{"${_contractB}.Func0()", "${this}.Func3()"}, new string[]{})]
+        [SmartContractFunction("${this}.Func5()", new []{"${_contractB}.Func1()", "${this}.Func3()"}, new string[]{})]
         public void Func5(){}
     }
     
