@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -14,6 +14,7 @@ using Xunit;
 using Xunit.Frameworks.Autofac;
 using Type = System.Type;
 using AElf.Runtime.CSharp;
+ using ServiceStack;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
@@ -229,7 +230,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                                 },
                                 new Param
                                 {
-                                    LongVal = 101
+                                    UlongVal = 101
                                 }
                             }
                 }.ToByteArray())

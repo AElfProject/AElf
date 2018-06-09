@@ -36,11 +36,11 @@ namespace AElf.Kernel.Services
             }
 
             // in tx pool
-            if (_txPoolService.GetTx(txId) != null)
+            if (_txPoolService.TryGetTx(txId, out var tx))
             {
                 return new TransactionResult
                 {
-                    TransactionId = txId,
+                    TransactionId = tx.GetHash(),
                     Status = Status.Pending
                 };
             }

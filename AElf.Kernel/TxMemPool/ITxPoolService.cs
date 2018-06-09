@@ -48,7 +48,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="txHash"></param>
         /// <returns></returns>
-        ITransaction GetTx(Hash txHash);
+        bool TryGetTx(Hash txHash, out ITransaction tx);
 
         /// <summary>
         /// clear tx pool

@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECDSA.Exceptions;
+using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
@@ -25,7 +29,7 @@ namespace AElf.Cryptography
 
         private List<OpenAccount> _openAccounts;
         
-        private TimeSpan _defaultAccountTimeout = TimeSpan.FromMinutes(5);
+        private TimeSpan _defaultAccountTimeout = TimeSpan.FromSeconds(10);
         
         public AElfKeyStore(string dataDirectory)
         {
@@ -33,19 +37,41 @@ namespace AElf.Cryptography
             _openAccounts = new List<OpenAccount>();
         }
 
-        public Task OpenAsync(string address, string password)
+        public void OpenAsync(string address, string password)
         {
-            //OpenAccount acc = new OpenAccount();
-            //Timer t = new Timer(RemoveAccount, acc, TimeSpan.Zero, _defaultAccountTimeout);
+            ECKeyPair kp = ReadKeyPairAsync(address, password);
             
-            return Task.CompletedTask;
+            
+            OpenAccount acc = new OpenAccount();
+            
+            Timer t = new Timer(RemoveAccount, acc, _defaultAccountTimeout, _defaultAccountTimeout);
+            acc.Timer = t;
+            
+            _openAccounts.Add(acc);
         }
 
         private void RemoveAccount(object accObj)
         {
             if (accObj is OpenAccount openAccount)
             {
+                openAccount.Close();
             }
+        }
+
+        public ECKeyPair Create(string password)
+        {
+            ECKeyPair keyPair = new KeyPairGenerator().Generate();
+            WriteKeyPair(keyPair, password);
+
+            return keyPair;
+        }
+
+        public List<string> ListAccounts()
+        {
+            var dir = GetOrCreateKeystoreDir();
+            FileInfo[] files = dir.GetFiles("*" + KeyFileExtension);
+
+            return files.Select(f => Path.GetFileNameWithoutExtension(f.Name)).ToList();
         }
 
         public ECKeyPair ReadKeyPairAsync(string address, string password)

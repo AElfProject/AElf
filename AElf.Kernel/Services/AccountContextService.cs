@@ -4,6 +4,8 @@
  using System.Threading.Tasks;
  using AElf.Kernel.Extensions;
  using AElf.Kernel.Managers;
+ using Google.Protobuf;
+ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Services
 {
@@ -24,7 +26,7 @@ namespace AElf.Kernel.Services
         {
             var key = chainId.CalculateHashWith(account);    
             if (_accountDataContexts.TryGetValue(key, out var ctx))
-             {
+            {
                 return ctx;
             }
             
@@ -32,7 +34,7 @@ namespace AElf.Kernel.Services
             var adp = _worldStateManager.GetAccountDataProvider(account);
 
             var idBytes = await adp.GetDataProvider().GetAsync(GetKeyForIncrementId());
-            var id = idBytes?.ToUInt64() ?? 0;
+            var id = idBytes == null ? 0 : UInt64Value.Parser.ParseFrom(idBytes).Value;
             
             var accountDataContext = new AccountDataContext
             {
@@ -41,7 +43,7 @@ namespace AElf.Kernel.Services
                 ChainId = chainId
             };
 
-            _accountDataContexts[key] = accountDataContext;
+            _accountDataContexts.TryAdd(key, accountDataContext);
             return accountDataContext;
         }
 
@@ -55,7 +57,12 @@ namespace AElf.Kernel.Services
             await _worldStateManager.OfChain(accountDataContext.ChainId);
             var adp = _worldStateManager.GetAccountDataProvider(accountDataContext.Address);
 
-            await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), accountDataContext.IncrementId.ToBytes());
+            //await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), accountDataContext.IncrementId.ToBytes());
+            await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), new UInt64Value
+            {
+                Value = accountDataContext.IncrementId
+            }.ToByteArray());
+
         }
 
         private Hash GetKeyForIncrementId()

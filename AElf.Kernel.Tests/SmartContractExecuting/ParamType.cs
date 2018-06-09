@@ -42,11 +42,11 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         }
         
         [Fact]
-        public void LongType()
+        public void UlongType()
         {
             var data = (ulong) 1;
-            var param = new Param {LongVal = data};
-            Assert.True(param.DataCase == Param.DataOneofCase.LongVal);
+            var param = new Param {UlongVal = data};
+            Assert.True(param.DataCase == Param.DataOneofCase.UlongVal);
             Assert.Equal(param.Value().GetType(), data.GetType());
             Assert.Equal(param.Value(), data);
         }
