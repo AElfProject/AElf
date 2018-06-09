@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
@@ -11,7 +12,12 @@ namespace AElf.Kernel.Miner
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly ITxPoolService _txPoolService;
         private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
+        private readonly IBlockVaildationService _blockVaildationService;
+        private readonly IChainContextService _chainContextService;
         
+        
+        private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
+
         private MinerLock Lock { get; } = new MinerLock();
         
         /// <summary>
@@ -30,12 +36,15 @@ namespace AElf.Kernel.Miner
         public Hash Coinbase => Config.CoinBase;
 
         public Miner(IBlockGenerationService blockGenerationService, IMinerConfig config, 
-            ITxPoolService txPoolService, IParallelTransactionExecutingService parallelTransactionExecutingService)
+            ITxPoolService txPoolService, IParallelTransactionExecutingService parallelTransactionExecutingService, 
+            IBlockVaildationService blockVaildationService, IChainContextService chainContextService)
         {
             _blockGenerationService = blockGenerationService;
             Config = config;
             _txPoolService = txPoolService;
             _parallelTransactionExecutingService = parallelTransactionExecutingService;
+            _blockVaildationService = blockVaildationService;
+            _chainContextService = chainContextService;
         }
 
         
@@ -59,6 +68,15 @@ namespace AElf.Kernel.Miner
             return block;
         }
 
+        
+        public async Task SynchronizeBlock(IBlock block)
+        {
+            var context = await _chainContextService.GetChainContextAsync(Config.ChainId);
+            await _blockVaildationService.ValidateBlockAsync(block, context);
+        }
+        
+        
+        
         /// <summary>
         /// start mining  
         /// </summary>
