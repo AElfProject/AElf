@@ -2,6 +2,7 @@
 using AElf.Kernel;
 using AElf.Kernel.Services;
 using Google.Protobuf;
+using Xunit;
 using Xunit.Frameworks.Autofac;
 
 namespace AElf.Runtime.CSharp.Tests
@@ -18,6 +19,7 @@ namespace AElf.Runtime.CSharp.Tests
             _service = mock.SmartContractService;
         }
 
+        [Fact]
         public async Task FirstTwoRoundsOrderTest()
         {
             var executive = await _service.GetExecutiveAsync(Hash.Zero, _mock.ChainId1);
