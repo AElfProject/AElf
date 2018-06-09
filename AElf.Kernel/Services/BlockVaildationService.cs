@@ -12,7 +12,7 @@ namespace AElf.Kernel.Services
             _filters = filters;
         }
 
-        public async Task<bool> ValidateBlockAsync(Block block, IChainContext context)
+        public async Task<bool> ValidateBlockAsync(IBlock block, IChainContext context)
         {
             foreach (var filter in _filters)
             {
@@ -22,11 +22,12 @@ namespace AElf.Kernel.Services
 
             return true;
         }
+        
 
     }
 
     public interface IBlockValidationFilter
     {
-        Task<bool> ValidateBlockAsync(Block block, IChainContext context);
+        Task<bool> ValidateBlockAsync(IBlock block, IChainContext context);
     }
 }
