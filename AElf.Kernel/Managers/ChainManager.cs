@@ -17,16 +17,18 @@ namespace AElf.Kernel.Managers
             _dataStore = dataStore;
         }
 
-        public async Task AppendBlockToChainAsync(Hash chainId, IBlock block)
+        public async Task AppendBlockToChainAsync(IBlock block)
         {
             if(block.Header == null)
                 throw new InvalidDataException("Invalid block");
 
-            await AppednBlockHeaderAsync(chainId, block.Header);
+            var chainId = block.Header.ChainId;
+            await AppednBlockHeaderAsync(block.Header);
         }
 
-        public async Task AppednBlockHeaderAsync(Hash chainId, BlockHeader header)
+        public async Task AppednBlockHeaderAsync(BlockHeader header)
         {
+            var chainId = header.ChainId;
             if (await _chainStore.GetAsync(chainId) == null)
                 throw new KeyNotFoundException("Not existed Chain");
             
@@ -39,7 +41,7 @@ namespace AElf.Kernel.Managers
                 await SetChainCurrentHeight(chainId, 1);
                 await SetChainLastBlockHash(chainId, header.GetHash());
             }
-            else if ( lastBlockHash != header.PreviousHash)
+            else if ( lastBlockHash != header.PreviousBlockHash)
             {
                 throw new InvalidDataException("Invalid block");
                 //Block is not connected
