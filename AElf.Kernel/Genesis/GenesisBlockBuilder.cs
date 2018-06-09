@@ -10,14 +10,15 @@ namespace AElf.Kernel
     {
         public Block Block { get; set; }
 
-        public GenesisBlockBuilder Build()
+        public GenesisBlockBuilder Build(Hash chainId)
         {
             var block = new Block(Hash.Zero)
             {
                 Header = new BlockHeader
                 {
                     Index = 0,
-                    PreviousHash = Hash.Zero
+                    PreviousBlockHash = Hash.Zero,
+                    ChainId = chainId
                 },
                 Body = new BlockBody()
             };

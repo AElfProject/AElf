@@ -1,6 +1,8 @@
 ﻿using AElf.Kernel.Extensions;
 using System;
+using AElf.Cryptography.ECDSA;
 using Google.Protobuf;
+using Org.BouncyCastle.Math;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -12,18 +14,10 @@ namespace AElf.Kernel
         /// </summary>
         public byte[] Signatures;
 
-        /// <summary>
-        /// the timestamp of this block
-        /// </summary>
-        /// <value>The time stamp.</value>
-        public long TimeStamp => (long)(DateTime.Now - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds;
-
         public BlockHeader(Hash preBlockHash)
         {
-            PreviousHash = preBlockHash;
+            PreviousBlockHash = preBlockHash;
         }
-
-        public Hash PreviousHash { get; set; }
 
         public Hash GetHash()
         {
@@ -33,6 +27,15 @@ namespace AElf.Kernel
         public byte[] Serialize()
         {
             return this.ToByteArray();
+        }
+        
+        public ECSignature GetSignature()
+        {
+            BigInteger[] sig = new BigInteger[2];
+            sig[0] = new BigInteger(R.ToByteArray());
+            sig[1] = new BigInteger(S.ToByteArray());
+            
+            return new ECSignature(sig);
         }
     }
 }
