@@ -4,6 +4,7 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Contracts.DPoS\AElf.Contracts.DPoS.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />

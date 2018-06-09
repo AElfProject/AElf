@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,7 +21,6 @@ namespace AElf.Contracts.DPoS
     {
         private const int MiningTime = 4;
 
-        // Set: Election.SetMiningNodes()
         public Map MiningNodes = new Map("MiningNodes");
         
         public Map TimeSlots = new Map("TimeSlots");
@@ -31,10 +32,67 @@ namespace AElf.Contracts.DPoS
         public Map Ins = new Map("Ins");
         
         public Map Outs = new Map("Outs");
+        
+        public async Task<object> SetMiningNodes()
+        {
+            List<string> miningNodes;
+                
+            using (var file = 
+                File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.DPoS/MiningNodes.txt")))
+            {
+                miningNodes = file.ReadLines().ToList();
+            }
+
+            var nodes = new MiningNodes();
+            foreach (var node in miningNodes)
+            {
+                nodes.Nodes.Add(new Hash(ByteString.CopyFromUtf8(node)));
+            }
+
+            if (nodes.Nodes.Count < 1)
+            {
+                throw new InvalidOperationException("Cannot find mining nodes in related config file.");
+            }
+
+            await MiningNodes.SetValueAsync(Hash.Zero, nodes.ToByteArray());
+
+            return nodes;
+        }
+        
+        public async Task<object> GetMiningNodes(Hash foo)
+        {
+            // Should be set before
+            var miningNodes = Kernel.MiningNodes.Parser.ParseFrom(
+                await MiningNodes.GetValue(Hash.Zero));
+
+            if (miningNodes.Nodes.Count < 1)
+            {
+                throw new ConfigurationErrorsException("No mining nodes.");
+            }
+            
+            Api.Return(new MiningNodes {Nodes =
+            {
+                Hash.Generate(), Hash.Generate()
+            }});
+
+            return miningNodes;
+        }
+
+//        public async Task<object> SetMiningNodes(MiningNodes miningNodes)
+//        {
+//            if (miningNodes.Nodes.Count < 1)
+//            {
+//                throw new InvalidOperationException("Cannot find mining nodes in related config file.");
+//            }
+//
+//            await MiningNodes.SetValueAsync(Hash.Zero, miningNodes.ToByteArray());
+//
+//            return null;
+//        }
 
         public async Task<object> RandomizeOrderForFirstTwoRounds()
         {
-            var miningNodes = (MiningNodes) await GetMiningNodes();
+            var miningNodes = (MiningNodes) await GetMiningNodes(Hash.Zero);
             var dict = new Dictionary<Hash, int>();
             
             // First round
@@ -79,7 +137,7 @@ namespace AElf.Contracts.DPoS
         public async Task<object> RandomizeSignaturesForFirstRound()
         {
             Hash roundsCountHash = ((UInt64Value) await GetRoundsCount()).CalculateHash();
-            var miningNodes = ((MiningNodes) await GetMiningNodes()).Nodes.ToList();
+            var miningNodes = ((MiningNodes) await GetMiningNodes(Hash.Zero)).Nodes.ToList();
             var miningNodesCount = miningNodes.Count;
 
             for (var i = 0; i < miningNodesCount; i++)
@@ -126,7 +184,7 @@ namespace AElf.Contracts.DPoS
             Hash roundCountHash = lastRoundCount.CalculateHash();
 
             var add = Hash.Zero;
-            var miningNodes = (MiningNodes) await GetMiningNodes();
+            var miningNodes = (MiningNodes) await GetMiningNodes(Hash.Zero);
             foreach (var node in miningNodes.Nodes)
             {
                 Hash key = node.CalculateHashWith(roundCountHash);
@@ -140,22 +198,6 @@ namespace AElf.Contracts.DPoS
             Api.Return(signature);
 
             return signature;
-        }
-        
-        public async Task<object> GetMiningNodes()
-        {
-            // Should be set before
-            var miningNodes = Kernel.MiningNodes.Parser.ParseFrom(
-                await MiningNodes.GetValue(Hash.Zero));
-
-            if (miningNodes.Nodes.Count < 1)
-            {
-                throw new ConfigurationErrorsException("No mining nodes.");
-            }
-            
-            Api.Return(miningNodes);
-
-            return miningNodes;
         }
 
         public async Task<object> SetRoundsCount(ulong count)
@@ -220,7 +262,7 @@ namespace AElf.Contracts.DPoS
             var member = type.GetMethod(methodname);
             var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
 
-            if (member != null) await (Task<object>) member.Invoke(this, parameters);
+            await (Task<object>)member.Invoke(this, parameters);
         }
 
         /// <summary>

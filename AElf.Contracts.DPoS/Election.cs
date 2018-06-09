@@ -24,8 +24,6 @@ namespace AElf.Contracts.DPoS
         //Remain votes of voters
         public Map RemainVotes = new Map("RemainVotes");
         
-        public Map MiningNodes = new Map("MiningNodes");
-
         public override async Task InvokeAsync()
         {
             var tx = Api.GetTransaction();
@@ -37,7 +35,7 @@ namespace AElf.Contracts.DPoS
             var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
 
             // invoke
-            if (member != null) await (Task<object>) member.Invoke(this, parameters);
+            await (Task<object>) member.Invoke(this, parameters);
         }
         
         public async Task<object> RegisterToCampaign(Hash accountHash, string alias)
@@ -62,44 +60,6 @@ namespace AElf.Contracts.DPoS
         public async Task<object> GetRemainVotes(Hash voterAddress)
         {
             return await RemainVotes.GetValue(voterAddress);
-        }
-
-        public async Task<object> SetMiningNodes()
-        {
-            List<string> miningNodes;
-                
-            using (var file = 
-                File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.DPoS/MiningNodes.txt")))
-            {
-                miningNodes = file.ReadLines().ToList();
-            }
-
-            var nodes = new MiningNodes();
-            foreach (var node in miningNodes)
-            {
-                nodes.Nodes.Add(new Hash(ByteString.CopyFromUtf8(node)));
-            }
-
-            if (nodes.Nodes.Count < 1)
-            {
-                throw new InvalidOperationException("Cannot find mining nodes in related config file.");
-            }
-
-            await MiningNodes.SetValueAsync(Hash.Zero, nodes.ToByteArray());
-            
-            return null;
-        }
-
-        public async Task<object> SetMiningNodes(MiningNodes miningNodes)
-        {
-            if (miningNodes.Nodes.Count < 1)
-            {
-                throw new InvalidOperationException("Cannot find mining nodes in related config file.");
-            }
-
-            await MiningNodes.SetValueAsync(Hash.Zero, miningNodes.ToByteArray());
-
-            return null;
         }
     }
 }

@@ -14,6 +14,7 @@ namespace AElf.Runtime.CSharp
         private ISmartContract _smartContract;
         private ITransactionContext _currentTransactionContext;
 
+        // ReSharper disable once InconsistentNaming
         public Executive SetApi(Type ApiType)
         {
             var scc = ApiType.GetMethod("SetSmartContractContext", BindingFlags.Public | BindingFlags.Static);

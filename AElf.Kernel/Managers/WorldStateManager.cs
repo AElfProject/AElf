@@ -56,6 +56,7 @@ namespace AElf.Kernel.Managers
             
             await _changesStore.InsertChangeAsync(pathHash, change);
             
+            // TODO: Change this impl.
             var countBytes = await _dataStore.GetDataAsync(Path.CalculatePointerForPathsCount(_chainId, _preBlockHash));
             countBytes = countBytes ??  ((ulong)0).ToBytes();
             var key = CalculateKeyForPath(_preBlockHash, countBytes);
@@ -78,6 +79,15 @@ namespace AElf.Kernel.Managers
         public async Task RollbackCurrentChangesAsync()
         {
             var dict = await GetChangesDictionaryAsync();
+            foreach (var pair in dict)
+            {
+                await _changesStore.UpdatePointerAsync(pair.Key, pair.Value.Befores[0]);
+            }
+        }
+
+        public async Task Rollback(Hash blockHash)
+        {
+            var dict = await GetChangesDictionaryAsync(blockHash);
             foreach (var pair in dict)
             {
                 await _changesStore.UpdatePointerAsync(pair.Key, pair.Value.Befores[0]);
@@ -273,6 +283,26 @@ namespace AElf.Kernel.Managers
 
             return dict;
         }
+        
+        public async Task<Dictionary<Hash, Change>> GetChangesDictionaryAsync(Hash blockHash)
+        {
+            var paths = await GetPathsAsync(blockHash);
+            var dict = new Dictionary<Hash, Change>();
+            if (paths == null)
+            {
+                return dict;
+            }
+
+            var worldState = await GetWorldStateAsync(blockHash);
+            
+            foreach (var path in paths)
+            {
+                var change = await worldState.GetChangeAsync(path);
+                dict[path] = change;
+            }
+
+            return dict;
+        }
         #endregion
 
         /// <summary>
@@ -286,20 +316,6 @@ namespace AElf.Kernel.Managers
         }
        
         #region Private methods
-        
-        /// <summary>
-        /// A specific way to get a hash value which pointer to
-        /// the count of Changes of a world state.
-        /// </summary>
-        /// <param name="blockHash"></param>
-        /// <returns></returns>
-        private Hash GetHashToGetPathsCount(Hash blockHash = null)
-        {
-            Interlocked.CompareExchange(ref blockHash, _preBlockHash, null);
-            Hash foo = "paths".CalculateHash();
-            return foo.CombineHashWith(blockHash);
-        }
-
         /// <summary>
         /// Get the count of changed-paths of a specific block.
         /// </summary>

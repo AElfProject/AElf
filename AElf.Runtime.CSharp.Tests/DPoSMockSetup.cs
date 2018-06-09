@@ -20,44 +20,29 @@ namespace AElf.Runtime.CSharp.Tests
 
         // ReSharper disable once InconsistentNaming
         public Hash DPoSContractAddress { get; } = Hash.Generate();
-        
-        private readonly ISmartContractManager _smartContractManager;
-        private readonly IWorldStateManager _worldStateManager;
-        
+
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory 
             = new SmartContractRunnerFactory();
 
         public IAccountDataProvider AccountDataProviderOfAccountZero;
 
-        public DPoSMockSetup(ISmartContractStore smartContractStore, IWorldStateManager worldStateManager, 
-            IChainCreationService chainCreationService, IBlockManager blockManager)
+        public DPoSMockSetup(ISmartContractStore smartContractStore, IWorldStateManager worldStateManager)
         {
-            _smartContractManager = new SmartContractManager(smartContractStore);
-            _worldStateManager = worldStateManager;
-            _chainCreationService = chainCreationService;
-            _blockManager = blockManager;
+            ISmartContractManager smartContractManager = new SmartContractManager(smartContractStore);
             
             var runner = new SmartContractRunner("../../../../AElf.Contracts.DPoS/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
             
-            Task.Factory.StartNew(async () =>
-            {
-                await Init();
-            }).Unwrap().Wait();
+            AccountDataProviderOfAccountZero = worldStateManager.OfChain(ChainId).Result
+                .GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId));
             
-            SmartContractService = new SmartContractService(_smartContractManager,
-                _smartContractRunnerFactory, _worldStateManager);
+            SmartContractService = new SmartContractService(smartContractManager,
+                _smartContractRunnerFactory, worldStateManager);
 
             Task.Factory.StartNew(async () =>
             {
                 await DeployDPoSContracts();
             }).Unwrap().Wait();
-        }
-
-        private async Task Init()
-        {
-            AccountDataProviderOfAccountZero = (await _worldStateManager.OfChain(ChainId))
-                .GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId));
         }
 
         // ReSharper disable once InconsistentNaming
