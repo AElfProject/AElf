@@ -7,7 +7,6 @@ using AElf.Kernel;
 using AElf.Kernel.Extensions;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using Akka.Util.Internal;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using ServiceStack;
@@ -18,6 +17,8 @@ namespace AElf.Contracts.DPoS
 {
     public class Process : CSharpSmartContract
     {
+        private const int MiningTime = 4;
+
         // Set: Election.SetMiningNodes()
         public Map MiningNodes = new Map("MiningNodes");
         
@@ -50,7 +51,7 @@ namespace AElf.Contracts.DPoS
             var enumerable = sortedMiningNodes.ToList();
             for (var i = 0; i < enumerable.Count; i++)
             {
-                Hash key = enumerable[i].CalculateHashWith(new Hash((new UInt64Value {Value = 1}).CalculateHash()));
+                Hash key = enumerable[i].CalculateHashWith(new Hash(new UInt64Value {Value = 1}.CalculateHash()));
                 await TimeSlots.SetValueAsync(key, GetTime(i * 4 + 4));
             }
             
@@ -68,7 +69,7 @@ namespace AElf.Contracts.DPoS
             enumerable = sortedMiningNodes.ToList();
             for (var i = 0; i < enumerable.Count; i++)
             {
-                Hash key = enumerable[i].CalculateHashWith(new Hash((new UInt64Value {Value = 1}).CalculateHash()));
+                Hash key = enumerable[i].CalculateHashWith(new Hash(new UInt64Value {Value = 1}.CalculateHash()));
                 await TimeSlots.SetValueAsync(key, GetTime(i * 4 + miningNodes.Nodes.Count * 4 + 8));
             }
 
@@ -106,7 +107,7 @@ namespace AElf.Contracts.DPoS
             var assignedTimeSlot = (byte[]) await GetTimeSlot(accountHash);
             var timeSlotEnd = DateTime
                 .Parse(Encoding.UTF8.GetString(assignedTimeSlot))
-                .AddMinutes(4)
+                .AddMinutes(MiningTime)
                 .ToString("yyyy-MM-dd HH:mm:ss.ffffff")
                 .ToUtf8Bytes();
 
@@ -144,7 +145,7 @@ namespace AElf.Contracts.DPoS
         public async Task<object> GetMiningNodes()
         {
             // Should be set before
-            var miningNodes = AElf.Kernel.MiningNodes.Parser.ParseFrom(
+            var miningNodes = Kernel.MiningNodes.Parser.ParseFrom(
                 await MiningNodes.GetValue(Hash.Zero));
 
             if (miningNodes.Nodes.Count < 1)
@@ -193,7 +194,7 @@ namespace AElf.Contracts.DPoS
             var key = accountHash.CalculateHashWith((Hash) roundsCount.CalculateHash());
             var timeSlot = await TimeSlots.GetValue(key);
 
-            if (!CompareBytes(GetTime(-4), timeSlot)) 
+            if (!CompareBytes(GetTime(-MiningTime), timeSlot)) 
                 return false;
 
             await Ins.SetValueAsync(key, inValue.ToByteArray());
@@ -222,12 +223,12 @@ namespace AElf.Contracts.DPoS
             if (member != null) await (Task<object>) member.Invoke(this, parameters);
         }
 
-        private byte[] GetTime()
-        {
-            return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff").ToUtf8Bytes();
-        }
-
-        private byte[] GetTime(int offset)
+        /// <summary>
+        /// Get local time
+        /// </summary>
+        /// <param name="offset">minutes</param>
+        /// <returns></returns>
+        private byte[] GetTime(int offset = 0)
         {
             return DateTime.Now.AddMinutes(offset).ToString("yyyy-MM-dd HH:mm:ss.ffffff").ToUtf8Bytes();
         }
