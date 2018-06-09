@@ -1,9 +1,10 @@
 ﻿using System.Linq;
-using AElf.Kernel.Crypto.ECDSA;
+using AElf.Cryptography.ECDSA;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Security;
 using Xunit;
 
-namespace AElf.Kernel.Tests.Crypto.ECDSA
+namespace AElf.Cryptography.Tests.ECDSA
 {
     public class EcdsaTest
     {
@@ -40,6 +41,8 @@ namespace AElf.Kernel.Tests.Crypto.ECDSA
             Assert.True(verifier.Verify(signature, message));
         }
         
+        private static readonly SecureRandom random = new SecureRandom();
+        
         [Fact]
         public void SignatureDecoding_Decode_ShouldBeEqualToOriginal()
         {
@@ -47,11 +50,11 @@ namespace AElf.Kernel.Tests.Crypto.ECDSA
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
             
             // Get its byte array representation
-            byte[] initialPublicKey = keyPair.GetPublicKey(compressed: true);
+            byte[] initialPublicKey = keyPair.GetEncodedPublicKey(compressed: true);
             
             // Reconstruct it and check if the key is the same
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(initialPublicKey);
-            byte[] receivedKey = recipientKeyPair.GetPublicKey(true);
+            byte[] receivedKey = recipientKeyPair.GetEncodedPublicKey(true);
             
             Assert.True(receivedKey.SequenceEqual(initialPublicKey));
         }

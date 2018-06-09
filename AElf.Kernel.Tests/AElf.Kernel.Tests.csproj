@@ -31,7 +31,6 @@
     <Folder Include="Concurrency\Execution\Protobuf\Proto\" />
     <Folder Include="Concurrency\Execution\Protobuf\Generated\" />
     <Folder Include="Concurrency\Scheduling\" />
-    <Folder Include="Network" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Google.Protobuf">
