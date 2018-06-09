@@ -125,6 +125,55 @@ namespace AElf.Sdk.CSharp
         {
             _transactionContext.Trace.RetVal = Any.Pack(retVal);
         }
+
+        public static void Return(bool retVal)
+        {
+            _transactionContext.Trace.RetVal = Any.Pack(new BoolValue()
+            {
+                Value = retVal
+            });
+        }
+
+        public static void Return(uint retVal)
+        {
+            _transactionContext.Trace.RetVal = Any.Pack(new UInt32Value()
+            {
+                Value = retVal
+            });
+        }
+
+        public static void Return(int retVal)
+        {
+            _transactionContext.Trace.RetVal = Any.Pack(new Int32Value()
+            {
+                Value = retVal
+            });
+        }
+
+        public static void Return(ulong retVal)
+        {
+            _transactionContext.Trace.RetVal = Any.Pack(new UInt64Value()
+            {
+                Value = retVal
+            });
+        }
+
+        public static void Return(long retVal)
+        {
+            _transactionContext.Trace.RetVal = Any.Pack(new Int64Value()
+            {
+                Value = retVal
+            });
+        }
+
+        public static void Return(byte[] retVal)
+        {
+            _transactionContext.Trace.RetVal = Any.Pack(new BytesValue()
+            {
+                Value = ByteString.CopyFrom(retVal)
+            });
+        }
+
         #endregion Transaction API
         #region Utility API
         public static void Assert(bool asserted, string message = "Assertion failed!")
