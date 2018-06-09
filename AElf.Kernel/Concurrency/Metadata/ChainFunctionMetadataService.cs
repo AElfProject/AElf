@@ -21,6 +21,13 @@ namespace AElf.Kernel.Concurrency.Metadata
             _logger = logger;
         }
 
+        /// <summary>
+        /// //TODO: in fact, only public interface of contact need to be added into FunctionMetadataMap
+        /// </summary>
+        /// <param name="contractClassName"></param>
+        /// <param name="contractAddr"></param>
+        /// <param name="contractReferences"></param>
+        /// <exception cref="FunctionMetadataException"></exception>
         public void DeployNewContract(string contractClassName, Hash contractAddr, Dictionary<string, Hash> contractReferences)
         {
             Dictionary<string, FunctionMetadata> tempMap = new Dictionary<string, FunctionMetadata>();
@@ -37,8 +44,8 @@ namespace AElf.Kernel.Concurrency.Metadata
                 foreach (var localFuncName in topologicRes.Reverse())
                 {
                     var funcNameWithAddr =
-                        Replacement.ReplaceValueIntoReplacement(localFuncName, Replacement.This, contractAddr.ToString());
-                    var funcMetadata = GetMetadataForNewFunction(funcNameWithAddr, classTemplate[funcNameWithAddr], contractAddr, contractReferences);
+                        Replacement.ReplaceValueIntoReplacement(localFuncName, Replacement.This, contractAddr.Value.ToBase64());
+                    var funcMetadata = GetMetadataForNewFunction(funcNameWithAddr, classTemplate[localFuncName], contractAddr, contractReferences, tempMap);
                 
                     tempMap.Add(funcNameWithAddr, funcMetadata);
                 }
@@ -66,11 +73,11 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         /// <exception cref="FunctionMetadataException"></exception>
-        private FunctionMetadata GetMetadataForNewFunction(string functionFullName, FunctionMetadataTemplate functionTemplate, Hash contractAddr, Dictionary<string, Hash> contractReferences)
+        private FunctionMetadata GetMetadataForNewFunction(string functionFullName, FunctionMetadataTemplate functionTemplate, Hash contractAddr, Dictionary<string, Hash> contractReferences, Dictionary<string, FunctionMetadata> localMetadataMap)
         {
             var resourceSet = functionTemplate.LocalResourceSet.Select(resource =>
                 {
-                    var resName = Replacement.ReplaceValueIntoReplacement(resource.Name, Replacement.This, contractAddr.ToString());
+                    var resName = Replacement.ReplaceValueIntoReplacement(resource.Name, Replacement.This, contractAddr.Value.ToBase64());
                     return new Resource(resName, resource.DataAccessMode);
                 }).ToHashSet();
             
@@ -88,14 +95,26 @@ namespace AElf.Kernel.Concurrency.Metadata
                 }
 
                 //just add foreign resource into set because local resources are already recursively analyzed
-                if (!locationReplacement.Equals(Replacement.This))
+                if (locationReplacement.Equals(Replacement.This))
+                {
+                    //TODO: Need to add local function call's resource
+                    var replacedCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, Replacement.This,
+                        contractAddr.Value.ToBase64());
+                    if (!localMetadataMap.TryGetValue(replacedCalledFunc, out var localCalledFuncMetadata))
+                    {
+                        throw new FunctionMetadataException("There are no local function " + replacedCalledFunc + " in the given local function map, consider wrong reference cause wrong topological order");
+                    }
+                    resourceSet.UnionWith(localCalledFuncMetadata.FullResourceSet);
+                    callingSet.Add(replacedCalledFunc);
+                }
+                else 
                 {
                     if (!contractReferences.TryGetValue(Replacement.Value(locationReplacement), out var referenceAddr))
                     {
                         throw new FunctionMetadataException("There are no member reference " + Replacement.Value(locationReplacement) + " in the given contractReferences map");
                     }
                     var replacedCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, locationReplacement,
-                        referenceAddr.ToString());
+                        referenceAddr.Value.ToBase64());
                     
                     var metadataOfCalledFunc = GetFunctionMetadata(replacedCalledFunc); //could throw exception
                     
