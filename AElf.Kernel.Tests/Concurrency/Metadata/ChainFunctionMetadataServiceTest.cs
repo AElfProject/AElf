@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel.Concurrency.Metadata;
+using AElf.Kernel.Extensions;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
+using Google.Protobuf;
 using ServiceStack;
 using Xunit;
 
@@ -10,6 +12,228 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
     public class ChainFunctionMetadataServiceTest
     {
+
+        private ParallelTestDataUtil util = new ParallelTestDataUtil();
+        [Fact]
+        public ChainFunctionMetadataService TestDeployNewFunction()
+        {
+            ChainFunctionMetadataTemplateServiceTest templateTest = new ChainFunctionMetadataTemplateServiceTest();
+            var templateService = templateTest.TestTryAddNewContractShouldSuccess();
+            ChainFunctionMetadataService cfms = new ChainFunctionMetadataService(templateService);
+            var addrA = Hash.Generate();
+            var addrB = Hash.Generate();
+            var addrC = Hash.Generate();
+            
+            
+            var referenceBookForA = new Dictionary<string, Hash>();
+            var referenceBookForB = new Dictionary<string, Hash>();
+            var referenceBookForC = new Dictionary<string, Hash>();
+            
+            var groundTruthMap = new Dictionary<string, FunctionMetadata>();
+
+            cfms.DeployNewContract("TestContractC", addrC, referenceBookForC);
+            
+            groundTruthMap.Add(
+                addrC.Value.ToBase64() + ".Func0()", 
+                new FunctionMetadata(
+                    new HashSet<string>(),
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(addrC.Value.ToBase64() + ".resource4", DataAccessMode.AccountSpecific)
+                    }), 
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(addrC.Value.ToBase64() + ".resource4", DataAccessMode.AccountSpecific)
+                    })));
+            
+            groundTruthMap.Add(
+                addrC.Value.ToBase64() + ".Func1()", 
+                new FunctionMetadata(
+                    new HashSet<string>(),
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(addrC.Value.ToBase64() + ".resource5", DataAccessMode.ReadOnlyAccountSharing) 
+                    }),
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(addrC.Value.ToBase64() + ".resource5", DataAccessMode.ReadOnlyAccountSharing) 
+                    })));
+            
+            Assert.Equal(util.FunctionMetadataMapToString(groundTruthMap), util.FunctionMetadataMapToString(cfms.FunctionMetadataMap));
+
+            
+            referenceBookForB.Add("ContractC", addrC);
+            cfms.DeployNewContract("TestContractB", addrB, referenceBookForB);
+            
+            groundTruthMap.Add(
+                addrB.Value.ToBase64() + ".Func0()",
+                new FunctionMetadata(
+                    new HashSet<string>(new []
+                    {
+                        addrC.Value.ToBase64() + ".Func1()"
+                    }),
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(addrC.Value.ToBase64() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrB.Value.ToBase64() + ".resource2", DataAccessMode.AccountSpecific), 
+                    }),
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(addrB.Value.ToBase64() + ".resource2", DataAccessMode.AccountSpecific), 
+                    })));
+            
+            groundTruthMap.Add(
+                addrB.Value.ToBase64() + ".Func1()",
+                new FunctionMetadata(
+                    new HashSet<string>(),
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(addrB.Value.ToBase64() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
+                    }),
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(addrB.Value.ToBase64() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
+                    })));
+            
+            Assert.Equal(util.FunctionMetadataMapToString(groundTruthMap), util.FunctionMetadataMapToString(cfms.FunctionMetadataMap));
+
+            
+            referenceBookForA.Add("ContractC", addrC);
+            referenceBookForA.Add("_contractB", addrB);
+            cfms.DeployNewContract("TestContractA", addrA, referenceBookForA);
+            
+            groundTruthMap.Add(
+                addrA.Value.ToBase64() + ".Func0(int)",
+                new FunctionMetadata(
+                    new HashSet<string>(),
+                    new HashSet<Resource>(),
+                    new HashSet<Resource>()));
+            
+            groundTruthMap.Add(
+                addrA.Value.ToBase64() + ".Func0()",
+                new FunctionMetadata(
+                    new HashSet<string>(new []
+                    {
+                        addrA.Value.ToBase64() + ".Func1()"
+                    }),
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(addrA.Value.ToBase64() + ".resource0", DataAccessMode.AccountSpecific),
+                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    }),
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(addrA.Value.ToBase64() + ".resource0", DataAccessMode.AccountSpecific),
+                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    })));
+            
+            groundTruthMap.Add(
+                addrA.Value.ToBase64() + ".Func1()",
+                new FunctionMetadata(
+                    new HashSet<string>(new []
+                    {
+                        addrA.Value.ToBase64() + ".Func2()"
+                    }),
+                    new HashSet<Resource>(new[]
+                    {
+                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    }),
+                    new HashSet<Resource>(new[]
+                    {
+                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    })));
+            
+            groundTruthMap.Add(
+                addrA.Value.ToBase64() + ".Func2()",
+                new FunctionMetadata(
+                    new HashSet<string>(),
+                    new HashSet<Resource>(new[]
+                    {
+                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    }),
+                    new HashSet<Resource>(new[]
+                    {
+                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    })));
+            
+            groundTruthMap.Add(
+                addrA.Value.ToBase64() + ".Func3()",
+                new FunctionMetadata(
+                    new HashSet<string>(new []
+                    {
+                        addrA.Value.ToBase64() + ".Func0()",
+                        addrB.Value.ToBase64() + ".Func0()", 
+                        addrC.Value.ToBase64() + ".Func0()"
+                    }),
+                    new HashSet<Resource>(new[]
+                    {
+                        new Resource(addrA.Value.ToBase64() + ".resource0", DataAccessMode.AccountSpecific),
+                        new Resource(addrB.Value.ToBase64() + ".resource2", DataAccessMode.AccountSpecific), 
+                        new Resource(addrC.Value.ToBase64() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrC.Value.ToBase64() + ".resource4", DataAccessMode.AccountSpecific),
+                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    }),
+                    new HashSet<Resource>(new[]
+                    {
+                        new Resource(addrA.Value.ToBase64() + ".resource0", DataAccessMode.AccountSpecific),
+                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    })));
+            
+            groundTruthMap.Add(
+                addrA.Value.ToBase64() + ".Func4()",
+                new FunctionMetadata(
+                    new HashSet<string>(new []
+                    {
+                        addrA.Value.ToBase64() + ".Func2()"
+                    }),
+                    new HashSet<Resource>(new[]
+                    {
+                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    }),
+                    new HashSet<Resource>(new[]
+                    {
+                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    })));
+            
+            groundTruthMap.Add(
+                addrA.Value.ToBase64() + ".Func5()",
+                new FunctionMetadata(
+                    new HashSet<string>(new []
+                    {
+                        addrA.Value.ToBase64() + ".Func3()",
+                        addrB.Value.ToBase64() + ".Func1()"
+                    }),
+                    new HashSet<Resource>(new[]
+                    {
+                        new Resource(addrA.Value.ToBase64() + ".resource0", DataAccessMode.AccountSpecific),
+                        new Resource(addrB.Value.ToBase64() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
+                        new Resource(addrB.Value.ToBase64() + ".resource2", DataAccessMode.AccountSpecific), 
+                        new Resource(addrC.Value.ToBase64() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrC.Value.ToBase64() + ".resource4", DataAccessMode.AccountSpecific),
+                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    }),
+                    new HashSet<Resource>(new[]
+                    {
+                        new Resource(addrA.Value.ToBase64() + ".resource0", DataAccessMode.AccountSpecific),
+                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    })));
+            
+            Assert.Equal(util.FunctionMetadataMapToString(groundTruthMap), util.FunctionMetadataMapToString(cfms.FunctionMetadataMap));
+
+            return cfms;
+        }
         
         [Fact]
         public void TestSetNewFunctionMetadata()
