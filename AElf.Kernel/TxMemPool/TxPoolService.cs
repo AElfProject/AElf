@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
@@ -12,11 +13,16 @@ namespace AElf.Kernel.TxMemPool
     {
         private readonly ITxPool _txPool;
         private readonly IAccountContextService _accountContextService;
+        private readonly ITransactionManager _transactionManager;
+        private readonly ITransactionResultManager _transactionResultManager;
 
-        public TxPoolService(ITxPool txPool, IAccountContextService accountContextService)
+        public TxPoolService(ITxPool txPool, IAccountContextService accountContextService, 
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             _txPool = txPool;
             _accountContextService = accountContextService;
+            _transactionManager = transactionManager;
+            _transactionResultManager = transactionResultManager;
         }
 
         /// <summary>
@@ -35,10 +41,6 @@ namespace AElf.Kernel.TxMemPool
         private CancellationTokenSource Cts { get; set; } 
         
         private TxPoolSchedulerLock Lock { get; } = new TxPoolSchedulerLock();
-        
-        //private HashSet<ITransaction> Tmp { get; } = new HashSet<ITransaction>();
-        
-        private readonly ConcurrentDictionary<Hash, ulong> _nonces = new ConcurrentDictionary<Hash, ulong>();
         
         private readonly ConcurrentDictionary<Hash, ITransaction> _txs = new ConcurrentDictionary<Hash, ITransaction>();
 
@@ -150,7 +152,7 @@ namespace AElf.Kernel.TxMemPool
             //return Lock.ReadLock(() =>
             lock (this)
             {
-                _txPool.Enqueueable = false;
+                //_txPool.Enqueueable = false;
                 return Task.FromResult(_txPool.ReadyTxs(limit));
             }
         }
@@ -177,13 +179,9 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public ITransaction GetTx(Hash txHash)
+        public bool TryGetTx(Hash txHash, out ITransaction tx)
         {
-            if (_txs.TryGetValue(txHash, out var tx) )
-            {
-                return tx;
-            }
-            return null;
+            return _txs.TryGetValue(txHash, out tx);
         }
 
         /// <inheritdoc/>
@@ -235,16 +233,25 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public async Task ResetAndUpdate(List<TransactionResult> txResultList)
         {
+            var addrs = new HashSet<Hash>();
             foreach (var res in txResultList)
             {
-                var hash = GetTx(res.TransactionId).From;
-                _txPool.Nonces.TryGetValue(hash, out var id);
+                if (!TryGetTx(res.TransactionId, out var tx))
+                    continue;
+                addrs.Add(tx.From);
+                await _transactionManager.AddTransactionAsync(tx);
+                await _transactionResultManager.AddTransactionResultAsync(res);
+            }
+
+            foreach (var addr in addrs)
+            {
+                _txPool.Nonces.TryGetValue(addr, out var id);
                 
                 // update account context
                 await _accountContextService.SetAccountContext(new AccountDataContext
                 {
                     IncrementId = id,
-                    Address = hash,
+                    Address = addr,
                     ChainId = _txPool.ChainId
                 });
             }

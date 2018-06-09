@@ -3,6 +3,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Services;
+using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -14,14 +16,15 @@ namespace AElf.Kernel.Tests
     public class BlockTest
     {
         private readonly IBlockManager _blockManager;
-        //private readonly ISmartContractZero _smartContractZero;
         private readonly ChainTest _chainTest;
+        private readonly IChainCreationService _chainCreationService;
 
-        public BlockTest(IBlockManager blockManager, ChainTest chainTest)
+        public BlockTest(IBlockManager blockManager, ChainTest chainTest, IChainCreationService chainCreationService)
         {
             _blockManager = blockManager;
             //_smartContractZero = smartContractZero;
             _chainTest = chainTest;
+            _chainCreationService = chainCreationService;
         }
 
         public byte[] SmartContractZeroCode
@@ -35,6 +38,19 @@ namespace AElf.Kernel.Tests
                 }
                 return code;
             }
+        }
+
+        public async Task<IChain> CreateChain()
+        {
+            var reg = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
+                ContractHash = Hash.Zero
+            };
+
+            var chainId = Hash.Generate();
+            return await _chainCreationService.CreateNewChainAsync(chainId, reg);
         }
      
        [Fact]
@@ -51,7 +67,7 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task BlockManagerTest()
         {
-            var chain = await _chainTest.CreateChainTest();
+            var chain = await CreateChain();
 
             var block = CreateBlock(chain.GenesisBlockHash);
             await _blockManager.AddBlockAsync(block);
