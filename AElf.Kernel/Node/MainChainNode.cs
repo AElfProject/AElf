@@ -8,6 +8,7 @@ using AElf.Kernel.Node.Config;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.Node.RPC.DTO;
+using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
 using Google.Protobuf;
@@ -26,9 +27,10 @@ namespace AElf.Kernel.Node
         private readonly IProtocolDirector _protocolDirector;
         private readonly INodeConfig _nodeConfig;
         private readonly IMiner _miner;
+        private readonly IAccountContextService _accountContextService;
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
-            IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner)
+            IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner, IAccountContextService accountContextService)
         {
             _poolService = poolService;
             _protocolDirector = protocolDirector;
@@ -37,6 +39,7 @@ namespace AElf.Kernel.Node
             _logger = logger;
             _nodeConfig = nodeConfig;
             _miner = miner;
+            _accountContextService = accountContextService;
         }
 
         public void Start(bool startRpc)
@@ -151,6 +154,19 @@ namespace AElf.Kernel.Node
         public async Task<List<NodeData>> GetPeers(ushort numPeers)
         {
             return _protocolDirector.GetPeers(numPeers);
+        }
+
+        /// <summary>
+        /// return default incrementId for one address
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <returns></returns>
+        public async Task<ulong> GetIncrementId(Hash addr)
+        {
+            var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId)).IncrementId;
+            var idInPool = _poolService.GetIncrementId(addr);
+
+            return Math.Max(idInDB, idInDB);
         }
     }
 }
