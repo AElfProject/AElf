@@ -97,6 +97,7 @@ namespace AElf.Kernel.TxMemPool
         /// close transaction pool
         /// </summary>
         Task Stop();
-        
+
+        ulong GetIncrementId(Hash addr);
     }
 }

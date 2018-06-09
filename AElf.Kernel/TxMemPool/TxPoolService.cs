@@ -292,7 +292,13 @@ namespace AElf.Kernel.TxMemPool
             }
         }
 
-        
+        public ulong GetIncrementId(Hash addr)
+        {
+            lock (this)
+            {
+                return _txPool.GetPendingIncrementId(addr);
+            }
+        }
     }
     
     /// <inheritdoc />
