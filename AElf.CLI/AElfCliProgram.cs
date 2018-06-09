@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using AElf.CLI.Command;
+using AElf.CLI.Http;
 using AElf.CLI.Parsing;
+using AElf.CLI.RPC;
 using AElf.CLI.Screen;
 using AElf.CLI.Wallet;
+using Newtonsoft.Json.Linq;
 
 namespace AElf.CLI
 {
@@ -86,6 +89,12 @@ namespace AElf.CLI
                 else
                 {
                     // RPC
+                    JObject req = def.BuildRequestParams(parsedCmd);
+                    HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
+                    string resp = reqhttp.DoRequest(JsonRpcHelpers.CreateRequest(req, "get_peers", 1).ToString());
+
+                    string toPrint = def.GetPrintString(resp);
+                    _screenManager.PrintLine(toPrint);
                 }
             }
         }

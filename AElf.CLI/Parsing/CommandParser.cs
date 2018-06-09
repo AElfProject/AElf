@@ -4,10 +4,12 @@ namespace AElf.CLI.Parsing
 {
     public class CommandParser
     {
-        public CmdParseResult Parse(string str)
+        public CmdParseResult Parse(string input)
         {
-            if (string.IsNullOrWhiteSpace(str))
+            if (string.IsNullOrWhiteSpace(input))
                 return null;
+
+            string str = input.TrimEnd();
             
             string[] tokens = str.Split();
 

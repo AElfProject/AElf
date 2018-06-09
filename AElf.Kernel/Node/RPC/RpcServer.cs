@@ -265,7 +265,7 @@ namespace AElf.Kernel.Node.RPC
         private async Task<JObject> ProcessGetPeers(JObject reqParams)
         {
             string numPeersS = reqParams["numPeers"].ToString();
-            ushort numPeers = 0;
+            ushort? numPeers = null;
             try
             {
                 numPeers = Convert.ToUInt16(numPeersS);
@@ -275,7 +275,7 @@ namespace AElf.Kernel.Node.RPC
                 ;
             }
 
-            if (numPeers == 0)
+            if (numPeers.HasValue && numPeers.Value == 0)
                 return null;
 
             List<NodeData> peers = await _node.GetPeers(numPeers);

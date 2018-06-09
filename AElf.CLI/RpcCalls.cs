@@ -28,9 +28,7 @@ namespace AElf.CLI
             
             var text = "{\"jsonrpc\":\"2.0\",\"method\":\"get_commands\",\"params\":{ },\"id\":0}";
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/");
-            request.Content = new StringContent(text,
-                Encoding.UTF8,
-                "application/json");
+            request.Content = new StringContent(text, Encoding.UTF8, "application/json");
 
             await Client.SendAsync(request)
                 .ContinueWith(async responseTask =>

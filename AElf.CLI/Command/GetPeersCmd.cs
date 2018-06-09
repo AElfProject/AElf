@@ -1,4 +1,7 @@
-﻿using AElf.CLI.Parsing;
+﻿using System;
+using System.Linq;
+using System.Text;
+using AElf.CLI.Parsing;
 using Newtonsoft.Json.Linq;
 
 namespace AElf.CLI.Command
@@ -21,17 +24,55 @@ namespace AElf.CLI.Command
             throw new System.NotImplementedException();
         }
 
-        public override JObject BuildRequestObject(CmdParseResult parsedCommand)
+        public override JObject BuildRequestParams(CmdParseResult parsedCommand)
         {
-            // If parsedCommand is not valid return null and let other layers/components print the usage 
-            // contained in this instance.
-
-            return null;
+            JObject reqParams;
+            
+            if (parsedCommand.Args == null || parsedCommand.Args.Count <= 0)
+            {
+                 reqParams = new JObject
+                {
+                    ["numPeers"] = null
+                };
+            }
+            else
+            {
+                reqParams = new JObject
+                {
+                    ["numPeers"] = parsedCommand.Args.ElementAt(0)
+                };
+            }
+            
+            return reqParams;
         }
 
         public override string Validate(CmdParseResult parsedCommand)
         {
-            throw new System.NotImplementedException();
+            return null;
+        }
+        
+        public override string GetPrintString(string resp)
+        {
+            StringBuilder strBuilder = new StringBuilder();
+            strBuilder.AppendLine("-- List of connected peers on the node");
+            
+            try
+            {
+                JObject respJson = JObject.Parse(resp);
+            
+                var peersList = respJson["result"]["data"];
+
+                foreach (var p in peersList.Children())
+                {
+                    strBuilder.AppendLine(p["IpAddress"] + ":" + p["Port"]);
+                }
+            }
+            catch (Exception e)
+            {
+                ;
+            }
+            
+            return strBuilder.ToString();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using AElf.CLI.Command;
 using AElf.CLI.Command.Account;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
@@ -23,9 +24,15 @@ namespace AElf.CLI
 
             // Register local commands
             RegisterAccountCommands(program);
+            RegisterNetworkCommands(program);
             
             // Start the CLI
             program.StartRepl();
+        }
+
+        private static void RegisterNetworkCommands(AElfCliProgram program)
+        {
+            program.RegisterCommand(new GetPeersCmd());
         }
 
         private static void RegisterAccountCommands(AElfCliProgram program)

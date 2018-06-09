@@ -18,7 +18,4 @@
       <Name>AElf.Network</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Http" />
-  </ItemGroup>
 </Project>

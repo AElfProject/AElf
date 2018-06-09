@@ -344,9 +344,30 @@ namespace AElf.Network.Peers
         /// list.
         /// </summary>
         /// <param name="numPeers">number of peers requested</param>
-        public List<NodeData> GetPeers(ushort numPeers)
+        public List<NodeData> GetPeers(ushort? numPeers, bool includeBootnodes = true)
         {
-            Random rand = new Random();
+            IQueryable<IPeer> peers = _peers.AsQueryable();
+            
+            if (!includeBootnodes)
+                peers = peers.Where(p => !p.IsBootnode);
+                
+            peers = peers.OrderBy(p => p.Port);
+
+            if (numPeers.HasValue)
+                peers = peers.Take(numPeers.Value);
+
+            List<NodeData> peersToReturn = peers
+                .Select(peer => new NodeData
+                    {
+                        IpAddress = peer.IpAddress,
+                        Port = peer.Port,
+                        IsBootnode = peer.IsBootnode
+                    })
+                .ToList();
+
+            return peersToReturn;
+            
+            /*Random rand = new Random();
             List<IPeer> peers = _peers.OrderBy(c => rand.Next()).Select(c => c).ToList();
             List<NodeData> returnPeers = new List<NodeData>();
             
@@ -364,9 +385,9 @@ namespace AElf.Network.Peers
 
                 if (returnPeers.Count == numPeers)
                     break;
-            }
+            }*/
 
-            return returnPeers;
+            //return returnPeers;
         }
 
         private void WritePeersToDb(List<IPeer> peerList)

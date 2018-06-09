@@ -37,7 +37,7 @@ namespace AElf.Kernel.Node.Protocol
             _node = node;
         }
 
-        public List<NodeData> GetPeers(ushort numPeers)
+        public List<NodeData> GetPeers(ushort? numPeers)
         {
             return _peerManager.GetPeers(numPeers);
         }

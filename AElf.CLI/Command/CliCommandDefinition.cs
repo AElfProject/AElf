@@ -20,11 +20,16 @@ namespace AElf.CLI.Command
             return string.Empty;
         }
 
-        public virtual JObject BuildRequestObject(CmdParseResult parsedCommand)
+        public virtual JObject BuildRequestParams(CmdParseResult parsedCommand)
         {
             return null;
         }
 
         public abstract string Validate(CmdParseResult parsedCommand);
+
+        public virtual string GetPrintString(string resp)
+        {
+            return string.Empty;
+        }
     }
 }
