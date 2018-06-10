@@ -23,11 +23,17 @@ namespace AElf.CLI
             AElfCliProgram program = new AElfCliProgram(screenManager, parser, manager);
 
             // Register local commands
+            RegisterGetCommands(program);
             RegisterAccountCommands(program);
             RegisterNetworkCommands(program);
             
             // Start the CLI
             program.StartRepl();
+        }
+
+        private static void RegisterGetCommands(AElfCliProgram program)
+        {
+            program.RegisterCommand(new GetCommandsCmd());
         }
 
         private static void RegisterNetworkCommands(AElfCliProgram program)
