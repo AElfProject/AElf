@@ -54,22 +54,24 @@ namespace AElf.Kernel {
             "dBIbCgxDb250cmFjdEhhc2gYASABKAsyBS5IYXNoEhUKBkNhbGxlchgCIAEo",
             "CzIFLkhhc2gSFwoPQ29uc3RydWN0UGFyYW1zGAMgASgMEhMKC0luY3JlbWVu",
             "dElkGAQgASgEIiQKClBhcmFtZXRlcnMSFgoGUGFyYW1zGAEgAygLMgYuUGFy",
-            "YW0i1gEKBVBhcmFtEhAKBmludFZhbBgBIAEoBUgAEhAKBnN0clZhbBgCIAEo",
-            "CUgAEg4KBGRWYWwYAyABKAFIABIYCgdoYXNoVmFsGAQgASgLMgUuSGFzaEgA",
-            "EhEKB2xvbmdWYWwYBSABKARIABIxCgtyZWdpc3RlclZhbBgGIAEoCzIaLlNt",
-            "YXJ0Q29udHJhY3RSZWdpc3RyYXRpb25IABIxCg1kZXBsb3ltZW50VmFsGAcg",
-            "ASgLMhguU21hcnRDb250cmFjdERlcGxveW1lbnRIAEIGCgRkYXRhImwKGlNt",
-            "YXJ0Q29udHJhY3RJbnZva2VDb250ZXh0EhUKBkNhbGxlchgBIAEoCzIFLkhh",
-            "c2gSEwoLSW5jcmVtZW50SWQYAiABKAQSEgoKTWV0aG9kTmFtZRgDIAEoCRIO",
-            "CgZQYXJhbXMYBCABKAwifAoGQ2hhbmdlEhYKB0JlZm9yZXMYASADKAsyBS5I",
-            "YXNoEhQKBUFmdGVyGAIgASgLMgUuSGFzaBIdCg5UcmFuc2FjdGlvbklkcxgD",
-            "IAEoCzIFLkhhc2gSJQoWTGF0ZXN0Q2hhbmdlZEJsb2NrSGFzaBgEIAEoCzIF",
-            "Lkhhc2giPAoOUGFpckhhc2hDaGFuZ2USEgoDS2V5GAEgASgLMgUuSGFzaBIW",
-            "CgVWYWx1ZRgCIAEoCzIHLkNoYW5nZSIsCgtDaGFuZ2VzRGljdBIdCgREaWN0",
-            "GAEgAygLMg8uUGFpckhhc2hDaGFuZ2UiOwoFQ2hhaW4SEQoCSWQYASABKAsy",
-            "BS5IYXNoEh8KEEdlbmVzaXNCbG9ja0hhc2gYAiABKAsyBS5IYXNoKjwKBlN0",
-            "YXR1cxIOCgpOb3RFeGlzdGVkEAASCwoHUGVuZGluZxABEgoKBkZhaWxlZBAC",
-            "EgkKBU1pbmVkEANCDqoCC0FFbGYuS2VybmVsYgZwcm90bzM="));
+            "YW0ipAIKBVBhcmFtEhAKBmludFZhbBgBIAEoBUgAEhEKB3VpbnRWYWwYAiAB",
+            "KA1IABIRCgdsb25nVmFsGAMgASgDSAASEgoIdWxvbmdWYWwYBCABKARIABIR",
+            "Cgdib29sVmFsGAUgASgISAASEgoIYnl0ZXNWYWwYBiABKAxIABIQCgZzdHJW",
+            "YWwYByABKAlIABIOCgRkVmFsGAggASgBSAASGAoHaGFzaFZhbBgJIAEoCzIF",
+            "Lkhhc2hIABIxCgtyZWdpc3RlclZhbBgKIAEoCzIaLlNtYXJ0Q29udHJhY3RS",
+            "ZWdpc3RyYXRpb25IABIxCg1kZXBsb3ltZW50VmFsGAsgASgLMhguU21hcnRD",
+            "b250cmFjdERlcGxveW1lbnRIAEIGCgRkYXRhImwKGlNtYXJ0Q29udHJhY3RJ",
+            "bnZva2VDb250ZXh0EhUKBkNhbGxlchgBIAEoCzIFLkhhc2gSEwoLSW5jcmVt",
+            "ZW50SWQYAiABKAQSEgoKTWV0aG9kTmFtZRgDIAEoCRIOCgZQYXJhbXMYBCAB",
+            "KAwifAoGQ2hhbmdlEhYKB0JlZm9yZXMYASADKAsyBS5IYXNoEhQKBUFmdGVy",
+            "GAIgASgLMgUuSGFzaBIdCg5UcmFuc2FjdGlvbklkcxgDIAEoCzIFLkhhc2gS",
+            "JQoWTGF0ZXN0Q2hhbmdlZEJsb2NrSGFzaBgEIAEoCzIFLkhhc2giPAoOUGFp",
+            "ckhhc2hDaGFuZ2USEgoDS2V5GAEgASgLMgUuSGFzaBIWCgVWYWx1ZRgCIAEo",
+            "CzIHLkNoYW5nZSIsCgtDaGFuZ2VzRGljdBIdCgREaWN0GAEgAygLMg8uUGFp",
+            "ckhhc2hDaGFuZ2UiOwoFQ2hhaW4SEQoCSWQYASABKAsyBS5IYXNoEh8KEEdl",
+            "bmVzaXNCbG9ja0hhc2gYAiABKAsyBS5IYXNoKjwKBlN0YXR1cxIOCgpOb3RF",
+            "eGlzdGVkEAASCwoHUGVuZGluZxABEgoKBkZhaWxlZBACEgkKBU1pbmVkEANC",
+            "DqoCC0FFbGYuS2VybmVsYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.AnyReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), }, new pbr::GeneratedClrTypeInfo[] {
@@ -85,7 +87,7 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractRegistration), global::AElf.Kernel.SmartContractRegistration.Parser, new[]{ "Category", "ContractHash", "ContractBytes" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractDeployment), global::AElf.Kernel.SmartContractDeployment.Parser, new[]{ "ContractHash", "Caller", "ConstructParams", "IncrementId" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Parameters), global::AElf.Kernel.Parameters.Parser, new[]{ "Params" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Param), global::AElf.Kernel.Param.Parser, new[]{ "IntVal", "StrVal", "DVal", "HashVal", "LongVal", "RegisterVal", "DeploymentVal" }, new[]{ "Data" }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Param), global::AElf.Kernel.Param.Parser, new[]{ "IntVal", "UintVal", "LongVal", "UlongVal", "BoolVal", "BytesVal", "StrVal", "DVal", "HashVal", "RegisterVal", "DeploymentVal" }, new[]{ "Data" }, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractInvokeContext), global::AElf.Kernel.SmartContractInvokeContext.Parser, new[]{ "Caller", "IncrementId", "MethodName", "Params" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Change), global::AElf.Kernel.Change.Parser, new[]{ "Befores", "After", "TransactionIds", "LatestChangedBlockHash" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.PairHashChange), global::AElf.Kernel.PairHashChange.Parser, new[]{ "Key", "Value" }, null, null, null),
@@ -2696,6 +2698,21 @@ namespace AElf.Kernel {
         case DataOneofCase.IntVal:
           IntVal = other.IntVal;
           break;
+        case DataOneofCase.UintVal:
+          UintVal = other.UintVal;
+          break;
+        case DataOneofCase.LongVal:
+          LongVal = other.LongVal;
+          break;
+        case DataOneofCase.UlongVal:
+          UlongVal = other.UlongVal;
+          break;
+        case DataOneofCase.BoolVal:
+          BoolVal = other.BoolVal;
+          break;
+        case DataOneofCase.BytesVal:
+          BytesVal = other.BytesVal;
+          break;
         case DataOneofCase.StrVal:
           StrVal = other.StrVal;
           break;
@@ -2704,9 +2721,6 @@ namespace AElf.Kernel {
           break;
         case DataOneofCase.HashVal:
           HashVal = other.HashVal.Clone();
-          break;
-        case DataOneofCase.LongVal:
-          LongVal = other.LongVal;
           break;
         case DataOneofCase.RegisterVal:
           RegisterVal = other.RegisterVal.Clone();
@@ -2735,8 +2749,63 @@ namespace AElf.Kernel {
       }
     }
 
+    /// <summary>Field number for the "uintVal" field.</summary>
+    public const int UintValFieldNumber = 2;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public uint UintVal {
+      get { return dataCase_ == DataOneofCase.UintVal ? (uint) data_ : 0; }
+      set {
+        data_ = value;
+        dataCase_ = DataOneofCase.UintVal;
+      }
+    }
+
+    /// <summary>Field number for the "longVal" field.</summary>
+    public const int LongValFieldNumber = 3;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long LongVal {
+      get { return dataCase_ == DataOneofCase.LongVal ? (long) data_ : 0L; }
+      set {
+        data_ = value;
+        dataCase_ = DataOneofCase.LongVal;
+      }
+    }
+
+    /// <summary>Field number for the "ulongVal" field.</summary>
+    public const int UlongValFieldNumber = 4;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public ulong UlongVal {
+      get { return dataCase_ == DataOneofCase.UlongVal ? (ulong) data_ : 0UL; }
+      set {
+        data_ = value;
+        dataCase_ = DataOneofCase.UlongVal;
+      }
+    }
+
+    /// <summary>Field number for the "boolVal" field.</summary>
+    public const int BoolValFieldNumber = 5;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool BoolVal {
+      get { return dataCase_ == DataOneofCase.BoolVal ? (bool) data_ : false; }
+      set {
+        data_ = value;
+        dataCase_ = DataOneofCase.BoolVal;
+      }
+    }
+
+    /// <summary>Field number for the "bytesVal" field.</summary>
+    public const int BytesValFieldNumber = 6;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString BytesVal {
+      get { return dataCase_ == DataOneofCase.BytesVal ? (pb::ByteString) data_ : pb::ByteString.Empty; }
+      set {
+        data_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        dataCase_ = DataOneofCase.BytesVal;
+      }
+    }
+
     /// <summary>Field number for the "strVal" field.</summary>
-    public const int StrValFieldNumber = 2;
+    public const int StrValFieldNumber = 7;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public string StrVal {
       get { return dataCase_ == DataOneofCase.StrVal ? (string) data_ : ""; }
@@ -2747,7 +2816,10 @@ namespace AElf.Kernel {
     }
 
     /// <summary>Field number for the "dVal" field.</summary>
-    public const int DValFieldNumber = 3;
+    public const int DValFieldNumber = 8;
+    /// <summary>
+    /// Maybe don't allow floating point
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public double DVal {
       get { return dataCase_ == DataOneofCase.DVal ? (double) data_ : 0D; }
@@ -2758,7 +2830,7 @@ namespace AElf.Kernel {
     }
 
     /// <summary>Field number for the "hashVal" field.</summary>
-    public const int HashValFieldNumber = 4;
+    public const int HashValFieldNumber = 9;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::AElf.Kernel.Hash HashVal {
       get { return dataCase_ == DataOneofCase.HashVal ? (global::AElf.Kernel.Hash) data_ : null; }
@@ -2768,19 +2840,8 @@ namespace AElf.Kernel {
       }
     }
 
-    /// <summary>Field number for the "longVal" field.</summary>
-    public const int LongValFieldNumber = 5;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public ulong LongVal {
-      get { return dataCase_ == DataOneofCase.LongVal ? (ulong) data_ : 0UL; }
-      set {
-        data_ = value;
-        dataCase_ = DataOneofCase.LongVal;
-      }
-    }
-
     /// <summary>Field number for the "registerVal" field.</summary>
-    public const int RegisterValFieldNumber = 6;
+    public const int RegisterValFieldNumber = 10;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::AElf.Kernel.SmartContractRegistration RegisterVal {
       get { return dataCase_ == DataOneofCase.RegisterVal ? (global::AElf.Kernel.SmartContractRegistration) data_ : null; }
@@ -2791,7 +2852,7 @@ namespace AElf.Kernel {
     }
 
     /// <summary>Field number for the "deploymentVal" field.</summary>
-    public const int DeploymentValFieldNumber = 7;
+    public const int DeploymentValFieldNumber = 11;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::AElf.Kernel.SmartContractDeployment DeploymentVal {
       get { return dataCase_ == DataOneofCase.DeploymentVal ? (global::AElf.Kernel.SmartContractDeployment) data_ : null; }
@@ -2806,12 +2867,16 @@ namespace AElf.Kernel {
     public enum DataOneofCase {
       None = 0,
       IntVal = 1,
-      StrVal = 2,
-      DVal = 3,
-      HashVal = 4,
-      LongVal = 5,
-      RegisterVal = 6,
-      DeploymentVal = 7,
+      UintVal = 2,
+      LongVal = 3,
+      UlongVal = 4,
+      BoolVal = 5,
+      BytesVal = 6,
+      StrVal = 7,
+      DVal = 8,
+      HashVal = 9,
+      RegisterVal = 10,
+      DeploymentVal = 11,
     }
     private DataOneofCase dataCase_ = DataOneofCase.None;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2839,10 +2904,14 @@ namespace AElf.Kernel {
         return true;
       }
       if (IntVal != other.IntVal) return false;
+      if (UintVal != other.UintVal) return false;
+      if (LongVal != other.LongVal) return false;
+      if (UlongVal != other.UlongVal) return false;
+      if (BoolVal != other.BoolVal) return false;
+      if (BytesVal != other.BytesVal) return false;
       if (StrVal != other.StrVal) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.Equals(DVal, other.DVal)) return false;
       if (!object.Equals(HashVal, other.HashVal)) return false;
-      if (LongVal != other.LongVal) return false;
       if (!object.Equals(RegisterVal, other.RegisterVal)) return false;
       if (!object.Equals(DeploymentVal, other.DeploymentVal)) return false;
       if (DataCase != other.DataCase) return false;
@@ -2853,10 +2922,14 @@ namespace AElf.Kernel {
     public override int GetHashCode() {
       int hash = 1;
       if (dataCase_ == DataOneofCase.IntVal) hash ^= IntVal.GetHashCode();
+      if (dataCase_ == DataOneofCase.UintVal) hash ^= UintVal.GetHashCode();
+      if (dataCase_ == DataOneofCase.LongVal) hash ^= LongVal.GetHashCode();
+      if (dataCase_ == DataOneofCase.UlongVal) hash ^= UlongVal.GetHashCode();
+      if (dataCase_ == DataOneofCase.BoolVal) hash ^= BoolVal.GetHashCode();
+      if (dataCase_ == DataOneofCase.BytesVal) hash ^= BytesVal.GetHashCode();
       if (dataCase_ == DataOneofCase.StrVal) hash ^= StrVal.GetHashCode();
       if (dataCase_ == DataOneofCase.DVal) hash ^= pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.GetHashCode(DVal);
       if (dataCase_ == DataOneofCase.HashVal) hash ^= HashVal.GetHashCode();
-      if (dataCase_ == DataOneofCase.LongVal) hash ^= LongVal.GetHashCode();
       if (dataCase_ == DataOneofCase.RegisterVal) hash ^= RegisterVal.GetHashCode();
       if (dataCase_ == DataOneofCase.DeploymentVal) hash ^= DeploymentVal.GetHashCode();
       hash ^= (int) dataCase_;
@@ -2877,28 +2950,44 @@ namespace AElf.Kernel {
         output.WriteRawTag(8);
         output.WriteInt32(IntVal);
       }
+      if (dataCase_ == DataOneofCase.UintVal) {
+        output.WriteRawTag(16);
+        output.WriteUInt32(UintVal);
+      }
+      if (dataCase_ == DataOneofCase.LongVal) {
+        output.WriteRawTag(24);
+        output.WriteInt64(LongVal);
+      }
+      if (dataCase_ == DataOneofCase.UlongVal) {
+        output.WriteRawTag(32);
+        output.WriteUInt64(UlongVal);
+      }
+      if (dataCase_ == DataOneofCase.BoolVal) {
+        output.WriteRawTag(40);
+        output.WriteBool(BoolVal);
+      }
+      if (dataCase_ == DataOneofCase.BytesVal) {
+        output.WriteRawTag(50);
+        output.WriteBytes(BytesVal);
+      }
       if (dataCase_ == DataOneofCase.StrVal) {
-        output.WriteRawTag(18);
+        output.WriteRawTag(58);
         output.WriteString(StrVal);
       }
       if (dataCase_ == DataOneofCase.DVal) {
-        output.WriteRawTag(25);
+        output.WriteRawTag(65);
         output.WriteDouble(DVal);
       }
       if (dataCase_ == DataOneofCase.HashVal) {
-        output.WriteRawTag(34);
+        output.WriteRawTag(74);
         output.WriteMessage(HashVal);
       }
-      if (dataCase_ == DataOneofCase.LongVal) {
-        output.WriteRawTag(40);
-        output.WriteUInt64(LongVal);
-      }
       if (dataCase_ == DataOneofCase.RegisterVal) {
-        output.WriteRawTag(50);
+        output.WriteRawTag(82);
         output.WriteMessage(RegisterVal);
       }
       if (dataCase_ == DataOneofCase.DeploymentVal) {
-        output.WriteRawTag(58);
+        output.WriteRawTag(90);
         output.WriteMessage(DeploymentVal);
       }
       if (_unknownFields != null) {
@@ -2912,6 +3001,21 @@ namespace AElf.Kernel {
       if (dataCase_ == DataOneofCase.IntVal) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(IntVal);
       }
+      if (dataCase_ == DataOneofCase.UintVal) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(UintVal);
+      }
+      if (dataCase_ == DataOneofCase.LongVal) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(LongVal);
+      }
+      if (dataCase_ == DataOneofCase.UlongVal) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(UlongVal);
+      }
+      if (dataCase_ == DataOneofCase.BoolVal) {
+        size += 1 + 1;
+      }
+      if (dataCase_ == DataOneofCase.BytesVal) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(BytesVal);
+      }
       if (dataCase_ == DataOneofCase.StrVal) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(StrVal);
       }
@@ -2920,9 +3024,6 @@ namespace AElf.Kernel {
       }
       if (dataCase_ == DataOneofCase.HashVal) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(HashVal);
-      }
-      if (dataCase_ == DataOneofCase.LongVal) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(LongVal);
       }
       if (dataCase_ == DataOneofCase.RegisterVal) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(RegisterVal);
@@ -2945,6 +3046,21 @@ namespace AElf.Kernel {
         case DataOneofCase.IntVal:
           IntVal = other.IntVal;
           break;
+        case DataOneofCase.UintVal:
+          UintVal = other.UintVal;
+          break;
+        case DataOneofCase.LongVal:
+          LongVal = other.LongVal;
+          break;
+        case DataOneofCase.UlongVal:
+          UlongVal = other.UlongVal;
+          break;
+        case DataOneofCase.BoolVal:
+          BoolVal = other.BoolVal;
+          break;
+        case DataOneofCase.BytesVal:
+          BytesVal = other.BytesVal;
+          break;
         case DataOneofCase.StrVal:
           StrVal = other.StrVal;
           break;
@@ -2956,9 +3072,6 @@ namespace AElf.Kernel {
             HashVal = new global::AElf.Kernel.Hash();
           }
           HashVal.MergeFrom(other.HashVal);
-          break;
-        case DataOneofCase.LongVal:
-          LongVal = other.LongVal;
           break;
         case DataOneofCase.RegisterVal:
           if (RegisterVal == null) {
@@ -2989,15 +3102,35 @@ namespace AElf.Kernel {
             IntVal = input.ReadInt32();
             break;
           }
-          case 18: {
+          case 16: {
+            UintVal = input.ReadUInt32();
+            break;
+          }
+          case 24: {
+            LongVal = input.ReadInt64();
+            break;
+          }
+          case 32: {
+            UlongVal = input.ReadUInt64();
+            break;
+          }
+          case 40: {
+            BoolVal = input.ReadBool();
+            break;
+          }
+          case 50: {
+            BytesVal = input.ReadBytes();
+            break;
+          }
+          case 58: {
             StrVal = input.ReadString();
             break;
           }
-          case 25: {
+          case 65: {
             DVal = input.ReadDouble();
             break;
           }
-          case 34: {
+          case 74: {
             global::AElf.Kernel.Hash subBuilder = new global::AElf.Kernel.Hash();
             if (dataCase_ == DataOneofCase.HashVal) {
               subBuilder.MergeFrom(HashVal);
@@ -3006,11 +3139,7 @@ namespace AElf.Kernel {
             HashVal = subBuilder;
             break;
           }
-          case 40: {
-            LongVal = input.ReadUInt64();
-            break;
-          }
-          case 50: {
+          case 82: {
             global::AElf.Kernel.SmartContractRegistration subBuilder = new global::AElf.Kernel.SmartContractRegistration();
             if (dataCase_ == DataOneofCase.RegisterVal) {
               subBuilder.MergeFrom(RegisterVal);
@@ -3019,7 +3148,7 @@ namespace AElf.Kernel {
             RegisterVal = subBuilder;
             break;
           }
-          case 58: {
+          case 90: {
             global::AElf.Kernel.SmartContractDeployment subBuilder = new global::AElf.Kernel.SmartContractDeployment();
             if (dataCase_ == DataOneofCase.DeploymentVal) {
               subBuilder.MergeFrom(DeploymentVal);

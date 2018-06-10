@@ -75,7 +75,7 @@ namespace AElf.Runtime.CSharp.Tests
                                 },
                                 new Param
                                 {
-                                    LongVal = 200
+                                    UlongVal = 200
                                 }
                             }
                 }.ToByteArray())
@@ -95,7 +95,7 @@ namespace AElf.Runtime.CSharp.Tests
                                 },
                                 new Param
                                 {
-                                    LongVal = 100
+                                    UlongVal = 100
                                 }
                             }
                 }.ToByteArray())
@@ -120,7 +120,7 @@ namespace AElf.Runtime.CSharp.Tests
                                 },
                                 new Param
                                 {
-                                    LongVal = 10
+                                    UlongVal = 10
                                 }
                             }
                     }
@@ -147,7 +147,7 @@ namespace AElf.Runtime.CSharp.Tests
                                 },
                                 new Param
                                 {
-                                    LongVal = 20
+                                    UlongVal = 20
                                 }
                             }
                     }

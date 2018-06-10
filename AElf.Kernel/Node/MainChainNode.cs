@@ -151,7 +151,7 @@ namespace AElf.Kernel.Node
         /// </summary>
         /// <param name="numPeers"></param>
         /// <returns></returns>
-        public async Task<List<NodeData>> GetPeers(ushort numPeers)
+        public async Task<List<NodeData>> GetPeers(ushort? numPeers)
         {
             return _protocolDirector.GetPeers(numPeers);
         }

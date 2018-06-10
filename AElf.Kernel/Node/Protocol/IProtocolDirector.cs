@@ -11,6 +11,6 @@ namespace AElf.Kernel.Node.Protocol
         Task BroadcastTransaction(ITransaction transaction);
         void SetCommandContext(MainChainNode node);
 
-        List<NodeData> GetPeers(ushort numPeers);
+        List<NodeData> GetPeers(ushort? numPeers);
     }
 }
