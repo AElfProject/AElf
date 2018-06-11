@@ -87,9 +87,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                         new HashSet<string>(new[] {"${this}.Func1()"}),
                         new HashSet<Resource>(new[]
                         {
-                            new Resource("${this}.resource0", DataAccessMode.AccountSpecific),
-                            new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
-                            new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
+                            new Resource("${this}.resource0", DataAccessMode.AccountSpecific)
                         }))),
 
                 new KeyValuePair<string, FunctionMetadataTemplate>(
@@ -98,8 +96,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                         new HashSet<string>(new[] {"${this}.Func2()"}),
                         new HashSet<Resource>(new[]
                         {
-                            new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
-                            new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
+                            new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing)
                         }))),
 
                 new KeyValuePair<string, FunctionMetadataTemplate>(
@@ -118,31 +115,20 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                         new HashSet<string>(new[] {"${_contractB}.Func0()", "${this}.Func0()", "${ContractC}.Func0()"}),
                         new HashSet<Resource>(new[]
                         {
-                            new Resource("${this}.resource0", DataAccessMode.AccountSpecific),
-                            new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
-                            new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
+                            new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing)
                         }))),
 
                 new KeyValuePair<string, FunctionMetadataTemplate>(
                     "${this}.Func4()", 
                     new FunctionMetadataTemplate(
                         new HashSet<string>(new[] {"${this}.Func2()", "${this}.Func2()"}),
-                        new HashSet<Resource>(new[]
-                        {
-                            new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
-                            new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
-                        }))),
+                        new HashSet<Resource>())),
 
                 new KeyValuePair<string, FunctionMetadataTemplate>(
                     "${this}.Func5()", 
                     new FunctionMetadataTemplate(
                         new HashSet<string>(new[] {"${_contractB}.Func1()", "${this}.Func3()"}),
-                        new HashSet<Resource>(new[]
-                        {
-                            new Resource("${this}.resource0", DataAccessMode.AccountSpecific),
-                            new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing),
-                            new Resource("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)
-                        }))),
+                        new HashSet<Resource>())),
             }));
             
             Assert.Equal(util.ContractMetadataTemplateMapToString(groundTruthMap), util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap));

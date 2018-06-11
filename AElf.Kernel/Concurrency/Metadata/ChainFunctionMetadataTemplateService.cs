@@ -172,7 +172,6 @@ namespace AElf.Kernel.Concurrency.Metadata
                 throw new FunctionMetadataException("Calling graph of " + contractType.Name + " is Non-DAG thus nothing take effect");
             }
 
-            CompleteLocalResourceInTemplates(ref targetLocalFunctionMetadataTemplateMap, localTopologicRes);
             
             List<Edge<string>> outEdgesToAdd = new List<Edge<string>>();
             
@@ -241,39 +240,6 @@ namespace AElf.Kernel.Concurrency.Metadata
             }
             
             return true;
-        }
-
-        /// <summary>
-        /// Use topologicalOrder (reverse it inside this function) to calculate compelete local resource without dependency issue.
-        /// Should determine whether calling graph is DAG or not, this function take the topologicalOrder to complete local resource without checking
-        /// 
-        /// Note: function ExtractRawMetadataFromType has confirmed that no unknow reference in calling set so just access it without checking
-        /// </summary>
-        /// <param name="nonCompleteMetadataTemplateMap"></param>
-        /// <param name="topologicOrder"></param>
-        /// <returns>local template with complete resource. (by local, we mean replacement is still ${this} or else local replacement)</returns>
-        private void CompleteLocalResourceInTemplates(ref Dictionary<string, FunctionMetadataTemplate> nonCompleteMetadataTemplateMap, IEnumerable<string> topologicOrder)
-        {
-            
-            var completeTemplateMap = new Dictionary<string, FunctionMetadataTemplate>();
-            foreach (var funcName in topologicOrder.Reverse())
-            {
-                HashSet<Resource> resourceSet = new HashSet<Resource>(nonCompleteMetadataTemplateMap[funcName].LocalResourceSet);
-                var callingSet = nonCompleteMetadataTemplateMap[funcName].CallingSet;
-                foreach (var calledFunc in callingSet)
-                {
-                    if (calledFunc.Contains(Replacement.This))
-                    {
-                        if (completeTemplateMap.TryGetValue(calledFunc, out var functionMetadataTemplate))
-                        {
-                            resourceSet.UnionWith(functionMetadataTemplate.LocalResourceSet);
-                        }
-                    }
-                }
-                completeTemplateMap.Add(funcName, new FunctionMetadataTemplate(callingSet, resourceSet));
-            }
-
-            nonCompleteMetadataTemplateMap = completeTemplateMap;
         }
         #endregion
     }
