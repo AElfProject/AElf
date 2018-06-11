@@ -35,12 +35,18 @@ namespace AElf.Kernel.Concurrency.Metadata
             _logger = logger;
 
             var mapCache = _dataStore.GetDataAsync(Path.CalculatePointerForMetadataTemlate(chainId)).Result;
+            var graphCache = _dataStore.GetDataAsync(Path.CalculatePointerForMetadataTemlateCallingGraph(chainId))
+                .Result;
             if (mapCache != null)
             {
                 ContractMetadataTemplateMap =
                     ReadFromSerializeContractMetadataTemplateMap(
                         SerializeContractMetadataTemplateMap.Parser.ParseFrom(mapCache));
-                
+                if (graphCache == null)
+                {
+                    throw new FunctionMetadataException("ChainId [" + _chainId.Value + "] Cannot find calling graph in database");
+                }
+                _callingGraph = RestoreCallingGraph(CallingGraphEdges.Parser.ParseFrom(graphCache));
             }
             else
             {
@@ -66,7 +72,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 ExtractRawMetadataFromType(contractType, out var smartContractReferenceMap,
                     out var localFunctionMetadataTemplateMap);
                 
-                CompleteLocalResourceAndUpdateTemplate(contractType, smartContractReferenceMap, ref localFunctionMetadataTemplateMap);
+                UpdateTemplate(contractType, smartContractReferenceMap, ref localFunctionMetadataTemplateMap);
                 
                 //merge the function metadata template map
                 ContractMetadataTemplateMap.Add(contractType.Name, localFunctionMetadataTemplateMap);
@@ -80,9 +86,8 @@ namespace AElf.Kernel.Concurrency.Metadata
             //TODO: now each call of this will have large Disk IO because we replace the new whole map into the old map even if just minor changes to the map
             await _dataStore.SetDataAsync(Path.CalculatePointerForMetadataTemlate(_chainId),
                 GetSerializeContractMetadataTemplateMap().ToByteArray());
-            //TODO: Serialize calling graph or re-generate the calling graph
-            
-            
+            await _dataStore.SetDataAsync(Path.CalculatePointerForMetadataTemlateCallingGraph(_chainId),
+                GetSerializeCallingGraph().ToByteArray());
             
             return true;
         }
@@ -196,7 +201,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <param name="targetLocalFunctionMetadataTemplateMap"></param>
         /// <returns></returns>
         /// <exception cref="FunctionMetadataException"></exception>
-        private void CompleteLocalResourceAndUpdateTemplate(Type contractType, Dictionary<string, Type> smartContractReferenceMap, ref Dictionary<string, FunctionMetadataTemplate> targetLocalFunctionMetadataTemplateMap)
+        private void UpdateTemplate(Type contractType, Dictionary<string, Type> smartContractReferenceMap, ref Dictionary<string, FunctionMetadataTemplate> targetLocalFunctionMetadataTemplateMap)
         {
             //check for DAG  (the updating calling graph is DAG iff local calling graph is DAG)
             if (!TryGetLocalCallingGraph(targetLocalFunctionMetadataTemplateMap, out var localCallGraph, out var localTopologicRes))
@@ -306,35 +311,32 @@ namespace AElf.Kernel.Concurrency.Metadata
                 contractMetadataMap.Add(kv.Key, functionMetadataMapForContract);
             }
 
-            return serializeMap;
+            return contractMetadataMap;
         }
 
-        /// <summary>
-        /// Restore the calling graph after load metadata template map from database
-        /// </summary>
-        private void RestoreCallingGraph()
+        public CallingGraphEdges GetSerializeCallingGraph()
         {
-            AdjacencyGraph<string, Edge<string>> graph = new AdjacencyGraph<string, Edge<string>>(); 
-            foreach (var templateMap in ContractMetadataTemplateMap.Values)
-            {
-                foreach (var functionMetadataTemplate in templateMap)
-                {
-                    foreach (var calledFunc in functionMetadataTemplate.Value.CallingSet)
-                    {
-                        graph.AddVerticesAndEdge(new Edge<string>(functionMetadataTemplate.Key, calledFunc));
-                    }
-                }
-            }
+            var serializeCallingGraph = new CallingGraphEdges();
+            serializeCallingGraph.Edges.AddRange(_callingGraph.Edges.Select(edge =>
+                new GraphEdge {Source = edge.Source, Target = edge.Target}));
+            return serializeCallingGraph;
+        }
 
+        public dynamic RestoreCallingGraph(CallingGraphEdges edges)
+        {
+            AdjacencyGraph<string, Edge<string>> graph = new AdjacencyGraph<string, Edge<string>>();
+            graph.AddVerticesAndEdgeRange(edges.Edges.Select(kv => new Edge<string>(kv.Source, kv.Target)));
             try
             {
-                
+                graph.TopologicalSort();
             }
             catch (NonAcyclicGraphException)
             {
                 throw new FunctionMetadataException("ChainId [" + _chainId.Value + "] The calling graph ISNOT DAG when restoring the calling graph according to the ContractMetadataTemplateMap from the database");
             }
+            return graph;
         }
+        
 
         #endregion
     }

@@ -170,3 +170,13 @@ message FunctionMetadata {
 message SerializeFunctionMetadataMap {
     map<string, FunctionMetadata> FunctionMetadataMap = 1;
 }
+
+message CallingGraphEdges {
+    repeated GraphEdge Edges = 1;
+}
+
+message GraphEdge {
+    string Source = 1;
+    string Target = 2;
+}
+

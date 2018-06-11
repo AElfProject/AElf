@@ -17,6 +17,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
     {
         private ParallelTestDataUtil util = new ParallelTestDataUtil();
         private IDataStore _dataStore;
+        private Hash chainId = Hash.Generate();
 
         public ChainFunctionMetadataTemplateServiceTest(IDataStore dataStore)
         {
@@ -26,7 +27,6 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [Fact]
         public async Task<ChainFunctionMetadataTemplateService> TestTryAddNewContractShouldSuccess()
         {
-            Hash chainId = Hash.Generate();
             ChainFunctionMetadataTemplateService cfts = new ChainFunctionMetadataTemplateService(_dataStore, chainId);
             var groundTruthMap = new Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> (cfts.ContractMetadataTemplateMap);
             //Throw exception because 
@@ -147,6 +147,16 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             Assert.Equal(util.ContractMetadataTemplateMapToString(groundTruthMap), util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap));
             
             return cfts;
+        }
+
+        [Fact]
+        public async Task TestRestoreFromDataBase()
+        {
+            var cfts = await TestTryAddNewContractShouldSuccess();
+            
+            ChainFunctionMetadataTemplateService newCFTS = new ChainFunctionMetadataTemplateService(_dataStore, chainId);
+            
+            Assert.Equal(util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap), util.ContractMetadataTemplateMapToString(newCFTS.ContractMetadataTemplateMap));
         }
 
         [Fact]
