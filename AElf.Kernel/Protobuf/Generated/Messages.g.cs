@@ -66,12 +66,36 @@ namespace AElf.Kernel {
             "SGFzaENoYW5nZRISCgNLZXkYASABKAsyBS5IYXNoEhYKBVZhbHVlGAIgASgL",
             "MgcuQ2hhbmdlIiwKC0NoYW5nZXNEaWN0Eh0KBERpY3QYASADKAsyDy5QYWly",
             "SGFzaENoYW5nZSI7CgVDaGFpbhIRCgJJZBgBIAEoCzIFLkhhc2gSHwoQR2Vu",
-            "ZXNpc0Jsb2NrSGFzaBgCIAEoCzIFLkhhc2gqPAoGU3RhdHVzEg4KCk5vdEV4",
-            "aXN0ZWQQABILCgdQZW5kaW5nEAESCgoGRmFpbGVkEAISCQoFTWluZWQQA0IO",
-            "qgILQUVsZi5LZXJuZWxiBnByb3RvMw=="));
+            "ZXNpc0Jsb2NrSGFzaBgCIAEoCzIFLkhhc2gihwIKJFNlcmlhbGl6ZUNvbnRy",
+            "YWN0TWV0YWRhdGFUZW1wbGF0ZU1hcBJxCh5NZXRhZGF0YVRlbXBsYXRlTWFw",
+            "Rm9yQ29udHJhY3QYAiADKAsySS5TZXJpYWxpemVDb250cmFjdE1ldGFkYXRh",
+            "VGVtcGxhdGVNYXAuTWV0YWRhdGFUZW1wbGF0ZU1hcEZvckNvbnRyYWN0RW50",
+            "cnkabAojTWV0YWRhdGFUZW1wbGF0ZU1hcEZvckNvbnRyYWN0RW50cnkSCwoD",
+            "a2V5GAEgASgJEjQKBXZhbHVlGAIgASgLMiUuU2VyaWFsaXplRnVuY3Rpb25N",
+            "ZXRhZGF0YVRlbXBsYXRlTWFwOgI4ASLCAQokU2VyaWFsaXplRnVuY3Rpb25N",
+            "ZXRhZGF0YVRlbXBsYXRlTWFwEksKC1RlbXBsYXRlTWFwGAIgAygLMjYuU2Vy",
+            "aWFsaXplRnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlTWFwLlRlbXBsYXRlTWFw",
+            "RW50cnkaTQoQVGVtcGxhdGVNYXBFbnRyeRILCgNrZXkYASABKAkSKAoFdmFs",
+            "dWUYAiABKAsyGS5GdW5jdGlvbk1ldGFkYXRhVGVtcGxhdGU6AjgBImUKGEZ1",
+            "bmN0aW9uTWV0YWRhdGFUZW1wbGF0ZRIbChNTZXJpYWxpemVDYWxsaW5nU2V0",
+            "GAEgAygJEiwKGVNlcmlhbGl6ZUxvY2FsUmVzb3VyY2VTZXQYAiADKAsyCS5S",
+            "ZXNvdXJjZSJBCghSZXNvdXJjZRIMCgROYW1lGAEgASgJEicKDkRhdGFBY2Nl",
+            "c3NNb2RlGAIgASgOMg8uRGF0YUFjY2Vzc01vZGUiigEKEEZ1bmN0aW9uTWV0",
+            "YWRhdGESGwoTU2VyaWFsaXplQ2FsbGluZ1NldBgBIAMoCRIrChhTZXJpYWxp",
+            "emVGdWxsUmVzb3VyY2VTZXQYAiADKAsyCS5SZXNvdXJjZRIsChlTZXJpYWxp",
+            "emVMb2NhbFJlc291cmNlU2V0GAMgAygLMgkuUmVzb3VyY2UiwgEKHFNlcmlh",
+            "bGl6ZUZ1bmN0aW9uTWV0YWRhdGFNYXASUwoTRnVuY3Rpb25NZXRhZGF0YU1h",
+            "cBgBIAMoCzI2LlNlcmlhbGl6ZUZ1bmN0aW9uTWV0YWRhdGFNYXAuRnVuY3Rp",
+            "b25NZXRhZGF0YU1hcEVudHJ5Gk0KGEZ1bmN0aW9uTWV0YWRhdGFNYXBFbnRy",
+            "eRILCgNrZXkYASABKAkSIAoFdmFsdWUYAiABKAsyES5GdW5jdGlvbk1ldGFk",
+            "YXRhOgI4ASo8CgZTdGF0dXMSDgoKTm90RXhpc3RlZBAAEgsKB1BlbmRpbmcQ",
+            "ARIKCgZGYWlsZWQQAhIJCgVNaW5lZBADKl4KDkRhdGFBY2Nlc3NNb2RlEhoK",
+            "FlJlYWRPbmx5QWNjb3VudFNoYXJpbmcQABIbChdSZWFkV3JpdGVBY2NvdW50",
+            "U2hhcmluZxABEhMKD0FjY291bnRTcGVjaWZpYxACQg6qAgtBRWxmLktlcm5l",
+            "bGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.AnyReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), }, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), typeof(global::AElf.Kernel.DataAccessMode), }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params", "Fee", "R", "S", "P" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionTrace), global::AElf.Kernel.TransactionTrace.Parser, new[]{ "RetVal", "StdOut", "StdErr", "Logs", "InlineTraces", "Elapsed" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.EventField), global::AElf.Kernel.EventField.Parser, new[]{ "Name", "Value" }, null, null, null),
@@ -89,7 +113,13 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Change), global::AElf.Kernel.Change.Parser, new[]{ "Befores", "After", "TransactionIds", "LatestChangedBlockHash" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.PairHashChange), global::AElf.Kernel.PairHashChange.Parser, new[]{ "Key", "Value" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.ChangesDict), global::AElf.Kernel.ChangesDict.Parser, new[]{ "Dict" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Chain), global::AElf.Kernel.Chain.Parser, new[]{ "Id", "GenesisBlockHash" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Chain), global::AElf.Kernel.Chain.Parser, new[]{ "Id", "GenesisBlockHash" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SerializeContractMetadataTemplateMap), global::AElf.Kernel.SerializeContractMetadataTemplateMap.Parser, new[]{ "MetadataTemplateMapForContract" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SerializeFunctionMetadataTemplateMap), global::AElf.Kernel.SerializeFunctionMetadataTemplateMap.Parser, new[]{ "TemplateMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.FunctionMetadataTemplate), global::AElf.Kernel.FunctionMetadataTemplate.Parser, new[]{ "SerializeCallingSet", "SerializeLocalResourceSet" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Resource), global::AElf.Kernel.Resource.Parser, new[]{ "Name", "DataAccessMode" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.FunctionMetadata), global::AElf.Kernel.FunctionMetadata.Parser, new[]{ "SerializeCallingSet", "SerializeFullResourceSet", "SerializeLocalResourceSet" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SerializeFunctionMetadataMap), global::AElf.Kernel.SerializeFunctionMetadataMap.Parser, new[]{ "FunctionMetadataMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, })
           }));
     }
     #endregion
@@ -101,6 +131,12 @@ namespace AElf.Kernel {
     [pbr::OriginalName("Pending")] Pending = 1,
     [pbr::OriginalName("Failed")] Failed = 2,
     [pbr::OriginalName("Mined")] Mined = 3,
+  }
+
+  public enum DataAccessMode {
+    [pbr::OriginalName("ReadOnlyAccountSharing")] ReadOnlyAccountSharing = 0,
+    [pbr::OriginalName("ReadWriteAccountSharing")] ReadWriteAccountSharing = 1,
+    [pbr::OriginalName("AccountSpecific")] AccountSpecific = 2,
   }
 
   #endregion
@@ -3901,6 +3937,828 @@ namespace AElf.Kernel {
               genesisBlockHash_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(genesisBlockHash_);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SerializeContractMetadataTemplateMap : pb::IMessage<SerializeContractMetadataTemplateMap> {
+    private static readonly pb::MessageParser<SerializeContractMetadataTemplateMap> _parser = new pb::MessageParser<SerializeContractMetadataTemplateMap>(() => new SerializeContractMetadataTemplateMap());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SerializeContractMetadataTemplateMap> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[18]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SerializeContractMetadataTemplateMap() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SerializeContractMetadataTemplateMap(SerializeContractMetadataTemplateMap other) : this() {
+      metadataTemplateMapForContract_ = other.metadataTemplateMapForContract_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SerializeContractMetadataTemplateMap Clone() {
+      return new SerializeContractMetadataTemplateMap(this);
+    }
+
+    /// <summary>Field number for the "MetadataTemplateMapForContract" field.</summary>
+    public const int MetadataTemplateMapForContractFieldNumber = 2;
+    private static readonly pbc::MapField<string, global::AElf.Kernel.SerializeFunctionMetadataTemplateMap>.Codec _map_metadataTemplateMapForContract_codec
+        = new pbc::MapField<string, global::AElf.Kernel.SerializeFunctionMetadataTemplateMap>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::AElf.Kernel.SerializeFunctionMetadataTemplateMap.Parser), 18);
+    private readonly pbc::MapField<string, global::AElf.Kernel.SerializeFunctionMetadataTemplateMap> metadataTemplateMapForContract_ = new pbc::MapField<string, global::AElf.Kernel.SerializeFunctionMetadataTemplateMap>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::MapField<string, global::AElf.Kernel.SerializeFunctionMetadataTemplateMap> MetadataTemplateMapForContract {
+      get { return metadataTemplateMapForContract_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SerializeContractMetadataTemplateMap);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SerializeContractMetadataTemplateMap other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!MetadataTemplateMapForContract.Equals(other.MetadataTemplateMapForContract)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= MetadataTemplateMapForContract.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      metadataTemplateMapForContract_.WriteTo(output, _map_metadataTemplateMapForContract_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += metadataTemplateMapForContract_.CalculateSize(_map_metadataTemplateMapForContract_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SerializeContractMetadataTemplateMap other) {
+      if (other == null) {
+        return;
+      }
+      metadataTemplateMapForContract_.Add(other.metadataTemplateMapForContract_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 18: {
+            metadataTemplateMapForContract_.AddEntriesFrom(input, _map_metadataTemplateMapForContract_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SerializeFunctionMetadataTemplateMap : pb::IMessage<SerializeFunctionMetadataTemplateMap> {
+    private static readonly pb::MessageParser<SerializeFunctionMetadataTemplateMap> _parser = new pb::MessageParser<SerializeFunctionMetadataTemplateMap>(() => new SerializeFunctionMetadataTemplateMap());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SerializeFunctionMetadataTemplateMap> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[19]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SerializeFunctionMetadataTemplateMap() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SerializeFunctionMetadataTemplateMap(SerializeFunctionMetadataTemplateMap other) : this() {
+      templateMap_ = other.templateMap_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SerializeFunctionMetadataTemplateMap Clone() {
+      return new SerializeFunctionMetadataTemplateMap(this);
+    }
+
+    /// <summary>Field number for the "TemplateMap" field.</summary>
+    public const int TemplateMapFieldNumber = 2;
+    private static readonly pbc::MapField<string, global::AElf.Kernel.FunctionMetadataTemplate>.Codec _map_templateMap_codec
+        = new pbc::MapField<string, global::AElf.Kernel.FunctionMetadataTemplate>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::AElf.Kernel.FunctionMetadataTemplate.Parser), 18);
+    private readonly pbc::MapField<string, global::AElf.Kernel.FunctionMetadataTemplate> templateMap_ = new pbc::MapField<string, global::AElf.Kernel.FunctionMetadataTemplate>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::MapField<string, global::AElf.Kernel.FunctionMetadataTemplate> TemplateMap {
+      get { return templateMap_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SerializeFunctionMetadataTemplateMap);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SerializeFunctionMetadataTemplateMap other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!TemplateMap.Equals(other.TemplateMap)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= TemplateMap.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      templateMap_.WriteTo(output, _map_templateMap_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += templateMap_.CalculateSize(_map_templateMap_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SerializeFunctionMetadataTemplateMap other) {
+      if (other == null) {
+        return;
+      }
+      templateMap_.Add(other.templateMap_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 18: {
+            templateMap_.AddEntriesFrom(input, _map_templateMap_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class FunctionMetadataTemplate : pb::IMessage<FunctionMetadataTemplate> {
+    private static readonly pb::MessageParser<FunctionMetadataTemplate> _parser = new pb::MessageParser<FunctionMetadataTemplate>(() => new FunctionMetadataTemplate());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<FunctionMetadataTemplate> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[20]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public FunctionMetadataTemplate() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public FunctionMetadataTemplate(FunctionMetadataTemplate other) : this() {
+      serializeCallingSet_ = other.serializeCallingSet_.Clone();
+      serializeLocalResourceSet_ = other.serializeLocalResourceSet_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public FunctionMetadataTemplate Clone() {
+      return new FunctionMetadataTemplate(this);
+    }
+
+    /// <summary>Field number for the "SerializeCallingSet" field.</summary>
+    public const int SerializeCallingSetFieldNumber = 1;
+    private static readonly pb::FieldCodec<string> _repeated_serializeCallingSet_codec
+        = pb::FieldCodec.ForString(10);
+    private readonly pbc::RepeatedField<string> serializeCallingSet_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<string> SerializeCallingSet {
+      get { return serializeCallingSet_; }
+    }
+
+    /// <summary>Field number for the "SerializeLocalResourceSet" field.</summary>
+    public const int SerializeLocalResourceSetFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::AElf.Kernel.Resource> _repeated_serializeLocalResourceSet_codec
+        = pb::FieldCodec.ForMessage(18, global::AElf.Kernel.Resource.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.Resource> serializeLocalResourceSet_ = new pbc::RepeatedField<global::AElf.Kernel.Resource>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::AElf.Kernel.Resource> SerializeLocalResourceSet {
+      get { return serializeLocalResourceSet_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as FunctionMetadataTemplate);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(FunctionMetadataTemplate other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!serializeCallingSet_.Equals(other.serializeCallingSet_)) return false;
+      if(!serializeLocalResourceSet_.Equals(other.serializeLocalResourceSet_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= serializeCallingSet_.GetHashCode();
+      hash ^= serializeLocalResourceSet_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      serializeCallingSet_.WriteTo(output, _repeated_serializeCallingSet_codec);
+      serializeLocalResourceSet_.WriteTo(output, _repeated_serializeLocalResourceSet_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += serializeCallingSet_.CalculateSize(_repeated_serializeCallingSet_codec);
+      size += serializeLocalResourceSet_.CalculateSize(_repeated_serializeLocalResourceSet_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(FunctionMetadataTemplate other) {
+      if (other == null) {
+        return;
+      }
+      serializeCallingSet_.Add(other.serializeCallingSet_);
+      serializeLocalResourceSet_.Add(other.serializeLocalResourceSet_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            serializeCallingSet_.AddEntriesFrom(input, _repeated_serializeCallingSet_codec);
+            break;
+          }
+          case 18: {
+            serializeLocalResourceSet_.AddEntriesFrom(input, _repeated_serializeLocalResourceSet_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class Resource : pb::IMessage<Resource> {
+    private static readonly pb::MessageParser<Resource> _parser = new pb::MessageParser<Resource>(() => new Resource());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<Resource> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[21]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Resource() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Resource(Resource other) : this() {
+      name_ = other.name_;
+      dataAccessMode_ = other.dataAccessMode_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public Resource Clone() {
+      return new Resource(this);
+    }
+
+    /// <summary>Field number for the "Name" field.</summary>
+    public const int NameFieldNumber = 1;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "DataAccessMode" field.</summary>
+    public const int DataAccessModeFieldNumber = 2;
+    private global::AElf.Kernel.DataAccessMode dataAccessMode_ = 0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.DataAccessMode DataAccessMode {
+      get { return dataAccessMode_; }
+      set {
+        dataAccessMode_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as Resource);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(Resource other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Name != other.Name) return false;
+      if (DataAccessMode != other.DataAccessMode) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (DataAccessMode != 0) hash ^= DataAccessMode.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      if (DataAccessMode != 0) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) DataAccessMode);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (DataAccessMode != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) DataAccessMode);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(Resource other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.DataAccessMode != 0) {
+        DataAccessMode = other.DataAccessMode;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 16: {
+            dataAccessMode_ = (global::AElf.Kernel.DataAccessMode) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class FunctionMetadata : pb::IMessage<FunctionMetadata> {
+    private static readonly pb::MessageParser<FunctionMetadata> _parser = new pb::MessageParser<FunctionMetadata>(() => new FunctionMetadata());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<FunctionMetadata> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[22]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public FunctionMetadata() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public FunctionMetadata(FunctionMetadata other) : this() {
+      serializeCallingSet_ = other.serializeCallingSet_.Clone();
+      serializeFullResourceSet_ = other.serializeFullResourceSet_.Clone();
+      serializeLocalResourceSet_ = other.serializeLocalResourceSet_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public FunctionMetadata Clone() {
+      return new FunctionMetadata(this);
+    }
+
+    /// <summary>Field number for the "SerializeCallingSet" field.</summary>
+    public const int SerializeCallingSetFieldNumber = 1;
+    private static readonly pb::FieldCodec<string> _repeated_serializeCallingSet_codec
+        = pb::FieldCodec.ForString(10);
+    private readonly pbc::RepeatedField<string> serializeCallingSet_ = new pbc::RepeatedField<string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<string> SerializeCallingSet {
+      get { return serializeCallingSet_; }
+    }
+
+    /// <summary>Field number for the "SerializeFullResourceSet" field.</summary>
+    public const int SerializeFullResourceSetFieldNumber = 2;
+    private static readonly pb::FieldCodec<global::AElf.Kernel.Resource> _repeated_serializeFullResourceSet_codec
+        = pb::FieldCodec.ForMessage(18, global::AElf.Kernel.Resource.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.Resource> serializeFullResourceSet_ = new pbc::RepeatedField<global::AElf.Kernel.Resource>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::AElf.Kernel.Resource> SerializeFullResourceSet {
+      get { return serializeFullResourceSet_; }
+    }
+
+    /// <summary>Field number for the "SerializeLocalResourceSet" field.</summary>
+    public const int SerializeLocalResourceSetFieldNumber = 3;
+    private static readonly pb::FieldCodec<global::AElf.Kernel.Resource> _repeated_serializeLocalResourceSet_codec
+        = pb::FieldCodec.ForMessage(26, global::AElf.Kernel.Resource.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.Resource> serializeLocalResourceSet_ = new pbc::RepeatedField<global::AElf.Kernel.Resource>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::AElf.Kernel.Resource> SerializeLocalResourceSet {
+      get { return serializeLocalResourceSet_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as FunctionMetadata);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(FunctionMetadata other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!serializeCallingSet_.Equals(other.serializeCallingSet_)) return false;
+      if(!serializeFullResourceSet_.Equals(other.serializeFullResourceSet_)) return false;
+      if(!serializeLocalResourceSet_.Equals(other.serializeLocalResourceSet_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= serializeCallingSet_.GetHashCode();
+      hash ^= serializeFullResourceSet_.GetHashCode();
+      hash ^= serializeLocalResourceSet_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      serializeCallingSet_.WriteTo(output, _repeated_serializeCallingSet_codec);
+      serializeFullResourceSet_.WriteTo(output, _repeated_serializeFullResourceSet_codec);
+      serializeLocalResourceSet_.WriteTo(output, _repeated_serializeLocalResourceSet_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += serializeCallingSet_.CalculateSize(_repeated_serializeCallingSet_codec);
+      size += serializeFullResourceSet_.CalculateSize(_repeated_serializeFullResourceSet_codec);
+      size += serializeLocalResourceSet_.CalculateSize(_repeated_serializeLocalResourceSet_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(FunctionMetadata other) {
+      if (other == null) {
+        return;
+      }
+      serializeCallingSet_.Add(other.serializeCallingSet_);
+      serializeFullResourceSet_.Add(other.serializeFullResourceSet_);
+      serializeLocalResourceSet_.Add(other.serializeLocalResourceSet_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            serializeCallingSet_.AddEntriesFrom(input, _repeated_serializeCallingSet_codec);
+            break;
+          }
+          case 18: {
+            serializeFullResourceSet_.AddEntriesFrom(input, _repeated_serializeFullResourceSet_codec);
+            break;
+          }
+          case 26: {
+            serializeLocalResourceSet_.AddEntriesFrom(input, _repeated_serializeLocalResourceSet_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class SerializeFunctionMetadataMap : pb::IMessage<SerializeFunctionMetadataMap> {
+    private static readonly pb::MessageParser<SerializeFunctionMetadataMap> _parser = new pb::MessageParser<SerializeFunctionMetadataMap>(() => new SerializeFunctionMetadataMap());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SerializeFunctionMetadataMap> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[23]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SerializeFunctionMetadataMap() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SerializeFunctionMetadataMap(SerializeFunctionMetadataMap other) : this() {
+      functionMetadataMap_ = other.functionMetadataMap_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SerializeFunctionMetadataMap Clone() {
+      return new SerializeFunctionMetadataMap(this);
+    }
+
+    /// <summary>Field number for the "FunctionMetadataMap" field.</summary>
+    public const int FunctionMetadataMapFieldNumber = 1;
+    private static readonly pbc::MapField<string, global::AElf.Kernel.FunctionMetadata>.Codec _map_functionMetadataMap_codec
+        = new pbc::MapField<string, global::AElf.Kernel.FunctionMetadata>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::AElf.Kernel.FunctionMetadata.Parser), 10);
+    private readonly pbc::MapField<string, global::AElf.Kernel.FunctionMetadata> functionMetadataMap_ = new pbc::MapField<string, global::AElf.Kernel.FunctionMetadata>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::MapField<string, global::AElf.Kernel.FunctionMetadata> FunctionMetadataMap {
+      get { return functionMetadataMap_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SerializeFunctionMetadataMap);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SerializeFunctionMetadataMap other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!FunctionMetadataMap.Equals(other.FunctionMetadataMap)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= FunctionMetadataMap.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      functionMetadataMap_.WriteTo(output, _map_functionMetadataMap_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += functionMetadataMap_.CalculateSize(_map_functionMetadataMap_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SerializeFunctionMetadataMap other) {
+      if (other == null) {
+        return;
+      }
+      functionMetadataMap_.Add(other.functionMetadataMap_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            functionMetadataMap_.AddEntriesFrom(input, _map_functionMetadataMap_codec);
             break;
           }
         }

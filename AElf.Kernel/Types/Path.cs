@@ -100,6 +100,21 @@ namespace AElf.Kernel
         {
             return chainId.CalculateHashWith((Hash) "AccountZero".CalculateHash());
         }
+
+        public static Hash CalculatePointerForMetadataTemlate(Hash chainId)
+        {
+            return chainId.CalculateHashWith((Hash) "MetadataTemplate".CalculateHash());
+        }
+        
+        public static Hash CalculatePointerForMetadataTemlateCallingGraph(Hash chainId)
+        {
+            return chainId.CalculateHashWith((Hash) "MetadataTemplateCallingGraph".CalculateHash());
+        }
+        
+        public static Hash CalculatePointerForMetadata(Hash chainId)
+        {
+            return chainId.CalculateHashWith((Hash) "Metadata".CalculateHash());
+        }
         
         #endregion
 

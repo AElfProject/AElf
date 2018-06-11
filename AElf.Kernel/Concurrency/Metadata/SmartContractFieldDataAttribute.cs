@@ -2,12 +2,6 @@
 
 namespace AElf.Kernel.Concurrency.Metadata
 {
-    public enum DataAccessMode{
-        ReadOnlyAccountSharing,
-        ReadWriteAccountSharing,
-        AccountSpecific,
-    }
-    
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class SmartContractFieldDataAttribute : Attribute
     {

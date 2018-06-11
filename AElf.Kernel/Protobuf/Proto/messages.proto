@@ -135,3 +135,38 @@ message Chain{
     Hash Id = 1;
     Hash GenesisBlockHash = 2;
 }
+
+enum DataAccessMode {
+    ReadOnlyAccountSharing = 0;
+    ReadWriteAccountSharing = 1;
+    AccountSpecific = 2;
+}
+
+message SerializeContractMetadataTemplateMap {
+    map<string, SerializeFunctionMetadataTemplateMap> MetadataTemplateMapForContract = 2;
+}
+
+message SerializeFunctionMetadataTemplateMap {
+    map<string, FunctionMetadataTemplate> TemplateMap = 2;
+}
+
+
+message FunctionMetadataTemplate {
+    repeated string SerializeCallingSet = 1;
+    repeated Resource SerializeLocalResourceSet = 2;
+}
+
+message Resource {
+    string Name = 1;
+    DataAccessMode DataAccessMode  = 2;
+}
+
+message FunctionMetadata {
+    repeated string SerializeCallingSet = 1;
+    repeated Resource SerializeFullResourceSet = 2;
+    repeated Resource SerializeLocalResourceSet = 3;
+}
+
+message SerializeFunctionMetadataMap {
+    map<string, FunctionMetadata> FunctionMetadataMap = 1;
+}

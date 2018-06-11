@@ -1,30 +1,43 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Contracts.Examples;
+using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using QuickGraph;
 using Xunit;
+using Xunit.Frameworks.Autofac;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
+    [UseAutofacTestFramework]
     public class ChainFunctionMetadataTemplateServiceTest
     {
         private ParallelTestDataUtil util = new ParallelTestDataUtil();
-        [Fact]
-        public ChainFunctionMetadataTemplateService TestTryAddNewContractShouldSuccess()
+        private IDataStore _dataStore;
+
+        public ChainFunctionMetadataTemplateServiceTest(IDataStore dataStore)
         {
-            ChainFunctionMetadataTemplateService cfts = new ChainFunctionMetadataTemplateService();
+            _dataStore = dataStore ?? throw new ArgumentNullException(nameof(dataStore));
+        }
+
+        [Fact]
+        public async Task<ChainFunctionMetadataTemplateService> TestTryAddNewContractShouldSuccess()
+        {
+            Hash chainId = Hash.Generate();
+            ChainFunctionMetadataTemplateService cfts = new ChainFunctionMetadataTemplateService(_dataStore, chainId);
             var groundTruthMap = new Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> (cfts.ContractMetadataTemplateMap);
             //Throw exception because 
-            var exception = Assert.Throws<FunctionMetadataException>(() => { cfts.TryAddNewContract(typeof(TestContractA)); });
-            Assert.True(exception.Message.StartsWith("Unknow reference of the foreign target"));
+            var exception = Assert.ThrowsAsync<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractA))).Result;
+            Assert.True(exception.Message.Contains("Unknow reference of the foreign target"));
             
             //Not changed
             Assert.Equal(util.ContractMetadataTemplateMapToString(groundTruthMap), util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap));
 
 
-            cfts.TryAddNewContract(typeof(TestContractC));
+            await cfts.TryAddNewContract(typeof(TestContractC));
                                                                                                   // Structure of the test data
             groundTruthMap.Add(
                 "TestContractC",                                                                  // Contract name
@@ -53,7 +66,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             
             Assert.Equal(util.ContractMetadataTemplateMapToString(groundTruthMap), util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap));
 
-            cfts.TryAddNewContract(typeof(TestContractB));
+            await cfts.TryAddNewContract(typeof(TestContractB));
 
             groundTruthMap.Add("TestContractB", new Dictionary<string, FunctionMetadataTemplate>(new[]
             {
@@ -72,7 +85,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             
             Assert.Equal(util.ContractMetadataTemplateMapToString(groundTruthMap), util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap));
 
-            cfts.TryAddNewContract(typeof(TestContractA));
+            await cfts.TryAddNewContract(typeof(TestContractA));
 
             groundTruthMap.Add("TestContractA", new Dictionary<string, FunctionMetadataTemplate>(new[]
             {
@@ -137,36 +150,36 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         }
 
         [Fact]
-        public ChainFunctionMetadataTemplateService TestFailCases()
+        public async Task<ChainFunctionMetadataTemplateService> TestFailCases()
         {
-            var cfts = TestTryAddNewContractShouldSuccess();
+            var cfts = await TestTryAddNewContractShouldSuccess();
             var groundTruthMap = new Dictionary<string, Dictionary<string, FunctionMetadataTemplate>>(cfts.ContractMetadataTemplateMap);
             
 
-            var exception = Assert.Throws<FunctionMetadataException>(()=> cfts.TryAddNewContract(typeof(TestContractD)));
-            Assert.True(exception.Message.StartsWith("Duplicate name of field attributes in contract"));
-
-            exception = Assert.Throws<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractE)));
-            Assert.True(exception.Message.StartsWith("Duplicate name of smart contract reference attributes in contract "));
-
-            exception = Assert.Throws<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractF)));
-            Assert.True(exception.Message.StartsWith("Unknown reference local field ${this}.resource1"));
-
-            exception = Assert.Throws<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractG)));
-            Assert.True(exception.Message.StartsWith("Duplicate name of function attribute"));
+            var exception = Assert.ThrowsAsync<FunctionMetadataException>(()=> cfts.TryAddNewContract(typeof(TestContractD))).Result;
             
-            exception = Assert.Throws<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractH)));
+            Assert.True(exception.Message.Contains("Duplicate name of field attributes in contract"));
+
+            exception = Assert.ThrowsAsync<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractE))).Result;
+            Assert.True(exception.Message.Contains("Duplicate name of smart contract reference attributes in contract "));
+
+            exception = Assert.ThrowsAsync<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractF))).Result;
+            Assert.True(exception.Message.Contains("Unknown reference local field ${this}.resource1"));
+
+            exception = Assert.ThrowsAsync<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractG))).Result;
+            Assert.True(exception.Message.Contains("Duplicate name of function attribute"));
+            
+            exception = Assert.ThrowsAsync<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractH))).Result;
             Assert.True(exception.Message.Contains("contains unknown reference to it's own function"));
             
-            exception = Assert.Throws<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractI)));
+            exception = Assert.ThrowsAsync<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractI))).Result;
             Assert.True(exception.Message.Contains("contains unknown local member reference to other contract"));
             
-            exception = Assert.Throws<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractJ)));
+            exception = Assert.ThrowsAsync<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractJ))).Result;
             Assert.True(exception.Message.Contains("is Non-DAG thus nothing take effect"));
             
-            exception = Assert.Throws<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractK)));
+            exception = Assert.ThrowsAsync<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractK))).Result;
             Assert.True(exception.Message.Contains("consider the target function does not exist in the foreign contract"));
-
             
             Assert.Equal(util.ContractMetadataTemplateMapToString(groundTruthMap), util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap));
             return cfts;

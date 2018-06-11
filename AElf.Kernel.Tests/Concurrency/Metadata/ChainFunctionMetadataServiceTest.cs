@@ -1,24 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Extensions;
+using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using Google.Protobuf;
 using ServiceStack;
 using Xunit;
+using Xunit.Frameworks.Autofac;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
+    [UseAutofacTestFramework]
     public class ChainFunctionMetadataServiceTest
     {
-
+    
         private ParallelTestDataUtil util = new ParallelTestDataUtil();
-        [Fact]
-        public ChainFunctionMetadataService TestDeployNewFunction()
+        
+        private IDataStore _templateStore;
+
+        public ChainFunctionMetadataServiceTest(IDataStore templateStore)
         {
-            ChainFunctionMetadataTemplateServiceTest templateTest = new ChainFunctionMetadataTemplateServiceTest();
-            var templateService = templateTest.TestTryAddNewContractShouldSuccess();
+            _templateStore = templateStore ?? throw new ArgumentNullException(nameof(templateStore));
+        }
+
+        [Fact]
+        public async Task<ChainFunctionMetadataService> TestDeployNewFunction()
+        {
+            ChainFunctionMetadataTemplateServiceTest templateTest = new ChainFunctionMetadataTemplateServiceTest(_templateStore);
+            var templateService = await templateTest.TestTryAddNewContractShouldSuccess();
             ChainFunctionMetadataService cfms = new ChainFunctionMetadataService(templateService);
 
             var addrA = Hash.Generate();

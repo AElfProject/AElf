@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using QuickGraph;
 
 namespace AElf.Kernel.Concurrency.Metadata
@@ -12,7 +13,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// </summary>
         Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> ContractMetadataTemplateMap { get; }
 
-        bool TryAddNewContract(Type contractType);
+        Task<bool> TryAddNewContract(Type contractType);
 
         bool TryGetLocalCallingGraph(Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap,
             out AdjacencyGraph<string, Edge<string>> callGraph, out IEnumerable<string> topologicRes);
