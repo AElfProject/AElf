@@ -8,47 +8,21 @@ namespace AElf.Kernel.Services
 {
     public class ChainContextService : IChainContextService
     {
-        private readonly ConcurrentDictionary<IHash, IChainContext> _chainContexts =
-            new ConcurrentDictionary<IHash, IChainContext>();
-
-        private readonly IWorldStateManager _worldStateManager;
-
-        private readonly ISmartContractRunnerFactory _contractRunnerFactory;
-        
-        public ChainContextService(
-            ISmartContractRunnerFactory contractRunnerFactory, IWorldStateManager worldStateManager)
+        private IChainManager _chainManager;
+        public ChainContextService(IChainManager chainManager)
         {
-            _contractRunnerFactory = contractRunnerFactory;
-            _worldStateManager = worldStateManager;
+            _chainManager = chainManager;
         }
-    
 
-        public IChainContext GetChainContext(Hash chainId)
+        public async Task<IChainContext> GetChainContextAsync(Hash chainId)
         {
-            if (_chainContexts.TryGetValue(chainId, out var ctx))
-                return ctx;
-            
-            var result= Task.Factory.StartNew(async () =>
+            IChainContext chainContext = new ChainContext()
             {
-                // TODO: *** Contract Issues ***
-                // create smart contract zero
-                //var zero = new SmartContractZero(_contractRunnerFactory, _worldStateManager);
-                //await _worldStateManager.OfChain(chainId);
-                
-                //// initialize smart contract zero
-                //var adp = _worldStateManager.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId));
-                //await zero.InitializeAsync(adp);
-                
-                // create chain context
-                var context = new ChainContext(null, chainId);
-                
-                // cache
-                _chainContexts[chainId] = context;
-                
-                return context;
-            }).Unwrap().Result;
-
-            return result;
+                ChainId = chainId,
+                BlockHeight = await _chainManager.GetChainCurrentHeight(chainId),
+                BlockHash = await _chainManager.GetChainLastBlockHash(chainId)
+            };
+            return chainContext;
         }
     }
 }

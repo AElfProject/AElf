@@ -3,56 +3,64 @@ using System.Collections.Generic;
 
 namespace AElf.Kernel.Concurrency.Scheduling
 {
-	/// <summary>
-	/// The grouper can be used in both producing subgroup and splitting the job in batch
-	/// </summary>
-	public class Grouper : IGrouper
-	{
-		public List<List<ITransaction>> Process(List<ITransaction> transactions)
-		{
-			if (transactions.Count == 0)
-			{
-				return new List<List<ITransaction>>();
-			}
 
-			Dictionary<Hash, UnionFindNode> accountUnionSet = new Dictionary<Hash, UnionFindNode>();
+    /// <summary>
+    /// The grouper can be used in both producing subgroup and splitting the job in batch
+    /// </summary>
+    public class Grouper : IGrouper
+    {
+        private IResourceUsageDetectionService _resourceUsageDetectionService;
 
-			//set up the union find set as the representation of graph and the connected components will be the resulting groups
-			foreach (var tx in transactions)
-			{
-				UnionFindNode first = null;
-				foreach (var hash in tx.GetResources())
-				{
-					if (!accountUnionSet.TryGetValue(hash, out var node))
-					{
-						node = new UnionFindNode();
-						accountUnionSet.Add(hash, node);
-					}
-					if (first == null)
-					{
-						first = node;
-					}
-					else
-					{
-						node.Union(first);
-					}
-				}
-			}
+        public Grouper(IResourceUsageDetectionService resourceUsageDetectionService)
+        {
+            _resourceUsageDetectionService = resourceUsageDetectionService;
+        }
 
-			Dictionary<int, List<ITransaction>> grouped = new Dictionary<int, List<ITransaction>>();
+        public List<List<ITransaction>> Process(List<ITransaction> transactions)
+        {
+            if (transactions.Count == 0)
+            {
+                return new List<List<ITransaction>>();
+            }
 
-			foreach (var tx in transactions)
-			{
-				int nodeId = accountUnionSet[tx.From].Find().NodeId;
-				if (!grouped.TryGetValue(nodeId, out var group))
-				{
-					group = new List<ITransaction>();
-					grouped.Add(nodeId, group);
-				}
-				group.Add(tx);
-			}
+            Dictionary<Hash, UnionFindNode> accountUnionSet = new Dictionary<Hash, UnionFindNode>();
 
-			return grouped.Values.ToList();
-		}
-	}
+	        //set up the union find set as the representation of graph and the connected components will be the resulting groups
+            foreach (var tx in transactions)
+            {
+                UnionFindNode first = null;
+                foreach (var hash in _resourceUsageDetectionService.GetResources(tx))
+                {
+                    if (!accountUnionSet.TryGetValue(hash, out var node))
+                    {
+                        node = new UnionFindNode();
+                        accountUnionSet.Add(hash, node);
+                    }
+                    if (first == null)
+                    {
+                        first = node;
+                    }
+                    else
+                    {
+                        node.Union(first);
+                    }
+                }
+            }
+
+            Dictionary<int, List<ITransaction>> grouped = new Dictionary<int, List<ITransaction>>();
+
+            foreach (var tx in transactions)
+            {
+                int nodeId = accountUnionSet[tx.From].Find().NodeId;
+                if (!grouped.TryGetValue(nodeId, out var group))
+                {
+                    group = new List<ITransaction>();
+                    grouped.Add(nodeId, group);
+                }
+                group.Add(tx);
+            }
+
+            return grouped.Values.ToList();
+        }
+    }
 }

@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AElf.Common.Attributes;
+using AElf.Kernel.Node.RPC.DTO;
+using AElf.Network.Data;
 using AElf.Node.RPC.DTO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 
@@ -18,6 +23,9 @@ namespace AElf.Kernel.Node.RPC
         private const string GetTxMethodName = "get_tx";
         private const string InsertTxMethodName = "insert_tx";
         private const string BroadcastTxMethodName = "broadcast_tx";
+        private const string GetPeersMethodName = "get_peers";
+
+        private const string GetCommandsMethodName = "get_commands";
         
         /// <summary>
         /// The names of the exposed RPC methods and also the
@@ -27,7 +35,9 @@ namespace AElf.Kernel.Node.RPC
         {
             GetTxMethodName,
             InsertTxMethodName,
-            BroadcastTxMethodName
+            BroadcastTxMethodName,
+            GetPeersMethodName,
+            GetCommandsMethodName
         };
         
         /// <summary>
@@ -106,7 +116,7 @@ namespace AElf.Kernel.Node.RPC
         }
         
         /// <summary>
-        /// Verifies the request, especially it checks to see it the command is
+        /// Verifies the request, it especially checks to see if the command is
         /// registered.
         /// </summary>
         /// <param name="request">The request to verify</param>
@@ -177,6 +187,12 @@ namespace AElf.Kernel.Node.RPC
                        case BroadcastTxMethodName:
                            responseData = await ProcessBroadcastTx(reqParams);
                            break;
+                       case GetPeersMethodName:
+                           responseData = await ProcessGetPeers(reqParams);
+                           break;
+                       case GetCommandsMethodName:
+                           responseData = ProcessGetCommands();
+                           break;
                        default:
                            Console.WriteLine("Method name not found"); // todo log
                            break;
@@ -199,37 +215,96 @@ namespace AElf.Kernel.Node.RPC
 
         private async Task<JObject> ProcessBroadcastTx(JObject reqParams)
         {
-            TransactionDto dto = reqParams["tx"].ToObject<TransactionDto>();
+            var raw = reqParams["tx"].First;
+            var tx = raw.ToTransaction();
 
-            await _node.BroadcastTransaction(dto.ToTransaction());
+            var res = await _node.BroadcastTransaction(tx);
 
-            return null;
+            var jobj = new JObject {{"txId", tx.GetHash().Value.ToBase64()}, {"status", res}};
+            return jobj;
         }
 
+        /// <summary>
+        /// This method processes the request for a specified
+        /// number of transactions
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProcessGetTx(JObject reqParams)
         {
             byte[] txid = reqParams["txid"].ToObject<byte[]>();
             ITransaction tx = await _node.GetTransaction(txid);
 
-            if (tx == null)
-            {
-                // todo tx not found
-            }
+            var txInfo = tx == null ? new JObject{["tx"] = "Not Found"} : tx.GetTransactionInfo();
             
-            TransactionDto txDto = tx.ToTransactionDto();
-            
-            return JObject.FromObject(txDto);
+            return txInfo;
         }
         
         private async Task<JObject> ProcessInsertTx(JObject reqParams)
         {
-            TransactionDto dto = reqParams["tx"].ToObject<TransactionDto>();
+            var raw = reqParams["tx"].First;
+            var tx = raw.ToTransaction();
 
-            IHash txHash = await _node.InsertTransaction(dto.ToTransaction());
+            IHash txHash = await _node.InsertTransaction(tx);
 
             JObject j = new JObject
             {
                 ["hash"] = txHash.Value.ToBase64()
+            };
+            
+            return JObject.FromObject(j);
+        }
+
+        private async Task<JObject> ProcessGetPeers(JObject reqParams)
+        {
+            string numPeersS = reqParams["numPeers"].ToString();
+            ushort? numPeers = null;
+            try
+            {
+                numPeers = Convert.ToUInt16(numPeersS);
+            }
+            catch
+            {
+                ;
+            }
+
+            if (numPeers.HasValue && numPeers.Value == 0)
+                return null;
+
+            List<NodeData> peers = await _node.GetPeers(numPeers);
+            List<NodeDataDto> peersDto = new List<NodeDataDto>();
+
+            foreach (var peer in peers)
+            {
+                NodeDataDto pDto = peer.ToNodeDataDto();
+                peersDto.Add(pDto);
+            }
+
+            var json = JsonConvert.SerializeObject(peersDto);
+            JArray arrPeersDto = JArray.Parse(json);
+
+            JObject j = new JObject()
+            {
+                ["data"] = arrPeersDto
+            };
+            
+            return JObject.FromObject(j);
+        }
+
+        /// <summary>
+        /// This method returns the list of all RPC commands
+        /// except "get_commands"
+        /// </summary>
+        /// <returns></returns>
+        private JObject ProcessGetCommands()
+        {
+            List<string> commands = _rpcCommands.Where(x => x != GetCommandsMethodName).ToList();
+            var json = JsonConvert.SerializeObject(commands);
+            JArray arrCommands = JArray.Parse(json);
+
+            JObject j = new JObject()
+            {
+                ["commands"] = arrCommands
             };
             
             return JObject.FromObject(j);

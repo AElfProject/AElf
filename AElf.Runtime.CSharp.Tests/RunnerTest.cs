@@ -25,97 +25,86 @@ namespace AElf.Runtime.CSharp.Tests
     [UseAutofacTestFramework]
     public class RunnerTest
     {
-        private IAccountDataProvider _dataProvider1;
-        private IAccountDataProvider _dataProvider2;
-        private SmartContractRunner _runner;
-
-        private ISmartContractManager _smartContractManager;
-        private IWorldStateManager _worldStateManager;
-        private IChainCreationService _chainCreationService;
-        private IBlockManager _blockManager;
-
-        private ISmartContractRunnerFactory _smartContractRunnerFactory = new SmartContractRunnerFactory();
-        private Hash ChainId1 { get; } = Hash.Generate();
-        private Hash ChainId2 { get; } = Hash.Generate();
-
-        public RunnerTest(SmartContractZero smartContractZero, IWorldStateManager worldStateManager,
-                          IChainCreationService chainCreationService, IBlockManager blockManager, SmartContractStore smartContractStore)
+        private MockSetup _mock;
+        private ISmartContractService _service;
+        public RunnerTest(MockSetup mock)
         {
-            _worldStateManager = worldStateManager;
-            _chainCreationService = chainCreationService;
-            _blockManager = blockManager;
-            _smartContractManager = new SmartContractManager(smartContractStore);
-            _runner = new SmartContractRunner("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/");
-        }
-
-        public async Task Init()
-        {
-            var smartContractZero = typeof(Class1);
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, smartContractZero);
-            var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
-            _dataProvider1 = (await _worldStateManager.OfChain(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
-
-            var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, smartContractZero);
-            var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
-            _dataProvider2 = (await _worldStateManager.OfChain(ChainId2)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId2));
+            _mock = mock;
+            _service = mock.SmartContractService;
         }
 
         [Fact]
         public async Task Test()
         {
-            Hash contractAddress1 = Hash.Generate();
-            Hash contractAddress2 = Hash.Generate();
-            await Init();
-            byte[] code = null;
-            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/AElf.Contracts.Examples.dll")))
-            {
-                code = file.ReadFully();
-            }
-            var reg = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = Hash.Zero
-            };
+            Hash account0 = Hash.Generate();
+            Hash account1 = Hash.Generate();
+            Hash contractAddress1 = _mock.SampleContractAddress1;
+            Hash contractAddress2 = _mock.SampleContractAddress2;
 
-            await _smartContractManager.InsertAsync(contractAddress1, reg);
-            await _smartContractManager.InsertAsync(contractAddress2, reg);
-            _smartContractRunnerFactory.AddRunner(0, _runner);
-
-            var chainContext = new ChainContext(new SmartContractZero(), Hash.Zero);
-
-            var service = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
-
-            var executive1 = await service.GetExecutiveAsync(contractAddress1, chainContext.ChainId);
+            var executive1 = await _service.GetExecutiveAsync(contractAddress1, _mock.ChainId1);
             executive1.SetSmartContractContext(new SmartContractContext()
             {
                 ChainId = Hash.Zero,
                 ContractAddress = contractAddress1,
-                DataProvider = _dataProvider1.GetDataProvider(),
-                SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager)
+                DataProvider = _mock.DataProvider1.GetDataProvider(),
+                SmartContractService = _service
             });
 
-            var executive2 = await service.GetExecutiveAsync(contractAddress2, chainContext.ChainId);
+            var executive2 = await _service.GetExecutiveAsync(contractAddress2, _mock.ChainId2);
             executive2.SetSmartContractContext(new SmartContractContext()
             {
                 ChainId = Hash.Zero,
                 ContractAddress = contractAddress2,
-                DataProvider = _dataProvider2.GetDataProvider(),
-                SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager)
+                DataProvider = _mock.DataProvider2.GetDataProvider(),
+                SmartContractService = _service
             });
 
             Hash sender = Hash.Generate();
 
-            var init = new Transaction()
+            var init0 = new Transaction()
             {
                 From = sender,
+                To = Hash.Zero,
                 MethodName = "InitializeAsync",
-                Params = ByteString.CopyFrom(new Parameters().ToByteArray())
+                Params = ByteString.CopyFrom(new Parameters()
+                {
+                    Params = {
+                                new Param
+                                {
+                                    HashVal = account0
+                                },
+                                new Param
+                                {
+                                    UlongVal = 200
+                                }
+                            }
+                }.ToByteArray())
+            };
+
+            var init1 = new Transaction()
+            {
+                From = sender,
+                To = Hash.Zero,
+                MethodName = "InitializeAsync",
+                Params = ByteString.CopyFrom(new Parameters()
+                {
+                    Params = {
+                                new Param
+                                {
+                                    HashVal = account1
+                                },
+                                new Param
+                                {
+                                    UlongVal = 100
+                                }
+                            }
+                }.ToByteArray())
             };
 
             var transfer1 = new Transaction
             {
                 From = Hash.Zero,
+                To = Hash.Zero,
                 MethodName = "Transfer",
                 Params = ByteString.CopyFrom(
                     new Parameters
@@ -123,15 +112,15 @@ namespace AElf.Runtime.CSharp.Tests
                         Params = {
                                 new Param
                                 {
-                                    StrVal = "0"
+                                    HashVal = account0
                                 },
                                 new Param
                                 {
-                                    StrVal = "1"
+                                    HashVal = account1
                                 },
                                 new Param
                                 {
-                                    LongVal = 10
+                                    UlongVal = 10
                                 }
                             }
                     }
@@ -142,6 +131,7 @@ namespace AElf.Runtime.CSharp.Tests
             var transfer2 = new Transaction
             {
                 From = Hash.Zero,
+                To = Hash.Zero,
                 MethodName = "Transfer",
                 Params = ByteString.CopyFrom(
                     new Parameters
@@ -149,15 +139,15 @@ namespace AElf.Runtime.CSharp.Tests
                         Params = {
                                 new Param
                                 {
-                                    StrVal = "0"
+                                    HashVal = account0
                                 },
                                 new Param
                                 {
-                                    StrVal = "1"
+                                    HashVal = account1
                                 },
                                 new Param
                                 {
-                                    LongVal = 20
+                                    UlongVal = 20
                                 }
                             }
                     }
@@ -167,32 +157,39 @@ namespace AElf.Runtime.CSharp.Tests
 
             await executive1.SetTransactionContext(new TransactionContext()
             {
-                Transaction = init,
-                TransactionResult = new TransactionResult()
+                Transaction = init0
             }).Apply();
 
             await executive1.SetTransactionContext(new TransactionContext()
             {
-                Transaction = transfer1,
-                TransactionResult = new TransactionResult()
+                Transaction = init1
+            }).Apply();
+
+            await executive1.SetTransactionContext(new TransactionContext()
+            {
+                Transaction = transfer1
             }).Apply();
 
 
             await executive2.SetTransactionContext(new TransactionContext()
             {
-                Transaction = init,
-                TransactionResult = new TransactionResult()
+                Transaction = init0
             }).Apply();
 
             await executive2.SetTransactionContext(new TransactionContext()
             {
-                Transaction = transfer2,
-                TransactionResult = new TransactionResult()
+                Transaction = init1
+            }).Apply();
+
+            await executive2.SetTransactionContext(new TransactionContext()
+            {
+                Transaction = transfer2
             }).Apply();
 
             var getb0 = new Transaction
             {
                 From = Hash.Zero,
+                To = Hash.Zero,
                 MethodName = "GetBalance",
                 Params = ByteString.CopyFrom(
                     new Parameters
@@ -200,18 +197,18 @@ namespace AElf.Runtime.CSharp.Tests
                         Params = {
                                 new Param
                                 {
-                                    StrVal = "0"
+                                    HashVal = account0
                                 }
                             }
                     }
                         .ToByteArray()
                 )
             };
-
 
             var getb1 = new Transaction
             {
                 From = Hash.Zero,
+                To = Hash.Zero,
                 MethodName = "GetBalance",
                 Params = ByteString.CopyFrom(
                     new Parameters
@@ -219,7 +216,7 @@ namespace AElf.Runtime.CSharp.Tests
                         Params = {
                                 new Param
                                 {
-                                    StrVal = "1"
+                                    HashVal = account1
                                 }
                             }
                     }
@@ -227,40 +224,31 @@ namespace AElf.Runtime.CSharp.Tests
                 )
             };
 
-            var bal10 = new TransactionResult();
-            var bal20 = new TransactionResult();
-            var bal11 = new TransactionResult();
-            var bal21 = new TransactionResult();
+            var tc10 = new TransactionContext(){
+                Transaction = getb0  
+            };
+            var tc20 = new TransactionContext(){
+                Transaction = getb0  
+            };
+            var tc11 = new TransactionContext(){
+                Transaction = getb1
+            };
+            var tc21 = new TransactionContext(){
+                Transaction = getb1  
+            };
+            await executive1.SetTransactionContext(tc10).Apply();
 
-            await executive1.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = getb0,
-                TransactionResult = bal10
-            }).Apply();
+            await executive2.SetTransactionContext(tc20).Apply();
 
-            await executive2.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = getb0,
-                TransactionResult = bal20
-            }).Apply();
+            await executive1.SetTransactionContext(tc11).Apply();
 
-            await executive1.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = getb1,
-                TransactionResult = bal11
-            }).Apply();
+            await executive2.SetTransactionContext(tc21).Apply();
 
-            await executive2.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = getb1,
-                TransactionResult = bal21
-            }).Apply();
+            Assert.Equal((ulong)190, tc10.Trace.RetVal.Unpack<UInt64Value>().Value);
+            Assert.Equal((ulong)180, tc20.Trace.RetVal.Unpack<UInt64Value>().Value);
 
-            Assert.Equal((ulong)190, bal10.Logs.ToByteArray().ToUInt64());
-            Assert.Equal((ulong)180, bal20.Logs.ToByteArray().ToUInt64());
-
-            Assert.Equal((ulong)110, bal11.Logs.ToByteArray().ToUInt64());
-            Assert.Equal((ulong)120, bal21.Logs.ToByteArray().ToUInt64());
+            Assert.Equal((ulong)110, tc11.Trace.RetVal.Unpack<UInt64Value>().Value);
+            Assert.Equal((ulong)120, tc21.Trace.RetVal.Unpack<UInt64Value>().Value);
 
         }
     }

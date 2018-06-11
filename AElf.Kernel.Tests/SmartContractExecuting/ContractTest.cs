@@ -1,249 +1,275 @@
-﻿using System;
+using System;
+using System.IO;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
-using AElf.Kernel.SmartContracts.CSharpSmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Type = System.Type;
+using AElf.Runtime.CSharp;
+ using ServiceStack;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
     [UseAutofacTestFramework]
     public class ContractTest
     {
+        // IncrementId is used to differentiate txn
+        // which is identified by From/To/IncrementId
+        private static int _incrementId = 0;
+
+        public ulong NewIncrementId()
+        {
+            var n = Interlocked.Increment(ref _incrementId);
+            return (ulong)n;
+        }
 
         private IWorldStateManager _worldStateManager;
         private IChainCreationService _chainCreationService;
         private IChainContextService _chainContextService;
         private IBlockManager _blockManager;
         private ITransactionManager _transactionManager;
+        private ISmartContractManager _smartContractManager;
         private ISmartContractService _smartContractService;
+
+        private ISmartContractRunnerFactory _smartContractRunnerFactory = new SmartContractRunnerFactory();
 
         private Hash ChainId { get; } = Hash.Generate();
 
         public ContractTest(IWorldStateManager worldStateManager,
-            IChainCreationService chainCreationService, IBlockManager blockManager, 
-            ITransactionManager transactionManager, ISmartContractService smartContractService, 
+            IChainCreationService chainCreationService, IBlockManager blockManager,
+            ITransactionManager transactionManager, ISmartContractManager smartContractManager,
             IChainContextService chainContextService)
         {
             _worldStateManager = worldStateManager;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             _transactionManager = transactionManager;
-            _smartContractService = smartContractService;
+            _smartContractManager = smartContractManager;
             _chainContextService = chainContextService;
+            var runner = new SmartContractRunner("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/");
+            _smartContractRunnerFactory.AddRunner(0, runner);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
         }
-        
+
+        public byte[] SmartContractZeroCode
+        {
+            get
+            {
+                byte[] code = null;
+                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.SmartContractZero/bin/Debug/netstandard2.0/AElf.Contracts.SmartContractZero.dll")))
+                {
+                    code = file.ReadFully();
+                }
+                return code;
+            }
+        }
+
+        public byte[] ExampleContractCode
+        {
+            get
+            {
+                byte[] code = null;
+                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/AElf.Contracts.Examples.dll")))
+                {
+                    code = file.ReadFully();
+                }
+                return code;
+            }
+        }
 
         [Fact]
-        public async Task RegisterContract()
+        public async Task SmartContractZeroByCreation()
         {
-            var smartContractZero = typeof(Class1);
-            Assert.Equal(smartContractZero, typeof(Class1));
-            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, smartContractZero);
-            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
-            var txs = genesis.Body.Transactions;
-            var register = await _transactionManager.GetTransaction(txs[0]);
-            var adp = (await _worldStateManager.OfChain(ChainId)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId));
-            
-            var chainContext = _chainContextService.GetChainContext(ChainId);
-
-            var inovkeContext = new SmartContractInvokeContext
-            {
-                Caller = register.From,
-                IncrementId = register.IncrementId,
-                MethodName = register.MethodName,
-                Params = register.Params
-                
-            };
-
-            // TODO: *** Contract Issues ***
-            //var sm = await _smartContractService.GetAsync(inovkeContext.Caller, chainContext);
-            //await sm.InvokeAsync(inovkeContext);
-
-            var smartContractMap = adp.GetDataProvider().GetDataProvider("SmartContractMap");
-
-            var copy = new SmartContractRegistration
+            var reg = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFromUtf8(smartContractZero.AssemblyQualifiedName),
+                ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.Zero
             };
 
-            var hash = Hash.Zero;
-            var bytes = await smartContractMap.GetAsync(hash); 
-            var reg = SmartContractRegistration.Parser.ParseFrom(bytes);
-            
+            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
+            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
+
+            var contractAddress = ChainId.CalculateHashWith("__SmartContractZero__");
+            var copy = await _smartContractManager.GetAsync(contractAddress);
+
             // throw exception if not registered
             Assert.Equal(reg, copy);
-
         }
 
-        public SmartContractInvokeContext RegisterContext(Type smartContractZero)
+        [Fact]
+        public async Task DeployUserContract()
         {
-            // register context
-            var registerContext = new SmartContractInvokeContext
+            var reg = new SmartContractRegistration
             {
-                Caller = Hash.Zero,
-                IncrementId = 0,
-                // TODO: *** Contract Issues ***
-                //MethodName = nameof(ISmartContractZero.RegisterSmartContract),
-                MethodName = nameof(ISmartContractZero.DeploySmartContract),
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                        Params = 
-                        {
-                            new Param
-                            {
-                                RegisterVal = new SmartContractRegistration
-                                {
-                                    Category = 1,
-                                    ContractBytes = new StringValue
-                                    {
-                                        Value = smartContractZero.AssemblyQualifiedName
-                                    }.ToByteString(),
-                                    ContractHash = Hash.Zero
-                                }
-                            }
-                        }
-                    }.ToByteArray()
-                )
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
+                ContractHash = Hash.Zero
             };
 
-            return registerContext;
-        }
+            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
+            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
 
-        public SmartContractInvokeContext DeploymentContext(string name)
-        {
-            var deployContext = new SmartContractInvokeContext
+            var code = ExampleContractCode;
+
+            var regExample = new SmartContractRegistration
             {
-                MethodName = nameof(ISmartContractZero.DeploySmartContract),
-                Caller = Hash.Zero,
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                        {
-                            Params = {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(code),
+                ContractHash = code.CalculateHash()
+            };
+
+            var contractAddressZero = ChainId.CalculateHashWith("__SmartContractZero__");
+
+            var txnDep = new Transaction()
+            {
+                From = Hash.Zero,
+                To = contractAddressZero,
+                IncrementId = NewIncrementId(),
+                MethodName = "DeploySmartContract",
+                Params = ByteString.CopyFrom(new Parameters()
+                {
+                    Params = {
                                 new Param
                                 {
-                                    DeploymentVal = new SmartContractDeployment
-                                    {
-                                        ContractHash = Hash.Zero,
-                                        Caller = Hash.Zero,
-                                        ConstructParams = ByteString.CopyFrom(
-                                            new Parameters
-                                            {
-                                                Params =
-                                                {
-                                                    new Param
-                                                    {
-                                                        StrVal = name
-                                                    }
-                                                }
-                                            }.ToByteArray()
-                                        ),
-                                        IncrementId = 1
-                                    }
+                                    RegisterVal = regExample
                                 }
                             }
-                        }
-                        .ToByteArray()
-                )
+                }.ToByteArray())
             };
 
-            return deployContext;
-        }
-        
-        [Fact]
-        public async Task DeployContract()
-        {
-            // register smart contract
-            var smartContractZero = typeof(Class1);
-            
-            // create chain
-            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, smartContractZero);
-            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
-            var chainContext = _chainContextService.GetChainContext(ChainId);
+            var txnCtxt = new TransactionContext()
+            {
+                Transaction = txnDep
+            };
 
-            var registerContext = RegisterContext(smartContractZero);
+            var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
+            await executive.SetTransactionContext(txnCtxt).Apply();
 
-            // TODO: *** Contract Issues ***
-            // register
-            //var sm1 = await _smartContractService.GetAsync(registerContext.Caller, chainContext);
-            //await sm1.InvokeAsync(registerContext);
+            var address =txnCtxt.Trace.RetVal.Unpack<Hash>();
 
-            // deploy contract
+            var copy = await _smartContractManager.GetAsync(address);
 
-            // TODO: *** Contract Issues ***
-            //var name = "Sam";
-            //var deployContext = DeploymentContext(name);
-            //var sm2 = await _smartContractService.GetAsync(deployContext.Caller, chainContext);
-            //var smartcontract = (CSharpSmartContract)await sm2.InvokeAsync(deployContext);
-            //Assert.Equal(typeof(CSharpSmartContract), smartcontract.GetType());
-
-            
-            //Assert.Equal(name, ((Class1)smartcontract.Instance).Name);
+            Assert.Equal(regExample, copy);
         }
 
 
         [Fact]
         public async Task Invoke()
         {
-            // register smart contract
-            var smartContractZero = typeof(Class1);
-            
-            // create chain
-            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, smartContractZero);
+            var reg = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
+                ContractHash = Hash.Zero
+            };
+
+            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
             var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
-            var chainContext = _chainContextService.GetChainContext(ChainId);
 
-            var registerContext = RegisterContext(smartContractZero);
+            var code = ExampleContractCode;
 
-            // TODO: *** Contract Issues ***
-            //// register
-            //var sm1 = await _smartContractService.GetAsync(registerContext.Caller, chainContext);
-            //await sm1.InvokeAsync(registerContext);
+            var regExample = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(code),
+                ContractHash = code.CalculateHash()
+            };
 
-            // TODO: *** Contract Issues ***
-            //// deploy contract
-            //var name = "Sam";
-            //var deployContext = DeploymentContext(name);
-            //var sm2 = await _smartContractService.GetAsync(deployContext.Caller, chainContext);
-            //var smartcontract = (ISmartContract) await sm2.InvokeAsync(deployContext);
+            var contractAddressZero = ChainId.CalculateHashWith("__SmartContractZero__");
 
-            ////var sm3 =(CSharpSmartContract) await _smartContractService.GetAsync((Hash) account, chainContext);
+            var txnDep = new Transaction()
+            {
+                From = Hash.Zero,
+                To = contractAddressZero,
+                IncrementId = NewIncrementId(),
+                MethodName = "DeploySmartContract",
+                Params = ByteString.CopyFrom(new Parameters()
+                {
+                    Params = {
+                                new Param
+                                {
+                                    RegisterVal = regExample
+                                }
+                            }
+                }.ToByteArray())
+            };
 
-            // TODO: *** Contract Issues ***
-            //var yours = "Wk";
-            //var inokeContext = new SmartContractInvokeContext
-            //{
-            //    Caller = Hash.Generate(),
-            //    IncrementId = 0,
-            //    MethodName = "SayHello",
-            //    Params = ByteString.CopyFrom(
-            //        new Parameters
-            //        {
-            //            Params =
-            //            {
-            //                new Param
-            //                {
-            //                    StrVal = yours
-            //                }
-            //            }
-            //        }.ToByteArray()
-            //    )
-            //};
-            
-            //var str = await smartcontract.InvokeAsync(inokeContext);
-            
-            //Assert.Equal(name, str);
+            var txnCtxt = new TransactionContext()
+            {
+                Transaction = txnDep
+            };
 
+            var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
+            await executive.SetTransactionContext(txnCtxt).Apply();
+
+            var address = txnCtxt.Trace.RetVal.Unpack<Hash>();
+
+            #region initialize account balance
+            var account = Hash.Generate();
+            var txnInit = new Transaction
+            {
+                From = Hash.Zero,
+                To = address,
+                IncrementId = NewIncrementId(),
+                MethodName = "InitializeAsync",
+                Params = ByteString.CopyFrom(new Parameters()
+                {
+                    Params = {
+                                new Param
+                                {
+                                    HashVal = account
+                                },
+                                new Param
+                                {
+                                    UlongVal = 101
+                                }
+                            }
+                }.ToByteArray())
+            };
+            var txnInitCtxt = new TransactionContext()
+            {
+                Transaction = txnInit
+            };
+            var executiveUser = await _smartContractService.GetExecutiveAsync(address, ChainId);
+            await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
+            #endregion initialize account balance
+
+            #region check account balance
+            var txnBal = new Transaction
+            {
+                From = Hash.Zero,
+                To = address,
+                IncrementId = NewIncrementId(),
+                MethodName = "GetBalance",
+                Params = ByteString.CopyFrom(
+                    new Parameters
+                    {
+                        Params = {
+                                new Param
+                                {
+                                    HashVal = account
+                                }
+                            }
+                    }.ToByteArray()
+                )
+            };
+            var txnBalCtxt = new TransactionContext()
+            {
+                Transaction = txnBal
+            };
+            await executiveUser.SetTransactionContext(txnBalCtxt).Apply();
+
+            Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.Unpack<UInt64Value>().Value);
+            #endregion
         }
     }
 }

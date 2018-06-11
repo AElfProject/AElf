@@ -1,8 +1,17 @@
-﻿using System.Linq;
-using AElf.Kernel.Node.Network;
-using AElf.Kernel.Node.Network.Config;
-using AElf.Kernel.TxMemPool;
+﻿using System.Collections.Generic;
+using System.Linq;
+using AElf.Common.Application;
+using AElf.Database;
+using AElf.Database.Config;
+ using AElf.Kernel;
+ using AElf.Kernel.Miner;
+ using AElf.Kernel.Node.Config;
+ using AElf.Kernel.TxMemPool;
+using AElf.Network.Config;
+using AElf.Network.Data;
+using AElf.Network.Peers;
 using CommandLine;
+using Google.Protobuf;
 
 namespace AElf.Launcher
 {
@@ -10,10 +19,31 @@ namespace AElf.Launcher
     {
         public IAElfNetworkConfig NetConfig { get; private set; }
         public ITxPoolConfig TxPoolConfig { get; private set; }
-        
+        public IDatabaseConfig DatabaseConfig { get; private set; }
+        public IMinerConfig MinerConfig { get; private set; }
+        public INodeConfig NodeConfig { get; private set; }
+
         public bool Rpc { get; private set; }
+        public string DataDir { get; private set; }
 
         public bool Success { get; private set; }
+        public bool IsMiner { get; private set; }
+
+        /// <summary>
+        /// fullnode if true, light node if false
+        /// </summary>
+        //public bool FullNode { get; private set; }
+        
+        /// <summary>
+        /// create new chain if true
+        /// </summary>
+        public bool NewChain { get; private set; }
+        
+        
+        /// <summary>
+        /// chainId
+        /// </summary>
+        public Hash ChainId { get; set; }
         
         public bool Parse(string[] args)
         {
@@ -34,13 +64,34 @@ namespace AElf.Launcher
         private void MapOptions(AElfOptions opts)
         {
             Rpc = !opts.NoRpc;
+
+            DataDir = string.IsNullOrEmpty(opts.DataDir) ? ApplicationHelpers.GetDefaultDataDir() : opts.DataDir;
             
             // Network
             AElfNetworkConfig netConfig = new AElfNetworkConfig();
 
             if (opts.Bootnodes != null && opts.Bootnodes.Any())
-                netConfig.Bootnodes = opts.Bootnodes.ToList();
+            {
+                netConfig.Bootnodes = new List<NodeData>();
+                
+                foreach (var strNodeData in opts.Bootnodes)
+                {
+                    NodeData nd = NodeData.FromString(strNodeData);
+                    if (nd != null)
+                    {
+                        nd.IsBootnode = true;
+                        netConfig.Bootnodes.Add(nd);
+                    }
+                }
+            }
+            else
+            {
+                netConfig.Bootnodes = Bootnodes.BootNodes;
+            }
 
+            if (opts.PeersDbPath != null)
+                netConfig.PeersDbPath = opts.PeersDbPath;
+            
             if (opts.Peers != null)
                 netConfig.Peers = opts.Peers.ToList();
             
@@ -52,7 +103,67 @@ namespace AElf.Launcher
             
             NetConfig = netConfig;
             
-            // Todo ITxPoolConfig
+            
+            // Database
+            var databaseConfig = new DatabaseConfig();
+            
+            databaseConfig.Type = DatabaseTypeHelper.GetType(opts.DBType);
+            
+            if (!string.IsNullOrWhiteSpace(opts.DBHost))
+            {
+                databaseConfig.Host = opts.DBHost;
+            }
+            
+            if (opts.DBPort.HasValue)
+            {
+                databaseConfig.Port = opts.DBPort.Value;
+            }
+
+            DatabaseConfig = databaseConfig;
+           
+            
+            // to be miner
+            IsMiner = opts.IsMiner;
+            
+            
+            if (opts.NewChain)
+            {
+                IsMiner = true;
+                NewChain = true;
+            }
+            
+            if (IsMiner)
+            {
+                if (string.IsNullOrEmpty(opts.CoinBase))
+                {
+                    
+                }
+                // full node for private chain
+                MinerConfig = new MinerConfig
+                {
+                    CoinBase = new Hash(ByteString.FromBase64(opts.CoinBase)),
+                    TxCount = opts.TxCount
+                };
+            }
+            
+            // tx pool config
+            TxPoolConfig = new TxPoolConfig
+            {
+                PoolLimitSize = opts.PoolCapacity,
+                TxLimitSize = opts.TxSizeLimit,
+                FeeThreshold = opts.MinimalFee,
+                ChainId = ChainId
+            };
+            
+            // node config
+            NodeConfig = new NodeConfig
+            {
+                IsMiner = IsMiner,
+                FullNode = true,
+                ChainId = ChainId
+            };
+
         }
     }
+
 }

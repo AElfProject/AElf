@@ -1,10 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Crypto.ECDSA;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
+using AElf.Node.RPC.DTO;
 using Google.Protobuf;
+using Newtonsoft.Json.Linq;
+using NLog;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities.Collections;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -15,24 +19,26 @@ namespace AElf.Kernel.Tests.TxMemPool
     public class TxPoolTest
     {
         private readonly IAccountContextService _accountContextService;
-        
-        public TxPoolTest(IAccountContextService accountContextService)
+        private readonly ILogger _logger;
+
+        public TxPoolTest(IAccountContextService accountContextService, ILogger logger)
         {
             _accountContextService = accountContextService;
+            _logger = logger;
         }
 
         private TxPool GetPool()
         {
-            return new TxPool(TxPoolConfig.Default);
+            return new TxPool(TxPoolConfig.Default, _logger);
         }
 
-        public static Transaction BuildTransaction(Hash adrFrom = null, Hash adrTo = null, ulong nonce = 0)
+        public static Transaction BuildTransaction(Hash adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
         {
-            ECKeyPair keyPair = new KeyPairGenerator().Generate();
+            keyPair = keyPair ?? new KeyPairGenerator().Generate();
 
             var tx = new Transaction();
-            tx.From = adrFrom == null ? Hash.Generate() : adrFrom;
-            tx.To = adrTo == null ? Hash.Generate() : adrTo;
+            tx.From = keyPair.GetAddress();
+            tx.To = (adrTo == null ? Hash.Generate().ToAccount() : adrTo);
             tx.IncrementId = nonce;
             tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
@@ -58,6 +64,16 @@ namespace AElf.Kernel.Tests.TxMemPool
             return tx;
         }
         
+        //[Fact]
+        public void Serialize()
+        {
+            System.Diagnostics.Debug.WriteLine(Hash.Generate().ToByteString().ToBase64());
+            var tx = Transaction.Parser.ParseFrom(ByteString.FromBase64(
+                @"CiIKIKkqNVMSxCWn/TizqYJl0ymJrnrRqZN+W3incFJX3MRIEiIKIIFxBhlGhI1auR05KafXd/lFGU+apqX96q1YK6aiZLMhIgh0cmFuc2ZlcioJCgcSBWhlbGxvOiEAxfMt77nwSKl/WUg1TmJHfxYVQsygPj0wpZ/Pbv+ZK4pCICzGxsZBCBlASmlDdn0YIv6vRUodJl/9jWd8Q1z2ofFwSkEE+PDQtkHQxvw0txt8bmixMA8lL0VM5ScOYiEI82LX1A6oWUNiLIjwAI0Qh5fgO5g5PerkNebXLPDE2dTzVVyYYw=="));
+            var pool = GetPool();
+            Assert.Equal(TxValidation.ValidationError.Success, pool.ValidateTx(tx));
+        }
+
         
         
         
@@ -66,9 +82,8 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             // setup config
             var conf = TxPoolConfig.Default;
-            conf.EntryThreshold = 1;
 
-            var pool = new TxPool(conf);
+            var pool = new TxPool(conf, _logger);
             
             // Add a valid transaction
             var tx = BuildTransaction();
@@ -78,8 +93,8 @@ namespace AElf.Kernel.Tests.TxMemPool
             pool.EnQueueTxs(tmp);
             
             pool.GetPoolState(out var executable, out var waiting);
-            Assert.Equal(1, (int)waiting);
-            Assert.Equal(0, (int)executable);
+            Assert.Equal(0, (int)waiting);
+            Assert.Equal(1, (int)executable);
         }
 
         
@@ -101,7 +116,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         }*/
 
 
-        [Fact]
+        /*[Fact]
         public async Task PromoteTest()
         {
             var pool = GetPool();
@@ -118,7 +133,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             pool.GetPoolState(out var executable, out var waiting);
             Assert.Equal(0, (int)waiting);
             Assert.Equal(1, (int)executable);
-        }
+        }*/
 
         [Fact]
         public async Task ReadyTxsTest()
@@ -132,7 +147,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             pool.Nonces[tx.From] = ctx.IncrementId;
             pool.EnQueueTxs(tmp);
             
-            pool.Promote();
+            //pool.Promote();
             
             var ready = pool.ReadyTxs(10);
             

@@ -1,55 +1,65 @@
 ﻿using System;
-using AElf.Kernel.Crypto.ECDSA;
+using System.Linq;
+using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Extensions;
 
 namespace AElf.Kernel.TxMemPool
 {
     public static class TxValidation
     {
-        
+        public enum ValidationError
+        {
+            Success,
+            InvalidTxFormat,
+            NotEnoughGas,
+            TooBigSize,
+            WrongAddress,
+            InvalidSignature
+        }
         /// <summary>
         /// validate a tx size, signature, account format
         /// </summary>
         /// <param name="pool"></param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        public static bool ValidateTx(this ITxPool pool, ITransaction tx)
+        public static ValidationError ValidateTx(this ITxPool pool, ITransaction tx)
         {
-            if (tx.From == null || tx.MethodName == "" || Parameters.Parser.ParseFrom(tx.Params).Params.Count == 0 
+            if (tx.From == Hash.Zero || tx.MethodName == "" || Parameters.Parser.ParseFrom(tx.Params).Params.Count == 0 
                 || tx.IncrementId < 0)
             {
                 // TODO: log errors
-                return false;
+                return ValidationError.InvalidTxFormat;
             }
             
             // size validation
             if (GetTxSize(tx) > pool.TxLimitSize)
             {
                 // TODO: log errors, wrong size
-                return false;
+                return ValidationError.TooBigSize;
             }
             
             // TODO: signature validation
             if (!tx.VerifySignature())
             {
                 // TODO: log errors, invalid tx signature
-                return false;
+                return ValidationError.InvalidSignature;
             }
             
             if(!tx.CheckAccountAddress())
             {
                 // TODO: log errors, address error 
-                return false;
+                return ValidationError.WrongAddress;
             }
             
-            // fee validation
+            /*// fee validation
             if (tx.Fee < pool.MinimalFee)
             {
                 // TODO: log errors, not enough Fee error 
                 return false;
-            }
+            }*/
             
             // TODO : more validations
-            return true;
+            return ValidationError.Success;
         }
 
 
@@ -65,9 +75,14 @@ namespace AElf.Kernel.TxMemPool
                 return false;
             }
             byte[] uncompressedPrivKey = tx.P.ToByteArray();
+            Hash addr = uncompressedPrivKey.CalculateHash().Take(ECKeyPair.AddressLength).ToArray();
+
+            if (!addr.Equals(tx.From))
+                return false;
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
             return verifier.Verify(tx.GetSignature(), tx.GetHash().GetHashBytes());
+
         }
 
         
@@ -79,7 +94,7 @@ namespace AElf.Kernel.TxMemPool
         public static bool CheckAccountAddress(this ITransaction tx)
         {
             // TODO: more verifications
-            return tx.From.Value.Length == 32 && (tx.To == null || tx.To.Value.Length == 32);
+            return tx.From.Value.Length == ECKeyPair.AddressLength && (tx.To == null || tx.To.Value.Length == ECKeyPair.AddressLength);
         }
         
        

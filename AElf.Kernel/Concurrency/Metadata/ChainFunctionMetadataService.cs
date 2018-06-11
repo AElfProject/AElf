@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using Org.BouncyCastle.Security;
-using ServiceStack;
 
 namespace AElf.Kernel.Concurrency.Metadata
 {
@@ -75,11 +74,11 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <exception cref="FunctionMetadataException"></exception>
         private FunctionMetadata GetMetadataForNewFunction(string functionFullName, FunctionMetadataTemplate functionTemplate, Hash contractAddr, Dictionary<string, Hash> contractReferences, Dictionary<string, FunctionMetadata> localMetadataMap)
         {
-            var resourceSet = functionTemplate.LocalResourceSet.Select(resource =>
+            var resourceSet = new HashSet<Resource>(functionTemplate.LocalResourceSet.Select(resource =>
                 {
                     var resName = Replacement.ReplaceValueIntoReplacement(resource.Name, Replacement.This, contractAddr.Value.ToBase64());
                     return new Resource(resName, resource.DataAccessMode);
-                }).ToHashSet();
+                }));
             
             var localResourceSet = new HashSet<Resource>(resourceSet);
             var callingSet = new HashSet<string>();

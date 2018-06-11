@@ -12,6 +12,7 @@ namespace AElf.Runtime.CSharp
         private SetSmartContractContextHandler _setSmartContractContextHandler;
         private SetTransactionContextHandler _setTransactionContextHandler;
         private ISmartContract _smartContract;
+        private ITransactionContext _currentTransactionContext;
 
         public Executive SetApi(Type ApiType)
         {
@@ -54,12 +55,24 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidOperationException("Api type is not set yet.");
             }
             _setTransactionContextHandler(transactionContext);
+            _currentTransactionContext = transactionContext;
             return this;
         }
 
         public async Task Apply()
         {
-            await _smartContract.InvokeAsync();
+            var s = _currentTransactionContext.Trace.StartTime = DateTime.UtcNow;
+            try
+            {
+                await _smartContract.InvokeAsync();
+            }
+            catch (Exception ex)
+            {
+                _currentTransactionContext.Trace.StdErr += ex + "\n";
+            }
+
+            var e = _currentTransactionContext.Trace.EndTime = DateTime.UtcNow;
+            _currentTransactionContext.Trace.Elapsed = (e - s).Ticks;
         }
     }
 }
