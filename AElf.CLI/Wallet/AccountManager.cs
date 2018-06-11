@@ -77,7 +77,7 @@ namespace AElf.CLI.Wallet
 
             string addr = t["from"].ToString();
             
-            UnlockAccount(addr);
+            //UnlockAccount(addr);
             ECKeyPair kp = _keyStore.GetAccountKeyPair(addr);
 
             try
