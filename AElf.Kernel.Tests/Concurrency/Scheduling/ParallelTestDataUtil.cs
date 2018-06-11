@@ -317,10 +317,11 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return string.Join(
                 " ",
                 map.OrderBy(a => a.Key)
-                    .Select(item => String.Format("[{0},({1}),({2})]", 
+                    .Select(item => String.Format("[{0},({1}),({2}),({3})]", 
                         item.Key,
                         CallingSetToString(item.Value.CallingSet), 
-                        PathSetToString(item.Value.FullResourceSet))));
+                        PathSetToString(item.Value.FullResourceSet),
+                        PathSetToString(item.Value.LocalResourceSet))));
         }
         
         public string FunctionMetadataTemplateMapToString(Dictionary<string, FunctionMetadataTemplate> map)

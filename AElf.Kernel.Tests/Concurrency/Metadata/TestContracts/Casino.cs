@@ -27,15 +27,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
         private TestTokenContract _tokenContractB;
         
         #endregion
-
-        public Casino(TestTokenContract tokenContractA, TestTokenContract tokenContractB)
-        {
-            _tokenContractA = tokenContractA;
-            _tokenContractB = tokenContractB;
-        }
         
         //To test multiple resource set
-        [SmartContractFunction("${this}.BuyTokenFromA(AElf.Kernel.Hash, UInt64)", new []{"${_tokenContractA}.Transfer(AElf.Kernel.Hash, AElf.Kernel.Hash, UInt64)"}, new []{"${this}.CasinoToken", "${this}.ExchangeRate"})]
+        [SmartContractFunction(
+            "${this}.BuyTokenFromA(AElf.Kernel.Hash, UInt64)", 
+            new []{"${_tokenContractA}.Transfer(AElf.Kernel.Hash, AElf.Kernel.Hash, UInt64)"}, 
+            new []{"${this}.CasinoToken", "${this}.ExchangeRate"})]
         public async Task<bool> BuyTokenFromA(Hash from, ulong value)
         {
             if(await _tokenContractA.Transfer(from, Api.GetContractAddress(), value))
@@ -93,6 +90,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
             
             // invoke
             await (Task<object>) member.Invoke(this, parameters);
+        }
+        
+        public Casino(TestTokenContract tokenContractA, TestTokenContract tokenContractB)
+        {
+            _tokenContractA = tokenContractA;
+            _tokenContractB = tokenContractB;
         }
     }
 }

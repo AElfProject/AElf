@@ -20,6 +20,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             ChainFunctionMetadataTemplateServiceTest templateTest = new ChainFunctionMetadataTemplateServiceTest();
             var templateService = templateTest.TestTryAddNewContractShouldSuccess();
             ChainFunctionMetadataService cfms = new ChainFunctionMetadataService(templateService);
+
             var addrA = Hash.Generate();
             var addrB = Hash.Generate();
             var addrC = Hash.Generate();
@@ -125,8 +126,6 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<Resource>(new []
                     {
                         new Resource(addrA.Value.ToBase64() + ".resource0", DataAccessMode.AccountSpecific),
-                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -143,8 +142,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new[]
                     {
-                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -182,9 +180,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new[]
                     {
-                        new Resource(addrA.Value.ToBase64() + ".resource0", DataAccessMode.AccountSpecific),
-                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -199,11 +195,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                         new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                         new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
                     }),
-                    new HashSet<Resource>(new[]
-                    {
-                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                    })));
+                    new HashSet<Resource>()));
             
             groundTruthMap.Add(
                 addrA.Value.ToBase64() + ".Func5()",
@@ -223,12 +215,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                         new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                         new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
                     }),
-                    new HashSet<Resource>(new[]
-                    {
-                        new Resource(addrA.Value.ToBase64() + ".resource0", DataAccessMode.AccountSpecific),
-                        new Resource(addrA.Value.ToBase64() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.Value.ToBase64() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                    })));
+                    new HashSet<Resource>()));
             
             Assert.Equal(util.FunctionMetadataMapToString(groundTruthMap), util.FunctionMetadataMapToString(cfms.FunctionMetadataMap));
 
