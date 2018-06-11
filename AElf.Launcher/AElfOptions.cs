@@ -58,8 +58,8 @@ namespace AElf.Launcher
         [Option("pc", Default = (ulong)4096, HelpText  = "Transaction pool capacity limit")]
         public ulong PoolCapacity { get; set; }
         
-        [Option("ts", Default = (uint)1024, HelpText = "Transaction size limit")]
-        public uint TxSizeLimit { get; set; }
+        /*[Option("ts", Default = (uint)1024, HelpText = "Transaction size limit")]
+        public uint TxSizeLimit { get; set; }*/
         
         [Option("fee", Default = (ulong)0, HelpText = "Minimal fee for entry into pool")]
         public ulong MinimalFee { get; set; }
@@ -67,8 +67,8 @@ namespace AElf.Launcher
         [Option("coinbase", HelpText = "Miner coinbase when a new chain created")]
         public string CoinBase { get; set; }
         
-        [Option("tx", Default = (ulong) 1024, HelpText = "Maximal transaction count in block")]
-        public ulong TxCount { get; set; }
+        /*[Option("tx", Default = (ulong) 1024, HelpText = "Maximal transaction count in block")]
+        public ulong TxCount { get; set; }*/
 
         
         

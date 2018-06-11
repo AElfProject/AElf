@@ -28,6 +28,7 @@ namespace AElf.Launcher
 
         public bool Success { get; private set; }
         public bool IsMiner { get; private set; }
+        public Hash Coinbase { get; private set; }
 
         /// <summary>
         /// fullnode if true, light node if false
@@ -43,7 +44,7 @@ namespace AElf.Launcher
         /// <summary>
         /// chainId
         /// </summary>
-        public Hash ChainId { get; set; }
+        // public Hash ChainId { get; set; }
         
         public bool Parse(string[] args)
         {
@@ -139,28 +140,27 @@ namespace AElf.Launcher
                     
                 }
                 // full node for private chain
-                MinerConfig = new MinerConfig
-                {
-                    CoinBase = new Hash(ByteString.FromBase64(opts.CoinBase)),
-                    TxCount = opts.TxCount
-                };
+                Coinbase = ByteString.CopyFromUtf8(opts.CoinBase);
+
             }
             
-            // tx pool config
-            TxPoolConfig = new TxPoolConfig
+            MinerConfig = new MinerConfig
             {
-                PoolLimitSize = opts.PoolCapacity,
-                TxLimitSize = opts.TxSizeLimit,
-                FeeThreshold = opts.MinimalFee,
-                ChainId = ChainId
+                CoinBase = Coinbase
             };
+            
+            
+            // tx pool config
+            TxPoolConfig = Kernel.TxMemPool.TxPoolConfig.Default;
+            TxPoolConfig.FeeThreshold = opts.MinimalFee;
+            TxPoolConfig.PoolLimitSize = opts.PoolCapacity;
             
             // node config
             NodeConfig = new NodeConfig
             {
                 IsMiner = IsMiner,
                 FullNode = true,
-                ChainId = ChainId
+                Coinbase = Coinbase
             };
 
         }
