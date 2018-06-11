@@ -96,7 +96,6 @@ namespace AElf.Kernel.Concurrency.Metadata
                 //just add foreign resource into set because local resources are already recursively analyzed
                 if (locationReplacement.Equals(Replacement.This))
                 {
-                    //TODO: Need to add local function call's resource
                     var replacedCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, Replacement.This,
                         contractAddr.Value.ToBase64());
                     if (!localMetadataMap.TryGetValue(replacedCalledFunc, out var localCalledFuncMetadata))
@@ -120,7 +119,6 @@ namespace AElf.Kernel.Concurrency.Metadata
                     resourceSet.UnionWith(metadataOfCalledFunc.FullResourceSet);
                     callingSet.Add(replacedCalledFunc);
                 }
-                //TODO: do we still need local function that called recorded in the calling set?
             }
             
             var metadata = new FunctionMetadata(callingSet, resourceSet, localResourceSet);
