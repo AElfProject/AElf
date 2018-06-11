@@ -29,7 +29,7 @@ namespace AElf.Cryptography
 
         private List<OpenAccount> _openAccounts;
         
-        private TimeSpan _defaultAccountTimeout = TimeSpan.FromSeconds(10);
+        private TimeSpan _defaultAccountTimeout = TimeSpan.FromMinutes(2);
         
         public AElfKeyStore(string dataDirectory)
         {
@@ -43,11 +43,17 @@ namespace AElf.Cryptography
             
             
             OpenAccount acc = new OpenAccount();
+            acc.KeyPair = kp;
             
             Timer t = new Timer(RemoveAccount, acc, _defaultAccountTimeout, _defaultAccountTimeout);
             acc.Timer = t;
             
             _openAccounts.Add(acc);
+        }
+
+        public ECKeyPair GetAccountKeyPair(string address)
+        {
+            return _openAccounts.FirstOrDefault(oa => oa.Address.Equals(address))?.KeyPair;
         }
 
         private void RemoveAccount(object accObj)
@@ -128,7 +134,7 @@ namespace AElf.Cryptography
             string fullPath = null;
             try
             {
-                var address = keyPair.GetHexaAddress();
+                var address = keyPair.GetBase64Address();
                 fullPath = GetKeyFileFullPath(address);
             }
             catch (Exception e)

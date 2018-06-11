@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Kernel.Node.RPC.DTO;
+using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
 using AElf.Node.RPC.DTO;
 using Microsoft.AspNetCore.Builder;
@@ -230,15 +231,22 @@ namespace AElf.Kernel.Node.RPC
 
         private async Task<JObject> ProcessBroadcastTx(JObject reqParams)
         {
-            var raw = reqParams["tx"].First;
-            var tx = raw.ToTransaction();
+            string raw64 = reqParams["rawtx"].ToString();
 
-            var res = await _node.BroadcastTransaction(tx);
+            byte[] b = Convert.FromBase64String(raw64);
+            Transaction t = Transaction.Parser.ParseFrom(b);
 
-            var jobj = new JObject();
+            bool correct = t.VerifySignature();
+
+            //var tx = raw.ToTransaction();
+
+            var res = await _node.BroadcastTransaction(t);
+
+            /*var jobj = new JObject();
             jobj.Add("txId", tx.GetHash().Value.ToBase64());
             jobj.Add("status", res);
-            return jobj;
+            return jobj;*/
+            return null;
         }
 
         /// <summary>

@@ -34,12 +34,12 @@ namespace AElf.Cryptography.ECDSA
 
         public byte[] GetAddress()
         {
-            return this.GetEncodedPublicKey().Take(10).ToArray();
+            return this.GetEncodedPublicKey().Take(18).ToArray();
         }
 
-        public string GetHexaAddress()
+        public string GetBase64Address()
         {
-            return BitConverter.ToString(this.GetAddress()).Replace("-","");
+            return Convert.ToBase64String(GetAddress());
         }
     }
 }
