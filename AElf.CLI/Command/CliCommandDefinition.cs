@@ -27,7 +27,7 @@ namespace AElf.CLI.Command
 
         public abstract string Validate(CmdParseResult parsedCommand);
 
-        public virtual string GetPrintString(string resp)
+        public virtual string GetPrintString(JObject resp)
         {
             return string.Empty;
         }

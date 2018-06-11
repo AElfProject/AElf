@@ -89,11 +89,12 @@ namespace AElf.CLI
                 else
                 {
                     // RPC
-                    JObject req = def.BuildRequest(parsedCmd);
                     HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
                     string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
+                    
+                    JObject jObj = JObject.Parse(resp);
 
-                    string toPrint = def.GetPrintString(resp);
+                    string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
                     _screenManager.PrintLine(toPrint);
                 }
             }

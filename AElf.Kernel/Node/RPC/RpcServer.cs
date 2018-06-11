@@ -24,7 +24,8 @@ namespace AElf.Kernel.Node.RPC
         private const string InsertTxMethodName = "insert_tx";
         private const string BroadcastTxMethodName = "broadcast_tx";
         private const string GetPeersMethodName = "get_peers";
-
+        private const string GetIncrementIdMethodName = "get_increment";
+        
         private const string GetCommandsMethodName = "get_commands";
         
         /// <summary>
@@ -37,7 +38,8 @@ namespace AElf.Kernel.Node.RPC
             InsertTxMethodName,
             BroadcastTxMethodName,
             GetPeersMethodName,
-            GetCommandsMethodName
+            GetCommandsMethodName,
+            GetIncrementIdMethodName
         };
         
         /// <summary>
@@ -193,6 +195,9 @@ namespace AElf.Kernel.Node.RPC
                        case GetCommandsMethodName:
                            responseData = ProcessGetCommands();
                            break;
+                       case GetIncrementIdMethodName:
+                           responseData = await ProcessGetIncrementId(reqParams);
+                           break;
                        default:
                            Console.WriteLine("Method name not found"); // todo log
                            break;
@@ -211,6 +216,16 @@ namespace AElf.Kernel.Node.RPC
             {
                 Console.WriteLine(e);
             }
+        }
+
+        private async Task<JObject> ProcessGetIncrementId(JObject reqParams)
+        {
+            string adr = reqParams["address"].ToString();
+            int current = await _node.GetCurrentIncrementId(adr);
+            
+            JObject j = new JObject { ["increment"] = current };
+            
+            return JObject.FromObject(j);
         }
 
         private async Task<JObject> ProcessBroadcastTx(JObject reqParams)

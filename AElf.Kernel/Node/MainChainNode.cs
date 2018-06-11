@@ -125,5 +125,10 @@ namespace AElf.Kernel.Node
         {
             return _protocolDirector.GetPeers(numPeers);
         }
+
+        public async Task<int> GetCurrentIncrementId(string adr)
+        {
+            return await Task.FromResult(1);
+        }
     }
 }

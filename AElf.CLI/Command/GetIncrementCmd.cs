@@ -37,10 +37,9 @@ namespace AElf.CLI.Command
             return req;
         }
         
-        public override string GetPrintString(string resp)
+        public override string GetPrintString(JObject resp)
         {
-            JObject respJson = JObject.Parse(resp);
-            string increment = respJson["increment"].ToString();
+            string increment = resp["increment"].ToString();
             return increment;
         }
     }

@@ -44,16 +44,14 @@ namespace AElf.CLI.Command
             return null;
         }
         
-        public override string GetPrintString(string resp)
+        public override string GetPrintString(JObject resp)
         {
             StringBuilder strBuilder = new StringBuilder();
             strBuilder.AppendLine("-- List of connected peers on the node");
             
             try
             {
-                JObject respJson = JObject.Parse(resp);
-            
-                var peersList = respJson["result"]["data"];
+                var peersList = resp["data"];
 
                 foreach (var p in peersList.Children())
                 {
