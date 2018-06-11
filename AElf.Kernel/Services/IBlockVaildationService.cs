@@ -1,9 +1,10 @@
 ﻿using System.Threading.Tasks;
+using AElf.Kernel.BlockValidationFilters;
 
 namespace AElf.Kernel.Services
 {
     public interface IBlockVaildationService
     {
-        Task<bool> ValidateBlockAsync(IBlock block, IChainContext context);
+        Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context);
     }
 }
