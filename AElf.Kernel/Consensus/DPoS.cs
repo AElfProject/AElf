@@ -46,6 +46,8 @@ namespace AElf.Kernel.Consensus
             
             return this;
         }
+        
+        #region Rounds count
 
         public async Task SetRoundsCount()
         {
@@ -60,6 +62,17 @@ namespace AElf.Kernel.Consensus
             var count = UInt64Value.Parser.ParseFrom(await _roundsCount.GetAsync(Hash.Zero));
             return count;
         }
+        
+        #endregion
+
+        #region Mining nodes
+
+        public async Task<MiningNodes> GetMiningNodes()
+        {
+            return MiningNodes.Parser.ParseFrom(await _miningNodes.GetAsync(Hash.Zero));
+        }
+
+        #endregion
         
         private void Check()
         {

@@ -59,7 +59,7 @@ namespace AElf.Contracts.DPoS
             return nodes;
         }
         
-        public async Task<object> GetMiningNodes(Hash foo)
+        public async Task<object> GetMiningNodes()
         {
             // Should be set before
             var miningNodes = Kernel.MiningNodes.Parser.ParseFrom(

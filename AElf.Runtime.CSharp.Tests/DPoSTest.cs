@@ -54,15 +54,7 @@ namespace AElf.Runtime.CSharp.Tests
                 From = Hash.Zero,
                 To = Hash.Zero,
                 MethodName = "GetMiningNodes",
-                Params = ByteString.CopyFrom(new Parameters()
-                {
-                    Params = {
-                        new Param
-                        {
-                            HashVal = Hash.Zero
-                        }
-                    }
-                }.ToByteArray())
+                Params = ByteString.CopyFrom(new Parameters().ToByteArray())
             };
 
             var miningNodes = new TransactionContext
