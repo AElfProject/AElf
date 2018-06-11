@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -70,6 +71,17 @@ namespace AElf.Kernel.Consensus
         public async Task<MiningNodes> GetMiningNodes()
         {
             return MiningNodes.Parser.ParseFrom(await _miningNodes.GetAsync(Hash.Zero));
+        }
+
+        #endregion
+
+        #region Time slots
+
+        public async Task<Timestamp> GetTimeSlot(Hash accountHash)
+        {
+            var roundsCount = await GetRoundsCount();
+            var key = accountHash.CalculateHashWith((Hash) roundsCount.CalculateHash());
+            return Timestamp.Parser.ParseFrom(await _timeSlots.GetAsync(key));
         }
 
         #endregion
