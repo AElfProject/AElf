@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Extensions;
 
 namespace AElf.Kernel.TxMemPool
 {
@@ -22,7 +24,7 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         public static ValidationError ValidateTx(this ITxPool pool, ITransaction tx)
         {
-            if (tx.From == Hash.Default || tx.MethodName == "" || Parameters.Parser.ParseFrom(tx.Params).Params.Count == 0 
+            if (tx.From == Hash.Zero || tx.MethodName == "" || Parameters.Parser.ParseFrom(tx.Params).Params.Count == 0 
                 || tx.IncrementId < 0)
             {
                 // TODO: log errors
@@ -66,27 +68,21 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        public static bool VerifySignature(this ITransaction txo)
+        public static bool VerifySignature(this ITransaction tx)
         {
-            var tx = ((Transaction) txo).Clone();
             if (tx.P == null)
             {
                 return false;
             }
-            try
-            {
-                byte[] uncompressedPrivKey = tx.P.ToByteArray();
-                ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
-                ECVerifier verifier = new ECVerifier(recipientKeyPair);
-                return verifier.Verify(tx.GetSignature(), tx.GetHash().GetHashBytes());
+            byte[] uncompressedPrivKey = tx.P.ToByteArray();
+            Hash addr = uncompressedPrivKey.CalculateHash().Take(ECKeyPair.AddressLength).ToArray();
 
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-            
+            if (!addr.Equals(tx.From))
+                return false;
+            ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
+            ECVerifier verifier = new ECVerifier(recipientKeyPair);
+            return verifier.Verify(tx.GetSignature(), tx.GetHash().GetHashBytes());
+
         }
 
         
@@ -98,7 +94,7 @@ namespace AElf.Kernel.TxMemPool
         public static bool CheckAccountAddress(this ITransaction tx)
         {
             // TODO: more verifications
-            return tx.From.Value.Length == 32 && (tx.To == null || tx.To.Value.Length == 32);
+            return tx.From.Value.Length == ECKeyPair.AddressLength && (tx.To == null || tx.To.Value.Length == ECKeyPair.AddressLength);
         }
         
        

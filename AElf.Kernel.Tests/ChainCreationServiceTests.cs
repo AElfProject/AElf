@@ -21,7 +21,7 @@ namespace AElf.Kernel.Tests
         public async Task Test()
         {
             // TODO: *** Contract Issues ***
-            await _service.CreateNewChainAsync("Hello".CalculateHash(), null);
+            await _service.CreateNewChainAsync("Hello".CalculateHash(), new SmartContractRegistration());
         }
     }
 }

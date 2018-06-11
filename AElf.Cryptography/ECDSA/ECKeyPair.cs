@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 
@@ -8,9 +9,11 @@ namespace AElf.Cryptography.ECDSA
 {
     public class ECKeyPair
     {
+        public static int AddressLength { get; } = 18;
+        
         public ECPrivateKeyParameters PrivateKey { get; private set; }
         public ECPublicKeyParameters PublicKey { get; private set; }
-
+        
         public ECKeyPair(ECPrivateKeyParameters privateKey, ECPublicKeyParameters publicKey)
         {
             PublicKey = publicKey;
@@ -34,7 +37,7 @@ namespace AElf.Cryptography.ECDSA
 
         public byte[] GetAddress()
         {
-            return this.GetEncodedPublicKey().Take(18).ToArray();
+            return this.GetEncodedPublicKey().Take(AddressLength).ToArray();
         }
 
         public string GetBase64Address()

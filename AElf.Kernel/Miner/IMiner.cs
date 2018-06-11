@@ -6,7 +6,8 @@ namespace AElf.Kernel.Miner
     {
         void Start();
         void Stop();
-        
+
+        Hash Coinbase { get; }
         /// <summary>
         /// mining functionality
         /// </summary>

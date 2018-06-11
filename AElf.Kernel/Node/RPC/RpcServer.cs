@@ -260,14 +260,9 @@ namespace AElf.Kernel.Node.RPC
             byte[] txid = reqParams["txid"].ToObject<byte[]>();
             ITransaction tx = await _node.GetTransaction(txid);
 
-            if (tx == null)
-            {
-                // todo tx not found
-            }
+            var txInfo = tx == null ? new JObject{["tx"] = "Not Found"} : tx.GetTransactionInfo();
             
-            TransactionDto txDto = tx.ToTransactionDto();
-            
-            return JObject.FromObject(txDto);
+            return txInfo;
         }
         
         private async Task<JObject> ProcessInsertTx(JObject reqParams)
