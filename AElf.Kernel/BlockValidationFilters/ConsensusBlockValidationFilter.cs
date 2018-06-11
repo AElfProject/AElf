@@ -10,39 +10,36 @@ namespace AElf.Kernel.BlockValidationFilters
 {
     public class ConsensusBlockValidationFilter: IBlockValidationFilter
     {
-        public async Task<bool> ValidateBlockAsync(IBlock block, IChainContext context)
+        public Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context)
         {
-            // block height
-            if (block.Header.Index != context.BlockHeight)
-                return false;
-
-            // previous block hash
-            if (!block.Header.PreviousBlockHash.Equals(context.BlockHash))
-                return false;
-            
+           
             // block signature
             var pubkey = block.Header.P.ToBase64();
             if (!MinersInfo.Instance.Producers.TryGetValue(pubkey, out var dict))
             {
-                return false;
+                return Task.FromResult(ValidationError.InvalidBlcok);
             }
             
             byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
             Hash addr = uncompressedPrivKey.CalculateHash().Take(ECKeyPair.AddressLength).ToArray();
 
             if (!addr.Equals(new Hash(ByteString.FromBase64(dict["coinbase"]))))
-                return false;
+                return Task.FromResult(ValidationError.InvalidBlcok);
+            
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
             if (!verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().GetHashBytes()))
-                return false;
+            {
+                // verification failed
+                return Task.FromResult(ValidationError.InvalidBlcok);
+            }
             
-            // todo: verify the identity of producer
+            // todo: verify period for this producer
             var timestamp = block.Header.Time;
             
             var h = context.BlockHeight;
 
-            return true;
+            return Task.FromResult(ValidationError.Success);
 
         }
     }
