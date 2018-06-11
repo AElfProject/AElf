@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common.Application;
+using AElf.Cryptography;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
@@ -12,8 +14,6 @@ namespace AElf.Kernel.Miner
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly ITxPoolService _txPoolService;
         private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
-        private readonly IBlockVaildationService _blockVaildationService;
-        private readonly IChainContextService _chainContextService;
         
         
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
@@ -36,15 +36,12 @@ namespace AElf.Kernel.Miner
         public Hash Coinbase => Config.CoinBase;
 
         public Miner(IBlockGenerationService blockGenerationService, IMinerConfig config, 
-            ITxPoolService txPoolService, IParallelTransactionExecutingService parallelTransactionExecutingService, 
-            IBlockVaildationService blockVaildationService, IChainContextService chainContextService)
+            ITxPoolService txPoolService, IParallelTransactionExecutingService parallelTransactionExecutingService)
         {
             _blockGenerationService = blockGenerationService;
             Config = config;
             _txPoolService = txPoolService;
             _parallelTransactionExecutingService = parallelTransactionExecutingService;
-            _blockVaildationService = blockVaildationService;
-            _chainContextService = chainContextService;
         }
 
         
@@ -61,21 +58,12 @@ namespace AElf.Kernel.Miner
             // generate block
             var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);
             
-            
             // reset Promotable and update account context
             await _txPoolService.ResetAndUpdate(results);
 
             return block;
         }
 
-        
-        public async Task SynchronizeBlock(IBlock block)
-        {
-            var context = await _chainContextService.GetChainContextAsync(Config.ChainId);
-            await _blockVaildationService.ValidateBlockAsync(block, context);
-        }
-        
-        
         
         /// <summary>
         /// start mining  
