@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using AElf.CLI.Parsing;
+using AElf.CLI.RPC;
 using Newtonsoft.Json.Linq;
 
 namespace AElf.CLI.Command
@@ -24,26 +25,18 @@ namespace AElf.CLI.Command
             throw new System.NotImplementedException();
         }
 
-        public override JObject BuildRequestParams(CmdParseResult parsedCommand)
+        public override JObject BuildRequest(CmdParseResult parsedCommand)
         {
             JObject reqParams;
             
             if (parsedCommand.Args == null || parsedCommand.Args.Count <= 0)
-            {
-                 reqParams = new JObject
-                {
-                    ["numPeers"] = null
-                };
-            }
+                 reqParams = new JObject { ["numPeers"] = null };
             else
-            {
-                reqParams = new JObject
-                {
-                    ["numPeers"] = parsedCommand.Args.ElementAt(0)
-                };
-            }
+                reqParams = new JObject { ["numPeers"] = parsedCommand.Args.ElementAt(0) };
+
+            var req = JsonRpcHelpers.CreateRequest(reqParams, "get_peers", 1);
             
-            return reqParams;
+            return req;
         }
 
         public override string Validate(CmdParseResult parsedCommand)

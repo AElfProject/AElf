@@ -1,6 +1,6 @@
-﻿using System;
-using System.Text;
+﻿using System.Linq;
 using AElf.CLI.Parsing;
+using AElf.CLI.RPC;
 using Newtonsoft.Json.Linq;
 
 namespace AElf.CLI.Command
@@ -27,6 +27,14 @@ namespace AElf.CLI.Command
                 return "not enough arguments";
 
             return null;
+        }
+        
+        public override JObject BuildRequest(CmdParseResult parsedCommand)
+        {
+            var reqParams = new JObject { ["address"] = parsedCommand.Args.ElementAt(0) };
+            var req = JsonRpcHelpers.CreateRequest(reqParams, "get_increment", 1);
+
+            return req;
         }
         
         public override string GetPrintString(string resp)

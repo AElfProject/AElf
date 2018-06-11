@@ -89,9 +89,9 @@ namespace AElf.CLI
                 else
                 {
                     // RPC
-                    JObject req = def.BuildRequestParams(parsedCmd);
+                    JObject req = def.BuildRequest(parsedCmd);
                     HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
-                    string resp = reqhttp.DoRequest(JsonRpcHelpers.CreateRequest(req, "get_peers", 1).ToString());
+                    string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
 
                     string toPrint = def.GetPrintString(resp);
                     _screenManager.PrintLine(toPrint);
