@@ -1,6 +1,7 @@
 ﻿using System;
 using AElf.Kernel.Services;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public class SmartContractContext : ISmartContractContext

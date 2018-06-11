@@ -34,7 +34,7 @@ namespace AElf.Runtime.CSharp.Tests
         [Fact]
         public async Task GetMiningNodesTest()
         {
-/*            var setMiningNodes = new Transaction
+            var setMiningNodes = new Transaction
             {
                 From = Hash.Zero,
                 To = Hash.Zero,
@@ -48,7 +48,7 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = setMiningNodes
             }).Apply();
-            */
+            
             var getMiningNodes = new Transaction
             {
                 From = Hash.Zero,

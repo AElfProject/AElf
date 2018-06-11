@@ -78,17 +78,17 @@ namespace AElf.Contracts.DPoS
             return miningNodes;
         }
 
-//        public async Task<object> SetMiningNodes(MiningNodes miningNodes)
-//        {
-//            if (miningNodes.Nodes.Count < 1)
-//            {
-//                throw new InvalidOperationException("Cannot find mining nodes in related config file.");
-//            }
-//
-//            await MiningNodes.SetValueAsync(Hash.Zero, miningNodes.ToByteArray());
-//
-//            return null;
-//        }
+        public async Task<object> SetMiningNodes(MiningNodes miningNodes)
+        {
+            if (miningNodes.Nodes.Count < 1)
+            {
+                throw new InvalidOperationException("Cannot find mining nodes in related config file.");
+            }
+
+            await MiningNodes.SetValueAsync(Hash.Zero, miningNodes.ToByteArray());
+
+            return null;
+        }
 
         public async Task<object> RandomizeOrderForFirstTwoRounds()
         {
@@ -147,6 +147,11 @@ namespace AElf.Contracts.DPoS
             }
 
             return null;
+        }
+
+        public async Task<object> GenerateNextRoundOrder()
+        {
+            
         }
 
         public async Task<object> GetTimeSlot(Hash accountHash)
@@ -221,8 +226,10 @@ namespace AElf.Contracts.DPoS
             throw new NotImplementedException();
         }
 
-        public async Task<object> SetOutValue(Hash accountHash, Hash outValue)
+        public async Task<object> PublishOutValue(Hash outValue)
         {
+            var accountHash = Api.GetTransaction().From;
+            
             var roundsCount = (UInt64Value) await GetRoundsCount();
             Hash key = accountHash.CalculateHashWith(roundsCount);
             await Outs.SetValueAsync(key, outValue.ToByteArray());
@@ -240,6 +247,20 @@ namespace AElf.Contracts.DPoS
                 return false;
 
             await Ins.SetValueAsync(key, inValue.ToByteArray());
+
+            return true;
+        }
+        
+        public async Task<object> PublishSignature(Hash accountHash, Hash signature)
+        {
+            var roundsCount = (UInt64Value) await GetRoundsCount();
+            var key = accountHash.CalculateHashWith((Hash) roundsCount.CalculateHash());
+            var timeSlot = await TimeSlots.GetValue(key);
+
+            if (!CompareBytes(GetTime(-MiningTime), timeSlot)) 
+                return false;
+
+            await Signatures.SetValueAsync(key, signature.ToByteArray());
 
             return true;
         }
