@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
@@ -299,6 +300,7 @@ namespace AElf.Kernel.TxMemPool
                 return _txPool.GetPendingIncrementId(addr);
             }
         }
+
     }
     
     /// <inheritdoc />

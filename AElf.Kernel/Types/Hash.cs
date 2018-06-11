@@ -17,7 +17,7 @@ namespace AElf.Kernel
         
         public Hash ToAccount()
         {
-            return new Hash(Value.Take(ECKeyPair.AddressLength).ToArray());
+            return Value.Take(ECKeyPair.AddressLength).ToArray();
         }
         
         public static readonly Hash Zero = new Hash("AElf".CalculateHash());
@@ -70,6 +70,11 @@ namespace AElf.Kernel
         }
         
         public static implicit operator Hash(byte[] value)
+        {
+            return value == null ? Zero : new Hash(value);
+        }
+        
+        public static implicit operator Hash(ByteString value)
         {
             return value == null ? Zero : new Hash(value);
         }
