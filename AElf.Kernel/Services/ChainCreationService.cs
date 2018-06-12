@@ -31,7 +31,7 @@ namespace AElf.Kernel.Services
             var contractAddress = chainId.CalculateHashWith("__SmartContractZero__");
             await _smartContractService.DeployContractAsync(contractAddress, smartContractRegistration);
             var builder = new GenesisBlockBuilder();
-            builder.Build();
+            builder.Build(chainId);
 
             // add block to storage
             await _blockManager.AddBlockAsync(builder.Block);
@@ -40,7 +40,7 @@ namespace AElf.Kernel.Services
             await _chainManager.SetChainCurrentHeight(chainId, 0);
             await _chainManager.SetChainLastBlockHash(chainId, builder.Block.GetHash());
             var chain = await _chainManager.AddChainAsync(chainId, builder.Block.GetHash());
-            await _chainManager.AppendBlockToChainAsync(chainId, builder.Block);
+            await _chainManager.AppendBlockToChainAsync(builder.Block);
             return chain;
         }
     }

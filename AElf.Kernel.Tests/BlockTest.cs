@@ -56,11 +56,11 @@ namespace AElf.Kernel.Tests
        [Fact]
         public void GenesisBlockBuilderTest()
         {
-            var builder = new GenesisBlockBuilder().Build();
+            var builder = new GenesisBlockBuilder().Build(Hash.Generate());
             var genesisBlock = builder.Block;
             //var txs = builder.Txs;
             Assert.NotNull(genesisBlock);
-            Assert.Equal(genesisBlock.Header.PreviousHash, Hash.Zero);
+            Assert.Equal(genesisBlock.Header.PreviousBlockHash, Hash.Zero);
             //Assert.NotNull(txs);
         }
 
@@ -69,13 +69,13 @@ namespace AElf.Kernel.Tests
         {
             var chain = await CreateChain();
 
-            var block = CreateBlock(chain.GenesisBlockHash);
+            var block = CreateBlock(chain.GenesisBlockHash, chain.Id);
             await _blockManager.AddBlockAsync(block);
             var b = await _blockManager.GetBlockAsync(block.GetHash());
             Assert.Equal(b, block);
         }
         
-        private Block CreateBlock(Hash preBlockHash = null)
+        private Block CreateBlock(Hash preBlockHash, Hash chainId)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             
@@ -85,7 +85,8 @@ namespace AElf.Kernel.Tests
             block.AddTransaction(Hash.Generate());
             block.AddTransaction(Hash.Generate());
             block.FillTxsMerkleTreeRootInHeader();
-            block.Header.PreviousHash = preBlockHash;
+            block.Header.PreviousBlockHash = preBlockHash;
+            block.Header.ChainId = chainId;
             return block;
         }
         
