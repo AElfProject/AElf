@@ -83,18 +83,17 @@ namespace AElf.Kernel {
             "c3NNb2RlGAIgASgOMg8uRGF0YUFjY2Vzc01vZGUiigEKEEZ1bmN0aW9uTWV0",
             "YWRhdGESGwoTU2VyaWFsaXplQ2FsbGluZ1NldBgBIAMoCRIrChhTZXJpYWxp",
             "emVGdWxsUmVzb3VyY2VTZXQYAiADKAsyCS5SZXNvdXJjZRIsChlTZXJpYWxp",
-            "emVMb2NhbFJlc291cmNlU2V0GAMgAygLMgkuUmVzb3VyY2UiwgEKHFNlcmlh",
-            "bGl6ZUZ1bmN0aW9uTWV0YWRhdGFNYXASUwoTRnVuY3Rpb25NZXRhZGF0YU1h",
-            "cBgBIAMoCzI2LlNlcmlhbGl6ZUZ1bmN0aW9uTWV0YWRhdGFNYXAuRnVuY3Rp",
-            "b25NZXRhZGF0YU1hcEVudHJ5Gk0KGEZ1bmN0aW9uTWV0YWRhdGFNYXBFbnRy",
-            "eRILCgNrZXkYASABKAkSIAoFdmFsdWUYAiABKAsyES5GdW5jdGlvbk1ldGFk",
-            "YXRhOgI4ASIuChFDYWxsaW5nR3JhcGhFZGdlcxIZCgVFZGdlcxgBIAMoCzIK",
-            "LkdyYXBoRWRnZSIrCglHcmFwaEVkZ2USDgoGU291cmNlGAEgASgJEg4KBlRh",
-            "cmdldBgCIAEoCSo8CgZTdGF0dXMSDgoKTm90RXhpc3RlZBAAEgsKB1BlbmRp",
-            "bmcQARIKCgZGYWlsZWQQAhIJCgVNaW5lZBADKl4KDkRhdGFBY2Nlc3NNb2Rl",
-            "EhoKFlJlYWRPbmx5QWNjb3VudFNoYXJpbmcQABIbChdSZWFkV3JpdGVBY2Nv",
-            "dW50U2hhcmluZxABEhMKD0FjY291bnRTcGVjaWZpYxACQg6qAgtBRWxmLktl",
-            "cm5lbGIGcHJvdG8z"));
+            "emVMb2NhbFJlc291cmNlU2V0GAMgAygLMgkuUmVzb3VyY2UiqgEKHFNlcmlh",
+            "bGl6ZUZ1bmN0aW9uTWV0YWRhdGFNYXASQwoLTWV0YWRhdGFNYXAYASADKAsy",
+            "Li5TZXJpYWxpemVGdW5jdGlvbk1ldGFkYXRhTWFwLk1ldGFkYXRhTWFwRW50",
+            "cnkaRQoQTWV0YWRhdGFNYXBFbnRyeRILCgNrZXkYASABKAkSIAoFdmFsdWUY",
+            "AiABKAsyES5GdW5jdGlvbk1ldGFkYXRhOgI4ASIuChFDYWxsaW5nR3JhcGhF",
+            "ZGdlcxIZCgVFZGdlcxgBIAMoCzIKLkdyYXBoRWRnZSIrCglHcmFwaEVkZ2US",
+            "DgoGU291cmNlGAEgASgJEg4KBlRhcmdldBgCIAEoCSo8CgZTdGF0dXMSDgoK",
+            "Tm90RXhpc3RlZBAAEgsKB1BlbmRpbmcQARIKCgZGYWlsZWQQAhIJCgVNaW5l",
+            "ZBADKl4KDkRhdGFBY2Nlc3NNb2RlEhoKFlJlYWRPbmx5QWNjb3VudFNoYXJp",
+            "bmcQABIbChdSZWFkV3JpdGVBY2NvdW50U2hhcmluZxABEhMKD0FjY291bnRT",
+            "cGVjaWZpYxACQg6qAgtBRWxmLktlcm5lbGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.AnyReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), typeof(global::AElf.Kernel.DataAccessMode), }, new pbr::GeneratedClrTypeInfo[] {
@@ -121,7 +120,7 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.FunctionMetadataTemplate), global::AElf.Kernel.FunctionMetadataTemplate.Parser, new[]{ "SerializeCallingSet", "SerializeLocalResourceSet" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Resource), global::AElf.Kernel.Resource.Parser, new[]{ "Name", "DataAccessMode" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.FunctionMetadata), global::AElf.Kernel.FunctionMetadata.Parser, new[]{ "SerializeCallingSet", "SerializeFullResourceSet", "SerializeLocalResourceSet" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SerializeFunctionMetadataMap), global::AElf.Kernel.SerializeFunctionMetadataMap.Parser, new[]{ "FunctionMetadataMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SerializeFunctionMetadataMap), global::AElf.Kernel.SerializeFunctionMetadataMap.Parser, new[]{ "MetadataMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.CallingGraphEdges), global::AElf.Kernel.CallingGraphEdges.Parser, new[]{ "Edges" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.GraphEdge), global::AElf.Kernel.GraphEdge.Parser, new[]{ "Source", "Target" }, null, null, null)
           }));
@@ -4675,7 +4674,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public SerializeFunctionMetadataMap(SerializeFunctionMetadataMap other) : this() {
-      functionMetadataMap_ = other.functionMetadataMap_.Clone();
+      metadataMap_ = other.metadataMap_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -4684,14 +4683,14 @@ namespace AElf.Kernel {
       return new SerializeFunctionMetadataMap(this);
     }
 
-    /// <summary>Field number for the "FunctionMetadataMap" field.</summary>
-    public const int FunctionMetadataMapFieldNumber = 1;
-    private static readonly pbc::MapField<string, global::AElf.Kernel.FunctionMetadata>.Codec _map_functionMetadataMap_codec
+    /// <summary>Field number for the "MetadataMap" field.</summary>
+    public const int MetadataMapFieldNumber = 1;
+    private static readonly pbc::MapField<string, global::AElf.Kernel.FunctionMetadata>.Codec _map_metadataMap_codec
         = new pbc::MapField<string, global::AElf.Kernel.FunctionMetadata>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::AElf.Kernel.FunctionMetadata.Parser), 10);
-    private readonly pbc::MapField<string, global::AElf.Kernel.FunctionMetadata> functionMetadataMap_ = new pbc::MapField<string, global::AElf.Kernel.FunctionMetadata>();
+    private readonly pbc::MapField<string, global::AElf.Kernel.FunctionMetadata> metadataMap_ = new pbc::MapField<string, global::AElf.Kernel.FunctionMetadata>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::MapField<string, global::AElf.Kernel.FunctionMetadata> FunctionMetadataMap {
-      get { return functionMetadataMap_; }
+    public pbc::MapField<string, global::AElf.Kernel.FunctionMetadata> MetadataMap {
+      get { return metadataMap_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4707,14 +4706,14 @@ namespace AElf.Kernel {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (!FunctionMetadataMap.Equals(other.FunctionMetadataMap)) return false;
+      if (!MetadataMap.Equals(other.MetadataMap)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      hash ^= FunctionMetadataMap.GetHashCode();
+      hash ^= MetadataMap.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -4728,7 +4727,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      functionMetadataMap_.WriteTo(output, _map_functionMetadataMap_codec);
+      metadataMap_.WriteTo(output, _map_metadataMap_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -4737,7 +4736,7 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      size += functionMetadataMap_.CalculateSize(_map_functionMetadataMap_codec);
+      size += metadataMap_.CalculateSize(_map_metadataMap_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -4749,7 +4748,7 @@ namespace AElf.Kernel {
       if (other == null) {
         return;
       }
-      functionMetadataMap_.Add(other.functionMetadataMap_);
+      metadataMap_.Add(other.metadataMap_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -4762,7 +4761,7 @@ namespace AElf.Kernel {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
-            functionMetadataMap_.AddEntriesFrom(input, _map_functionMetadataMap_codec);
+            metadataMap_.AddEntriesFrom(input, _map_metadataMap_codec);
             break;
           }
         }

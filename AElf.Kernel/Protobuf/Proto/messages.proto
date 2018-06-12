@@ -168,7 +168,7 @@ message FunctionMetadata {
 }
 
 message SerializeFunctionMetadataMap {
-    map<string, FunctionMetadata> FunctionMetadataMap = 1;
+    map<string, FunctionMetadata> MetadataMap = 1;
 }
 
 message CallingGraphEdges {
