@@ -26,6 +26,9 @@ namespace AElf.CLI
             RegisterAccountCommands(program);
             RegisterNetworkCommands(program);
             
+            program.RegisterCommand(new GetIncrementCmd());
+            program.RegisterCommand(new SendTransactionCmd());
+            
             // Start the CLI
             program.StartRepl();
         }

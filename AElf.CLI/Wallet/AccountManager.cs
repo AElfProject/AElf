@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using AElf.CLI.Command;
 using AElf.CLI.Command.Account;
+using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
 using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
+using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Asn1;
+using ProtoBuf;
 
 namespace AElf.CLI.Wallet
 {
@@ -63,6 +69,47 @@ namespace AElf.CLI.Wallet
             {
                 _screenManager.PrintLine("account #" + i + " : " + accnts.ElementAt(i));
             }
+        }
+
+        public Transaction SignTransaction(JObject t)
+        {
+            Transaction tr = new Transaction();
+
+            string addr = t["from"].ToString();
+            
+            //UnlockAccount(addr);
+            ECKeyPair kp = _keyStore.GetAccountKeyPair(addr);
+
+            try
+            {
+                tr.From = Convert.FromBase64String(addr);
+                tr.To = Convert.FromBase64String(t["to"].ToString());
+                tr.IncrementId = t["incr"].ToObject<ulong>();
+                
+                MemoryStream ms = new MemoryStream();
+                Serializer.Serialize(ms, tr);
+    
+                byte[] b = ms.ToArray();
+                byte[] toSig = SHA256.Create().ComputeHash(b);
+                
+                // Sign the hash
+                ECSigner signer = new ECSigner();
+                ECSignature signature = signer.Sign(kp, toSig);
+                
+                // Update the signature
+                tr.R = signature.R;
+                tr.S = signature.S;
+                
+                tr.P = kp.PublicKey.Q.GetEncoded();
+
+                return tr;
+            }
+            catch (Exception e)
+            {
+                ;
+            }
+            
+            return null;
         }
     }
 }
