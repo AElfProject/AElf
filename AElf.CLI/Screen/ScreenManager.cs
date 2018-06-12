@@ -38,10 +38,13 @@ namespace AElf.CLI.Screen
         {
             string command = "";
             
-            Console.Write(CliPrefix);
-            
             while (true)
             {
+                if (string.IsNullOrWhiteSpace(command) && Console.CursorLeft <= CliPrefix.Length - 1)
+                {
+                    Console.Write(CliPrefix);
+                }
+                
                 ConsoleKeyInfo keyInfo = Console.ReadKey();
                 switch (keyInfo.Key)
                 {
@@ -86,24 +89,50 @@ namespace AElf.CLI.Screen
                         }
 
                         break;
+                    
+                    case ConsoleKey.LeftArrow:
+                        if (Console.CursorLeft > CliPrefix.Length)
+                        {
+                            Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                        }
+                        
+                        break;
+ 
+                    case ConsoleKey.RightArrow:
+                        if (Console.CursorLeft < Console.BufferWidth)
+                        {
+                            Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
+                        }
+                        
+                        break;
 
                     case ConsoleKey.Backspace:
-                        if (Console.CursorLeft > CliPrefix.Length - 1)
+                        if (!string.IsNullOrWhiteSpace(command))
                         {
-                            Console.Write(new string(' ', 1));
-                            Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
-                            command = command.Remove(command.Length - 1, 1);
+                            if (Console.CursorLeft > CliPrefix.Length - 1)
+                            {
+                                Console.SetCursorPosition(Console.CursorLeft - 2, Console.CursorTop);
+                                Console.Write(" ");
+                                Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                                command = command.Remove(command.Length - 1, 1);
+                            }
+                            else
+                            {
+                                Console.SetCursorPosition(CliPrefix.Length, Console.CursorTop);
+                            }
                         }
                         else
                         {
-                            Console.SetCursorPosition(CliPrefix.Length, Console.CursorTop);
+                            Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
                         }
 
                         break;
                     
                     case ConsoleKey.Enter:
-                        if (!string.IsNullOrWhiteSpace(command))
-                            CommandHistory.Add(command);
+                        if (string.IsNullOrWhiteSpace(command))
+                            continue;
+                        
+                        CommandHistory.Add(command);
                         return command;
                     
                     default:
