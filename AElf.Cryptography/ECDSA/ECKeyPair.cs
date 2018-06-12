@@ -11,7 +11,7 @@ namespace AElf.Cryptography.ECDSA
     {
         public ECPrivateKeyParameters PrivateKey { get; private set; }
         public ECPublicKeyParameters PublicKey { get; private set; }
-        public static int AddressLength { get; } = 16;
+        public static int AddressLength { get; } = 18;
         
         public ECKeyPair(ECPrivateKeyParameters privateKey, ECPublicKeyParameters publicKey)
         {
@@ -36,7 +36,7 @@ namespace AElf.Cryptography.ECDSA
 
         public byte[] GetAddress()
         {
-            return SHA256.Create().ComputeHash(GetEncodedPublicKey()).Take(AddressLength).ToArray();
+            return GetEncodedPublicKey().Take(AddressLength).ToArray();
         }
 
         public string GetHexaAddress()

@@ -1,6 +1,4 @@
-﻿using AElf.Kernel.Extensions;
-
-namespace AElf.Kernel
+﻿namespace AElf.Kernel
 {
     public partial class Block : IBlock
     {

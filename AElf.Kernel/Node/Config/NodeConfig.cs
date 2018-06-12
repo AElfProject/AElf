@@ -5,5 +5,6 @@
         public bool FullNode { get; set; }
         public bool IsMiner { get; set; }
         public Hash ChainId { get; set; }
+        public Hash Coinbase { get; set; }
     }
 }

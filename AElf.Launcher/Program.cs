@@ -79,7 +79,6 @@ namespace AElf.Launcher
             builder.RegisterModule(new DatabaseModule(databaseConf));
             builder.RegisterModule(new NetworkModule(netConf));
             builder.RegisterModule(new RpcServerModule());
-            builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
 
             Hash chainId;
             if (isNewChain)
@@ -113,6 +112,9 @@ namespace AElf.Launcher
             nodeConfig.ChainId = chainId;
             builder.RegisterModule(new MainChainNodeModule(nodeConfig));
 
+            txPoolConf.ChainId = chainId;
+            builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
+            
                           
             IContainer container = null;
             
