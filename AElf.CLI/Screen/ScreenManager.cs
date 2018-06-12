@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Security;
 
@@ -9,6 +11,9 @@ namespace AElf.CLI.Screen
         private const string CliPrefix = "> AElf$ ";
         private const string Usage = "Usage: command_name <param1> <param2> ...";
         private const string Quit = "To Quit: Type 'Quit'";
+        
+        private static readonly List<string> CommandHistory = new List<string>();
+        private static int _chIndex = 0;
         
         public void PrintHeader()
         {
@@ -31,15 +36,89 @@ namespace AElf.CLI.Screen
 
         public string GetCommand()
         {
-            string command = null;
+            string command = "";
             
-            while (string.IsNullOrWhiteSpace(command))
+            Console.Write(CliPrefix);
+            
+            while (true)
             {
-                Console.Write(CliPrefix);
-                command = Console.ReadLine();
+                ConsoleKeyInfo keyInfo = Console.ReadKey();
+                switch (keyInfo.Key)
+                {
+                    case ConsoleKey.UpArrow:
+                        if (_chIndex == 0)
+                        {
+                            _chIndex = CommandHistory.Count;
+                            command = CommandHistory.ElementAt(_chIndex - 1);
+                            ClearConsoleLine(command);
+                            _chIndex--;
+                        }
+                        else
+                        {
+                            if (_chIndex == 0)
+                            {
+                                _chIndex = 0;
+                                ClearConsoleLine("");
+                                command = "";
+                            }
+                            else
+                            {
+                                command = CommandHistory.ElementAt(_chIndex - 1);
+                                ClearConsoleLine(command);
+                                _chIndex--;
+                            }
+                        }
+
+                        break;
+                    
+                    case ConsoleKey.DownArrow:
+                        if (CommandHistory.Count > _chIndex)
+                        {
+                            command = CommandHistory.ElementAt(_chIndex);
+                            ClearConsoleLine(command);
+                            _chIndex++;
+                        }
+                        else
+                        {
+                            _chIndex = 0;
+                            ClearConsoleLine("");
+                            command = "";
+                        }
+
+                        break;
+
+                    case ConsoleKey.Backspace:
+                        if (Console.CursorLeft > CliPrefix.Length - 1)
+                        {
+                            Console.Write(new string(' ', 1));
+                            Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                            command = command.Remove(command.Length - 1, 1);
+                        }
+                        else
+                        {
+                            Console.SetCursorPosition(CliPrefix.Length, Console.CursorTop);
+                        }
+
+                        break;
+                    
+                    case ConsoleKey.Enter:
+                        if (!string.IsNullOrWhiteSpace(command))
+                            CommandHistory.Add(command);
+                        return command;
+                    
+                    default:
+                        command = command + keyInfo.KeyChar;
+                        break;
+                }
             }
-            
-            return command;
+        }
+        
+        static void ClearConsoleLine(string command)
+        {
+            Console.SetCursorPosition(0, Console.CursorTop);
+            Console.Write(new String(' ', Console.BufferWidth - CliPrefix.Length));
+            Console.SetCursorPosition(0, Console.CursorTop);
+            Console.Write(CliPrefix + command);
         }
 
         public void PrintCommandNotFount(string command)
