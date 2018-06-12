@@ -23,11 +23,11 @@ namespace AElf.Cryptography
         private const string KeyFolderName = "keys";
 
         private const string _algo = "AES-256-CFB";
-        private string _dataDirectory;
+        private readonly string _dataDirectory;
         
         public bool IsOpen { get; private set; }
 
-        private List<OpenAccount> _openAccounts;
+        private readonly List<OpenAccount> _openAccounts;
         
         private TimeSpan _defaultAccountTimeout = TimeSpan.FromMinutes(2);
         
@@ -37,23 +37,32 @@ namespace AElf.Cryptography
             _openAccounts = new List<OpenAccount>();
         }
 
-        public void OpenAsync(string address, string password)
+        internal void OpenAsync(string address, string password, TimeSpan? timeout)
         {
             ECKeyPair kp = ReadKeyPairAsync(address, password);
             
-            
             OpenAccount acc = new OpenAccount();
             acc.KeyPair = kp;
-            
-            Timer t = new Timer(RemoveAccount, acc, _defaultAccountTimeout, _defaultAccountTimeout);
-            acc.Timer = t;
+
+            if (timeout.HasValue)
+            {
+                Timer t = new Timer(RemoveAccount, acc, timeout.Value, timeout.Value);
+                acc.Timer = t;
+            }
             
             _openAccounts.Add(acc);
         }
 
-        public ECKeyPair GetAccountKeyPair(string address)
+        public void OpenAsync(string address, string password, bool withTimeout = true)
         {
-            return _openAccounts.FirstOrDefault(oa => oa.Address.Equals(address))?.KeyPair;
+            if (withTimeout)
+            {
+                OpenAsync(address, password, _defaultAccountTimeout);
+            }
+            else
+            {
+                OpenAsync(address, password, null);
+            }
         }
 
         private void RemoveAccount(object accObj)
@@ -62,6 +71,11 @@ namespace AElf.Cryptography
             {
                 openAccount.Close();
             }
+        }
+        
+        public ECKeyPair GetAccountKeyPair(string address)
+        {
+            return _openAccounts.FirstOrDefault(oa => oa.Address.Equals(address))?.KeyPair;
         }
 
         public ECKeyPair Create(string password)

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Node.RPC.DTO;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
@@ -222,7 +223,7 @@ namespace AElf.Kernel.Node.RPC
         private async Task<JObject> ProcessGetIncrementId(JObject reqParams)
         {
             string adr = reqParams["address"].ToString();
-            int current = await _node.GetCurrentIncrementId(adr);
+            ulong current = await _node.GetIncrementId(new Hash(ByteArrayHelpers.FromHexString(adr)));
             
             JObject j = new JObject { ["increment"] = current };
             

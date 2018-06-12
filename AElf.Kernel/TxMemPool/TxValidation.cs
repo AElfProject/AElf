@@ -75,7 +75,7 @@ namespace AElf.Kernel.TxMemPool
                 return false;
             }
             byte[] uncompressedPrivKey = tx.P.ToByteArray();
-            Hash addr = uncompressedPrivKey.CalculateHash().Take(ECKeyPair.AddressLength).ToArray();
+            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
 
             if (!addr.Equals(tx.From))
                 return false;

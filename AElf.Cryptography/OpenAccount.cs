@@ -9,13 +9,13 @@ namespace AElf.Cryptography
         public Timer Timer { get; set; }
         public ECKeyPair KeyPair { get; set; }
 
+        public OpenAccount()
+        {
+        }
+        
         public string Address
         {
             get { return KeyPair.GetAddressHex(); }
-        }
-
-        public OpenAccount()
-        {
         }
 
         public void Close()

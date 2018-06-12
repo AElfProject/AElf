@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.BlockValidationFilters;
 
 namespace AElf.Kernel.Services
 {
@@ -12,21 +13,23 @@ namespace AElf.Kernel.Services
             _filters = filters;
         }
 
-        public async Task<bool> ValidateBlockAsync(Block block, IChainContext context)
+        public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context)
         {
             foreach (var filter in _filters)
             {
-                if (!await filter.ValidateBlockAsync(block, context))
-                    return false;
+                var error = await filter.ValidateBlockAsync(block, context);
+                if (error != ValidationError.Success)
+                    return error;
             }
 
-            return true;
+            return ValidationError.Success;
         }
+        
 
     }
 
     public interface IBlockValidationFilter
     {
-        Task<bool> ValidateBlockAsync(Block block, IChainContext context);
+        Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context);
     }
 }

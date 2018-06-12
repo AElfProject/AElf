@@ -1,5 +1,8 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common.Application;
+using AElf.Cryptography;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
@@ -12,6 +15,9 @@ namespace AElf.Kernel.Miner
         private readonly ITxPoolService _txPoolService;
         private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
         
+        
+        private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
+
         private MinerLock Lock { get; } = new MinerLock();
         
         /// <summary>
@@ -52,13 +58,13 @@ namespace AElf.Kernel.Miner
             // generate block
             var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);
             
-            
             // reset Promotable and update account context
             await _txPoolService.ResetAndUpdate(results);
 
             return block;
         }
 
+        
         /// <summary>
         /// start mining  
         /// </summary>
