@@ -20,23 +20,27 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         private ParallelTestDataUtil util = new ParallelTestDataUtil();
         
         private IDataStore _templateStore;
+        private Hash _chainId;
+        
 
-        public ChainFunctionMetadataServiceTest(IDataStore templateStore)
+        public ChainFunctionMetadataServiceTest(IDataStore templateStore, Hash chainId)
         {
             _templateStore = templateStore ?? throw new ArgumentNullException(nameof(templateStore));
+            _chainId = chainId;
         }
 
         [Fact]
         public async Task<ChainFunctionMetadataService> TestDeployNewFunction()
         {
-            ChainFunctionMetadataTemplateServiceTest templateTest = new ChainFunctionMetadataTemplateServiceTest(_templateStore);
+            ChainFunctionMetadataTemplateServiceTest templateTest = new ChainFunctionMetadataTemplateServiceTest(_templateStore, _chainId);
             var templateService = await templateTest.TestTryAddNewContractShouldSuccess();
-            ChainFunctionMetadataService cfms = new ChainFunctionMetadataService(templateService);
+            ChainFunctionMetadataService cfms = new ChainFunctionMetadataService(templateService, _templateStore, _chainId);
+            
+            
 
             var addrA = Hash.Generate();
             var addrB = Hash.Generate();
             var addrC = Hash.Generate();
-            
             
             var referenceBookForA = new Dictionary<string, Hash>();
             var referenceBookForB = new Dictionary<string, Hash>();
@@ -231,8 +235,14 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             
             Assert.Equal(util.FunctionMetadataMapToString(groundTruthMap), util.FunctionMetadataMapToString(cfms.FunctionMetadataMap));
 
+            //test restore
+            ChainFunctionMetadataTemplateService retoredTemplateService  = new ChainFunctionMetadataTemplateService(_templateStore, _chainId);
+            ChainFunctionMetadataService newCFMS = new ChainFunctionMetadataService(retoredTemplateService, _templateStore, _chainId);
+            Assert.Equal(util.FunctionMetadataMapToString(cfms.FunctionMetadataMap), util.FunctionMetadataMapToString(newCFMS.FunctionMetadataMap));
+            
             return cfms;
         }
+
         
         [Fact]
         public void TestSetNewFunctionMetadata()

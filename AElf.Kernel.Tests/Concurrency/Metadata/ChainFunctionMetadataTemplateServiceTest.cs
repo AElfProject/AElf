@@ -17,11 +17,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
     {
         private ParallelTestDataUtil util = new ParallelTestDataUtil();
         private IDataStore _dataStore;
-        private Hash chainId = Hash.Generate();
+        private Hash chainId;
 
-        public ChainFunctionMetadataTemplateServiceTest(IDataStore dataStore)
+        public ChainFunctionMetadataTemplateServiceTest(IDataStore dataStore, Hash chainId)
         {
             _dataStore = dataStore ?? throw new ArgumentNullException(nameof(dataStore));
+            this.chainId = chainId;
         }
 
         [Fact]
@@ -146,26 +147,21 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             
             Assert.Equal(util.ContractMetadataTemplateMapToString(groundTruthMap), util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap));
             
+            //test fail cases
+            await TestFailCases(cfts);
+            
+            //test restore
+            ChainFunctionMetadataTemplateService newCFTS = new ChainFunctionMetadataTemplateService(_dataStore, chainId);    
+            Assert.Equal(util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap), util.ContractMetadataTemplateMapToString(newCFTS.ContractMetadataTemplateMap));
+            
             return cfts;
         }
 
-        [Fact]
-        public async Task TestRestoreFromDataBase()
-        {
-            var cfts = await TestTryAddNewContractShouldSuccess();
-            
-            ChainFunctionMetadataTemplateService newCFTS = new ChainFunctionMetadataTemplateService(_dataStore, chainId);
-            
-            Assert.Equal(util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap), util.ContractMetadataTemplateMapToString(newCFTS.ContractMetadataTemplateMap));
-        }
 
-        [Fact]
-        public async Task<ChainFunctionMetadataTemplateService> TestFailCases()
+        public async Task<ChainFunctionMetadataTemplateService> TestFailCases(ChainFunctionMetadataTemplateService cfts)
         {
-            var cfts = await TestTryAddNewContractShouldSuccess();
             var groundTruthMap = new Dictionary<string, Dictionary<string, FunctionMetadataTemplate>>(cfts.ContractMetadataTemplateMap);
             
-
             var exception = Assert.ThrowsAsync<FunctionMetadataException>(()=> cfts.TryAddNewContract(typeof(TestContractD))).Result;
             
             Assert.True(exception.Message.Contains("Duplicate name of field attributes in contract"));

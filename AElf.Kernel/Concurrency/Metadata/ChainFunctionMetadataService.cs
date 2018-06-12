@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Kernel.Storages;
+using Google.Protobuf;
 using NLog;
 using Org.BouncyCastle.Security;
 
@@ -10,14 +12,27 @@ namespace AElf.Kernel.Concurrency.Metadata
     {
         private readonly IChainFunctionMetadataTemplateService _templateService;
         private readonly ILogger _logger;
+        private readonly IDataStore _dataStore;
+        private readonly Hash _chainId;
         
-        public Dictionary<string, FunctionMetadata> FunctionMetadataMap { get; } = new Dictionary<string, FunctionMetadata>();
+        public Dictionary<string, FunctionMetadata> FunctionMetadataMap { get; }
         
-        public ChainFunctionMetadataService(IChainFunctionMetadataTemplateService templateService,
-            ILogger logger = null)
+        public ChainFunctionMetadataService(IChainFunctionMetadataTemplateService templateService, IDataStore dataStore, Hash chainId, ILogger logger = null)
         {
             _templateService = templateService;
+            _dataStore = dataStore;
+            _chainId = chainId;
             _logger = logger;
+
+            var mapCache = _dataStore.GetDataAsync(Path.CalculatePointerForMetadata(_chainId)).Result;
+            if (mapCache != null)
+            {
+                FunctionMetadataMap = RestoreFunctionMetadata(SerializeFunctionMetadataMap.Parser.ParseFrom(mapCache));
+            }
+            else
+            {
+                FunctionMetadataMap = new Dictionary<string, FunctionMetadata>();
+            }
         }
 
         /// <summary>
@@ -54,6 +69,9 @@ namespace AElf.Kernel.Concurrency.Metadata
                 {
                     FunctionMetadataMap.Add(functionMetadata.Key, functionMetadata.Value);
                 }
+
+                _dataStore.SetDataAsync(Path.CalculatePointerForMetadata(_chainId),
+                    GenerateSerializeFunctionMetadataMap().ToByteArray());
             }
             catch (FunctionMetadataException e)
             {
@@ -202,5 +220,32 @@ namespace AElf.Kernel.Concurrency.Metadata
 
             return callerFunctions.Count != 0;
         }
+
+        #region Serialize
+
+        public SerializeFunctionMetadataMap GenerateSerializeFunctionMetadataMap()
+        {
+            var serializeMap = new SerializeFunctionMetadataMap();
+            foreach (var metadata in FunctionMetadataMap)
+            {
+                serializeMap.MetadataMap.Add(metadata.Key, metadata.Value);
+            }
+
+            return serializeMap;
+        }
+
+        public Dictionary<string, FunctionMetadata> RestoreFunctionMetadata(SerializeFunctionMetadataMap serializeMap)
+        {
+            var metadataMap = new Dictionary<string, FunctionMetadata>();
+            foreach (var kv in serializeMap.MetadataMap)
+            {
+                metadataMap.Add(kv.Key, kv.Value);
+            }
+
+            return metadataMap;
+        }
+        
+
+        #endregion
     }
 }
