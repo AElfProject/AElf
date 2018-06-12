@@ -1,7 +1,9 @@
-﻿namespace AElf.Kernel.Node
+﻿using AElf.Cryptography.ECDSA;
+
+namespace AElf.Kernel.Node
 {
     public interface IAElfNode
     {
-        void Start(bool startRpc);
+        void Start(ECKeyPair nodeKeyPair, bool startRpc);
     }
 }

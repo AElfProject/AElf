@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Miner;
@@ -22,6 +23,8 @@ namespace AElf.Kernel.Node
     [LoggerName("Node")]
     public class MainChainNode : IAElfNode
     {
+        private ECKeyPair _nodeKeyPair;
+        
         private readonly ITxPoolService _poolService;
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
@@ -32,7 +35,6 @@ namespace AElf.Kernel.Node
         private readonly IAccountContextService _accountContextService;
         private readonly IBlockVaildationService _blockVaildationService;
         private readonly IChainContextService _chainContextService;
-        
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner, 
@@ -51,8 +53,10 @@ namespace AElf.Kernel.Node
             _chainContextService = chainContextService;
         }
 
-        public void Start(bool startRpc)
+        public void Start(ECKeyPair nodeKeyPair, bool startRpc)
         {
+            _nodeKeyPair = nodeKeyPair;
+            
             if (startRpc)
                 _rpcServer.Start();
             
@@ -73,8 +77,6 @@ namespace AElf.Kernel.Node
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
         }
-
-
 
         /// <summary>
         /// get the tx from tx pool or database
@@ -218,7 +220,5 @@ namespace AElf.Kernel.Node
         {
             return await _poolService.AddTxAsync(tx);
         }
-
-        
     }
 }

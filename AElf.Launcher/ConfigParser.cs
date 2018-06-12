@@ -25,6 +25,7 @@ namespace AElf.Launcher
 
         public bool Rpc { get; private set; }
         public string DataDir { get; private set; }
+        public string NodeAccount { get; set; }
 
         public bool Success { get; private set; }
         public bool IsMiner { get; private set; }
@@ -65,6 +66,7 @@ namespace AElf.Launcher
         private void MapOptions(AElfOptions opts)
         {
             Rpc = !opts.NoRpc;
+            NodeAccount = opts.NodeAccount;
 
             DataDir = string.IsNullOrEmpty(opts.DataDir) ? ApplicationHelpers.GetDefaultDataDir() : opts.DataDir;
             
