@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Extensions;
@@ -21,6 +19,8 @@ namespace AElf.Contracts.DPoS
     {
         private const int MiningTime = 4;
 
+        #region Maps
+
         public Map MiningNodes = new Map("MiningNodes");
         
         public Map ExtraBlockProducer = new Map("ExtraBlockProducer");
@@ -34,6 +34,26 @@ namespace AElf.Contracts.DPoS
         public Map Ins = new Map("Ins");
         
         public Map Outs = new Map("Outs");
+
+        #endregion
+
+        #region Mining nodes
+        
+        public async Task<object> GetMiningNodes()
+        {
+            // Should be setted before
+            var miningNodes = Kernel.MiningNodes.Parser.ParseFrom(
+                await MiningNodes.GetValue(Hash.Zero));
+
+            if (miningNodes.Nodes.Count < 1)
+            {
+                throw new ConfigurationErrorsException("No mining nodes.");
+            }
+            
+            Api.Return(miningNodes);
+
+            return miningNodes;
+        }
         
         public async Task<object> SetMiningNodes()
         {
@@ -61,25 +81,6 @@ namespace AElf.Contracts.DPoS
             return nodes;
         }
         
-        public async Task<object> GetMiningNodes()
-        {
-            // Should be set before
-            var miningNodes = Kernel.MiningNodes.Parser.ParseFrom(
-                await MiningNodes.GetValue(Hash.Zero));
-
-            if (miningNodes.Nodes.Count < 1)
-            {
-                throw new ConfigurationErrorsException("No mining nodes.");
-            }
-            
-            Api.Return(new MiningNodes {Nodes =
-            {
-                Hash.Generate(), Hash.Generate()
-            }});
-
-            return miningNodes;
-        }
-
         public async Task<object> SetMiningNodes(MiningNodes miningNodes)
         {
             if (miningNodes.Nodes.Count < 1)
@@ -91,7 +92,9 @@ namespace AElf.Contracts.DPoS
 
             return null;
         }
-
+        
+        #endregion
+        
         public async Task<object> RandomizeOrderForFirstTwoRounds()
         {
             var miningNodes = (MiningNodes) await GetMiningNodes();
@@ -196,13 +199,11 @@ namespace AElf.Contracts.DPoS
             return null;
         }
 
-        public async Task<object> CalculateExtraBlockProducer(Hash accountHash)
+        public async Task<object> GetExtraBlockProducer()
         {
             var roundsCount = (UInt64Value) await GetRoundsCount();
-             
-            await ExtraBlockProducer.SetValueAsync(roundsCount.CalculateHash(), accountHash.ToByteArray());
-
-            return null;
+            
+            return await ExtraBlockProducer.GetValue(roundsCount.CalculateHash());
         }
 
         public async Task<object> GetTimeSlot(Hash accountHash)
@@ -317,15 +318,6 @@ namespace AElf.Contracts.DPoS
             return true;
         }
 
-        public async Task<object> PreVerification(Hash inValue, Hash outValue)
-        {
-            var valid = inValue.CalculateHash() == outValue;
-
-            Api.Return(new BoolValue {Value = valid});
-
-            return valid;
-        }
-        
         public override async Task InvokeAsync()
         {
             var tx = Api.GetTransaction();

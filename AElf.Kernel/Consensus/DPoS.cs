@@ -19,6 +19,7 @@ namespace AElf.Kernel.Consensus
         private IDataProvider _signatures;
         private IDataProvider _timeSlots;
         private IDataProvider _roundsCount;
+        private IDataProvider _extraBlockProducer;
 
         public ulong RoundsCount => UInt64Value.Parser.ParseFrom(_roundsCount.GetAsync(Hash.Zero).Result).Value;
 
@@ -42,17 +43,27 @@ namespace AElf.Kernel.Consensus
             _signatures = DPoSDataProvider.GetDataProvider("Signatures");
             _timeSlots = DPoSDataProvider.GetDataProvider("MiningNodes");
             _roundsCount = DPoSDataProvider.GetDataProvider("RoundsCount");
-
+            _extraBlockProducer = DPoSDataProvider.GetDataProvider("ExtraBlockProducer");
+            
             _isChainIdSetted = true;
             
             return this;
         }
+
+        #region Pre-verification
+
+        public bool PreVerification(Hash inValue, Hash outValue)
+        {
+            return inValue.CalculateHash() == outValue;
+        }
+
+        #endregion
         
         #region Rounds count
 
         public async Task SetRoundsCount()
         {
-            if (ProofOfIdentityOfExtraBlockProducer())
+            if (ExtraBlockProducerIdentityVerification())
             {
                 await _roundsCount.SetAsync(Hash.Zero, RoundsCountAddOne(await GetRoundsCount()).ToByteArray());
             }
@@ -73,17 +84,72 @@ namespace AElf.Kernel.Consensus
             return MiningNodes.Parser.ParseFrom(await _miningNodes.GetAsync(Hash.Zero));
         }
 
+        /// <summary>
+        /// If the first place of this round failed to set the extra block producer,
+        /// others can help to do this.
+        /// </summary>
+        /// <returns></returns>
+        public async Task CalculateExtraBlockProducer()
+        {
+            var roundsCount = await GetRoundsCount();
+            if (await _extraBlockProducer.GetAsync(roundsCount.CalculateHash()) != null)
+            {
+                return;
+            }
+            
+            
+        }
+
         #endregion
 
         #region Time slots
 
-        public async Task<Timestamp> GetTimeSlot(Hash accountHash)
+        public async Task<Timestamp> GetTimeSlotOf(Hash accountHash)
         {
             var roundsCount = await GetRoundsCount();
             var key = accountHash.CalculateHashWith((Hash) roundsCount.CalculateHash());
             return Timestamp.Parser.ParseFrom(await _timeSlots.GetAsync(key));
         }
+        
+        #endregion
 
+        #region Ins, Outs, Signatures
+
+        public async Task<Hash> GetInValueOf(Hash accountHash)
+        {
+            
+        }
+        
+        public async Task<Hash> GetOutValueOf(Hash accountHash)
+        {
+            
+        }
+        
+        public async Task<Hash> GetSignatureOf(Hash accountHash)
+        {
+            
+        }
+        
+        public async Task<Hash> CalculateSignatureOf(Hash accountHash)
+        {
+            // Get signatures of last round.
+            var currentRoundCount = await GetRoundsCount();
+            var lastRoundCount = new UInt64Value {Value = currentRoundCount.Value - 1};
+            Hash roundCountHash = lastRoundCount.CalculateHash();
+
+            var add = Hash.Zero;
+            var miningNodes = await GetMiningNodes();
+            foreach (var node in miningNodes.Nodes)
+            {
+                Hash key = node.CalculateHashWith(roundCountHash);
+                Hash lastSignature = await _signatures.GetAsync(key);
+                add = add.CalculateHashWith(lastSignature);
+            }
+
+            var inValue = (Hash) await _ins.GetAsync(accountHash);
+            return inValue.CalculateHashWith(add);
+        }
+        
         #endregion
         
         private void Check()
@@ -94,16 +160,18 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        private bool ProofOfIdentityOfMiningNode()
+        private bool MiningNodeIdentityVerification()
         {
             throw new NotImplementedException();
         }
         
-        private bool ProofOfIdentityOfExtraBlockProducer()
+        // ReSharper disable once MemberCanBeMadeStatic.Local
+        private bool ExtraBlockProducerIdentityVerification(Hash accountHash)
         {
-            throw new NotImplementedException();
+             
         }
 
+        // ReSharper disable once MemberCanBeMadeStatic.Local
         private UInt64Value RoundsCountAddOne(UInt64Value currentCount)
         {
             var current = currentCount.Value;
