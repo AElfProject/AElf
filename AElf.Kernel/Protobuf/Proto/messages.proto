@@ -142,6 +142,10 @@ message Chain{
     Hash GenesisBlockHash = 2;
 }
 
-message MiningNodes {
-    repeated Hash Nodes = 1;
+message BlockProducer {
+    repeated string Nodes = 1;
+}
+
+message MiningTimeSlot {
+    map<string, google.protobuf.Timestamp> timeslot = 1;
 }

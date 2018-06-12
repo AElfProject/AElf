@@ -69,10 +69,13 @@ namespace AElf.Kernel {
             "ckhhc2hDaGFuZ2USEgoDS2V5GAEgASgLMgUuSGFzaBIWCgVWYWx1ZRgCIAEo",
             "CzIHLkNoYW5nZSIsCgtDaGFuZ2VzRGljdBIdCgREaWN0GAEgAygLMg8uUGFp",
             "ckhhc2hDaGFuZ2UiOwoFQ2hhaW4SEQoCSWQYASABKAsyBS5IYXNoEh8KEEdl",
-            "bmVzaXNCbG9ja0hhc2gYAiABKAsyBS5IYXNoIiMKC01pbmluZ05vZGVzEhQK",
-            "BU5vZGVzGAEgAygLMgUuSGFzaCo8CgZTdGF0dXMSDgoKTm90RXhpc3RlZBAA",
-            "EgsKB1BlbmRpbmcQARIKCgZGYWlsZWQQAhIJCgVNaW5lZBADQg6qAgtBRWxm",
-            "Lktlcm5lbGIGcHJvdG8z"));
+            "bmVzaXNCbG9ja0hhc2gYAiABKAsyBS5IYXNoIh4KDUJsb2NrUHJvZHVjZXIS",
+            "DQoFTm9kZXMYASADKAkijgEKDk1pbmluZ1RpbWVTbG90Ei8KCHRpbWVzbG90",
+            "GAEgAygLMh0uTWluaW5nVGltZVNsb3QuVGltZXNsb3RFbnRyeRpLCg1UaW1l",
+            "c2xvdEVudHJ5EgsKA2tleRgBIAEoCRIpCgV2YWx1ZRgCIAEoCzIaLmdvb2ds",
+            "ZS5wcm90b2J1Zi5UaW1lc3RhbXA6AjgBKjwKBlN0YXR1cxIOCgpOb3RFeGlz",
+            "dGVkEAASCwoHUGVuZGluZxABEgoKBkZhaWxlZBACEgkKBU1pbmVkEANCDqoC",
+            "C0FFbGYuS2VybmVsYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.AnyReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), }, new pbr::GeneratedClrTypeInfo[] {
@@ -94,7 +97,8 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.PairHashChange), global::AElf.Kernel.PairHashChange.Parser, new[]{ "Key", "Value" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.ChangesDict), global::AElf.Kernel.ChangesDict.Parser, new[]{ "Dict" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Chain), global::AElf.Kernel.Chain.Parser, new[]{ "Id", "GenesisBlockHash" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.MiningNodes), global::AElf.Kernel.MiningNodes.Parser, new[]{ "Nodes" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockProducer), global::AElf.Kernel.BlockProducer.Parser, new[]{ "Nodes" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.MiningTimeSlot), global::AElf.Kernel.MiningTimeSlot.Parser, new[]{ "Timeslot" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, })
           }));
     }
     #endregion
@@ -4066,11 +4070,11 @@ namespace AElf.Kernel {
 
   }
 
-  public sealed partial class MiningNodes : pb::IMessage<MiningNodes> {
-    private static readonly pb::MessageParser<MiningNodes> _parser = new pb::MessageParser<MiningNodes>(() => new MiningNodes());
+  public sealed partial class BlockProducer : pb::IMessage<BlockProducer> {
+    private static readonly pb::MessageParser<BlockProducer> _parser = new pb::MessageParser<BlockProducer>(() => new BlockProducer());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<MiningNodes> Parser { get { return _parser; } }
+    public static pb::MessageParser<BlockProducer> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
@@ -4083,40 +4087,40 @@ namespace AElf.Kernel {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public MiningNodes() {
+    public BlockProducer() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public MiningNodes(MiningNodes other) : this() {
+    public BlockProducer(BlockProducer other) : this() {
       nodes_ = other.nodes_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public MiningNodes Clone() {
-      return new MiningNodes(this);
+    public BlockProducer Clone() {
+      return new BlockProducer(this);
     }
 
     /// <summary>Field number for the "Nodes" field.</summary>
     public const int NodesFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Hash> _repeated_nodes_codec
-        = pb::FieldCodec.ForMessage(10, global::AElf.Kernel.Hash.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Hash> nodes_ = new pbc::RepeatedField<global::AElf.Kernel.Hash>();
+    private static readonly pb::FieldCodec<string> _repeated_nodes_codec
+        = pb::FieldCodec.ForString(10);
+    private readonly pbc::RepeatedField<string> nodes_ = new pbc::RepeatedField<string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Hash> Nodes {
+    public pbc::RepeatedField<string> Nodes {
       get { return nodes_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
-      return Equals(other as MiningNodes);
+      return Equals(other as BlockProducer);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(MiningNodes other) {
+    public bool Equals(BlockProducer other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -4161,7 +4165,7 @@ namespace AElf.Kernel {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(MiningNodes other) {
+    public void MergeFrom(BlockProducer other) {
       if (other == null) {
         return;
       }
@@ -4179,6 +4183,127 @@ namespace AElf.Kernel {
             break;
           case 10: {
             nodes_.AddEntriesFrom(input, _repeated_nodes_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class MiningTimeSlot : pb::IMessage<MiningTimeSlot> {
+    private static readonly pb::MessageParser<MiningTimeSlot> _parser = new pb::MessageParser<MiningTimeSlot>(() => new MiningTimeSlot());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<MiningTimeSlot> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[19]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MiningTimeSlot() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MiningTimeSlot(MiningTimeSlot other) : this() {
+      timeslot_ = other.timeslot_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MiningTimeSlot Clone() {
+      return new MiningTimeSlot(this);
+    }
+
+    /// <summary>Field number for the "timeslot" field.</summary>
+    public const int TimeslotFieldNumber = 1;
+    private static readonly pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp>.Codec _map_timeslot_codec
+        = new pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::Google.Protobuf.WellKnownTypes.Timestamp.Parser), 10);
+    private readonly pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp> timeslot_ = new pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp> Timeslot {
+      get { return timeslot_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as MiningTimeSlot);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(MiningTimeSlot other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!Timeslot.Equals(other.Timeslot)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= Timeslot.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      timeslot_.WriteTo(output, _map_timeslot_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += timeslot_.CalculateSize(_map_timeslot_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(MiningTimeSlot other) {
+      if (other == null) {
+        return;
+      }
+      timeslot_.Add(other.timeslot_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            timeslot_.AddEntriesFrom(input, _map_timeslot_codec);
             break;
           }
         }

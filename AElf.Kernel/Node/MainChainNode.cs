@@ -17,6 +17,7 @@ using AElf.Network.Data;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace AElf.Kernel.Node
 {
@@ -24,6 +25,8 @@ namespace AElf.Kernel.Node
     public class MainChainNode : IAElfNode
     {
         private ECKeyPair _nodeKeyPair;
+
+        public byte[] Address => _nodeKeyPair.GetAddress();
         
         private readonly ITxPoolService _poolService;
         private readonly ITransactionManager _transactionManager;

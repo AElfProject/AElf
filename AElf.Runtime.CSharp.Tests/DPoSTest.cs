@@ -64,7 +64,7 @@ namespace AElf.Runtime.CSharp.Tests
 
             await _executive.SetTransactionContext(miningNodes).Apply();
 
-            var nodes = miningNodes.Trace.RetVal?.Unpack<MiningNodes>().Nodes;
+            var nodes = miningNodes.Trace.RetVal?.Unpack<BlockProducer>().Nodes;
             
             Assert.NotNull(nodes);
         }

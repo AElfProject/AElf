@@ -8,6 +8,7 @@ using AElf.Kernel.Extensions;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using ServiceStack;
 using SharpRepository.Repository.Configuration;
@@ -21,7 +22,7 @@ namespace AElf.Contracts.DPoS
 
         #region Maps
 
-        public Map MiningNodes = new Map("MiningNodes");
+        public Map BlockProducer = new Map("BlockProducer");
         
         public Map ExtraBlockProducer = new Map("ExtraBlockProducer");
         
@@ -39,23 +40,22 @@ namespace AElf.Contracts.DPoS
 
         #region Mining nodes
         
-        public async Task<object> GetMiningNodes()
+        public async Task<object> GetBlockProducer()
         {
             // Should be setted before
-            var miningNodes = Kernel.MiningNodes.Parser.ParseFrom(
-                await MiningNodes.GetValue(Hash.Zero));
+            var blockProducer = Kernel.BlockProducer.Parser.ParseFrom(await BlockProducer.GetValue(Hash.Zero));
 
-            if (miningNodes.Nodes.Count < 1)
+            if (blockProducer.Nodes.Count < 1)
             {
-                throw new ConfigurationErrorsException("No mining nodes.");
+                throw new ConfigurationErrorsException("No block producer.");
             }
             
-            Api.Return(miningNodes);
+            Api.Return(blockProducer);
 
-            return miningNodes;
+            return blockProducer;
         }
         
-        public async Task<object> SetMiningNodes()
+        public async Task<object> SetBlockProducer()
         {
             List<string> miningNodes;
                 
@@ -65,30 +65,30 @@ namespace AElf.Contracts.DPoS
                 miningNodes = file.ReadLines().ToList();
             }
 
-            var nodes = new MiningNodes();
+            var nodes = new BlockProducer();
             foreach (var node in miningNodes)
             {
-                nodes.Nodes.Add(new Hash(ByteString.CopyFromUtf8(node)));
+                nodes.Nodes.Add(node);
             }
 
             if (nodes.Nodes.Count < 1)
             {
-                throw new InvalidOperationException("Cannot find mining nodes in related config file.");
+                throw new InvalidOperationException("Cannot find block producers in related config file.");
             }
-
-            await MiningNodes.SetValueAsync(Hash.Zero, nodes.ToByteArray());
+ 
+            await BlockProducer.SetValueAsync(Hash.Zero, nodes.ToByteArray());
 
             return nodes;
         }
         
-        public async Task<object> SetMiningNodes(MiningNodes miningNodes)
+        public async Task<object> SetBlockProducer(BlockProducer blockProducer)
         {
-            if (miningNodes.Nodes.Count < 1)
+            if (blockProducer.Nodes.Count < 1)
             {
                 throw new InvalidOperationException("Cannot find mining nodes in related config file.");
             }
 
-            await MiningNodes.SetValueAsync(Hash.Zero, miningNodes.ToByteArray());
+            await BlockProducer.SetValueAsync(Hash.Zero, blockProducer.ToByteArray());
 
             return null;
         }
@@ -97,8 +97,8 @@ namespace AElf.Contracts.DPoS
         
         public async Task<object> RandomizeOrderForFirstTwoRounds()
         {
-            var miningNodes = (MiningNodes) await GetMiningNodes();
-            var dict = new Dictionary<Hash, int>();
+            var miningNodes = (BlockProducer) await GetBlockProducer();
+            var dict = new Dictionary<string, int>();
             
             // First round
             foreach (var node in miningNodes.Nodes)
@@ -114,7 +114,7 @@ namespace AElf.Contracts.DPoS
             var enumerable = sortedMiningNodes.ToList();
             for (var i = 0; i < enumerable.Count; i++)
             {
-                Hash key = enumerable[i].CalculateHashWith(new Hash(new UInt64Value {Value = 1}.CalculateHash()));
+                var key = CalculateKeyForRoundRelatedData(1, enumerable[i]);
                 await TimeSlots.SetValueAsync(key, GetTimestamp(i * 4 + 4).ToByteArray());
             }
             
@@ -132,7 +132,7 @@ namespace AElf.Contracts.DPoS
             enumerable = sortedMiningNodes.ToList();
             for (var i = 0; i < enumerable.Count; i++)
             {
-                Hash key = enumerable[i].CalculateHashWith(new Hash(new UInt64Value {Value = 2}.CalculateHash()));
+                var key = CalculateKeyForRoundRelatedData(2, enumerable[i]);
                 await TimeSlots.SetValueAsync(key, GetTimestamp(i * 4 + miningNodes.Nodes.Count * 4 + 8).ToByteArray());
             }
 
@@ -141,13 +141,13 @@ namespace AElf.Contracts.DPoS
 
         public async Task<object> RandomizeSignaturesForFirstRound()
         {
-            Hash roundsCountHash = ((UInt64Value) await GetRoundsCount()).CalculateHash();
-            var miningNodes = ((MiningNodes) await GetMiningNodes()).Nodes.ToList();
-            var miningNodesCount = miningNodes.Count;
+            var roundsCount = (UInt64Value) await GetRoundsCount();
+            var blockProducer = ((BlockProducer) await GetBlockProducer()).Nodes.ToList();
+            var blockProducerCount = blockProducer.Count;
 
-            for (var i = 0; i < miningNodesCount; i++)
+            for (var i = 0; i < blockProducerCount; i++)
             {
-                Hash key = miningNodes[i].CalculateHashWith(roundsCountHash);
+                var key = CalculateKeyForRoundRelatedData(roundsCount.Value, blockProducer[i]);
                 await Signatures.SetValueAsync(key, Hash.Generate().ToByteArray());
             }
 
@@ -167,32 +167,32 @@ namespace AElf.Contracts.DPoS
                 return null;
             }
             
-            var miningNodes = (MiningNodes) await GetMiningNodes();
-            var miningNodesCount = miningNodes.Nodes.Count;
+            var blockProducer = (BlockProducer) await GetBlockProducer();
+            var blockProducerCount = blockProducer.Nodes.Count;
             
-            var signatureDict = new Dictionary<Hash, Hash>();
-            foreach (var node in miningNodes.Nodes)
+            var signatureDict = new Dictionary<Hash, string>();
+            foreach (var node in blockProducer.Nodes)
             {
-                var key = node.CalculateHashWith((Hash) roundsCount.CalculateHash());
+                var key = CalculateKeyForRoundRelatedData(roundsCount, node);
                 signatureDict[Hash.Parser.ParseFrom(await Signatures.GetValue(key))] = node;
             }
             
-            var orderDict = new Dictionary<int, Hash>();
+            var orderDict = new Dictionary<int, string>();
             foreach (var sig in signatureDict.Keys)
             {
                 var sigNum = BitConverter.ToUInt64(
                     BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
-                var order = (int) sigNum % miningNodesCount;
+                var order = (int) sigNum % blockProducerCount;
                 orderDict.Add(
                     orderDict.ContainsKey(order)
-                        ? Enumerable.Range(0, miningNodesCount - 1).First(n => !orderDict.ContainsKey(n))
+                        ? Enumerable.Range(0, blockProducerCount - 1).First(n => !orderDict.ContainsKey(n))
                         : order,
                     signatureDict[sig]);
             }
             
             for (var i = 0; i < orderDict.Count; i++)
             {
-                Hash key = orderDict[i].CalculateHashWith((Hash) roundsCount.CalculateHash());
+                var key = CalculateKeyForRoundRelatedData(roundsCount, orderDict[i]);
                 await TimeSlots.SetValueAsync(key, GetTimestamp(i * 4 + 4).ToByteArray());
             }
 
@@ -206,10 +206,10 @@ namespace AElf.Contracts.DPoS
             return await ExtraBlockProducer.GetValue(roundsCount.CalculateHash());
         }
 
-        public async Task<object> GetTimeSlot(Hash accountHash)
+        public async Task<object> GetTimeSlot(string accountAddress)
         {
             var roundsCount = (UInt64Value) await GetRoundsCount();
-            var key = accountHash.CalculateHashWith((Hash) roundsCount.CalculateHash());
+            var key = CalculateKeyForRoundRelatedData(roundsCount, accountAddress);
             var timeSlot = await TimeSlots.GetValue(key);
 
             Api.Return(new BytesValue {Value = ByteString.CopyFrom(timeSlot)});
@@ -217,19 +217,19 @@ namespace AElf.Contracts.DPoS
             return timeSlot;
         }
 
-        public async Task<object> SetTimeSlot(Hash accountHash, Timestamp timestamp)
+        public async Task<object> SetTimeSlot(string accountAddress, Timestamp timestamp)
         {
             var roundsCount = (UInt64Value) await GetRoundsCount();
-            var key = accountHash.CalculateHashWith((Hash) roundsCount.CalculateHash());
+            var key = CalculateKeyForRoundRelatedData(roundsCount, accountAddress);
 
             await TimeSlots.SetValueAsync(key, timestamp.ToByteArray());
 
             return null;
         }
 
-        public async Task<object> AbleToMine(Hash accountHash)
+        public async Task<object> AbleToMine(string accountAddress)
         {
-            var assignedTimeSlot = (Timestamp) await GetTimeSlot(accountHash);
+            var assignedTimeSlot = (Timestamp) await GetTimeSlot(accountAddress);
             var timeSlotEnd = assignedTimeSlot.ToDateTime().AddSeconds(MiningTime).ToTimestamp();
 
             var can = CompareTimestamp(assignedTimeSlot, GetTimestamp()) && CompareTimestamp(timeSlotEnd, assignedTimeSlot);
@@ -244,13 +244,12 @@ namespace AElf.Contracts.DPoS
             // Get signatures of last round.
             var currentRoundCount = (UInt64Value) await GetRoundsCount();
             var lastRoundCount = new UInt64Value {Value = currentRoundCount.Value - 1};
-            Hash roundCountHash = lastRoundCount.CalculateHash();
 
             var add = Hash.Zero;
-            var miningNodes = (MiningNodes) await GetMiningNodes();
-            foreach (var node in miningNodes.Nodes)
+            var blockProducer = (BlockProducer) await GetBlockProducer();
+            foreach (var node in blockProducer.Nodes)
             {
-                Hash key = node.CalculateHashWith(roundCountHash);
+                var key = CalculateKeyForRoundRelatedData(lastRoundCount.Value, node);
                 Hash lastSignature = await Signatures.GetValue(key);
                 add = add.CalculateHashWith(lastSignature);
             }
@@ -290,10 +289,10 @@ namespace AElf.Contracts.DPoS
             return null;
         }
 
-        public async Task<object> PublishInValue(Hash accountHash, Hash inValue)
+        public async Task<object> PublishInValue(string accountAddress, Hash inValue)
         {
             var roundsCount = (UInt64Value) await GetRoundsCount();
-            var key = accountHash.CalculateHashWith((Hash) roundsCount.CalculateHash());
+            var key = CalculateKeyForRoundRelatedData(roundsCount, accountAddress);
             var timeSlot = Timestamp.Parser.ParseFrom(await TimeSlots.GetValue(key));
 
             if (!CompareTimestamp(GetTimestamp(-MiningTime), timeSlot)) 
@@ -304,10 +303,10 @@ namespace AElf.Contracts.DPoS
             return true;
         }
         
-        public async Task<object> PublishSignature(Hash accountHash, Hash signature)
+        public async Task<object> PublishSignature(string accountAddress, Hash signature)
         {
             var roundsCount = (UInt64Value) await GetRoundsCount();
-            var key = accountHash.CalculateHashWith((Hash) roundsCount.CalculateHash());
+            var key = CalculateKeyForRoundRelatedData(roundsCount, accountAddress);
             var timeSlot = Timestamp.Parser.ParseFrom(await TimeSlots.GetValue(key));
 
             if (!CompareTimestamp(GetTimestamp(-MiningTime), timeSlot)) 
@@ -345,6 +344,18 @@ namespace AElf.Contracts.DPoS
         private bool CompareTimestamp(Timestamp ts1, Timestamp ts2)
         {
             return ts1.ToDateTime() > ts2.ToDateTime();
+        }
+        
+        // ReSharper disable once MemberCanBeMadeStatic.Local
+        private Hash CalculateKeyForRoundRelatedData(ulong roundsCount, string blockProducer)
+        {
+            return new Hash(new UInt64Value {Value = roundsCount}.CalculateHash()).CalculateHashWith(blockProducer);
+        }
+
+        // ReSharper disable once MemberCanBeMadeStatic.Local
+        private Hash CalculateKeyForRoundRelatedData(IMessage roundsCount, string blockProducer)
+        {
+            return new Hash(roundsCount.CalculateHash()).CalculateHashWith(blockProducer);
         }
     }
 }
