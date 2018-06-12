@@ -1,5 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Net;
+using System.Runtime.InteropServices.ComTypes;
+using System.Security;
+using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
@@ -24,7 +29,6 @@ namespace AElf.Launcher
         static void Main(string[] args)
         {
             // Parse options
-            
             ConfigParser confParser = new ConfigParser();
             bool parsed = confParser.Parse(args);
 
@@ -54,12 +58,31 @@ namespace AElf.Launcher
                 return;
             }
 
+            // todo : quick fix, to be refactored
+            
+            ECKeyPair nodeKey = null;
+            if (!string.IsNullOrWhiteSpace(confParser.NodeAccount))
+            {
+                try
+                {
+                    AElfKeyStore ks = new AElfKeyStore(confParser.DataDir);
+
+                    string pass = AskInvisible(confParser.NodeAccount);
+                    ks.OpenAsync(confParser.NodeAccount, pass, false);
+
+                    nodeKey = ks.GetAccountKeyPair(confParser.NodeAccount);
+                }
+                catch (Exception e)
+                {
+                }
+            }
+
             using(var scope = container.BeginLifetimeScope())
             {
                 IAElfNode node = scope.Resolve<IAElfNode>();
                
                 // Start the system
-                node.Start(confParser.Rpc);
+                node.Start(nodeKey, confParser.Rpc);
 
                 Console.ReadLine();
             }
@@ -134,6 +157,37 @@ namespace AElf.Launcher
         {
             var db = container.Resolve<IKeyValueDatabase>();
             return db.IsConnected();
+        }
+        
+        public static string AskInvisible(string prefix)
+        {
+            Console.Write("Node account password: ");
+            
+            var pwd = new SecureString();
+            while (true)
+            {
+                ConsoleKeyInfo i = Console.ReadKey(true);
+                if (i.Key == ConsoleKey.Enter)
+                {
+                    break;
+                }
+                else if (i.Key == ConsoleKey.Backspace)
+                {
+                    if (pwd.Length > 0)
+                    {
+                        pwd.RemoveAt(pwd.Length - 1);
+                    }
+                }
+                else
+                {
+                    pwd.AppendChar(i.KeyChar);
+                    //Console.Write("*");
+                }
+            }
+            
+            Console.WriteLine();
+            
+            return new NetworkCredential("", pwd).Password;
         }
     }
 }

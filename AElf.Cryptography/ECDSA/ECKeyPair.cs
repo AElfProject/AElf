@@ -9,9 +9,10 @@ namespace AElf.Cryptography.ECDSA
 {
     public class ECKeyPair
     {
+        public static int AddressLength { get; } = 18;
+        
         public ECPrivateKeyParameters PrivateKey { get; private set; }
         public ECPublicKeyParameters PublicKey { get; private set; }
-        public static int AddressLength { get; } = 18;
         
         public ECKeyPair(ECPrivateKeyParameters privateKey, ECPublicKeyParameters publicKey)
         {
@@ -36,12 +37,12 @@ namespace AElf.Cryptography.ECDSA
 
         public byte[] GetAddress()
         {
-            return GetEncodedPublicKey().Take(AddressLength).ToArray();
+            return this.GetEncodedPublicKey().Take(AddressLength).ToArray();
         }
 
-        public string GetHexaAddress()
+        public string GetAddressHex()
         {
-            return BitConverter.ToString(this.GetAddress()).Replace("-","");
+            return BitConverter.ToString(this.GetAddress()).Replace("-", string.Empty).ToLower();
         }
     }
 }
