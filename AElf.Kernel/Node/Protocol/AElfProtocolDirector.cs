@@ -12,6 +12,8 @@ namespace AElf.Kernel.Node.Protocol
     {
         private IPeerManager _peerManager;
         private List<PendingRequest> _resetEvents = new List<PendingRequest>();
+
+        private BlockSynchronizer _blockSynchronizer;
         
         private MainChainNode _node;
 
@@ -22,6 +24,7 @@ namespace AElf.Kernel.Node.Protocol
         
         public void Start()
         {
+            _blockSynchronizer.Init();
             _peerManager.Start();
             _peerManager.MessageReceived += ProcessPeerMessage;
         }
