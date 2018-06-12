@@ -40,9 +40,9 @@ namespace AElf.Cryptography.ECDSA
             return this.GetEncodedPublicKey().Take(AddressLength).ToArray();
         }
 
-        public string GetBase64Address()
+        public string GetAddressHex()
         {
-            return Convert.ToBase64String(GetAddress());
+            return BitConverter.ToString(GetAddress()).Replace("-", string.Empty).ToLower();
         }
     }
 }

@@ -98,11 +98,11 @@ namespace AElf.Kernel.Node
         /// <param name="tx">The tx to broadcast</param>
         public async Task<bool> BroadcastTransaction(ITransaction tx)
         {
-            bool res;
+            bool res = true;
             
             try
             {
-                res = await _poolService.AddTxAsync(tx);
+                //res = await _poolService.AddTxAsync(tx);
             }
             catch (Exception e)
             {
@@ -112,7 +112,14 @@ namespace AElf.Kernel.Node
 
             if (res)
             {
-                await _protocolDirector.BroadcastTransaction(tx);
+                try
+                {
+                    await _protocolDirector.BroadcastTransaction(tx);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
                 
                 _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return true;

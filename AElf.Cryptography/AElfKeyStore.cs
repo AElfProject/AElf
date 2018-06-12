@@ -134,7 +134,7 @@ namespace AElf.Cryptography
             string fullPath = null;
             try
             {
-                var address = keyPair.GetBase64Address();
+                var address = keyPair.GetAddressHex();
                 fullPath = GetKeyFileFullPath(address);
             }
             catch (Exception e)

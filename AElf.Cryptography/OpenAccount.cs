@@ -11,7 +11,7 @@ namespace AElf.Cryptography
 
         public string Address
         {
-            get { return KeyPair.GetBase64Address(); }
+            get { return KeyPair.GetAddressHex(); }
         }
 
         public OpenAccount()
