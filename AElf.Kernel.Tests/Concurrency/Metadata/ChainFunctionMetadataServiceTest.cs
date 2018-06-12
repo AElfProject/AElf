@@ -33,9 +33,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         public async Task<ChainFunctionMetadataService> TestDeployNewFunction()
         {
             ChainFunctionMetadataTemplateServiceTest templateTest = new ChainFunctionMetadataTemplateServiceTest(_templateStore, _chainId);
-            var templateService = await templateTest.TestTryAddNewContractShouldSuccess();
+            var templateService = await templateTest.TestTryAddNewContract();
             ChainFunctionMetadataService cfms = new ChainFunctionMetadataService(templateService, _templateStore, _chainId);
-            
+            cfms.FunctionMetadataMap.Clear();
             
 
             var addrA = Hash.Generate();

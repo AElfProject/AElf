@@ -24,78 +24,81 @@ namespace AElf.Kernel {
     static MessagesReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Cg5tZXNzYWdlcy5wcm90bxoZZ29vZ2xlL3Byb3RvYnVmL2FueS5wcm90byKc",
-            "AQoLVHJhbnNhY3Rpb24SEwoERnJvbRgBIAEoCzIFLkhhc2gSEQoCVG8YAiAB",
-            "KAsyBS5IYXNoEhMKC0luY3JlbWVudElkGAMgASgEEhIKCk1ldGhvZE5hbWUY",
-            "BCABKAkSDgoGUGFyYW1zGAUgASgMEgsKA0ZlZRgGIAEoBBIJCgFSGAcgASgM",
-            "EgkKAVMYCCABKAwSCQoBUBgJIAEoDCKrAQoQVHJhbnNhY3Rpb25UcmFjZRIk",
-            "CgZSZXRWYWwYASABKAsyFC5nb29nbGUucHJvdG9idWYuQW55Eg4KBlN0ZE91",
-            "dBgCIAEoCRIOCgZTdGRFcnIYAyABKAkSFwoETG9ncxgEIAMoCzIJLkxvZ0V2",
-            "ZW50EicKDElubGluZVRyYWNlcxgFIAMoCzIRLlRyYW5zYWN0aW9uVHJhY2US",
-            "DwoHRWxhcHNlZBgGIAEoAyI/CgpFdmVudEZpZWxkEgwKBE5hbWUYASABKAkS",
-            "IwoFVmFsdWUYAiABKAsyFC5nb29nbGUucHJvdG9idWYuQW55IlYKCExvZ0V2",
-            "ZW50EhYKB0FkZHJlc3MYASABKAsyBS5IYXNoEhQKBVRvcGljGAIgASgLMgUu",
-            "SGFzaBIcCgdEZXRhaWxzGAMgAygLMgsuRXZlbnRGaWVsZCJjChFUcmFuc2Fj",
-            "dGlvblJlc3VsdBIcCg1UcmFuc2FjdGlvbklkGAEgASgLMgUuSGFzaBIXCgZz",
-            "dGF0dXMYAiABKA4yBy5TdGF0dXMSFwoETG9ncxgDIAMoCzIJLkxvZ0V2ZW50",
-            "IhUKBEhhc2gSDQoFVmFsdWUYASABKAwiowEKC0Jsb2NrSGVhZGVyEg8KB1Zl",
-            "cnNpb24YASABKAUSHAoNUGVydmlvdXNCbG9jaxgCIAEoCzIFLkhhc2gSKwoc",
-            "TWVya2xlVHJlZVJvb3RPZlRyYW5zYWN0aW9ucxgDIAEoCzIFLkhhc2gSKQoa",
-            "TWVya2xlVHJlZVJvb3RPZldvcmxkU3RhdGUYBCABKAsyBS5IYXNoEg0KBUlu",
-            "ZGV4GAUgASgEIkQKCUJsb2NrQm9keRIaCgtCbG9ja0hlYWRlchgBIAEoCzIF",
-            "Lkhhc2gSGwoMVHJhbnNhY3Rpb25zGAIgAygLMgUuSGFzaCI/CgVCbG9jaxIc",
-            "CgZIZWFkZXIYASABKAsyDC5CbG9ja0hlYWRlchIYCgRCb2R5GAIgASgLMgou",
-            "QmxvY2tCb2R5ImEKGVNtYXJ0Q29udHJhY3RSZWdpc3RyYXRpb24SEAoIQ2F0",
-            "ZWdvcnkYASABKAUSGwoMQ29udHJhY3RIYXNoGAIgASgLMgUuSGFzaBIVCg1D",
-            "b250cmFjdEJ5dGVzGAMgASgMInsKF1NtYXJ0Q29udHJhY3REZXBsb3ltZW50",
-            "EhsKDENvbnRyYWN0SGFzaBgBIAEoCzIFLkhhc2gSFQoGQ2FsbGVyGAIgASgL",
-            "MgUuSGFzaBIXCg9Db25zdHJ1Y3RQYXJhbXMYAyABKAwSEwoLSW5jcmVtZW50",
-            "SWQYBCABKAQiJAoKUGFyYW1ldGVycxIWCgZQYXJhbXMYASADKAsyBi5QYXJh",
-            "bSKkAgoFUGFyYW0SEAoGaW50VmFsGAEgASgFSAASEQoHdWludFZhbBgCIAEo",
-            "DUgAEhEKB2xvbmdWYWwYAyABKANIABISCgh1bG9uZ1ZhbBgEIAEoBEgAEhEK",
-            "B2Jvb2xWYWwYBSABKAhIABISCghieXRlc1ZhbBgGIAEoDEgAEhAKBnN0clZh",
-            "bBgHIAEoCUgAEg4KBGRWYWwYCCABKAFIABIYCgdoYXNoVmFsGAkgASgLMgUu",
-            "SGFzaEgAEjEKC3JlZ2lzdGVyVmFsGAogASgLMhouU21hcnRDb250cmFjdFJl",
-            "Z2lzdHJhdGlvbkgAEjEKDWRlcGxveW1lbnRWYWwYCyABKAsyGC5TbWFydENv",
-            "bnRyYWN0RGVwbG95bWVudEgAQgYKBGRhdGEibAoaU21hcnRDb250cmFjdElu",
-            "dm9rZUNvbnRleHQSFQoGQ2FsbGVyGAEgASgLMgUuSGFzaBITCgtJbmNyZW1l",
-            "bnRJZBgCIAEoBBISCgpNZXRob2ROYW1lGAMgASgJEg4KBlBhcmFtcxgEIAEo",
-            "DCJ8CgZDaGFuZ2USFgoHQmVmb3JlcxgBIAMoCzIFLkhhc2gSFAoFQWZ0ZXIY",
-            "AiABKAsyBS5IYXNoEh0KDlRyYW5zYWN0aW9uSWRzGAMgASgLMgUuSGFzaBIl",
-            "ChZMYXRlc3RDaGFuZ2VkQmxvY2tIYXNoGAQgASgLMgUuSGFzaCI8Cg5QYWly",
-            "SGFzaENoYW5nZRISCgNLZXkYASABKAsyBS5IYXNoEhYKBVZhbHVlGAIgASgL",
-            "MgcuQ2hhbmdlIiwKC0NoYW5nZXNEaWN0Eh0KBERpY3QYASADKAsyDy5QYWly",
-            "SGFzaENoYW5nZSI7CgVDaGFpbhIRCgJJZBgBIAEoCzIFLkhhc2gSHwoQR2Vu",
-            "ZXNpc0Jsb2NrSGFzaBgCIAEoCzIFLkhhc2gihwIKJFNlcmlhbGl6ZUNvbnRy",
-            "YWN0TWV0YWRhdGFUZW1wbGF0ZU1hcBJxCh5NZXRhZGF0YVRlbXBsYXRlTWFw",
-            "Rm9yQ29udHJhY3QYAiADKAsySS5TZXJpYWxpemVDb250cmFjdE1ldGFkYXRh",
-            "VGVtcGxhdGVNYXAuTWV0YWRhdGFUZW1wbGF0ZU1hcEZvckNvbnRyYWN0RW50",
-            "cnkabAojTWV0YWRhdGFUZW1wbGF0ZU1hcEZvckNvbnRyYWN0RW50cnkSCwoD",
-            "a2V5GAEgASgJEjQKBXZhbHVlGAIgASgLMiUuU2VyaWFsaXplRnVuY3Rpb25N",
-            "ZXRhZGF0YVRlbXBsYXRlTWFwOgI4ASLCAQokU2VyaWFsaXplRnVuY3Rpb25N",
-            "ZXRhZGF0YVRlbXBsYXRlTWFwEksKC1RlbXBsYXRlTWFwGAIgAygLMjYuU2Vy",
-            "aWFsaXplRnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlTWFwLlRlbXBsYXRlTWFw",
-            "RW50cnkaTQoQVGVtcGxhdGVNYXBFbnRyeRILCgNrZXkYASABKAkSKAoFdmFs",
-            "dWUYAiABKAsyGS5GdW5jdGlvbk1ldGFkYXRhVGVtcGxhdGU6AjgBImUKGEZ1",
-            "bmN0aW9uTWV0YWRhdGFUZW1wbGF0ZRIbChNTZXJpYWxpemVDYWxsaW5nU2V0",
-            "GAEgAygJEiwKGVNlcmlhbGl6ZUxvY2FsUmVzb3VyY2VTZXQYAiADKAsyCS5S",
-            "ZXNvdXJjZSJBCghSZXNvdXJjZRIMCgROYW1lGAEgASgJEicKDkRhdGFBY2Nl",
-            "c3NNb2RlGAIgASgOMg8uRGF0YUFjY2Vzc01vZGUiigEKEEZ1bmN0aW9uTWV0",
-            "YWRhdGESGwoTU2VyaWFsaXplQ2FsbGluZ1NldBgBIAMoCRIrChhTZXJpYWxp",
-            "emVGdWxsUmVzb3VyY2VTZXQYAiADKAsyCS5SZXNvdXJjZRIsChlTZXJpYWxp",
-            "emVMb2NhbFJlc291cmNlU2V0GAMgAygLMgkuUmVzb3VyY2UiqgEKHFNlcmlh",
-            "bGl6ZUZ1bmN0aW9uTWV0YWRhdGFNYXASQwoLTWV0YWRhdGFNYXAYASADKAsy",
-            "Li5TZXJpYWxpemVGdW5jdGlvbk1ldGFkYXRhTWFwLk1ldGFkYXRhTWFwRW50",
-            "cnkaRQoQTWV0YWRhdGFNYXBFbnRyeRILCgNrZXkYASABKAkSIAoFdmFsdWUY",
-            "AiABKAsyES5GdW5jdGlvbk1ldGFkYXRhOgI4ASIuChFDYWxsaW5nR3JhcGhF",
-            "ZGdlcxIZCgVFZGdlcxgBIAMoCzIKLkdyYXBoRWRnZSIrCglHcmFwaEVkZ2US",
-            "DgoGU291cmNlGAEgASgJEg4KBlRhcmdldBgCIAEoCSo8CgZTdGF0dXMSDgoK",
-            "Tm90RXhpc3RlZBAAEgsKB1BlbmRpbmcQARIKCgZGYWlsZWQQAhIJCgVNaW5l",
-            "ZBADKl4KDkRhdGFBY2Nlc3NNb2RlEhoKFlJlYWRPbmx5QWNjb3VudFNoYXJp",
-            "bmcQABIbChdSZWFkV3JpdGVBY2NvdW50U2hhcmluZxABEhMKD0FjY291bnRT",
-            "cGVjaWZpYxACQg6qAgtBRWxmLktlcm5lbGIGcHJvdG8z"));
+            "Cg5tZXNzYWdlcy5wcm90bxoZZ29vZ2xlL3Byb3RvYnVmL2FueS5wcm90bxof",
+            "Z29vZ2xlL3Byb3RvYnVmL3RpbWVzdGFtcC5wcm90byKcAQoLVHJhbnNhY3Rp",
+            "b24SEwoERnJvbRgBIAEoCzIFLkhhc2gSEQoCVG8YAiABKAsyBS5IYXNoEhMK",
+            "C0luY3JlbWVudElkGAMgASgEEhIKCk1ldGhvZE5hbWUYBCABKAkSDgoGUGFy",
+            "YW1zGAUgASgMEgsKA0ZlZRgGIAEoBBIJCgFSGAcgASgMEgkKAVMYCCABKAwS",
+            "CQoBUBgJIAEoDCKrAQoQVHJhbnNhY3Rpb25UcmFjZRIkCgZSZXRWYWwYASAB",
+            "KAsyFC5nb29nbGUucHJvdG9idWYuQW55Eg4KBlN0ZE91dBgCIAEoCRIOCgZT",
+            "dGRFcnIYAyABKAkSFwoETG9ncxgEIAMoCzIJLkxvZ0V2ZW50EicKDElubGlu",
+            "ZVRyYWNlcxgFIAMoCzIRLlRyYW5zYWN0aW9uVHJhY2USDwoHRWxhcHNlZBgG",
+            "IAEoAyI/CgpFdmVudEZpZWxkEgwKBE5hbWUYASABKAkSIwoFVmFsdWUYAiAB",
+            "KAsyFC5nb29nbGUucHJvdG9idWYuQW55IlYKCExvZ0V2ZW50EhYKB0FkZHJl",
+            "c3MYASABKAsyBS5IYXNoEhQKBVRvcGljGAIgASgLMgUuSGFzaBIcCgdEZXRh",
+            "aWxzGAMgAygLMgsuRXZlbnRGaWVsZCJjChFUcmFuc2FjdGlvblJlc3VsdBIc",
+            "Cg1UcmFuc2FjdGlvbklkGAEgASgLMgUuSGFzaBIXCgZzdGF0dXMYAiABKA4y",
+            "By5TdGF0dXMSFwoETG9ncxgDIAMoCzIJLkxvZ0V2ZW50IhUKBEhhc2gSDQoF",
+            "VmFsdWUYASABKAwiigIKC0Jsb2NrSGVhZGVyEg8KB1ZlcnNpb24YASABKAUS",
+            "IAoRUHJldmlvdXNCbG9ja0hhc2gYAiABKAsyBS5IYXNoEisKHE1lcmtsZVRy",
+            "ZWVSb290T2ZUcmFuc2FjdGlvbnMYAyABKAsyBS5IYXNoEikKGk1lcmtsZVRy",
+            "ZWVSb290T2ZXb3JsZFN0YXRlGAQgASgLMgUuSGFzaBINCgVJbmRleBgFIAEo",
+            "BBIJCgFSGAYgASgMEgkKAVMYByABKAwSCQoBUBgIIAEoDBIoCgR0aW1lGAkg",
+            "ASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIWCgdDaGFpbklkGAog",
+            "ASgLMgUuSGFzaCJECglCbG9ja0JvZHkSGgoLQmxvY2tIZWFkZXIYASABKAsy",
+            "BS5IYXNoEhsKDFRyYW5zYWN0aW9ucxgCIAMoCzIFLkhhc2giPwoFQmxvY2sS",
+            "HAoGSGVhZGVyGAEgASgLMgwuQmxvY2tIZWFkZXISGAoEQm9keRgCIAEoCzIK",
+            "LkJsb2NrQm9keSJhChlTbWFydENvbnRyYWN0UmVnaXN0cmF0aW9uEhAKCENh",
+            "dGVnb3J5GAEgASgFEhsKDENvbnRyYWN0SGFzaBgCIAEoCzIFLkhhc2gSFQoN",
+            "Q29udHJhY3RCeXRlcxgDIAEoDCJ7ChdTbWFydENvbnRyYWN0RGVwbG95bWVu",
+            "dBIbCgxDb250cmFjdEhhc2gYASABKAsyBS5IYXNoEhUKBkNhbGxlchgCIAEo",
+            "CzIFLkhhc2gSFwoPQ29uc3RydWN0UGFyYW1zGAMgASgMEhMKC0luY3JlbWVu",
+            "dElkGAQgASgEIiQKClBhcmFtZXRlcnMSFgoGUGFyYW1zGAEgAygLMgYuUGFy",
+            "YW0ipAIKBVBhcmFtEhAKBmludFZhbBgBIAEoBUgAEhEKB3VpbnRWYWwYAiAB",
+            "KA1IABIRCgdsb25nVmFsGAMgASgDSAASEgoIdWxvbmdWYWwYBCABKARIABIR",
+            "Cgdib29sVmFsGAUgASgISAASEgoIYnl0ZXNWYWwYBiABKAxIABIQCgZzdHJW",
+            "YWwYByABKAlIABIOCgRkVmFsGAggASgBSAASGAoHaGFzaFZhbBgJIAEoCzIF",
+            "Lkhhc2hIABIxCgtyZWdpc3RlclZhbBgKIAEoCzIaLlNtYXJ0Q29udHJhY3RS",
+            "ZWdpc3RyYXRpb25IABIxCg1kZXBsb3ltZW50VmFsGAsgASgLMhguU21hcnRD",
+            "b250cmFjdERlcGxveW1lbnRIAEIGCgRkYXRhImwKGlNtYXJ0Q29udHJhY3RJ",
+            "bnZva2VDb250ZXh0EhUKBkNhbGxlchgBIAEoCzIFLkhhc2gSEwoLSW5jcmVt",
+            "ZW50SWQYAiABKAQSEgoKTWV0aG9kTmFtZRgDIAEoCRIOCgZQYXJhbXMYBCAB",
+            "KAwifAoGQ2hhbmdlEhYKB0JlZm9yZXMYASADKAsyBS5IYXNoEhQKBUFmdGVy",
+            "GAIgASgLMgUuSGFzaBIdCg5UcmFuc2FjdGlvbklkcxgDIAEoCzIFLkhhc2gS",
+            "JQoWTGF0ZXN0Q2hhbmdlZEJsb2NrSGFzaBgEIAEoCzIFLkhhc2giPAoOUGFp",
+            "ckhhc2hDaGFuZ2USEgoDS2V5GAEgASgLMgUuSGFzaBIWCgVWYWx1ZRgCIAEo",
+            "CzIHLkNoYW5nZSIsCgtDaGFuZ2VzRGljdBIdCgREaWN0GAEgAygLMg8uUGFp",
+            "ckhhc2hDaGFuZ2UiOwoFQ2hhaW4SEQoCSWQYASABKAsyBS5IYXNoEh8KEEdl",
+            "bmVzaXNCbG9ja0hhc2gYAiABKAsyBS5IYXNoIocCCiRTZXJpYWxpemVDb250",
+            "cmFjdE1ldGFkYXRhVGVtcGxhdGVNYXAScQoeTWV0YWRhdGFUZW1wbGF0ZU1h",
+            "cEZvckNvbnRyYWN0GAIgAygLMkkuU2VyaWFsaXplQ29udHJhY3RNZXRhZGF0",
+            "YVRlbXBsYXRlTWFwLk1ldGFkYXRhVGVtcGxhdGVNYXBGb3JDb250cmFjdEVu",
+            "dHJ5GmwKI01ldGFkYXRhVGVtcGxhdGVNYXBGb3JDb250cmFjdEVudHJ5EgsK",
+            "A2tleRgBIAEoCRI0CgV2YWx1ZRgCIAEoCzIlLlNlcmlhbGl6ZUZ1bmN0aW9u",
+            "TWV0YWRhdGFUZW1wbGF0ZU1hcDoCOAEiwgEKJFNlcmlhbGl6ZUZ1bmN0aW9u",
+            "TWV0YWRhdGFUZW1wbGF0ZU1hcBJLCgtUZW1wbGF0ZU1hcBgCIAMoCzI2LlNl",
+            "cmlhbGl6ZUZ1bmN0aW9uTWV0YWRhdGFUZW1wbGF0ZU1hcC5UZW1wbGF0ZU1h",
+            "cEVudHJ5Gk0KEFRlbXBsYXRlTWFwRW50cnkSCwoDa2V5GAEgASgJEigKBXZh",
+            "bHVlGAIgASgLMhkuRnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlOgI4ASJlChhG",
+            "dW5jdGlvbk1ldGFkYXRhVGVtcGxhdGUSGwoTU2VyaWFsaXplQ2FsbGluZ1Nl",
+            "dBgBIAMoCRIsChlTZXJpYWxpemVMb2NhbFJlc291cmNlU2V0GAIgAygLMgku",
+            "UmVzb3VyY2UiQQoIUmVzb3VyY2USDAoETmFtZRgBIAEoCRInCg5EYXRhQWNj",
+            "ZXNzTW9kZRgCIAEoDjIPLkRhdGFBY2Nlc3NNb2RlIooBChBGdW5jdGlvbk1l",
+            "dGFkYXRhEhsKE1NlcmlhbGl6ZUNhbGxpbmdTZXQYASADKAkSKwoYU2VyaWFs",
+            "aXplRnVsbFJlc291cmNlU2V0GAIgAygLMgkuUmVzb3VyY2USLAoZU2VyaWFs",
+            "aXplTG9jYWxSZXNvdXJjZVNldBgDIAMoCzIJLlJlc291cmNlIqoBChxTZXJp",
+            "YWxpemVGdW5jdGlvbk1ldGFkYXRhTWFwEkMKC01ldGFkYXRhTWFwGAEgAygL",
+            "Mi4uU2VyaWFsaXplRnVuY3Rpb25NZXRhZGF0YU1hcC5NZXRhZGF0YU1hcEVu",
+            "dHJ5GkUKEE1ldGFkYXRhTWFwRW50cnkSCwoDa2V5GAEgASgJEiAKBXZhbHVl",
+            "GAIgASgLMhEuRnVuY3Rpb25NZXRhZGF0YToCOAEiLgoRQ2FsbGluZ0dyYXBo",
+            "RWRnZXMSGQoFRWRnZXMYASADKAsyCi5HcmFwaEVkZ2UiKwoJR3JhcGhFZGdl",
+            "Eg4KBlNvdXJjZRgBIAEoCRIOCgZUYXJnZXQYAiABKAkqPAoGU3RhdHVzEg4K",
+            "Ck5vdEV4aXN0ZWQQABILCgdQZW5kaW5nEAESCgoGRmFpbGVkEAISCQoFTWlu",
+            "ZWQQAypeCg5EYXRhQWNjZXNzTW9kZRIaChZSZWFkT25seUFjY291bnRTaGFy",
+            "aW5nEAASGwoXUmVhZFdyaXRlQWNjb3VudFNoYXJpbmcQARITCg9BY2NvdW50",
+            "U3BlY2lmaWMQAkIOqgILQUVsZi5LZXJuZWxiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.AnyReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.AnyReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), typeof(global::AElf.Kernel.DataAccessMode), }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params", "Fee", "R", "S", "P" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionTrace), global::AElf.Kernel.TransactionTrace.Parser, new[]{ "RetVal", "StdOut", "StdErr", "Logs", "InlineTraces", "Elapsed" }, null, null, null),
@@ -103,7 +106,7 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.LogEvent), global::AElf.Kernel.LogEvent.Parser, new[]{ "Address", "Topic", "Details" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionResult), global::AElf.Kernel.TransactionResult.Parser, new[]{ "TransactionId", "Status", "Logs" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Hash), global::AElf.Kernel.Hash.Parser, new[]{ "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PerviousBlock", "MerkleTreeRootOfTransactions", "MerkleTreeRootOfWorldState", "Index" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PreviousBlockHash", "MerkleTreeRootOfTransactions", "MerkleTreeRootOfWorldState", "Index", "R", "S", "P", "Time", "ChainId" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockBody), global::AElf.Kernel.BlockBody.Parser, new[]{ "BlockHeader", "Transactions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Block), global::AElf.Kernel.Block.Parser, new[]{ "Header", "Body" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractRegistration), global::AElf.Kernel.SmartContractRegistration.Parser, new[]{ "Category", "ContractHash", "ContractBytes" }, null, null, null),
@@ -1459,10 +1462,15 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public BlockHeader(BlockHeader other) : this() {
       version_ = other.version_;
-      PerviousBlock = other.perviousBlock_ != null ? other.PerviousBlock.Clone() : null;
+      PreviousBlockHash = other.previousBlockHash_ != null ? other.PreviousBlockHash.Clone() : null;
       MerkleTreeRootOfTransactions = other.merkleTreeRootOfTransactions_ != null ? other.MerkleTreeRootOfTransactions.Clone() : null;
       MerkleTreeRootOfWorldState = other.merkleTreeRootOfWorldState_ != null ? other.MerkleTreeRootOfWorldState.Clone() : null;
       index_ = other.index_;
+      r_ = other.r_;
+      s_ = other.s_;
+      p_ = other.p_;
+      Time = other.time_ != null ? other.Time.Clone() : null;
+      ChainId = other.chainId_ != null ? other.ChainId.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1482,14 +1490,14 @@ namespace AElf.Kernel {
       }
     }
 
-    /// <summary>Field number for the "PerviousBlock" field.</summary>
-    public const int PerviousBlockFieldNumber = 2;
-    private global::AElf.Kernel.Hash perviousBlock_;
+    /// <summary>Field number for the "PreviousBlockHash" field.</summary>
+    public const int PreviousBlockHashFieldNumber = 2;
+    private global::AElf.Kernel.Hash previousBlockHash_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Hash PerviousBlock {
-      get { return perviousBlock_; }
+    public global::AElf.Kernel.Hash PreviousBlockHash {
+      get { return previousBlockHash_; }
       set {
-        perviousBlock_ = value;
+        previousBlockHash_ = value;
       }
     }
 
@@ -1526,6 +1534,61 @@ namespace AElf.Kernel {
       }
     }
 
+    /// <summary>Field number for the "R" field.</summary>
+    public const int RFieldNumber = 6;
+    private pb::ByteString r_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString R {
+      get { return r_; }
+      set {
+        r_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "S" field.</summary>
+    public const int SFieldNumber = 7;
+    private pb::ByteString s_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString S {
+      get { return s_; }
+      set {
+        s_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "P" field.</summary>
+    public const int PFieldNumber = 8;
+    private pb::ByteString p_ = pb::ByteString.Empty;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pb::ByteString P {
+      get { return p_; }
+      set {
+        p_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "time" field.</summary>
+    public const int TimeFieldNumber = 9;
+    private global::Google.Protobuf.WellKnownTypes.Timestamp time_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Google.Protobuf.WellKnownTypes.Timestamp Time {
+      get { return time_; }
+      set {
+        time_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "ChainId" field.</summary>
+    public const int ChainIdFieldNumber = 10;
+    private global::AElf.Kernel.Hash chainId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash ChainId {
+      get { return chainId_; }
+      set {
+        chainId_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as BlockHeader);
@@ -1540,10 +1603,15 @@ namespace AElf.Kernel {
         return true;
       }
       if (Version != other.Version) return false;
-      if (!object.Equals(PerviousBlock, other.PerviousBlock)) return false;
+      if (!object.Equals(PreviousBlockHash, other.PreviousBlockHash)) return false;
       if (!object.Equals(MerkleTreeRootOfTransactions, other.MerkleTreeRootOfTransactions)) return false;
       if (!object.Equals(MerkleTreeRootOfWorldState, other.MerkleTreeRootOfWorldState)) return false;
       if (Index != other.Index) return false;
+      if (R != other.R) return false;
+      if (S != other.S) return false;
+      if (P != other.P) return false;
+      if (!object.Equals(Time, other.Time)) return false;
+      if (!object.Equals(ChainId, other.ChainId)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1551,10 +1619,15 @@ namespace AElf.Kernel {
     public override int GetHashCode() {
       int hash = 1;
       if (Version != 0) hash ^= Version.GetHashCode();
-      if (perviousBlock_ != null) hash ^= PerviousBlock.GetHashCode();
+      if (previousBlockHash_ != null) hash ^= PreviousBlockHash.GetHashCode();
       if (merkleTreeRootOfTransactions_ != null) hash ^= MerkleTreeRootOfTransactions.GetHashCode();
       if (merkleTreeRootOfWorldState_ != null) hash ^= MerkleTreeRootOfWorldState.GetHashCode();
       if (Index != 0UL) hash ^= Index.GetHashCode();
+      if (R.Length != 0) hash ^= R.GetHashCode();
+      if (S.Length != 0) hash ^= S.GetHashCode();
+      if (P.Length != 0) hash ^= P.GetHashCode();
+      if (time_ != null) hash ^= Time.GetHashCode();
+      if (chainId_ != null) hash ^= ChainId.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1572,9 +1645,9 @@ namespace AElf.Kernel {
         output.WriteRawTag(8);
         output.WriteInt32(Version);
       }
-      if (perviousBlock_ != null) {
+      if (previousBlockHash_ != null) {
         output.WriteRawTag(18);
-        output.WriteMessage(PerviousBlock);
+        output.WriteMessage(PreviousBlockHash);
       }
       if (merkleTreeRootOfTransactions_ != null) {
         output.WriteRawTag(26);
@@ -1588,6 +1661,26 @@ namespace AElf.Kernel {
         output.WriteRawTag(40);
         output.WriteUInt64(Index);
       }
+      if (R.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(R);
+      }
+      if (S.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteBytes(S);
+      }
+      if (P.Length != 0) {
+        output.WriteRawTag(66);
+        output.WriteBytes(P);
+      }
+      if (time_ != null) {
+        output.WriteRawTag(74);
+        output.WriteMessage(Time);
+      }
+      if (chainId_ != null) {
+        output.WriteRawTag(82);
+        output.WriteMessage(ChainId);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1599,8 +1692,8 @@ namespace AElf.Kernel {
       if (Version != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Version);
       }
-      if (perviousBlock_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(PerviousBlock);
+      if (previousBlockHash_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(PreviousBlockHash);
       }
       if (merkleTreeRootOfTransactions_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(MerkleTreeRootOfTransactions);
@@ -1610,6 +1703,21 @@ namespace AElf.Kernel {
       }
       if (Index != 0UL) {
         size += 1 + pb::CodedOutputStream.ComputeUInt64Size(Index);
+      }
+      if (R.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(R);
+      }
+      if (S.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(S);
+      }
+      if (P.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(P);
+      }
+      if (time_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Time);
+      }
+      if (chainId_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(ChainId);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1625,11 +1733,11 @@ namespace AElf.Kernel {
       if (other.Version != 0) {
         Version = other.Version;
       }
-      if (other.perviousBlock_ != null) {
-        if (perviousBlock_ == null) {
-          perviousBlock_ = new global::AElf.Kernel.Hash();
+      if (other.previousBlockHash_ != null) {
+        if (previousBlockHash_ == null) {
+          previousBlockHash_ = new global::AElf.Kernel.Hash();
         }
-        PerviousBlock.MergeFrom(other.PerviousBlock);
+        PreviousBlockHash.MergeFrom(other.PreviousBlockHash);
       }
       if (other.merkleTreeRootOfTransactions_ != null) {
         if (merkleTreeRootOfTransactions_ == null) {
@@ -1645,6 +1753,27 @@ namespace AElf.Kernel {
       }
       if (other.Index != 0UL) {
         Index = other.Index;
+      }
+      if (other.R.Length != 0) {
+        R = other.R;
+      }
+      if (other.S.Length != 0) {
+        S = other.S;
+      }
+      if (other.P.Length != 0) {
+        P = other.P;
+      }
+      if (other.time_ != null) {
+        if (time_ == null) {
+          time_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+        }
+        Time.MergeFrom(other.Time);
+      }
+      if (other.chainId_ != null) {
+        if (chainId_ == null) {
+          chainId_ = new global::AElf.Kernel.Hash();
+        }
+        ChainId.MergeFrom(other.ChainId);
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1662,10 +1791,10 @@ namespace AElf.Kernel {
             break;
           }
           case 18: {
-            if (perviousBlock_ == null) {
-              perviousBlock_ = new global::AElf.Kernel.Hash();
+            if (previousBlockHash_ == null) {
+              previousBlockHash_ = new global::AElf.Kernel.Hash();
             }
-            input.ReadMessage(perviousBlock_);
+            input.ReadMessage(previousBlockHash_);
             break;
           }
           case 26: {
@@ -1684,6 +1813,32 @@ namespace AElf.Kernel {
           }
           case 40: {
             Index = input.ReadUInt64();
+            break;
+          }
+          case 50: {
+            R = input.ReadBytes();
+            break;
+          }
+          case 58: {
+            S = input.ReadBytes();
+            break;
+          }
+          case 66: {
+            P = input.ReadBytes();
+            break;
+          }
+          case 74: {
+            if (time_ == null) {
+              time_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+            }
+            input.ReadMessage(time_);
+            break;
+          }
+          case 82: {
+            if (chainId_ == null) {
+              chainId_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(chainId_);
             break;
           }
         }

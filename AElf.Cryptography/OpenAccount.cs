@@ -11,6 +11,11 @@ namespace AElf.Cryptography
         public OpenAccount()
         {
         }
+        
+        public string Address
+        {
+            get { return KeyPair.GetAddressHex(); }
+        }
 
         public void Close()
         {

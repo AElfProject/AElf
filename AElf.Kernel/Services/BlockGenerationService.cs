@@ -47,7 +47,7 @@ namespace AElf.Kernel.Services
             
             // append block
             await _blockManager.AddBlockAsync(block);
-            await _chainManager.AppendBlockToChainAsync(chainId, block);
+            await _chainManager.AppendBlockToChainAsync(block);
             
             return block;
         }
@@ -64,7 +64,7 @@ namespace AElf.Kernel.Services
             var header = new BlockHeader
             {
                 Version = 0,
-                PerviousBlock = lastBlockHash,
+                PreviousBlockHash = lastBlockHash,
                 MerkleTreeRootOfWorldState = state,
                 MerkleTreeRootOfTransactions = merkleTreeRootForTransaction
             };

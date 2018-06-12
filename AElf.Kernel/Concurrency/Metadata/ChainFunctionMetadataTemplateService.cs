@@ -22,7 +22,7 @@ namespace AElf.Kernel.Concurrency.Metadata
     public class ChainFunctionMetadataTemplateService : IChainFunctionMetadataTemplateService
     {
         public Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> ContractMetadataTemplateMap { get; } 
-        private readonly AdjacencyGraph<string, Edge<string>> _callingGraph; //calling graph is prepared for update contract code (check for DAG at that time)
+        public readonly AdjacencyGraph<string, Edge<string>> CallingGraph; //calling graph is prepared for update contract code (check for DAG at that time)
         
         private readonly ILogger _logger;
         private readonly IDataStore _dataStore;
@@ -46,12 +46,12 @@ namespace AElf.Kernel.Concurrency.Metadata
                 {
                     throw new FunctionMetadataException("ChainId [" + _chainId.Value + "] Cannot find calling graph in database");
                 }
-                _callingGraph = RestoreCallingGraph(CallingGraphEdges.Parser.ParseFrom(graphCache));
+                CallingGraph = RestoreCallingGraph(CallingGraphEdges.Parser.ParseFrom(graphCache));
             }
             else
             {
                 ContractMetadataTemplateMap = new Dictionary<string, Dictionary<string, FunctionMetadataTemplate>>();
-                _callingGraph = new AdjacencyGraph<string, Edge<string>>();
+                CallingGraph = new AdjacencyGraph<string, Edge<string>>();
             }
         }
 
@@ -224,7 +224,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                         Type referenceType = smartContractReferenceMap[Replacement.Value(memberReplacement)];
                         var globalCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, memberReplacement,
                             referenceType.Name);
-                        if (!_callingGraph.ContainsVertex(globalCalledFunc))
+                        if (!CallingGraph.ContainsVertex(globalCalledFunc))
                         {
                             throw new FunctionMetadataException("ChainId [" + _chainId.Value + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractType.Name + " into calling graph, consider the target function does not exist in the foreign contract");
                         }
@@ -237,15 +237,15 @@ namespace AElf.Kernel.Concurrency.Metadata
             foreach (var localVertex in localCallGraph.Vertices)
             {
                 var globalVertex = Replacement.ReplaceValueIntoReplacement(localVertex, Replacement.This, contractType.Name);
-                _callingGraph.AddVertex(globalVertex);
+                CallingGraph.AddVertex(globalVertex);
                 foreach (var outEdge in localCallGraph.OutEdges(localVertex))
                 {
                     var toVertex = Replacement.ReplaceValueIntoReplacement(outEdge.Target, Replacement.This, contractType.Name);
-                    _callingGraph.AddVerticesAndEdge(new Edge<string>(globalVertex, toVertex));
+                    CallingGraph.AddVerticesAndEdge(new Edge<string>(globalVertex, toVertex));
                 }
             }
             //add foreign edges
-            _callingGraph.AddEdgeRange(outEdgesToAdd);
+            CallingGraph.AddEdgeRange(outEdgesToAdd);
         }
         
         
@@ -317,7 +317,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         public CallingGraphEdges GetSerializeCallingGraph()
         {
             var serializeCallingGraph = new CallingGraphEdges();
-            serializeCallingGraph.Edges.AddRange(_callingGraph.Edges.Select(edge =>
+            serializeCallingGraph.Edges.AddRange(CallingGraph.Edges.Select(edge =>
                 new GraphEdge {Source = edge.Source, Target = edge.Target}));
             return serializeCallingGraph;
         }

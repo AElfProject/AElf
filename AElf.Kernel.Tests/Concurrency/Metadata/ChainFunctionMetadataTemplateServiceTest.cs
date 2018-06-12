@@ -26,9 +26,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         }
 
         [Fact]
-        public async Task<ChainFunctionMetadataTemplateService> TestTryAddNewContractShouldSuccess()
+        public async Task<ChainFunctionMetadataTemplateService> TestTryAddNewContract()
         {
             ChainFunctionMetadataTemplateService cfts = new ChainFunctionMetadataTemplateService(_dataStore, chainId);
+            cfts.CallingGraph.Clear();
+            cfts.ContractMetadataTemplateMap.Clear();
+            
             var groundTruthMap = new Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> (cfts.ContractMetadataTemplateMap);
             //Throw exception because 
             var exception = Assert.ThrowsAsync<FunctionMetadataException>(() => cfts.TryAddNewContract(typeof(TestContractA))).Result;
@@ -36,7 +39,6 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             
             //Not changed
             Assert.Equal(util.ContractMetadataTemplateMapToString(groundTruthMap), util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap));
-
 
             await cfts.TryAddNewContract(typeof(TestContractC));
                                                                                                   // Structure of the test data

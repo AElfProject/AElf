@@ -511,7 +511,21 @@ namespace AElf.Kernel.TxMemPool
             var n = GetNonce(addr);
             Nonces[addr] = n + increment;
         }
-      
+
+        public ulong GetPendingIncrementId(Hash addr)
+        {
+            if (_waiting.TryGetValue(addr, out var dict))
+            {
+                return dict.Keys.Max();
+            }
+
+            if (_executable.TryGetValue(addr, out var txs) && txs.Count > 0)
+            {
+                return txs.Last().IncrementId;
+            }
+
+            return 0;
+        }
     }
     
 }
