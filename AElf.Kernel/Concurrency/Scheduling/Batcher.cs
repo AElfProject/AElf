@@ -5,6 +5,11 @@ namespace AElf.Kernel.Concurrency.Scheduling
 {
 	public class Batcher : IBatcher
 	{
+		/// <summary>
+		/// Batch a group so that transactions that sent by same address can maintains their original order
+		/// </summary>
+		/// <param name="transactions"></param>
+		/// <returns></returns>
 		public List<List<ITransaction>> Process(List<ITransaction> transactions)
 		{
 			if(transactions.Count == 0){

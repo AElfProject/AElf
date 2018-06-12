@@ -286,6 +286,7 @@ namespace AElf.Kernel.Managers
         }
        
         #region Private methods
+
         
         /// <summary>
         /// A specific way to get a hash value which pointer to

@@ -57,6 +57,7 @@ namespace AElf.Runtime.CSharp
             }
 
             var type = assembly.GetTypes().FirstOrDefault(x => x.BaseType.Name.EndsWith("CSharpSmartContract"));
+            
             if (type == null)
             {
                 throw new InvalidCodeException("No SmartContract type is defined in the code.");
