@@ -109,6 +109,9 @@ namespace AElf.CLI.Screen
                         break;
  
                     case ConsoleKey.RightArrow:
+                        if (Console.CursorLeft > (CliPrefix.Length + command.Length) - 1)
+                            continue;
+                        
                         if (Console.CursorLeft < Console.BufferWidth)
                         {
                             Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
