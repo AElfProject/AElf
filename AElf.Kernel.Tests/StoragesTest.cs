@@ -19,6 +19,8 @@ namespace AElf.Kernel.Tests
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
 
+        private readonly IWorldStateManager _worldStateManager;
+
         public StoragesTest(IChainStore chainStore, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
             IWorldStateStore worldStateStore, IChangesStore changesStore, IDataStore dataStore)
         {
@@ -28,6 +30,8 @@ namespace AElf.Kernel.Tests
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
+
+            _worldStateManager = new WorldStateManager(_worldStateStore, _changesStore, _dataStore);
         }
 
         [Fact]
@@ -36,7 +40,8 @@ namespace AElf.Kernel.Tests
             var chainId = Hash.Generate();
             var genesisBlockHash = Hash.Generate();
             var chain = new Chain(chainId, genesisBlockHash);
-            var chainManager = new ChainManager(_chainStore, _dataStore);
+
+            var chainManager = new ChainManager(_chainStore, _dataStore, _worldStateManager);
             
             await chainManager.AddChainAsync(chain.Id, genesisBlockHash);
 
@@ -88,7 +93,7 @@ namespace AElf.Kernel.Tests
             var genesisBlockHash = Hash.Generate();
             //Create a chain with one block.
             var chain = new Chain(Hash.Generate(), genesisBlockHash);
-            var chainManager = new ChainManager(_chainStore, _dataStore);
+            var chainManager = new ChainManager(_chainStore, _dataStore, _worldStateManager);
             var block = CreateBlock(genesisBlockHash, chain.Id);
             await chainManager.AddChainAsync(chain.Id, genesisBlockHash);
             await chainManager.AppendBlockToChainAsync(block);
@@ -135,7 +140,7 @@ namespace AElf.Kernel.Tests
             var genesisBlockHash = Hash.Generate();
             //Create a chian and two blocks.
             var chain = new Chain(Hash.Generate(), genesisBlockHash);
-            var chainManager = new ChainManager(_chainStore, _dataStore);
+            var chainManager = new ChainManager(_chainStore, _dataStore, _worldStateManager);
 
             var block1 = CreateBlock(genesisBlockHash, chain.Id);
             var block2 = CreateBlock(block1.GetHash(), chain.Id);
@@ -191,7 +196,7 @@ namespace AElf.Kernel.Tests
 
             //Create a chian and several blocks.
             var chain = new Chain(Hash.Generate(), genesisBlockHash);
-            var chainManager = new ChainManager(_chainStore, _dataStore);
+            var chainManager = new ChainManager(_chainStore, _dataStore, _worldStateManager);
 
             var block1 = CreateBlock(genesisBlockHash, chain.Id);
 
