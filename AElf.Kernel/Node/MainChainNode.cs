@@ -116,7 +116,7 @@ namespace AElf.Kernel.Node
             
             try
             {
-                //res = await _poolService.AddTxAsync(tx);
+                res = await _poolService.AddTxAsync(tx);
             }
             catch (Exception e)
             {
