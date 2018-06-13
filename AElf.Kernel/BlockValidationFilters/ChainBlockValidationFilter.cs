@@ -40,7 +40,7 @@ namespace AElf.Kernel.BlockValidationFilters
             
             // todo : manage orphan blocks
             // orphan block
-            var pb = await _blockManager.GetBlockAsync(previousBlockHash);
+            /*var pb = await _blockManager.GetBlockAsync(previousBlockHash);
 
             // 
             if (pb == null)
@@ -50,7 +50,7 @@ namespace AElf.Kernel.BlockValidationFilters
             if (pbHeight + 1 != index)
             {
                 return ValidationError.InvalidBlcok;
-            }
+            }*/
             
             return ValidationError.OrphanBlock;
         }
