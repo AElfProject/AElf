@@ -37,7 +37,8 @@ message LogEvent
 {
     Hash Address = 1;
     Hash Topic = 2;
-    repeated EventField Details = 3;
+    repeated EventField Indexed = 3;
+    bytes NonIndexed = 4;
 }
 
 message TransactionResult{
