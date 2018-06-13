@@ -14,6 +14,10 @@ namespace AElf.CLI.Screen
         
         private static readonly List<string> CommandHistory = new List<string>();
         private static int _chIndex = 0;
+        private static string _line;
+        private static int _pos;
+        private static string _leftSeg;
+        private static string _rightSeg;
         
         public void PrintHeader()
         {
@@ -44,6 +48,9 @@ namespace AElf.CLI.Screen
                 {
                     Console.Write(CliPrefix);
                 }
+
+                _line = CliPrefix + command;
+                _pos = Console.CursorLeft;
                 
                 ConsoleKeyInfo keyInfo = Console.ReadKey();
                 switch (keyInfo.Key)
@@ -136,7 +143,22 @@ namespace AElf.CLI.Screen
                         return command;
                     
                     default:
-                        command = command + keyInfo.KeyChar;
+                        if (((_line.Length + 1) - Console.CursorLeft) != 0)
+                        {
+                            _leftSeg = _line.Substring(CliPrefix.Length, _pos - CliPrefix.Length);
+                            _rightSeg = _line.Substring((CliPrefix.Length + (_pos - CliPrefix.Length)), _line.Length - (CliPrefix.Length + (_pos - CliPrefix.Length)));
+                            
+                            _leftSeg += keyInfo.KeyChar;
+                            command = _leftSeg + _rightSeg;
+                            
+                            ClearConsoleLine(command);
+                            Console.SetCursorPosition(_pos + 1, Console.CursorTop);
+                        }
+                        else
+                        {
+                            command = command + keyInfo.KeyChar;
+                        }
+                        
                         break;
                 }
             }
