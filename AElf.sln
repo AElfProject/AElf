@@ -45,6 +45,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network.Tests", "AElf.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ABI.CSharp", "AElf.ABI.CSharp\AElf.ABI.CSharp.csproj", "{BBB26F2A-BFBE-4CD1-89C8-FEB5E49C4453}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ABI.CSharp.Tests", "AElf.ABI.CSharp.Tests\AElf.ABI.CSharp.Tests.csproj", "{82136399-8318-4B26-A12B-36746494AFF0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ABI.CSharp.Tests.TestContract", "AElf.ABI.CSharp.Tests.TestContract\AElf.ABI.CSharp.Tests.TestContract.csproj", "{F160CCE6-E7AF-490B-AF82-0590F54522F9}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp.Tests", "AElf.Sdk.CSharp.Tests\AElf.Sdk.CSharp.Tests.csproj", "{F4FCEBE8-FF3D-4D48-AA65-E8CD0FCDB08B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp.Tests.TestContract", "AElf.Sdk.CSharp.Tests.TestContract\AElf.Sdk.CSharp.Tests.TestContract.csproj", "{D7EBDAC1-D4E5-4A7E-B4DA-131C6EB458C7}"
@@ -141,6 +145,14 @@ Global
 		{BBB26F2A-BFBE-4CD1-89C8-FEB5E49C4453}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BBB26F2A-BFBE-4CD1-89C8-FEB5E49C4453}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BBB26F2A-BFBE-4CD1-89C8-FEB5E49C4453}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82136399-8318-4B26-A12B-36746494AFF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82136399-8318-4B26-A12B-36746494AFF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82136399-8318-4B26-A12B-36746494AFF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82136399-8318-4B26-A12B-36746494AFF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F160CCE6-E7AF-490B-AF82-0590F54522F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F160CCE6-E7AF-490B-AF82-0590F54522F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F160CCE6-E7AF-490B-AF82-0590F54522F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F160CCE6-E7AF-490B-AF82-0590F54522F9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F4FCEBE8-FF3D-4D48-AA65-E8CD0FCDB08B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F4FCEBE8-FF3D-4D48-AA65-E8CD0FCDB08B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4FCEBE8-FF3D-4D48-AA65-E8CD0FCDB08B}.Release|Any CPU.ActiveCfg = Release|Any CPU
