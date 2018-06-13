@@ -159,12 +159,33 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
+        public Task<List<ITransaction>> GetReadyTxsAsync(Hash addr, ulong start, ulong ids)
+        {
+            lock (this)
+            {
+                return Task.FromResult(_txPool.ReadyTxs(addr, start, ids));
+            }
+        }
+        
+        /// <inheritdoc/>
         public Task<bool> PromoteAsync()
         {
             //return Lock.WriteLock(() =>
             lock (this)
             {
                 _txPool.Promote();
+                return Task.FromResult(true);
+            }
+        }
+
+        
+        /// <inheritdoc/>
+        public Task PromoteAsync(List<Hash> addresses)
+        {
+            //return Lock.WriteLock(() =>
+            lock (this)
+            {
+                _txPool.Promote(addresses);
                 return Task.FromResult(true);
             }
         }
@@ -293,6 +314,7 @@ namespace AElf.Kernel.TxMemPool
             }
         }
 
+        /// <inheritdoc/>
         public ulong GetIncrementId(Hash addr)
         {
             lock (this)

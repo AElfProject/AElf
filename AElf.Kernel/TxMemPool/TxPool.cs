@@ -526,6 +526,28 @@ namespace AElf.Kernel.TxMemPool
 
             return 0;
         }
+
+        /// <inheritdoc/>
+        public List<ITransaction> ReadyTxs(Hash addr, ulong start, ulong count)
+        {
+            var res = new List<ITransaction>();
+            if (!_executable.TryGetValue(addr, out var list) || (ulong)list.Count < count || list[0].IncrementId != start)
+            {
+                return null;
+            }
+            
+            for (var i =0; i < (int)count; i++)
+            {
+                res.Add(list[i]);
+            }
+
+            // update incrementId in account data context
+            AddNonce(addr, count);
+            //remove txs from executable list  
+            list.RemoveRange(0, (int)count);
+            
+            return res;
+        }
     }
     
 }
