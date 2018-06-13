@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.ABI.Types";
+option csharp_namespace = "AElf.ABI.CSharp";
 
 message Field
 {
@@ -29,15 +29,10 @@ message Method
     bool IsAsync = 4;
 }
 
-message Contract
+message Module
 {
     string Name = 1;
     repeated Method Methods = 2;
-}
-
-message Module
-{
-    Contract Contract = 1;
-    repeated Type Types = 2;
     repeated Event Events = 3;
+    repeated Type Types = 4;
 }
