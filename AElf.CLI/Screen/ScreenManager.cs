@@ -15,7 +15,8 @@ namespace AElf.CLI.Screen
         private static readonly List<string> CommandHistory = new List<string>();
         private static int _chIndex = 0;
         private static string _currentLine;
-        private static int _cursorPosition;
+        private static int _lineCursorPosition;
+        private static int _commandCursorPosition;
         private static string _leftSegCommand;
         private static string _rightSegCommand;
         
@@ -50,7 +51,8 @@ namespace AElf.CLI.Screen
                 }
 
                 _currentLine = CliPrefix + command;
-                _cursorPosition = Console.CursorLeft;
+                _lineCursorPosition = Console.CursorLeft;
+                _commandCursorPosition = _lineCursorPosition - CliPrefix.Length;
                 
                 ConsoleKeyInfo keyInfo = Console.ReadKey();
                 switch (keyInfo.Key)
@@ -120,6 +122,9 @@ namespace AElf.CLI.Screen
                         break;
 
                     case ConsoleKey.Backspace:
+                        if (command.Length == 0)
+                            ClearConsoleLine(command);
+                        
                         if (!string.IsNullOrWhiteSpace(command))
                         {
                             if (Console.CursorLeft > CliPrefix.Length - 1)
@@ -134,10 +139,6 @@ namespace AElf.CLI.Screen
                                 Console.SetCursorPosition(CliPrefix.Length, Console.CursorTop);
                             }
                         }
-                        else
-                        {
-                            Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
-                        }
 
                         break;
                     
@@ -151,19 +152,17 @@ namespace AElf.CLI.Screen
                     default:
                         if (((_currentLine.Length + 1) - Console.CursorLeft) != 0)
                         {
-                            _leftSegCommand = _currentLine.Substring(
-                                CliPrefix.Length, 
-                                _cursorPosition - CliPrefix.Length);
+                            _leftSegCommand = _currentLine.Substring(CliPrefix.Length, _commandCursorPosition);
                             
                             _rightSegCommand = _currentLine.Substring(
-                                (CliPrefix.Length + (_cursorPosition - CliPrefix.Length)),
-                                _currentLine.Length - (CliPrefix.Length + (_cursorPosition - CliPrefix.Length)));
+                                (CliPrefix.Length + _commandCursorPosition),
+                                _currentLine.Length - (CliPrefix.Length + _commandCursorPosition));
                             
                             _leftSegCommand += keyInfo.KeyChar;
                             command = _leftSegCommand + _rightSegCommand;
                             
                             ClearConsoleLine(command);
-                            Console.SetCursorPosition(_cursorPosition + 1, Console.CursorTop);
+                            Console.SetCursorPosition(_lineCursorPosition + 1, Console.CursorTop);
                         }
                         else
                         {
