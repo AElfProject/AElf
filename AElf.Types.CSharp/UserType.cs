@@ -68,8 +68,7 @@ namespace AElf.Types.CSharp
             {typeof(long), new Packer((obj) => ((long)obj).ToAny(),(any) => any.AnyToInt64())},
             {typeof(ulong), new Packer((obj) => ((ulong)obj).ToAny(),(any) => any.AnyToUInt64())},
             {typeof(string), new Packer((obj) => ((string)obj).ToAny(),(any) => any.AnyToString())},
-            {typeof(byte[]), new Packer((obj) => ((byte[])obj).ToAny(),(any) => any.AnyToBytes())},
-            {typeof(Hash), new Packer((obj) => ((Hash)obj).ToAny(), (any) => any.AnyToHash())}
+            {typeof(byte[]), new Packer((obj) => ((byte[])obj).ToAny(),(any) => any.AnyToBytes())}
         };
 
         public UserFieldInfo(FieldInfo fieldInfo)
@@ -89,15 +88,17 @@ namespace AElf.Types.CSharp
             {
                 return packer;
             }
-            if (type.IsSubclassOf(typeof(UserType)))
+            if (type.IsPbMessageType())
+            {
+                return new Packer((obj) => ((IMessage)obj).ToAny(), (any) => any.AnyToPbMessage(type));
+            }
+            if (type.IsUserType())
             {
                 return new Packer(
-                    (obj) => Any.Pack(((UserType)obj).Pack()),
+                    (obj) => ((UserType)obj).ToAny(),
                     (any) =>
                     {
-                        var obj = (UserType)Activator.CreateInstance(type);
-                        obj.Unpack(any.Unpack<UserTypeHolder>());
-                        return obj;
+                        return any.AnyToUserType(type);
                     }
                 );
             }
