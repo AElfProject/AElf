@@ -1,10 +1,11 @@
 ﻿using System.Threading.Tasks;
+using AElf.Cryptography.ECDSA;
 
 namespace AElf.Kernel.Miner
 {
     public interface IMiner
     {
-        void Start();
+        void Start(ECKeyPair nodeKeyPair);
         void Stop();
 
         Hash Coinbase { get; }

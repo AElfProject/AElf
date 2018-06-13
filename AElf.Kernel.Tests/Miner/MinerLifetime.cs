@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
@@ -262,7 +263,8 @@ namespace AElf.Kernel.Tests.Miner
             //_chainContextService.AddChainContext(_mock.ChainId1, _chainContext);
             _generalExecutor.Tell(new RequestAddChainExecutor(_mock.ChainId1));
             ExpectMsg<RespondAddChainExecutor>();
-            miner.Start();
+            var keypair = new KeyPairGenerator().Generate();
+            miner.Start(keypair);
             var block = await miner.Mine();
             Assert.NotNull(block);
         }

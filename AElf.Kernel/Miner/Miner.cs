@@ -3,8 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Application;
 using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
+using Google.Protobuf;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
 namespace AElf.Kernel.Miner
@@ -14,7 +16,7 @@ namespace AElf.Kernel.Miner
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly ITxPoolService _txPoolService;
         private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
-        
+        private ECKeyPair _keyPair;
         
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
@@ -54,13 +56,22 @@ namespace AElf.Kernel.Miner
             // TODO：dispatch txs with ISParallel, return list of tx results
             
             var results =  await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
+            // reset Promotable and update account context
+            await _txPoolService.ResetAndUpdate(results);
+            
+            // TODO: commit tx results
             
             // generate block
             var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);
             
-            // reset Promotable and update account context
-            await _txPoolService.ResetAndUpdate(results);
+            // sign block
+            ECSigner signer = new ECSigner();
+            ECSignature signature = signer.Sign(_keyPair, block.GetHash().GetHashBytes());
 
+            block.Header.P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded());
+            block.Header.R = ByteString.CopyFrom(signature.R);
+            block.Header.S = ByteString.CopyFrom(signature.S);
+            
             return block;
         }
 
@@ -68,9 +79,10 @@ namespace AElf.Kernel.Miner
         /// <summary>
         /// start mining  
         /// </summary>
-        public void Start()
+        public void Start(ECKeyPair nodeKeyPair)
         {
             Cts = new CancellationTokenSource();
+            _keyPair = nodeKeyPair;
             //MiningResetEvent = new AutoResetEvent(false);
         }
 
@@ -83,6 +95,7 @@ namespace AElf.Kernel.Miner
             {
                 Cts.Cancel();
                 Cts.Dispose();
+                _keyPair = null;
                 //MiningResetEvent.Dispose();
             });
             
