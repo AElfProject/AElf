@@ -36,11 +36,11 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             var templateService = await templateTest.TestTryAddNewContract();
             ChainFunctionMetadataService cfms = new ChainFunctionMetadataService(templateService, _templateStore, _chainId);
             cfms.FunctionMetadataMap.Clear();
-            
 
-            var addrA = Hash.Generate();
-            var addrB = Hash.Generate();
-            var addrC = Hash.Generate();
+
+            var addrA = new Hash("TestContractA".CalculateHash());
+            var addrB = new Hash("TestContractB".CalculateHash());
+            var addrC = new Hash("TestContractC".CalculateHash());
             
             var referenceBookForA = new Dictionary<string, Hash>();
             var referenceBookForB = new Dictionary<string, Hash>();
@@ -51,7 +51,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             cfms.DeployNewContract("TestContractC", addrC, referenceBookForC);
             
             groundTruthMap.Add(
-                addrC.Value.ToBase64() + ".Func0()", 
+                addrC.Value.ToBase64() + ".Func0", 
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -64,7 +64,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrC.Value.ToBase64() + ".Func1()", 
+                addrC.Value.ToBase64() + ".Func1", 
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -83,11 +83,11 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             cfms.DeployNewContract("TestContractB", addrB, referenceBookForB);
             
             groundTruthMap.Add(
-                addrB.Value.ToBase64() + ".Func0()",
+                addrB.Value.ToBase64() + ".Func0",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrC.Value.ToBase64() + ".Func1()"
+                        addrC.Value.ToBase64() + ".Func1"
                     }),
                     new HashSet<Resource>(new []
                     {
@@ -100,7 +100,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrB.Value.ToBase64() + ".Func1()",
+                addrB.Value.ToBase64() + ".Func1",
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -127,11 +127,11 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<Resource>()));
             
             groundTruthMap.Add(
-                addrA.Value.ToBase64() + ".Func0()",
+                addrA.Value.ToBase64() + ".Func0",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToBase64() + ".Func1()"
+                        addrA.Value.ToBase64() + ".Func1"
                     }),
                     new HashSet<Resource>(new []
                     {
@@ -145,11 +145,11 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToBase64() + ".Func1()",
+                addrA.Value.ToBase64() + ".Func1",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToBase64() + ".Func2()"
+                        addrA.Value.ToBase64() + ".Func2"
                     }),
                     new HashSet<Resource>(new[]
                     {
@@ -162,7 +162,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToBase64() + ".Func2()",
+                addrA.Value.ToBase64() + ".Func2",
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new[]
@@ -177,13 +177,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToBase64() + ".Func3()",
+                addrA.Value.ToBase64() + ".Func3",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToBase64() + ".Func0()",
-                        addrB.Value.ToBase64() + ".Func0()", 
-                        addrC.Value.ToBase64() + ".Func0()"
+                        addrA.Value.ToBase64() + ".Func0",
+                        addrB.Value.ToBase64() + ".Func0", 
+                        addrC.Value.ToBase64() + ".Func0"
                     }),
                     new HashSet<Resource>(new[]
                     {
@@ -200,11 +200,11 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToBase64() + ".Func4()",
+                addrA.Value.ToBase64() + ".Func4",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToBase64() + ".Func2()"
+                        addrA.Value.ToBase64() + ".Func2"
                     }),
                     new HashSet<Resource>(new[]
                     {
@@ -214,12 +214,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<Resource>()));
             
             groundTruthMap.Add(
-                addrA.Value.ToBase64() + ".Func5()",
+                addrA.Value.ToBase64() + ".Func5",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToBase64() + ".Func3()",
-                        addrB.Value.ToBase64() + ".Func1()"
+                        addrA.Value.ToBase64() + ".Func3",
+                        addrB.Value.ToBase64() + ".Func1"
                     }),
                     new HashSet<Resource>(new[]
                     {
