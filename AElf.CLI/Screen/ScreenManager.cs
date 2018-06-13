@@ -61,64 +61,22 @@ namespace AElf.CLI.Screen
                         if (CommandHistory.Count == 0)
                             continue;
                         
-                        if (_chIndex == 0)
-                        {
-                            _chIndex = CommandHistory.Count;
-                            command = CommandHistory.ElementAt(_chIndex - 1);
-                            ClearConsoleLine(command);
-                            _chIndex--;
-                        }
-                        else
-                        {
-                            if (_chIndex == 0)
-                            {
-                                _chIndex = 0;
-                                ClearConsoleLine("");
-                                command = "";
-                            }
-                            else
-                            {
-                                command = CommandHistory.ElementAt(_chIndex - 1);
-                                ClearConsoleLine(command);
-                                _chIndex--;
-                            }
-                        }
-
+                        command = UpArrowKey(command);
                         break;
                     
                     case ConsoleKey.DownArrow:
-                        if (CommandHistory.Count > _chIndex)
-                        {
-                            command = CommandHistory.ElementAt(_chIndex);
-                            ClearConsoleLine(command);
-                            _chIndex++;
-                        }
-                        else
-                        {
-                            _chIndex = 0;
-                            ClearConsoleLine("");
-                            command = "";
-                        }
-
+                        command = DownArrowKey(command);
                         break;
                     
                     case ConsoleKey.LeftArrow:
-                        if (Console.CursorLeft > CliPrefix.Length)
-                        {
-                            Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
-                        }
-                        
+                        LeftArrowKey();
                         break;
  
                     case ConsoleKey.RightArrow:
                         if (Console.CursorLeft > (CliPrefix.Length + command.Length) - 1)
                             continue;
                         
-                        if (Console.CursorLeft < Console.BufferWidth)
-                        {
-                            Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
-                        }
-                        
+                        RightArrowKey();
                         break;
 
                     case ConsoleKey.Backspace:
@@ -128,36 +86,8 @@ namespace AElf.CLI.Screen
                             Console.SetCursorPosition(_lineCursorPosition, Console.CursorTop);
                             continue;
                         }
-                        
-                        if (((_currentLine.Length + 1) - Console.CursorLeft) != 0)
-                        {
-                            _leftSegCommand = _currentLine.Substring(CliPrefix.Length, _commandCursorPosition);
-                            
-                            _rightSegCommand = _currentLine.Substring(
-                                (CliPrefix.Length + _commandCursorPosition),
-                                _currentLine.Length - (CliPrefix.Length + _commandCursorPosition));
 
-                            _leftSegCommand = _leftSegCommand.Remove(_leftSegCommand.Length - 1);
-                            command = _leftSegCommand + _rightSegCommand;
-
-                            ClearConsoleLine(command);
-                            Console.SetCursorPosition(_lineCursorPosition - 1, Console.CursorTop);
-                        }
-                        else
-                        {
-                            if (Console.CursorLeft > CliPrefix.Length - 1)
-                            {
-                                Console.SetCursorPosition(Console.CursorLeft - 2, Console.CursorTop);
-                                Console.Write(" ");
-                                Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
-                                command = command.Remove(command.Length - 1, 1);
-                            }
-                            else
-                            {
-                                Console.SetCursorPosition(CliPrefix.Length, Console.CursorTop);
-                            }
-                        }
-
+                        command = BackspaceKey(command);
                         break;
                     
                     case ConsoleKey.Enter:
@@ -168,28 +98,130 @@ namespace AElf.CLI.Screen
                         return command;
                     
                     default:
-                        if (((_currentLine.Length + 1) - Console.CursorLeft) != 0)
-                        {
-                            _leftSegCommand = _currentLine.Substring(CliPrefix.Length, _commandCursorPosition);
-                            
-                            _rightSegCommand = _currentLine.Substring(
-                                (CliPrefix.Length + _commandCursorPosition),
-                                _currentLine.Length - (CliPrefix.Length + _commandCursorPosition));
-                            
-                            _leftSegCommand += keyInfo.KeyChar;
-                            command = _leftSegCommand + _rightSegCommand;
-                            
-                            ClearConsoleLine(command);
-                            Console.SetCursorPosition(_lineCursorPosition + 1, Console.CursorTop);
-                        }
-                        else
-                        {
-                            command = command + keyInfo.KeyChar;
-                        }
-                        
+                        command = DefaultKey(command, keyInfo.KeyChar);
                         break;
                 }
             }
+        }
+
+        static string UpArrowKey(string command)
+        {     
+            if (_chIndex == 0)
+            {
+                _chIndex = CommandHistory.Count;
+                command = CommandHistory.ElementAt(_chIndex - 1);
+                ClearConsoleLine(command);
+                _chIndex--;
+            }
+            else
+            {
+                if (_chIndex == 0)
+                {
+                    _chIndex = 0;
+                    ClearConsoleLine("");
+                    command = "";
+                }
+                else
+                {
+                    command = CommandHistory.ElementAt(_chIndex - 1);
+                    ClearConsoleLine(command);
+                    _chIndex--;
+                }
+            }
+
+            return command;
+        }
+
+        static string DownArrowKey(string command)
+        {
+            if (CommandHistory.Count > _chIndex)
+            {
+                command = CommandHistory.ElementAt(_chIndex);
+                ClearConsoleLine(command);
+                _chIndex++;
+            }
+            else
+            {
+                _chIndex = 0;
+                ClearConsoleLine("");
+                command = "";
+            }
+
+            return command;
+        }
+
+        static void LeftArrowKey()
+        {
+            if (Console.CursorLeft > CliPrefix.Length)
+            {
+                Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+            }
+        }
+
+        static void RightArrowKey()
+        {
+            if (Console.CursorLeft < Console.BufferWidth)
+            {
+                Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
+            }
+        }
+
+        static string BackspaceKey(string command)
+        {
+            if ((_currentLine.Length + 1) - Console.CursorLeft != 0)
+            {
+                _leftSegCommand = _currentLine.Substring(CliPrefix.Length, _commandCursorPosition);
+                            
+                _rightSegCommand = _currentLine.Substring(
+                    (CliPrefix.Length + _commandCursorPosition),
+                    _currentLine.Length - (CliPrefix.Length + _commandCursorPosition));
+
+                _leftSegCommand = _leftSegCommand.Remove(_leftSegCommand.Length - 1);
+                command = _leftSegCommand + _rightSegCommand;
+
+                ClearConsoleLine(command);
+                Console.SetCursorPosition(_lineCursorPosition - 1, Console.CursorTop);
+            }
+            else
+            {
+                if (Console.CursorLeft > CliPrefix.Length - 1)
+                {
+                    Console.SetCursorPosition(Console.CursorLeft - 2, Console.CursorTop);
+                    Console.Write(" ");
+                    Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                    command = command.Remove(command.Length - 1, 1);
+                }
+                else
+                {
+                    Console.SetCursorPosition(CliPrefix.Length, Console.CursorTop);
+                }
+            }
+
+            return command;
+        }
+
+        static string DefaultKey(string command, char keyChar)
+        {
+            if (((_currentLine.Length + 1) - Console.CursorLeft) != 0)
+            {
+                _leftSegCommand = _currentLine.Substring(CliPrefix.Length, _commandCursorPosition);
+                            
+                _rightSegCommand = _currentLine.Substring(
+                    (CliPrefix.Length + _commandCursorPosition),
+                    _currentLine.Length - (CliPrefix.Length + _commandCursorPosition));
+                            
+                _leftSegCommand += keyChar;
+                command = _leftSegCommand + _rightSegCommand;
+                            
+                ClearConsoleLine(command);
+                Console.SetCursorPosition(_lineCursorPosition + 1, Console.CursorTop);
+            }
+            else
+            {
+                command = command + keyChar;
+            }
+
+            return command;
         }
         
         static void ClearConsoleLine(string command)
