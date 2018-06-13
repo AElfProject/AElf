@@ -9,11 +9,6 @@ namespace AElf.Kernel
 {
     public partial class BlockHeader : IBlockHeader
     {
-        /// <summary>
-        /// The miner's signature.
-        /// </summary>
-        public byte[] Signatures;
-
         public BlockHeader(Hash preBlockHash)
         {
             PreviousBlockHash = preBlockHash;
@@ -21,7 +16,7 @@ namespace AElf.Kernel
 
         public Hash GetHash()
         {
-            return this.CalculateHash();
+            return GetSignatureData();
         }
 
         public byte[] Serialize()
@@ -36,6 +31,20 @@ namespace AElf.Kernel
             sig[1] = new BigInteger(S.ToByteArray());
             
             return new ECSignature(sig);
+        }
+        
+        public byte[] GetSignatureData()
+        {
+            var rawBlock = new BlockHeader
+            {
+                ChainId = ChainId.Clone(),
+                Index = Index,
+                PreviousBlockHash = PreviousBlockHash.Clone(),
+                MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions.Clone(),
+                MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState.Clone()
+            };
+            
+            return rawBlock.ToByteArray();
         }
     }
 }
