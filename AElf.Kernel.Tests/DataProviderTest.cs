@@ -13,18 +13,17 @@ namespace AElf.Kernel.Tests
     public class DataProviderTest
     {
         private readonly IWorldStateStore _worldStateStore;
-        private readonly IChainStore _chainStore;
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
-        private readonly IWorldStateManager _worldStateManager;
+        private readonly BlockTest _blockTest;
 
-        public DataProviderTest(IWorldStateStore worldStateStore, IChainStore chainStore, IChangesStore changesStore, IDataStore dataStore, IWorldStateManager worldStateManager)
+        public DataProviderTest(IWorldStateStore worldStateStore,
+            IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest)
         {
             _worldStateStore = worldStateStore;
-            _chainStore = chainStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
-            _worldStateManager = worldStateManager;
+            _blockTest = blockTest;
         }
 
         [Fact]
@@ -34,14 +33,14 @@ namespace AElf.Kernel.Tests
             var setList = CreateSet(count).ToList();
             var keys = GenerateKeys(setList).ToList();
 
-            var genesisBlockHash = Hash.Generate();
-            var chain = new Chain(Hash.Generate(), genesisBlockHash);
-            var chainManager = new ChainManager(_chainStore, _dataStore, _worldStateManager);
-            await chainManager.AddChainAsync(chain.Id, genesisBlockHash);
+            var chain = await _blockTest.CreateChain();
 
             var address = Hash.Generate();
+            
             var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
-            await worldStateManager.SetWorldStateAsync(genesisBlockHash);
+            
+            await worldStateManager.SetWorldStateAsync(chain.GenesisBlockHash);
+            
             var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             var dataProvider = accountDataProvider.GetDataProvider();
 

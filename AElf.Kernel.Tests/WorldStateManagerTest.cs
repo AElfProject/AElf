@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
-using Akka.IO;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -14,11 +13,13 @@ namespace AElf.Kernel.Tests
     {
         private readonly IWorldStateManager _worldStateManager;
 
-        private readonly Hash _genesisBlockHash = Hash.Generate();
-        
-        public WorldStateManagerTest(IWorldStateStore worldStateStore, IChangesStore changesStore, IDataStore dataStore)
+        private readonly BlockTest _blockTest;
+
+        public WorldStateManagerTest(IWorldStateStore worldStateStore, IChangesStore changesStore, 
+            IDataStore dataStore, BlockTest blockTest)
         {
             _worldStateManager = new WorldStateManager(worldStateStore, changesStore, dataStore);
+            _blockTest = blockTest;
 
         }
 
@@ -37,13 +38,12 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task AccountDataProviderTest()
         {
-            var chain = new Chain(Hash.Generate(), _genesisBlockHash);
+            var chain = await _blockTest.CreateChain();
+            
             var address = Hash.Generate();
 
             await _worldStateManager.OfChain(chain.Id);
             
-            await _worldStateManager.SetWorldStateAsync(_genesisBlockHash);
-
             var accountDataProvider = _worldStateManager.GetAccountDataProvider(address);
             
             Assert.True(accountDataProvider.Context.Address == address);

@@ -32,7 +32,8 @@ namespace AElf.Kernel.Managers
             await AppednBlockHeaderAsync(block.Header);
 
             await InitialHeightOfBlock(chainId);
-            await _heightOfBlock.SetAsync(new UInt64Value {Value = block.Header.Index}.CalculateHash(), block.GetHash().ToByteArray());
+            await _heightOfBlock.SetAsync(new UInt64Value {Value = block.Header.Index}.CalculateHash(), 
+                block.GetHash().ToByteArray());
         }
 
         public async Task AppednBlockHeaderAsync(BlockHeader header)
