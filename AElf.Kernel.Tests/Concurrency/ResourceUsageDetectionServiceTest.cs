@@ -16,14 +16,10 @@ namespace AElf.Kernel.Tests.Concurrency
     [UseAutofacTestFramework]
     public class ResourceUsageDetectionServiceTest
     {
-        private IResourceUsageDetectionService _resourceUsageDetectionService;
-        private IResourceUsageDetectionService _resourceUsageDetectionService2;
         private IDataStore _dataStore;
 
-        public ResourceUsageDetectionServiceTest(IResourceUsageDetectionService resourceUsageDetectionService, IResourceUsageDetectionService resourceUsageDetectionService2, IDataStore dataStore)
+        public ResourceUsageDetectionServiceTest(IDataStore dataStore)
         {
-            _resourceUsageDetectionService = resourceUsageDetectionService;
-            _resourceUsageDetectionService2 = resourceUsageDetectionService2;
             _dataStore = dataStore;
         }
 

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Kernel.Storages;
 using Google.Protobuf;
 using NLog;
 using Org.BouncyCastle.Security;
+using QuickGraph;
 
 namespace AElf.Kernel.Concurrency.Metadata
 {
@@ -13,17 +15,23 @@ namespace AElf.Kernel.Concurrency.Metadata
         private readonly IChainFunctionMetadataTemplateService _templateService;
         private readonly ILogger _logger;
         private readonly IDataStore _dataStore;
-        private readonly Hash _chainId;
+        private Hash _chainId;
         
-        public Dictionary<string, FunctionMetadata> FunctionMetadataMap { get; }
+        public Dictionary<string, FunctionMetadata> FunctionMetadataMap { get; private set; }
         
-        public ChainFunctionMetadataService(IChainFunctionMetadataTemplateService templateService, IDataStore dataStore, Hash chainId, ILogger logger = null)
+        public ChainFunctionMetadataService(IChainFunctionMetadataTemplateService templateService, IDataStore dataStore, ILogger logger = null)
         {
             _templateService = templateService;
             _dataStore = dataStore;
-            _chainId = chainId;
             _logger = logger;
+            _chainId = null;
 
+            
+        }
+        
+        public async Task<IChainFunctionMetadataService> OfChain(Hash chainId)
+        {
+            _chainId = chainId;
             var mapCache = _dataStore.GetDataAsync(Path.CalculatePointerForMetadata(_chainId)).Result;
             if (mapCache != null)
             {
@@ -33,6 +41,8 @@ namespace AElf.Kernel.Concurrency.Metadata
             {
                 FunctionMetadataMap = new Dictionary<string, FunctionMetadata>();
             }
+
+            return this;
         }
 
         /// <summary>

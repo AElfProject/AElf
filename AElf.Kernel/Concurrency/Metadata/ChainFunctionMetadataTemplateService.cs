@@ -21,19 +21,24 @@ namespace AElf.Kernel.Concurrency.Metadata
     /// </summary>
     public class ChainFunctionMetadataTemplateService : IChainFunctionMetadataTemplateService
     {
-        public Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> ContractMetadataTemplateMap { get; } 
-        public readonly AdjacencyGraph<string, Edge<string>> CallingGraph; //calling graph is prepared for update contract code (check for DAG at that time)
+        public Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> ContractMetadataTemplateMap { get; private set; } 
+        public AdjacencyGraph<string, Edge<string>> CallingGraph; //calling graph is prepared for update contract code (check for DAG at that time)
         
         private readonly ILogger _logger;
         private readonly IDataStore _dataStore;
-        private readonly Hash _chainId;
+        private Hash _chainId;
+        
 
-        public ChainFunctionMetadataTemplateService(IDataStore dataStore, Hash chainId, ILogger logger = null)
+        public ChainFunctionMetadataTemplateService(IDataStore dataStore, ILogger logger = null)
         {
             _dataStore = dataStore;
-            _chainId = chainId;
             _logger = logger;
+            _chainId = null;
+        }
 
+        public async Task<IChainFunctionMetadataTemplateService> OfChain(Hash chainId)
+        {
+            _chainId = chainId;
             var mapCache = _dataStore.GetDataAsync(Path.CalculatePointerForMetadataTemlate(chainId)).Result;
             var graphCache = _dataStore.GetDataAsync(Path.CalculatePointerForMetadataTemlateCallingGraph(chainId))
                 .Result;
@@ -53,6 +58,8 @@ namespace AElf.Kernel.Concurrency.Metadata
                 ContractMetadataTemplateMap = new Dictionary<string, Dictionary<string, FunctionMetadataTemplate>>();
                 CallingGraph = new AdjacencyGraph<string, Edge<string>>();
             }
+
+            return this;
         }
 
         #region Metadata extraction from contract code
@@ -67,6 +74,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <exception cref="FunctionMetadataException"></exception>
         public async Task<bool> TryAddNewContract(Type contractType)
         {
+            Ready();
             try
             {
                 ExtractRawMetadataFromType(contractType, out var smartContractReferenceMap,
@@ -251,6 +259,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         
         public bool TryGetLocalCallingGraph(Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap, out AdjacencyGraph<string, Edge<string>> callGraph, out IEnumerable<string> topologicRes)
         {
+            Ready();
             callGraph = new AdjacencyGraph<string, Edge<string>>();
             foreach (var kvPair in localFunctionMetadataTemplateMap)
             {
@@ -314,7 +323,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             return contractMetadataMap;
         }
 
-        public CallingGraphEdges GetSerializeCallingGraph()
+        private CallingGraphEdges GetSerializeCallingGraph()
         {
             var serializeCallingGraph = new CallingGraphEdges();
             serializeCallingGraph.Edges.AddRange(CallingGraph.Edges.Select(edge =>
@@ -322,7 +331,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             return serializeCallingGraph;
         }
 
-        public dynamic RestoreCallingGraph(CallingGraphEdges edges)
+        private dynamic RestoreCallingGraph(CallingGraphEdges edges)
         {
             AdjacencyGraph<string, Edge<string>> graph = new AdjacencyGraph<string, Edge<string>>();
             graph.AddVerticesAndEdgeRange(edges.Edges.Select(kv => new Edge<string>(kv.Source, kv.Target)));
@@ -336,7 +345,14 @@ namespace AElf.Kernel.Concurrency.Metadata
             }
             return graph;
         }
-        
+
+        private void Ready()
+        {
+            if (_chainId == null)
+            {
+                throw new FunctionMetadataException("ChainId not set for tempalte service ");
+            }
+        }
 
         #endregion
     }

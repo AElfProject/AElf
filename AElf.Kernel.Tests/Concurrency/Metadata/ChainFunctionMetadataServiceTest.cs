@@ -34,7 +34,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         {
             ChainFunctionMetadataTemplateServiceTest templateTest = new ChainFunctionMetadataTemplateServiceTest(_templateStore, _chainId);
             var templateService = await templateTest.TestTryAddNewContract();
-            ChainFunctionMetadataService cfms = new ChainFunctionMetadataService(templateService, _templateStore, _chainId);
+            ChainFunctionMetadataService cfms = new ChainFunctionMetadataService(templateService, _templateStore);
+            
+            await cfms.OfChain(_chainId);
             cfms.FunctionMetadataMap.Clear();
 
 
@@ -236,8 +238,10 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             Assert.Equal(util.FunctionMetadataMapToString(groundTruthMap), util.FunctionMetadataMapToString(cfms.FunctionMetadataMap));
 
             //test restore
-            ChainFunctionMetadataTemplateService retoredTemplateService  = new ChainFunctionMetadataTemplateService(_templateStore, _chainId);
-            ChainFunctionMetadataService newCFMS = new ChainFunctionMetadataService(retoredTemplateService, _templateStore, _chainId);
+            ChainFunctionMetadataTemplateService retoredTemplateService  = new ChainFunctionMetadataTemplateService(_templateStore);
+            retoredTemplateService.OfChain(_chainId);
+            ChainFunctionMetadataService newCFMS = new ChainFunctionMetadataService(retoredTemplateService, _templateStore);
+            await newCFMS.OfChain(_chainId);
             Assert.Equal(util.FunctionMetadataMapToString(cfms.FunctionMetadataMap), util.FunctionMetadataMapToString(newCFMS.FunctionMetadataMap));
             
             return cfms;

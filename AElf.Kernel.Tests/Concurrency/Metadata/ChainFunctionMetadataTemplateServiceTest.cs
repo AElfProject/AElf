@@ -28,7 +28,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [Fact]
         public async Task<ChainFunctionMetadataTemplateService> TestTryAddNewContract()
         {
-            ChainFunctionMetadataTemplateService cfts = new ChainFunctionMetadataTemplateService(_dataStore, chainId);
+            ChainFunctionMetadataTemplateService cfts = new ChainFunctionMetadataTemplateService(_dataStore);
+            await cfts.OfChain(chainId);
             cfts.CallingGraph.Clear();
             cfts.ContractMetadataTemplateMap.Clear();
             
@@ -153,7 +154,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             await TestFailCases(cfts);
             
             //test restore
-            ChainFunctionMetadataTemplateService newCFTS = new ChainFunctionMetadataTemplateService(_dataStore, chainId);    
+            ChainFunctionMetadataTemplateService newCFTS = new ChainFunctionMetadataTemplateService(_dataStore);
+            await newCFTS.OfChain(chainId);
             Assert.Equal(util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap), util.ContractMetadataTemplateMapToString(newCFTS.ContractMetadataTemplateMap));
             
             return cfts;
