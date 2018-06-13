@@ -30,8 +30,18 @@ namespace AElf.Launcher
         {
             // Parse options
             ConfigParser confParser = new ConfigParser();
-            bool parsed = confParser.Parse(args);
+            bool parsed;
+            try
+            {
+                parsed = confParser.Parse(args);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
 
+            
             if (!parsed)
                 return;
             
