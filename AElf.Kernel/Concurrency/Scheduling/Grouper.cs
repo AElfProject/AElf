@@ -18,27 +18,29 @@ namespace AElf.Kernel.Concurrency.Scheduling
 
         public List<List<ITransaction>> Process(List<ITransaction> transactions)
         {
+            var txResourceHandle = new Dictionary<ITransaction, string>();
             if (transactions.Count == 0)
             {
                 return new List<List<ITransaction>>();
             }
 
-            Dictionary<Hash, UnionFindNode> accountUnionSet = new Dictionary<Hash, UnionFindNode>();
+            Dictionary<string, UnionFindNode> resourceUnionSet = new Dictionary<string, UnionFindNode>();
 
 	        //set up the union find set as the representation of graph and the connected components will be the resulting groups
             foreach (var tx in transactions)
             {
                 UnionFindNode first = null;
-                foreach (var hash in _resourceUsageDetectionService.GetResources(tx))
+                foreach (var resource in _resourceUsageDetectionService.GetResources(tx))
                 {
-                    if (!accountUnionSet.TryGetValue(hash, out var node))
+                    if (!resourceUnionSet.TryGetValue(resource, out var node))
                     {
                         node = new UnionFindNode();
-                        accountUnionSet.Add(hash, node);
+                        resourceUnionSet.Add(resource, node);
                     }
                     if (first == null)
                     {
                         first = node;
+                        txResourceHandle.Add(tx, resource);
                     }
                     else
                     {
@@ -48,19 +50,28 @@ namespace AElf.Kernel.Concurrency.Scheduling
             }
 
             Dictionary<int, List<ITransaction>> grouped = new Dictionary<int, List<ITransaction>>();
+            List<List<ITransaction>> result = new List<List<ITransaction>>();
 
             foreach (var tx in transactions)
             {
-                int nodeId = accountUnionSet[tx.From].Find().NodeId;
-                if (!grouped.TryGetValue(nodeId, out var group))
+                if (txResourceHandle.TryGetValue(tx, out var firstResource))
                 {
-                    group = new List<ITransaction>();
-                    grouped.Add(nodeId, group);
+                    int nodeId = resourceUnionSet[firstResource].Find().NodeId;
+                    if (!grouped.TryGetValue(nodeId, out var group))
+                    {
+                        group = new List<ITransaction>();
+                        grouped.Add(nodeId, group);
+                    }
+                    group.Add(tx);
                 }
-                group.Add(tx);
+                else
+                {
+                    //each "resource-free" transaction have its own group
+                    result.Add(new List<ITransaction>(){tx});
+                }
             }
-
-            return grouped.Values.ToList();
+            result.AddRange(grouped.Values);
+            return result;
         }
     }
 }

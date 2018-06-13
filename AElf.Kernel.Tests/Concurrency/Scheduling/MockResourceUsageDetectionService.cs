@@ -5,10 +5,10 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
     public class MockResourceUsageDetectionService : IResourceUsageDetectionService
     {
-        public IEnumerable<Hash> GetResources(ITransaction transaction)
+        public IEnumerable<string> GetResources(ITransaction transaction)
         {
-            return new List<Hash>(){
-                transaction.From, transaction.To
+            return new List<string>(){
+                transaction.From.Value.ToBase64(), transaction.To.Value.ToBase64()
             };
         }
     }
