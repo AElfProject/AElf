@@ -40,9 +40,11 @@ namespace AElf.Kernel.Managers
             var chainId = header.ChainId;
             if (await _chainStore.GetAsync(chainId) == null)
                 throw new KeyNotFoundException("Not existed Chain");
-            
+
             var height = await GetChainCurrentHeight(chainId);
+
             var lastBlockHash = await GetChainLastBlockHash(chainId);
+
             // chain height should not be 0 when appending a new block
             if (height == 0)
             {
@@ -58,6 +60,7 @@ namespace AElf.Kernel.Managers
             header.Index = height;
             await SetChainCurrentHeight(chainId, height + 1);
             await SetChainLastBlockHash(chainId, header.GetHash());
+
         }
 
 

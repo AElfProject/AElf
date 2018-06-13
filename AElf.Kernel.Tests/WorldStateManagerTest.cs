@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using Akka.IO;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
