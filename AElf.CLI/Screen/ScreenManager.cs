@@ -122,10 +122,28 @@ namespace AElf.CLI.Screen
                         break;
 
                     case ConsoleKey.Backspace:
-                        if (command.Length == 0)
+                        if (command.Length == 0 || _commandCursorPosition < 1)
+                        {
                             ClearConsoleLine(command);
+                            Console.SetCursorPosition(_lineCursorPosition, Console.CursorTop);
+                            continue;
+                        }
                         
-                        if (!string.IsNullOrWhiteSpace(command))
+                        if (((_currentLine.Length + 1) - Console.CursorLeft) != 0)
+                        {
+                            _leftSegCommand = _currentLine.Substring(CliPrefix.Length, _commandCursorPosition);
+                            
+                            _rightSegCommand = _currentLine.Substring(
+                                (CliPrefix.Length + _commandCursorPosition),
+                                _currentLine.Length - (CliPrefix.Length + _commandCursorPosition));
+
+                            _leftSegCommand = _leftSegCommand.Remove(_leftSegCommand.Length - 1);
+                            command = _leftSegCommand + _rightSegCommand;
+
+                            ClearConsoleLine(command);
+                            Console.SetCursorPosition(_lineCursorPosition - 1, Console.CursorTop);
+                        }
+                        else
                         {
                             if (Console.CursorLeft > CliPrefix.Length - 1)
                             {
