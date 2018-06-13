@@ -56,6 +56,9 @@ namespace AElf.CLI.Screen
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.UpArrow:
+                        if (CommandHistory.Count == 0)
+                            continue;
+                        
                         if (_chIndex == 0)
                         {
                             _chIndex = CommandHistory.Count;
