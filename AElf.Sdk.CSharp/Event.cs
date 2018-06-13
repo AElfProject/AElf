@@ -12,6 +12,7 @@ namespace AElf.Sdk.CSharp
 {
     public class Event
     {
+        // TODO: How to make this implicit
         public void Fire()
         {
             var t = GetType();

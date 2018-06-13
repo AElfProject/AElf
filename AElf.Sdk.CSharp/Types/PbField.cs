@@ -6,10 +6,10 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Sdk.CSharp.Types
 {
-    public class AElfPbType<T> where T : IMessage
+    public class PbField<T> where T : IMessage
     {
         public string _name;
-        public AElfPbType(string name)
+        public PbField(string name)
         {
             _name = name;
         }
@@ -29,12 +29,12 @@ namespace AElf.Sdk.CSharp.Types
         }
     }
 
-    public class AElfBool
+    public class BoolField
     {
-        private AElfPbType<BoolValue> _inner;
-        public AElfBool(string name)
+        private PbField<BoolValue> _inner;
+        public BoolField(string name)
         {
-            _inner = new AElfPbType<BoolValue>(name);
+            _inner = new PbField<BoolValue>(name);
         }
         public async Task SetAsync(bool value)
         {
@@ -46,12 +46,12 @@ namespace AElf.Sdk.CSharp.Types
         }
     }
 
-    public class AElfUInt32
+    public class UInt32Field
     {
-        private AElfPbType<UInt32Value> _inner;
-        public AElfUInt32(string name)
+        private PbField<UInt32Value> _inner;
+        public UInt32Field(string name)
         {
-            _inner = new AElfPbType<UInt32Value>(name);
+            _inner = new PbField<UInt32Value>(name);
         }
         public async Task SetAsync(uint value)
         {
@@ -63,12 +63,12 @@ namespace AElf.Sdk.CSharp.Types
         }
     }
 
-    public class AElfInt32
+    public class Int32Field
     {
-        private AElfPbType<Int32Value> _inner;
-        public AElfInt32(string name)
+        private PbField<Int32Value> _inner;
+        public Int32Field(string name)
         {
-            _inner = new AElfPbType<Int32Value>(name);
+            _inner = new PbField<Int32Value>(name);
         }
         public async Task SetAsync(int value)
         {
@@ -80,12 +80,12 @@ namespace AElf.Sdk.CSharp.Types
         }
     }
 
-    public class AElfUInt64
+    public class UInt64Field
     {
-        private AElfPbType<UInt64Value> _inner;
-        public AElfUInt64(string name)
+        private PbField<UInt64Value> _inner;
+        public UInt64Field(string name)
         {
-            _inner = new AElfPbType<UInt64Value>(name);
+            _inner = new PbField<UInt64Value>(name);
         }
         public async Task SetAsync(ulong value)
         {
@@ -97,12 +97,12 @@ namespace AElf.Sdk.CSharp.Types
         }
     }
 
-    public class AElfInt64
+    public class Int64Field
     {
-        private AElfPbType<Int64Value> _inner;
-        public AElfInt64(string name)
+        private PbField<Int64Value> _inner;
+        public Int64Field(string name)
         {
-            _inner = new AElfPbType<Int64Value>(name);
+            _inner = new PbField<Int64Value>(name);
         }
         public async Task SetAsync(long value)
         {
@@ -114,12 +114,29 @@ namespace AElf.Sdk.CSharp.Types
         }
     }
 
-    public class AElfBytes
+    public class StringField
     {
-        private AElfPbType<BytesValue> _inner;
-        public AElfBytes(string name)
+        private PbField<StringValue> _inner;
+        public StringField(string name)
         {
-            _inner = new AElfPbType<BytesValue>(name);
+            _inner = new PbField<StringValue>(name);
+        }
+        public async Task SetAsync(string value)
+        {
+            await _inner.SetAsync(new StringValue() { Value = value });
+        }
+        public async Task<string> GetAsync()
+        {
+            return (await _inner.GetAsync())?.Value ?? default(string);
+        }
+    }
+
+    public class BytesField
+    {
+        private PbField<BytesValue> _inner;
+        public BytesField(string name)
+        {
+            _inner = new PbField<BytesValue>(name);
         }
         public async Task SetAsync(byte[] value)
         {
@@ -127,7 +144,7 @@ namespace AElf.Sdk.CSharp.Types
         }
         public async Task<byte[]> GetAsync()
         {
-            return (await _inner.GetAsync())?.Value.ToByteArray() ?? new byte[]{};
+            return (await _inner.GetAsync())?.Value.ToByteArray() ?? new byte[] { };
         }
     }
 
