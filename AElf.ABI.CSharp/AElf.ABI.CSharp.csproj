@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.5.1" />
+    <PackageReference Include="Mono.Cecil" Version="0.10.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove=".DS_Store" />
+    <None Remove="Protobuf\.DS_Store" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="NameExtension.cs" />
+    <Compile Remove="Messages.g.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
+  </ItemGroup>
+</Project>

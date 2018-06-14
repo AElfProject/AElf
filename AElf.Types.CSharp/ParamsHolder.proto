@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Types.CSharp";
+
+import "google/protobuf/any.proto";
+
+message ParamsHolder
+{
+    repeated google.protobuf.Any Params = 1;
+}

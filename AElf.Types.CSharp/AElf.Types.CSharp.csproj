@@ -5,7 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.5.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Class1.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
-    <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="gen_script" />
   </ItemGroup>
 </Project>
