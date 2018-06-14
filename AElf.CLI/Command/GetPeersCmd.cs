@@ -17,7 +17,7 @@ namespace AElf.CLI.Command
 
         public override string GetUsage()
         {
-            throw new System.NotImplementedException();
+            return "usage: peers <number of peers>";
         }
 
         public override string GetUsage(string subCommand)
@@ -25,21 +25,21 @@ namespace AElf.CLI.Command
             throw new System.NotImplementedException();
         }
 
-        public override JObject BuildRequest(CmdParseResult parsedCommand)
+        public override JObject BuildRequest(CmdParseResult parsedCmd)
         {
             JObject reqParams;
             
-            if (parsedCommand.Args == null || parsedCommand.Args.Count <= 0)
+            if (parsedCmd.Args == null || parsedCmd.Args.Count <= 0)
                  reqParams = new JObject { ["numPeers"] = null };
             else
-                reqParams = new JObject { ["numPeers"] = parsedCommand.Args.ElementAt(0) };
+                reqParams = new JObject { ["numPeers"] = parsedCmd.Args.ElementAt(0) };
 
             var req = JsonRpcHelpers.CreateRequest(reqParams, "get_peers", 1);
             
             return req;
         }
 
-        public override string Validate(CmdParseResult parsedCommand)
+        public override string Validate(CmdParseResult parsedCmd)
         {
             return null;
         }

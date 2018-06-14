@@ -17,23 +17,23 @@ namespace AElf.CLI.Command
 
         public override string GetUsage()
         {
-            return "usage send-tx <address>";
+            return "usage: send-tx <address>";
         }
 
-        public override string Validate(CmdParseResult parsedCommand)
+        public override string Validate(CmdParseResult parsedCmd)
         {
-            if (parsedCommand == null)
-                return "no command";
+            if (parsedCmd == null)
+                return "no command\n" + GetUsage();
 
-            if (parsedCommand.Args == null || parsedCommand.Args.Count <= 0)
-                return "not enough arguments";
+            if (parsedCmd.Args == null || parsedCmd.Args.Count <= 0)
+                return "not enough arguments\n" + GetUsage();
 
             return null;
         }
         
-        public override JObject BuildRequest(CmdParseResult parsedCommand)
+        public override JObject BuildRequest(CmdParseResult parsedCmd)
         {
-            var reqParams = new JObject { ["address"] = parsedCommand.Args.ElementAt(0) };
+            var reqParams = new JObject { ["address"] = parsedCmd.Args.ElementAt(0) };
             var req = JsonRpcHelpers.CreateRequest(reqParams, "get_increment", 1);
 
             return req;
