@@ -1,5 +1,6 @@
 ﻿using AElf.Kernel.Extensions;
 using System;
+using System.Security.Cryptography;
 using AElf.Cryptography.ECDSA;
 using Google.Protobuf;
 using Org.BouncyCastle.Math;
@@ -16,7 +17,7 @@ namespace AElf.Kernel
 
         public Hash GetHash()
         {
-            return GetSignatureData();
+            return SHA256.Create().ComputeHash(GetSignatureData());
         }
 
         public byte[] Serialize()
@@ -40,8 +41,7 @@ namespace AElf.Kernel
                 ChainId = ChainId.Clone(),
                 Index = Index,
                 PreviousBlockHash = PreviousBlockHash.Clone(),
-                MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions.Clone(),
-                MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState.Clone()
+                Time = Time.Clone()
             };
             
             return rawBlock.ToByteArray();
