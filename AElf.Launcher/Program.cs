@@ -133,7 +133,7 @@ namespace AElf.Launcher
                 using (JsonTextReader reader = new JsonTextReader(file))
                 {
                     JObject chain = (JObject)JToken.ReadFrom(reader);
-                    chainId = new Hash(ByteString.CopyFromUtf8(chain.GetValue("id").ToString()));
+                    chainId = new Hash(ByteString.FromBase64(chain.GetValue("id").ToString()));
                 }
             }
 
