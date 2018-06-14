@@ -1,7 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
+using Google.Protobuf.WellKnownTypes;
 using Org.BouncyCastle.Math.EC;
 using QuickGraph.Collections;
 
@@ -28,6 +30,7 @@ namespace AElf.Kernel.Services
             var index = await _chainManager.GetChainCurrentHeight(chainId);
             var block = new Block(lastBlockHash);
             block.Header.Index = index + 1;
+            block.Header.ChainId = chainId;
             
             // add tx hash
             foreach (var r in results)
@@ -43,10 +46,12 @@ namespace AElf.Kernel.Services
             
             await _worldStateManager.SetWorldStateAsync(lastBlockHash);
             var ws = await _worldStateManager.GetWorldStateAsync(lastBlockHash);
+            block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+
             if(ws != null)
                 block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
             block.Body.BlockHeader = block.Header.GetHash();
-            
+
             // append block
             await _blockManager.AddBlockAsync(block);
             await _chainManager.AppendBlockToChainAsync(block);
@@ -59,6 +64,12 @@ namespace AElf.Kernel.Services
         {
             // get ws merkle tree root
             var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
+            var index = await _chainManager.GetChainCurrentHeight(chainId);
+            var block = new Block(lastBlockHash);
+            block.Header.Index = index + 1;
+            block.Header.ChainId = chainId;
+            
+            
             await _worldStateManager.OfChain(chainId);
             var ws = await _worldStateManager.GetWorldStateAsync(lastBlockHash);
             var state = await ws.GetWorldStateMerkleTreeRootAsync();
