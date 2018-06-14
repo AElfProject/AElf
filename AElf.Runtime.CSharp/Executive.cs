@@ -119,23 +119,30 @@ namespace AElf.Runtime.CSharp
                     {
                         if (!_asyncApplyHanders.TryGetValue(methodAbi.ReturnType, out var handler))
                         {
-                            if (methodInfo.ReturnType.IsPbMessageType())
+                            if (methodInfo.ReturnType.GenericTypeArguments[0].IsPbMessageType())
                             {
                                 handler = InvokeAsyncHandlers.ForPbMessageReturnType;
 
                             }
-                            else if (methodInfo.ReturnType.IsUserType())
+                            else if (methodInfo.ReturnType.GenericTypeArguments[0].IsUserType())
                             {
                                 handler = InvokeAsyncHandlers.ForUserTypeReturnType;
                             }
                         }
                         if (handler != null)
                         {
-                            _currentTransactionContext.Trace.RetVal = await handler(methodInfo, _smartContract, parameters);
+                            try
+                            {
+                                _currentTransactionContext.Trace.RetVal = await handler(methodInfo, _smartContract, parameters);
+                            }
+                            catch (Exception ex)
+                            {
+                                _currentTransactionContext.Trace.StdErr += "\n" + ex;
+                            }
                         }
                         else
                         {
-                            throw new Exception("Invalid return type.");
+                            throw new Exception($"Method has an invalid return type {methodInfo.ReturnType}.");
                         }
                     }
                     else
@@ -153,11 +160,19 @@ namespace AElf.Runtime.CSharp
                         }
                         if (handler != null)
                         {
-                            _currentTransactionContext.Trace.RetVal = handler(methodInfo, _smartContract, parameters);
+                            try
+                            {
+                                _currentTransactionContext.Trace.RetVal = handler(methodInfo, _smartContract, parameters);
+                            }
+                            catch (Exception ex)
+                            {
+                                _currentTransactionContext.Trace.StdErr += "\n" + ex;
+                            }
+
                         }
                         else
                         {
-                            throw new Exception("Invalid return type.");
+                            throw new Exception($"Method has an invalid return type {methodInfo.ReturnType}.");
                         }
                     }
 
