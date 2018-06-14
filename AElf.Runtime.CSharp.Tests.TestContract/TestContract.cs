@@ -33,18 +33,6 @@ namespace AElf.Runtime.CSharp.Tests
             // Not needed anymore. Keep here to comply with interface.
 
             await Task.CompletedTask;
-
-            //var tx = Api.GetTransaction();
-
-            //var methodname = tx.MethodName;
-            //var type = GetType();
-            //var member = type.GetMethod(methodname);
-            //// params array
-            //var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
-
-            //// invoke
-            ////await (Task<object>)member.Invoke(this, parameters);
-            //await (Task<object>)member.Invoke(this, parameters);
         }
 
         public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
@@ -86,7 +74,6 @@ namespace AElf.Runtime.CSharp.Tests
         private string Now()
         {
             var dtStr = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff");
-            //return Encoding.UTF8.GetBytes(dtStr);
             return dtStr;
         }
     }
