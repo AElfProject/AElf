@@ -59,13 +59,17 @@ namespace AElf.Types.CSharp
         public static Func<MethodInfo, object, object[], Task<Any>> ForPbMessageReturnType =
             async (m, obj, parameters) =>
             {
-                var res = await (Task<IMessage>)m.Invoke(obj, parameters);
+                var t = (Task)m.Invoke(obj, parameters);
+                await t.ConfigureAwait(false);
+                IMessage res = (IMessage)((dynamic)t).Result;
                 return res.ToAny();
             };
         public static Func<MethodInfo, object, object[], Task<Any>> ForUserTypeReturnType =
             async (m, obj, parameters) =>
             {
-                    var res = await (Task<UserType>)m.Invoke(obj, parameters);
+                var t = (Task)m.Invoke(obj, parameters);
+                await t.ConfigureAwait(false);
+                UserType res = (UserType)((dynamic)t).Result;
                 return res.ToAny();
             };
     }
