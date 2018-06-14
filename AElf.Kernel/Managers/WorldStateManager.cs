@@ -131,7 +131,7 @@ namespace AElf.Kernel.Managers
                 };
                 dict.Dict.Add(pairHashChange);
             }
-            await _worldStateStore.InsertWorldStateAsync(_chainId, _preBlockHash, dict);
+            await _worldStateStore.InsertWorldStateAsync(_chainId, preBlockHash, dict);
             
             //Refresh _preBlockHash after setting WorldState.
             _preBlockHash = preBlockHash;

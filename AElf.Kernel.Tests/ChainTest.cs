@@ -9,6 +9,7 @@ using AElf.Kernel.Storages;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using ServiceStack;
 
 namespace AElf.Kernel.Tests
@@ -104,6 +105,8 @@ namespace AElf.Kernel.Tests
             block.FillTxsMerkleTreeRootInHeader();
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
+            block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+
             return block;
         }
     }
