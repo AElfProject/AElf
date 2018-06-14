@@ -33,6 +33,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         public async Task<ChainFunctionMetadata> TestDeployNewFunction()
         {
             Hash chainId = _template.ChainId;
+            _template.CallingGraph.Clear();
+            _template.ContractMetadataTemplateMap.Clear();
             await _template.TryAddNewContract(typeof(TestContractC));
             await _template.TryAddNewContract(typeof(TestContractB));
             await _template.TryAddNewContract(typeof(TestContractA));
