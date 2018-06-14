@@ -36,6 +36,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network", "AElf.Network\AElf.Network.csproj", "{5FEFB079-F6EB-48AF-97C7-6C582B9BDB8A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Common", "AElf.Common\AElf.Common.csproj", "{4EC22E9F-7019-470B-B990-B9E020DBBFB2}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network.Tests", "AElf.Network.Tests\AElf.Network.Tests.csproj", "{3E029881-EA87-45C5-B79F-64426A10757A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CLI", "AElf.CLI\AElf.CLI.csproj", "{3D3CEB2A-7143-4F40-8C9D-776D34C9BC3E}"
@@ -49,6 +50,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Configuration.Tests", "AElf.Configuration.Tests\AElf.Configuration.Tests.csproj", "{4DC91BEA-C123-4CF1-9346-DFFBA61185CD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CLI.Tests", "AElf.CLI.Tests\AElf.CLI.Tests.csproj", "{3B4A4007-D762-409C-A0BC-F0DB7E238894}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Benchmark", "AElf.Benchmark\AElf.Benchmark.csproj", "{70BBA6DD-875D-4187-9CE2-AD9C4C437657}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -152,6 +155,10 @@ Global
 		{3B4A4007-D762-409C-A0BC-F0DB7E238894}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B4A4007-D762-409C-A0BC-F0DB7E238894}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B4A4007-D762-409C-A0BC-F0DB7E238894}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70BBA6DD-875D-4187-9CE2-AD9C4C437657}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70BBA6DD-875D-4187-9CE2-AD9C4C437657}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70BBA6DD-875D-4187-9CE2-AD9C4C437657}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70BBA6DD-875D-4187-9CE2-AD9C4C437657}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
