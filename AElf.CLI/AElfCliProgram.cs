@@ -23,6 +23,7 @@ namespace AElf.CLI
         private static List<CliCommandDefinition> _commands = new List<CliCommandDefinition>();
         
         private const string ExitReplCommand = "quit";
+        private const string ServerConnError = "could not connect to server";
         
         private readonly ScreenManager _screenManager;
         private readonly CommandParser _cmdParser;
@@ -112,6 +113,12 @@ namespace AElf.CLI
                     // RPC
                     HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
                     string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
+
+                    if (resp == null)
+                    {
+                        _screenManager.PrintError(ServerConnError);
+                        return;
+                    }
                     
                     JObject jObj = JObject.Parse(resp);
 
