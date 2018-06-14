@@ -21,6 +21,7 @@ namespace AElf.Kernel.Tests
             builder.RegisterModule(new MainModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseModule(new DatabaseConfig()));
+            builder.RegisterModule(new MetadataModule(Hash.Generate()));
 
             // configure your container
             // e.g. builder.RegisterModule<TestOverrideModule>();

@@ -13,23 +13,21 @@ using Xunit.Frameworks.Autofac;
 namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
     [UseAutofacTestFramework]
-    public class ChainFunctionMetadataTemplateServiceTest
+    public class ChainFunctionMetadataTemplateTest
     {
         private ParallelTestDataUtil util = new ParallelTestDataUtil();
-        private IDataStore _dataStore;
-        private Hash chainId;
+        private ChainFunctionMetadataTemplate cfts;
+        private IDataStore _store;
 
-        public ChainFunctionMetadataTemplateServiceTest(IDataStore dataStore, Hash chainId)
+        public ChainFunctionMetadataTemplateTest(ChainFunctionMetadataTemplate cfts, IDataStore store)
         {
-            _dataStore = dataStore ?? throw new ArgumentNullException(nameof(dataStore));
-            this.chainId = chainId;
+            this.cfts = cfts;
+            _store = store;
         }
 
         [Fact]
-        public async Task<ChainFunctionMetadataTemplateService> TestTryAddNewContract()
+        public async Task<ChainFunctionMetadataTemplate> TestTryAddNewContract()
         {
-            ChainFunctionMetadataTemplateService cfts = new ChainFunctionMetadataTemplateService(_dataStore);
-            await cfts.OfChain(chainId);
             cfts.CallingGraph.Clear();
             cfts.ContractMetadataTemplateMap.Clear();
             
@@ -154,15 +152,14 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             await TestFailCases(cfts);
             
             //test restore
-            ChainFunctionMetadataTemplateService newCFTS = new ChainFunctionMetadataTemplateService(_dataStore);
-            await newCFTS.OfChain(chainId);
+            ChainFunctionMetadataTemplate newCFTS = new ChainFunctionMetadataTemplate(_store, cfts.ChainId);
             Assert.Equal(util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap), util.ContractMetadataTemplateMapToString(newCFTS.ContractMetadataTemplateMap));
             
             return cfts;
         }
 
 
-        public async Task<ChainFunctionMetadataTemplateService> TestFailCases(ChainFunctionMetadataTemplateService cfts)
+        public async Task<ChainFunctionMetadataTemplate> TestFailCases(ChainFunctionMetadataTemplate cfts)
         {
             var groundTruthMap = new Dictionary<string, Dictionary<string, FunctionMetadataTemplate>>(cfts.ContractMetadataTemplateMap);
             

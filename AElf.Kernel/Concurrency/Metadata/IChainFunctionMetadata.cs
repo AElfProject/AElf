@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AElf.Kernel.Concurrency.Metadata
 {
-    public interface IChainFunctionMetadataService
+    public interface IChainFunctionMetadata
     {
         /// <summary>
         /// Called when deploy a new contract

@@ -17,24 +17,42 @@ namespace AElf.Kernel.Tests.Concurrency
     public class ResourceUsageDetectionServiceTest
     {
         private IDataStore _dataStore;
+        private ChainFunctionMetadataTemplate _template;
 
-        public ResourceUsageDetectionServiceTest(IDataStore dataStore)
+        public ResourceUsageDetectionServiceTest(IDataStore dataStore, ChainFunctionMetadataTemplate template)
         {
             _dataStore = dataStore;
+            _template = template;
         }
 
         [Fact]
         public async Task TestResoruceDetection()
         {
-            ChainFunctionMetadataServiceTest testCase = new ChainFunctionMetadataServiceTest(_dataStore, Hash.Zero);
-            var cfms = await testCase.TestDeployNewFunction();
+            Hash chainId = _template.ChainId;
+            await _template.TryAddNewContract(typeof(TestContractC));
+            await _template.TryAddNewContract(typeof(TestContractB));
+            await _template.TryAddNewContract(typeof(TestContractA));
             
-            ResourceUsageDetectionService detectionService = new ResourceUsageDetectionService(cfms);
             
             var addrA = new Hash("TestContractA".CalculateHash());
             var addrB = new Hash("TestContractB".CalculateHash());
             var addrC = new Hash("TestContractC".CalculateHash());
+
+            var referenceBookForA = new Dictionary<string, Hash>();
+            referenceBookForA.Add("ContractC", addrC);
+            referenceBookForA.Add("_contractB", addrB);
+            var referenceBookForB = new Dictionary<string, Hash>();
+            referenceBookForB.Add("ContractC", addrC);
+            var referenceBookForC = new Dictionary<string, Hash>();
             
+            ChainFunctionMetadata cfms = new ChainFunctionMetadata(_template, _dataStore);
+            
+            cfms.DeployNewContract("TestContractC", addrC, referenceBookForC);
+            cfms.DeployNewContract("TestContractB", addrB, referenceBookForB);
+            cfms.DeployNewContract("TestContractA", addrA, referenceBookForA);
+            
+            ResourceUsageDetectionService detectionService = new ResourceUsageDetectionService(cfms);
+
             var addr0 = new Hash("0".CalculateHash());
             var addr1 = new Hash("1".CalculateHash());
             

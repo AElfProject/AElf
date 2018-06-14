@@ -19,26 +19,22 @@ namespace AElf.Kernel.Concurrency.Metadata
     /// Where get and set the metadata when deploy the contracts and check correctness when trying to updating contracts(functions)
     /// TODO: Whether need the functionality of deleting the existing function?
     /// </summary>
-    public class ChainFunctionMetadataTemplateService : IChainFunctionMetadataTemplateService
+    public class ChainFunctionMetadataTemplate : IChainFunctionMetadataTemplate
     {
         public Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> ContractMetadataTemplateMap { get; private set; } 
         public AdjacencyGraph<string, Edge<string>> CallingGraph; //calling graph is prepared for update contract code (check for DAG at that time)
         
         private readonly ILogger _logger;
         private readonly IDataStore _dataStore;
-        private Hash _chainId;
+        public Hash ChainId { get;}
         
 
-        public ChainFunctionMetadataTemplateService(IDataStore dataStore, ILogger logger = null)
+        public ChainFunctionMetadataTemplate(IDataStore dataStore, Hash chainId, ILogger logger = null)
         {
             _dataStore = dataStore;
             _logger = logger;
-            _chainId = null;
-        }
-
-        public async Task<IChainFunctionMetadataTemplateService> OfChain(Hash chainId)
-        {
-            _chainId = chainId;
+            ChainId = chainId;
+            
             var mapCache = _dataStore.GetDataAsync(Path.CalculatePointerForMetadataTemlate(chainId)).Result;
             var graphCache = _dataStore.GetDataAsync(Path.CalculatePointerForMetadataTemlateCallingGraph(chainId))
                 .Result;
@@ -49,7 +45,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                         SerializeContractMetadataTemplateMap.Parser.ParseFrom(mapCache));
                 if (graphCache == null)
                 {
-                    throw new FunctionMetadataException("ChainId [" + _chainId.Value + "] Cannot find calling graph in database");
+                    throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Cannot find calling graph in database");
                 }
                 CallingGraph = RestoreCallingGraph(CallingGraphEdges.Parser.ParseFrom(graphCache));
             }
@@ -58,8 +54,6 @@ namespace AElf.Kernel.Concurrency.Metadata
                 ContractMetadataTemplateMap = new Dictionary<string, Dictionary<string, FunctionMetadataTemplate>>();
                 CallingGraph = new AdjacencyGraph<string, Edge<string>>();
             }
-
-            return this;
         }
 
         #region Metadata extraction from contract code
@@ -92,9 +86,9 @@ namespace AElf.Kernel.Concurrency.Metadata
             }
 
             //TODO: now each call of this will have large Disk IO because we replace the new whole map into the old map even if just minor changes to the map
-            await _dataStore.SetDataAsync(Path.CalculatePointerForMetadataTemlate(_chainId),
+            await _dataStore.SetDataAsync(Path.CalculatePointerForMetadataTemlate(ChainId),
                 GetSerializeContractMetadataTemplateMap().ToByteArray());
-            await _dataStore.SetDataAsync(Path.CalculatePointerForMetadataTemlateCallingGraph(_chainId),
+            await _dataStore.SetDataAsync(Path.CalculatePointerForMetadataTemlateCallingGraph(ChainId),
                 GetSerializeCallingGraph().ToByteArray());
             
             return true;
@@ -128,7 +122,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 if (fieldAttr == null) continue;
                 if (!templocalFieldMap.TryAdd(fieldAttr.FieldName, fieldAttr.DataAccessMode))
                 {
-                    throw new FunctionMetadataException("ChainId [" + _chainId.Value + "] Duplicate name of field attributes in contract " + contractType.Name);
+                    throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Duplicate name of field attributes in contract " + contractType.Name);
                 }
             }
             
@@ -139,7 +133,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 if (smartContractRefAttr == null) continue;
                 if (!smartContractReferenceMap.TryAdd(smartContractRefAttr.FieldName, smartContractRefAttr.ContractType))
                 {
-                    throw new FunctionMetadataException("ChainId [" + _chainId.Value + "] Duplicate name of smart contract reference attributes in contract " + contractType.Name);
+                    throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Duplicate name of smart contract reference attributes in contract " + contractType.Name);
                 }
             }
             
@@ -157,7 +151,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 {
                     if (!templocalFieldMap.TryGetValue(resource, out var dataAccessMode))
                     {
-                        throw new FunctionMetadataException("ChainId [" + _chainId.Value + "] Unknown reference local field " + resource +
+                        throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Unknown reference local field " + resource +
                                                             " in function " + functionAttribute.FunctionSignature);
                     }
                     return new Resource(resource, dataAccessMode);
@@ -166,7 +160,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 if (!localFunctionMetadataTemplateMap.TryAdd(functionAttribute.FunctionSignature, 
                     new FunctionMetadataTemplate(new HashSet<string>(functionAttribute.CallingSet), new HashSet<Resource>(resourceSet))))
                 {
-                    throw new FunctionMetadataException("ChainId [" + _chainId.Value + "] Duplicate name of function attribute" + functionAttribute.FunctionSignature + " in contract" + contractType.Name);
+                    throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Duplicate name of function attribute" + functionAttribute.FunctionSignature + " in contract" + contractType.Name);
                 }
             }
             
@@ -180,7 +174,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                         if (!localFunctionMetadataTemplateMap.ContainsKey(calledFunc))
                         {
                             throw new FunctionMetadataException(
-                                "ChainId [" + _chainId.Value + "] calling set of function " + kvPair.Key + " when adding contract " +
+                                "ChainId [" + ChainId.Value + "] calling set of function " + kvPair.Key + " when adding contract " +
                                 contractType.Name + " contains unknown reference to it's own function: " +
                                 calledFunc);
                         }
@@ -191,7 +185,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                             !smartContractReferenceMap.ContainsKey(Replacement.Value(memberReplacement)))
                         {
                             throw new FunctionMetadataException(
-                                "ChainId [" + _chainId.Value + "] calling set of function " + kvPair.Key + " when adding contract " +
+                                "ChainId [" + ChainId.Value + "] calling set of function " + kvPair.Key + " when adding contract " +
                                 contractType.Name + " contains unknown local member reference to other contract: " +
                                 calledFunc);
                         }
@@ -214,7 +208,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             //check for DAG  (the updating calling graph is DAG iff local calling graph is DAG)
             if (!TryGetLocalCallingGraph(targetLocalFunctionMetadataTemplateMap, out var localCallGraph, out var localTopologicRes))
             {
-                throw new FunctionMetadataException("ChainId [" + _chainId.Value + "] Calling graph of " + contractType.Name + " is Non-DAG thus nothing take effect");
+                throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Calling graph of " + contractType.Name + " is Non-DAG thus nothing take effect");
             }
 
             
@@ -234,7 +228,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                             referenceType.Name);
                         if (!CallingGraph.ContainsVertex(globalCalledFunc))
                         {
-                            throw new FunctionMetadataException("ChainId [" + _chainId.Value + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractType.Name + " into calling graph, consider the target function does not exist in the foreign contract");
+                            throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractType.Name + " into calling graph, consider the target function does not exist in the foreign contract");
                         }
                         outEdgesToAdd.Add(new Edge<string>(sourceFunc, globalCalledFunc));
                     }
@@ -341,14 +335,14 @@ namespace AElf.Kernel.Concurrency.Metadata
             }
             catch (NonAcyclicGraphException)
             {
-                throw new FunctionMetadataException("ChainId [" + _chainId.Value + "] The calling graph ISNOT DAG when restoring the calling graph according to the ContractMetadataTemplateMap from the database");
+                throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] The calling graph ISNOT DAG when restoring the calling graph according to the ContractMetadataTemplateMap from the database");
             }
             return graph;
         }
 
         private void Ready()
         {
-            if (_chainId == null)
+            if (ChainId == null)
             {
                 throw new FunctionMetadataException("ChainId not set for tempalte service ");
             }
