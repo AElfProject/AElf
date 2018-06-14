@@ -114,6 +114,9 @@ namespace AElf.CLI.Wallet
             {
                 _screenManager.PrintLine("account #" + i + " : " + accnts.ElementAt(i));
             }
+            
+            if (accnts.Count == 0)
+                _screenManager.PrintLine("no accounts available");
         }
 
         public Transaction SignTransaction(JObject t)
