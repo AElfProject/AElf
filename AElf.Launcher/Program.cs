@@ -42,6 +42,7 @@ namespace AElf.Launcher
             var nodeConfig = confParser.NodeConfig;
             var isMiner = confParser.IsMiner;
             var isNewChain = confParser.NewChain;
+            var initData = confParser.InitData;
             
             // Setup ioc 
             IContainer container = SetupIocContainer(isMiner, isNewChain, netConf, databaseConf, txPoolConf, minerConfig, nodeConfig);
@@ -82,7 +83,7 @@ namespace AElf.Launcher
                 IAElfNode node = scope.Resolve<IAElfNode>();
                
                 // Start the system
-                node.Start(nodeKey, confParser.Rpc);
+                node.Start(nodeKey, confParser.Rpc, initData);
 
                 Console.ReadLine();
             }

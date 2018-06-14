@@ -4,7 +4,6 @@ using AElf.Common.Application;
 using AElf.Cryptography.ECDSA.Exceptions;
 using AElf.Kernel;
 using Google.Protobuf;
-using Path = AElf.Kernel.Path;
 
 namespace AElf.Test.ChainCreator
 {
@@ -30,7 +29,7 @@ namespace AElf.Test.ChainCreator
         internal static string GetKeyFileFullPath(string time)
         {
             string dirPath = GetKeystoreDirectoryPath();
-            string filePath = System.IO.Path.Combine(dirPath, "--" + time + "--");
+            string filePath = System.IO.Path.Combine(dirPath, time);
             string filePathWithExtension = System.IO.Path.ChangeExtension(filePath, KeyFileExtension);
 
             return filePathWithExtension;

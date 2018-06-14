@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Cryptography;
@@ -16,13 +17,14 @@ using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Newtonsoft.Json;
 using NLog;
 
 namespace AElf.Kernel.Node
 {
     [LoggerName("Node")]
     public class MainChainNode : IAElfNode
-    {
+    {   
         private ECKeyPair _nodeKeyPair;
         
         private readonly ITxPoolService _poolService;
@@ -53,8 +55,17 @@ namespace AElf.Kernel.Node
             _chainContextService = chainContextService;
         }
 
-        public void Start(ECKeyPair nodeKeyPair, bool startRpc)
+        public void Start(ECKeyPair nodeKeyPair, bool startRpc, string initdata)
         {
+            if (!string.IsNullOrWhiteSpace(initdata))
+            {
+                if (!DebugSync(initdata))
+                {
+                    //todo log 
+                    return;
+                }
+            }
+            
             _nodeKeyPair = nodeKeyPair;
             
             if (startRpc)
@@ -76,6 +87,29 @@ namespace AElf.Kernel.Node
                 _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToByteString().ToBase64());
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
+        }
+
+        private bool DebugSync(string initFileName)
+        {
+            try
+            {
+                string appFolder = _nodeConfig.DataDir;
+                var fullPath = System.IO.Path.Combine(appFolder, "tests", initFileName);
+                
+                using (StreamReader r = new StreamReader(fullPath))
+                {
+                    string jsonChain = r.ReadToEnd();
+                    Block b = JsonParser.Default.Parse<Block>(jsonChain);
+                    ;
+                }
+            }
+            catch (Exception e)
+            {
+                ;
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
