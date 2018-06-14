@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Managers
 {
@@ -31,10 +33,14 @@ namespace AElf.Kernel.Managers
         public async Task<IWorldStateManager> OfChain(Hash chainId)
         {
             _chainId = chainId;
-            _preBlockHash = await _dataStore.GetDataAsync(await _dataStore.GetDataAsync(
-                Path.CalculatePointerForLastBlockHash(chainId)));
+            
+            _preBlockHash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(chainId));
 
-            await _dataStore.SetDataAsync(Path.CalculatePointerForPathsCount(_chainId, _preBlockHash), ((ulong)0).ToBytes());
+            var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, _preBlockHash);
+            if (await _dataStore.GetDataAsync(keyToGetCount) == null)
+            {
+                await _dataStore.SetDataAsync(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
+            }
 
             _isChainIdSetted = true;
 
@@ -55,14 +61,18 @@ namespace AElf.Kernel.Managers
             Check();
             
             await _changesStore.InsertChangeAsync(pathHash, change);
-            
-            var countBytes = await _dataStore.GetDataAsync(Path.CalculatePointerForPathsCount(_chainId, _preBlockHash));
-            countBytes = countBytes ??  ((ulong)0).ToBytes();
-            var key = CalculateKeyForPath(_preBlockHash, countBytes);
-            var count = countBytes.ToUInt64();
+
+            var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, _preBlockHash);
+
+            var count = UInt64Value.Parser.ParseFrom(await _dataStore.GetDataAsync(keyToGetCount));
+                
+            // make a path related to its order
+            var key = CalculateKeyForPath(_preBlockHash, count);
             await _dataStore.SetDataAsync(key, pathHash.Value.ToByteArray());
-            count++;
-            await _dataStore.SetDataAsync(Path.CalculatePointerForPathsCount(_chainId, _preBlockHash), count.ToBytes());
+
+            // update the count of changes
+            count = new UInt64Value {Value = count.Value + 1};
+            await _dataStore.SetDataAsync(keyToGetCount, count.ToByteArray());
         }
 
         public async Task<Change> GetChangeAsync(Hash pathHash)
@@ -80,7 +90,10 @@ namespace AElf.Kernel.Managers
             var dict = await GetChangesDictionaryAsync();
             foreach (var pair in dict)
             {
-                await _changesStore.UpdatePointerAsync(pair.Key, pair.Value.Befores[0]);
+                if (pair.Value.Befores.Count > 0)
+                {
+                    await _changesStore.UpdatePointerAsync(pair.Key, pair.Value.Befores[0]);
+                }
             }
         }
 
@@ -201,7 +214,7 @@ namespace AElf.Kernel.Managers
             
             for (ulong i = 0; i < changedPathsCount; i++)
             {
-                var key = CalculateKeyForPath(blockHash, i.ToBytes());
+                var key = CalculateKeyForPath(blockHash, new UInt64Value {Value = i});
                 var path = await _dataStore.GetDataAsync(key);
                 paths.Add(path);
             }
@@ -287,20 +300,6 @@ namespace AElf.Kernel.Managers
        
         #region Private methods
 
-        
-        /// <summary>
-        /// A specific way to get a hash value which pointer to
-        /// the count of Changes of a world state.
-        /// </summary>
-        /// <param name="blockHash"></param>
-        /// <returns></returns>
-        private Hash GetHashToGetPathsCount(Hash blockHash = null)
-        {
-            Interlocked.CompareExchange(ref blockHash, _preBlockHash, null);
-            Hash foo = "paths".CalculateHash();
-            return foo.CombineHashWith(blockHash);
-        }
-
         /// <summary>
         /// Get the count of changed-paths of a specific block.
         /// </summary>
@@ -310,19 +309,21 @@ namespace AElf.Kernel.Managers
         {
             Check();
             
-            var changedPathsCountBytes = await _dataStore.GetDataAsync(Path.CalculatePointerForPathsCount(_chainId, blockHash));
-            return changedPathsCountBytes?.ToUInt64() ?? 0;
+            var changedPathsCount = UInt64Value.Parser.ParseFrom(
+                await _dataStore.GetDataAsync(Path.CalculatePointerForPathsCount(_chainId, blockHash)));
+            return changedPathsCount.Value;
         }
 
         /// <summary>
         /// Just use the result hash to get the path of a specific block and a specific order of changes.
         /// </summary>
         /// <param name="blockHash"></param>
-        /// <param name="countBytes"></param>
+        /// <param name="obj"></param>
         /// <returns></returns>
-        private Hash CalculateKeyForPath(Hash blockHash, byte[] countBytes)
+        // ReSharper disable once MemberCanBeMadeStatic.Local
+        private Hash CalculateKeyForPath(Hash blockHash, IMessage obj)
         {
-            return blockHash.CombineReverseHashWith(countBytes);
+            return blockHash.CombineReverseHashWith(obj.CalculateHash());
         }
 
         private void Check()
