@@ -4,14 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using AElf.CLI.Command;
-using AElf.CLI.Command.Account;
 using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Asn1;
 using ProtoBuf;
 
 namespace AElf.CLI.Wallet
@@ -97,12 +95,15 @@ namespace AElf.CLI.Wallet
                 _screenManager.PrintError("incorrect password!");
             else if (tryOpen == AElfKeyStore.Errors.AccountAlreadyUnlocked)
                 _screenManager.PrintError("account already unlocked!");
+            else if (tryOpen == AElfKeyStore.Errors.None)
+                _screenManager.PrintLine("account successfully unlocked!");
         }
 
         private void CreateNewAccount()
         {
             var password = _screenManager.AskInvisible("password: ");
             _keyStore.Create(password);
+            _screenManager.PrintLine("account successfully created!");
         }
 
         private void ListAccounts()
