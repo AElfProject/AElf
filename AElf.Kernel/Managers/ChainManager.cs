@@ -38,10 +38,9 @@ namespace AElf.Kernel.Managers
             if (height == 0)
             {
                 // empty chain
-                await SetChainCurrentHeight(chainId, 1);
-                await SetChainLastBlockHash(chainId, header.GetHash());
+                lastBlockHash = Hash.Default;
             }
-            else if ( lastBlockHash != header.PreviousBlockHash)
+            if ( lastBlockHash != header.PreviousBlockHash)
             {
                 throw new InvalidDataException("Invalid block");
                 //Block is not connected
