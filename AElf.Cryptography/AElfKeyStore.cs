@@ -30,6 +30,12 @@ namespace AElf.Cryptography
         private readonly List<OpenAccount> _openAccounts;
         
         private TimeSpan _defaultAccountTimeout = TimeSpan.FromMinutes(2);
+
+        public enum Errors
+        {
+            None = 0,
+            AccountAlreadyExists = 1
+        }
         
         public AElfKeyStore(string dataDirectory)
         {
@@ -53,8 +59,11 @@ namespace AElf.Cryptography
             _openAccounts.Add(acc);
         }
 
-        public void OpenAsync(string address, string password, bool withTimeout = true)
+        public Errors OpenAsync(string address, string password, bool withTimeout = true)
         {
+            if (_openAccounts.Any(x => x.Address == address))
+                return Errors.AccountAlreadyExists;
+            
             if (withTimeout)
             {
                 OpenAsync(address, password, _defaultAccountTimeout);
@@ -63,6 +72,8 @@ namespace AElf.Cryptography
             {
                 OpenAsync(address, password, null);
             }
+
+            return Errors.None;
         }
 
         private void RemoveAccount(object accObj)
@@ -70,6 +81,7 @@ namespace AElf.Cryptography
             if (accObj is OpenAccount openAccount)
             {
                 openAccount.Close();
+                _openAccounts.Remove(openAccount);
             }
         }
         

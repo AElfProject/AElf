@@ -52,7 +52,9 @@ namespace AElf.CLI.Wallet
         private void UnlockAccount(string address)
         {
             var password = _screenManager.AskInvisible("password: ");
-            _keyStore.OpenAsync(address, password);
+            var tryOpen = _keyStore.OpenAsync(address, password);
+            if (tryOpen == AElfKeyStore.Errors.AccountAlreadyExists)
+                _screenManager.PrintError("account already unlocked!");
         }
 
         private void CreateNewAccount()
