@@ -134,11 +134,17 @@ namespace AElf.Types.CSharp
 
         public static IMessage AnyToPbMessage(this Any any, System.Type type)
         {
+            if (any == null)
+            {
+                throw new Exception($"Cannot convert null to {type.FullName}.");
+            }
+
             if (!type.IsPbMessageType())
             {
                 throw new Exception("Type given is not an IMessage.");
             }
             var target = (IMessage)Activator.CreateInstance(type);
+
             if (Any.GetTypeName(any.TypeUrl) != target.Descriptor.FullName)
             {
                 throw new Exception(
