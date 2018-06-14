@@ -75,7 +75,7 @@ namespace AElf.Kernel.Tests.Miner
             _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(_mock.ServicePack));
             _generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _serviceRouter), "exec");
             //_generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _chainContextService, _accountContextService), "exec");
-            var runner = new SmartContractRunner("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/");
+            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             _smartContractRunnerFactory.AddRunner(0, runner);
             _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
         }
@@ -84,12 +84,7 @@ namespace AElf.Kernel.Tests.Miner
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.SmartContractZero/bin/Debug/netstandard2.0/AElf.Contracts.SmartContractZero.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
+                return ContractCodes.TestContractZeroCode;
             }
         }
 
@@ -97,12 +92,7 @@ namespace AElf.Kernel.Tests.Miner
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/AElf.Contracts.Examples.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
+                return ContractCodes.TestContractCode;
             }
         }
 
