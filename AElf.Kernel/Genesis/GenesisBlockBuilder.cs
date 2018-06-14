@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Services;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel
 {
@@ -17,8 +18,9 @@ namespace AElf.Kernel
                 Header = new BlockHeader
                 {
                     Index = 0,
-                    PreviousBlockHash = Hash.Zero,
-                    ChainId = chainId
+                    PreviousBlockHash = Hash.Default,
+                    ChainId = chainId,
+                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
                 },
                 Body = new BlockBody()
             };
