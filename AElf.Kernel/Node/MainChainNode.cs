@@ -35,11 +35,12 @@ namespace AElf.Kernel.Node
         private readonly IAccountContextService _accountContextService;
         private readonly IBlockVaildationService _blockVaildationService;
         private readonly IChainContextService _chainContextService;
+        private readonly ISynchronizer _synchronizer;
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner, 
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService, 
-            IChainContextService chainContextService)
+            IChainContextService chainContextService, ISynchronizer synchronizer, IChainCreationService chainCreationService)
         {
             _poolService = poolService;
             _protocolDirector = protocolDirector;
@@ -51,6 +52,7 @@ namespace AElf.Kernel.Node
             _accountContextService = accountContextService;
             _blockVaildationService = blockVaildationService;
             _chainContextService = chainContextService;
+            _synchronizer = synchronizer;
         }
 
         public void Start(ECKeyPair nodeKeyPair, bool startRpc)
@@ -59,6 +61,7 @@ namespace AElf.Kernel.Node
             
             if (startRpc)
                 _rpcServer.Start();
+            
             
             _poolService.Start();
             _protocolDirector.Start();
@@ -192,7 +195,8 @@ namespace AElf.Kernel.Node
             var error = await _blockVaildationService.ValidateBlockAsync(block, context);
             if (error != ValidationError.Success)
                 return false;
-            return true;
+            
+            return await _synchronizer.ExecuteBlock(block);
         }
         
         /// <summary>

@@ -22,6 +22,10 @@ namespace AElf.Kernel.BlockValidationFilters
 
             var index = block.Header.Index;
             var previousBlockHash = block.Header.PreviousBlockHash;
+
+            // return success if genesis block
+            if (index == 0 && previousBlockHash.Equals(Hash.Zero))
+                return ValidationError.Success;
             
             var currentChainHeight = context.BlockHeight;
             var currentPreviousBlockHash = context.BlockHash;

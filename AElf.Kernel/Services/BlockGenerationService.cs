@@ -25,7 +25,9 @@ namespace AElf.Kernel.Services
         public async Task<IBlock> GenerateBlockAsync(Hash chainId, IEnumerable<TransactionResult> results)
         {
             var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
+            var index = await _chainManager.GetChainCurrentHeight(chainId);
             var block = new Block(lastBlockHash);
+            block.Header.Index = index + 1;
             
             // add tx hash
             foreach (var r in results)

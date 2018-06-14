@@ -56,6 +56,16 @@ namespace AElf.Kernel.Miner
             // TODO：dispatch txs with ISParallel, return list of tx results
             
             var results =  await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
+            
+            // commit tx results
+            foreach (var res in results)
+            {
+                var logEvents = res.Logs;
+                foreach (var @event in logEvents)
+                {
+                    
+                }
+            }
             // reset Promotable and update account context
             await _txPoolService.ResetAndUpdate(results);
             
@@ -63,6 +73,7 @@ namespace AElf.Kernel.Miner
             
             // generate block
             var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);
+            
             
             // sign block
             ECSigner signer = new ECSigner();
