@@ -157,21 +157,23 @@ namespace AElf.Kernel.Tests.Miner
                 parallelTransactionExecutingService);
         }
 
-        public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit)
+        public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit, byte[] getAddress)
         {
             return new MinerConfig
             {
                 TxCount = txCountLimit,
                 ChainId = chainId,
-                CoinBase = Hash.Generate().ToAccount()
+                CoinBase = getAddress
             };
         }
         
        
         public async Task MineWithoutStarting()
         {
+            var keypair = new KeyPairGenerator().Generate();
+
             Hash chainId = Hash.Generate();
-            var config = GetMinerConfig(chainId, 10);
+            var config = GetMinerConfig(chainId, 10, keypair.GetAddress());
             var miner = GetMiner(config);
             
             var block = await miner.Mine();
@@ -181,9 +183,10 @@ namespace AElf.Kernel.Tests.Miner
         [Fact]
         public async Task Mine()
         {
+            var keypair = new KeyPairGenerator().Generate();
             var chain = await CreateChain();
             
-            var config = GetMinerConfig(chain.Id, 10);
+            var config = GetMinerConfig(chain.Id, 10, keypair.GetAddress());
             var miner = GetMiner(config);
             
             var runner = new SmartContractRunner("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/");
@@ -202,12 +205,23 @@ namespace AElf.Kernel.Tests.Miner
             _generalExecutor.Tell(new RequestAddChainExecutor(chain.Id));
             ExpectMsg<RespondAddChainExecutor>();
             
-            var keypair = new KeyPairGenerator().Generate();
+            
             miner.Start(keypair);
             
             var block = await miner.Mine();
-            Assert.NotNull(block);
             
+            
+            Assert.NotNull(block);
+            Assert.Equal((ulong)1, block.Header.Index);
+            
+            byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
+            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
+            Assert.Equal(config.CoinBase, addr);
+            
+            ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
+            ECVerifier verifier = new ECVerifier(recipientKeyPair);
+            Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().GetHashBytes()));
+
         }
         
     }
