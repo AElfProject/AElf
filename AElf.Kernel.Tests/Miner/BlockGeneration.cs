@@ -163,7 +163,7 @@ namespace AElf.Kernel.Tests.Miner
             };
             var block = await blockGenerationService.GenerateBlockAsync(chainId, txResults);
             
-            Assert.Equal(block.Header.PreviousHash, lastBlockHash);
+            Assert.Equal(block.Header.PreviousBlockHash, lastBlockHash);
             Assert.Contains(t1, block.Body.Transactions);
             Assert.Contains(t2, block.Body.Transactions);
             Assert.NotNull(block.Header.MerkleTreeRootOfWorldState);

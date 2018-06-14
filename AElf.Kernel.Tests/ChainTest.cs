@@ -57,11 +57,6 @@ namespace AElf.Kernel.Tests
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
 
             // add chain to storage
-            var genesisBlock = new Block(Hash.Zero);
-            await _chainManager.AddChainAsync(chain.Id, genesisBlock.GetHash());
-            
-            var block = new Block(genesisBlock.GetHash()) {Header = {PreviousHash = genesisBlock.GetHash()}};
-            await _chainManager.AppendBlockToChainAsync(chain.Id, block);
             
             //var address = Hash.Generate();
             //var worldStateManager = await new WorldStateManager(_worldStateStore, 
@@ -85,14 +80,14 @@ namespace AElf.Kernel.Tests
         {
             var chain = await CreateChainTest();
 
-            var block = CreateBlock(chain.GenesisBlockHash);
-            await _chainManager.AppendBlockToChainAsync(chain.Id, block);
+            var block = CreateBlock(chain.GenesisBlockHash, chain.Id);
+            await _chainManager.AppendBlockToChainAsync(block);
             Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)2);
             Assert.Equal(await _chainManager.GetChainLastBlockHash(chain.Id), block.GetHash());
             Assert.Equal(block.Header.Index, (ulong)1);
         }
         
-        private Block CreateBlock(Hash preBlockHash = null)
+        private Block CreateBlock(Hash preBlockHash, Hash chainId)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             
@@ -102,7 +97,8 @@ namespace AElf.Kernel.Tests
             block.AddTransaction(Hash.Generate());
             block.AddTransaction(Hash.Generate());
             block.FillTxsMerkleTreeRootInHeader();
-            block.Header.PreviousHash = preBlockHash;
+            block.Header.PreviousBlockHash = preBlockHash;
+            block.Header.ChainId = chainId;
             return block;
         }
     }

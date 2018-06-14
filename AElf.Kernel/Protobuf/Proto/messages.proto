@@ -3,6 +3,7 @@ syntax = "proto3";
 option csharp_namespace = "AElf.Kernel";
 
 import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
 
 message Transaction
 {
@@ -59,10 +60,15 @@ message Hash{
 
 message BlockHeader{
     int32 Version = 1;
-    Hash PerviousBlock = 2;
+    Hash PreviousBlockHash = 2;
     Hash MerkleTreeRootOfTransactions = 3;
     Hash MerkleTreeRootOfWorldState = 4;
     uint64 Index = 5;
+    bytes R = 6;
+    bytes S = 7;
+    bytes P = 8;
+    google.protobuf.Timestamp time = 9;
+    Hash ChainId = 10;
 }
 
 message BlockBody{
@@ -135,3 +141,48 @@ message Chain{
     Hash Id = 1;
     Hash GenesisBlockHash = 2;
 }
+
+enum DataAccessMode {
+    ReadOnlyAccountSharing = 0;
+    ReadWriteAccountSharing = 1;
+    AccountSpecific = 2;
+}
+
+message SerializeContractMetadataTemplateMap {
+    map<string, SerializeFunctionMetadataTemplateMap> MetadataTemplateMapForContract = 2;
+}
+
+message SerializeFunctionMetadataTemplateMap {
+    map<string, FunctionMetadataTemplate> TemplateMap = 2;
+}
+
+
+message FunctionMetadataTemplate {
+    repeated string SerializeCallingSet = 1;
+    repeated Resource SerializeLocalResourceSet = 2;
+}
+
+message Resource {
+    string Name = 1;
+    DataAccessMode DataAccessMode  = 2;
+}
+
+message FunctionMetadata {
+    repeated string SerializeCallingSet = 1;
+    repeated Resource SerializeFullResourceSet = 2;
+    repeated Resource SerializeLocalResourceSet = 3;
+}
+
+message SerializeFunctionMetadataMap {
+    map<string, FunctionMetadata> MetadataMap = 1;
+}
+
+message CallingGraphEdges {
+    repeated GraphEdge Edges = 1;
+}
+
+message GraphEdge {
+    string Source = 1;
+    string Target = 2;
+}
+

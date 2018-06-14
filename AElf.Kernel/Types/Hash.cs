@@ -1,5 +1,7 @@
 using AElf.Kernel.Extensions;
 using System;
+using System.Linq;
+using AElf.Cryptography.ECDSA;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
@@ -12,6 +14,12 @@ namespace AElf.Kernel
             return new Hash(
                 Guid.NewGuid().ToByteArray().CalculateHash());
         }
+        
+        public Hash ToAccount()
+        {
+            return Value.Take(ECKeyPair.AddressLength).ToArray();
+        }
+        
         public static readonly Hash Zero = new Hash("AElf".CalculateHash());
         
         public static readonly Hash Default = new Hash(new byte[]{});
@@ -62,6 +70,11 @@ namespace AElf.Kernel
         }
         
         public static implicit operator Hash(byte[] value)
+        {
+            return value == null ? Zero : new Hash(value);
+        }
+        
+        public static implicit operator Hash(ByteString value)
         {
             return value == null ? Zero : new Hash(value);
         }

@@ -1,12 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AElf.Common.Application;
 using AElf.Database;
 using AElf.Database.Config;
-using AElf.Kernel.TxMemPool;
+ using AElf.Kernel;
+ using AElf.Kernel.Miner;
+ using AElf.Kernel.Node.Config;
+ using AElf.Kernel.TxMemPool;
 using AElf.Network.Config;
 using AElf.Network.Data;
 using AElf.Network.Peers;
 using CommandLine;
+using Google.Protobuf;
 
 namespace AElf.Launcher
 {
@@ -15,10 +20,32 @@ namespace AElf.Launcher
         public IAElfNetworkConfig NetConfig { get; private set; }
         public ITxPoolConfig TxPoolConfig { get; private set; }
         public IDatabaseConfig DatabaseConfig { get; private set; }
+        public IMinerConfig MinerConfig { get; private set; }
+        public INodeConfig NodeConfig { get; private set; }
 
         public bool Rpc { get; private set; }
+        public string DataDir { get; private set; }
+        public string NodeAccount { get; set; }
 
         public bool Success { get; private set; }
+        public bool IsMiner { get; private set; }
+        public Hash Coinbase { get; private set; }
+
+        /// <summary>
+        /// fullnode if true, light node if false
+        /// </summary>
+        //public bool FullNode { get; private set; }
+        
+        /// <summary>
+        /// create new chain if true
+        /// </summary>
+        public bool NewChain { get; private set; }
+        
+        
+        /// <summary>
+        /// chainId
+        /// </summary>
+        // public Hash ChainId { get; set; }
         
         public bool Parse(string[] args)
         {
@@ -39,6 +66,9 @@ namespace AElf.Launcher
         private void MapOptions(AElfOptions opts)
         {
             Rpc = !opts.NoRpc;
+            NodeAccount = opts.NodeAccount;
+
+            DataDir = string.IsNullOrEmpty(opts.DataDir) ? ApplicationHelpers.GetDefaultDataDir() : opts.DataDir;
             
             // Network
             AElfNetworkConfig netConfig = new AElfNetworkConfig();
@@ -76,7 +106,6 @@ namespace AElf.Launcher
             
             NetConfig = netConfig;
             
-            // Todo ITxPoolConfig
             
             // Database
             var databaseConfig = new DatabaseConfig();
@@ -94,6 +123,49 @@ namespace AElf.Launcher
             }
 
             DatabaseConfig = databaseConfig;
+           
+            
+            // to be miner
+            IsMiner = opts.IsMiner;
+            
+            
+            if (opts.NewChain)
+            {
+                IsMiner = true;
+                NewChain = true;
+            }
+            
+            if (IsMiner)
+            {
+                if (string.IsNullOrEmpty(opts.CoinBase))
+                {
+                    
+                }
+                // full node for private chain
+                Coinbase = ByteString.CopyFromUtf8(opts.CoinBase);
+
+            }
+            
+            MinerConfig = new MinerConfig
+            {
+                CoinBase = Coinbase
+            };
+            
+            
+            // tx pool config
+            TxPoolConfig = Kernel.TxMemPool.TxPoolConfig.Default;
+            TxPoolConfig.FeeThreshold = opts.MinimalFee;
+            TxPoolConfig.PoolLimitSize = opts.PoolCapacity;
+            
+            // node config
+            NodeConfig = new NodeConfig
+            {
+                IsMiner = IsMiner,
+                FullNode = true,
+                Coinbase = Coinbase
+            };
+
         }
     }
+
 }

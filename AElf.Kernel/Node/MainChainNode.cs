@@ -2,12 +2,20 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
+using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Miner;
+using AElf.Kernel.Node.Config;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
+using AElf.Kernel.Node.RPC.DTO;
+using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using NLog;
 
 namespace AElf.Kernel.Node
@@ -15,24 +23,40 @@ namespace AElf.Kernel.Node
     [LoggerName("Node")]
     public class MainChainNode : IAElfNode
     {
+        private ECKeyPair _nodeKeyPair;
+        
         private readonly ITxPoolService _poolService;
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
         private readonly IProtocolDirector _protocolDirector;
-        
+        private readonly INodeConfig _nodeConfig;
+        private readonly IMiner _miner;
+        private readonly IAccountContextService _accountContextService;
+        private readonly IBlockVaildationService _blockVaildationService;
+        private readonly IChainContextService _chainContextService;
+
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
-            IProtocolDirector protocolDirector, ILogger logger)
+            IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner, 
+            IAccountContextService accountContextService, IBlockVaildationService blockVaildationService, 
+            IChainContextService chainContextService)
         {
             _poolService = poolService;
             _protocolDirector = protocolDirector;
             _transactionManager = txManager;
             _rpcServer = rpcServer;
             _logger = logger;
+            _nodeConfig = nodeConfig;
+            _miner = miner;
+            _accountContextService = accountContextService;
+            _blockVaildationService = blockVaildationService;
+            _chainContextService = chainContextService;
         }
 
-        public void Start(bool startRpc)
+        public void Start(ECKeyPair nodeKeyPair, bool startRpc)
         {
+            _nodeKeyPair = nodeKeyPair;
+            
             if (startRpc)
                 _rpcServer.Start();
             
@@ -43,11 +67,28 @@ namespace AElf.Kernel.Node
             _rpcServer.SetCommandContext(this);
             _protocolDirector.SetCommandContext(this);
             
+            if(_nodeConfig.IsMiner)
+                _miner.Start();    
+            
             _logger.Log(LogLevel.Debug, "AElf node started.");
+            if (_nodeConfig.IsMiner)
+            {
+                _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToByteString().ToBase64());
+                _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
+            }
         }
 
+        /// <summary>
+        /// get the tx from tx pool or database
+        /// </summary>
+        /// <param name="txId"></param>
+        /// <returns></returns>
         public async Task<ITransaction> GetTransaction(Hash txId)
         {
+            if (_poolService.TryGetTx(txId, out var tx))
+            {
+                return tx;
+            }
             return await _transactionManager.GetTransaction(txId);
         }
 
@@ -71,11 +112,11 @@ namespace AElf.Kernel.Node
         /// <param name="tx">The tx to broadcast</param>
         public async Task<bool> BroadcastTransaction(ITransaction tx)
         {
-            bool res;
+            bool res = true;
             
             try
             {
-                res = await _poolService.AddTxAsync(tx);
+                //res = await _poolService.AddTxAsync(tx);
             }
             catch (Exception e)
             {
@@ -85,9 +126,16 @@ namespace AElf.Kernel.Node
 
             if (res)
             {
-                await _protocolDirector.BroadcastTransaction(tx);
+                try
+                {
+                    await _protocolDirector.BroadcastTransaction(tx);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
                 
-                _logger.Trace("Broadcasted transaction to peers: " + tx.GetLoggerString());
+                _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return true;
             }
             
@@ -121,9 +169,70 @@ namespace AElf.Kernel.Node
         /// </summary>
         /// <param name="numPeers"></param>
         /// <returns></returns>
-        public async Task<List<NodeData>> GetPeers(ushort numPeers)
+        public async Task<List<NodeData>> GetPeers(ushort? numPeers)
         {
             return _protocolDirector.GetPeers(numPeers);
+        }
+
+        /// <summary>
+        /// return default incrementId for one address
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <returns></returns>
+        public async Task<ulong> GetIncrementId(Hash addr)
+        {
+            try
+            {
+                var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId)).IncrementId;
+                var idInPool = _poolService.GetIncrementId(addr);
+
+                return Math.Max(idInDB, idInPool);
+            }
+            catch (Exception e)
+            {
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// validate a new block received
+        /// </summary>
+        /// <param name="block"></param>
+        /// <returns></returns>
+        public async Task<ValidationError> ValidateBlock(IBlock block)
+        {
+            var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
+            var error = await _blockVaildationService.ValidateBlockAsync(block, context);
+            return error;
+        }
+        
+        /// <summary>
+        /// get missing tx hashes for the block
+        /// </summary>
+        /// <param name="block"></param>
+        /// <returns></returns>
+        public List<Hash> GetMissingTransactions(IBlock block)
+        {
+            var res = new List<Hash>();
+            var txs = block.Body.Transactions;
+            foreach (var id in txs)
+            {
+                if (!_poolService.TryGetTx(id, out var tx))
+                {
+                    res.Add(id);
+                }
+            }
+            return res;
+        }
+
+        /// <summary>
+        /// add tx
+        /// </summary>
+        /// <param name="tx"></param>
+        /// <returns></returns>
+        public async Task<bool> AddTransaction(ITransaction tx)
+        {
+            return await _poolService.AddTxAsync(tx);
         }
     }
 }

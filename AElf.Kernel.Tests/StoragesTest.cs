@@ -12,91 +12,34 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class StoragesTest
     {
-        private readonly IBlockHeaderStore _blockHeaderStore;
-        private readonly IBlockBodyStore _blockBodyStore;
         private readonly IWorldStateStore _worldStateStore;
-        private readonly IChainStore _chainStore;
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
+        private readonly BlockTest _blockTest;
+        private readonly ChainManager _chainManager;
 
-        public StoragesTest(IChainStore chainStore, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
-            IWorldStateStore worldStateStore, IChangesStore changesStore, IDataStore dataStore)
+        public StoragesTest(IWorldStateStore worldStateStore, IChangesStore changesStore, 
+            IDataStore dataStore, BlockTest blockTest, ChainManager chainManager)
         {
-            _chainStore = chainStore;
-            _blockHeaderStore = blockHeaderStore;
-            _blockBodyStore = blockBodyStore;
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
-        }
-
-        [Fact]
-        public async Task ChainStoreTest()
-        {
-            var chainId = Hash.Generate();
-            var genesisBlockHash = Hash.Generate();
-            var chain = new Chain(chainId, genesisBlockHash);
-            var chainManager = new ChainManager(_chainStore, _dataStore);
-            
-            await chainManager.AddChainAsync(chain.Id, genesisBlockHash);
-
-            var block = CreateBlock(genesisBlockHash);
-            
-            await chainManager.AppendBlockToChainAsync(chain.Id, block);
-
-            var getChain = await chainManager.GetChainAsync(chainId);
-            
-            Assert.True(chainId == chain.Id);
-            Assert.True(chain.Id == getChain.Id);
-        }
-
-        [Fact]
-        public async Task BlockStoreTest()
-        {
-            var block = new Block(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.AddTransaction(Hash.Generate());
-            block.FillTxsMerkleTreeRootInHeader();
-
-            var blockHeaderStore = _blockHeaderStore;
-            var blockBodyStore = _blockBodyStore;
-            
-            await blockHeaderStore.InsertAsync(block.Header);
-            await blockBodyStore.InsertAsync(block.Header.MerkleTreeRootOfTransactions, block.Body);
-
-            //block hash = block header hash
-            var blockHeaderHash = block.Header.GetHash();
-            var blockHash = block.GetHash();
-            Assert.True(blockHash == blockHeaderHash);
-            
-            var getBlock = await blockHeaderStore.GetAsync(blockHeaderHash);
-            
-            Assert.True(block.Header.GetHash() == getBlock.GetHash());
-            
-            //block body hash = transactions merkle tree root hash
-            var blockBodyHash = block.Header.MerkleTreeRootOfTransactions;
-            var getBlockBody = await blockBodyStore.GetAsync(blockBodyHash);
-            
-            Assert.True(Equals(block.Body, getBlockBody));
+            _blockTest = blockTest;
+            _chainManager = chainManager;
         }
         
         [Fact]
         public async Task OneBlockDataTest()
         {
-            var genesisBlockHash = Hash.Generate();
             //Create a chain with one block.
-            var chain = new Chain(Hash.Generate(), genesisBlockHash);
-            var chainManager = new ChainManager(_chainStore, _dataStore);
-            var block = CreateBlock(genesisBlockHash);
-            await chainManager.AddChainAsync(chain.Id, genesisBlockHash);
-            await chainManager.AppendBlockToChainAsync(chain.Id, block);
+            var chain = await _blockTest.CreateChain();
+            var block = CreateBlock(chain.GenesisBlockHash, chain.Id);
+            await _chainManager.AppendBlockToChainAsync(block);
 
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
             var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
-            await worldStateManager.SetWorldStateAsync(genesisBlockHash);
+            await worldStateManager.SetWorldStateAsync(chain.GenesisBlockHash);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             
             //Get the DataProvider of the AccountDataProvider.
@@ -132,23 +75,19 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task TwoBlockDataTest()
         {
-            var genesisBlockHash = Hash.Generate();
             //Create a chian and two blocks.
-            var chain = new Chain(Hash.Generate(), genesisBlockHash);
-            var chainManager = new ChainManager(_chainStore, _dataStore);
+            var chain = await _blockTest.CreateChain();
 
-            var block1 = CreateBlock(genesisBlockHash);
-            var block2 = CreateBlock(block1.GetHash());
+            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id);
             
-            await chainManager.AddChainAsync(chain.Id, genesisBlockHash);
-            await chainManager.AppendBlockToChainAsync(chain.Id, block1);
+            await _chainManager.AppendBlockToChainAsync(block1);
 
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
             var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
 
-            await worldStateManager.SetWorldStateAsync(genesisBlockHash);
+            await worldStateManager.SetWorldStateAsync(chain.GenesisBlockHash);
 
             var dataProvider = accountDataProvider.GetDataProvider();
             var subDataProvider = dataProvider.GetDataProvider("test");
@@ -160,8 +99,10 @@ namespace AElf.Kernel.Tests
             
             Assert.True(data.SequenceEqual(getDataFromHeight1));
 
+            var block2 = CreateBlock(block1.GetHash(), chain.Id);
+            
             await worldStateManager.SetWorldStateAsync(block1.GetHash());
-            await chainManager.AppendBlockToChainAsync(chain.Id, block2);
+            await _chainManager.AppendBlockToChainAsync(block2);
             
             accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
@@ -177,7 +118,7 @@ namespace AElf.Kernel.Tests
             
             Assert.False(getDataFromHeight1.SequenceEqual(getDataFromHeight2));
 
-            var getDataFromHeight1ByBlockHash = await subDataProvider.GetAsync(key, genesisBlockHash);
+            var getDataFromHeight1ByBlockHash = await subDataProvider.GetAsync(key, chain.GenesisBlockHash);
             
             Assert.True(getDataFromHeight1.SequenceEqual(getDataFromHeight1ByBlockHash));
         }
@@ -187,24 +128,20 @@ namespace AElf.Kernel.Tests
         {
             const string str = "test";
             
-            var genesisBlockHash = Hash.Generate();
-
             //Create a chian and several blocks.
-            var chain = new Chain(Hash.Generate(), genesisBlockHash);
-            var chainManager = new ChainManager(_chainStore, _dataStore);
+            var chain = await _blockTest.CreateChain();
 
-            var block1 = CreateBlock(genesisBlockHash);
+            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id);
 
             //Add first block.
-            await chainManager.AddChainAsync(chain.Id, genesisBlockHash);
-            await chainManager.AppendBlockToChainAsync(chain.Id, block1);
+            await _chainManager.AppendBlockToChainAsync(block1);
 
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
             var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
             var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             
-            await worldStateManager.SetWorldStateAsync(genesisBlockHash);
+            await worldStateManager.SetWorldStateAsync(chain.GenesisBlockHash);
 
             //Set data to one sub DataProvider("test").
             var dataProvider = accountDataProvider.GetDataProvider();
@@ -216,9 +153,9 @@ namespace AElf.Kernel.Tests
             //Set WorldState and add a new block.
             await worldStateManager.SetWorldStateAsync(block1.GetHash());
             
-            var block2 = CreateBlock(block1.GetHash());
+            var block2 = CreateBlock(block1.GetHash(), chain.Id);
 
-            await chainManager.AppendBlockToChainAsync(chain.Id, block2);
+            await _chainManager.AppendBlockToChainAsync(block2);
 
             //Must refresh the DataProviders before set new data.
             accountDataProvider = worldStateManager.GetAccountDataProvider(address);
@@ -230,7 +167,7 @@ namespace AElf.Kernel.Tests
             Assert.False(data1.SequenceEqual(data2));
 
             //Check the ability to get data of previous WorldState.
-            var getData1 = await subDataProvider.GetAsync(key, genesisBlockHash);
+            var getData1 = await subDataProvider.GetAsync(key, chain.GenesisBlockHash);
             Assert.True(data1.SequenceEqual(getData1));
             //And the ability to get data of current WorldState.(not equal to previous data)
             var getData2 = await subDataProvider.GetAsync(key);
@@ -239,9 +176,9 @@ namespace AElf.Kernel.Tests
             //Now set WorldState again and add a third block.
             await worldStateManager.SetWorldStateAsync(block2.GetHash());
             
-            var block3 = CreateBlock(block2.GetHash());
+            var block3 = CreateBlock(block2.GetHash(), chain.Id);
 
-            await chainManager.AppendBlockToChainAsync(chain.Id, block3);
+            await _chainManager.AppendBlockToChainAsync(block3);
             
             accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
@@ -250,7 +187,7 @@ namespace AElf.Kernel.Tests
             await subDataProvider.SetAsync(key, data3);
 
             //See the ability to get data of first WorldState.
-            getData1 = await subDataProvider.GetAsync(key, genesisBlockHash);
+            getData1 = await subDataProvider.GetAsync(key, chain.GenesisBlockHash);
             Assert.True(data1.SequenceEqual(getData1));
             //And second WorldState.
             getData2 = await subDataProvider.GetAsync(key, block1.GetHash());
@@ -262,7 +199,8 @@ namespace AElf.Kernel.Tests
             Assert.True(data3.SequenceEqual(getData3));
         }
 
-        private Block CreateBlock(Hash preBlockHash = null)
+        // ReSharper disable once MemberCanBeMadeStatic.Local
+        private Block CreateBlock(Hash preBlockHash, Hash chainId)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             
@@ -272,7 +210,8 @@ namespace AElf.Kernel.Tests
             block.AddTransaction(Hash.Generate());
             block.AddTransaction(Hash.Generate());
             block.FillTxsMerkleTreeRootInHeader();
-            block.Header.PreviousHash = preBlockHash;
+            block.Header.PreviousBlockHash = preBlockHash;
+            block.Header.ChainId = chainId;
             return block;
         }
     }

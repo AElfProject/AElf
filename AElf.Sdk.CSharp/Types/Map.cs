@@ -39,6 +39,17 @@ namespace AElf.Sdk.CSharp.Types
 
     public class Map
     {
+        // private int _count;
+        
+        // public string Name { get; }
+
+        // [SmartContractFieldData("Count", DataAccessMode.ReadWriteAccountSharing)]
+        // public int Count
+        // {
+        //     [SmartContractFunction("Count", new string[]{}, new []{"Count"})]
+        //     get { return _count; }
+        // }
+
         protected string _name;
         protected IDataProvider _dataProvider;
 

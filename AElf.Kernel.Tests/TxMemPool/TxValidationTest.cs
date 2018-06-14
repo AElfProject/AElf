@@ -1,5 +1,5 @@
 ﻿using System;
-using AElf.Kernel.Crypto.ECDSA;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
@@ -37,10 +37,11 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
             var ps = new Parameters();
+            
             var tx = new Transaction
             {
-                From = from,
-                To = to,
+                From = keyPair.GetAddress(),
+                To = (to == null ? Hash.Generate() : to).ToAccount(),
                 IncrementId = id,
                 MethodName = "null",
                 P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),

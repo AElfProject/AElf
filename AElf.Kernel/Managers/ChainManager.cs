@@ -3,6 +3,8 @@ using System.IO;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Managers
 {
@@ -10,28 +12,40 @@ namespace AElf.Kernel.Managers
     {
         private readonly IChainStore _chainStore;
         private readonly IDataStore _dataStore;
+        private readonly IWorldStateManager _worldStateManager;
+        
+        private IDataProvider _heightOfBlock;
 
-        public ChainManager(IChainStore chainStore, IDataStore dataStore)
+        public ChainManager(IChainStore chainStore, IDataStore dataStore, IWorldStateManager worldStateManager)
         {
             _chainStore = chainStore;
             _dataStore = dataStore;
+            _worldStateManager = worldStateManager;
         }
 
-        public async Task AppendBlockToChainAsync(Hash chainId, IBlock block)
+        public async Task AppendBlockToChainAsync(IBlock block)
         {
             if(block.Header == null)
                 throw new InvalidDataException("Invalid block");
 
-            await AppednBlockHeaderAsync(chainId, block.Header);
+            var chainId = block.Header.ChainId;
+            await AppednBlockHeaderAsync(block.Header);
+
+            await InitialHeightOfBlock(chainId);
+            await _heightOfBlock.SetAsync(new UInt64Value {Value = block.Header.Index}.CalculateHash(), 
+                block.GetHash().ToByteArray());
         }
 
-        public async Task AppednBlockHeaderAsync(Hash chainId, BlockHeader header)
+        public async Task AppednBlockHeaderAsync(BlockHeader header)
         {
+            var chainId = header.ChainId;
             if (await _chainStore.GetAsync(chainId) == null)
                 throw new KeyNotFoundException("Not existed Chain");
-            
+
             var height = await GetChainCurrentHeight(chainId);
+
             var lastBlockHash = await GetChainLastBlockHash(chainId);
+
             // chain height should not be 0 when appending a new block
             if (height == 0)
             {
@@ -39,7 +53,7 @@ namespace AElf.Kernel.Managers
                 await SetChainCurrentHeight(chainId, 1);
                 await SetChainLastBlockHash(chainId, header.GetHash());
             }
-            else if ( lastBlockHash != header.PreviousHash)
+            else if ( lastBlockHash != header.PreviousBlockHash)
             {
                 throw new InvalidDataException("Invalid block");
                 //Block is not connected
@@ -47,6 +61,7 @@ namespace AElf.Kernel.Managers
             header.Index = height;
             await SetChainCurrentHeight(chainId, height + 1);
             await SetChainLastBlockHash(chainId, header.GetHash());
+
         }
 
 
@@ -89,5 +104,11 @@ namespace AElf.Kernel.Managers
             await _dataStore.SetDataAsync(key, blockHash.GetHashBytes());
         }
         
+        private async Task InitialHeightOfBlock(Hash chainId)
+        {
+            await _worldStateManager.OfChain(chainId);
+            _heightOfBlock = _worldStateManager.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId))
+                .GetDataProvider().GetDataProvider("HeightOfBlock");
+        }
     }
 }

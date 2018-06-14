@@ -13,7 +13,6 @@ using AElf.Kernel.Services;
 using AElf.Kernel.SmartContracts.CSharpSmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using ServiceStack;
 using Xunit;
 using AElf.Runtime.CSharp;
 using Xunit.Frameworks.Autofac;

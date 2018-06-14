@@ -1,5 +1,8 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common.Application;
+using AElf.Cryptography;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
@@ -12,6 +15,9 @@ namespace AElf.Kernel.Miner
         private readonly ITxPoolService _txPoolService;
         private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
         
+        
+        private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
+
         private MinerLock Lock { get; } = new MinerLock();
         
         /// <summary>
@@ -26,7 +32,8 @@ namespace AElf.Kernel.Miner
         public AutoResetEvent MiningResetEvent { get; private set; }
         
         public IMinerConfig Config { get; }
-        
+
+        public Hash Coinbase => Config.CoinBase;
 
         public Miner(IBlockGenerationService blockGenerationService, IMinerConfig config, 
             ITxPoolService txPoolService, IParallelTransactionExecutingService parallelTransactionExecutingService)
@@ -43,20 +50,21 @@ namespace AElf.Kernel.Miner
             if (Cts == null || Cts.IsCancellationRequested)
                 return null;
             
-            var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCountLimit);
+            var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
             // TODO：dispatch txs with ISParallel, return list of tx results
             
             var results =  await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
             
             // generate block
             var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);
-             
+            
             // reset Promotable and update account context
             await _txPoolService.ResetAndUpdate(results);
 
             return block;
         }
 
+        
         /// <summary>
         /// start mining  
         /// </summary>

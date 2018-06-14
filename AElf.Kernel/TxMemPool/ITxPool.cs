@@ -54,7 +54,7 @@ namespace AElf.Kernel.TxMemPool
         /// <summary>
         /// threshold for entering pool
         /// </summary>
-        ulong EntryThreshold { get; }
+        //ulong EntryThreshold { get; }
 
         /// <summary>
         /// txs can be enqueued to waiting list if Enqueueable is true,
@@ -145,5 +145,14 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <returns></returns>
         //ulong TmpSize { get; }
+
+
+        /// <summary>
+        /// return the biggest incrementId for the addr in the pool
+        /// return 0 if the addr not existed
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <returns></returns>
+        ulong GetPendingIncrementId(Hash addr);
     }
 }

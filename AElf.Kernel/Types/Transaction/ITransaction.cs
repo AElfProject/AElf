@@ -1,4 +1,4 @@
-﻿using AElf.Kernel.Crypto.ECDSA;
+﻿using AElf.Cryptography.ECDSA;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
@@ -48,8 +48,6 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns></returns>
         int Size();
-
-        string GetLoggerString();
     }
 
 }

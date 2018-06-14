@@ -42,7 +42,7 @@ namespace AElf.Kernel.Tests.Miner
         }
 
         private ActorSystem sys = ActorSystem.Create("test");
-        //private readonly ChainContextServiceWithAdd _chainContextService;
+        private readonly IChainContextService _chainContextService;
         private readonly IBlockGenerationService _blockGenerationService;
         //private ChainContextWithSmartContractZeroWithTransfer _chainContext;
         //private SmartContractZeroWithTransfer SmartContractZero { get { return (_chainContext.SmartContractZero as SmartContractZeroWithTransfer); } }
@@ -57,16 +57,19 @@ namespace AElf.Kernel.Tests.Miner
         private IActorRef _serviceRouter;
         private ISmartContractRunnerFactory _smartContractRunnerFactory = new SmartContractRunnerFactory();
         private ISmartContractService _smartContractService;
+        private readonly IBlockVaildationService blockVaildationService;
 
         public MinerLifetime(MockSetup mock, IWorldStateManager worldStateManager,
             AccountContextService accountContextService, ISmartContractManager smartContractManager,
-            IBlockGenerationService blockGenerationService, IChainCreationService chainCreationService) : base(new XunitAssertions())
+            IBlockGenerationService blockGenerationService, IChainCreationService chainCreationService, IChainContextService chainContextService, IBlockVaildationService blockVaildationService) : base(new XunitAssertions())
         {
             //_chainContextService = chainContextService;
             //_chainContext = chainContext;
             _accountContextService = accountContextService;
             _blockGenerationService = blockGenerationService;
             _chainCreationService = chainCreationService;
+            _chainContextService = chainContextService;
+            this.blockVaildationService = blockVaildationService;
             _mock = mock;
 
             _worldStateManager = worldStateManager;
@@ -193,17 +196,15 @@ namespace AElf.Kernel.Tests.Miner
         public IMiner GetMiner(IMinerConfig config)
         {
             var parallelTransactionExecutingService = new ParallelTransactionExecutingService(sys);
-            return new Kernel.Miner.Miner(_blockGenerationService, config, MockTxPoolService().Object,
+            return new Kernel.Miner.Miner(_blockGenerationService, config, MockTxPoolService().Object, 
                 parallelTransactionExecutingService);
         }
 
         public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit)
         {
-            return new MinerConifg
+            return new MinerConfig
             {
-                ChainId = chainId,
-                TxCountLimit = txCountLimit,
-                IsParallel = true
+                TxCount = txCountLimit
             };
         }
         

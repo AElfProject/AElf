@@ -12,7 +12,7 @@ namespace AElf.Network.Peers
         void Start();
         bool AddPeer(IPeer peer);
 
-        List<NodeData> GetPeers(ushort numPeers);
+        List<NodeData> GetPeers(ushort? numPeers, bool includeBootnodes = true);
 
         Task<bool> BroadcastMessage(MessageTypes messageType, byte[] payload, int requestId);
     }

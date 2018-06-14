@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
+      <HintPath>..\..\..\..\..\.nuget\packages\newtonsoft.json\10.0.3\lib\netstandard1.3\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="protobuf-net" Version="2.3.9" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Common\AElf.Common.csproj">
+      <Project>{4EC22E9F-7019-470B-B990-B9E020DBBFB2}</Project>
+      <Name>AElf.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
+  </ItemGroup>
+</Project>

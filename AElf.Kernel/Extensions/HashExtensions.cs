@@ -94,7 +94,7 @@ namespace AElf.Kernel.Extensions
             return newHashBytes;
         }
 
-        #region private methods
+        
         /// <summary>
         /// Easier to change the implementation.
         /// </summary>
@@ -104,6 +104,6 @@ namespace AElf.Kernel.Extensions
         {
             return SHA256.Create().ComputeHash(bytes);
         }
-        #endregion
+        
     }
 }
