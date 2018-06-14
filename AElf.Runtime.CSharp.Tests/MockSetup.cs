@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using AElf.Kernel;
@@ -23,6 +24,13 @@ namespace AElf.Runtime.CSharp.Tests
 {
     public class MockSetup
     {
+        private static int _incrementId = 0;
+        public ulong NewIncrementId()
+        {
+            var n = Interlocked.Increment(ref _incrementId);
+            return (ulong)n;
+        }
+
         public Hash ChainId1 { get; } = Hash.Generate();
         public Hash ChainId2 { get; } = Hash.Generate();
         public ISmartContractService SmartContractService;
@@ -30,8 +38,8 @@ namespace AElf.Runtime.CSharp.Tests
         public IAccountDataProvider DataProvider1;
         public IAccountDataProvider DataProvider2;
 
-        public Hash SampleContractAddress1 { get; } = Hash.Generate();
-        public Hash SampleContractAddress2 { get; } = Hash.Generate();
+        public Hash ContractAddress1 { get; } = Hash.Generate();
+        public Hash ContractAddress2 { get; } = Hash.Generate();
 
         private ISmartContractManager _smartContractManager;
         private IWorldStateManager _worldStateManager;
@@ -46,7 +54,7 @@ namespace AElf.Runtime.CSharp.Tests
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             _smartContractManager = new SmartContractManager(smartContractStore);
-            var runner = new SmartContractRunner("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/");
+            var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
             Task.Factory.StartNew(async () =>
             {
@@ -81,20 +89,20 @@ namespace AElf.Runtime.CSharp.Tests
             var reg = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFrom(ExampleContractCode),
-                ContractHash = Hash.Zero
+                ContractBytes = ByteString.CopyFrom(ContractCode),
+                ContractHash = new Hash(ContractCode)
             };
 
-            await SmartContractService.DeployContractAsync(SampleContractAddress1, reg);
-            await SmartContractService.DeployContractAsync(SampleContractAddress2, reg);
+            await SmartContractService.DeployContractAsync(ContractAddress1, reg);
+            await SmartContractService.DeployContractAsync(ContractAddress2, reg);
         }
 
-        public byte[] ExampleContractCode
+        public byte[] ContractCode
         {
             get
             {
                 byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/AElf.Contracts.Examples.dll")))
+                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/AElf.Runtime.CSharp.Tests.TestContract.dll")))
                 {
                     code = file.ReadFully();
                 }
