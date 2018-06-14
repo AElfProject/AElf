@@ -18,13 +18,15 @@ namespace AElf.Kernel.Tests
         private readonly IBlockManager _blockManager;
         private readonly ChainTest _chainTest;
         private readonly IChainCreationService _chainCreationService;
+        private readonly IChainManager _chainManager;
 
-        public BlockTest(IBlockManager blockManager, ChainTest chainTest, IChainCreationService chainCreationService)
+        public BlockTest(IBlockManager blockManager, ChainTest chainTest, IChainCreationService chainCreationService, IChainManager chainManager)
         {
             _blockManager = blockManager;
             //_smartContractZero = smartContractZero;
             _chainTest = chainTest;
             _chainCreationService = chainCreationService;
+            _chainManager = chainManager;
         }
 
         public byte[] SmartContractZeroCode
@@ -38,6 +40,45 @@ namespace AElf.Kernel.Tests
                 }
                 return code;
             }
+        }
+
+        [Fact]
+        public async Task GetNextBlockTest()
+        {
+            var chain = await CreateChain();
+            
+            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id);
+            await _chainManager.AppendBlockToChainAsync(block1);
+            await _blockManager.AddBlockAsync(block1);
+            
+            var block2 = CreateBlock(block1.GetHash(), chain.Id);
+            await _chainManager.AppendBlockToChainAsync(block2);
+            await _blockManager.AddBlockAsync(block2);
+
+            var blockOfHeight2 = await _blockManager.GetNextBlockOf(chain.Id, block1.GetHash());
+            
+            Assert.Equal(block2, blockOfHeight2);
+        }
+
+        [Fact]
+        public async Task GetBlockByHeightTest()
+        {
+            var chain = await CreateChain();
+            
+            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id);
+            await _chainManager.AppendBlockToChainAsync(block1);
+            await _blockManager.AddBlockAsync(block1);
+            
+            var block2 = CreateBlock(block1.GetHash(), chain.Id);
+            await _chainManager.AppendBlockToChainAsync(block2);
+            await _blockManager.AddBlockAsync(block2);
+
+            var blockOfHeight1 = await _blockManager.GetBlockByHeight(chain.Id, 1);
+            Assert.Equal(block1, blockOfHeight1);
+
+            var blockOfHeight2 = await _blockManager.GetBlockByHeight(chain.Id, 2);
+            Assert.Equal(block2, blockOfHeight2);
+
         }
 
         public async Task<IChain> CreateChain()
