@@ -17,7 +17,6 @@ using ServiceStack;
 using Xunit;
 using AElf.Runtime.CSharp;
 using Xunit.Frameworks.Autofac;
-using AElf.Contracts;
 using Path = AElf.Kernel.Path;
 
 namespace AElf.Runtime.CSharp.Tests
@@ -26,8 +25,8 @@ namespace AElf.Runtime.CSharp.Tests
     public class CSharpAssemblyLoadContextTest
     {
 
-        private string _apiDllDirectory = "../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/";
-        private string _codePath = "../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/AElf.Contracts.Examples.dll";
+        private string _apiDllDirectory = "../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/";
+        private string _codePath = "../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/AElf.Runtime.CSharp.Tests.TestContract.dll";
 
         private CSharpAssemblyLoadContext _loadContext;
         public CSharpAssemblyLoadContextTest()

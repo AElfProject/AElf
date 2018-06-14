@@ -31,11 +31,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp", "AElf.Sdk
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp", "AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj", "{01FDA9AA-9328-449A-91CA-93424049F57D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Examples", "AElf.Contracts.Examples\AElf.Contracts.Examples.csproj", "{0AADDF92-7BB5-48D6-AFD6-8FA844631608}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Tests", "AElf.Runtime.CSharp.Tests\AElf.Runtime.CSharp.Tests.csproj", "{8709F0EA-4058-45A7-825C-003D215670BA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.SmartContractZero", "AElf.Contracts.SmartContractZero\AElf.Contracts.SmartContractZero.csproj", "{82990513-1BCD-4731-A7F8-98B2B47F3442}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network", "AElf.Network\AElf.Network.csproj", "{5FEFB079-F6EB-48AF-97C7-6C582B9BDB8A}"
 EndProject
@@ -123,18 +119,10 @@ Global
 		{01FDA9AA-9328-449A-91CA-93424049F57D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{01FDA9AA-9328-449A-91CA-93424049F57D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{01FDA9AA-9328-449A-91CA-93424049F57D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0AADDF92-7BB5-48D6-AFD6-8FA844631608}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0AADDF92-7BB5-48D6-AFD6-8FA844631608}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0AADDF92-7BB5-48D6-AFD6-8FA844631608}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0AADDF92-7BB5-48D6-AFD6-8FA844631608}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8709F0EA-4058-45A7-825C-003D215670BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8709F0EA-4058-45A7-825C-003D215670BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8709F0EA-4058-45A7-825C-003D215670BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8709F0EA-4058-45A7-825C-003D215670BA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{82990513-1BCD-4731-A7F8-98B2B47F3442}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{82990513-1BCD-4731-A7F8-98B2B47F3442}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{82990513-1BCD-4731-A7F8-98B2B47F3442}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{82990513-1BCD-4731-A7F8-98B2B47F3442}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5FEFB079-F6EB-48AF-97C7-6C582B9BDB8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5FEFB079-F6EB-48AF-97C7-6C582B9BDB8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5FEFB079-F6EB-48AF-97C7-6C582B9BDB8A}.Release|Any CPU.ActiveCfg = Release|Any CPU

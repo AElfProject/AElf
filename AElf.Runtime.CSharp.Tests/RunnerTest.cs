@@ -1,25 +1,6 @@
-﻿using System;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Reflection;
-using AElf.Kernel;
-using AElf.Kernel.Storages;
-using AElf.Kernel.Extensions;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
-using AElf.Kernel.SmartContracts.CSharpSmartContract;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using ServiceStack;
+﻿using AElf.Kernel;
 using Xunit;
-using AElf.Runtime.CSharp;
 using Xunit.Frameworks.Autofac;
-using AElf.Contracts;
-using Path = AElf.Kernel.Path;
-using AElf.Types.CSharp;
 
 namespace AElf.Runtime.CSharp.Tests
 {

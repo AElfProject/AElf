@@ -17,7 +17,6 @@ using ServiceStack;
 using Xunit;
 using AElf.Runtime.CSharp;
 using Xunit.Frameworks.Autofac;
-using AElf.Contracts;
 using Path = AElf.Kernel.Path;
 
 namespace AElf.Runtime.CSharp.Tests
