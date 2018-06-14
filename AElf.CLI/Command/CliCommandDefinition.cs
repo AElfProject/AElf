@@ -5,6 +5,8 @@ namespace AElf.CLI.Command
 {
     public abstract class CliCommandDefinition
     {
+        public const string InvalidParamsError = "Invalid parameters - See usage";
+        
         public string Name { get; }
         public virtual bool IsLocal { get; } = false;
     

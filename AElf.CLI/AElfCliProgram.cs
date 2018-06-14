@@ -22,11 +22,6 @@ namespace AElf.CLI
         
         private static List<CliCommandDefinition> _commands = new List<CliCommandDefinition>();
         
-        private const string InvalidCommandError = "***** ERROR: INVALID COMMAND - SEE USAGE *****";
-        private const string InvalidParamsError = "***** ERROR: INVALID PARAMETERS - SEE USAGE *****";
-        private const string CommandNotAvailable = "***** ERROR: COMMAND NO LONGER AVAILABLE - PLEASE RESTART *****";
-        private const string ErrorLoadingCommands = "***** ERROR: COULD NOT LOAD COMMANDS - PLEASE RESTART SERVER *****";
-        
         private const string ExitReplCommand = "quit";
         
         private readonly ScreenManager _screenManager;
@@ -64,7 +59,7 @@ namespace AElf.CLI
 
                 if (def == null)
                 {
-                    _screenManager.PrintCommandNotFount(command);
+                    _screenManager.PrintCommandNotFound(command);
                 }
                 else
                 {

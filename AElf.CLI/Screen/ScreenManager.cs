@@ -232,7 +232,7 @@ namespace AElf.CLI.Screen
             Console.Write(CliPrefix + command);
         }
 
-        public void PrintCommandNotFount(string command)
+        public void PrintCommandNotFound(string command)
         {
             Console.WriteLine(command + " : command not found");
         }

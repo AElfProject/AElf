@@ -34,7 +34,8 @@ namespace AElf.Cryptography
         public enum Errors
         {
             None = 0,
-            AccountAlreadyExists = 1
+            AccountAlreadyUnlocked = 1,
+            WrongPassword = 2
         }
         
         public AElfKeyStore(string dataDirectory)
@@ -62,15 +63,22 @@ namespace AElf.Cryptography
         public Errors OpenAsync(string address, string password, bool withTimeout = true)
         {
             if (_openAccounts.Any(x => x.Address == address))
-                return Errors.AccountAlreadyExists;
-            
-            if (withTimeout)
+                return Errors.AccountAlreadyUnlocked;
+
+            try
             {
-                OpenAsync(address, password, _defaultAccountTimeout);
+                if (withTimeout)
+                {
+                    OpenAsync(address, password, _defaultAccountTimeout);
+                }
+                else
+                {
+                    OpenAsync(address, password, null);
+                }
             }
-            else
+            catch (InvalidPasswordException e)
             {
-                OpenAsync(address, password, null);
+                return Errors.WrongPassword;
             }
 
             return Errors.None;

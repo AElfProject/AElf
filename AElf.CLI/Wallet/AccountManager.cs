@@ -30,9 +30,41 @@ namespace AElf.CLI.Wallet
             _screenManager = screenManager;
             _keyStore = keyStore;
         }
+
+        public readonly List<string> SubCommands = new List<string>()
+        {
+            NewCmdName,
+            ListAccountsCmdName,
+            UnlockAccountCmdName
+        };
+
+        private string Validate(CmdParseResult parsedCmd)
+        {
+            if (parsedCmd.Args.Count == 0)
+                return CliCommandDefinition.InvalidParamsError;
+
+            if (parsedCmd.Args.ElementAt(0).Equals(UnlockAccountCmdName, StringComparison.OrdinalIgnoreCase))
+            {
+                if (parsedCmd.Args.Count < 2)
+                    return CliCommandDefinition.InvalidParamsError;
+            }
+
+            if (!SubCommands.Contains(parsedCmd.Args.ElementAt(0)))
+                return CliCommandDefinition.InvalidParamsError;
+            
+            return null;
+        }
         
         public void ProcessCommand(CmdParseResult parsedCmd)
         {
+            string validationError = Validate(parsedCmd);
+
+            if (validationError != null)
+            {
+                _screenManager.PrintError(validationError);
+                return;
+            }
+
             string subCommand = parsedCmd.Args.ElementAt(0);
 
             if (subCommand.Equals(NewCmdName, StringComparison.OrdinalIgnoreCase))
@@ -49,11 +81,21 @@ namespace AElf.CLI.Wallet
             }
         }
 
+
         private void UnlockAccount(string address)
         {
+            if (!_keyStore.ListAccounts().Contains(address))
+            {
+                _screenManager.PrintError("account does not exist!");
+                return;
+            }
+                
             var password = _screenManager.AskInvisible("password: ");
             var tryOpen = _keyStore.OpenAsync(address, password);
-            if (tryOpen == AElfKeyStore.Errors.AccountAlreadyExists)
+            
+            if (tryOpen == AElfKeyStore.Errors.WrongPassword)
+                _screenManager.PrintError("incorrect password!");
+            else if (tryOpen == AElfKeyStore.Errors.AccountAlreadyUnlocked)
                 _screenManager.PrintError("account already unlocked!");
         }
 
