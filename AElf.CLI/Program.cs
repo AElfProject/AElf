@@ -36,6 +36,7 @@ namespace AElf.CLI
         private static void RegisterNetworkCommands(AElfCliProgram program)
         {
             program.RegisterCommand(new GetPeersCmd());
+            program.RegisterCommand(new GetCommandsCmd());
         }
 
         private static void RegisterAccountCommands(AElfCliProgram program)
