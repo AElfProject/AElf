@@ -28,7 +28,7 @@ namespace AElf.Kernel.Services
         {
             // TODO: Centralize this function in Hash class
             // SmartContractZero address can be derived from ChainId
-            var contractAddress = chainId.CalculateHashWith("__SmartContractZero__");
+            var contractAddress = new Hash(chainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
             await _smartContractService.DeployContractAsync(contractAddress, smartContractRegistration);
             var builder = new GenesisBlockBuilder();
             builder.Build(chainId);
