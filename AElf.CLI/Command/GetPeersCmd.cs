@@ -9,15 +9,15 @@ namespace AElf.CLI.Command
 {
     public class GetPeersCmd : CliCommandDefinition
     {
-        private const string GetPeersName = "peers";
+        private const string CommandName = "get_peers";
         
-        public GetPeersCmd() : base(GetPeersName)
+        public GetPeersCmd() : base(CommandName)
         {
         }
 
         public override string GetUsage()
         {
-            return "usage: peers <number of peers>";
+            return "usage: get_peers <number of peers>";
         }
 
         public override string GetUsage(string subCommand)

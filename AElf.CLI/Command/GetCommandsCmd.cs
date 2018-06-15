@@ -10,15 +10,15 @@ namespace AElf.CLI.Command
 {
     public class GetCommandsCmd : CliCommandDefinition
     {
-        private const string GetCommandsName = "commands";
+        private const string CommandName = "get_commands";
         
-        public GetCommandsCmd() : base(GetCommandsName)
+        public GetCommandsCmd() : base(CommandName)
         {
         }
 
         public override string GetUsage()
         {
-            return "usage: commands";
+            return "usage: get_commands";
         }
 
         public override string GetUsage(string subCommand)

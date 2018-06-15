@@ -34,7 +34,7 @@ namespace AElf.CLI.Screen
 
         public void PrintUsage()
         {
-            Console.WriteLine("Use \"getcommands\" to print available commands");
+            Console.WriteLine("Use \"get_commands\" to print available commands");
             Console.WriteLine(Usage);
             Console.WriteLine(Quit);
         }

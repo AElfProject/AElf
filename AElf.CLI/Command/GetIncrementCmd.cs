@@ -7,7 +7,7 @@ namespace AElf.CLI.Command
 {
     public class GetIncrementCmd : CliCommandDefinition
     {
-        private const string CommandName = "get-increment";
+        private const string CommandName = "get_increment";
         
         public GetIncrementCmd() : base(CommandName)
         {
@@ -15,7 +15,7 @@ namespace AElf.CLI.Command
 
         public override string GetUsage()
         {
-            return "usage: get-increment <address>";
+            return "usage: get_increment <address>";
         }
 
         public override string Validate(CmdParseResult parsedCmd)
