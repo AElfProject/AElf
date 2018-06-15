@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using AElf.Contracts.DPoS;
 using AElf.Kernel;
 using AElf.Kernel.Services;
 using Google.Protobuf;

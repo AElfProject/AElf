@@ -8,7 +8,6 @@ using AElf.Kernel.Extensions;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using ServiceStack;
 using SharpRepository.Repository.Configuration;
@@ -22,19 +21,19 @@ namespace AElf.Contracts.DPoS
 
         #region Maps
 
-        public Map BlockProducer = new Map("BlockProducer");
+        public readonly Map BlockProducer = new Map("BlockProducer");
         
-        public Map ExtraBlockProducer = new Map("ExtraBlockProducer");
+        public readonly Map ExtraBlockProducer = new Map("ExtraBlockProducer");
         
-        public Map TimeSlots = new Map("TimeSlots");
+        public readonly Map TimeSlots = new Map("TimeSlots");
         
-        public Map Signatures = new Map("Signatures");
+        public readonly Map Signatures = new Map("Signatures");
         
-        public Map RoundsCount = new Map("RoundsCount");
+        public readonly Map RoundsCount = new Map("RoundsCount");
         
-        public Map Ins = new Map("Ins");
+        public readonly Map Ins = new Map("Ins");
         
-        public Map Outs = new Map("Outs");
+        public readonly Map Outs = new Map("Outs");
 
         #endregion
 
@@ -206,6 +205,15 @@ namespace AElf.Contracts.DPoS
             return await ExtraBlockProducer.GetValue(roundsCount.CalculateHash());
         }
 
+        public async Task<object> SetExtraBlockProducer()
+        {
+            var roundsCount = (UInt64Value) await GetRoundsCount();
+            
+            // TODO: need to get the signature of first place
+            // await ExtraBlockProducer.SetValueAsync(roundsCount.CalculateHash(), )
+            throw new NotImplementedException();
+        }
+
         public async Task<object> GetTimeSlot(string accountAddress)
         {
             var roundsCount = (UInt64Value) await GetRoundsCount();
@@ -326,7 +334,7 @@ namespace AElf.Contracts.DPoS
             var member = type.GetMethod(methodname);
             var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
 
-            await (Task<object>)member.Invoke(this, parameters);
+            if (member != null) await (Task<object>) member.Invoke(this, parameters);
         }
 
         /// <summary>

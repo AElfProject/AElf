@@ -3,8 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Application;
 using AElf.Cryptography;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
+using Google.Protobuf.WellKnownTypes;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
 namespace AElf.Kernel.Miner
@@ -35,33 +37,46 @@ namespace AElf.Kernel.Miner
 
         public Hash Coinbase => Config.CoinBase;
 
+        private readonly DPoS _dpos;
+
         public Miner(IBlockGenerationService blockGenerationService, IMinerConfig config, 
-            ITxPoolService txPoolService, IParallelTransactionExecutingService parallelTransactionExecutingService)
+            ITxPoolService txPoolService, IParallelTransactionExecutingService parallelTransactionExecutingService, DPoS dpos)
         {
             _blockGenerationService = blockGenerationService;
             Config = config;
             _txPoolService = txPoolService;
             _parallelTransactionExecutingService = parallelTransactionExecutingService;
+            _dpos = dpos;
         }
 
         
-        public async Task<IBlock> Mine()
+        public async Task<IBlock> Mine(byte[] address)
         {
-            if (Cts == null || Cts.IsCancellationRequested)
-                return null;
+            if (await _dpos.AbleToMine(address))
+            {
+                if (Cts == null || Cts.IsCancellationRequested)
+                    return null;
             
-            var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
-            // TODO：dispatch txs with ISParallel, return list of tx results
-            
-            var results =  await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
-            
-            // generate block
-            var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);
-            
-            // reset Promotable and update account context
-            await _txPoolService.ResetAndUpdate(results);
+                var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
+                // TODO：dispatch txs with ISParallel, return list of tx results
 
-            return block;
+                if (await _dpos.TimeToGenerateExtraBlock(address))
+                {
+                    await _txPoolService.AddTxAsync(await _dpos.GenerateEBPCalculationTransaction());
+                }
+                
+                var results =  await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
+            
+                // generate block
+                var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);
+            
+                // reset Promotable and update account context
+                await _txPoolService.ResetAndUpdate(results);
+
+                return block;
+            }
+
+            return null;
         }
 
         
