@@ -42,7 +42,6 @@ namespace AElf.Kernel.Miner
             // promote txs from these address
             await _txPoolService.PromoteAsync(map.Keys.ToList());
 
-            
             var ready = new List<ITransaction>();
             foreach (var fromTxs in map)
             {
