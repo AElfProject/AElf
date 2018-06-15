@@ -44,17 +44,14 @@ namespace AElf.CLI.Command
         {
             StringBuilder strBuilder = new StringBuilder();
             strBuilder.AppendLine("-- List of commands on the node");
-            List<string> commands;
             
             try
             {
                 var comms = resp["commands"].ToList();
-                
-                commands = comms.Select(c => (string) c).ToList();
 
-                foreach (var c in commands)
+                foreach (var c in comms)
                 {
-                    strBuilder.AppendLine(c);
+                    strBuilder.AppendLine(c.ToString());
                 }
             }
             catch (Exception e)
