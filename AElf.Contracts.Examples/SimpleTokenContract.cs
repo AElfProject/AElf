@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Extensions;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
@@ -17,7 +18,9 @@ namespace AElf.Contracts.Examples
 {
     public class SimpleTokenContract : CSharpSmartContract
     {
+        [SmartContractFieldData("${this}.Balances", DataAccessMode.AccountSpecific)]
         public Map Balances = new Map("Balances");
+
         public Map TransactionStartTimes = new Map("TransactionStartTimes");
         public Map TransactionEndTimes = new Map("TransactionEndTimes");
 
@@ -42,6 +45,7 @@ namespace AElf.Contracts.Examples
             await (Task<object>)member.Invoke(this, parameters);
         }
 
+
         public async Task<object> Transfer(Hash from, Hash to, ulong qty)
         {
             // This is for testing batched transaction sequence
@@ -52,6 +56,7 @@ namespace AElf.Contracts.Examples
             var toBalBytes = await Balances.GetValue(to);
             var toBal = toBalBytes.ToUInt64();
             var newFromBal = fromBal - qty;
+
             var newToBal = toBal + qty;
             await Balances.SetValueAsync(from, newFromBal.ToBytes());
             await Balances.SetValueAsync(to, newToBal.ToBytes());

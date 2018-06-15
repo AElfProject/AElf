@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Node.RPC.DTO;
+using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
 using AElf.Node.RPC.DTO;
 using Microsoft.AspNetCore.Builder;
@@ -24,7 +26,8 @@ namespace AElf.Kernel.Node.RPC
         private const string InsertTxMethodName = "insert_tx";
         private const string BroadcastTxMethodName = "broadcast_tx";
         private const string GetPeersMethodName = "get_peers";
-
+        private const string GetIncrementIdMethodName = "get_increment";
+        
         private const string GetCommandsMethodName = "get_commands";
         
         /// <summary>
@@ -37,7 +40,8 @@ namespace AElf.Kernel.Node.RPC
             InsertTxMethodName,
             BroadcastTxMethodName,
             GetPeersMethodName,
-            GetCommandsMethodName
+            GetCommandsMethodName,
+            GetIncrementIdMethodName
         };
         
         /// <summary>
@@ -193,6 +197,9 @@ namespace AElf.Kernel.Node.RPC
                        case GetCommandsMethodName:
                            responseData = ProcessGetCommands();
                            break;
+                       case GetIncrementIdMethodName:
+                           responseData = await ProcessGetIncrementId(reqParams);
+                           break;
                        default:
                            Console.WriteLine("Method name not found"); // todo log
                            break;
@@ -213,15 +220,34 @@ namespace AElf.Kernel.Node.RPC
             }
         }
 
+        private async Task<JObject> ProcessGetIncrementId(JObject reqParams)
+        {
+            string adr = reqParams["address"].ToString();
+            ulong current = await _node.GetIncrementId(new Hash(ByteArrayHelpers.FromHexString(adr)));
+            
+            JObject j = new JObject { ["increment"] = current };
+            
+            return JObject.FromObject(j);
+        }
+
         private async Task<JObject> ProcessBroadcastTx(JObject reqParams)
         {
-            var raw = reqParams["tx"].First;
-            var tx = raw.ToTransaction();
+            string raw64 = reqParams["rawtx"].ToString();
 
-            var res = await _node.BroadcastTransaction(tx);
+            byte[] b = Convert.FromBase64String(raw64);
+            Transaction t = Transaction.Parser.ParseFrom(b);
 
-            var jobj = new JObject {{"txId", tx.GetHash().Value.ToBase64()}, {"status", res}};
-            return jobj;
+            bool correct = t.VerifySignature();
+
+            //var tx = raw.ToTransaction();
+
+            var res = await _node.BroadcastTransaction(t);
+
+            /*var jobj = new JObject();
+            jobj.Add("txId", tx.GetHash().Value.ToBase64());
+            jobj.Add("status", res);
+            return jobj;*/
+            return null;
         }
 
         /// <summary>

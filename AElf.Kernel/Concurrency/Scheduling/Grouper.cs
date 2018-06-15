@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace AElf.Kernel.Concurrency.Scheduling
 {
+
+    /// <summary>
+    /// The grouper can be used in both producing subgroup and splitting the job in batch
+    /// </summary>
     public class Grouper : IGrouper
     {
         private IResourceUsageDetectionService _resourceUsageDetectionService;
@@ -21,8 +25,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
 
             Dictionary<Hash, UnionFindNode> accountUnionSet = new Dictionary<Hash, UnionFindNode>();
 
-            //set up the union find set
-
+	        //set up the union find set as the representation of graph and the connected components will be the resulting groups
             foreach (var tx in transactions)
             {
                 UnionFindNode first = null;

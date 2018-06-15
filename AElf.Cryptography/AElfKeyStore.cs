@@ -29,7 +29,7 @@ namespace AElf.Cryptography
 
         private readonly List<OpenAccount> _openAccounts;
         
-        private readonly TimeSpan _defaultAccountTimeout = TimeSpan.FromSeconds(10);
+        private TimeSpan _defaultAccountTimeout = TimeSpan.FromMinutes(2);
         
         public AElfKeyStore(string dataDirectory)
         {

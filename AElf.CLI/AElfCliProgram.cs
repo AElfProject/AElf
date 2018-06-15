@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using AElf.CLI.Command;
+using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Http;
 using AElf.CLI.Parsing;
 using AElf.CLI.RPC;
 using AElf.CLI.Screen;
 using AElf.CLI.Wallet;
 using Newtonsoft.Json.Linq;
+using Org.BouncyCastle.Asn1.Misc;
+using ProtoBuf;
 
 namespace AElf.CLI
 {
@@ -83,17 +87,40 @@ namespace AElf.CLI
                 // 2 cases : RPC command, Local command (like account management)
                 if (def.IsLocal)
                 {
-                    _accountManager.ProcessCommand(parsedCmd);
-                    //_screenManager.Print("\n");
+                    if (def is SendTransactionCmd c)
+                    {
+                        JObject j = JObject.Parse(parsedCmd.Args.ElementAt(0));
+                        Transaction tx = _accountManager.SignTransaction(j);
+                        
+                        MemoryStream ms = new MemoryStream();
+                        Serializer.Serialize(ms, tx);
+                        
+                        byte[] b = ms.ToArray();
+
+                        string payload = Convert.ToBase64String(b);
+                        
+                        var reqParams = new JObject { ["rawtx"] = payload };
+                        var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);
+                        
+                        // todo send raw tx
+                        HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
+                        string resp = reqhttp.DoRequest(req.ToString());
+                    }
+                    else
+                    {
+                        _accountManager.ProcessCommand(parsedCmd);
+                    }
+                    
                 }
                 else
                 {
                     // RPC
-                    JObject req = def.BuildRequestParams(parsedCmd);
                     HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
-                    string resp = reqhttp.DoRequest(JsonRpcHelpers.CreateRequest(req, "get_peers", 1).ToString());
+                    string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
+                    
+                    JObject jObj = JObject.Parse(resp);
 
-                    string toPrint = def.GetPrintString(resp);
+                    string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
                     _screenManager.PrintLine(toPrint);
                 }
             }
