@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common.Application;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
@@ -17,7 +18,6 @@ namespace AElf.Kernel.Miner
         private readonly ITxPoolService _txPoolService;
         private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
         private ECKeyPair _keyPair;
-        
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
         private MinerLock Lock { get; } = new MinerLock();
@@ -57,15 +57,6 @@ namespace AElf.Kernel.Miner
             
             var results =  await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
             
-            // commit tx results
-            foreach (var res in results)
-            {
-                var logEvents = res.Logs;
-                foreach (var @event in logEvents)
-                {
-                    
-                }
-            }
             // reset Promotable and update account context
             await _txPoolService.ResetAndUpdate(results);
             
@@ -73,7 +64,6 @@ namespace AElf.Kernel.Miner
             
             // generate block
             var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);
-            
             
             // sign block
             ECSigner signer = new ECSigner();

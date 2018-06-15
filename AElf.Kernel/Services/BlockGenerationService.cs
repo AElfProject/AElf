@@ -47,6 +47,12 @@ namespace AElf.Kernel.Services
             await _worldStateManager.SetWorldStateAsync(lastBlockHash);
             var ws = await _worldStateManager.GetWorldStateAsync(lastBlockHash);
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+            
+            
+            // commit tx results
+            await _worldStateManager.OfChain(chainId);
+            await _worldStateManager.SetWorldStateAsync(block.Header.PreviousBlockHash);
+            
 
             if(ws != null)
                 block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
