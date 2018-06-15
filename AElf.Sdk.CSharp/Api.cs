@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using ProtobufSerializer = AElf.Sdk.CSharp.ProtobufSerializer;
+using AElf.Types.CSharp;
 
 namespace AElf.Sdk.CSharp
 {
@@ -144,7 +144,7 @@ namespace AElf.Sdk.CSharp
 
         public static void Return(int retVal)
         {
-            _transactionContext.Trace.RetVal = Any.Pack(new Int32Value()
+            _transactionContext.Trace.RetVal = Any.Pack(new SInt32Value()
             {
                 Value = retVal
             });

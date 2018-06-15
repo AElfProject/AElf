@@ -28,7 +28,7 @@ namespace AElf.Types.CSharp
         #region int
         public static IMessage ToPbMessage(this int value)
         {
-            return new Int32Value() { Value = value };
+            return new SInt32Value() { Value = value };
         }
 
         public static Any ToAny(this int value)
@@ -38,7 +38,7 @@ namespace AElf.Types.CSharp
 
         public static int AnyToInt32(this Any any)
         {
-            return any.Unpack<Int32Value>().Value;
+            return any.Unpack<SInt32Value>().Value;
         }
         #endregion int
         #region uint
@@ -60,7 +60,7 @@ namespace AElf.Types.CSharp
         #region long
         public static IMessage ToPbMessage(this long value)
         {
-            return new Int64Value() { Value = value };
+            return new SInt64Value() { Value = value };
         }
 
         public static Any ToAny(this long value)
@@ -70,7 +70,7 @@ namespace AElf.Types.CSharp
 
         public static long AnyToInt64(this Any any)
         {
-            return any.Unpack<Int64Value>().Value;
+            return any.Unpack<SInt64Value>().Value;
         }
         #endregion long
         #region ulong
