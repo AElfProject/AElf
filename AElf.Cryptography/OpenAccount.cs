@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using AElf.Cryptography.ECDSA;
 
 namespace AElf.Cryptography

@@ -51,10 +51,10 @@ namespace AElf.Kernel.Node.Protocol
             bool success 
                 = await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, transaction, pendingRequest.Id);
             
-            if (success)
+            /*if (success)
                 _resetEvents.Add(pendingRequest);
 
-            pendingRequest.ResetEvent.WaitOne();
+            pendingRequest.ResetEvent.WaitOne();*/
         }
         
         #region Response handling
@@ -69,6 +69,11 @@ namespace AElf.Kernel.Node.Protocol
             if (sender != null && e is MessageReceivedArgs args && args.Message != null)
             {
                 AElfPacketData message = args.Message;
+
+                if (message.MsgType == (int)MessageTypes.BroadcastTx)
+                {
+                    await _node.ReceiveTransaction(message.Payload);
+                }
                 
                 // Process any messages
                 

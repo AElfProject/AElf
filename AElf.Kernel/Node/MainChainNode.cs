@@ -116,11 +116,11 @@ namespace AElf.Kernel.Node
         /// <param name="tx">The tx to broadcast</param>
         public async Task<bool> BroadcastTransaction(ITransaction tx)
         {
-            bool res;
+            bool res = true;
             
             try
             {
-                res = await _poolService.AddTxAsync(tx);
+                //res = await _poolService.AddTxAsync(tx);
             }
             catch (Exception e)
             {
@@ -130,7 +130,14 @@ namespace AElf.Kernel.Node
 
             if (res)
             {
-                await _protocolDirector.BroadcastTransaction(tx);
+                try
+                {
+                    await _protocolDirector.BroadcastTransaction(tx);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
                 
                 _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return true;
@@ -178,10 +185,17 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         public async Task<ulong> GetIncrementId(Hash addr)
         {
-            var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId)).IncrementId;
-            var idInPool = _poolService.GetIncrementId(addr);
+            try
+            {
+                var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId)).IncrementId;
+                var idInPool = _poolService.GetIncrementId(addr);
 
-            return Math.Max(idInDB, idInDB);
+                return Math.Max(idInDB, idInPool);
+            }
+            catch (Exception e)
+            {
+                return 0;
+            }
         }
 
         /// <summary>

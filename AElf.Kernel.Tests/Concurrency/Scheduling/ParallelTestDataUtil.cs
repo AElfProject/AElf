@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Kernel.Concurrency;
+using AElf.Kernel.Concurrency.Metadata;
+using AElf.Kernel.Extensions;
+using ServiceStack.Redis;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
@@ -193,6 +197,164 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                     .Select(
                         y => String.Format("({0}-{1})", AccountList.IndexOf(y.From), AccountList.IndexOf(y.To))
                     ));
+        }
+
+        public string[][] GetFunctionCallingGraph()
+        {
+            //A call B, C
+            //B call C, D
+            //C call D, E
+            //D call F
+            //G
+            //O call N
+            //N call P
+            //H call M
+            string[][] result =
+            {
+                new string[] {"F"},
+                new string[] {"D", "F"},
+                new string[] {"E"},
+                new string[] {"C", "D", "E"},
+                new string[] {"B", "C", "D"},
+                new string[] {"A", "B", "C"},
+                new string[] {"G"},
+                new string[] {"P"},
+                new string[] {"N", "P"},
+                new string[] {"O", "N"},
+                new string[] {"M"},
+                new string[] {"H", "M"}
+            };
+
+            return result;
+        }
+
+        public string[] resourceBook =
+        {
+            "map1", "map2", "map3", "map4", "map5", "map6", "map7",
+            "list1", "list2", "list3"
+        };
+
+        public string[][] GetFunctionNonRecursivePathSet()
+        {
+            string[][] result =
+            {
+                new string[] {"A", "map1", "map2"},
+                new string[] {"B", "map1"},
+                new string[] {"C", "map3"},
+                new string[] {"D", "map3"}, 
+                new string[] {"E", "map4"},
+                new string[] {"F", "map2"},
+                new string[] {"G", "map4"},
+                new string[] {"O", "list1", "map5"},
+                new string[] {"N", "map5"},
+                new string[] {"P", "map5"}, 
+                new string[] {"H", "map6"},
+                new string[] {"M", "list3"} 
+            };
+
+            return result;
+        }
+
+        public string[][] GetFunctionFullPathSet()
+        {
+            string[][] result =
+            {
+                new string[] {"A", "map1", "map2", "map3", "map4"},
+                new string[] {"B", "map1", "map2", "map3", "map4"},
+                new string[] {"C", "map3", "map4", "map2"},
+                new string[] {"D", "map3", "map2"}, 
+                new string[] {"E", "map4"},
+                new string[] {"F", "map2"},
+                new string[] {"G", "map4"},
+                new string[] {"O", "list1", "map5"},
+                new string[] {"N", "map5"},
+                new string[] {"P", "map5"}, 
+                new string[] {"H", "map6", "list3"},
+                new string[] {"M", "list3"} 
+            };
+            return result;
+        }
+        
+
+        //assume functioncallingGraph are already DAG
+        public List<KeyValuePair<string, FunctionMetadata>> GetFunctionMetadataMap(string[][] functionCallingGraph, string[][] pathSetStrings)
+        {
+            var result = new List<KeyValuePair<string, FunctionMetadata>>();
+            for (int i = 0; i < functionCallingGraph.Length; i++)
+            {
+                HashSet<string> callingSet = new HashSet<string>();
+                for (int j = 1; j < functionCallingGraph[i].Length; j++)
+                {
+                    callingSet.Add(functionCallingGraph[i][j]);
+                }
+
+                var pathSet = TranslateStringToResourceSet(functionCallingGraph[i][0], pathSetStrings);
+                    //ToDictionary(a=> a, a=> a);
+                var funMetadata = new FunctionMetadata(callingSet, new HashSet<Resource>(), pathSet);
+                
+                result.Add(new KeyValuePair<string, FunctionMetadata>(functionCallingGraph[i][0],funMetadata));
+            }
+
+            return result;
+        }
+
+        public HashSet<Resource> TranslateStringToResourceSet(string function, string[][] pathSetStrings)
+        {
+            return pathSetStrings.First(a => a[0] == function).Where(b => b != function).Select(res =>
+            {
+                var name = res;
+                var dataAccessMode = (res.Contains("map"))
+                    ? DataAccessMode.AccountSpecific
+                    : DataAccessMode.ReadWriteAccountSharing;
+                return new Resource(name, dataAccessMode);
+            }).ToHashSet();
+
+        }
+        
+        public string FunctionMetadataMapToString(Dictionary<string, FunctionMetadata> map)
+        {
+            
+            return string.Join(
+                " ",
+                map.OrderBy(a => a.Key)
+                    .Select(item => String.Format("[{0},({1}),({2}),({3})]", 
+                        item.Key,
+                        CallingSetToString(item.Value.CallingSet), 
+                        PathSetToString(item.Value.FullResourceSet),
+                        PathSetToString(item.Value.LocalResourceSet))));
+        }
+        
+        public string FunctionMetadataTemplateMapToString(Dictionary<string, FunctionMetadataTemplate> map)
+        {
+            
+            return string.Join(
+                " ",
+                map.OrderBy(a => a.Key)
+                    .Select(item => String.Format("[{0},({1}),({2})]", 
+                        item.Key,
+                        CallingSetToString(item.Value.CallingSet), 
+                        PathSetToString(item.Value.LocalResourceSet))));
+        }
+
+        public string ContractMetadataTemplateMapToString(
+            Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> map)
+        {
+            return string.Join(
+                " | ",
+                map.OrderBy(a => a.Key)
+                    .Select(item =>
+                        String.Format("({0} - {1})", item.Key, FunctionMetadataTemplateMapToString(item.Value))));
+        }
+        
+        public string PathSetToString(HashSet<Resource> resourceSet)
+        {
+            return string.Join(", ",
+                resourceSet.OrderBy(a =>a.Name));
+        }
+
+        public string CallingSetToString(HashSet<string> callingSet)
+        {
+            return string.Join(", ", callingSet.OrderBy(a => a));
         }
     }
 }
