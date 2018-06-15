@@ -13,7 +13,7 @@ namespace AElf.Kernel
 
         public GenesisBlockBuilder Build(Hash chainId)
         {
-            var block = new Block(Hash.Zero)
+            var block = new Block(Hash.Default)
             {
                 Header = new BlockHeader
                 {
