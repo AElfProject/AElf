@@ -98,7 +98,7 @@ namespace AElf.Kernel.Tests.Miner
 
         public Mock<ITxPoolService> MockTxPoolService(Hash chainId)
         {
-            var contractAddressZero = chainId.CalculateHashWith("__SmartContractZero__");
+            var contractAddressZero = new Hash(chainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
 
             var code = ExampleContractCode;
 
