@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace AElf.ABI
+namespace AElf.Types.CSharp
 {
     public static class NameExtension
     {
