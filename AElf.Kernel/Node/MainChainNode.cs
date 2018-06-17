@@ -19,6 +19,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 using NLog;
+using NLog.Common;
 
 namespace AElf.Kernel.Node
 {
@@ -37,12 +38,19 @@ namespace AElf.Kernel.Node
         private readonly IAccountContextService _accountContextService;
         private readonly IBlockVaildationService _blockVaildationService;
         private readonly IChainContextService _chainContextService;
+        private readonly IBlockManager _blockManager;
+        private readonly IChainManager _chainManager;
+        private readonly IChainCreationService _chainCreationService;
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner, 
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService, 
-            IChainContextService chainContextService)
+            IChainContextService chainContextService, IBlockManager blockManager, IChainManager chainManager,
+            IChainCreationService chainCreationService)
         {
+            _chainCreationService = chainCreationService;
+            _chainManager = chainManager;
+            _blockManager = blockManager;
             _poolService = poolService;
             _protocolDirector = protocolDirector;
             _transactionManager = txManager;
@@ -55,14 +63,43 @@ namespace AElf.Kernel.Node
             _chainContextService = chainContextService;
         }
 
-        public void Start(ECKeyPair nodeKeyPair, bool startRpc, string initdata)
+        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, string initdata)
         {
+            if (_nodeConfig == null)
+            {
+                _logger?.Log(LogLevel.Error, "No node configuration.");
+                return false;
+            }
+            
+            if (_nodeConfig.ChainId?.Value == null || _nodeConfig.ChainId.Value.Length <= 0)
+            {
+                _logger?.Log(LogLevel.Error, "No chain id.");
+                return false;
+            }
+
+            try
+            {
+                bool chainExists = _chainManager.Exists(_nodeConfig.ChainId).Result;
+            
+                if (!chainExists)
+                {
+                    // Creation of the chain if it doesn't already exist
+                    var smartContractZeroReg = new SmartContractRegistration { Category = 0, ContractHash = Hash.Zero };
+                    var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg).Result;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger?.Log(LogLevel.Error, "Could not create the chain : " + _nodeConfig.ChainId.Value.ToBase64());
+            }
+            
+            
             if (!string.IsNullOrWhiteSpace(initdata))
             {
-                if (!DebugSync(initdata))
+                if (!InitialDebugSync(initdata))
                 {
                     //todo log 
-                    return;
+                    return false;
                 }
             }
             
@@ -87,27 +124,45 @@ namespace AElf.Kernel.Node
                 _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToByteString().ToBase64());
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
+
+            return true;
         }
 
-        private bool DebugSync(string initFileName)
+        private bool InitialDebugSync(string initFileName)
         {
             try
             {
                 string appFolder = _nodeConfig.DataDir;
                 var fullPath = System.IO.Path.Combine(appFolder, "tests", initFileName);
-                
+
+                Block b = null;
                 using (StreamReader r = new StreamReader(fullPath))
                 {
                     string jsonChain = r.ReadToEnd();
-                    Block b = JsonParser.Default.Parse<Block>(jsonChain);
+                    b = JsonParser.Default.Parse<Block>(jsonChain);
+                }
+
+                if (b != null)
+                {
+                    var r = _chainManager.AppendBlockToChainAsync(b).Result;
+                    var bd = _blockManager.AddBlockAsync(b).Result;
+                    
+                    
+                    Block blockOfHeight1 = _blockManager.GetBlockByHeight(_nodeConfig.ChainId, 1).Result;
+                    
+                }
+                else
+                {
                     ;
                 }
+
+
             }
             catch (Exception e)
             {
                 ;
                 return false;
-            }
+            }        
 
             return true;
         }

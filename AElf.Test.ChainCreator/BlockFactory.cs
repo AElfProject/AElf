@@ -7,7 +7,7 @@ namespace AElf.Test.ChainCreator
     {
         public Block CreateBlock(Hash prev)
         {
-            int incrId = 0;
+            int incrId = 1;
             var block = new Block(prev);
 
             Transaction t = GetTransaction(incrId++);

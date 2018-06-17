@@ -17,7 +17,7 @@ namespace AElf.Kernel
                 Header = new BlockHeader
                 {
                     Index = 0,
-                    PreviousBlockHash = Hash.Zero,
+                    PreviousBlockHash = Hash.Default,
                     ChainId = chainId
                 },
                 Body = new BlockBody()

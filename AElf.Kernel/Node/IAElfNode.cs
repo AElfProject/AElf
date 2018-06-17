@@ -4,6 +4,6 @@ namespace AElf.Kernel.Node
 {
     public interface IAElfNode
     {
-        void Start(ECKeyPair nodeKeyPair, bool startRpc, string initData);
+        bool Start(ECKeyPair nodeKeyPair, bool startRpc, string initData);
     }
 }

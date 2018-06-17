@@ -89,7 +89,8 @@ namespace AElf.Launcher
             }
         }
 
-        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, IAElfNetworkConfig netConf, IDatabaseConfig databaseConf, ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig)
+        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, IAElfNetworkConfig netConf, 
+            IDatabaseConfig databaseConf, ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig)
         {
             var builder = new ContainerBuilder();
             
@@ -97,7 +98,6 @@ namespace AElf.Launcher
             builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
             
             // Module registrations
-            
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseModule(databaseConf));
@@ -124,7 +124,7 @@ namespace AElf.Launcher
                 using (JsonTextReader reader = new JsonTextReader(file))
                 {
                     JObject chain = (JObject)JToken.ReadFrom(reader);
-                    chainId = new Hash(ByteString.CopyFromUtf8(chain.GetValue("id").ToString()));
+                    chainId = new Hash(Convert.FromBase64String(chain.GetValue("id").ToString()));
                 }
             }
 
