@@ -34,7 +34,7 @@ namespace AElf.Types.CSharp
             }
         }
 
-        public object[] Unpack(byte[] bytes, Type[] types)
+        public static object[] Unpack(byte[] bytes, Type[] types)
         {
             if (bytes.Length == 0)
                 return new object[] { };
