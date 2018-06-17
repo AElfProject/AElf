@@ -6,6 +6,7 @@ using AElf.Cryptography;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
@@ -49,9 +50,10 @@ namespace AElf.Kernel.Miner
             _dpos = dpos;
         }
 
-        
-        public async Task<IBlock> Mine(byte[] address)
+        public async Task<IBlock> Mine()
         {
+            // todo : this is fake
+            var address = Hash.Generate().ToByteArray();
             if (await _dpos.AbleToMine(address))
             {
                 if (Cts == null || Cts.IsCancellationRequested)
