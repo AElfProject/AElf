@@ -25,6 +25,7 @@
     <Compile Remove="TransactionTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="BlockSyncTests" />
     <Folder Include="Concurrency\" />
     <Folder Include="Concurrency\Execution\" />
     <Folder Include="Concurrency\Execution\Protobuf\" />

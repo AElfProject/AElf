@@ -20,11 +20,13 @@ namespace AElf.Kernel.Node.Protocol
         public AElfProtocolDirector(IPeerManager peerManager)
         {
             _peerManager = peerManager;
+            
+            _blockSynchronizer = new BlockSynchronizer(_node);
         }
         
         public void Start()
         {
-            _blockSynchronizer.Init();
+            //_blockSynchronizer.Init();
             _peerManager.Start();
             _peerManager.MessageReceived += ProcessPeerMessage;
         }

@@ -1,11 +1,16 @@
 ﻿namespace AElf.Network.Data
 {
-    public enum MessageTypes : int
+    public enum MessageTypes
     {
-        AskForTx = 0,
-        RequestPeers = 1,
-        ReturnPeers = 2,
-        BroadcastTx = 3,
-        Ok = 4
+        AskForTx,
+        
+        RequestPeers,
+        ReturnPeers,
+        
+        BroadcastTx,
+        BroadcastBlock,
+        
+        RequestBlock,
+        SendBlock
     }
 }

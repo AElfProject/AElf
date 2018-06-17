@@ -35,11 +35,13 @@ namespace AElf.Kernel.Node
         private readonly IAccountContextService _accountContextService;
         private readonly IBlockVaildationService _blockVaildationService;
         private readonly IChainContextService _chainContextService;
+        private readonly IWorldStateManager _worldStateManager;
+        
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner, 
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService, 
-            IChainContextService chainContextService)
+            IChainContextService chainContextService, IWorldStateManager worldStateManager)
         {
             _poolService = poolService;
             _protocolDirector = protocolDirector;
@@ -51,6 +53,7 @@ namespace AElf.Kernel.Node
             _accountContextService = accountContextService;
             _blockVaildationService = blockVaildationService;
             _chainContextService = chainContextService;
+            _worldStateManager = worldStateManager;
         }
 
         public void Start(ECKeyPair nodeKeyPair, bool startRpc)
@@ -70,7 +73,6 @@ namespace AElf.Kernel.Node
             if(_nodeConfig.IsMiner)
                 _miner.Start();    
             
-            _logger.Log(LogLevel.Debug, "AElf node started.");
             if (_nodeConfig.IsMiner)
             {
                 _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToByteString().ToBase64());
@@ -112,11 +114,11 @@ namespace AElf.Kernel.Node
         /// <param name="tx">The tx to broadcast</param>
         public async Task<bool> BroadcastTransaction(ITransaction tx)
         {
-            bool res = true;
+            bool res;
             
             try
             {
-                //res = await _poolService.AddTxAsync(tx);
+                res = await _poolService.AddTxAsync(tx);
             }
             catch (Exception e)
             {
@@ -192,6 +194,12 @@ namespace AElf.Kernel.Node
             {
                 return 0;
             }
+        }
+
+        public async Task<Hash> GetLastValidBlockHash()
+        {
+            var pointer = Path.CalculatePointerForLastBlockHash(_nodeConfig.ChainId);
+            return await _worldStateManager.GetDataAsync(pointer);
         }
 
         /// <summary>
