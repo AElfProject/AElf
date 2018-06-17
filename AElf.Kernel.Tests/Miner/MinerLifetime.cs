@@ -25,6 +25,7 @@ using Xunit;
 using Xunit.Frameworks.Autofac;
 using ServiceStack;
 using AElf.Runtime.CSharp;
+using AElf.Types.CSharp;
 
 namespace AElf.Kernel.Tests.Miner
 {
@@ -171,7 +172,7 @@ namespace AElf.Kernel.Tests.Miner
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, chainId);
             await executive.SetTransactionContext(txnCtxt).Apply();
 
-            var address = txnCtxt.Trace.RetVal.Unpack<Hash>();
+            var address = txnCtxt.Trace.RetVal.DeserializeToPbMessage<Hash>();
 
             //var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
             //var chainContext = _chainContextService.GetChainContext(chainId);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AElf.Kernel;
+using Google.Protobuf;
 using Xunit;
 
 namespace AElf.Types.CSharp.Tests
@@ -139,7 +140,7 @@ namespace AElf.Types.CSharp.Tests
             Assert.Equal(new byte[] { 0x10, 0x10 }, parser1("1010"));
             Assert.Equal(new byte[] { 0x10, 0x10 }, parser2("1010"));
 
-            Assert.Equal(new byte[]{0x10, 0x10}, parser1("0x1010"));
+            Assert.Equal(new byte[] { 0x10, 0x10 }, parser1("0x1010"));
             Assert.Equal(new byte[] { 0x10, 0x10 }, parser2("0x1010"));
 
             Assert.ThrowsAny<Exception>(() => parser1("invalid input"));
@@ -154,7 +155,7 @@ namespace AElf.Types.CSharp.Tests
             var hash = Hash.Generate();
             var hashHex = BitConverter.ToString(hash.Value.ToByteArray()).Replace("-", "");
             Assert.Equal(hash, parser(hashHex));
-            Assert.Equal(hash, parser("0x"+hashHex));
+            Assert.Equal(hash, parser("0x" + hashHex));
 
             // Lowercase
             Assert.Equal(hash, parser(hashHex.ToLower()));
@@ -163,7 +164,7 @@ namespace AElf.Types.CSharp.Tests
             var tooShort = "0x101010";
             Assert.ThrowsAny<Exception>(() => parser(tooShort));
 
-            var tooLong = hashHex+"01";
+            var tooLong = hashHex + "01";
             Assert.ThrowsAny<Exception>(() => parser(tooLong));
         }
     }

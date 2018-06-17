@@ -77,7 +77,7 @@ namespace AElf.Runtime.CSharp.Tests
                 To = ContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "InitializeAsync",
-                Params = ByteString.CopyFrom(ParamsHolder.Pack(account, qty).ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(account, qty))
             };
             var tc = new TransactionContext()
             {
@@ -100,14 +100,14 @@ namespace AElf.Runtime.CSharp.Tests
                 To = ContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "Transfer",
-                Params = ByteString.CopyFrom(ParamsHolder.Pack(from, to, qty).ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(from, to, qty))
             };
             var tc = new TransactionContext()
             {
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            return tc.Trace.RetVal.AnyToBool();
+            return tc.Trace.RetVal.DeserializeToBool();
         }
 
         public ulong GetBalance(Hash account)
@@ -118,14 +118,14 @@ namespace AElf.Runtime.CSharp.Tests
                 To = ContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "GetBalance",
-                Params = ByteString.CopyFrom(ParamsHolder.Pack(account).ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(account))
             };
             var tc = new TransactionContext()
             {
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            return tc.Trace.RetVal.AnyToUInt64();
+            return tc.Trace.RetVal.DeserializeToUInt64();
         }
 
         public string GetTransactionStartTime(Hash transactionHash)
@@ -136,14 +136,14 @@ namespace AElf.Runtime.CSharp.Tests
                 To = ContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "GetTransactionStartTime",
-                Params = ByteString.CopyFrom(ParamsHolder.Pack(transactionHash).ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(transactionHash))
             };
             var tc = new TransactionContext()
             {
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            return tc.Trace.RetVal.AnyToString();
+            return tc.Trace.RetVal.DeserializeToString();
         }
 
         public string GetTransactionEndTime(Hash transactionHash)
@@ -154,14 +154,14 @@ namespace AElf.Runtime.CSharp.Tests
                 To = ContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "GetTransactionEndTime",
-                Params = ByteString.CopyFrom(ParamsHolder.Pack(transactionHash).ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(transactionHash))
             };
             var tc = new TransactionContext()
             {
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            return tc.Trace.RetVal.AnyToString();
+            return tc.Trace.RetVal.DeserializeToString();
         }
     }
 }
