@@ -170,7 +170,7 @@ namespace AElf.Kernel.Tests.Miner
             };
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, chainId);
-            await executive.SetTransactionContext(txnCtxt).Apply();
+            await executive.SetTransactionContext(txnCtxt).Apply(true);
 
             var address = txnCtxt.Trace.RetVal.DeserializeToPbMessage<Hash>();
 

@@ -128,12 +128,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public void Initialize1(Hash account, ulong qty)
         {
-            Executive1.SetTransactionContext(GetInitializeTxnCtxt(SampleContractAddress1, account, qty)).Apply().Wait();
+            Executive1.SetTransactionContext(GetInitializeTxnCtxt(SampleContractAddress1, account, qty)).Apply(true).Wait();
         }
 
         public void Initialize2(Hash account, ulong qty)
         {
-            Executive2.SetTransactionContext(GetInitializeTxnCtxt(SampleContractAddress2, account, qty)).Apply().Wait();
+            Executive2.SetTransactionContext(GetInitializeTxnCtxt(SampleContractAddress2, account, qty)).Apply(true).Wait();
         }
 
         private TransactionContext GetInitializeTxnCtxt(Hash contractAddress, Hash account, ulong qty)
@@ -194,7 +194,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 Transaction = txn
             };
 
-            Executive1.SetTransactionContext(txnCtxt).Apply().Wait();
+            Executive1.SetTransactionContext(txnCtxt).Apply(true).Wait();
 
             return txnCtxt.Trace.RetVal.DeserializeToUInt64();
         }
@@ -207,7 +207,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 Transaction = txn
             };
-            Executive2.SetTransactionContext(txnCtxt).Apply().Wait();
+            Executive2.SetTransactionContext(txnCtxt).Apply(true).Wait();
 
             return txnCtxt.Trace.RetVal.DeserializeToUInt64();
         }
@@ -242,7 +242,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 Transaction = txn
             };
 
-            Executive1.SetTransactionContext(txnCtxt).Apply().Wait();
+            Executive1.SetTransactionContext(txnCtxt).Apply(true).Wait();
 
             var dtStr = txnCtxt.Trace.RetVal.DeserializeToString();
             //var dtStr = BitConverter.ToString(txnCtxt.Trace.RetVal.Unpack<BytesValue>().Value.ToByteArray()).Replace("-", "");
@@ -258,7 +258,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 Transaction = txn
             };
 
-            Executive1.SetTransactionContext(txnCtxt).Apply().Wait();
+            Executive1.SetTransactionContext(txnCtxt).Apply(true).Wait();
 
             var dtStr = txnCtxt.Trace.RetVal.DeserializeToString();
 
