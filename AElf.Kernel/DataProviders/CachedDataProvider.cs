@@ -143,8 +143,8 @@ namespace AElf.Kernel
                     changes.Add(new StateValueChange()
                     {
                         Path = GetPathFor(keyState.Key),
-                        BeforeValue = ByteString.CopyFrom(keyState.Value.InitialValue),
-                        AfterValue = ByteString.CopyFrom(keyState.Value.CurrentValue)
+                        BeforeValue = ByteString.CopyFrom(keyState.Value.InitialValue??new byte[0]),
+                        AfterValue = ByteString.CopyFrom(keyState.Value.CurrentValue??new byte[0])
                     });
                 }
             }
