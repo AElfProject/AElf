@@ -16,34 +16,23 @@ namespace AElf.CLI
         {
             ScreenManager screenManager = new ScreenManager();
             CommandParser parser = new CommandParser();
-            
+
             AElfKeyStore kstore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
             AccountManager manager = new AccountManager(kstore, screenManager);
-            
+
             AElfCliProgram program = new AElfCliProgram(screenManager, parser, manager);
 
             // Register local commands
-            RegisterAccountCommands(program);
-            RegisterNetworkCommands(program);
-            
+
+            program.RegisterCommand(new AccountCmd());
+            program.RegisterCommand(new GetPeersCmd());
+            program.RegisterCommand(new GetCommandsCmd());
             program.RegisterCommand(new GetIncrementCmd());
             program.RegisterCommand(new SendTransactionCmd());
-            
+
             // Start the CLI
             program.StartRepl();
         }
-
-        private static void RegisterNetworkCommands(AElfCliProgram program)
-        {
-            program.RegisterCommand(new GetPeersCmd());
-            program.RegisterCommand(new GetCommandsCmd());
-        }
-
-        private static void RegisterAccountCommands(AElfCliProgram program)
-        {
-            program.RegisterCommand(new AccountCmd());
-        }
-
         /*private static void Menu()
         {
             if (_commands.Count == 0)

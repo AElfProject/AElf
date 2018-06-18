@@ -19,53 +19,45 @@ namespace AElf.CLI
     public class AElfCliProgram
     {
         private static readonly RpcCalls Rpc = new RpcCalls();
-        
+
         private static List<CliCommandDefinition> _commands = new List<CliCommandDefinition>();
-        
+
         private const string ExitReplCommand = "quit";
         private const string ServerConnError = "could not connect to server";
-        
+
         private readonly ScreenManager _screenManager;
         private readonly CommandParser _cmdParser;
         private readonly AccountManager _accountManager;
-        
+
         public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager)
         {
             _screenManager = screenManager;
             _cmdParser = cmdParser;
             _accountManager = accountManager;
-            
+
             _commands = new List<CliCommandDefinition>();
         }
-        
+
         public void StartRepl()
         {
             _screenManager.PrintHeader();
             _screenManager.PrintUsage();
             _screenManager.PrintLine();
-            
+
             while (true)
             {
                 string command = _screenManager.GetCommand();
 
-                // stop the repl if "quit", "Quit", "QuiT", ... is encountered
-                if (command.Equals(ExitReplCommand, StringComparison.OrdinalIgnoreCase))
-                {
-                    Stop();
-                    break;
-                }
-                
                 CmdParseResult parsedCmd = _cmdParser.Parse(command);
                 CliCommandDefinition def = GetCommandDefinition(parsedCmd.Command);
 
-                if (def == null)
+                if (def.GetType() == typeof(QuitCmd))
                 {
-                    _screenManager.PrintCommandNotFound(command);
+                    break;
                 }
-                else
-                {
-                    ProcessCommand(parsedCmd, def);
-                }
+
+                ProcessCommand(parsedCmd, def);
+
             }
         }
 
@@ -87,17 +79,17 @@ namespace AElf.CLI
                     {
                         JObject j = JObject.Parse(parsedCmd.Args.ElementAt(0));
                         Transaction tx = _accountManager.SignTransaction(j);
-                        
+
                         MemoryStream ms = new MemoryStream();
                         Serializer.Serialize(ms, tx);
-                        
+
                         byte[] b = ms.ToArray();
 
                         string payload = Convert.ToBase64String(b);
-                        
+
                         var reqParams = new JObject { ["rawtx"] = payload };
                         var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);
-                        
+
                         // todo send raw tx
                         HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
                         string resp = reqhttp.DoRequest(req.ToString());
@@ -106,7 +98,7 @@ namespace AElf.CLI
                     {
                         _accountManager.ProcessCommand(parsedCmd);
                     }
-                    
+
                 }
                 else
                 {
@@ -119,7 +111,7 @@ namespace AElf.CLI
                         _screenManager.PrintError(ServerConnError);
                         return;
                     }
-                    
+
                     JObject jObj = JObject.Parse(resp);
 
                     string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
@@ -130,8 +122,13 @@ namespace AElf.CLI
 
         private CliCommandDefinition GetCommandDefinition(string commandName)
         {
-            var cmd = _commands.FirstOrDefault(c => c.Name.Equals(commandName));
-            return cmd;
+
+            // stop the repl if "quit", "Quit", "QuiT", ... is encountered
+            if (commandName.Equals(ExitReplCommand, StringComparison.OrdinalIgnoreCase))
+            {
+                return new QuitCmd();
+            }
+            return _commands.FirstOrDefault(c => c.Name.Equals(commandName)) ?? new UnknownCmd();
         }
 
         public void RegisterCommand(CliCommandDefinition cmd)
@@ -141,7 +138,7 @@ namespace AElf.CLI
 
         private void Stop()
         {
-            
+
         }
     }
 }
