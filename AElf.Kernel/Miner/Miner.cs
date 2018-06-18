@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Application;
 using AElf.Cryptography;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
@@ -14,7 +15,7 @@ namespace AElf.Kernel.Miner
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly ITxPoolService _txPoolService;
         private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
-        
+        private readonly IWorldStateManager _worldStateManager;
         
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
@@ -36,12 +37,14 @@ namespace AElf.Kernel.Miner
         public Hash Coinbase => Config.CoinBase;
 
         public Miner(IBlockGenerationService blockGenerationService, IMinerConfig config, 
-            ITxPoolService txPoolService, IParallelTransactionExecutingService parallelTransactionExecutingService)
+            ITxPoolService txPoolService, IParallelTransactionExecutingService parallelTransactionExecutingService,
+            IWorldStateManager worldStateManager)
         {
             _blockGenerationService = blockGenerationService;
             Config = config;
             _txPoolService = txPoolService;
             _parallelTransactionExecutingService = parallelTransactionExecutingService;
+            _worldStateManager = worldStateManager;
         }
 
         
@@ -53,7 +56,31 @@ namespace AElf.Kernel.Miner
             var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
             // TODO：dispatch txs with ISParallel, return list of tx results
             
-            var results =  await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
+            var traces =  await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
+            
+            var results = new List<TransactionResult>();
+            foreach (var trace in traces)
+            {
+                var res = new TransactionResult()
+                {
+                    TransactionId = trace.TransactionId,
+                    
+                };
+                if (string.IsNullOrEmpty(trace.StdErr))
+                {
+                    res.Logs.AddRange(trace.FlattenedLogs);
+                    foreach (var vc in trace.ValueChanges)
+                    {
+                        await _worldStateManager.ApplyStateValueChangeAsync(vc, Config.ChainId);
+                    }
+                    res.Status = Status.Mined;
+                }
+                else
+                {
+                    res.Status = Status.Failed;
+                }
+                results.Add(res);
+            }
             
             // generate block
             var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);

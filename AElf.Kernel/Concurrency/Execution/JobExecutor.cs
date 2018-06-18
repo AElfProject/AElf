@@ -30,7 +30,7 @@ namespace AElf.Kernel.Concurrency.Execution
         private int _currentRunningIndex = -1;
         private Hash _currentTransactionHash;
         private IChainContext _chainContext;
-        private Dictionary<Hash, TransactionResult> _transactionResults = new Dictionary<Hash, TransactionResult>();
+        private Dictionary<Hash, TransactionTrace> _transactionTraces = new Dictionary<Hash, TransactionTrace>();
 
         public JobExecutor(Hash chainId, IActorRef serviceRouter, List<ITransaction> transactions, IActorRef resultCollector)
         {
@@ -74,22 +74,22 @@ namespace AElf.Kernel.Concurrency.Execution
                         RunNextOrStop();
                     }
                     break;
-                case TransactionResultMessage res when res.TransactionResult.TransactionId == _currentTransactionHash:
+                case TransactionTraceMessage res when res.TransactionTrace.TransactionId == _currentTransactionHash:
                     if (_state == State.Running)
                     {
                         ForwardResult(res);
-                        _transactionResults.Add(res.TransactionResult.TransactionId, res.TransactionResult);
+                        _transactionTraces.Add(res.TransactionTrace.TransactionId, res.TransactionTrace);
                         RunNextOrStop();
                     }
                     break;
             }
         }
 
-        private void ForwardResult(TransactionResultMessage resultMessage)
+        private void ForwardResult(TransactionTraceMessage traceMessage)
         {
             if (_resultCollector != null)
             {
-                _resultCollector.Forward(resultMessage);
+                _resultCollector.Forward(traceMessage);
             }
         }
 
@@ -106,13 +106,13 @@ namespace AElf.Kernel.Concurrency.Execution
                 var tx = _transactions[_currentRunningIndex];
                 _currentTransactionHash = tx.GetHash();
                 ExecuteTransaction(tx).ContinueWith(
-                    task => new TransactionResultMessage(task.Result),
+                    task => new TransactionTraceMessage(task.Result),
                     TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
                 ).PipeTo(Self);
             }
         }
 
-        private async Task<TransactionResult> ExecuteTransaction(ITransaction transaction)
+        private async Task<TransactionTrace> ExecuteTransaction(ITransaction transaction)
         {
             if (_chainContext == null)
             {
@@ -121,39 +121,37 @@ namespace AElf.Kernel.Concurrency.Execution
 
             var executive = await _servicePack.SmartContractService.GetExecutiveAsync(transaction.To, _chainId);
             // TODO: Handle timeout
-            TransactionResult result = new TransactionResult()
+            TransactionTrace trace = new TransactionTrace()
             {
-                TransactionId = transaction.GetHash(),
-                Status = Status.Pending
+                TransactionId = transaction.GetHash()
             };
             // TODO: Reject tx if IncrementId != Nonce
 
             var txCtxt = new TransactionContext()
             {
                 PreviousBlockHash = _chainContext.BlockHash,
-                Transaction = transaction
+                Transaction = transaction,
+                Trace = trace
             };
 
             try
             {
 
-                await executive.SetTransactionContext(txCtxt).Apply(true);
-                result.Logs.AddRange(txCtxt.Trace.FlattenedLogs);
+                await executive.SetTransactionContext(txCtxt).Apply(false);
+                trace.Logs.AddRange(txCtxt.Trace.FlattenedLogs);
                 // TODO: Check run results / logs etc.
-                result.Status = Status.Mined;
             }
             catch (Exception ex)
             {
                 // TODO: Improve log
                 txCtxt.Trace.StdErr += ex.ToString() + "\n";
-                result.Status = Status.Failed;
             }
             finally
             {
                 await _servicePack.SmartContractService.PutExecutiveAsync(transaction.To, executive);
             }
 
-            return result;
+            return trace;
         }
 
         public static Props Props(Hash chainId, IActorRef serviceRouter, List<ITransaction> transactions, IActorRef resultCollector)

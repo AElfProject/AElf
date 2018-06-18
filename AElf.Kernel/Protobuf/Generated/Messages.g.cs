@@ -31,80 +31,81 @@ namespace AElf.Kernel {
             "YW1zGAUgASgMEgsKA0ZlZRgGIAEoBBIJCgFSGAcgASgMEgkKAVMYCCABKAwS",
             "CQoBUBgJIAEoDCJQChBTdGF0ZVZhbHVlQ2hhbmdlEhMKBFBhdGgYASABKAsy",
             "BS5IYXNoEhMKC0JlZm9yZVZhbHVlGAIgASgMEhIKCkFmdGVyVmFsdWUYAyAB",
-            "KAwivgEKEFRyYW5zYWN0aW9uVHJhY2USDgoGUmV0VmFsGAEgASgMEg4KBlN0",
-            "ZE91dBgCIAEoCRIOCgZTdGRFcnIYAyABKAkSFwoETG9ncxgEIAMoCzIJLkxv",
-            "Z0V2ZW50EicKDElubGluZVRyYWNlcxgFIAMoCzIRLlRyYW5zYWN0aW9uVHJh",
-            "Y2USJwoMVmFsdWVDaGFuZ2VzGAYgAygLMhEuU3RhdGVWYWx1ZUNoYW5nZRIP",
-            "CgdFbGFwc2VkGAcgASgDIj8KCkV2ZW50RmllbGQSDAoETmFtZRgBIAEoCRIj",
-            "CgVWYWx1ZRgCIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5BbnkiVgoITG9nRXZl",
-            "bnQSFgoHQWRkcmVzcxgBIAEoCzIFLkhhc2gSFAoFVG9waWMYAiABKAsyBS5I",
-            "YXNoEhwKB0RldGFpbHMYAyADKAsyCy5FdmVudEZpZWxkImMKEVRyYW5zYWN0",
-            "aW9uUmVzdWx0EhwKDVRyYW5zYWN0aW9uSWQYASABKAsyBS5IYXNoEhcKBnN0",
-            "YXR1cxgCIAEoDjIHLlN0YXR1cxIXCgRMb2dzGAMgAygLMgkuTG9nRXZlbnQi",
-            "FQoESGFzaBINCgVWYWx1ZRgBIAEoDCKKAgoLQmxvY2tIZWFkZXISDwoHVmVy",
-            "c2lvbhgBIAEoBRIgChFQcmV2aW91c0Jsb2NrSGFzaBgCIAEoCzIFLkhhc2gS",
-            "KwocTWVya2xlVHJlZVJvb3RPZlRyYW5zYWN0aW9ucxgDIAEoCzIFLkhhc2gS",
-            "KQoaTWVya2xlVHJlZVJvb3RPZldvcmxkU3RhdGUYBCABKAsyBS5IYXNoEg0K",
-            "BUluZGV4GAUgASgEEgkKAVIYBiABKAwSCQoBUxgHIAEoDBIJCgFQGAggASgM",
-            "EigKBHRpbWUYCSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhYK",
-            "B0NoYWluSWQYCiABKAsyBS5IYXNoIkQKCUJsb2NrQm9keRIaCgtCbG9ja0hl",
-            "YWRlchgBIAEoCzIFLkhhc2gSGwoMVHJhbnNhY3Rpb25zGAIgAygLMgUuSGFz",
-            "aCI/CgVCbG9jaxIcCgZIZWFkZXIYASABKAsyDC5CbG9ja0hlYWRlchIYCgRC",
-            "b2R5GAIgASgLMgouQmxvY2tCb2R5ImEKGVNtYXJ0Q29udHJhY3RSZWdpc3Ry",
-            "YXRpb24SEAoIQ2F0ZWdvcnkYASABKAUSGwoMQ29udHJhY3RIYXNoGAIgASgL",
-            "MgUuSGFzaBIVCg1Db250cmFjdEJ5dGVzGAMgASgMInsKF1NtYXJ0Q29udHJh",
-            "Y3REZXBsb3ltZW50EhsKDENvbnRyYWN0SGFzaBgBIAEoCzIFLkhhc2gSFQoG",
-            "Q2FsbGVyGAIgASgLMgUuSGFzaBIXCg9Db25zdHJ1Y3RQYXJhbXMYAyABKAwS",
-            "EwoLSW5jcmVtZW50SWQYBCABKAQiJAoKUGFyYW1ldGVycxIWCgZQYXJhbXMY",
-            "ASADKAsyBi5QYXJhbSKkAgoFUGFyYW0SEAoGaW50VmFsGAEgASgFSAASEQoH",
-            "dWludFZhbBgCIAEoDUgAEhEKB2xvbmdWYWwYAyABKANIABISCgh1bG9uZ1Zh",
-            "bBgEIAEoBEgAEhEKB2Jvb2xWYWwYBSABKAhIABISCghieXRlc1ZhbBgGIAEo",
-            "DEgAEhAKBnN0clZhbBgHIAEoCUgAEg4KBGRWYWwYCCABKAFIABIYCgdoYXNo",
-            "VmFsGAkgASgLMgUuSGFzaEgAEjEKC3JlZ2lzdGVyVmFsGAogASgLMhouU21h",
-            "cnRDb250cmFjdFJlZ2lzdHJhdGlvbkgAEjEKDWRlcGxveW1lbnRWYWwYCyAB",
-            "KAsyGC5TbWFydENvbnRyYWN0RGVwbG95bWVudEgAQgYKBGRhdGEibAoaU21h",
-            "cnRDb250cmFjdEludm9rZUNvbnRleHQSFQoGQ2FsbGVyGAEgASgLMgUuSGFz",
-            "aBITCgtJbmNyZW1lbnRJZBgCIAEoBBISCgpNZXRob2ROYW1lGAMgASgJEg4K",
-            "BlBhcmFtcxgEIAEoDCJ8CgZDaGFuZ2USFgoHQmVmb3JlcxgBIAMoCzIFLkhh",
-            "c2gSFAoFQWZ0ZXIYAiABKAsyBS5IYXNoEh0KDlRyYW5zYWN0aW9uSWRzGAMg",
-            "ASgLMgUuSGFzaBIlChZMYXRlc3RDaGFuZ2VkQmxvY2tIYXNoGAQgASgLMgUu",
-            "SGFzaCI8Cg5QYWlySGFzaENoYW5nZRISCgNLZXkYASABKAsyBS5IYXNoEhYK",
-            "BVZhbHVlGAIgASgLMgcuQ2hhbmdlIiwKC0NoYW5nZXNEaWN0Eh0KBERpY3QY",
-            "ASADKAsyDy5QYWlySGFzaENoYW5nZSI7CgVDaGFpbhIRCgJJZBgBIAEoCzIF",
-            "Lkhhc2gSHwoQR2VuZXNpc0Jsb2NrSGFzaBgCIAEoCzIFLkhhc2gihwIKJFNl",
-            "cmlhbGl6ZUNvbnRyYWN0TWV0YWRhdGFUZW1wbGF0ZU1hcBJxCh5NZXRhZGF0",
-            "YVRlbXBsYXRlTWFwRm9yQ29udHJhY3QYAiADKAsySS5TZXJpYWxpemVDb250",
-            "cmFjdE1ldGFkYXRhVGVtcGxhdGVNYXAuTWV0YWRhdGFUZW1wbGF0ZU1hcEZv",
-            "ckNvbnRyYWN0RW50cnkabAojTWV0YWRhdGFUZW1wbGF0ZU1hcEZvckNvbnRy",
-            "YWN0RW50cnkSCwoDa2V5GAEgASgJEjQKBXZhbHVlGAIgASgLMiUuU2VyaWFs",
-            "aXplRnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlTWFwOgI4ASLCAQokU2VyaWFs",
-            "aXplRnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlTWFwEksKC1RlbXBsYXRlTWFw",
-            "GAIgAygLMjYuU2VyaWFsaXplRnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlTWFw",
-            "LlRlbXBsYXRlTWFwRW50cnkaTQoQVGVtcGxhdGVNYXBFbnRyeRILCgNrZXkY",
-            "ASABKAkSKAoFdmFsdWUYAiABKAsyGS5GdW5jdGlvbk1ldGFkYXRhVGVtcGxh",
-            "dGU6AjgBImUKGEZ1bmN0aW9uTWV0YWRhdGFUZW1wbGF0ZRIbChNTZXJpYWxp",
-            "emVDYWxsaW5nU2V0GAEgAygJEiwKGVNlcmlhbGl6ZUxvY2FsUmVzb3VyY2VT",
-            "ZXQYAiADKAsyCS5SZXNvdXJjZSJBCghSZXNvdXJjZRIMCgROYW1lGAEgASgJ",
-            "EicKDkRhdGFBY2Nlc3NNb2RlGAIgASgOMg8uRGF0YUFjY2Vzc01vZGUiigEK",
-            "EEZ1bmN0aW9uTWV0YWRhdGESGwoTU2VyaWFsaXplQ2FsbGluZ1NldBgBIAMo",
-            "CRIrChhTZXJpYWxpemVGdWxsUmVzb3VyY2VTZXQYAiADKAsyCS5SZXNvdXJj",
-            "ZRIsChlTZXJpYWxpemVMb2NhbFJlc291cmNlU2V0GAMgAygLMgkuUmVzb3Vy",
-            "Y2UiqgEKHFNlcmlhbGl6ZUZ1bmN0aW9uTWV0YWRhdGFNYXASQwoLTWV0YWRh",
-            "dGFNYXAYASADKAsyLi5TZXJpYWxpemVGdW5jdGlvbk1ldGFkYXRhTWFwLk1l",
-            "dGFkYXRhTWFwRW50cnkaRQoQTWV0YWRhdGFNYXBFbnRyeRILCgNrZXkYASAB",
-            "KAkSIAoFdmFsdWUYAiABKAsyES5GdW5jdGlvbk1ldGFkYXRhOgI4ASIuChFD",
-            "YWxsaW5nR3JhcGhFZGdlcxIZCgVFZGdlcxgBIAMoCzIKLkdyYXBoRWRnZSIr",
-            "CglHcmFwaEVkZ2USDgoGU291cmNlGAEgASgJEg4KBlRhcmdldBgCIAEoCSo8",
-            "CgZTdGF0dXMSDgoKTm90RXhpc3RlZBAAEgsKB1BlbmRpbmcQARIKCgZGYWls",
-            "ZWQQAhIJCgVNaW5lZBADKl4KDkRhdGFBY2Nlc3NNb2RlEhoKFlJlYWRPbmx5",
-            "QWNjb3VudFNoYXJpbmcQABIbChdSZWFkV3JpdGVBY2NvdW50U2hhcmluZxAB",
-            "EhMKD0FjY291bnRTcGVjaWZpYxACQg6qAgtBRWxmLktlcm5lbGIGcHJvdG8z"));
+            "KAwi3AEKEFRyYW5zYWN0aW9uVHJhY2USHAoNVHJhbnNhY3Rpb25JZBgBIAEo",
+            "CzIFLkhhc2gSDgoGUmV0VmFsGAIgASgMEg4KBlN0ZE91dBgDIAEoCRIOCgZT",
+            "dGRFcnIYBCABKAkSFwoETG9ncxgFIAMoCzIJLkxvZ0V2ZW50EicKDElubGlu",
+            "ZVRyYWNlcxgGIAMoCzIRLlRyYW5zYWN0aW9uVHJhY2USJwoMVmFsdWVDaGFu",
+            "Z2VzGAcgAygLMhEuU3RhdGVWYWx1ZUNoYW5nZRIPCgdFbGFwc2VkGAggASgD",
+            "Ij8KCkV2ZW50RmllbGQSDAoETmFtZRgBIAEoCRIjCgVWYWx1ZRgCIAEoCzIU",
+            "Lmdvb2dsZS5wcm90b2J1Zi5BbnkiVgoITG9nRXZlbnQSFgoHQWRkcmVzcxgB",
+            "IAEoCzIFLkhhc2gSFAoFVG9waWMYAiABKAsyBS5IYXNoEhwKB0RldGFpbHMY",
+            "AyADKAsyCy5FdmVudEZpZWxkImMKEVRyYW5zYWN0aW9uUmVzdWx0EhwKDVRy",
+            "YW5zYWN0aW9uSWQYASABKAsyBS5IYXNoEhcKBnN0YXR1cxgCIAEoDjIHLlN0",
+            "YXR1cxIXCgRMb2dzGAMgAygLMgkuTG9nRXZlbnQiFQoESGFzaBINCgVWYWx1",
+            "ZRgBIAEoDCKKAgoLQmxvY2tIZWFkZXISDwoHVmVyc2lvbhgBIAEoBRIgChFQ",
+            "cmV2aW91c0Jsb2NrSGFzaBgCIAEoCzIFLkhhc2gSKwocTWVya2xlVHJlZVJv",
+            "b3RPZlRyYW5zYWN0aW9ucxgDIAEoCzIFLkhhc2gSKQoaTWVya2xlVHJlZVJv",
+            "b3RPZldvcmxkU3RhdGUYBCABKAsyBS5IYXNoEg0KBUluZGV4GAUgASgEEgkK",
+            "AVIYBiABKAwSCQoBUxgHIAEoDBIJCgFQGAggASgMEigKBHRpbWUYCSABKAsy",
+            "Gi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhYKB0NoYWluSWQYCiABKAsy",
+            "BS5IYXNoIkQKCUJsb2NrQm9keRIaCgtCbG9ja0hlYWRlchgBIAEoCzIFLkhh",
+            "c2gSGwoMVHJhbnNhY3Rpb25zGAIgAygLMgUuSGFzaCI/CgVCbG9jaxIcCgZI",
+            "ZWFkZXIYASABKAsyDC5CbG9ja0hlYWRlchIYCgRCb2R5GAIgASgLMgouQmxv",
+            "Y2tCb2R5ImEKGVNtYXJ0Q29udHJhY3RSZWdpc3RyYXRpb24SEAoIQ2F0ZWdv",
+            "cnkYASABKAUSGwoMQ29udHJhY3RIYXNoGAIgASgLMgUuSGFzaBIVCg1Db250",
+            "cmFjdEJ5dGVzGAMgASgMInsKF1NtYXJ0Q29udHJhY3REZXBsb3ltZW50EhsK",
+            "DENvbnRyYWN0SGFzaBgBIAEoCzIFLkhhc2gSFQoGQ2FsbGVyGAIgASgLMgUu",
+            "SGFzaBIXCg9Db25zdHJ1Y3RQYXJhbXMYAyABKAwSEwoLSW5jcmVtZW50SWQY",
+            "BCABKAQiJAoKUGFyYW1ldGVycxIWCgZQYXJhbXMYASADKAsyBi5QYXJhbSKk",
+            "AgoFUGFyYW0SEAoGaW50VmFsGAEgASgFSAASEQoHdWludFZhbBgCIAEoDUgA",
+            "EhEKB2xvbmdWYWwYAyABKANIABISCgh1bG9uZ1ZhbBgEIAEoBEgAEhEKB2Jv",
+            "b2xWYWwYBSABKAhIABISCghieXRlc1ZhbBgGIAEoDEgAEhAKBnN0clZhbBgH",
+            "IAEoCUgAEg4KBGRWYWwYCCABKAFIABIYCgdoYXNoVmFsGAkgASgLMgUuSGFz",
+            "aEgAEjEKC3JlZ2lzdGVyVmFsGAogASgLMhouU21hcnRDb250cmFjdFJlZ2lz",
+            "dHJhdGlvbkgAEjEKDWRlcGxveW1lbnRWYWwYCyABKAsyGC5TbWFydENvbnRy",
+            "YWN0RGVwbG95bWVudEgAQgYKBGRhdGEibAoaU21hcnRDb250cmFjdEludm9r",
+            "ZUNvbnRleHQSFQoGQ2FsbGVyGAEgASgLMgUuSGFzaBITCgtJbmNyZW1lbnRJ",
+            "ZBgCIAEoBBISCgpNZXRob2ROYW1lGAMgASgJEg4KBlBhcmFtcxgEIAEoDCJ8",
+            "CgZDaGFuZ2USFgoHQmVmb3JlcxgBIAMoCzIFLkhhc2gSFAoFQWZ0ZXIYAiAB",
+            "KAsyBS5IYXNoEh0KDlRyYW5zYWN0aW9uSWRzGAMgASgLMgUuSGFzaBIlChZM",
+            "YXRlc3RDaGFuZ2VkQmxvY2tIYXNoGAQgASgLMgUuSGFzaCI8Cg5QYWlySGFz",
+            "aENoYW5nZRISCgNLZXkYASABKAsyBS5IYXNoEhYKBVZhbHVlGAIgASgLMgcu",
+            "Q2hhbmdlIiwKC0NoYW5nZXNEaWN0Eh0KBERpY3QYASADKAsyDy5QYWlySGFz",
+            "aENoYW5nZSI7CgVDaGFpbhIRCgJJZBgBIAEoCzIFLkhhc2gSHwoQR2VuZXNp",
+            "c0Jsb2NrSGFzaBgCIAEoCzIFLkhhc2gihwIKJFNlcmlhbGl6ZUNvbnRyYWN0",
+            "TWV0YWRhdGFUZW1wbGF0ZU1hcBJxCh5NZXRhZGF0YVRlbXBsYXRlTWFwRm9y",
+            "Q29udHJhY3QYAiADKAsySS5TZXJpYWxpemVDb250cmFjdE1ldGFkYXRhVGVt",
+            "cGxhdGVNYXAuTWV0YWRhdGFUZW1wbGF0ZU1hcEZvckNvbnRyYWN0RW50cnka",
+            "bAojTWV0YWRhdGFUZW1wbGF0ZU1hcEZvckNvbnRyYWN0RW50cnkSCwoDa2V5",
+            "GAEgASgJEjQKBXZhbHVlGAIgASgLMiUuU2VyaWFsaXplRnVuY3Rpb25NZXRh",
+            "ZGF0YVRlbXBsYXRlTWFwOgI4ASLCAQokU2VyaWFsaXplRnVuY3Rpb25NZXRh",
+            "ZGF0YVRlbXBsYXRlTWFwEksKC1RlbXBsYXRlTWFwGAIgAygLMjYuU2VyaWFs",
+            "aXplRnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlTWFwLlRlbXBsYXRlTWFwRW50",
+            "cnkaTQoQVGVtcGxhdGVNYXBFbnRyeRILCgNrZXkYASABKAkSKAoFdmFsdWUY",
+            "AiABKAsyGS5GdW5jdGlvbk1ldGFkYXRhVGVtcGxhdGU6AjgBImUKGEZ1bmN0",
+            "aW9uTWV0YWRhdGFUZW1wbGF0ZRIbChNTZXJpYWxpemVDYWxsaW5nU2V0GAEg",
+            "AygJEiwKGVNlcmlhbGl6ZUxvY2FsUmVzb3VyY2VTZXQYAiADKAsyCS5SZXNv",
+            "dXJjZSJBCghSZXNvdXJjZRIMCgROYW1lGAEgASgJEicKDkRhdGFBY2Nlc3NN",
+            "b2RlGAIgASgOMg8uRGF0YUFjY2Vzc01vZGUiigEKEEZ1bmN0aW9uTWV0YWRh",
+            "dGESGwoTU2VyaWFsaXplQ2FsbGluZ1NldBgBIAMoCRIrChhTZXJpYWxpemVG",
+            "dWxsUmVzb3VyY2VTZXQYAiADKAsyCS5SZXNvdXJjZRIsChlTZXJpYWxpemVM",
+            "b2NhbFJlc291cmNlU2V0GAMgAygLMgkuUmVzb3VyY2UiqgEKHFNlcmlhbGl6",
+            "ZUZ1bmN0aW9uTWV0YWRhdGFNYXASQwoLTWV0YWRhdGFNYXAYASADKAsyLi5T",
+            "ZXJpYWxpemVGdW5jdGlvbk1ldGFkYXRhTWFwLk1ldGFkYXRhTWFwRW50cnka",
+            "RQoQTWV0YWRhdGFNYXBFbnRyeRILCgNrZXkYASABKAkSIAoFdmFsdWUYAiAB",
+            "KAsyES5GdW5jdGlvbk1ldGFkYXRhOgI4ASIuChFDYWxsaW5nR3JhcGhFZGdl",
+            "cxIZCgVFZGdlcxgBIAMoCzIKLkdyYXBoRWRnZSIrCglHcmFwaEVkZ2USDgoG",
+            "U291cmNlGAEgASgJEg4KBlRhcmdldBgCIAEoCSo8CgZTdGF0dXMSDgoKTm90",
+            "RXhpc3RlZBAAEgsKB1BlbmRpbmcQARIKCgZGYWlsZWQQAhIJCgVNaW5lZBAD",
+            "Kl4KDkRhdGFBY2Nlc3NNb2RlEhoKFlJlYWRPbmx5QWNjb3VudFNoYXJpbmcQ",
+            "ABIbChdSZWFkV3JpdGVBY2NvdW50U2hhcmluZxABEhMKD0FjY291bnRTcGVj",
+            "aWZpYxACQg6qAgtBRWxmLktlcm5lbGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.AnyReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), typeof(global::AElf.Kernel.DataAccessMode), }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params", "Fee", "R", "S", "P" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.StateValueChange), global::AElf.Kernel.StateValueChange.Parser, new[]{ "Path", "BeforeValue", "AfterValue" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionTrace), global::AElf.Kernel.TransactionTrace.Parser, new[]{ "RetVal", "StdOut", "StdErr", "Logs", "InlineTraces", "ValueChanges", "Elapsed" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionTrace), global::AElf.Kernel.TransactionTrace.Parser, new[]{ "TransactionId", "RetVal", "StdOut", "StdErr", "Logs", "InlineTraces", "ValueChanges", "Elapsed" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.EventField), global::AElf.Kernel.EventField.Parser, new[]{ "Name", "Value" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.LogEvent), global::AElf.Kernel.LogEvent.Parser, new[]{ "Address", "Topic", "Details" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionResult), global::AElf.Kernel.TransactionResult.Parser, new[]{ "TransactionId", "Status", "Logs" }, null, null, null),
@@ -732,6 +733,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public TransactionTrace(TransactionTrace other) : this() {
+      TransactionId = other.transactionId_ != null ? other.TransactionId.Clone() : null;
       retVal_ = other.retVal_;
       stdOut_ = other.stdOut_;
       stdErr_ = other.stdErr_;
@@ -747,8 +749,19 @@ namespace AElf.Kernel {
       return new TransactionTrace(this);
     }
 
+    /// <summary>Field number for the "TransactionId" field.</summary>
+    public const int TransactionIdFieldNumber = 1;
+    private global::AElf.Kernel.Hash transactionId_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash TransactionId {
+      get { return transactionId_; }
+      set {
+        transactionId_ = value;
+      }
+    }
+
     /// <summary>Field number for the "RetVal" field.</summary>
-    public const int RetValFieldNumber = 1;
+    public const int RetValFieldNumber = 2;
     private pb::ByteString retVal_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pb::ByteString RetVal {
@@ -759,7 +772,7 @@ namespace AElf.Kernel {
     }
 
     /// <summary>Field number for the "StdOut" field.</summary>
-    public const int StdOutFieldNumber = 2;
+    public const int StdOutFieldNumber = 3;
     private string stdOut_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public string StdOut {
@@ -770,7 +783,7 @@ namespace AElf.Kernel {
     }
 
     /// <summary>Field number for the "StdErr" field.</summary>
-    public const int StdErrFieldNumber = 3;
+    public const int StdErrFieldNumber = 4;
     private string stdErr_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public string StdErr {
@@ -781,9 +794,9 @@ namespace AElf.Kernel {
     }
 
     /// <summary>Field number for the "Logs" field.</summary>
-    public const int LogsFieldNumber = 4;
+    public const int LogsFieldNumber = 5;
     private static readonly pb::FieldCodec<global::AElf.Kernel.LogEvent> _repeated_logs_codec
-        = pb::FieldCodec.ForMessage(34, global::AElf.Kernel.LogEvent.Parser);
+        = pb::FieldCodec.ForMessage(42, global::AElf.Kernel.LogEvent.Parser);
     private readonly pbc::RepeatedField<global::AElf.Kernel.LogEvent> logs_ = new pbc::RepeatedField<global::AElf.Kernel.LogEvent>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<global::AElf.Kernel.LogEvent> Logs {
@@ -791,9 +804,9 @@ namespace AElf.Kernel {
     }
 
     /// <summary>Field number for the "InlineTraces" field.</summary>
-    public const int InlineTracesFieldNumber = 5;
+    public const int InlineTracesFieldNumber = 6;
     private static readonly pb::FieldCodec<global::AElf.Kernel.TransactionTrace> _repeated_inlineTraces_codec
-        = pb::FieldCodec.ForMessage(42, global::AElf.Kernel.TransactionTrace.Parser);
+        = pb::FieldCodec.ForMessage(50, global::AElf.Kernel.TransactionTrace.Parser);
     private readonly pbc::RepeatedField<global::AElf.Kernel.TransactionTrace> inlineTraces_ = new pbc::RepeatedField<global::AElf.Kernel.TransactionTrace>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<global::AElf.Kernel.TransactionTrace> InlineTraces {
@@ -801,9 +814,9 @@ namespace AElf.Kernel {
     }
 
     /// <summary>Field number for the "ValueChanges" field.</summary>
-    public const int ValueChangesFieldNumber = 6;
+    public const int ValueChangesFieldNumber = 7;
     private static readonly pb::FieldCodec<global::AElf.Kernel.StateValueChange> _repeated_valueChanges_codec
-        = pb::FieldCodec.ForMessage(50, global::AElf.Kernel.StateValueChange.Parser);
+        = pb::FieldCodec.ForMessage(58, global::AElf.Kernel.StateValueChange.Parser);
     private readonly pbc::RepeatedField<global::AElf.Kernel.StateValueChange> valueChanges_ = new pbc::RepeatedField<global::AElf.Kernel.StateValueChange>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<global::AElf.Kernel.StateValueChange> ValueChanges {
@@ -811,7 +824,7 @@ namespace AElf.Kernel {
     }
 
     /// <summary>Field number for the "Elapsed" field.</summary>
-    public const int ElapsedFieldNumber = 7;
+    public const int ElapsedFieldNumber = 8;
     private long elapsed_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public long Elapsed {
@@ -834,6 +847,7 @@ namespace AElf.Kernel {
       if (ReferenceEquals(other, this)) {
         return true;
       }
+      if (!object.Equals(TransactionId, other.TransactionId)) return false;
       if (RetVal != other.RetVal) return false;
       if (StdOut != other.StdOut) return false;
       if (StdErr != other.StdErr) return false;
@@ -847,6 +861,7 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
+      if (transactionId_ != null) hash ^= TransactionId.GetHashCode();
       if (RetVal.Length != 0) hash ^= RetVal.GetHashCode();
       if (StdOut.Length != 0) hash ^= StdOut.GetHashCode();
       if (StdErr.Length != 0) hash ^= StdErr.GetHashCode();
@@ -867,23 +882,27 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (RetVal.Length != 0) {
+      if (transactionId_ != null) {
         output.WriteRawTag(10);
+        output.WriteMessage(TransactionId);
+      }
+      if (RetVal.Length != 0) {
+        output.WriteRawTag(18);
         output.WriteBytes(RetVal);
       }
       if (StdOut.Length != 0) {
-        output.WriteRawTag(18);
+        output.WriteRawTag(26);
         output.WriteString(StdOut);
       }
       if (StdErr.Length != 0) {
-        output.WriteRawTag(26);
+        output.WriteRawTag(34);
         output.WriteString(StdErr);
       }
       logs_.WriteTo(output, _repeated_logs_codec);
       inlineTraces_.WriteTo(output, _repeated_inlineTraces_codec);
       valueChanges_.WriteTo(output, _repeated_valueChanges_codec);
       if (Elapsed != 0L) {
-        output.WriteRawTag(56);
+        output.WriteRawTag(64);
         output.WriteInt64(Elapsed);
       }
       if (_unknownFields != null) {
@@ -894,6 +913,9 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
+      if (transactionId_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(TransactionId);
+      }
       if (RetVal.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(RetVal);
       }
@@ -919,6 +941,12 @@ namespace AElf.Kernel {
     public void MergeFrom(TransactionTrace other) {
       if (other == null) {
         return;
+      }
+      if (other.transactionId_ != null) {
+        if (transactionId_ == null) {
+          transactionId_ = new global::AElf.Kernel.Hash();
+        }
+        TransactionId.MergeFrom(other.TransactionId);
       }
       if (other.RetVal.Length != 0) {
         RetVal = other.RetVal;
@@ -947,30 +975,37 @@ namespace AElf.Kernel {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
-            RetVal = input.ReadBytes();
+            if (transactionId_ == null) {
+              transactionId_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(transactionId_);
             break;
           }
           case 18: {
-            StdOut = input.ReadString();
+            RetVal = input.ReadBytes();
             break;
           }
           case 26: {
-            StdErr = input.ReadString();
+            StdOut = input.ReadString();
             break;
           }
           case 34: {
-            logs_.AddEntriesFrom(input, _repeated_logs_codec);
+            StdErr = input.ReadString();
             break;
           }
           case 42: {
-            inlineTraces_.AddEntriesFrom(input, _repeated_inlineTraces_codec);
+            logs_.AddEntriesFrom(input, _repeated_logs_codec);
             break;
           }
           case 50: {
+            inlineTraces_.AddEntriesFrom(input, _repeated_inlineTraces_codec);
+            break;
+          }
+          case 58: {
             valueChanges_.AddEntriesFrom(input, _repeated_valueChanges_codec);
             break;
           }
-          case 56: {
+          case 64: {
             Elapsed = input.ReadInt64();
             break;
           }

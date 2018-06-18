@@ -198,7 +198,7 @@ namespace AElf.Kernel.Tests.Miner
         {
             var parallelTransactionExecutingService = new ParallelTransactionExecutingService(sys);
             return new Kernel.Miner.Miner(_blockGenerationService, config, MockTxPoolService().Object, 
-                parallelTransactionExecutingService);
+                parallelTransactionExecutingService, _worldStateManager);
         }
 
         public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit)

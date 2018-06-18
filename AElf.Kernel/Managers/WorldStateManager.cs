@@ -298,12 +298,14 @@ namespace AElf.Kernel.Managers
             return path.SetBlockHash(_preBlockHash).GetPointerHash();
         }
 
-        public async Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange)
+        public async Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId)
         {
             // The code chunk is copied from DataProvider
 
+            Hash prevBlockHash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(chainId));
+            
             //Generate the new pointer hash (using previous block hash)
-            var pointerHashAfter = stateValueChange.Path.CalculateHashWith(_preBlockHash);
+            var pointerHashAfter = stateValueChange.Path.CalculateHashWith(prevBlockHash);
 
             var change = await GetChangeAsync(stateValueChange.Path);
             if (change == null)
@@ -317,7 +319,7 @@ namespace AElf.Kernel.Managers
             {
                 //See whether the latest changes of this Change happened in this height,
                 //If not, clear the change, because this Change is too old to support rollback.
-                if (_preBlockHash != change.LatestChangedBlockHash)
+                if (prevBlockHash != change.LatestChangedBlockHash)
                 {
                     change.ClearChangeBefores();
                 }
@@ -325,7 +327,7 @@ namespace AElf.Kernel.Managers
                 change.UpdateHashAfter(pointerHashAfter);
             }
 
-            change.LatestChangedBlockHash = _preBlockHash;
+            change.LatestChangedBlockHash = prevBlockHash;
 
             await InsertChangeAsync(stateValueChange.Path, change);
             await SetDataAsync(pointerHashAfter, stateValueChange.AfterValue.ToByteArray());

@@ -34,7 +34,7 @@ namespace AElf.Kernel.Concurrency.Execution
         private IActorRef _resultCollector;
 		private ChildType _childType;
 		private Dictionary<IActorRef, List<ITransaction>> _actorToTransactions = new Dictionary<IActorRef, List<ITransaction>>();
-		private Dictionary<Hash, TransactionResult> _transactionResults = new Dictionary<Hash, TransactionResult>();
+		private Dictionary<Hash, TransactionTrace> _transactionTraces = new Dictionary<Hash, TransactionTrace>();
 
         public BatchExecutor(Hash chainId, IActorRef serviceRouter, List<ITransaction> transactions, IActorRef resultCollector, ChildType childType)
 		{
@@ -70,8 +70,8 @@ namespace AElf.Kernel.Concurrency.Execution
 					_startExecutionMessageReceived = true;
 					MaybeStartChildren();
 					break;
-				case TransactionResultMessage res:
-					_transactionResults[res.TransactionResult.TransactionId] = res.TransactionResult;
+				case TransactionTraceMessage res:
+					_transactionTraces[res.TransactionTrace.TransactionId] = res.TransactionTrace;
 					ForwardResult(res);
 					StopIfAllFinished();
 					break;
@@ -114,17 +114,17 @@ namespace AElf.Kernel.Concurrency.Execution
 			}
 		}
 
-		private void ForwardResult(TransactionResultMessage resultMessage)
+		private void ForwardResult(TransactionTraceMessage traceMessage)
 		{
             if (_resultCollector != null)
 			{
-                _resultCollector.Forward(resultMessage);
+                _resultCollector.Forward(traceMessage);
 			}
 		}
 
 		private void StopIfAllFinished()
 		{
-			if (_transactionResults.Count == _transactions.Count)
+			if (_transactionTraces.Count == _transactions.Count)
 			{
 				Context.Stop(Self);
 			}

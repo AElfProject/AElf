@@ -37,6 +37,6 @@ namespace AElf.Kernel.Managers
 
         Task<byte[]> GetDataAsync(Hash pointerHash);
 
-        Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange);
+        Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId);
     }
 }

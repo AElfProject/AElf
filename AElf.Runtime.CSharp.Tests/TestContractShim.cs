@@ -30,6 +30,19 @@ namespace AElf.Runtime.CSharp.Tests
             }
         }
         private IExecutive Executive { get; set; }
+
+        private Hash ChainId
+        {
+            get
+            {
+                if (!_second)
+                {
+                    return _mock.ChainId1;
+                }
+                return _mock.ChainId2;
+            }
+        }
+        
         private bool _second = false;
         public TestContractShim(MockSetup mock, bool second = false)
         {
@@ -106,7 +119,13 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply(true).Wait();
+            Executive.SetTransactionContext(tc).Apply(false).Wait();
+            
+            foreach (var vc in tc.Trace.ValueChanges)
+            {
+                _mock.WorldStateManager.ApplyStateValueChangeAsync(vc, ChainId);    
+            }
+            
             return tc.Trace.RetVal.DeserializeToBool();
         }
 

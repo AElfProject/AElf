@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using Akka.Actor;
+using Akka.Util.Internal;
 
 namespace AElf.Kernel.Concurrency.Execution
 {
@@ -27,7 +28,7 @@ namespace AElf.Kernel.Concurrency.Execution
         private List<List<ITransaction>> _batched;
         private int _currentRunningIndex = -1;
         private List<IActorRef> _actors = new List<IActorRef>();
-        private Dictionary<Hash, TransactionResult> _transactionResults = new Dictionary<Hash, TransactionResult>();
+        private Dictionary<Hash, TransactionTrace> _transactionTraces = new Dictionary<Hash, TransactionTrace>();
 
         public GroupExecutor(Hash chainId, IActorRef serviceRouter, List<ITransaction> transactions, IActorRef resultCollector)
         {
@@ -60,9 +61,13 @@ namespace AElf.Kernel.Concurrency.Execution
                     _startExecutionMessageReceived = true;
                     RunNextOrStop();
                     break;
-                case TransactionResultMessage res:
-                    _transactionResults[res.TransactionResult.TransactionId] = res.TransactionResult;
-                    ForwardResult(res);
+                case TransactionTraceMessage res:
+                    var txnId = res.TransactionTrace.TransactionId;
+                    if (!_transactionTraces.ContainsKey(txnId))
+                    {
+                        _transactionTraces[txnId] = res.TransactionTrace;
+                        ForwardResult(res);                        
+                    }
                     break;
                 case Terminated t:
                     Context.Unwatch(Sender);
@@ -102,11 +107,11 @@ namespace AElf.Kernel.Concurrency.Execution
             }
         }
 
-        private void ForwardResult(TransactionResultMessage resultMessage)
+        private void ForwardResult(TransactionTraceMessage traceMessage)
         {
             if (_resultCollector != null)
             {
-                _resultCollector.Forward(resultMessage);
+                _resultCollector.Forward(traceMessage);
             }
         }
 

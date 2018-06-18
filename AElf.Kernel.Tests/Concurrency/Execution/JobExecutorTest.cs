@@ -56,10 +56,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var executor1 = sys.ActorOf(JobExecutor.Props(chainId, _serviceRouter, new List<ITransaction>() { tx1 }, TestActor));
             Watch(executor1);
             executor1.Tell(StartExecutionMessage.Instance);
-            var result = ExpectMsg<TransactionResultMessage>().TransactionResult;
+            var trace = ExpectMsg<TransactionTraceMessage>().TransactionTrace;
+            
+            _mock.ApplyChanges(new List<TransactionTrace>(){trace}, chainId);
 
-            Assert.Equal(tx1.GetHash(), result.TransactionId);
-            Assert.Equal(Status.Mined, result.Status);
+            Assert.Equal(tx1.GetHash(), trace.TransactionId);
+            Assert.True(string.IsNullOrEmpty(trace.StdErr));
 
             Assert.Equal((ulong)90, _mock.GetBalance1(from));
             Assert.Equal((ulong)10, _mock.GetBalance1(to));
@@ -93,14 +95,17 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var executor1 = sys.ActorOf(JobExecutor.Props(chainId, _serviceRouter, job1, TestActor));
             Watch(executor1);
             executor1.Tell(StartExecutionMessage.Instance);
-            var result1 = ExpectMsg<TransactionResultMessage>().TransactionResult;
-            var result2 = ExpectMsg<TransactionResultMessage>().TransactionResult;
-            Assert.Equal(tx1.GetHash(), result1.TransactionId);
-            Assert.Equal(tx2.GetHash(), result2.TransactionId);
-            Assert.Equal(Status.Mined, result1.Status);
+            var trace1 = ExpectMsg<TransactionTraceMessage>().TransactionTrace;
+            var trace2 = ExpectMsg<TransactionTraceMessage>().TransactionTrace;
+            
+            _mock.ApplyChanges(new List<TransactionTrace>(){trace1, trace2}, chainId);
+            
+            Assert.Equal(tx1.GetHash(), trace1.TransactionId);
+            Assert.Equal(tx2.GetHash(), trace2.TransactionId);
+            Assert.True(string.IsNullOrEmpty(trace1.StdErr));
             Assert.Equal((ulong)90, _mock.GetBalance1(address1));
             Assert.Equal((ulong)10, _mock.GetBalance1(address2));
-            Assert.Equal(Status.Mined, result2.Status);
+            Assert.True(string.IsNullOrEmpty(trace2.StdErr));
             Assert.Equal((ulong)190, _mock.GetBalance1(address3));
             Assert.Equal((ulong)10, _mock.GetBalance1(address4));
             ExpectTerminated(executor1);

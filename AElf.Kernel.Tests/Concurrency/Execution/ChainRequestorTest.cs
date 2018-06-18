@@ -60,9 +60,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             var requestor = sys.ActorOf(ChainRequestor.Props(sys, _mock.ChainId1));
 
-            var tcs = new TaskCompletionSource<List<TransactionResult>>();
+            var tcs = new TaskCompletionSource<List<TransactionTrace>>();
             requestor.Tell(new LocalExecuteTransactionsMessage(_mock.ChainId1, txs, tcs));
             tcs.Task.Wait();
+            var traces = tcs.Task.Result;
+            _mock.ApplyChanges(traces, _mock.ChainId1);
+            
             foreach (var addFinbal in addresses.Zip(finalBalances, Tuple.Create))
             {
                 Assert.Equal((ulong)addFinbal.Item2, _mock.GetBalance1(addFinbal.Item1));

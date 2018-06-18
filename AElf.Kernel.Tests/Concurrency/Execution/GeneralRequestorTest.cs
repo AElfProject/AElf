@@ -35,7 +35,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 		[Fact]
 		public void Test()
 		{
-			var balances = new List<int>()
+			var balances = new List<ulong>()
 			{
 				100, 0
 			};
@@ -74,13 +74,16 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
 			var requestor = sys.ActorOf(GeneralRequestor.Props(sys));
 
-			var tcs = new TaskCompletionSource<List<TransactionResult>>();         
+			var tcs = new TaskCompletionSource<List<TransactionTrace>>();         
             requestor.Tell(new LocalExecuteTransactionsMessage(_mock.ChainId1, txs1, tcs));
 			tcs.Task.Wait();
-			var tcs2 = new TaskCompletionSource<List<TransactionResult>>();
+			var tcs2 = new TaskCompletionSource<List<TransactionTrace>>();
             requestor.Tell(new LocalExecuteTransactionsMessage(_mock.ChainId2, txs2, tcs2));
 			tcs2.Task.Wait();
 
+			_mock.ApplyChanges(tcs.Task.Result, _mock.ChainId1);
+			_mock.ApplyChanges(tcs2.Task.Result, _mock.ChainId1);
+			
 			foreach (var addFinbal in addresses.Zip(finalBalances1, Tuple.Create))
 			{
                 Assert.Equal((ulong)addFinbal.Item2, _mock.GetBalance1(addFinbal.Item1));
