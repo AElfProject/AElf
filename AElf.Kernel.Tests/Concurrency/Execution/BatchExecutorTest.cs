@@ -76,14 +76,15 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             }.OrderBy(y => txsHashes.IndexOf(y.TransactionId)).ToList();
             ExpectTerminated(executor1);
 
+            Assert.True(string.IsNullOrEmpty(traces[0].StdErr));
+            Assert.True(string.IsNullOrEmpty(traces[1].StdErr));
+            Assert.True(string.IsNullOrEmpty(traces[2].StdErr));
+            
             // Job 1: Tx0 -> Tx1 (Tx1 starts after Tx0 finishes)
             // Job 2: Tx2 (Tx2 starts before Tx1 finishes, not strict, but should be)
             Assert.True(_mock.GetTransactionStartTime1(txs[1]) > _mock.GetTransactionEndTime1(txs[0]));
             // TODO: Improve this
             Assert.True(_mock.GetTransactionStartTime1(txs[2]) < _mock.GetTransactionEndTime1(txs[1]));
-            Assert.True(string.IsNullOrEmpty(traces[0].StdErr));
-            Assert.True(string.IsNullOrEmpty(traces[1].StdErr));
-            Assert.True(string.IsNullOrEmpty(traces[2].StdErr));
             var actualBalances = addresses.Select(address => _mock.GetBalance1(address));
             Assert.Equal(string.Join(" ", finalBalances), string.Join(" ", actualBalances));
         }

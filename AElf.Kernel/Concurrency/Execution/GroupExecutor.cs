@@ -29,6 +29,7 @@ namespace AElf.Kernel.Concurrency.Execution
         private int _currentRunningIndex = -1;
         private List<IActorRef> _actors = new List<IActorRef>();
         private Dictionary<Hash, TransactionTrace> _transactionTraces = new Dictionary<Hash, TransactionTrace>();
+        private Exception _batchingException;
 
         public GroupExecutor(Hash chainId, IActorRef serviceRouter, List<ITransaction> transactions, IActorRef resultCollector)
         {
@@ -50,10 +51,19 @@ namespace AElf.Kernel.Concurrency.Execution
                 case StartBatchingMessage startBatching:
                     if (_state == State.PendingBatching)
                     {
-                        _batched = _batcher.Process(_transactions);
-                        // TODO: Report and/or log batching outcomes
-                        CreateChildren();
-                        _state = State.ReadyToRun;
+                        _batchingException = null;
+                        try
+                        {
+                            _batched = _batcher.Process(_transactions);
+                            // TODO: Report and/or log batching outcomes
+                            CreateChildren();
+                            _state = State.ReadyToRun;
+                        }
+                        catch (Exception e)
+                        {
+                            _batchingException = e;
+                        }
+                        
                         RunNextOrStop();
                     }
                     break;
@@ -92,6 +102,22 @@ namespace AElf.Kernel.Concurrency.Execution
 
         private void RunNextOrStop()
         {
+            if (_batchingException != null && _startExecutionMessageReceived)
+            {
+                foreach (var txn in _transactions)
+                {
+                    var traceMsg = new TransactionTraceMessage(
+                        new TransactionTrace()
+                        {
+                            TransactionId = txn.GetHash() 
+                        }
+                    );
+                    traceMsg.TransactionTrace.StdErr += _batchingException + "\n";
+                    ForwardResult(traceMsg);
+                }
+                Context.Stop(Self);
+            }
+            
             if (_state == State.ReadyToRun && _startExecutionMessageReceived || _state == State.Running)
             {
                 _state = State.Running;

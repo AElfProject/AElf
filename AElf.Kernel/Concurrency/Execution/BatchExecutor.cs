@@ -35,6 +35,7 @@ namespace AElf.Kernel.Concurrency.Execution
 		private ChildType _childType;
 		private Dictionary<IActorRef, List<ITransaction>> _actorToTransactions = new Dictionary<IActorRef, List<ITransaction>>();
 		private Dictionary<Hash, TransactionTrace> _transactionTraces = new Dictionary<Hash, TransactionTrace>();
+		private Exception _groupingException;
 
         public BatchExecutor(Hash chainId, IActorRef serviceRouter, List<ITransaction> transactions, IActorRef resultCollector, ChildType childType)
 		{
@@ -58,11 +59,20 @@ namespace AElf.Kernel.Concurrency.Execution
                     if (_state == State.Initializing)
                     {
                         _servicePack = res.ServicePack;
-                        _grouper = new Grouper(_servicePack.ResourceDetectionService);
-                        _grouped = _grouper.Process(_transactions);
-                        // TODO: Report and/or log grouping outcomes
-                        CreateChildren();
-                        _state = State.ReadyToRun;
+	                    try
+	                    {
+		                    _groupingException = null;
+		                    _grouper = new Grouper(_servicePack.ResourceDetectionService);
+		                    _grouped = _grouper.Process(_transactions);
+		                    // TODO: Report and/or log grouping outcomes
+		                    CreateChildren();
+		                    _state = State.ReadyToRun;
+	                    }
+	                    catch (Exception e)
+	                    {
+		                    _groupingException = e;
+	                    }
+                        
                         MaybeStartChildren();
                     }
                     break;
@@ -104,6 +114,22 @@ namespace AElf.Kernel.Concurrency.Execution
 
 		private void MaybeStartChildren()
 		{
+			if (_groupingException != null && _startExecutionMessageReceived)
+			{
+				foreach (var txn in _transactions)
+				{
+					var traceMsg = new TransactionTraceMessage(
+						new TransactionTrace()
+						{
+							TransactionId = txn.GetHash() 
+						}
+					);
+					traceMsg.TransactionTrace.StdErr += _groupingException + "\n";
+					ForwardResult(traceMsg);
+				}
+				Context.Stop(Self);
+			}
+			
 			if (_state == State.ReadyToRun && _startExecutionMessageReceived)
 			{
 				foreach (var a in _actorToTransactions.Keys)
