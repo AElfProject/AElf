@@ -58,13 +58,14 @@ namespace AElf.Kernel.Miner
             var results =  await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
             
             // reset Promotable and update account context
-            await _txPoolService.ResetAndUpdate(results);
+            
             
             // TODO: commit tx results
             
             // generate block
             var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);
             
+            await _txPoolService.ResetAndUpdate(results);
             // sign block
             ECSigner signer = new ECSigner();
             ECSignature signature = signer.Sign(_keyPair, block.GetHash().GetHashBytes());

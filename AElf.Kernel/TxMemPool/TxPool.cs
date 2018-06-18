@@ -241,7 +241,7 @@ namespace AElf.Kernel.TxMemPool
             var alreadyExecutable = _executable.TryGetValue(addr, out var executableList) && executableList.Count != 0
                                     && tx.IncrementId >= nonce && (int) (tx.IncrementId - nonce) < executableList.Count;*/
             
-            // disgard it if cannot replace the tx with sam id already in waiting list
+            // disgard it if cannot replace the tx with same id already in waiting list
             if (waitingList.TryGetValue(tx.IncrementId, out var oldTx))
                 return ReplaceTx(tx, oldTx);
             

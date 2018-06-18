@@ -60,12 +60,7 @@ namespace AElf.Kernel.Tests.Miner
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.SmartContractZero/bin/Debug/netstandard2.0/AElf.Contracts.SmartContractZero.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
+                return ContractCodes.TestContractZeroCode;
             }
         }
         
@@ -73,12 +68,7 @@ namespace AElf.Kernel.Tests.Miner
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/AElf.Contracts.Examples.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
+                return ContractCodes.TestContractCode;
             }
         }
         
@@ -129,7 +119,7 @@ namespace AElf.Kernel.Tests.Miner
         public List<ITransaction> CreateTxs(Hash chainId)
         {
             var contractAddressZero = new Hash(chainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
-            
+
             var code = ExampleContractCode;
 
             var regExample = new SmartContractRegistration
@@ -138,11 +128,11 @@ namespace AElf.Kernel.Tests.Miner
                 ContractBytes = ByteString.CopyFrom(code),
                 ContractHash = code.CalculateHash()
             };
-
-
+            
+            
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
             ECSigner signer = new ECSigner();
-            var txnDep = new Transaction
+            var txnDep = new Transaction()
             {
                 From = keyPair.GetAddress(),
                 To = contractAddressZero,
@@ -159,8 +149,8 @@ namespace AElf.Kernel.Tests.Miner
                 }.ToByteArray()),
                 
                 Fee = TxPoolConfig.Default.FeeThreshold + 1
-                    
             };
+            
             Hash hash = txnDep.GetHash();
 
             ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
@@ -175,9 +165,6 @@ namespace AElf.Kernel.Tests.Miner
             return txs;
         }
         
-        
-        
-
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
         private readonly ITransactionManager _transactionManager;
@@ -191,13 +178,11 @@ namespace AElf.Kernel.Tests.Miner
         [Fact]
         public async Task SyncGenesisBlock()
         {
-            
-
-            var config = TxPoolConfig.Default;
+            var poolconfig = TxPoolConfig.Default;
             var chain = await CreateChain();
-            config.ChainId = chain.Id;
+            poolconfig.ChainId = chain.Id;
             
-            var pool = new TxPool(config, _logger);
+            var pool = new TxPool(poolconfig, _logger);
             
             var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
                 _transactionResultManager);
@@ -225,15 +210,17 @@ namespace AElf.Kernel.Tests.Miner
                 ResourceDetectionService = new NewMockResourceUsageDetectionService()
             }));
             _generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _serviceRouter), "exec");
-            
             _generalExecutor.Tell(new RequestAddChainExecutor(chain.Id));
-           
+            ExpectMsg<RespondAddChainExecutor>();
+
             IParallelTransactionExecutingService parallelTransactionExecutingService =
                 new ParallelTransactionExecutingService(sys);
             var synchronizer = new Kernel.Miner.Synchronizer(poolService, parallelTransactionExecutingService,
                 _chainManager, _blockManager);
             var res = await synchronizer.ExecuteBlock(block);
             Assert.True(res);
+            Assert.Equal((ulong)2, await _chainManager.GetChainCurrentHeight(chain.Id));
+            Assert.Equal(block.GetHash(), await _chainManager.GetChainLastBlockHash(chain.Id));
         }
     }
 }
