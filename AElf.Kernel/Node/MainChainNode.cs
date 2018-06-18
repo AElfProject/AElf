@@ -27,6 +27,8 @@ namespace AElf.Kernel.Node
         private ECKeyPair _nodeKeyPair;
 
         public byte[] Address => _nodeKeyPair.GetAddress();
+
+        public Hash PublicKey => _nodeKeyPair.PublicKey.Q.GetEncoded();
         
         private readonly ITxPoolService _poolService;
         private readonly ITransactionManager _transactionManager;

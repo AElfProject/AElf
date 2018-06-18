@@ -45,11 +45,14 @@ namespace AElf.Sdk.CSharp.Types
             await Api.GetDataProvider(Name).SetAsync(keyHash, value);
         }
 
-        
         public async Task<byte[]> GetValue(Hash keyHash)
         {
             return await Api.GetDataProvider(Name).GetAsync(keyHash);
         }
 
+        public IDataProvider GetSubDataProvider(string dataProviderKey)
+        {
+            return Api.GetDataProvider(Name).GetDataProvider(dataProviderKey);
+        }
     }
 }

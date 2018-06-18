@@ -1,4 +1,5 @@
-﻿namespace AElf.Kernel
+﻿// ReSharper disable once CheckNamespace
+namespace AElf.Kernel
 {
     /// <summary>
     /// Every smart contract was an account
@@ -6,9 +7,21 @@
     public interface IAccount 
     {
         /// <summary>
-        /// Get Account's Address, the address is the id for a account
+        /// Get Account's Hash value
         /// </summary>
         /// <returns></returns>
-        Hash GetAddress();
+        Hash GetAccountHash();
+
+        /// <summary>
+        /// Get Account's address
+        /// </summary>
+        /// <returns></returns>
+        byte[] GetAddress();
+
+        /// <summary>
+        /// Get address's hex string
+        /// </summary>
+        /// <returns></returns>
+        string GetAddressHex();
     }
 }

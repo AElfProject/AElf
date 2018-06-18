@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using AElf.Cryptography.ECDSA;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -8,26 +10,39 @@ namespace AElf.Kernel
     /// </summary>
     public class Account : IAccount
     {
-        public Account(Hash address)
+        // ReSharper disable once MemberCanBePrivate.Global
+        public Account(Hash accountHash)
         {
-            Address = address;
+            AccountHash = accountHash;
         }  
 
+        // ReSharper disable once MemberCanBeProtected.Global
         public Account():this(Hash.Zero)
         {
             
         }
-
-        public Hash Address { get; set; }
 
         public virtual byte[] Serialize()
         {
             throw new NotImplementedException();
         }
 
-        public Hash GetAddress()
+        // ReSharper disable once MemberCanBePrivate.Global
+        public Hash AccountHash { get; }
+
+        public Hash GetAccountHash()
         {
-            return Address;
+            return AccountHash;
+        }
+
+        public byte[] GetAddress()
+        {
+            return AccountHash.Value.Take(ECKeyPair.AddressLength).ToArray();
+        }
+        
+        public string GetAddressHex()
+        {
+            return BitConverter.ToString(GetAddress()).Replace("-", string.Empty).ToLower();
         }
     }
 }

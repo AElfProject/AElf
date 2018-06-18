@@ -54,31 +54,36 @@ namespace AElf.Kernel.Miner
         {
             // todo : this is fake
             var address = Hash.Generate().ToByteArray();
-            if (await _dpos.AbleToMine(address))
+            
+            if (!await _dpos.AbleToMine(address)) 
+                return null;
+            
+            if (Cts == null || Cts.IsCancellationRequested)
+                return null;
+            
+            var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
+            // TODO：dispatch txs with ISParallel, return list of tx results
+
+            if (await _dpos.TimeToGenerateExtraBlock())
             {
-                if (Cts == null || Cts.IsCancellationRequested)
-                    return null;
-            
-                var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
-                // TODO：dispatch txs with ISParallel, return list of tx results
-
-                if (await _dpos.TimeToGenerateExtraBlock(address))
+                // ReSharper disable once InconsistentNaming
+                var txForEBP = _dpos.GetTxsForExtraBlock();
+                foreach (var tx in txForEBP)
                 {
-                    await _txPoolService.AddTxAsync(await _dpos.GenerateEBPCalculationTransaction());
+                    await _txPoolService.AddTxAsync(tx);
                 }
-                
-                var results =  await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
-            
-                // generate block
-                var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);
-            
-                // reset Promotable and update account context
-                await _txPoolService.ResetAndUpdate(results);
-
-                return block;
             }
+                
+            var results =  await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
+            
+            // generate block
+            var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);
+            
+            // reset Promotable and update account context
+            await _txPoolService.ResetAndUpdate(results);
 
-            return null;
+            return block;
+
         }
 
         

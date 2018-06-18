@@ -27,10 +27,10 @@ namespace AElf.Kernel.Tests
             
             
             Mock <IAccount> account=new Mock<IAccount>();
-            account.Setup(a => a.GetAddress()).Returns( hash.Object );
+            account.Setup(a => a.GetAddress()).Returns( hash.Object.Value.Take(18).ToArray );
            
             Mock.Get(account.Object).Setup(a => a.Equals(It.IsAny<ITransaction>()))
-                .Returns<IAccount>(t =>t?.GetAddress().GetHashBytes() == account.Object.GetAddress().GetHashBytes());
+                .Returns<IAccount>(t =>t?.GetAddress() == account.Object.GetAddress());
             return account.Object;
         }
         
