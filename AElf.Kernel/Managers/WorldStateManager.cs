@@ -297,7 +297,41 @@ namespace AElf.Kernel.Managers
         {
             return path.SetBlockHash(_preBlockHash).GetPointerHash();
         }
-       
+
+        public async Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange)
+        {
+            // The code chunk is copied from DataProvider
+
+            //Generate the new pointer hash (using previous block hash)
+            var pointerHashAfter = stateValueChange.Path.CalculateHashWith(_preBlockHash);
+
+            var change = await GetChangeAsync(stateValueChange.Path);
+            if (change == null)
+            {
+                change = new Change
+                {
+                    After = pointerHashAfter
+                };
+            }
+            else
+            {
+                //See whether the latest changes of this Change happened in this height,
+                //If not, clear the change, because this Change is too old to support rollback.
+                if (_preBlockHash != change.LatestChangedBlockHash)
+                {
+                    change.ClearChangeBefores();
+                }
+
+                change.UpdateHashAfter(pointerHashAfter);
+            }
+
+            change.LatestChangedBlockHash = _preBlockHash;
+
+            await InsertChangeAsync(stateValueChange.Path, change);
+            await SetDataAsync(pointerHashAfter, stateValueChange.AfterValue.ToByteArray());
+            return change;
+        }
+
         #region Private methods
 
         /// <summary>
