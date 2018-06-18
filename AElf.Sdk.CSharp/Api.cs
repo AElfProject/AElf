@@ -24,10 +24,8 @@ namespace AElf.Sdk.CSharp
         public static void SetSmartContractContext(ISmartContractContext contractContext)
         {
             _smartContractContext = contractContext;
-            _dataProviders = new Dictionary<string, IDataProvider>()
-            {
-                {"", _smartContractContext.DataProvider}
-            };
+            _dataProviders = new Dictionary<string, IDataProvider>();
+            _dataProviders.Add("", _smartContractContext.DataProvider);
         }
 
         public static void SetTransactionContext(ITransactionContext transactionContext)
@@ -100,7 +98,7 @@ namespace AElf.Sdk.CSharp
             Task.Factory.StartNew(async () =>
             {
                 var executive = await _smartContractContext.SmartContractService.GetExecutiveAsync(contractAddress, _smartContractContext.ChainId);
-                await executive.SetTransactionContext(_lastInlineCallContext).Apply();
+                await executive.SetTransactionContext(_lastInlineCallContext).Apply(_smartContractContext.DataProvider.AutoCommit);
             }).Unwrap().Wait();
 
             _transactionContext.Trace.Logs.AddRange(_lastInlineCallContext.Trace.Logs);

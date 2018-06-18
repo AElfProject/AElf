@@ -18,6 +18,12 @@ message Transaction
     bytes P = 9;
 }
 
+message StateValueChange{
+    Hash Path = 1;
+    bytes BeforeValue = 2;
+    bytes AfterValue = 3;
+}
+
 message TransactionTrace
 {
     bytes RetVal = 1;
@@ -25,7 +31,8 @@ message TransactionTrace
     string StdErr = 3;
     repeated LogEvent Logs = 4;
     repeated TransactionTrace InlineTraces = 5;
-    int64 Elapsed = 6;
+    repeated StateValueChange ValueChanges = 6;
+    int64 Elapsed = 7;
 }
 
 message EventField

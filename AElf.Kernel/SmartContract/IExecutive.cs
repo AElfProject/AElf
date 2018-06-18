@@ -7,6 +7,6 @@ namespace AElf.Kernel
     {
         IExecutive SetSmartContractContext(ISmartContractContext contractContext);
         IExecutive SetTransactionContext(ITransactionContext transactionContext);
-        Task Apply();
+        Task Apply(bool autoCommit);
     }
 }

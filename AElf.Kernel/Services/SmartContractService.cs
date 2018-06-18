@@ -52,7 +52,8 @@ namespace AElf.Kernel.Services
             }
 
             // get account dataprovider
-            var dataProvider = (await _worldStateManager.OfChain(chainId)).GetAccountDataProvider(account).GetDataProvider();
+            var dataProvider = new CachedDataProvider((await _worldStateManager.OfChain(chainId))
+                .GetAccountDataProvider(account).GetDataProvider());
 
             // run smartcontract executive info and return executive
 

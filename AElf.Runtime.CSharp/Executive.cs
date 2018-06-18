@@ -48,6 +48,7 @@ namespace AElf.Runtime.CSharp
         private SetTransactionContextHandler _setTransactionContextHandler;
         private ISmartContract _smartContract;
         private ITransactionContext _currentTransactionContext;
+        private ISmartContractContext _currentSmartContractContext;
 
         public Executive(Module abiModule)
         {
@@ -88,6 +89,7 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidOperationException("Api type is not set yet.");
             }
             _setSmartContractContextHandler(smartContractContext);
+            _currentSmartContractContext = smartContractContext;
             return this;
         }
 
@@ -102,7 +104,7 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-        public async Task Apply()
+        public async Task Apply(bool autoCommit)
         {
             var s = _currentTransactionContext.Trace.StartTime = DateTime.UtcNow;
             try
@@ -132,8 +134,11 @@ namespace AElf.Runtime.CSharp
                         {
                             try
                             {
+                                _currentSmartContractContext.DataProvider.ClearCache();
+                                _currentSmartContractContext.DataProvider.AutoCommit = autoCommit;
                                 var retMsg = await handler(methodInfo, _smartContract, parameters);
                                 _currentTransactionContext.Trace.RetVal = ByteString.CopyFrom(retMsg.ToByteArray());
+                                _currentTransactionContext.Trace.ValueChanges.AddRange(_currentSmartContractContext.DataProvider.GetValueChanges());
                             }
                             catch (Exception ex)
                             {
@@ -162,8 +167,11 @@ namespace AElf.Runtime.CSharp
                         {
                             try
                             {
+                                _currentSmartContractContext.DataProvider.ClearCache();
+                                _currentSmartContractContext.DataProvider.AutoCommit = autoCommit;
                                 var retMsg = handler(methodInfo, _smartContract, parameters);
                                 _currentTransactionContext.Trace.RetVal = ByteString.CopyFrom(retMsg.ToByteArray());
+                                _currentTransactionContext.Trace.ValueChanges.AddRange(_currentSmartContractContext.DataProvider.GetValueChanges());
                             }
                             catch (Exception ex)
                             {

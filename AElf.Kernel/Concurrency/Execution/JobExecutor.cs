@@ -137,7 +137,7 @@ namespace AElf.Kernel.Concurrency.Execution
             try
             {
 
-                await executive.SetTransactionContext(txCtxt).Apply();
+                await executive.SetTransactionContext(txCtxt).Apply(true);
                 result.Logs.AddRange(txCtxt.Trace.FlattenedLogs);
                 // TODO: Check run results / logs etc.
                 result.Status = Status.Mined;
