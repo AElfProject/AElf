@@ -98,7 +98,8 @@ namespace AElf.Sdk.CSharp
             Task.Factory.StartNew(async () =>
             {
                 var executive = await _smartContractContext.SmartContractService.GetExecutiveAsync(contractAddress, _smartContractContext.ChainId);
-                await executive.SetTransactionContext(_lastInlineCallContext).Apply(_smartContractContext.DataProvider.AutoCommit);
+                // Inline calls are not auto-committed.
+                await executive.SetTransactionContext(_lastInlineCallContext).Apply(false);
             }).Unwrap().Wait();
 
             _transactionContext.Trace.Logs.AddRange(_lastInlineCallContext.Trace.Logs);

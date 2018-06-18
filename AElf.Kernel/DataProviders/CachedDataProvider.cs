@@ -53,21 +53,6 @@ namespace AElf.Kernel
 
         private readonly Dictionary<Hash, StateCache> _cache = new Dictionary<Hash, StateCache>();
 
-        private bool _autoCommit;
-
-        public bool AutoCommit
-        {
-            get => _autoCommit;
-            set
-            {
-                _autoCommit = value;
-                foreach (var dp in _children)
-                {
-                    dp.AutoCommit = value;
-                }
-            }
-        }
-
         private async Task<StateCache> GetStateAsync(Hash keyHash)
         {
             if (!_cache.TryGetValue(keyHash, out var state))
@@ -86,10 +71,7 @@ namespace AElf.Kernel
 
         public IDataProvider GetDataProvider(string name)
         {
-            var dp = new CachedDataProvider(_dataProvider.GetDataProvider(name))
-            {
-                AutoCommit = AutoCommit
-            };
+            var dp = new CachedDataProvider(_dataProvider.GetDataProvider(name));
             _children.Add(dp);
             return dp;
         }
@@ -98,11 +80,6 @@ namespace AElf.Kernel
         {
             var state = await GetStateAsync(keyHash);
             state.CurrentValue = obj;
-
-            if (AutoCommit)
-            {
-                return await _dataProvider.SetAsync(keyHash, obj);
-            }
 
             return null;
         }

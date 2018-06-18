@@ -64,9 +64,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			Assert.Equal(33, respond.RequestId);
 			Assert.Equal(RespondExecuteTransactions.RequestStatus.Executed, respond.Status);
 			var traces = respond.TransactionTraces;
-			
-			_mock.ApplyChanges(traces, _mock.ChainId1);
-			
+
 			Assert.True(string.IsNullOrEmpty(traces[0].StdErr));
 			Assert.True(string.IsNullOrEmpty(traces[1].StdErr));
 			Assert.True(string.IsNullOrEmpty(traces[2].StdErr));

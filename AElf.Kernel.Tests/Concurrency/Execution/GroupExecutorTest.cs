@@ -75,8 +75,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             }.OrderBy(y => txsHashes.IndexOf(y.TransactionId)).ToList();
             ExpectTerminated(executor1);
 
-            _mock.ApplyChanges(traces, _mock.ChainId1);
-            
             // Tx3 starts after all other Tx's are finished
             foreach (var tx in txs.GetRange(0, 3))
             {

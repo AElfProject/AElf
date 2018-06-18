@@ -58,6 +58,9 @@ namespace AElf.Kernel.Services
             // run smartcontract executive info and return executive
 
             executive = await runner.RunAsync(reg);
+
+            executive.SetWorldStateManager(_worldStateManager);
+            
             executive.SetSmartContractContext(new SmartContractContext()
             {
                 ChainId = chainId,

@@ -266,17 +266,5 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
         }
 
-        public void ApplyChanges(IEnumerable<TransactionTrace> traces, Hash chainId)
-        {
-            foreach (var trace in traces)
-            {
-                foreach (var vc in trace.ValueChanges)
-                {
-                    /* Not ready to support delayed commit yet #185
-                    _worldStateManager.ApplyStateValueChangeAsync(vc, chainId).Wait();
-                    */
-                }
-            }
-        }
     }
 }

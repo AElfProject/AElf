@@ -69,12 +69,6 @@ namespace AElf.Kernel.Miner
                 if (string.IsNullOrEmpty(trace.StdErr))
                 {
                     res.Logs.AddRange(trace.FlattenedLogs);
-                    /* Not ready to support delayed commit yet #185
-                    foreach (var vc in trace.ValueChanges)
-                    {
-                        await _worldStateManager.ApplyStateValueChangeAsync(vc, Config.ChainId);
-                    }
-                    */
                     res.Status = Status.Mined;
                 }
                 else

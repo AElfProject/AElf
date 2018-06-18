@@ -136,8 +136,6 @@ namespace AElf.Kernel.Concurrency.Execution
 
             try
             {
-
-                // Not ready to support delayed commit yet #185
                 await executive.SetTransactionContext(txCtxt).Apply(true);
                 trace.Logs.AddRange(txCtxt.Trace.FlattenedLogs);
                 // TODO: Check run results / logs etc.

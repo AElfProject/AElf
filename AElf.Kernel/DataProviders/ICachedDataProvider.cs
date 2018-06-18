@@ -7,6 +7,5 @@ namespace AElf.Kernel
     {
         IEnumerable<StateValueChange> GetValueChanges();
         void ClearCache();
-        bool AutoCommit { get; set; }
     }
 }

@@ -57,8 +57,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Watch(executor1);
             executor1.Tell(StartExecutionMessage.Instance);
             var trace = ExpectMsg<TransactionTraceMessage>().TransactionTrace;
-            
-            _mock.ApplyChanges(new List<TransactionTrace>(){trace}, chainId);
 
             Assert.Equal(tx1.GetHash(), trace.TransactionId);
             Assert.True(string.IsNullOrEmpty(trace.StdErr));
@@ -97,9 +95,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             executor1.Tell(StartExecutionMessage.Instance);
             var trace1 = ExpectMsg<TransactionTraceMessage>().TransactionTrace;
             var trace2 = ExpectMsg<TransactionTraceMessage>().TransactionTrace;
-            
-            _mock.ApplyChanges(new List<TransactionTrace>(){trace1, trace2}, chainId);
-            
+
             Assert.Equal(tx1.GetHash(), trace1.TransactionId);
             Assert.Equal(tx2.GetHash(), trace2.TransactionId);
             Assert.True(string.IsNullOrEmpty(trace1.StdErr));

@@ -75,8 +75,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 ExpectMsg<TransactionTraceMessage>().TransactionTrace,
             }.OrderBy(y => txsHashes.IndexOf(y.TransactionId)).ToList();
             ExpectTerminated(executor1);
-            
-            _mock.ApplyChanges(traces, _mock.ChainId1);
 
             // Job 1: Tx0 -> Tx1 (Tx1 starts after Tx0 finishes)
             // Job 2: Tx2 (Tx2 starts before Tx1 finishes, not strict, but should be)

@@ -64,7 +64,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             requestor.Tell(new LocalExecuteTransactionsMessage(_mock.ChainId1, txs, tcs));
             tcs.Task.Wait();
             var traces = tcs.Task.Result;
-            _mock.ApplyChanges(traces, _mock.ChainId1);
             
             foreach (var addFinbal in addresses.Zip(finalBalances, Tuple.Create))
             {
