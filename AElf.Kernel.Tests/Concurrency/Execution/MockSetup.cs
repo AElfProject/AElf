@@ -272,7 +272,9 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 foreach (var vc in trace.ValueChanges)
                 {
+                    /* Not ready to support delayed commit yet #185
                     _worldStateManager.ApplyStateValueChangeAsync(vc, chainId).Wait();
+                    */
                 }
             }
         }

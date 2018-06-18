@@ -119,12 +119,16 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply(false).Wait();
             
+            // Not ready to support delayed commit yet #185
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
+            
+            /* Not ready to support delayed commit yet #185
             foreach (var vc in tc.Trace.ValueChanges)
             {
                 _mock.WorldStateManager.ApplyStateValueChangeAsync(vc, ChainId);    
             }
+            */
             
             return tc.Trace.RetVal.DeserializeToBool();
         }
