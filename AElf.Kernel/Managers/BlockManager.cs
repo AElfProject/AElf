@@ -23,7 +23,7 @@ namespace AElf.Kernel.Managers
             _worldStateManager = worldStateManager;
         }
 
-        public async Task<Block> AddBlockAsync(Block block)
+        public async Task<IBlock> AddBlockAsync(IBlock block)
         {
             if (!Validation(block))
             {

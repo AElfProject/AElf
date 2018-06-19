@@ -1,24 +1,6 @@
-﻿using System;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Reflection;
-using AElf.Kernel;
-using AElf.Kernel.Storages;
-using AElf.Kernel.Extensions;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
-using AElf.Kernel.SmartContracts.CSharpSmartContract;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using ServiceStack;
+﻿using AElf.Kernel;
 using Xunit;
-using AElf.Runtime.CSharp;
 using Xunit.Frameworks.Autofac;
-using AElf.Contracts;
-using Path = AElf.Kernel.Path;
 
 namespace AElf.Runtime.CSharp.Tests
 {
@@ -26,229 +8,42 @@ namespace AElf.Runtime.CSharp.Tests
     public class RunnerTest
     {
         private MockSetup _mock;
-        private ISmartContractService _service;
+        private TestContractShim _contract1;
+        private TestContractShim _contract2;
         public RunnerTest(MockSetup mock)
         {
             _mock = mock;
-            _service = mock.SmartContractService;
+            _contract1 = new TestContractShim(_mock);
+            _contract2 = new TestContractShim(_mock, true);
         }
 
         [Fact]
-        public async Task Test()
+        public void Test()
         {
             Hash account0 = Hash.Generate();
             Hash account1 = Hash.Generate();
-            Hash contractAddress1 = _mock.SampleContractAddress1;
-            Hash contractAddress2 = _mock.SampleContractAddress2;
 
-            var executive1 = await _service.GetExecutiveAsync(contractAddress1, _mock.ChainId1);
-            executive1.SetSmartContractContext(new SmartContractContext()
-            {
-                ChainId = Hash.Zero,
-                ContractAddress = contractAddress1,
-                DataProvider = _mock.DataProvider1.GetDataProvider(),
-                SmartContractService = _service
-            });
+            // Initialize
+            _contract1.InitializeAsync(account0, 200);
+            _contract1.InitializeAsync(account1, 100);
+            _contract2.InitializeAsync(account0, 200);
+            _contract2.InitializeAsync(account1, 100);
 
-            var executive2 = await _service.GetExecutiveAsync(contractAddress2, _mock.ChainId2);
-            executive2.SetSmartContractContext(new SmartContractContext()
-            {
-                ChainId = Hash.Zero,
-                ContractAddress = contractAddress2,
-                DataProvider = _mock.DataProvider2.GetDataProvider(),
-                SmartContractService = _service
-            });
+            // Transfer
+            _contract1.Transfer(account0, account1, 10);
+            _contract2.Transfer(account0, account1, 20);
 
-            Hash sender = Hash.Generate();
+            // Check balance
+            var bal10 = _contract1.GetBalance(account0);
+            var bal20 = _contract2.GetBalance(account0);
+            var bal11 = _contract1.GetBalance(account1);
+            var bal21 = _contract2.GetBalance(account1);
 
-            var init0 = new Transaction()
-            {
-                From = sender,
-                To = Hash.Zero,
-                MethodName = "InitializeAsync",
-                Params = ByteString.CopyFrom(new Parameters()
-                {
-                    Params = {
-                                new Param
-                                {
-                                    HashVal = account0
-                                },
-                                new Param
-                                {
-                                    UlongVal = 200
-                                }
-                            }
-                }.ToByteArray())
-            };
+            Assert.Equal((ulong)190, bal10);
+            Assert.Equal((ulong)180, bal20);
 
-            var init1 = new Transaction()
-            {
-                From = sender,
-                To = Hash.Zero,
-                MethodName = "InitializeAsync",
-                Params = ByteString.CopyFrom(new Parameters()
-                {
-                    Params = {
-                                new Param
-                                {
-                                    HashVal = account1
-                                },
-                                new Param
-                                {
-                                    UlongVal = 100
-                                }
-                            }
-                }.ToByteArray())
-            };
-
-            var transfer1 = new Transaction
-            {
-                From = Hash.Zero,
-                To = Hash.Zero,
-                MethodName = "Transfer",
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                        Params = {
-                                new Param
-                                {
-                                    HashVal = account0
-                                },
-                                new Param
-                                {
-                                    HashVal = account1
-                                },
-                                new Param
-                                {
-                                    UlongVal = 10
-                                }
-                            }
-                    }
-                        .ToByteArray()
-                )
-            };
-
-            var transfer2 = new Transaction
-            {
-                From = Hash.Zero,
-                To = Hash.Zero,
-                MethodName = "Transfer",
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                        Params = {
-                                new Param
-                                {
-                                    HashVal = account0
-                                },
-                                new Param
-                                {
-                                    HashVal = account1
-                                },
-                                new Param
-                                {
-                                    UlongVal = 20
-                                }
-                            }
-                    }
-                        .ToByteArray()
-                )
-            };
-
-            await executive1.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = init0
-            }).Apply();
-
-            await executive1.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = init1
-            }).Apply();
-
-            await executive1.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = transfer1
-            }).Apply();
-
-
-            await executive2.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = init0
-            }).Apply();
-
-            await executive2.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = init1
-            }).Apply();
-
-            await executive2.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = transfer2
-            }).Apply();
-
-            var getb0 = new Transaction
-            {
-                From = Hash.Zero,
-                To = Hash.Zero,
-                MethodName = "GetBalance",
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                        Params = {
-                                new Param
-                                {
-                                    HashVal = account0
-                                }
-                            }
-                    }
-                        .ToByteArray()
-                )
-            };
-
-            var getb1 = new Transaction
-            {
-                From = Hash.Zero,
-                To = Hash.Zero,
-                MethodName = "GetBalance",
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                        Params = {
-                                new Param
-                                {
-                                    HashVal = account1
-                                }
-                            }
-                    }
-                        .ToByteArray()
-                )
-            };
-
-            var tc10 = new TransactionContext(){
-                Transaction = getb0  
-            };
-            var tc20 = new TransactionContext(){
-                Transaction = getb0  
-            };
-            var tc11 = new TransactionContext(){
-                Transaction = getb1
-            };
-            var tc21 = new TransactionContext(){
-                Transaction = getb1  
-            };
-            await executive1.SetTransactionContext(tc10).Apply();
-
-            await executive2.SetTransactionContext(tc20).Apply();
-
-            await executive1.SetTransactionContext(tc11).Apply();
-
-            await executive2.SetTransactionContext(tc21).Apply();
-
-            Assert.Equal((ulong)190, tc10.Trace.RetVal.Unpack<UInt64Value>().Value);
-            Assert.Equal((ulong)180, tc20.Trace.RetVal.Unpack<UInt64Value>().Value);
-
-            Assert.Equal((ulong)110, tc11.Trace.RetVal.Unpack<UInt64Value>().Value);
-            Assert.Equal((ulong)120, tc21.Trace.RetVal.Unpack<UInt64Value>().Value);
+            Assert.Equal((ulong)110, bal11);
+            Assert.Equal((ulong)120, bal21);
 
         }
     }

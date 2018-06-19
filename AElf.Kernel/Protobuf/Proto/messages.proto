@@ -20,7 +20,7 @@ message Transaction
 
 message TransactionTrace
 {
-    google.protobuf.Any RetVal = 1;
+    bytes RetVal = 1;
     string StdOut = 2;
     string StdErr = 3;
     repeated LogEvent Logs = 4;

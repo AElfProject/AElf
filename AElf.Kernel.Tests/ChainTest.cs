@@ -9,6 +9,7 @@ using AElf.Kernel.Storages;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using ServiceStack;
 
 namespace AElf.Kernel.Tests
@@ -39,12 +40,7 @@ namespace AElf.Kernel.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.SmartContractZero/bin/Debug/netstandard2.0/AElf.Contracts.SmartContractZero.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
+                return ContractCodes.TestContractZeroCode;
             }
         }
 
@@ -104,6 +100,8 @@ namespace AElf.Kernel.Tests
             block.FillTxsMerkleTreeRootInHeader();
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
+            block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+
             return block;
         }
     }

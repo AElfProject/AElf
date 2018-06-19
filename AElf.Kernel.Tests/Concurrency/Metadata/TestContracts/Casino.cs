@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Examples;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Extensions;
 using AElf.Sdk.CSharp;
@@ -14,7 +13,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
     public class Casino : CSharpSmartContract
     {
         [SmartContractFieldData("${this}.CasinoToken", DataAccessMode.AccountSpecific)]
-        public readonly Map CasinoToken = new Map("CasinoToken");
+        public readonly MapToUInt64<Hash> CasinoToken = new MapToUInt64<Hash>("CasinoToken");
 
         [SmartContractFieldData("${this}.ExchangeRate", DataAccessMode.ReadOnlyAccountSharing)]
         public ulong ExchangeRate = 100;
@@ -37,9 +36,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
         {
             if(await _tokenContractA.Transfer(from, Api.GetContractAddress(), value))
             {
-                var originBalance = (await CasinoToken.GetValue(from)).ToUInt64();
+                var originBalance = await CasinoToken.GetValueAsync(from);
                 originBalance += value * ExchangeRate;
-                await CasinoToken.SetValueAsync(from, originBalance.ToBytes());
+                await CasinoToken.SetValueAsync(from, originBalance);
                 return true;
             }
             else
@@ -54,9 +53,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
         {
             if(await _tokenContractB.Transfer(from, Api.GetContractAddress(), value))
             {
-                var originBalance = (await CasinoToken.GetValue(from)).ToUInt64();
+                var originBalance = await CasinoToken.GetValueAsync(from);
                 originBalance += value * GetExchangeRate();
-                await CasinoToken.SetValueAsync(from, originBalance.ToBytes());
+                await CasinoToken.SetValueAsync(from, originBalance);
                 return true;
             }
             else
@@ -73,8 +72,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
 
         public async Task InitializeAsync(IAccountDataProvider dataProvider)
         {
-            await CasinoToken.SetValueAsync("0".CalculateHash(), ((ulong)200).ToBytes());
-            await CasinoToken.SetValueAsync("1".CalculateHash(), ((ulong)100).ToBytes());
+            await CasinoToken.SetValueAsync("0".CalculateHash(), 200);
+            await CasinoToken.SetValueAsync("1".CalculateHash(), 100);
         }
 
         public override async Task InvokeAsync()
