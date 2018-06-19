@@ -15,15 +15,18 @@ namespace AElf.Test.ChainCreator
         
         static void Main(string[] args)
         {
-            BlockFactory fact = new BlockFactory();
-            Block b = fact.CreateBlock(Hash.Default);
+            /*BlockFactory fact = new BlockFactory();
+            Block b = fact.CreateBlock(Hash.Default);*/
             
-            var str = JsonFormatter.Default.Format(b);
-
-            Block t2 = JsonParser.Default.Parse<Block>(str);
+            var initializer = new AccountStateInitializer();
+            var balances = initializer.Balances(10);
+            
+            var str = balances.ToString();
 
             GetOrCreateKeystoreDir();
-            File.WriteAllText(GetKeyFileFullPath(DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss")), str);
+            var fullpath = GetKeyFileFullPath(DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss"));
+            Console.WriteLine(fullpath);
+            File.WriteAllText(fullpath, str);
         }
         
         internal static string GetKeyFileFullPath(string time)
