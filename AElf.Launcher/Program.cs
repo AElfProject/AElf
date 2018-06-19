@@ -52,6 +52,7 @@ namespace AElf.Launcher
             var nodeConfig = confParser.NodeConfig;
             var isMiner = confParser.IsMiner;
             var isNewChain = confParser.NewChain;
+            var initData = confParser.InitData;
             
             // Setup ioc 
             IContainer container = SetupIocContainer(isMiner, isNewChain, netConf, databaseConf, txPoolConf, minerConfig, nodeConfig);
@@ -92,13 +93,14 @@ namespace AElf.Launcher
                 IAElfNode node = scope.Resolve<IAElfNode>();
                
                 // Start the system
-                node.Start(nodeKey, confParser.Rpc);
+                node.Start(nodeKey, confParser.Rpc, initData);
 
                 Console.ReadLine();
             }
         }
 
-        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, IAElfNetworkConfig netConf, IDatabaseConfig databaseConf, ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig)
+        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, IAElfNetworkConfig netConf, 
+            IDatabaseConfig databaseConf, ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig)
         {
             var builder = new ContainerBuilder();
             
@@ -106,7 +108,6 @@ namespace AElf.Launcher
             builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
             
             // Module registrations
-            
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseModule(databaseConf));
@@ -133,7 +134,7 @@ namespace AElf.Launcher
                 using (JsonTextReader reader = new JsonTextReader(file))
                 {
                     JObject chain = (JObject)JToken.ReadFrom(reader);
-                    chainId = new Hash(ByteString.FromBase64(chain.GetValue("id").ToString()));
+                    chainId = new Hash(Convert.FromBase64String(chain.GetValue("id").ToString()));
                 }
             }
 

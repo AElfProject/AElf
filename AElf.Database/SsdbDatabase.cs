@@ -53,7 +53,7 @@ namespace AElf.Database
 
                 return true;
             }
-            catch
+            catch(Exception exception)
             {
                 return false;
             }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
@@ -23,17 +24,32 @@ namespace AElf.Kernel.Managers
             _worldStateManager = worldStateManager;
         }
 
-        public async Task AppendBlockToChainAsync(IBlock block)
+        public async Task<bool> AppendBlockToChainAsync(IBlock block)
         {
-            if(block.Header == null)
-                throw new InvalidDataException("Invalid block");
+            try
+            {
+                if(block.Header == null)
+                    throw new InvalidDataException("Invalid block");
 
-            var chainId = block.Header.ChainId;
-            await AppednBlockHeaderAsync(block.Header);
+                var chainId = block.Header.ChainId;
+                await AppednBlockHeaderAsync(block.Header);
 
-            await InitialHeightOfBlock(chainId);
-            await _heightOfBlock.SetAsync(new UInt64Value {Value = block.Header.Index}.CalculateHash(), 
-                block.GetHash().ToByteArray());
+                await InitialHeightOfBlock(chainId);
+                await _heightOfBlock.SetAsync(new UInt64Value {Value = block.Header.Index}.CalculateHash(), 
+                    block.GetHash().ToByteArray());
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+
+            return true;
+        }
+
+        public async Task<bool> Exists(Hash chainId)
+        {
+            var chain = await _chainStore.GetAsync(chainId);
+            return chain != null;
         }
 
         public async Task AppednBlockHeaderAsync(BlockHeader header)
@@ -60,9 +76,7 @@ namespace AElf.Kernel.Managers
             header.Index = height;
             await SetChainCurrentHeight(chainId, height + 1);
             await SetChainLastBlockHash(chainId, header.GetHash());
-
         }
-
 
         public Task<IChain> GetChainAsync(Hash id)
         {

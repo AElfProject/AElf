@@ -9,7 +9,7 @@ namespace AElf.Kernel.Managers
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        Task AppendBlockToChainAsync(IBlock block);
+        Task<bool> AppendBlockToChainAsync(IBlock block);
 
         /// <summary>
         /// append given header to one chain
@@ -17,7 +17,8 @@ namespace AElf.Kernel.Managers
         /// <param name="header"></param>
         /// <returns></returns>
         Task AppednBlockHeaderAsync(BlockHeader header);
-        
+
+        Task<bool> Exists(Hash chainId);
         Task<IChain> GetChainAsync(Hash id);
         Task<IChain> AddChainAsync(Hash chainId, Hash genesisBlockHash);
         

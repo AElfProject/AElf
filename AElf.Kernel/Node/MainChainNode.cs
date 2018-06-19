@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Cryptography;
@@ -16,13 +17,15 @@ using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Newtonsoft.Json;
 using NLog;
+using NLog.Common;
 
 namespace AElf.Kernel.Node
 {
     [LoggerName("Node")]
     public class MainChainNode : IAElfNode
-    {
+    {   
         private ECKeyPair _nodeKeyPair;
         
         private readonly ITxPoolService _poolService;
@@ -36,12 +39,19 @@ namespace AElf.Kernel.Node
         private readonly IBlockVaildationService _blockVaildationService;
         private readonly IChainContextService _chainContextService;
         private readonly ISynchronizer _synchronizer;
+        private readonly IBlockManager _blockManager;
+        private readonly IChainManager _chainManager;
+        private readonly IChainCreationService _chainCreationService;
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner, 
-            IAccountContextService accountContextService, IBlockVaildationService blockVaildationService, 
-            IChainContextService chainContextService, ISynchronizer synchronizer, IChainCreationService chainCreationService)
+            IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
+                ISynchronizer synchronizer, IChainCreationService chainCreationService, 
+                IChainContextService chainContextService, IBlockManager blockManager, IChainManager chainManager)
         {
+            _chainCreationService = chainCreationService;
+            _chainManager = chainManager;
+            _blockManager = blockManager;
             _poolService = poolService;
             _protocolDirector = protocolDirector;
             _transactionManager = txManager;
@@ -55,8 +65,46 @@ namespace AElf.Kernel.Node
             _synchronizer = synchronizer;
         }
 
-        public void Start(ECKeyPair nodeKeyPair, bool startRpc)
+        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, string initdata)
         {
+            if (_nodeConfig == null)
+            {
+                _logger?.Log(LogLevel.Error, "No node configuration.");
+                return false;
+            }
+            
+            if (_nodeConfig.ChainId?.Value == null || _nodeConfig.ChainId.Value.Length <= 0)
+            {
+                _logger?.Log(LogLevel.Error, "No chain id.");
+                return false;
+            }
+
+            try
+            {
+                bool chainExists = _chainManager.Exists(_nodeConfig.ChainId).Result;
+            
+                if (!chainExists)
+                {
+                    // Creation of the chain if it doesn't already exist
+                    var smartContractZeroReg = new SmartContractRegistration { Category = 0, ContractHash = Hash.Zero };
+                    var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg).Result;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger?.Log(LogLevel.Error, "Could not create the chain : " + _nodeConfig.ChainId.Value.ToBase64());
+            }
+            
+            
+            if (!string.IsNullOrWhiteSpace(initdata))
+            {
+                if (!InitialDebugSync(initdata))
+                {
+                    //todo log 
+                    return false;
+                }
+            }
+            
             _nodeKeyPair = nodeKeyPair;
             
             if (startRpc)
@@ -79,6 +127,47 @@ namespace AElf.Kernel.Node
             {
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
+
+            return true;
+        }
+
+        private bool InitialDebugSync(string initFileName)
+        {
+            try
+            {
+                string appFolder = _nodeConfig.DataDir;
+                var fullPath = System.IO.Path.Combine(appFolder, "tests", initFileName);
+
+                Block b = null;
+                using (StreamReader r = new StreamReader(fullPath))
+                {
+                    string jsonChain = r.ReadToEnd();
+                    b = JsonParser.Default.Parse<Block>(jsonChain);
+                }
+
+                if (b != null)
+                {
+                    var r = _chainManager.AppendBlockToChainAsync(b).Result;
+                    var bd = _blockManager.AddBlockAsync(b).Result;
+                    
+                    
+                    Block blockOfHeight1 = _blockManager.GetBlockByHeight(_nodeConfig.ChainId, 1).Result;
+                    
+                }
+                else
+                {
+                    ;
+                }
+
+
+            }
+            catch (Exception e)
+            {
+                ;
+                return false;
+            }        
+
+            return true;
         }
         
 
@@ -120,7 +209,7 @@ namespace AElf.Kernel.Node
             
             try
             {
-                //res = await _poolService.AddTxAsync(tx);
+                res = await _poolService.AddTxAsync(tx);
             }
             catch (Exception e)
             {
