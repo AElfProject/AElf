@@ -19,7 +19,7 @@ namespace AElf.Runtime.CSharp
 {
     public class Executive : IExecutive
     {
-        private readonly Dictionary<string, Func<MethodInfo, object, object[], Task<Any>>> _asyncApplyHanders = new Dictionary<string, Func<MethodInfo, object, object[], Task<Any>>>()
+        private readonly Dictionary<string, Func<MethodInfo, object, object[], Task<IMessage>>> _asyncApplyHanders = new Dictionary<string, Func<MethodInfo, object, object[], Task<IMessage>>>()
         {
             {"void", InvokeAsyncHandlers.ForVoidReturnType},
             {"bool", InvokeAsyncHandlers.ForBoolReturnType},
@@ -30,7 +30,7 @@ namespace AElf.Runtime.CSharp
             {"string", InvokeAsyncHandlers.ForStringReturnType},
             {"byte[]", InvokeAsyncHandlers.ForBytesReturnType}
         };
-        private readonly Dictionary<string, Func<MethodInfo, object, object[], Any>> _applyHanders = new Dictionary<string, Func<MethodInfo, object, object[], Any>>()
+        private readonly Dictionary<string, Func<MethodInfo, object, object[], IMessage>> _applyHanders = new Dictionary<string, Func<MethodInfo, object, object[], IMessage>>()
         {
             {"void", InvokeHandlers.ForVoidReturnType},
             {"bool", InvokeHandlers.ForBoolReturnType},
@@ -113,8 +113,7 @@ namespace AElf.Runtime.CSharp
                     var methodInfo = _smartContract.GetType().GetMethod(methodName);
                     var tx = _currentTransactionContext.Transaction;
                     //var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
-                    var ph = ParamsHolder.Parser.ParseFrom(tx.Params);
-                    var parameters = ph.Unpack(methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
+                    var parameters = ParamsPacker.Unpack(tx.Params.ToByteArray(), methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
                     if (methodAbi.IsAsync)
                     {
                         if (!_asyncApplyHanders.TryGetValue(methodAbi.ReturnType, out var handler))
@@ -133,7 +132,8 @@ namespace AElf.Runtime.CSharp
                         {
                             try
                             {
-                                _currentTransactionContext.Trace.RetVal = await handler(methodInfo, _smartContract, parameters);
+                                var retMsg = await handler(methodInfo, _smartContract, parameters);
+                                _currentTransactionContext.Trace.RetVal = ByteString.CopyFrom(retMsg.ToByteArray());
                             }
                             catch (Exception ex)
                             {
@@ -162,7 +162,8 @@ namespace AElf.Runtime.CSharp
                         {
                             try
                             {
-                                _currentTransactionContext.Trace.RetVal = handler(methodInfo, _smartContract, parameters);
+                                var retMsg = handler(methodInfo, _smartContract, parameters);
+                                _currentTransactionContext.Trace.RetVal = ByteString.CopyFrom(retMsg.ToByteArray());
                             }
                             catch (Exception ex)
                             {

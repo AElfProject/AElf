@@ -125,7 +125,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsHolder.Pack(regExample).ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(regExample))
             };
 
             var txnCtxt = new TransactionContext()
@@ -136,7 +136,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply();
 
-            var address = (Hash)txnCtxt.Trace.RetVal.AnyToPbMessage(typeof(Hash));
+            var address = txnCtxt.Trace.RetVal.DeserializeToPbMessage<Hash>();
 
             var copy = await _smartContractManager.GetAsync(address);
 
@@ -174,7 +174,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsHolder.Pack(regExample).ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(regExample))
             };
 
             var txnCtxt = new TransactionContext()
@@ -185,7 +185,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply();
 
-            var address = txnCtxt.Trace.RetVal.Unpack<Hash>();
+            var address = txnCtxt.Trace.RetVal.DeserializeToPbMessage<Hash>();
 
             #region initialize account balance
             var account = Hash.Generate();
@@ -195,7 +195,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 To = address,
                 IncrementId = NewIncrementId(),
                 MethodName = "InitializeAsync",
-                Params = ByteString.CopyFrom(ParamsHolder.Pack(account, (ulong)101).ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(account, (ulong)101))
             };
             var txnInitCtxt = new TransactionContext()
             {
@@ -212,7 +212,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 To = address,
                 IncrementId = NewIncrementId(),
                 MethodName = "GetBalance",
-                Params = ByteString.CopyFrom(ParamsHolder.Pack(account).ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(account))
             };
             var txnBalCtxt = new TransactionContext()
             {
@@ -220,7 +220,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
             await executiveUser.SetTransactionContext(txnBalCtxt).Apply();
 
-            Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.AnyToUInt64());
+            Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.DeserializeToUInt64());
             #endregion
         }
     }

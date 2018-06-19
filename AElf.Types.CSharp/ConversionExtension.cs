@@ -10,6 +10,16 @@ namespace AElf.Types.CSharp
     public static class ConversionExtension
     {
         #region bool
+        public static bool DeserializeToBool(this byte[] bytes)
+        {
+            return BoolValue.Parser.ParseFrom(bytes).Value;
+        }
+        
+        public static bool DeserializeToBool(this ByteString bs)
+        {
+            return bs.ToByteArray().DeserializeToBool();
+        }
+
         public static IMessage ToPbMessage(this bool value)
         {
             return new BoolValue() { Value = value };
@@ -26,9 +36,19 @@ namespace AElf.Types.CSharp
         }
         #endregion bool
         #region int
+        public static int DeserializeToInt32(this byte[] bytes)
+        {
+            return SInt32Value.Parser.ParseFrom(bytes).Value;
+        }
+        
+        public static int DeserializeToInt32(this ByteString bs)
+        {
+            return bs.ToByteArray().DeserializeToInt32();
+        }
+
         public static IMessage ToPbMessage(this int value)
         {
-            return new Int32Value() { Value = value };
+            return new SInt32Value() { Value = value };
         }
 
         public static Any ToAny(this int value)
@@ -38,10 +58,20 @@ namespace AElf.Types.CSharp
 
         public static int AnyToInt32(this Any any)
         {
-            return any.Unpack<Int32Value>().Value;
+            return any.Unpack<SInt32Value>().Value;
         }
         #endregion int
         #region uint
+        public static uint DeserializeToUInt32(this byte[] bytes)
+        {
+            return UInt32Value.Parser.ParseFrom(bytes).Value;
+        }
+        
+        public static uint DeserializeToUInt32(this ByteString bs)
+        {
+            return bs.ToByteArray().DeserializeToUInt32();
+        }
+
         public static IMessage ToPbMessage(this uint value)
         {
             return new UInt32Value() { Value = value };
@@ -58,9 +88,19 @@ namespace AElf.Types.CSharp
         }
         #endregion uint
         #region long
+        public static long DeserializeToInt64(this byte[] bytes)
+        {
+            return SInt64Value.Parser.ParseFrom(bytes).Value;
+        }
+        
+        public static long DeserializeToInt64(this ByteString bs)
+        {
+            return bs.ToByteArray().DeserializeToInt64();
+        }
+
         public static IMessage ToPbMessage(this long value)
         {
-            return new Int64Value() { Value = value };
+            return new SInt64Value() { Value = value };
         }
 
         public static Any ToAny(this long value)
@@ -70,10 +110,20 @@ namespace AElf.Types.CSharp
 
         public static long AnyToInt64(this Any any)
         {
-            return any.Unpack<Int64Value>().Value;
+            return any.Unpack<SInt64Value>().Value;
         }
         #endregion long
         #region ulong
+        public static ulong DeserializeToUInt64(this byte[] bytes)
+        {
+            return UInt64Value.Parser.ParseFrom(bytes).Value;
+        }
+        
+        public static ulong DeserializeToUInt64(this ByteString bs)
+        {
+            return bs.ToByteArray().DeserializeToUInt64();
+        }
+
         public static IMessage ToPbMessage(this ulong value)
         {
             return new UInt64Value() { Value = value };
@@ -90,6 +140,16 @@ namespace AElf.Types.CSharp
         }
         #endregion ulong
         #region string
+        public static string DeserializeToString(this byte[] bytes)
+        {
+            return StringValue.Parser.ParseFrom(bytes).Value;
+        }
+
+        public static string DeserializeToString(this ByteString bs)
+        {
+            return bs.ToByteArray().DeserializeToString();
+        }
+        
         public static IMessage ToPbMessage(this string value)
         {
             return new StringValue() { Value = value };
@@ -106,6 +166,16 @@ namespace AElf.Types.CSharp
         }
         #endregion string
         #region byte[]
+        public static byte[] DeserializeToBytes(this byte[] bytes)
+        {
+            return BytesValue.Parser.ParseFrom(bytes).Value.ToByteArray();
+        }
+
+        public static byte[] DeserializeToBytes(this ByteString bs)
+        {
+            return bs.ToByteArray().DeserializeToBytes();
+        }
+        
         public static IMessage ToPbMessage(this byte[] value)
         {
             return new BytesValue() { Value = ByteString.CopyFrom(value) };
@@ -122,6 +192,18 @@ namespace AElf.Types.CSharp
         }
         #endregion byte[]
         #region IMessage
+        public static T DeserializeToPbMessage<T>(this byte[] bytes) where T : IMessage, new()
+        {
+            var obj = new T();
+            obj.MergeFrom(bytes);
+            return obj;
+        }
+        
+        public static T DeserializeToPbMessage<T>(this ByteString bs) where T : IMessage, new()
+        {
+            return bs.ToByteArray().DeserializeToPbMessage<T>();
+        }
+
         public static IMessage ToPbMessage(this IMessage value)
         {
             return value;
@@ -155,6 +237,20 @@ namespace AElf.Types.CSharp
         }
         #endregion IMessage
         #region UserType
+        public static T DeserializeToUserType<T>(this byte[] bytes) where T : UserType, new()
+        {
+            var obj = new T();
+            var msg = new UserTypeHolder();
+            msg.MergeFrom(bytes);
+            obj.Unpack(msg);
+            return obj;
+        }
+        
+        public static T DeserializeToUserType<T>(this ByteString bs) where T : UserType, new()
+        {
+            return bs.ToByteArray().DeserializeToUserType<T>();
+        }
+
         public static IMessage ToPbMessage(this UserType value)
         {
             return value.Pack();

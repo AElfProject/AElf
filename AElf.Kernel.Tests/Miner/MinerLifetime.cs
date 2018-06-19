@@ -29,6 +29,7 @@ using Xunit.Frameworks.Autofac;
 using ServiceStack;
 using AElf.Runtime.CSharp;
 using NLog;
+using AElf.Types.CSharp;
 
 namespace AElf.Kernel.Tests.Miner
 {

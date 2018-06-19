@@ -162,7 +162,7 @@ namespace AElf.Sdk.CSharp.Types
         }
     }
 
-    public class MapToInt32<TKey> : Map<TKey, Int32Value> where TKey : IMessage
+    public class MapToInt32<TKey> : Map<TKey, SInt32Value> where TKey : IMessage
     {
         public MapToInt32(string name) : base(name)
         {
@@ -176,7 +176,7 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task SetValueAsync(TKey key, int value)
         {
-            await base.SetValueAsync(key, new Int32Value()
+            await base.SetValueAsync(key, new SInt32Value()
             {
                 Value = value
             });
