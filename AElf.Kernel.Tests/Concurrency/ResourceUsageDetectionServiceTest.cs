@@ -17,21 +17,20 @@ namespace AElf.Kernel.Tests.Concurrency
     public class ResourceUsageDetectionServiceTest
     {
         private IDataStore _dataStore;
-        private ChainFunctionMetadataTemplate _template;
 
-        public ResourceUsageDetectionServiceTest(IDataStore dataStore, ChainFunctionMetadataTemplate template)
+        public ResourceUsageDetectionServiceTest(IDataStore dataStore)
         {
             _dataStore = dataStore;
-            _template = template;
         }
 
         [Fact]
         public async Task TestResoruceDetection()
         {
-            Hash chainId = _template.ChainId;
-            await _template.TryAddNewContract(typeof(TestContractC));
-            await _template.TryAddNewContract(typeof(TestContractB));
-            await _template.TryAddNewContract(typeof(TestContractA));
+            ChainFunctionMetadataTemplate template = new ChainFunctionMetadataTemplate(_dataStore, Hash.Generate());
+            Hash chainId = template.ChainId;
+            await template.TryAddNewContract(typeof(TestContractC));
+            await template.TryAddNewContract(typeof(TestContractB));
+            await template.TryAddNewContract(typeof(TestContractA));
             
             
             var addrA = new Hash("TestContractA".CalculateHash());
@@ -45,7 +44,7 @@ namespace AElf.Kernel.Tests.Concurrency
             referenceBookForB.Add("ContractC", addrC);
             var referenceBookForC = new Dictionary<string, Hash>();
             
-            ChainFunctionMetadata cfms = new ChainFunctionMetadata(_template, _dataStore);
+            ChainFunctionMetadata cfms = new ChainFunctionMetadata(template, _dataStore);
             
             cfms.DeployNewContract("TestContractC", addrC, referenceBookForC);
             cfms.DeployNewContract("TestContractB", addrB, referenceBookForB);
@@ -86,10 +85,13 @@ namespace AElf.Kernel.Tests.Concurrency
 
             var groundTruth = new List<string>()
             {
+                addrA.Value.ToBase64() + ".resource0" + "." + Hash.Zero.Value.ToBase64(),
                 addrA.Value.ToBase64() + ".resource0" + "." + addr0.Value.ToBase64(),
                 addrA.Value.ToBase64() + ".resource0" + "." + addr1.Value.ToBase64(),
+                addrB.Value.ToBase64() + ".resource2" + "." + Hash.Zero.Value.ToBase64(),
                 addrB.Value.ToBase64() + ".resource2" + "." + addr0.Value.ToBase64(),
                 addrB.Value.ToBase64() + ".resource2" + "." + addr1.Value.ToBase64(),
+                addrC.Value.ToBase64() + ".resource4" + "." + Hash.Zero.Value.ToBase64(),
                 addrC.Value.ToBase64() + ".resource4" + "." + addr0.Value.ToBase64(),
                 addrC.Value.ToBase64() + ".resource4" + "." + addr1.Value.ToBase64(),
                 addrA.Value.ToBase64() + ".resource2"

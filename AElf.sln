@@ -65,6 +65,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CLI.Tests", "AElf.CLI.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types.CSharp.Tests", "AElf.Types.CSharp.Tests\AElf.Types.CSharp.Tests.csproj", "{BE325074-BE8D-448D-931B-57F5812F7714}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network.Tests", "AElf.Network.Tests\AElf.Network.Tests.csproj", "{A7C473B4-071E-4466-8DBC-F800C78937DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -199,6 +201,10 @@ Global
 		{BE325074-BE8D-448D-931B-57F5812F7714}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE325074-BE8D-448D-931B-57F5812F7714}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE325074-BE8D-448D-931B-57F5812F7714}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7C473B4-071E-4466-8DBC-F800C78937DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7C473B4-071E-4466-8DBC-F800C78937DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7C473B4-071E-4466-8DBC-F800C78937DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7C473B4-071E-4466-8DBC-F800C78937DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

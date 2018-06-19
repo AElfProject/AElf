@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using AElf.Kernel.Concurrency.Metadata;
 
@@ -15,7 +16,8 @@ namespace AElf.Kernel.Concurrency.Scheduling
 
         public IEnumerable<string> GetResources(ITransaction transaction)
         {
-            var addrs = Parameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal).Where(y => y != null).Select(a => a.Value.ToBase64()).ToList();
+            var addrs = Parameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal).Where(y => y != null).Select(a => a.Value.ToBase64()).ToImmutableHashSet();
+            addrs = addrs.Add(transaction.From.Value.ToBase64());
 
             var results = new List<string>();
             var resourceList = _chainFunctionMetadata.GetFunctionMetadata(GetFunctionName(transaction)).FullResourceSet;
