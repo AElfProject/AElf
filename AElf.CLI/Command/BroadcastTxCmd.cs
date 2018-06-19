@@ -7,7 +7,7 @@ namespace AElf.CLI.Command
 {
     public class SendTransactionCmd : CliCommandDefinition
     {
-        private const string CommandName = "send-tx";
+        private const string CommandName = "broadcast_tx";
         
         public SendTransactionCmd() : base(CommandName)
         {
@@ -17,7 +17,7 @@ namespace AElf.CLI.Command
 
         public override string GetUsage()
         {
-            return "usage: send-tx <address>";
+            return "usage: broadcast_tx <address>";
         }
 
         public override string Validate(CmdParseResult parsedCmd)
