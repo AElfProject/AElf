@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using AElf.Kernel.Miner;
 using AElf.Network.Peers;
 
 namespace AElf.Kernel.Node.Protocol
@@ -69,13 +71,26 @@ namespace AElf.Kernel.Node.Protocol
             // Start sync from block hash
         }
 
-        public void AddBlockToSync(Block block)
+        /// <summary>
+        /// When a block is received through the network it is placed here for sync
+        /// purposes. Most of the time it will directly throw the <see cref="BlockSynched"/>
+        /// event. In the case that the transaction was not received through the
+        /// network, it will be placed here to sync.
+        /// </summary>
+        /// <param name="block"></param>
+        public async Task AddBlockToSync(Block block)
         {
             List<Hash> missingTxs = _mainChainNode.GetMissingTransactions(block);
 
+            // If no transactions are missing, directly fire the synced event.
             if (!missingTxs.Any())
             {
-                BlockSynched?.Invoke(this, new BlockSynchedArgs { Block = block });
+                BlockExecutionResult res = await _mainChainNode.AddBlock(block);
+                
+            }
+            else
+            {
+                
             }
             
             // Called when the node receives a block

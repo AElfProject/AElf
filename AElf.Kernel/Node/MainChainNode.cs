@@ -209,30 +209,33 @@ namespace AElf.Kernel.Node
         }
 
         /// <summary>
-        /// Add a new block received from network
+        /// Add a new block received from network by first validating it and then
+        /// executing it.
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        public async Task<bool> AddBlock(IBlock block)
+        public async Task<BlockExecutionResult> AddBlock(IBlock block)
         {
             try
             {
                 var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
                 var error = await _blockVaildationService.ValidateBlockAsync(block, context);
+                
                 if (error != ValidationError.Success)
                 {
                     _logger.Trace("Invalid block received from network");
-                    return false;
+                    return new BlockExecutionResult(false, error);
                 }
             
-                return await _synchronizer.ExecuteBlock(block);
+                await _synchronizer.ExecuteBlock(block);
+
+                return new BlockExecutionResult();
             }
             catch (Exception e)
             {
                 _logger.Error(e, "Block synchronzing failed");
-                return false;
+                return new BlockExecutionResult(e);
             }
-            
         }
         
         /// <summary>
