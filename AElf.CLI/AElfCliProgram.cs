@@ -106,6 +106,10 @@ namespace AElf.CLI
                         HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
                         string resp = reqhttp.DoRequest(req.ToString());
                     }
+                    else if (def is BroadcastBlockCmd bc)
+                    {
+                        throw new NotImplementedException();
+                    }
                     else
                     {
                         _accountManager.ProcessCommand(parsedCmd);
