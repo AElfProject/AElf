@@ -25,8 +25,13 @@ namespace AElf.Network.Peers
         private readonly IPeerDatabase _peerDatabase;
         private readonly ILogger _logger;
 
+        // List of bootnodes that the manager was started with
         private readonly List<NodeData> _bootnodes = new List<NodeData>();
         
+        // List of connected bootnodes
+        private readonly List<IPeer> _bootnodePeers = new List<IPeer>();
+        
+        // List of non bootnode peers
         private readonly List<IPeer> _peers = new List<IPeer>();
         
         private readonly NodeData _nodeData;
@@ -418,8 +423,16 @@ namespace AElf.Network.Peers
         {
             if (sender != null && e is PeerDisconnectedArgs args && args.Peer != null)
             {
-                args.Peer.MessageReceived -= ProcessPeerMessage;
-                args.Peer.PeerDisconnected -= ProcessClientDisconnection;
+                IPeer peer = args.Peer;
+                
+                peer.MessageReceived -= ProcessPeerMessage;
+                peer.PeerDisconnected -= ProcessClientDisconnection;
+
+                if (peer.IsBootnode)
+                {
+                    _bootnodePeers.Remove(peer);
+                }
+                
                 RemovePeer(args.Peer);
             }
         }

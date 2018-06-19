@@ -137,13 +137,11 @@ namespace AElf.Launcher
             
             if (IsMiner)
             {
-                if (string.IsNullOrEmpty(opts.CoinBase))
+                if (!string.IsNullOrEmpty(opts.CoinBase))
                 {
-                    
+                    // full node for private chain
+                    Coinbase = ByteString.CopyFromUtf8(opts.CoinBase);
                 }
-                // full node for private chain
-                Coinbase = ByteString.CopyFromUtf8(opts.CoinBase);
-
             }
             
             MinerConfig = new MinerConfig
