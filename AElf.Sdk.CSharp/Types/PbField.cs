@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Types.CSharp;
 
 namespace AElf.Sdk.CSharp.Types
 {
@@ -65,14 +66,14 @@ namespace AElf.Sdk.CSharp.Types
 
     public class Int32Field
     {
-        private PbField<Int32Value> _inner;
+        private PbField<SInt32Value> _inner;
         public Int32Field(string name)
         {
-            _inner = new PbField<Int32Value>(name);
+            _inner = new PbField<SInt32Value>(name);
         }
         public async Task SetAsync(int value)
         {
-            await _inner.SetAsync(new Int32Value() { Value = value });
+            await _inner.SetAsync(new SInt32Value() { Value = value });
         }
         public async Task<int> GetAsync()
         {
@@ -99,14 +100,14 @@ namespace AElf.Sdk.CSharp.Types
 
     public class Int64Field
     {
-        private PbField<Int64Value> _inner;
+        private PbField<SInt64Value> _inner;
         public Int64Field(string name)
         {
-            _inner = new PbField<Int64Value>(name);
+            _inner = new PbField<SInt64Value>(name);
         }
         public async Task SetAsync(long value)
         {
-            await _inner.SetAsync(new Int64Value() { Value = value });
+            await _inner.SetAsync(new SInt64Value() { Value = value });
         }
         public async Task<long> GetAsync()
         {

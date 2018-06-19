@@ -24,12 +24,14 @@ namespace AElf.Sdk.CSharp.Tests
         {
             get
             {
-                string filePath = "../../../../AElf.Sdk.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/AElf.Sdk.CSharp.Tests.TestContract.dll";
+                string filePath =
+                    "../../../../AElf.Sdk.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/AElf.Sdk.CSharp.Tests.TestContract.dll";
                 byte[] code;
                 using (var file = File.OpenRead(System.IO.Path.GetFullPath(filePath)))
                 {
                     code = file.ReadFully();
                 }
+
                 return code;
             }
         }
@@ -56,14 +58,14 @@ namespace AElf.Sdk.CSharp.Tests
                 To = ContractAddres,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "GetTotalSupply",
-                Params = ByteString.CopyFrom(ParamsHolder.Pack().ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
             var tc = new TransactionContext()
             {
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            return tc.Trace.RetVal.AnyToUInt32();
+            return tc.Trace.RetVal.DeserializeToUInt32();
         }
 
         public bool SetAccount(string name, Hash address)
@@ -74,14 +76,14 @@ namespace AElf.Sdk.CSharp.Tests
                 To = ContractAddres,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "SetAccount",
-                Params = ByteString.CopyFrom(ParamsHolder.Pack(name, address).ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(name, address))
             };
             var tc = new TransactionContext()
             {
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            return tc.Trace.RetVal.AnyToBool();
+            return tc.Trace.RetVal.DeserializeToBool();
         }
 
         public string GetAccountName()
@@ -92,15 +94,14 @@ namespace AElf.Sdk.CSharp.Tests
                 To = ContractAddres,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "GetAccountName",
-                Params = ByteString.CopyFrom(ParamsHolder.Pack().ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
             var tc = new TransactionContext()
             {
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply().Wait();
-            return tc.Trace.RetVal.AnyToString();
+            return tc.Trace.RetVal.DeserializeToString();
         }
-
     }
 }

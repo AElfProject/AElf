@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using ProtobufSerializer = AElf.Sdk.CSharp.ProtobufSerializer;
+using AElf.Types.CSharp;
 
 namespace AElf.Sdk.CSharp
 {
@@ -112,66 +112,48 @@ namespace AElf.Sdk.CSharp
             return string.IsNullOrEmpty(_lastInlineCallContext.Trace.StdErr);
         }
 
-        public static Any GetCallResult()
+        public static byte[] GetCallResult()
         {
             if (_lastInlineCallContext == null)
             {
-                return _lastInlineCallContext.Trace.RetVal;
+                return _lastInlineCallContext.Trace.RetVal.ToByteArray();
             }
-            return new Any();
+            return new byte[] { };
         }
 
         public static void Return(IMessage retVal)
         {
-            _transactionContext.Trace.RetVal = Any.Pack(retVal);
+            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToByteArray());
         }
 
         public static void Return(bool retVal)
         {
-            _transactionContext.Trace.RetVal = Any.Pack(new BoolValue()
-            {
-                Value = retVal
-            });
+            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
         }
 
         public static void Return(uint retVal)
         {
-            _transactionContext.Trace.RetVal = Any.Pack(new UInt32Value()
-            {
-                Value = retVal
-            });
+            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
         }
 
         public static void Return(int retVal)
         {
-            _transactionContext.Trace.RetVal = Any.Pack(new Int32Value()
-            {
-                Value = retVal
-            });
+            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
         }
 
         public static void Return(ulong retVal)
         {
-            _transactionContext.Trace.RetVal = Any.Pack(new UInt64Value()
-            {
-                Value = retVal
-            });
+            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
         }
 
         public static void Return(long retVal)
         {
-            _transactionContext.Trace.RetVal = Any.Pack(new Int64Value()
-            {
-                Value = retVal
-            });
+            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
         }
 
         public static void Return(byte[] retVal)
         {
-            _transactionContext.Trace.RetVal = Any.Pack(new BytesValue()
-            {
-                Value = ByteString.CopyFrom(retVal)
-            });
+            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
         }
 
         #endregion Transaction API

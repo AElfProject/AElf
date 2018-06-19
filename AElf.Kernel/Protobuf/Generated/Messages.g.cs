@@ -29,78 +29,74 @@ namespace AElf.Kernel {
             "b24SEwoERnJvbRgBIAEoCzIFLkhhc2gSEQoCVG8YAiABKAsyBS5IYXNoEhMK",
             "C0luY3JlbWVudElkGAMgASgEEhIKCk1ldGhvZE5hbWUYBCABKAkSDgoGUGFy",
             "YW1zGAUgASgMEgsKA0ZlZRgGIAEoBBIJCgFSGAcgASgMEgkKAVMYCCABKAwS",
-            "CQoBUBgJIAEoDCKrAQoQVHJhbnNhY3Rpb25UcmFjZRIkCgZSZXRWYWwYASAB",
-            "KAsyFC5nb29nbGUucHJvdG9idWYuQW55Eg4KBlN0ZE91dBgCIAEoCRIOCgZT",
-            "dGRFcnIYAyABKAkSFwoETG9ncxgEIAMoCzIJLkxvZ0V2ZW50EicKDElubGlu",
-            "ZVRyYWNlcxgFIAMoCzIRLlRyYW5zYWN0aW9uVHJhY2USDwoHRWxhcHNlZBgG",
-            "IAEoAyI/CgpFdmVudEZpZWxkEgwKBE5hbWUYASABKAkSIwoFVmFsdWUYAiAB",
-            "KAsyFC5nb29nbGUucHJvdG9idWYuQW55IlYKCExvZ0V2ZW50EhYKB0FkZHJl",
-            "c3MYASABKAsyBS5IYXNoEhQKBVRvcGljGAIgASgLMgUuSGFzaBIcCgdEZXRh",
-            "aWxzGAMgAygLMgsuRXZlbnRGaWVsZCJjChFUcmFuc2FjdGlvblJlc3VsdBIc",
-            "Cg1UcmFuc2FjdGlvbklkGAEgASgLMgUuSGFzaBIXCgZzdGF0dXMYAiABKA4y",
-            "By5TdGF0dXMSFwoETG9ncxgDIAMoCzIJLkxvZ0V2ZW50IhUKBEhhc2gSDQoF",
-            "VmFsdWUYASABKAwiigIKC0Jsb2NrSGVhZGVyEg8KB1ZlcnNpb24YASABKAUS",
-            "IAoRUHJldmlvdXNCbG9ja0hhc2gYAiABKAsyBS5IYXNoEisKHE1lcmtsZVRy",
-            "ZWVSb290T2ZUcmFuc2FjdGlvbnMYAyABKAsyBS5IYXNoEikKGk1lcmtsZVRy",
-            "ZWVSb290T2ZXb3JsZFN0YXRlGAQgASgLMgUuSGFzaBINCgVJbmRleBgFIAEo",
-            "BBIJCgFSGAYgASgMEgkKAVMYByABKAwSCQoBUBgIIAEoDBIoCgR0aW1lGAkg",
-            "ASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIWCgdDaGFpbklkGAog",
-            "ASgLMgUuSGFzaCJECglCbG9ja0JvZHkSGgoLQmxvY2tIZWFkZXIYASABKAsy",
-            "BS5IYXNoEhsKDFRyYW5zYWN0aW9ucxgCIAMoCzIFLkhhc2giPwoFQmxvY2sS",
-            "HAoGSGVhZGVyGAEgASgLMgwuQmxvY2tIZWFkZXISGAoEQm9keRgCIAEoCzIK",
-            "LkJsb2NrQm9keSJhChlTbWFydENvbnRyYWN0UmVnaXN0cmF0aW9uEhAKCENh",
-            "dGVnb3J5GAEgASgFEhsKDENvbnRyYWN0SGFzaBgCIAEoCzIFLkhhc2gSFQoN",
-            "Q29udHJhY3RCeXRlcxgDIAEoDCJ7ChdTbWFydENvbnRyYWN0RGVwbG95bWVu",
-            "dBIbCgxDb250cmFjdEhhc2gYASABKAsyBS5IYXNoEhUKBkNhbGxlchgCIAEo",
-            "CzIFLkhhc2gSFwoPQ29uc3RydWN0UGFyYW1zGAMgASgMEhMKC0luY3JlbWVu",
-            "dElkGAQgASgEIiQKClBhcmFtZXRlcnMSFgoGUGFyYW1zGAEgAygLMgYuUGFy",
-            "YW0ipAIKBVBhcmFtEhAKBmludFZhbBgBIAEoBUgAEhEKB3VpbnRWYWwYAiAB",
-            "KA1IABIRCgdsb25nVmFsGAMgASgDSAASEgoIdWxvbmdWYWwYBCABKARIABIR",
-            "Cgdib29sVmFsGAUgASgISAASEgoIYnl0ZXNWYWwYBiABKAxIABIQCgZzdHJW",
-            "YWwYByABKAlIABIOCgRkVmFsGAggASgBSAASGAoHaGFzaFZhbBgJIAEoCzIF",
-            "Lkhhc2hIABIxCgtyZWdpc3RlclZhbBgKIAEoCzIaLlNtYXJ0Q29udHJhY3RS",
-            "ZWdpc3RyYXRpb25IABIxCg1kZXBsb3ltZW50VmFsGAsgASgLMhguU21hcnRD",
-            "b250cmFjdERlcGxveW1lbnRIAEIGCgRkYXRhImwKGlNtYXJ0Q29udHJhY3RJ",
-            "bnZva2VDb250ZXh0EhUKBkNhbGxlchgBIAEoCzIFLkhhc2gSEwoLSW5jcmVt",
-            "ZW50SWQYAiABKAQSEgoKTWV0aG9kTmFtZRgDIAEoCRIOCgZQYXJhbXMYBCAB",
-            "KAwifAoGQ2hhbmdlEhYKB0JlZm9yZXMYASADKAsyBS5IYXNoEhQKBUFmdGVy",
-            "GAIgASgLMgUuSGFzaBIdCg5UcmFuc2FjdGlvbklkcxgDIAEoCzIFLkhhc2gS",
-            "JQoWTGF0ZXN0Q2hhbmdlZEJsb2NrSGFzaBgEIAEoCzIFLkhhc2giPAoOUGFp",
-            "ckhhc2hDaGFuZ2USEgoDS2V5GAEgASgLMgUuSGFzaBIWCgVWYWx1ZRgCIAEo",
-            "CzIHLkNoYW5nZSIsCgtDaGFuZ2VzRGljdBIdCgREaWN0GAEgAygLMg8uUGFp",
-            "ckhhc2hDaGFuZ2UiOwoFQ2hhaW4SEQoCSWQYASABKAsyBS5IYXNoEh8KEEdl",
-            "bmVzaXNCbG9ja0hhc2gYAiABKAsyBS5IYXNoIocCCiRTZXJpYWxpemVDb250",
-            "cmFjdE1ldGFkYXRhVGVtcGxhdGVNYXAScQoeTWV0YWRhdGFUZW1wbGF0ZU1h",
-            "cEZvckNvbnRyYWN0GAIgAygLMkkuU2VyaWFsaXplQ29udHJhY3RNZXRhZGF0",
-            "YVRlbXBsYXRlTWFwLk1ldGFkYXRhVGVtcGxhdGVNYXBGb3JDb250cmFjdEVu",
-            "dHJ5GmwKI01ldGFkYXRhVGVtcGxhdGVNYXBGb3JDb250cmFjdEVudHJ5EgsK",
-            "A2tleRgBIAEoCRI0CgV2YWx1ZRgCIAEoCzIlLlNlcmlhbGl6ZUZ1bmN0aW9u",
-            "TWV0YWRhdGFUZW1wbGF0ZU1hcDoCOAEiwgEKJFNlcmlhbGl6ZUZ1bmN0aW9u",
-            "TWV0YWRhdGFUZW1wbGF0ZU1hcBJLCgtUZW1wbGF0ZU1hcBgCIAMoCzI2LlNl",
-            "cmlhbGl6ZUZ1bmN0aW9uTWV0YWRhdGFUZW1wbGF0ZU1hcC5UZW1wbGF0ZU1h",
-            "cEVudHJ5Gk0KEFRlbXBsYXRlTWFwRW50cnkSCwoDa2V5GAEgASgJEigKBXZh",
-            "bHVlGAIgASgLMhkuRnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlOgI4ASJlChhG",
-            "dW5jdGlvbk1ldGFkYXRhVGVtcGxhdGUSGwoTU2VyaWFsaXplQ2FsbGluZ1Nl",
-            "dBgBIAMoCRIsChlTZXJpYWxpemVMb2NhbFJlc291cmNlU2V0GAIgAygLMgku",
-            "UmVzb3VyY2UiQQoIUmVzb3VyY2USDAoETmFtZRgBIAEoCRInCg5EYXRhQWNj",
-            "ZXNzTW9kZRgCIAEoDjIPLkRhdGFBY2Nlc3NNb2RlIooBChBGdW5jdGlvbk1l",
-            "dGFkYXRhEhsKE1NlcmlhbGl6ZUNhbGxpbmdTZXQYASADKAkSKwoYU2VyaWFs",
-            "aXplRnVsbFJlc291cmNlU2V0GAIgAygLMgkuUmVzb3VyY2USLAoZU2VyaWFs",
-            "aXplTG9jYWxSZXNvdXJjZVNldBgDIAMoCzIJLlJlc291cmNlIqoBChxTZXJp",
-            "YWxpemVGdW5jdGlvbk1ldGFkYXRhTWFwEkMKC01ldGFkYXRhTWFwGAEgAygL",
-            "Mi4uU2VyaWFsaXplRnVuY3Rpb25NZXRhZGF0YU1hcC5NZXRhZGF0YU1hcEVu",
-            "dHJ5GkUKEE1ldGFkYXRhTWFwRW50cnkSCwoDa2V5GAEgASgJEiAKBXZhbHVl",
-            "GAIgASgLMhEuRnVuY3Rpb25NZXRhZGF0YToCOAEiLgoRQ2FsbGluZ0dyYXBo",
-            "RWRnZXMSGQoFRWRnZXMYASADKAsyCi5HcmFwaEVkZ2UiKwoJR3JhcGhFZGdl",
-            "Eg4KBlNvdXJjZRgBIAEoCRIOCgZUYXJnZXQYAiABKAkiHgoNQmxvY2tQcm9k",
-            "dWNlchINCgVOb2RlcxgBIAMoCSKOAQoOTWluaW5nVGltZVNsb3QSLwoIdGlt",
-            "ZXNsb3QYASADKAsyHS5NaW5pbmdUaW1lU2xvdC5UaW1lc2xvdEVudHJ5GksK",
-            "DVRpbWVzbG90RW50cnkSCwoDa2V5GAEgASgJEikKBXZhbHVlGAIgASgLMhou",
-            "Z29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcDoCOAEqPAoGU3RhdHVzEg4KCk5v",
-            "dEV4aXN0ZWQQABILCgdQZW5kaW5nEAESCgoGRmFpbGVkEAISCQoFTWluZWQQ",
-            "AypeCg5EYXRhQWNjZXNzTW9kZRIaChZSZWFkT25seUFjY291bnRTaGFyaW5n",
-            "EAASGwoXUmVhZFdyaXRlQWNjb3VudFNoYXJpbmcQARITCg9BY2NvdW50U3Bl",
-            "Y2lmaWMQAkIOqgILQUVsZi5LZXJuZWxiBnByb3RvMw=="));
+            "CQoBUBgJIAEoDCKVAQoQVHJhbnNhY3Rpb25UcmFjZRIOCgZSZXRWYWwYASAB",
+            "KAwSDgoGU3RkT3V0GAIgASgJEg4KBlN0ZEVychgDIAEoCRIXCgRMb2dzGAQg",
+            "AygLMgkuTG9nRXZlbnQSJwoMSW5saW5lVHJhY2VzGAUgAygLMhEuVHJhbnNh",
+            "Y3Rpb25UcmFjZRIPCgdFbGFwc2VkGAYgASgDIj8KCkV2ZW50RmllbGQSDAoE",
+            "TmFtZRgBIAEoCRIjCgVWYWx1ZRgCIAEoCzIULmdvb2dsZS5wcm90b2J1Zi5B",
+            "bnkiVgoITG9nRXZlbnQSFgoHQWRkcmVzcxgBIAEoCzIFLkhhc2gSFAoFVG9w",
+            "aWMYAiABKAsyBS5IYXNoEhwKB0RldGFpbHMYAyADKAsyCy5FdmVudEZpZWxk",
+            "ImMKEVRyYW5zYWN0aW9uUmVzdWx0EhwKDVRyYW5zYWN0aW9uSWQYASABKAsy",
+            "BS5IYXNoEhcKBnN0YXR1cxgCIAEoDjIHLlN0YXR1cxIXCgRMb2dzGAMgAygL",
+            "MgkuTG9nRXZlbnQiFQoESGFzaBINCgVWYWx1ZRgBIAEoDCKKAgoLQmxvY2tI",
+            "ZWFkZXISDwoHVmVyc2lvbhgBIAEoBRIgChFQcmV2aW91c0Jsb2NrSGFzaBgC",
+            "IAEoCzIFLkhhc2gSKwocTWVya2xlVHJlZVJvb3RPZlRyYW5zYWN0aW9ucxgD",
+            "IAEoCzIFLkhhc2gSKQoaTWVya2xlVHJlZVJvb3RPZldvcmxkU3RhdGUYBCAB",
+            "KAsyBS5IYXNoEg0KBUluZGV4GAUgASgEEgkKAVIYBiABKAwSCQoBUxgHIAEo",
+            "DBIJCgFQGAggASgMEigKBHRpbWUYCSABKAsyGi5nb29nbGUucHJvdG9idWYu",
+            "VGltZXN0YW1wEhYKB0NoYWluSWQYCiABKAsyBS5IYXNoIkQKCUJsb2NrQm9k",
+            "eRIaCgtCbG9ja0hlYWRlchgBIAEoCzIFLkhhc2gSGwoMVHJhbnNhY3Rpb25z",
+            "GAIgAygLMgUuSGFzaCI/CgVCbG9jaxIcCgZIZWFkZXIYASABKAsyDC5CbG9j",
+            "a0hlYWRlchIYCgRCb2R5GAIgASgLMgouQmxvY2tCb2R5ImEKGVNtYXJ0Q29u",
+            "dHJhY3RSZWdpc3RyYXRpb24SEAoIQ2F0ZWdvcnkYASABKAUSGwoMQ29udHJh",
+            "Y3RIYXNoGAIgASgLMgUuSGFzaBIVCg1Db250cmFjdEJ5dGVzGAMgASgMInsK",
+            "F1NtYXJ0Q29udHJhY3REZXBsb3ltZW50EhsKDENvbnRyYWN0SGFzaBgBIAEo",
+            "CzIFLkhhc2gSFQoGQ2FsbGVyGAIgASgLMgUuSGFzaBIXCg9Db25zdHJ1Y3RQ",
+            "YXJhbXMYAyABKAwSEwoLSW5jcmVtZW50SWQYBCABKAQiJAoKUGFyYW1ldGVy",
+            "cxIWCgZQYXJhbXMYASADKAsyBi5QYXJhbSKkAgoFUGFyYW0SEAoGaW50VmFs",
+            "GAEgASgFSAASEQoHdWludFZhbBgCIAEoDUgAEhEKB2xvbmdWYWwYAyABKANI",
+            "ABISCgh1bG9uZ1ZhbBgEIAEoBEgAEhEKB2Jvb2xWYWwYBSABKAhIABISCghi",
+            "eXRlc1ZhbBgGIAEoDEgAEhAKBnN0clZhbBgHIAEoCUgAEg4KBGRWYWwYCCAB",
+            "KAFIABIYCgdoYXNoVmFsGAkgASgLMgUuSGFzaEgAEjEKC3JlZ2lzdGVyVmFs",
+            "GAogASgLMhouU21hcnRDb250cmFjdFJlZ2lzdHJhdGlvbkgAEjEKDWRlcGxv",
+            "eW1lbnRWYWwYCyABKAsyGC5TbWFydENvbnRyYWN0RGVwbG95bWVudEgAQgYK",
+            "BGRhdGEibAoaU21hcnRDb250cmFjdEludm9rZUNvbnRleHQSFQoGQ2FsbGVy",
+            "GAEgASgLMgUuSGFzaBITCgtJbmNyZW1lbnRJZBgCIAEoBBISCgpNZXRob2RO",
+            "YW1lGAMgASgJEg4KBlBhcmFtcxgEIAEoDCJ8CgZDaGFuZ2USFgoHQmVmb3Jl",
+            "cxgBIAMoCzIFLkhhc2gSFAoFQWZ0ZXIYAiABKAsyBS5IYXNoEh0KDlRyYW5z",
+            "YWN0aW9uSWRzGAMgASgLMgUuSGFzaBIlChZMYXRlc3RDaGFuZ2VkQmxvY2tI",
+            "YXNoGAQgASgLMgUuSGFzaCI8Cg5QYWlySGFzaENoYW5nZRISCgNLZXkYASAB",
+            "KAsyBS5IYXNoEhYKBVZhbHVlGAIgASgLMgcuQ2hhbmdlIiwKC0NoYW5nZXNE",
+            "aWN0Eh0KBERpY3QYASADKAsyDy5QYWlySGFzaENoYW5nZSI7CgVDaGFpbhIR",
+            "CgJJZBgBIAEoCzIFLkhhc2gSHwoQR2VuZXNpc0Jsb2NrSGFzaBgCIAEoCzIF",
+            "Lkhhc2gihwIKJFNlcmlhbGl6ZUNvbnRyYWN0TWV0YWRhdGFUZW1wbGF0ZU1h",
+            "cBJxCh5NZXRhZGF0YVRlbXBsYXRlTWFwRm9yQ29udHJhY3QYAiADKAsySS5T",
+            "ZXJpYWxpemVDb250cmFjdE1ldGFkYXRhVGVtcGxhdGVNYXAuTWV0YWRhdGFU",
+            "ZW1wbGF0ZU1hcEZvckNvbnRyYWN0RW50cnkabAojTWV0YWRhdGFUZW1wbGF0",
+            "ZU1hcEZvckNvbnRyYWN0RW50cnkSCwoDa2V5GAEgASgJEjQKBXZhbHVlGAIg",
+            "ASgLMiUuU2VyaWFsaXplRnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlTWFwOgI4",
+            "ASLCAQokU2VyaWFsaXplRnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlTWFwEksK",
+            "C1RlbXBsYXRlTWFwGAIgAygLMjYuU2VyaWFsaXplRnVuY3Rpb25NZXRhZGF0",
+            "YVRlbXBsYXRlTWFwLlRlbXBsYXRlTWFwRW50cnkaTQoQVGVtcGxhdGVNYXBF",
+            "bnRyeRILCgNrZXkYASABKAkSKAoFdmFsdWUYAiABKAsyGS5GdW5jdGlvbk1l",
+            "dGFkYXRhVGVtcGxhdGU6AjgBImUKGEZ1bmN0aW9uTWV0YWRhdGFUZW1wbGF0",
+            "ZRIbChNTZXJpYWxpemVDYWxsaW5nU2V0GAEgAygJEiwKGVNlcmlhbGl6ZUxv",
+            "Y2FsUmVzb3VyY2VTZXQYAiADKAsyCS5SZXNvdXJjZSJBCghSZXNvdXJjZRIM",
+            "CgROYW1lGAEgASgJEicKDkRhdGFBY2Nlc3NNb2RlGAIgASgOMg8uRGF0YUFj",
+            "Y2Vzc01vZGUiigEKEEZ1bmN0aW9uTWV0YWRhdGESGwoTU2VyaWFsaXplQ2Fs",
+            "bGluZ1NldBgBIAMoCRIrChhTZXJpYWxpemVGdWxsUmVzb3VyY2VTZXQYAiAD",
+            "KAsyCS5SZXNvdXJjZRIsChlTZXJpYWxpemVMb2NhbFJlc291cmNlU2V0GAMg",
+            "AygLMgkuUmVzb3VyY2UiqgEKHFNlcmlhbGl6ZUZ1bmN0aW9uTWV0YWRhdGFN",
+            "YXASQwoLTWV0YWRhdGFNYXAYASADKAsyLi5TZXJpYWxpemVGdW5jdGlvbk1l",
+            "dGFkYXRhTWFwLk1ldGFkYXRhTWFwRW50cnkaRQoQTWV0YWRhdGFNYXBFbnRy",
+            "eRILCgNrZXkYASABKAkSIAoFdmFsdWUYAiABKAsyES5GdW5jdGlvbk1ldGFk",
+            "YXRhOgI4ASIuChFDYWxsaW5nR3JhcGhFZGdlcxIZCgVFZGdlcxgBIAMoCzIK",
+            "LkdyYXBoRWRnZSIrCglHcmFwaEVkZ2USDgoGU291cmNlGAEgASgJEg4KBlRh",
+            "cmdldBgCIAEoCSo8CgZTdGF0dXMSDgoKTm90RXhpc3RlZBAAEgsKB1BlbmRp",
+            "bmcQARIKCgZGYWlsZWQQAhIJCgVNaW5lZBADKl4KDkRhdGFBY2Nlc3NNb2Rl",
+            "EhoKFlJlYWRPbmx5QWNjb3VudFNoYXJpbmcQABIbChdSZWFkV3JpdGVBY2Nv",
+            "dW50U2hhcmluZxABEhMKD0FjY291bnRTcGVjaWZpYxACQg6qAgtBRWxmLktl",
+            "cm5lbGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.AnyReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), typeof(global::AElf.Kernel.DataAccessMode), }, new pbr::GeneratedClrTypeInfo[] {
@@ -129,9 +125,7 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.FunctionMetadata), global::AElf.Kernel.FunctionMetadata.Parser, new[]{ "SerializeCallingSet", "SerializeFullResourceSet", "SerializeLocalResourceSet" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SerializeFunctionMetadataMap), global::AElf.Kernel.SerializeFunctionMetadataMap.Parser, new[]{ "MetadataMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.CallingGraphEdges), global::AElf.Kernel.CallingGraphEdges.Parser, new[]{ "Edges" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.GraphEdge), global::AElf.Kernel.GraphEdge.Parser, new[]{ "Source", "Target" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockProducer), global::AElf.Kernel.BlockProducer.Parser, new[]{ "Nodes" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.MiningTimeSlot), global::AElf.Kernel.MiningTimeSlot.Parser, new[]{ "Timeslot" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, })
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.GraphEdge), global::AElf.Kernel.GraphEdge.Parser, new[]{ "Source", "Target" }, null, null, null)
           }));
     }
     #endregion
@@ -544,7 +538,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public TransactionTrace(TransactionTrace other) : this() {
-      RetVal = other.retVal_ != null ? other.RetVal.Clone() : null;
+      retVal_ = other.retVal_;
       stdOut_ = other.stdOut_;
       stdErr_ = other.stdErr_;
       logs_ = other.logs_.Clone();
@@ -560,12 +554,12 @@ namespace AElf.Kernel {
 
     /// <summary>Field number for the "RetVal" field.</summary>
     public const int RetValFieldNumber = 1;
-    private global::Google.Protobuf.WellKnownTypes.Any retVal_;
+    private pb::ByteString retVal_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Google.Protobuf.WellKnownTypes.Any RetVal {
+    public pb::ByteString RetVal {
       get { return retVal_; }
       set {
-        retVal_ = value;
+        retVal_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -635,7 +629,7 @@ namespace AElf.Kernel {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (!object.Equals(RetVal, other.RetVal)) return false;
+      if (RetVal != other.RetVal) return false;
       if (StdOut != other.StdOut) return false;
       if (StdErr != other.StdErr) return false;
       if(!logs_.Equals(other.logs_)) return false;
@@ -647,7 +641,7 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (retVal_ != null) hash ^= RetVal.GetHashCode();
+      if (RetVal.Length != 0) hash ^= RetVal.GetHashCode();
       if (StdOut.Length != 0) hash ^= StdOut.GetHashCode();
       if (StdErr.Length != 0) hash ^= StdErr.GetHashCode();
       hash ^= logs_.GetHashCode();
@@ -666,9 +660,9 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (retVal_ != null) {
+      if (RetVal.Length != 0) {
         output.WriteRawTag(10);
-        output.WriteMessage(RetVal);
+        output.WriteBytes(RetVal);
       }
       if (StdOut.Length != 0) {
         output.WriteRawTag(18);
@@ -692,8 +686,8 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (retVal_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(RetVal);
+      if (RetVal.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(RetVal);
       }
       if (StdOut.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(StdOut);
@@ -717,11 +711,8 @@ namespace AElf.Kernel {
       if (other == null) {
         return;
       }
-      if (other.retVal_ != null) {
-        if (retVal_ == null) {
-          retVal_ = new global::Google.Protobuf.WellKnownTypes.Any();
-        }
-        RetVal.MergeFrom(other.RetVal);
+      if (other.RetVal.Length != 0) {
+        RetVal = other.RetVal;
       }
       if (other.StdOut.Length != 0) {
         StdOut = other.StdOut;
@@ -746,10 +737,7 @@ namespace AElf.Kernel {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
-            if (retVal_ == null) {
-              retVal_ = new global::Google.Protobuf.WellKnownTypes.Any();
-            }
-            input.ReadMessage(retVal_);
+            RetVal = input.ReadBytes();
             break;
           }
           case 18: {
@@ -5201,248 +5189,6 @@ namespace AElf.Kernel {
           }
           case 18: {
             Target = input.ReadString();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class BlockProducer : pb::IMessage<BlockProducer> {
-    private static readonly pb::MessageParser<BlockProducer> _parser = new pb::MessageParser<BlockProducer>(() => new BlockProducer());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<BlockProducer> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[26]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BlockProducer() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BlockProducer(BlockProducer other) : this() {
-      nodes_ = other.nodes_.Clone();
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BlockProducer Clone() {
-      return new BlockProducer(this);
-    }
-
-    /// <summary>Field number for the "Nodes" field.</summary>
-    public const int NodesFieldNumber = 1;
-    private static readonly pb::FieldCodec<string> _repeated_nodes_codec
-        = pb::FieldCodec.ForString(10);
-    private readonly pbc::RepeatedField<string> nodes_ = new pbc::RepeatedField<string>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<string> Nodes {
-      get { return nodes_; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as BlockProducer);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(BlockProducer other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if(!nodes_.Equals(other.nodes_)) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      hash ^= nodes_.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      nodes_.WriteTo(output, _repeated_nodes_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      size += nodes_.CalculateSize(_repeated_nodes_codec);
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(BlockProducer other) {
-      if (other == null) {
-        return;
-      }
-      nodes_.Add(other.nodes_);
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            nodes_.AddEntriesFrom(input, _repeated_nodes_codec);
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class MiningTimeSlot : pb::IMessage<MiningTimeSlot> {
-    private static readonly pb::MessageParser<MiningTimeSlot> _parser = new pb::MessageParser<MiningTimeSlot>(() => new MiningTimeSlot());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<MiningTimeSlot> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[27]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public MiningTimeSlot() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public MiningTimeSlot(MiningTimeSlot other) : this() {
-      timeslot_ = other.timeslot_.Clone();
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public MiningTimeSlot Clone() {
-      return new MiningTimeSlot(this);
-    }
-
-    /// <summary>Field number for the "timeslot" field.</summary>
-    public const int TimeslotFieldNumber = 1;
-    private static readonly pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp>.Codec _map_timeslot_codec
-        = new pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::Google.Protobuf.WellKnownTypes.Timestamp.Parser), 10);
-    private readonly pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp> timeslot_ = new pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp> Timeslot {
-      get { return timeslot_; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as MiningTimeSlot);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(MiningTimeSlot other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (!Timeslot.Equals(other.Timeslot)) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      hash ^= Timeslot.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      timeslot_.WriteTo(output, _map_timeslot_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      size += timeslot_.CalculateSize(_map_timeslot_codec);
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(MiningTimeSlot other) {
-      if (other == null) {
-        return;
-      }
-      timeslot_.Add(other.timeslot_);
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            timeslot_.AddEntriesFrom(input, _map_timeslot_codec);
             break;
           }
         }
