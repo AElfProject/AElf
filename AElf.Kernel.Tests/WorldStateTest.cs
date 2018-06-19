@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
-using ServiceStack;
+using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -55,7 +54,7 @@ namespace AElf.Kernel.Tests
             Assert.NotNull(worldState);
         }
 
-        [Fact]
+        [Fact(Skip = "todo")]
         public async Task GetHistoryWorldStateRootTest()
         {
             var chain = await _blockTest.CreateChain();
@@ -264,17 +263,9 @@ namespace AElf.Kernel.Tests
             block.FillTxsMerkleTreeRootInHeader();
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
-            return block;
-        }
+            block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
 
-        [Fact]
-        public void Test()
-        {
-            var a = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff").ToUtf8Bytes();
-            var b = DateTime.Parse(Encoding.UTF8.GetString(a));
-            var c = b.AddMinutes(4);
-            
-            Assert.True(a.Length > 0);
+            return block;
         }
     }
 }

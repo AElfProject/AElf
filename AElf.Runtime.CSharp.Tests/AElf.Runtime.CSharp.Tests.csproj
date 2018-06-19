@@ -8,7 +8,6 @@
     <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
-    <ProjectReference Include="..\AElf.Contracts.SmartContractZero\AElf.Contracts.SmartContractZero.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-preview-20170628-02" />
@@ -19,6 +18,7 @@
     <PackageReference Include="xunit.runner.console" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
     <PackageReference Include="ServiceStack" Version="5.1.0" />
+    <PackageReference Include="Mono.Cecil" Version="0.10.0" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="AElf.Api.CSharp.dll" />

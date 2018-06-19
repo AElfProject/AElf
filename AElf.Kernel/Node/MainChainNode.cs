@@ -40,11 +40,12 @@ namespace AElf.Kernel.Node
         private readonly IAccountContextService _accountContextService;
         private readonly IBlockVaildationService _blockVaildationService;
         private readonly IChainContextService _chainContextService;
+        private readonly ISynchronizer _synchronizer;
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner, 
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService, 
-            IChainContextService chainContextService)
+            IChainContextService chainContextService, ISynchronizer synchronizer, IChainCreationService chainCreationService)
         {
             _poolService = poolService;
             _protocolDirector = protocolDirector;
@@ -56,6 +57,7 @@ namespace AElf.Kernel.Node
             _accountContextService = accountContextService;
             _blockVaildationService = blockVaildationService;
             _chainContextService = chainContextService;
+            _synchronizer = synchronizer;
         }
 
         public void Start(ECKeyPair nodeKeyPair, bool startRpc)
@@ -65,6 +67,7 @@ namespace AElf.Kernel.Node
             if (startRpc)
                 _rpcServer.Start();
             
+            
             _poolService.Start();
             _protocolDirector.Start();
             
@@ -73,15 +76,16 @@ namespace AElf.Kernel.Node
             _protocolDirector.SetCommandContext(this);
             
             if(_nodeConfig.IsMiner)
-                _miner.Start();    
+                _miner.Start(nodeKeyPair);    
             
             _logger.Log(LogLevel.Debug, "AElf node started.");
+            _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToByteString().ToBase64());
             if (_nodeConfig.IsMiner)
             {
-                _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToByteString().ToBase64());
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
         }
+        
 
         /// <summary>
         /// get the tx from tx pool or database
@@ -200,15 +204,18 @@ namespace AElf.Kernel.Node
         }
 
         /// <summary>
-        /// validate a new block received
+        /// Add a new block received from network
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        public async Task<ValidationError> ValidateBlock(IBlock block)
+        public async Task<bool> AddBlock(IBlock block)
         {
             var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
             var error = await _blockVaildationService.ValidateBlockAsync(block, context);
-            return error;
+            if (error != ValidationError.Success)
+                return false;
+            
+            return await _synchronizer.ExecuteBlock(block);
         }
         
         /// <summary>

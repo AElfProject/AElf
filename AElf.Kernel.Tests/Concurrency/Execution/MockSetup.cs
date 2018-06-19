@@ -21,6 +21,7 @@ using AElf.Kernel.Concurrency.Execution;
 using Xunit.Frameworks.Autofac;
 using Path = AElf.Kernel.Path;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
+using AElf.Types.CSharp;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
@@ -32,7 +33,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
-            return (ulong) n;
+            return (ulong)n;
         }
 
         public Hash ChainId1 { get; } = Hash.Generate();
@@ -66,7 +67,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             _blockManager = blockManager;
             ChainContextService = chainContextService;
             SmartContractManager = new SmartContractManager(smartContractStore);
-            var runner = new SmartContractRunner("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/");
+            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             _smartContractRunnerFactory.AddRunner(0, runner);
             Task.Factory.StartNew(async () =>
             {
@@ -108,7 +109,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(ExampleContractCode),
-                ContractHash = Hash.Zero
+                ContractHash = new Hash(ExampleContractCode)
             };
 
             await SmartContractService.DeployContractAsync(SampleContractAddress1, reg);
@@ -121,12 +122,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/AElf.Contracts.Examples.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
+                return ContractCodes.TestContractCode;
             }
         }
 
@@ -148,19 +144,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 To = contractAddress,
                 IncrementId = NewIncrementId(),
                 MethodName = "InitializeAsync",
-                Params = ByteString.CopyFrom(new Parameters()
-                {
-                    Params = {
-                                new Param
-                                {
-                                    HashVal = account
-                                },
-                                new Param
-                                {
-                                    UlongVal = qty
-                                }
-                            }
-                }.ToByteArray())
+                Params = ByteString.CopyFrom(ParamsHolder.Pack(account, qty).ToByteArray())
             };
             return new TransactionContext()
             {
@@ -187,25 +171,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 To = contractAddress,
                 IncrementId = NewIncrementId(),
                 MethodName = "Transfer",
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                        Params = {
-                                new Param
-                                {
-                                    HashVal = from
-                                },
-                                new Param
-                                {
-                                    HashVal = to
-                                },
-                                new Param
-                                {
-                                    UlongVal = qty
-                                }
-                            }
-                    }.ToByteArray()
-                )
+                Params = ByteString.CopyFrom(ParamsHolder.Pack(from, to, qty).ToByteArray())
             };
         }
 
@@ -216,17 +182,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 From = Hash.Zero,
                 To = contractAddress,
                 MethodName = "GetBalance",
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                        Params = {
-                                new Param
-                                {
-                                    HashVal = account
-                                }
-                            }
-                    }.ToByteArray()
-                )
+                Params = ByteString.CopyFrom(ParamsHolder.Pack(account).ToByteArray())
             };
         }
 
@@ -240,7 +196,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             Executive1.SetTransactionContext(txnCtxt).Apply().Wait();
 
-            return txnCtxt.Trace.RetVal.Unpack<UInt64Value>().Value;
+            return txnCtxt.Trace.RetVal.AnyToUInt64();
         }
 
         public ulong GetBalance2(Hash account)
@@ -253,7 +209,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             };
             Executive2.SetTransactionContext(txnCtxt).Apply().Wait();
 
-            return txnCtxt.Trace.RetVal.Unpack<UInt64Value>().Value;
+            return txnCtxt.Trace.RetVal.AnyToUInt64();
         }
 
         private Transaction GetSTTxn(Hash contractAddress, Hash transactionHash)
@@ -263,17 +219,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 From = Hash.Zero,
                 To = contractAddress,
                 MethodName = "GetTransactionStartTime",
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                        Params = {
-                                new Param
-                                {
-                                    HashVal = transactionHash
-                                }
-                            }
-                    }.ToByteArray()
-                )
+                Params = ByteString.CopyFrom(ParamsHolder.Pack(transactionHash).ToByteArray())
             };
         }
 
@@ -284,17 +230,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 From = Hash.Zero,
                 To = contractAddress,
                 MethodName = "GetTransactionEndTime",
-                Params = ByteString.CopyFrom(
-                    new Parameters
-                    {
-                        Params = {
-                                new Param
-                                {
-                                    HashVal = transactionHash
-                                }
-                            }
-                    }.ToByteArray()
-                )
+                Params = ByteString.CopyFrom(ParamsHolder.Pack(transactionHash).ToByteArray())
             };
         }
 
@@ -308,7 +244,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             Executive1.SetTransactionContext(txnCtxt).Apply().Wait();
 
-            var dtStr = Encoding.UTF8.GetString(txnCtxt.Trace.RetVal.Unpack<BytesValue>().Value.ToByteArray());
+            var dtStr = txnCtxt.Trace.RetVal.AnyToString();
             //var dtStr = BitConverter.ToString(txnCtxt.Trace.RetVal.Unpack<BytesValue>().Value.ToByteArray()).Replace("-", "");
 
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
@@ -324,7 +260,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             Executive1.SetTransactionContext(txnCtxt).Apply().Wait();
 
-            var dtStr = Encoding.UTF8.GetString(txnCtxt.Trace.RetVal.Unpack<BytesValue>().Value.ToByteArray());
+            var dtStr = txnCtxt.Trace.RetVal.AnyToString();
 
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
         }

@@ -3,11 +3,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Application;
 using AElf.Cryptography;
-using AElf.Kernel.Consensus;
+using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
 namespace AElf.Kernel.Miner
@@ -17,8 +17,7 @@ namespace AElf.Kernel.Miner
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly ITxPoolService _txPoolService;
         private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
-        
-        
+        private ECKeyPair _keyPair;
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
         private MinerLock Lock { get; } = new MinerLock();
@@ -38,61 +37,54 @@ namespace AElf.Kernel.Miner
 
         public Hash Coinbase => Config.CoinBase;
 
-        private readonly DPoS _dpos;
-
         public Miner(IBlockGenerationService blockGenerationService, IMinerConfig config, 
-            ITxPoolService txPoolService, IParallelTransactionExecutingService parallelTransactionExecutingService, DPoS dpos)
+            ITxPoolService txPoolService, IParallelTransactionExecutingService parallelTransactionExecutingService)
         {
             _blockGenerationService = blockGenerationService;
             Config = config;
             _txPoolService = txPoolService;
             _parallelTransactionExecutingService = parallelTransactionExecutingService;
-            _dpos = dpos;
         }
 
+        
         public async Task<IBlock> Mine()
         {
-            // todo : this is fake
-            var address = Hash.Generate().ToByteArray();
-            
-            if (!await _dpos.AbleToMine(address)) 
-                return null;
-            
             if (Cts == null || Cts.IsCancellationRequested)
                 return null;
             
             var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
             // TODO：dispatch txs with ISParallel, return list of tx results
-
-            if (await _dpos.TimeToGenerateExtraBlock())
-            {
-                // ReSharper disable once InconsistentNaming
-                var txForEBP = _dpos.GetTxsForExtraBlock();
-                foreach (var tx in txForEBP)
-                {
-                    await _txPoolService.AddTxAsync(tx);
-                }
-            }
-                
+            
             var results =  await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
+            
+            // reset Promotable and update account context
+            
+            
+            // TODO: commit tx results
             
             // generate block
             var block = await _blockGenerationService.GenerateBlockAsync(Config.ChainId, results);
             
-            // reset Promotable and update account context
             await _txPoolService.ResetAndUpdate(results);
+            // sign block
+            ECSigner signer = new ECSigner();
+            ECSignature signature = signer.Sign(_keyPair, block.GetHash().GetHashBytes());
 
+            block.Header.P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded());
+            block.Header.R = ByteString.CopyFrom(signature.R);
+            block.Header.S = ByteString.CopyFrom(signature.S);
+            
             return block;
-
         }
 
         
         /// <summary>
         /// start mining  
         /// </summary>
-        public void Start()
+        public void Start(ECKeyPair nodeKeyPair)
         {
             Cts = new CancellationTokenSource();
+            _keyPair = nodeKeyPair;
             //MiningResetEvent = new AutoResetEvent(false);
         }
 
@@ -105,6 +97,7 @@ namespace AElf.Kernel.Miner
             {
                 Cts.Cancel();
                 Cts.Dispose();
+                _keyPair = null;
                 //MiningResetEvent.Dispose();
             });
             
