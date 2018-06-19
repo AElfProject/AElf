@@ -266,5 +266,10 @@ namespace AElf.Kernel.Node
         {
             return await _poolService.AddTxAsync(tx);
         }
+
+        public async Task<bool> BroadcastBlock(byte[] b)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -114,7 +114,6 @@ namespace AElf.CLI
                     {
                         _accountManager.ProcessCommand(parsedCmd);
                     }
-                    
                 }
                 else
                 {
