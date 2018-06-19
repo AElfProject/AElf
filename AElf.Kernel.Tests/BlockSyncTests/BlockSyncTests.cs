@@ -1,4 +1,4 @@
-﻿namespace AElf.Kernel.Tests.BlockSync
+﻿namespace AElf.Kernel.Tests.BlockSyncTests
 {
     public class BlockSyncTests
     {

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
@@ -6,6 +7,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
+using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using ServiceStack;
@@ -96,7 +98,7 @@ namespace AElf.Kernel.Tests
             var genesisBlock = builder.Block;
             //var txs = builder.Txs;
             Assert.NotNull(genesisBlock);
-            Assert.Equal(genesisBlock.Header.PreviousBlockHash, Hash.Zero);
+            Assert.Equal(genesisBlock.Header.PreviousBlockHash, Hash.Default);
             //Assert.NotNull(txs);
         }
 
@@ -123,6 +125,7 @@ namespace AElf.Kernel.Tests
             block.FillTxsMerkleTreeRootInHeader();
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
+            block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
             return block;
         }
         
