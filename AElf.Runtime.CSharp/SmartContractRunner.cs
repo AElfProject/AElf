@@ -8,6 +8,7 @@ using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using Google.Protobuf;
 using Path = System.IO.Path;
+using AElf.ABI.CSharp;
 
 namespace AElf.Runtime.CSharp
 {
@@ -56,11 +57,12 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
-            var type = assembly.GetTypes().FirstOrDefault(x => x.BaseType.Name.EndsWith("CSharpSmartContract"));
-            
+            var abiModule = Generator.GetABIModule(code);
+            // TODO: Change back
+            var type = assembly.GetTypes().FirstOrDefault(x => x.FullName == abiModule.Name);
             if (type == null)
             {
-                throw new InvalidCodeException("No SmartContract type is defined in the code.");
+                throw new InvalidCodeException($"No SmartContract type {abiModule.Name} is defined in the code.");
             }
 
             var instance = (ISmartContract) Activator.CreateInstance(type);
@@ -72,7 +74,7 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("No Api was found.");
             }
 
-            Executive executive = new Executive().SetSmartContract(instance).SetApi(ApiSingleton);
+            Executive executive = new Executive(abiModule).SetSmartContract(instance).SetApi(ApiSingleton);
 
             return await Task.FromResult(executive);
         }

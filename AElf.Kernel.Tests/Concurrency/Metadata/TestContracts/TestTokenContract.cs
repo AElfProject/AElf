@@ -12,15 +12,15 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
     public class TestTokenContract: CSharpSmartContract
     {
         [SmartContractFieldData("${this}.Balances", DataAccessMode.AccountSpecific)]
-        public Map Balances = new Map("Balances");
+        public MapToUInt64<Hash> Balances = new MapToUInt64<Hash>("Balances");
 
 
         [SmartContractFieldData("${this}.TokenContractName", DataAccessMode.ReadOnlyAccountSharing)]
         public string TokenContractName;
         public async Task<object> InitializeAsync()
         {
-            await Balances.SetValueAsync("0".CalculateHash(), ((ulong)200).ToBytes());
-            await Balances.SetValueAsync("1".CalculateHash(), ((ulong)100).ToBytes());
+            await Balances.SetValueAsync("0".CalculateHash(), 200);
+            await Balances.SetValueAsync("1".CalculateHash(), 100);
             return null;
         }
         
@@ -46,16 +46,14 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
         [SmartContractFunction("${this}.Transfer(AElf.Kernel.Hash, AElf.Kernel.Hash, UInt64)", new string[]{}, new []{"${this}.Balances"})]
         public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
         {
-            var fromBalBytes = await Balances.GetValue(from);
-            var fromBal = fromBalBytes.ToUInt64();
-            var toBalBytes = await Balances.GetValue(to);
-            var toBal = toBalBytes.ToUInt64();
+            var fromBal = await Balances.GetValueAsync(from);
+            var toBal = await Balances.GetValueAsync(to);
             var newFromBal = fromBal - qty;
             if (newFromBal > 0)
             {
                 var newToBal = toBal + qty;
-                await Balances.SetValueAsync(from, newFromBal.ToBytes());
-                await Balances.SetValueAsync(to, newToBal.ToBytes());
+                await Balances.SetValueAsync(from, newFromBal);
+                await Balances.SetValueAsync(to, newToBal);
                 return true;
             }
             else
@@ -67,9 +65,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
         [SmartContractFunction("${this}.GetBalance(AElf.Kernel.Hash)", new string[]{}, new []{"${this}.Balances"})]
         public async Task<object> GetBalance(Hash account)
         {
-            var balBytes = await Balances.GetValue(account.CalculateHash());
-            Api.Return(new UInt64Value() { Value = balBytes.ToUInt64() });
-            return balBytes.ToUInt64();
+            var bal= await Balances.GetValueAsync(account.CalculateHash());
+            Api.Return(new UInt64Value() { Value = bal});
+            return bal;
         }
     }
 }
