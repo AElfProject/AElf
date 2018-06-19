@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Miner;
+using AElf.Kernel.Node.Protocol.Exceptions;
 using AElf.Network.Peers;
 
+[assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
 namespace AElf.Kernel.Node.Protocol
 {
-    
     // Messages :
-    
     
     // Initialization - On startup - For every peer get the height of the chain.
     // Distribute the work accordingly
     // We give everyone the current 
-
 
     class SyncPeer
     {
@@ -35,7 +36,7 @@ namespace AElf.Kernel.Node.Protocol
         // when a peer connects get the height of his chain
         public IPeerManager _peerManager;
             
-        private List<PendingBlock> _pendingBlocks;
+        private List<PendingBlock> PendingBlocks { get; }
 
         // The height of the chain 
         private int InitialHeight = 0;
@@ -52,6 +53,7 @@ namespace AElf.Kernel.Node.Protocol
 
         public BlockSynchronizer(IAElfNode node)
         {
+            PendingBlocks = new List<PendingBlock>();
             _mainChainNode = node;
             _cycleTimer = new Timer(DoCycle, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
         }
@@ -80,30 +82,46 @@ namespace AElf.Kernel.Node.Protocol
         /// <param name="block"></param>
         public async Task AddBlockToSync(Block block)
         {
+            if (block?.Header == null || block.Body == null)
+                throw new InvalidBlockException("The block, blockheader or body is null");
+            
+            if (block.Body.Transactions == null || block.Body.Transactions.Count <= 0)
+                throw new InvalidBlockException("The block contains no transactions");
+
+            byte[] h = null;
+            try
+            {
+                h = block.GetHash().GetHashBytes();
+            }
+            catch (Exception e)
+            {
+                throw new InvalidBlockException("Invalid block hash");
+            }
+
+            if (GetBlock(h) != null)
+                return;
+
             List<Hash> missingTxs = _mainChainNode.GetMissingTransactions(block);
 
-            // If no transactions are missing, directly fire the synced event.
-            if (!missingTxs.Any())
+            if (missingTxs.Any())
             {
-                BlockExecutionResult res = await _mainChainNode.AddBlock(block);
-                
+                PendingBlock newPendingBlock = new PendingBlock(h, block);
+                PendingBlocks.Add(newPendingBlock);
             }
             else
             {
-                
+                BlockExecutionResult res = await _mainChainNode.AddBlock(block);
             }
-            
-            // Called when the node receives a block
-            // Get missing transactions from the pool
-            // If no missing transactions 
-            //     - Direct to pool
-            // If some are missing
-            //    - Add it to the sync pool
         }
 
         public void SetTransaction(byte[] blockHash, Transaction t)
         {
             //PendingBlock p = _pendingBlocks.Where()
+        }
+
+        public PendingBlock GetBlock(byte[] hash)
+        {
+            return PendingBlocks?.FirstOrDefault(p => p.BlockHash.BytesEqual(hash));
         }
     }
 
@@ -111,15 +129,14 @@ namespace AElf.Kernel.Node.Protocol
     {
         private Block _block;
         private List<byte[]> _missingTxs = new List<byte[]>();
+        public byte[] BlockHash { get; }
 
-        public PendingBlock(Block block)
+        public PendingBlock(byte[] blockHash, Block block)
         {
             _block = block;
-            BlockHash = block.GetHash();
+            BlockHash = blockHash;
         }
-
-        public Hash BlockHash { get; }
-
+        
         public void RemoveTransaction(byte[] txid)
         {
             
