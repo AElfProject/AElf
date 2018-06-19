@@ -6,6 +6,7 @@ using AElf.Common.Attributes;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.BlockValidationFilters;
+using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Config;
@@ -16,8 +17,10 @@ using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NLog;
 using NLog.Common;
 
@@ -42,15 +45,18 @@ namespace AElf.Kernel.Node
         private readonly IBlockManager _blockManager;
         private readonly IChainManager _chainManager;
         private readonly IChainCreationService _chainCreationService;
+        private readonly IWorldStateManager _worldStateManager;
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner, 
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
                 ISynchronizer synchronizer, IChainCreationService chainCreationService, 
-                IChainContextService chainContextService, IBlockManager blockManager, IChainManager chainManager)
+                IChainContextService chainContextService, IBlockManager blockManager, IChainManager chainManager, 
+            IWorldStateManager worldStateManager)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
+            _worldStateManager = worldStateManager;
             _blockManager = blockManager;
             _poolService = poolService;
             _protocolDirector = protocolDirector;
@@ -65,7 +71,7 @@ namespace AElf.Kernel.Node
             _synchronizer = synchronizer;
         }
 
-        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, string initdata)
+        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, string initdata, byte[] code = null)
         {
             if (_nodeConfig == null)
             {
@@ -86,8 +92,15 @@ namespace AElf.Kernel.Node
                 if (!chainExists)
                 {
                     // Creation of the chain if it doesn't already exist
-                    var smartContractZeroReg = new SmartContractRegistration { Category = 0, ContractHash = Hash.Zero };
+                    var smartContractZeroReg = new SmartContractRegistration
+                    {
+                        Category = 0, 
+                        ContractBytes = ByteString.CopyFrom(code),
+                        ContractHash = Hash.Zero
+                    };
                     var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg).Result;
+                    _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToByteString().ToBase64());
+                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToBase64());
                 }
             }
             catch (Exception e)
@@ -98,7 +111,7 @@ namespace AElf.Kernel.Node
             
             if (!string.IsNullOrWhiteSpace(initdata))
             {
-                if (!InitialDebugSync(initdata))
+                if (!InitialDebugSync(initdata).Result)
                 {
                     //todo log 
                     return false;
@@ -122,7 +135,7 @@ namespace AElf.Kernel.Node
                 _miner.Start(nodeKeyPair);    
             
             _logger.Log(LogLevel.Debug, "AElf node started.");
-            _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToByteString().ToBase64());
+            
             if (_nodeConfig.IsMiner)
             {
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
@@ -130,36 +143,44 @@ namespace AElf.Kernel.Node
 
             return true;
         }
-
-        private bool InitialDebugSync(string initFileName)
+        
+        
+        private async Task<bool> InitialDebugSync(string initFileName)
         {
             try
             {
                 string appFolder = _nodeConfig.DataDir;
                 var fullPath = System.IO.Path.Combine(appFolder, "tests", initFileName);
 
-                Block b = null;
+                /*Block b = null;
                 using (StreamReader r = new StreamReader(fullPath))
                 {
                     string jsonChain = r.ReadToEnd();
                     b = JsonParser.Default.Parse<Block>(jsonChain);
-                }
-
-                if (b != null)
+                }*/
+                
+                using (StreamReader file = File.OpenText(fullPath))
+                using (JsonTextReader reader = new JsonTextReader(file))
                 {
-                    var r = _chainManager.AppendBlockToChainAsync(b).Result;
-                    var bd = _blockManager.AddBlockAsync(b).Result;
+                    JObject balances = (JObject)JToken.ReadFrom(reader);
                     
-                    
-                    Block blockOfHeight1 = _blockManager.GetBlockByHeight(_nodeConfig.ChainId, 1).Result;
-                    
+                    foreach (var kv in balances)
+                    {
+                        var address = Convert.FromBase64String(kv.Key);
+                        var balance = kv.Value.ToObject<ulong>();
+                        
+                        await _worldStateManager.OfChain(_nodeConfig.ChainId);
+            
+                        var accountDataProvider = _worldStateManager.GetAccountDataProvider(address);
+                        var dataProvider = accountDataProvider.GetDataProvider();
+                        
+                        // set balance
+                        await dataProvider.SetAsync("Balance".CalculateHash(),
+                            new UInt64Value {Value = balance}.ToByteArray());
+                        var str = $"Initial balance {balance} in Address \"{kv.Key}\""; 
+                        _logger.Log(LogLevel.Debug, "Initial balance {0} in Address \"{1}\"", balance, kv.Key);
+                    }
                 }
-                else
-                {
-                    ;
-                }
-
-
             }
             catch (Exception e)
             {
