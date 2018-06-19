@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Runtime.InteropServices.ComTypes;
 using System.Security;
+using AElf.ABI.CSharp;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Database;
@@ -19,13 +20,15 @@ using Google.Protobuf;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using IContainer = Autofac.IContainer;
+using ServiceStack;
 
 namespace AElf.Launcher
 {
     class Program
     {
         private const string filepath = @"ChainInfo.json";
-
+        private const string dir = @"Contracts";
+        
         static void Main(string[] args)
         {
             // Parse options
@@ -93,12 +96,34 @@ namespace AElf.Launcher
                 IAElfNode node = scope.Resolve<IAElfNode>();
                
                 // Start the system
-                node.Start(nodeKey, confParser.Rpc, initData);
+                node.Start(nodeKey, confParser.Rpc, initData, SmartContractZeroCode);
 
                 Console.ReadLine();
             }
         }
 
+        
+        private static byte[] SmartContractZeroCode
+        {
+            get
+            {
+                var ContractZeroName = "AElf.Kernel.Tests.TestContractZero";
+                
+                var contractZeroDllPath = $"{dir}/{ContractZeroName}.dll";
+                
+                byte[] code = null;
+                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(contractZeroDllPath)))
+                {
+                    code = file.ReadFully();
+                }
+                /*ABI.CSharp.Module module = Generator.GetABIModule(code);
+                string actual = new JsonFormatter(new JsonFormatter.Settings(true)).Format(module);
+                Console.WriteLine(actual);*/
+                return code;
+            }
+        }
+        
+        
         private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, IAElfNetworkConfig netConf, 
             IDatabaseConfig databaseConf, ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig)
         {
