@@ -140,15 +140,10 @@ namespace AElf.Launcher
             {
                 if (!string.IsNullOrEmpty(opts.CoinBase))
                 {
-<<<<<<< HEAD
-                    // full node for private chain
-                    Coinbase = ByteString.CopyFromUtf8(opts.CoinBase);
-                }
-=======
                     throw new Exception("coinbase is needed");
                 }
+                
                 Coinbase = ByteString.CopyFromUtf8(opts.CoinBase);
->>>>>>> dev
             }
             
             MinerConfig = new MinerConfig
