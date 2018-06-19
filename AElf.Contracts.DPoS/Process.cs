@@ -25,14 +25,14 @@ namespace AElf.Contracts.DPoS
         private readonly Map _dPoSInfoProducer = new Map("DPoS");
 
         private UInt64Value RoundsCount => 
-            UInt64Value.Parser.ParseFrom(_dPoSInfoProducer.GetValue("RoundsCount".CalculateHash()).Result);
+            UInt64Value.Parser.ParseFrom(_dPoSInfoProducer.GetValueAsync("RoundsCount".CalculateHash()).Result);
 
         #region Block Producers
         
         public async Task<object> GetBlockProducers()
         {
             // Should be setted before
-            var blockProducer = BlockProducer.Parser.ParseFrom(await _blockProducer.GetValue("List".CalculateHash()));
+            var blockProducer = BlockProducer.Parser.ParseFrom(await _blockProducer.GetValueAsync("List".CalculateHash()));
 
             if (blockProducer.Nodes.Count < 1)
             {
@@ -243,12 +243,12 @@ namespace AElf.Contracts.DPoS
         public async Task<object> GetExtraBlockProducer()
         {
             Hash key = RoundsCount.CalculateHashWith("EBP");
-            return StringValue.Parser.ParseFrom(await _dPoSInfoProducer.GetValue(key));
+            return StringValue.Parser.ParseFrom(await _dPoSInfoProducer.GetValueAsync(key));
         }
 
         public async Task<object> SetNextExtraBlockProducer()
         {
-            var firstPlace = Hash.Parser.ParseFrom(await _dPoSInfoProducer.GetValue(
+            var firstPlace = Hash.Parser.ParseFrom(await _dPoSInfoProducer.GetValueAsync(
                 RoundsCount.CalculateHashWith("FirstPlace")));
             var firstPlaceDataProvider = GetDataProviderForCurrentRound(firstPlace.Value.Take(18).ToArray());
             var sig = Hash.Parser.ParseFrom(await firstPlaceDataProvider.GetAsync(

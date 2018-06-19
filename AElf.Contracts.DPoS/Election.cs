@@ -52,14 +52,14 @@ namespace AElf.Contracts.DPoS
                 return false;
             }
 
-            var currentVotes = (await Votes.GetValue(alias.CalculateHash())).ToUInt64();
+            var currentVotes = (await Votes.GetValueAsync(alias.CalculateHash())).ToUInt64();
             await Votes.SetValueAsync(alias.CalculateHash(), (currentVotes + votes).ToBytes());
             return true;
         }
 
         public async Task<object> GetRemainVotes(Hash voterAddress)
         {
-            return await RemainVotes.GetValue(voterAddress);
+            return await RemainVotes.GetValueAsync(voterAddress);
         }
     }
 }
