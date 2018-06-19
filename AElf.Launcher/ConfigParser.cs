@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Common.Application;
 using AElf.Database;
@@ -139,11 +140,9 @@ namespace AElf.Launcher
             {
                 if (string.IsNullOrEmpty(opts.CoinBase))
                 {
-                    
+                    throw new Exception("coinbase is needed");
                 }
-                // full node for private chain
                 Coinbase = ByteString.CopyFromUtf8(opts.CoinBase);
-
             }
             
             MinerConfig = new MinerConfig
