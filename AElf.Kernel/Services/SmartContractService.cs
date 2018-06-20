@@ -29,6 +29,7 @@ namespace AElf.Kernel.Services
             {
                 // Virtually never happens
                 pool = new ConcurrentBag<IExecutive>();
+                _executivePools.TryAdd(account, pool);
             }
             return pool;
         }
@@ -37,7 +38,7 @@ namespace AElf.Kernel.Services
         {
             var pool = GetPoolFor(account);
             IExecutive executive = null;
-            if (pool.TryTake(out executive))
+            if (pool.TryPeek(out executive))
                 return executive;
 
             // get registration
@@ -65,6 +66,7 @@ namespace AElf.Kernel.Services
                 SmartContractService = this
             });
 
+            pool.Add(executive);
             return executive;
         }
 
