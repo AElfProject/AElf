@@ -42,7 +42,6 @@ namespace AElf.Kernel.Node
         private readonly IBlockVaildationService _blockVaildationService;
         private readonly IChainContextService _chainContextService;
         private readonly ISynchronizer _synchronizer;
-        private readonly IBlockManager _blockManager;
         private readonly IChainManager _chainManager;
         private readonly IChainCreationService _chainCreationService;
         private readonly IWorldStateManager _worldStateManager;
@@ -51,13 +50,11 @@ namespace AElf.Kernel.Node
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner, 
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
                 ISynchronizer synchronizer, IChainCreationService chainCreationService, 
-                IChainContextService chainContextService, IBlockManager blockManager, IChainManager chainManager, 
-            IWorldStateManager worldStateManager)
+                IChainContextService chainContextService, IChainManager chainManager, IWorldStateManager worldStateManager)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
             _worldStateManager = worldStateManager;
-            _blockManager = blockManager;
             _poolService = poolService;
             _protocolDirector = protocolDirector;
             _transactionManager = txManager;
@@ -98,9 +95,15 @@ namespace AElf.Kernel.Node
                         ContractBytes = ByteString.CopyFrom(code),
                         ContractHash = Hash.Zero
                     };
-                    var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg).Result;
+                    var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg)
+                        .Result;
                     _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToByteString().ToBase64());
                     _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToBase64());
+                    var contractAddress = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__"))
+                        .ToAccount();
+                    _logger.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"",
+                        contractAddress.ToAccount().Value.ToBase64());
+
                 }
             }
             catch (Exception e)
@@ -111,11 +114,11 @@ namespace AElf.Kernel.Node
             
             if (!string.IsNullOrWhiteSpace(initdata))
             {
-                if (!InitialDebugSync(initdata).Result)
+                /*if (!InitialDebugSync(initdata).Result)
                 {
                     //todo log 
                     return false;
-                }
+                }*/
             }
             
             _nodeKeyPair = nodeKeyPair;
@@ -131,15 +134,21 @@ namespace AElf.Kernel.Node
             _rpcServer.SetCommandContext(this);
             _protocolDirector.SetCommandContext(this);
             
-            if(_nodeConfig.IsMiner)
-                _miner.Start(nodeKeyPair);    
-            
-            _logger.Log(LogLevel.Debug, "AElf node started.");
-            
             if (_nodeConfig.IsMiner)
             {
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
+
+            if (_nodeConfig.IsMiner)
+            {
+                _miner.Start(nodeKeyPair);  
+                Mine();
+            }
+                  
+            
+            _logger.Log(LogLevel.Debug, "AElf node started.");
+            
+            
 
             return true;
         }
@@ -249,7 +258,7 @@ namespace AElf.Kernel.Node
                     Console.WriteLine(e);
                 }
                 
-                _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
+                _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo().ToString());
                 return true;
             }
             
@@ -362,6 +371,23 @@ namespace AElf.Kernel.Node
         public async Task<bool> AddTransaction(ITransaction tx)
         {
             return await _poolService.AddTxAsync(tx);
+        }
+
+        /// <summary>
+        /// temple mine to generate fake block data with loop
+        /// </summary>
+        public void Mine()
+        {
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    await Task.Delay(15000);
+                    var block = await _miner.Mine();
+                    _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", block.GetHash(),
+                        block.Body.Transactions.Count);
+                }
+            });
         }
     }
 }
