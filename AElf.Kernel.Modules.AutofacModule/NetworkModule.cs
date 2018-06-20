@@ -23,10 +23,12 @@ using Autofac;
              
              builder.RegisterType<AElfTcpServer>().As<IAElfServer>();
              
-             if(IsMiner)
+             /*if(IsMiner)
                  builder.RegisterType<BootnodePeerManager>().As<IPeerManager>();
              else
-                 builder.RegisterType<PeerManager>().As<IPeerManager>();
+                 builder.RegisterType<PeerManager>().As<IPeerManager>();*/
+             
+             builder.RegisterType<PeerManager>().As<IPeerManager>();
 
              PeerDataStore peerDb = new PeerDataStore(NetConfig.PeersDbPath);
              builder.RegisterInstance(peerDb).As<IPeerDatabase>();
