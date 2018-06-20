@@ -22,12 +22,8 @@ namespace AElf.CLI
         
         private static List<CliCommandDefinition> _commands = new List<CliCommandDefinition>();
         
-        private const string InvalidCommandError = "***** ERROR: INVALID COMMAND - SEE USAGE *****";
-        private const string InvalidParamsError = "***** ERROR: INVALID PARAMETERS - SEE USAGE *****";
-        private const string CommandNotAvailable = "***** ERROR: COMMAND NO LONGER AVAILABLE - PLEASE RESTART *****";
-        private const string ErrorLoadingCommands = "***** ERROR: COULD NOT LOAD COMMANDS - PLEASE RESTART SERVER *****";
-        
         private const string ExitReplCommand = "quit";
+        private const string ServerConnError = "could not connect to server";
         
         private readonly ScreenManager _screenManager;
         private readonly CommandParser _cmdParser;
@@ -64,7 +60,7 @@ namespace AElf.CLI
 
                 if (def == null)
                 {
-                    _screenManager.PrintCommandNotFount(command);
+                    _screenManager.PrintCommandNotFound(command);
                 }
                 else
                 {
@@ -106,17 +102,26 @@ namespace AElf.CLI
                         HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
                         string resp = reqhttp.DoRequest(req.ToString());
                     }
+                    else if (def is BroadcastBlockCmd bc)
+                    {
+                        throw new NotImplementedException();
+                    }
                     else
                     {
                         _accountManager.ProcessCommand(parsedCmd);
                     }
-                    
                 }
                 else
                 {
                     // RPC
                     HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
                     string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
+
+                    if (resp == null)
+                    {
+                        _screenManager.PrintError(ServerConnError);
+                        return;
+                    }
                     
                     JObject jObj = JObject.Parse(resp);
 

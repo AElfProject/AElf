@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AElf.CLI.Parsing;
@@ -7,17 +8,17 @@ using Newtonsoft.Json.Linq;
 
 namespace AElf.CLI.Command
 {
-    public class GetPeersCmd : CliCommandDefinition
+    public class GetCommandsCmd : CliCommandDefinition
     {
-        private const string CommandName = "get_peers";
+        private const string CommandName = "get_commands";
         
-        public GetPeersCmd() : base(CommandName)
+        public GetCommandsCmd() : base(CommandName)
         {
         }
 
         public override string GetUsage()
         {
-            return "usage: get_peers <number of peers>";
+            return "usage: get_commands";
         }
 
         public override string GetUsage(string subCommand)
@@ -27,14 +28,9 @@ namespace AElf.CLI.Command
 
         public override JObject BuildRequest(CmdParseResult parsedCmd)
         {
-            JObject reqParams;
-            
-            if (parsedCmd.Args == null || parsedCmd.Args.Count <= 0)
-                 reqParams = new JObject { ["numPeers"] = null };
-            else
-                reqParams = new JObject { ["numPeers"] = parsedCmd.Args.ElementAt(0) };
+            JObject reqParams = new JObject {};
 
-            var req = JsonRpcHelpers.CreateRequest(reqParams, "get_peers", 1);
+            var req = JsonRpcHelpers.CreateRequest(reqParams, "get_commands", 0);
             
             return req;
         }
@@ -47,15 +43,15 @@ namespace AElf.CLI.Command
         public override string GetPrintString(JObject resp)
         {
             StringBuilder strBuilder = new StringBuilder();
-            strBuilder.AppendLine("-- List of connected peers on the node");
+            strBuilder.AppendLine("-- List of commands on the node");
             
             try
             {
-                var peersList = resp["data"];
+                var comms = resp["commands"].ToList();
 
-                foreach (var p in peersList.Children())
+                foreach (var c in comms)
                 {
-                    strBuilder.AppendLine(p["IpAddress"] + ":" + p["Port"]);
+                    strBuilder.AppendLine(c.ToString());
                 }
             }
             catch (Exception e)

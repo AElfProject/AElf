@@ -4,14 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using AElf.CLI.Command;
-using AElf.CLI.Command.Account;
 using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Asn1;
 using ProtoBuf;
 
 namespace AElf.CLI.Wallet
@@ -30,9 +28,41 @@ namespace AElf.CLI.Wallet
             _screenManager = screenManager;
             _keyStore = keyStore;
         }
+
+        public readonly List<string> SubCommands = new List<string>()
+        {
+            NewCmdName,
+            ListAccountsCmdName,
+            UnlockAccountCmdName
+        };
+
+        private string Validate(CmdParseResult parsedCmd)
+        {
+            if (parsedCmd.Args.Count == 0)
+                return CliCommandDefinition.InvalidParamsError;
+
+            if (parsedCmd.Args.ElementAt(0).Equals(UnlockAccountCmdName, StringComparison.OrdinalIgnoreCase))
+            {
+                if (parsedCmd.Args.Count < 2)
+                    return CliCommandDefinition.InvalidParamsError;
+            }
+
+            if (!SubCommands.Contains(parsedCmd.Args.ElementAt(0)))
+                return CliCommandDefinition.InvalidParamsError;
+            
+            return null;
+        }
         
         public void ProcessCommand(CmdParseResult parsedCmd)
         {
+            string validationError = Validate(parsedCmd);
+
+            if (validationError != null)
+            {
+                _screenManager.PrintError(validationError);
+                return;
+            }
+
             string subCommand = parsedCmd.Args.ElementAt(0);
 
             if (subCommand.Equals(NewCmdName, StringComparison.OrdinalIgnoreCase))
@@ -49,16 +79,31 @@ namespace AElf.CLI.Wallet
             }
         }
 
+
         private void UnlockAccount(string address)
         {
+            if (!_keyStore.ListAccounts().Contains(address))
+            {
+                _screenManager.PrintError("account does not exist!");
+                return;
+            }
+                
             var password = _screenManager.AskInvisible("password: ");
-            _keyStore.OpenAsync(address, password);
+            var tryOpen = _keyStore.OpenAsync(address, password);
+            
+            if (tryOpen == AElfKeyStore.Errors.WrongPassword)
+                _screenManager.PrintError("incorrect password!");
+            else if (tryOpen == AElfKeyStore.Errors.AccountAlreadyUnlocked)
+                _screenManager.PrintError("account already unlocked!");
+            else if (tryOpen == AElfKeyStore.Errors.None)
+                _screenManager.PrintLine("account successfully unlocked!");
         }
 
         private void CreateNewAccount()
         {
             var password = _screenManager.AskInvisible("password: ");
             _keyStore.Create(password);
+            _screenManager.PrintLine("account successfully created!");
         }
 
         private void ListAccounts()
@@ -69,6 +114,9 @@ namespace AElf.CLI.Wallet
             {
                 _screenManager.PrintLine("account #" + i + " : " + accnts.ElementAt(i));
             }
+            
+            if (accnts.Count == 0)
+                _screenManager.PrintLine("no accounts available");
         }
 
         public Transaction SignTransaction(JObject t)

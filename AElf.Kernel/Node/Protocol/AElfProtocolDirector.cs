@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Network.Data;
 using AElf.Network.Peers;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Node.Protocol
 {
@@ -12,16 +13,20 @@ namespace AElf.Kernel.Node.Protocol
     {
         private IPeerManager _peerManager;
         private List<PendingRequest> _resetEvents = new List<PendingRequest>();
+
+        private BlockSynchronizer _blockSynchronizer;
         
         private MainChainNode _node;
 
         public AElfProtocolDirector(IPeerManager peerManager)
         {
             _peerManager = peerManager;
+            
         }
         
         public void Start()
         {
+            //_blockSynchronizer.Init();
             _peerManager.Start();
             _peerManager.MessageReceived += ProcessPeerMessage;
         }
@@ -32,9 +37,17 @@ namespace AElf.Kernel.Node.Protocol
         /// todo : remove dependency on the node
         /// </summary>
         /// <param name="node"></param>
-        public void SetCommandContext(MainChainNode node)
+        public void SetCommandContext(MainChainNode node, bool doSync = false)
         {
             _node = node;
+            
+            if (doSync)
+                _blockSynchronizer = new BlockSynchronizer(_node, _peerManager); // todo move
+        }
+
+        public void AddTransaction(Transaction tx)
+        {
+            _blockSynchronizer.SetTransaction(tx.GetHash().ToByteArray());
         }
 
         public List<NodeData> GetPeers(ushort? numPeers)
@@ -57,6 +70,14 @@ namespace AElf.Kernel.Node.Protocol
             pendingRequest.ResetEvent.WaitOne();*/
         }
         
+        public async Task BroadcastBlock(Block block)
+        {
+            byte[] serializedBlock = block.ToByteArray();
+            
+            bool success 
+                = await _peerManager.BroadcastMessage(MessageTypes.BroadcastBlock, serializedBlock, 0);
+        }
+        
         #region Response handling
         
         /// <summary>
@@ -70,9 +91,34 @@ namespace AElf.Kernel.Node.Protocol
             {
                 AElfPacketData message = args.Message;
 
-                if (message.MsgType == (int)MessageTypes.BroadcastTx)
+                if (message.MsgType == (int)MessageTypes.BroadcastTx || message.MsgType == (int)MessageTypes.SendTx)
                 {
-                    await _node.ReceiveTransaction(message.Payload);
+                    var fromSend = message.MsgType == (int) MessageTypes.SendTx;
+                    await _node.ReceiveTransaction(message.Payload, fromSend);
+                }
+                else if (message.MsgType == (int)MessageTypes.BroadcastBlock)
+                {
+                    try
+                    {
+                        Block b = Block.Parser.ParseFrom(message.Payload);
+                        await _blockSynchronizer.AddBlockToSync(b);
+                    }
+                    catch (Exception exception)
+                    {
+                        ;
+                    }
+                }
+                else if (message.MsgType == (int) MessageTypes.Height)
+                {
+                    ;
+                    // todo _blockSynchronizer.SetPeerHeight();
+                }
+                else if (message.MsgType == (int) MessageTypes.HeightRequest)
+                {
+                    int height = _node.GetCurrentChainHeight();
+                    HeightData data = new HeightData { Height = height };
+                    var req = NetRequestFactory.CreateRequest(MessageTypes.Height, data.ToByteArray(), 0);
+                    await args.Peer.SendAsync(req.ToByteArray());
                 }
                 
                 // Process any messages

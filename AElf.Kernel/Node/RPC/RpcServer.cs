@@ -27,6 +27,7 @@ namespace AElf.Kernel.Node.RPC
         private const string BroadcastTxMethodName = "broadcast_tx";
         private const string GetPeersMethodName = "get_peers";
         private const string GetIncrementIdMethodName = "get_increment";
+        private const string BroadcastBlockMethodName = "broadcast_block";
         
         private const string GetCommandsMethodName = "get_commands";
         
@@ -41,7 +42,8 @@ namespace AElf.Kernel.Node.RPC
             BroadcastTxMethodName,
             GetPeersMethodName,
             GetCommandsMethodName,
-            GetIncrementIdMethodName
+            GetIncrementIdMethodName,
+            BroadcastBlockMethodName
         };
         
         /// <summary>
@@ -200,6 +202,9 @@ namespace AElf.Kernel.Node.RPC
                        case GetIncrementIdMethodName:
                            responseData = await ProcessGetIncrementId(reqParams);
                            break;
+                       case BroadcastBlockMethodName:
+                           responseData = await ProcessBroadcastBlock(reqParams);
+                           break;
                        default:
                            Console.WriteLine("Method name not found"); // todo log
                            break;
@@ -334,6 +339,11 @@ namespace AElf.Kernel.Node.RPC
             };
             
             return JObject.FromObject(j);
+        }
+
+        private async Task<JObject> ProcessBroadcastBlock(JObject reqParams)
+        {
+            throw new NotImplementedException();
         }
 
         private async Task WriteResponse(HttpContext context, JObject response)
