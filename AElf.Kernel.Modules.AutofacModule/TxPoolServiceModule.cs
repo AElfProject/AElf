@@ -19,8 +19,8 @@ namespace AElf.Kernel.Modules.AutofacModule
             else
                 builder.RegisterInstance(TxPoolConfig.Default).As<ITxPoolConfig>();
             
-            builder.RegisterType<TxPool>().As<ITxPool>();
-            builder.RegisterType<TxPoolService>().As<ITxPoolService>();
+            builder.RegisterType<TxPool>().As<ITxPool>().SingleInstance();
+            builder.RegisterType<TxPoolService>().As<ITxPoolService>().SingleInstance();
         }
     }
 }
