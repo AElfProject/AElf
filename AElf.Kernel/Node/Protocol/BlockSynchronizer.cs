@@ -126,6 +126,12 @@ namespace AElf.Kernel.Node.Protocol
             }
         }
 
+        /// <summary>
+        /// This adds a transaction to one off the blocks. Typically this happens when
+        /// a transaction has been received throught the network.
+        /// </summary>
+        /// <param name="blockHash"></param>
+        /// <param name="t"></param>
         public void SetTransaction(byte[] blockHash, Transaction t)
         {
             PendingBlock b = GetBlock(blockHash);

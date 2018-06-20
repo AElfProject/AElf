@@ -37,12 +37,12 @@ namespace AElf.Kernel.Node
         private readonly IBlockVaildationService _blockVaildationService;
         private readonly IChainContextService _chainContextService;
         private readonly IWorldStateManager _worldStateManager;
-        private readonly ISynchronizer _synchronizer;
+        private readonly IBlockExecutor _blockExecutor;
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer,
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner,
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
-            IChainContextService chainContextService, ISynchronizer synchronizer,
+            IChainContextService chainContextService, IBlockExecutor blockExecutor,
             IChainCreationService chainCreationService, IWorldStateManager worldStateManager)
         {
             _poolService = poolService;
@@ -56,7 +56,7 @@ namespace AElf.Kernel.Node
             _blockVaildationService = blockVaildationService;
             _chainContextService = chainContextService;
             _worldStateManager = worldStateManager;
-            _synchronizer = synchronizer;
+            _blockExecutor = blockExecutor;
         }
 
         public void Start(ECKeyPair nodeKeyPair, bool startRpc)
@@ -123,13 +123,19 @@ namespace AElf.Kernel.Node
         /// </summary>
         /// <param name="messagePayload"></param>
         /// <returns></returns>
-        public async Task ReceiveTransaction(ByteString messagePayload)
+        public async Task ReceiveTransaction(ByteString messagePayload, bool isFromSend)
         {
             try
             {
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
                 _logger.Trace("Received Transaction: " + JsonFormatter.Default.Format(tx));
+                
                 await _poolService.AddTxAsync(tx);
+
+                if (isFromSend)
+                {
+                    _protocolDirector.AddTransaction(tx);
+                }
             }
             catch (Exception e)
             {
@@ -193,7 +199,7 @@ namespace AElf.Kernel.Node
                     return new BlockExecutionResult(false, error);
                 }
             
-                await _synchronizer.ExecuteBlock(block);
+                await _blockExecutor.ExecuteBlock(block);
 
                 return new BlockExecutionResult();
             }

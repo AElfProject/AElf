@@ -43,6 +43,11 @@ namespace AElf.Kernel.Node.Protocol
             _blockSynchronizer = new BlockSynchronizer(_node); // todo move
         }
 
+        public void AddTransaction(Transaction tx)
+        {
+            _blockSynchronizer.SetTransaction(tx.GetHash().ToByteArray());
+        }
+
         public List<NodeData> GetPeers(ushort? numPeers)
         {
             return _peerManager.GetPeers(numPeers);
@@ -84,9 +89,10 @@ namespace AElf.Kernel.Node.Protocol
             {
                 AElfPacketData message = args.Message;
 
-                if (message.MsgType == (int)MessageTypes.BroadcastTx)
+                if (message.MsgType == (int)MessageTypes.BroadcastTx || message.MsgType == (int)MessageTypes.SendTx)
                 {
-                    await _node.ReceiveTransaction(message.Payload);
+                    var fromSend = message.MsgType == (int) MessageTypes.SendTx;
+                    await _node.ReceiveTransaction(message.Payload, fromSend);
                 }
                 else if (message.MsgType == (int)MessageTypes.BroadcastBlock)
                 {

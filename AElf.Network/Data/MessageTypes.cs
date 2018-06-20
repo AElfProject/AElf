@@ -3,6 +3,7 @@
     public enum MessageTypes
     {
         AskForTx,
+        SendTx,
         
         RequestPeers,
         ReturnPeers,

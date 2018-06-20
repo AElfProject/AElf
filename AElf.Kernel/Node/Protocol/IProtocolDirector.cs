@@ -14,5 +14,6 @@ namespace AElf.Kernel.Node.Protocol
         void SetCommandContext(MainChainNode node);
 
         List<NodeData> GetPeers(ushort? numPeers);
+        void AddTransaction(Transaction tx);
     }
 }
