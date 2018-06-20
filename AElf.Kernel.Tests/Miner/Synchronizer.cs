@@ -215,7 +215,7 @@ namespace AElf.Kernel.Tests.Miner
 
             IParallelTransactionExecutingService parallelTransactionExecutingService =
                 new ParallelTransactionExecutingService(sys);
-            var synchronizer = new Kernel.Miner.Synchronizer(poolService, parallelTransactionExecutingService,
+            var synchronizer = new Kernel.Miner.BlockExecutor(poolService, parallelTransactionExecutingService,
                 _chainManager, _blockManager);
             var res = await synchronizer.ExecuteBlock(block);
             Assert.True(res);

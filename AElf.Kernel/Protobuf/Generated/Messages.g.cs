@@ -43,7 +43,7 @@ namespace AElf.Kernel {
             "IAEoCzIFLkhhc2gSKwocTWVya2xlVHJlZVJvb3RPZlRyYW5zYWN0aW9ucxgD",
             "IAEoCzIFLkhhc2gSKQoaTWVya2xlVHJlZVJvb3RPZldvcmxkU3RhdGUYBCAB",
             "KAsyBS5IYXNoEg0KBUluZGV4GAUgASgEEgkKAVIYBiABKAwSCQoBUxgHIAEo",
-            "DBIJCgFQGAggASgMEigKBHRpbWUYCSABKAsyGi5nb29nbGUucHJvdG9idWYu",
+            "DBIJCgFQGAggASgMEigKBFRpbWUYCSABKAsyGi5nb29nbGUucHJvdG9idWYu",
             "VGltZXN0YW1wEhYKB0NoYWluSWQYCiABKAsyBS5IYXNoIkQKCUJsb2NrQm9k",
             "eRIaCgtCbG9ja0hlYWRlchgBIAEoCzIFLkhhc2gSGwoMVHJhbnNhY3Rpb25z",
             "GAIgAygLMgUuSGFzaCI/CgVCbG9jaxIcCgZIZWFkZXIYASABKAsyDC5CbG9j",
@@ -1561,7 +1561,7 @@ namespace AElf.Kernel {
       }
     }
 
-    /// <summary>Field number for the "time" field.</summary>
+    /// <summary>Field number for the "Time" field.</summary>
     public const int TimeFieldNumber = 9;
     private global::Google.Protobuf.WellKnownTypes.Timestamp time_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

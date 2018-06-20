@@ -3,7 +3,7 @@
     public enum ValidationError
     {
         Success,
-        InvalidBlcok,
+        InvalidBlock,
         OrphanBlock
     }
 }
