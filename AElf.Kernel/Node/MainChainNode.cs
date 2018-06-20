@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.BlockValidationFilters;
@@ -40,12 +41,14 @@ namespace AElf.Kernel.Node
         private readonly IAccountContextService _accountContextService;
         private readonly IBlockVaildationService _blockVaildationService;
         private readonly IChainContextService _chainContextService;
-        private readonly ISynchronizer _synchronizer;
+        private readonly IWorldStateManager _worldStateManager;
+        private readonly IBlockExecutor _blockExecutor;
 
-        public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
-            IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner, 
-            IAccountContextService accountContextService, IBlockVaildationService blockVaildationService, 
-            IChainContextService chainContextService, ISynchronizer synchronizer, IChainCreationService chainCreationService)
+        public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer,
+            IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner,
+            IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
+            IChainContextService chainContextService, IBlockExecutor blockExecutor,
+            IChainCreationService chainCreationService, IWorldStateManager worldStateManager)
         {
             _poolService = poolService;
             _protocolDirector = protocolDirector;
@@ -57,7 +60,8 @@ namespace AElf.Kernel.Node
             _accountContextService = accountContextService;
             _blockVaildationService = blockVaildationService;
             _chainContextService = chainContextService;
-            _synchronizer = synchronizer;
+            _worldStateManager = worldStateManager;
+            _blockExecutor = blockExecutor;
         }
 
         public void Start(ECKeyPair nodeKeyPair, bool startRpc)
@@ -67,26 +71,34 @@ namespace AElf.Kernel.Node
             if (startRpc)
                 _rpcServer.Start();
             
-            
             _poolService.Start();
             _protocolDirector.Start();
             
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
-            _protocolDirector.SetCommandContext(this);
+            _protocolDirector.SetCommandContext(this, !_nodeConfig.IsMiner); // If not miner do sync
             
             if(_nodeConfig.IsMiner)
                 _miner.Start(nodeKeyPair);    
             
+
             _logger.Log(LogLevel.Debug, "AElf node started.");
-            _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToByteString().ToBase64());
+            _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig?.ChainId?.ToByteString().ToBase64());
+            
             if (_nodeConfig.IsMiner)
             {
-                _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
+                _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner?.Coinbase?.Value?.ToStringUtf8());
+                
+                // todo
+                // Task.Delay(TimeSpan.FromSeconds(2));
+                // BroadcastBlock(null); 
+            }
+            else
+            {
+                
             }
         }
         
-
         /// <summary>
         /// get the tx from tx pool or database
         /// </summary>
@@ -113,44 +125,6 @@ namespace AElf.Kernel.Node
         {
             return await _transactionManager.AddTransactionAsync(tx);
         }
-
-        /// <summary>
-        /// Broadcasts a transaction to the network. This method
-        /// also places it in the transaction pool.
-        /// </summary>
-        /// <param name="tx">The tx to broadcast</param>
-        public async Task<bool> BroadcastTransaction(ITransaction tx)
-        {
-            bool res = true;
-            
-            try
-            {
-                //res = await _poolService.AddTxAsync(tx);
-            }
-            catch (Exception e)
-            {
-                _logger.Trace("Pool insertion failed: " + tx.GetHash().Value.ToBase64());
-                return false;
-            }
-
-            if (res)
-            {
-                try
-                {
-                    await _protocolDirector.BroadcastTransaction(tx);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-                
-                _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
-                return true;
-            }
-            
-            _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToBase64() + " }");
-            return false;
-        }
         
         /// <summary>
         /// This method processes a transaction received from one of the
@@ -158,13 +132,19 @@ namespace AElf.Kernel.Node
         /// </summary>
         /// <param name="messagePayload"></param>
         /// <returns></returns>
-        public async Task ReceiveTransaction(ByteString messagePayload)
+        public async Task ReceiveTransaction(ByteString messagePayload, bool isFromSend)
         {
             try
             {
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
                 _logger.Trace("Received Transaction: " + JsonFormatter.Default.Format(tx));
+                
                 await _poolService.AddTxAsync(tx);
+
+                if (isFromSend)
+                {
+                    _protocolDirector.AddTransaction(tx);
+                }
             }
             catch (Exception e)
             {
@@ -203,50 +183,74 @@ namespace AElf.Kernel.Node
             }
         }
 
+        public async Task<Hash> GetLastValidBlockHash()
+        {
+            var pointer = Path.CalculatePointerForLastBlockHash(_nodeConfig.ChainId);
+            return await _worldStateManager.GetDataAsync(pointer);
+        }
+
         /// <summary>
-        /// Add a new block received from network
+        /// Add a new block received from network by first validating it and then
+        /// executing it.
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        public async Task<bool> AddBlock(IBlock block)
+        public async Task<BlockExecutionResult> AddBlock(IBlock block)
         {
             try
             {
                 var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
                 var error = await _blockVaildationService.ValidateBlockAsync(block, context);
+                
                 if (error != ValidationError.Success)
                 {
                     _logger.Trace("Invalid block received from network");
-                    return false;
+                    return new BlockExecutionResult(false, error);
                 }
             
-                return await _synchronizer.ExecuteBlock(block);
+                bool executed = await _blockExecutor.ExecuteBlock(block);
+
+                return new BlockExecutionResult(executed, error);
             }
             catch (Exception e)
             {
                 _logger.Error(e, "Block synchronzing failed");
-                return false;
+                return new BlockExecutionResult(e);
             }
-            
         }
         
         /// <summary>
-        /// get missing tx hashes for the block
+        /// get missing tx hashes for the block. If an exception occured it return
+        /// null. If there's simply no transaction from this block in the pool it
+        /// returns an empty list.
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
         public List<Hash> GetMissingTransactions(IBlock block)
         {
-            var res = new List<Hash>();
-            var txs = block.Body.Transactions;
-            foreach (var id in txs)
+            try
             {
-                if (!_poolService.TryGetTx(id, out var tx))
+                var res = new List<Hash>();
+                var txs = block.Body.Transactions;
+                foreach (var id in txs)
                 {
-                    res.Add(id);
+                    if (!_poolService.TryGetTx(id, out var tx))
+                    {
+                        res.Add(id);
+                    }
                 }
+                return res;
             }
-            return res;
+            catch (Exception e)
+            {
+                _logger?.Trace("Error while getting missing transactions");
+                return null;
+            }
+        }
+
+        public int GetCurrentChainHeight()
+        {
+            return 5;
         }
 
         /// <summary>
@@ -257,6 +261,70 @@ namespace AElf.Kernel.Node
         public async Task<bool> AddTransaction(ITransaction tx)
         {
             return await _poolService.AddTxAsync(tx);
+        }
+
+        public async Task<bool> BroadcastBlock(IBlock block)
+        {
+            try
+            {
+                // todo : fake block for now
+                var blockb = new Block(ByteArrayHelpers.RandomFill(10));
+
+                blockb.Header.ChainId = ByteArrayHelpers.RandomFill(10);
+                blockb.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+                blockb.Header.PreviousBlockHash = ByteArrayHelpers.RandomFill(256);
+                
+                blockb.AddTransaction(Hash.Generate());
+                
+                await _protocolDirector.BroadcastBlock(blockb);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            
+            _logger.Trace("Broadcasted block to peers:");
+            
+            return true;
+            
+        }
+        
+        /// <summary>
+        /// Broadcasts a transaction to the network. This method
+        /// also places it in the transaction pool.
+        /// </summary>
+        /// <param name="tx">The tx to broadcast</param>
+        public async Task<bool> BroadcastTransaction(ITransaction tx)
+        {
+            bool res;
+            
+            try
+            {
+                res = await _poolService.AddTxAsync(tx);
+            }
+            catch (Exception e)
+            {
+                _logger.Trace("Pool insertion failed: " + tx.GetHash().Value.ToBase64());
+                return false;
+            }
+
+            if (res)
+            {
+                try
+                {
+                    await _protocolDirector.BroadcastTransaction(tx);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+                
+                _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
+                return true;
+            }
+            
+            _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToBase64() + " }");
+            return false;
         }
     }
 }
