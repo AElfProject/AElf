@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Node;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.Protocol.Exceptions;
 using Castle.DynamicProxy.Generators;
+using Google.Protobuf.WellKnownTypes;
 using Moq;
 using Xunit;
 
@@ -12,7 +15,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
 {
     public class BlockSyncTests_AddBlockToSync
     {
-        public static byte[] RandomFill(int count)
+        public byte[] RandomFill(int count)
         {
             Random rnd = new Random();
             byte[] random = new byte[count];
@@ -20,6 +23,17 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             rnd.NextBytes(random);
 
             return random;
+        }
+        
+        private Block GenerateValidBlockToSync()
+        {
+            var block = new Block(RandomFill(10));
+
+            block.Header.ChainId = RandomFill(10);
+            block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+            block.Header.PreviousBlockHash = RandomFill(256);
+            
+            return block;
         }
 
         [Fact]
@@ -65,28 +79,59 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         }
 
         [Fact]
-        public async Task AddBlockToSync_AllTxInPool_ShouldFireBlockSynched()
+        public async Task AddBlockToSync_TxMissing_ShouldPutBlockToSync()
         {
+            var missingTxHash = RandomFill(256);
+            var returnTxHashes = new List<Hash> { new Hash(missingTxHash) };
+            
             Mock<IAElfNode> mock = new Mock<IAElfNode>();
-            mock.Setup(n => n.GetMissingTransactions(It.IsAny<IBlock>())).Returns(new List<Hash>());
+            mock.Setup(n => n.GetMissingTransactions(It.IsAny<IBlock>())).Returns(returnTxHashes);
+            
             IAElfNode m = mock.Object;
             
             BlockSynchronizer s = new BlockSynchronizer(m);
+
+            Block b = GenerateValidBlockToSync();
+            b.AddTransaction(Hash.Generate());
             
-            List<BlockSynchedArgs> receivedEvents = new List<BlockSynchedArgs>();
+            await s.AddBlockToSync(b);
+
+            byte[] array = b.GetHash().GetHashBytes();
+            PendingBlock p = s.GetBlock(array);
             
-            s.BlockSynched += (sender, e) =>
-            {
-                BlockSynchedArgs args = e as BlockSynchedArgs;
-                receivedEvents.Add(args);
-            };
-            
-            Block b = new Block();
-            s.AddBlockToSync(b);
-            
-            Assert.Equal(1, receivedEvents.Count);
-            Assert.Equal(receivedEvents[0].Block, b);
+            Assert.Equal(p.BlockHash, array);
+
+            byte[] missingTx = p.MissingTxs.FirstOrDefault();
+            Assert.True(missingTx.BytesEqual(missingTxHash));
         }
+
+        [Fact]
+        public async Task AddBlockToSync_AlreadyInPool_ShouldPutBlockToSyncIfOrphan()
+        {
+            Mock<IAElfNode> mock = new Mock<IAElfNode>();
+            mock.Setup(n => n.GetMissingTransactions(It.IsAny<IBlock>())).Returns<List<Hash>>(null);
+        }
+
+        /*[Fact]
+        public async Task AddBlockToSync_TxMissing_ShouldPutBlockToSync()
+        {
+            Mock<IAElfNode> mock = new Mock<IAElfNode>();
+            
+            mock.Setup(n => n.GetMissingTransactions(It.IsAny<IBlock>()))
+                .Returns(new List<Hash> { new Hash(RandomFill(256)) });
+            
+            IAElfNode m = mock.Object;
+            
+            BlockSynchronizer s = new BlockSynchronizer(m);
+
+            Block b = GenerateValidBlockToSync();
+            await s.AddBlockToSync(b);
+
+            byte[] array = b.GetHash().GetHashBytes();
+            PendingBlock p = s.GetBlock(array);
+            
+            Assert.Equal(p.BlockHash, array);
+        }*/
         
         /*[Fact]
         public void AddBlock_AllTxInPool_ShouldFireBlockSynched()

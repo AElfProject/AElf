@@ -239,22 +239,32 @@ namespace AElf.Kernel.Node
         }
         
         /// <summary>
-        /// get missing tx hashes for the block
+        /// get missing tx hashes for the block. If an exception occured it return
+        /// null. If there's simply no transaction from this block in the pool it
+        /// returns an empty list.
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
         public List<Hash> GetMissingTransactions(IBlock block)
         {
-            var res = new List<Hash>();
-            var txs = block.Body.Transactions;
-            foreach (var id in txs)
+            try
             {
-                if (!_poolService.TryGetTx(id, out var tx))
+                var res = new List<Hash>();
+                var txs = block.Body.Transactions;
+                foreach (var id in txs)
                 {
-                    res.Add(id);
+                    if (!_poolService.TryGetTx(id, out var tx))
+                    {
+                        res.Add(id);
+                    }
                 }
+                return res;
             }
-            return res;
+            catch (Exception e)
+            {
+                _logger?.Trace("Error while getting missing transactions");
+                return null;
+            }
         }
 
         /// <summary>

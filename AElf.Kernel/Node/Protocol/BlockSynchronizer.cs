@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Protocol.Exceptions;
 using AElf.Network.Peers;
@@ -103,14 +104,31 @@ namespace AElf.Kernel.Node.Protocol
 
             List<Hash> missingTxs = _mainChainNode.GetMissingTransactions(block);
 
+            if (missingTxs == null)
+            {
+                // todo what happend when the pool fails ?
+                return;
+            }
+
             if (missingTxs.Any())
             {
-                PendingBlock newPendingBlock = new PendingBlock(h, block);
+                // todo check that the returned txs are actually in the block
+                PendingBlock newPendingBlock = new PendingBlock(h, block, missingTxs);
                 PendingBlocks.Add(newPendingBlock);
             }
             else
             {
+                // Here all the txs where in the pool, we try to add the block to
+                // the chain
                 BlockExecutionResult res = await _mainChainNode.AddBlock(block);
+                
+                if (res.ValidationError.HasValue && res.ValidationError.Value == ValidationError.OrphanBlock)
+                {
+                    // Here we've come across a block that is higher than the current
+                    // chain height
+                    PendingBlock newPendingBlock = new PendingBlock(h, block);
+                    PendingBlocks.Add(newPendingBlock);
+                }
             }
         }
 
@@ -128,13 +146,22 @@ namespace AElf.Kernel.Node.Protocol
     public class PendingBlock
     {
         private Block _block;
-        private List<byte[]> _missingTxs = new List<byte[]>();
+        
+        public List<byte[]> MissingTxs { get; private set; }
+
+        public bool IsWaitingForPrevious = false;
+            
         public byte[] BlockHash { get; }
 
         public PendingBlock(byte[] blockHash, Block block)
         {
             _block = block;
             BlockHash = blockHash;
+        }
+
+        public PendingBlock(byte[] blockHash, Block block, List<Hash> missing) : this(blockHash, block)
+        {
+            MissingTxs = missing.Select(m => m.Value.ToByteArray()).ToList();
         }
         
         public void RemoveTransaction(byte[] txid)
