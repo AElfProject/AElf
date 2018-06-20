@@ -61,6 +61,17 @@ namespace AElf.Kernel.Node.Protocol
 
             pendingRequest.ResetEvent.WaitOne();*/
         }
+
+        private Block DeserialiseBlock(byte[] b)
+        {
+            throw new NotImplementedException();
+        }
+        
+        private async Task BroadcastBlock(byte[] b)
+        {
+            //Block block = DeserialiseBlock(b);
+            throw new NotImplementedException();
+        }
         
         #region Response handling
         
