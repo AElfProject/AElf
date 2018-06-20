@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using AElf.Cryptography.ECDSA;
 using Google.Protobuf;
+using Org.BouncyCastle.Asn1.Mozilla;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -23,7 +24,8 @@ namespace AElf.Kernel
         public static readonly Hash Zero = new Hash("AElf".CalculateHash()).ToAccount();
         
         public static readonly Hash Default = new Hash(new byte[]{});
-
+        
+        public static readonly Hash Genesis = new Hash("Genesis".CalculateHash());
         public Hash(byte[] buffer)
         {
             Value = ByteString.CopyFrom(buffer);
@@ -71,12 +73,12 @@ namespace AElf.Kernel
         
         public static implicit operator Hash(byte[] value)
         {
-            return value == null ? Zero : new Hash(value);
+            return value == null ? Default : new Hash(value);
         }
         
         public static implicit operator Hash(ByteString value)
         {
-            return value == null ? Zero : new Hash(value);
+            return value == null ? Default : new Hash(value);
         }
     }
 }
