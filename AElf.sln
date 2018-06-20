@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network", "AElf.Networ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Common", "AElf.Common\AElf.Common.csproj", "{4EC22E9F-7019-470B-B990-B9E020DBBFB2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network.Tests", "AElf.Network.Tests\AElf.Network.Tests.csproj", "{3E029881-EA87-45C5-B79F-64426A10757A}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ABI.CSharp", "AElf.ABI.CSharp\AElf.ABI.CSharp.csproj", "{BBB26F2A-BFBE-4CD1-89C8-FEB5E49C4453}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ABI.CSharp.Tests", "AElf.ABI.CSharp.Tests\AElf.ABI.CSharp.Tests.csproj", "{82136399-8318-4B26-A12B-36746494AFF0}"
