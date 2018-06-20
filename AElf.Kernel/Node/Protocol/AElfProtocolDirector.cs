@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Network.Data;
 using AElf.Network.Peers;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Node.Protocol
 {
@@ -21,7 +22,6 @@ namespace AElf.Kernel.Node.Protocol
         {
             _peerManager = peerManager;
             
-            _blockSynchronizer = new BlockSynchronizer(_node);
         }
         
         public void Start()
@@ -40,6 +40,7 @@ namespace AElf.Kernel.Node.Protocol
         public void SetCommandContext(MainChainNode node)
         {
             _node = node;
+            _blockSynchronizer = new BlockSynchronizer(_node); // todo move
         }
 
         public List<NodeData> GetPeers(ushort? numPeers)
@@ -61,16 +62,13 @@ namespace AElf.Kernel.Node.Protocol
 
             pendingRequest.ResetEvent.WaitOne();*/
         }
-
-        private Block DeserialiseBlock(byte[] b)
-        {
-            throw new NotImplementedException();
-        }
         
-        private async Task BroadcastBlock(byte[] b)
+        public async Task BroadcastBlock(Block block)
         {
-            //Block block = DeserialiseBlock(b);
-            throw new NotImplementedException();
+            byte[] serializedBlock = block.ToByteArray();
+            
+            bool success 
+                = await _peerManager.BroadcastMessage(MessageTypes.BroadcastBlock, serializedBlock, 0);
         }
         
         #region Response handling
@@ -89,6 +87,18 @@ namespace AElf.Kernel.Node.Protocol
                 if (message.MsgType == (int)MessageTypes.BroadcastTx)
                 {
                     await _node.ReceiveTransaction(message.Payload);
+                }
+                else if (message.MsgType == (int)MessageTypes.BroadcastBlock)
+                {
+                    try
+                    {
+                        Block b = Block.Parser.ParseFrom(message.Payload);
+                        await _blockSynchronizer.AddBlockToSync(b);
+                    }
+                    catch (Exception exception)
+                    {
+                        ;
+                    }
                 }
                 
                 // Process any messages

@@ -8,7 +8,9 @@ namespace AElf.Kernel.Node.Protocol
     {
         void Start();
 
+        Task BroadcastBlock(Block block);
         Task BroadcastTransaction(ITransaction transaction);
+        
         void SetCommandContext(MainChainNode node);
 
         List<NodeData> GetPeers(ushort? numPeers);

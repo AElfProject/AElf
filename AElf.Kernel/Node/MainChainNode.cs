@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.BlockValidationFilters;
@@ -83,6 +84,9 @@ namespace AElf.Kernel.Node
             if (_nodeConfig.IsMiner)
             {
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner?.Coinbase?.Value?.ToStringUtf8());
+                
+                Task.Delay(TimeSpan.FromSeconds(2));
+                BroadcastBlock(null); //todo
             }
         }
         
@@ -111,44 +115,6 @@ namespace AElf.Kernel.Node
         public async Task<IHash> InsertTransaction(Transaction tx)
         {
             return await _transactionManager.AddTransactionAsync(tx);
-        }
-
-        /// <summary>
-        /// Broadcasts a transaction to the network. This method
-        /// also places it in the transaction pool.
-        /// </summary>
-        /// <param name="tx">The tx to broadcast</param>
-        public async Task<bool> BroadcastTransaction(ITransaction tx)
-        {
-            bool res;
-            
-            try
-            {
-                res = await _poolService.AddTxAsync(tx);
-            }
-            catch (Exception e)
-            {
-                _logger.Trace("Pool insertion failed: " + tx.GetHash().Value.ToBase64());
-                return false;
-            }
-
-            if (res)
-            {
-                try
-                {
-                    await _protocolDirector.BroadcastTransaction(tx);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-                
-                _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
-                return true;
-            }
-            
-            _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToBase64() + " }");
-            return false;
         }
         
         /// <summary>
@@ -277,9 +243,68 @@ namespace AElf.Kernel.Node
             return await _poolService.AddTxAsync(tx);
         }
 
-        public async Task<bool> BroadcastBlock(byte[] b)
+        public async Task<bool> BroadcastBlock(IBlock block)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // todo : fake block for now
+                var blockb = new Block(ByteArrayHelpers.RandomFill(10));
+
+                blockb.Header.ChainId = ByteArrayHelpers.RandomFill(10);
+                blockb.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+                blockb.Header.PreviousBlockHash = ByteArrayHelpers.RandomFill(256);
+                
+                blockb.AddTransaction(Hash.Generate());
+                
+                await _protocolDirector.BroadcastBlock(blockb);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            
+            _logger.Trace("Broadcasted block to peers:");
+            
+            return true;
+            
+        }
+        
+        /// <summary>
+        /// Broadcasts a transaction to the network. This method
+        /// also places it in the transaction pool.
+        /// </summary>
+        /// <param name="tx">The tx to broadcast</param>
+        public async Task<bool> BroadcastTransaction(ITransaction tx)
+        {
+            bool res;
+            
+            try
+            {
+                res = await _poolService.AddTxAsync(tx);
+            }
+            catch (Exception e)
+            {
+                _logger.Trace("Pool insertion failed: " + tx.GetHash().Value.ToBase64());
+                return false;
+            }
+
+            if (res)
+            {
+                try
+                {
+                    await _protocolDirector.BroadcastTransaction(tx);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+                
+                _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
+                return true;
+            }
+            
+            _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToBase64() + " }");
+            return false;
         }
     }
 }

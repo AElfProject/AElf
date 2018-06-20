@@ -138,12 +138,12 @@ namespace AElf.Launcher
             
             if (IsMiner)
             {
-                if (!string.IsNullOrEmpty(opts.CoinBase))
+                /*if (string.IsNullOrEmpty(opts.CoinBase))
                 {
                     throw new Exception("coinbase is needed");
                 }
                 
-                Coinbase = ByteString.CopyFromUtf8(opts.CoinBase);
+                Coinbase = ByteString.CopyFromUtf8(opts.CoinBase);*/
             }
             
             MinerConfig = new MinerConfig
