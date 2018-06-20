@@ -15,23 +15,13 @@ namespace AElf.Kernel.Tests.BlockSyncTests
 {
     public class BlockSyncTests_AddBlockToSync
     {
-        public byte[] RandomFill(int count)
-        {
-            Random rnd = new Random();
-            byte[] random = new byte[count];
-            
-            rnd.NextBytes(random);
-
-            return random;
-        }
-        
         private Block GenerateValidBlockToSync()
         {
-            var block = new Block(RandomFill(10));
+            var block = new Block(ByteArrayHelpers.RandomFill(10));
 
-            block.Header.ChainId = RandomFill(10);
+            block.Header.ChainId = ByteArrayHelpers.RandomFill(10);
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
-            block.Header.PreviousBlockHash = RandomFill(256);
+            block.Header.PreviousBlockHash = ByteArrayHelpers.RandomFill(256);
             
             return block;
         }
@@ -81,7 +71,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         [Fact]
         public async Task AddBlockToSync_TxMissing_ShouldPutBlockToSync()
         {
-            var missingTxHash = RandomFill(256);
+            var missingTxHash = ByteArrayHelpers.RandomFill(256);
             var returnTxHashes = new List<Hash> { new Hash(missingTxHash) };
             
             Mock<IAElfNode> mock = new Mock<IAElfNode>();
