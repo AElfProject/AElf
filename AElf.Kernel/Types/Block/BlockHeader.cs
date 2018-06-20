@@ -10,6 +10,8 @@ namespace AElf.Kernel
 {
     public partial class BlockHeader : IBlockHeader
     {
+        private Hash _blockHash;
+        
         public BlockHeader(Hash preBlockHash)
         {
             PreviousBlockHash = preBlockHash;
@@ -17,7 +19,12 @@ namespace AElf.Kernel
 
         public Hash GetHash()
         {
-            return SHA256.Create().ComputeHash(GetSignatureData());
+            if (_blockHash == null)
+            {
+                _blockHash = SHA256.Create().ComputeHash(GetSignatureData());
+            }
+
+            return _blockHash;
         }
 
         public byte[] Serialize()
@@ -33,6 +40,7 @@ namespace AElf.Kernel
             
             return new ECSignature(sig);
         }
+
         
         public byte[] GetSignatureData()
         {
