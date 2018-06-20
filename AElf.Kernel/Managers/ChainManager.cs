@@ -32,11 +32,10 @@ namespace AElf.Kernel.Managers
                     throw new InvalidDataException("Invalid block");
 
                 var chainId = block.Header.ChainId;
-                await AppednBlockHeaderAsync(block.Header);
+                
+                await AppendBlockHeaderAsync(block.Header);
 
-                await InitialHeightOfBlock(chainId);
-                await _heightOfBlock.SetAsync(new UInt64Value {Value = block.Header.Index}.CalculateHash(), 
-                    block.GetHash().ToByteArray());
+                
             }
             catch (Exception e)
             {
@@ -52,7 +51,7 @@ namespace AElf.Kernel.Managers
             return chain != null;
         }
 
-        public async Task AppednBlockHeaderAsync(BlockHeader header)
+        public async Task AppendBlockHeaderAsync(BlockHeader header)
         {
             var chainId = header.ChainId;
             if (await _chainStore.GetAsync(chainId) == null)
@@ -63,17 +62,25 @@ namespace AElf.Kernel.Managers
             var lastBlockHash = await GetChainLastBlockHash(chainId);
 
             // chain height should not be 0 when appending a new block
+            if (header.Index != height)
+            {
+                throw new InvalidDataException("Invalid block");
+            }
             if (height == 0)
             {
                 // empty chain
-                lastBlockHash = Hash.Default;
+                lastBlockHash = Hash.Genesis;
             }
             if ( lastBlockHash != header.PreviousBlockHash)
             {
                 throw new InvalidDataException("Invalid block");
                 //Block is not connected
             }
-            header.Index = height;
+            
+            await InitialHeightOfBlock(chainId);
+            await _heightOfBlock.SetAsync(new UInt64Value {Value = header.Index}.CalculateHash(), 
+                header.GetHash().ToByteArray());
+            
             await SetChainCurrentHeight(chainId, height + 1);
             await SetChainLastBlockHash(chainId, header.GetHash());
         }
