@@ -20,7 +20,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         [Fact]
         public async Task AddBlockToSync_NullBlock_ShouldThrow()
         {
-            BlockSynchronizer s = new BlockSynchronizer(null);
+            BlockSynchronizer s = new BlockSynchronizer(null, null);
             
             Exception ex = await Assert.ThrowsAsync<InvalidBlockException>(() => s.AddBlockToSync(null));
             Assert.Equal("The block, blockheader or body is null", ex.Message);
@@ -35,7 +35,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         [Fact]
         public async Task AddBlockToSync_NoTransactions_ShouldThrow()
         {
-            BlockSynchronizer s = new BlockSynchronizer(null);
+            BlockSynchronizer s = new BlockSynchronizer(null, null);
             
             Block b = new Block();
             b.Body = new BlockBody();
@@ -48,7 +48,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         [Fact]
         public async Task AddBlockToSync_NoHash_ShouldThrow()
         {
-            BlockSynchronizer s = new BlockSynchronizer(null);
+            BlockSynchronizer s = new BlockSynchronizer(null, null);
             
             Block b = new Block();
             b.Body = new BlockBody();
@@ -70,7 +70,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             
             IAElfNode m = mock.Object;
             
-            BlockSynchronizer s = new BlockSynchronizer(m);
+            BlockSynchronizer s = new BlockSynchronizer(m, null);
 
             Block b = BlockSyncHelpers.GenerateValidBlockToSync();
             b.AddTransaction(Hash.Generate());
@@ -103,7 +103,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             Block b = BlockSyncHelpers.GenerateValidBlockToSync();
             b.AddTransaction(Hash.Generate());
             
-            BlockSynchronizer s = new BlockSynchronizer(m);
+            BlockSynchronizer s = new BlockSynchronizer(m, null);
             await s.AddBlockToSync(b);
             
             byte[] array = b.GetHash().GetHashBytes();
