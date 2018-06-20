@@ -44,11 +44,11 @@ namespace AElf.Kernel.Tests
         {
             var chain = await CreateChain();
             
-            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id);
+            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             await _chainManager.AppendBlockToChainAsync(block1);
             await _blockManager.AddBlockAsync(block1);
             
-            var block2 = CreateBlock(block1.GetHash(), chain.Id);
+            var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
             await _chainManager.AppendBlockToChainAsync(block2);
             await _blockManager.AddBlockAsync(block2);
 
@@ -62,11 +62,11 @@ namespace AElf.Kernel.Tests
         {
             var chain = await CreateChain();
             
-            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id);
+            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             await _chainManager.AppendBlockToChainAsync(block1);
             await _blockManager.AddBlockAsync(block1);
             
-            var block2 = CreateBlock(block1.GetHash(), chain.Id);
+            var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
             await _chainManager.AppendBlockToChainAsync(block2);
             await _blockManager.AddBlockAsync(block2);
 
@@ -98,7 +98,7 @@ namespace AElf.Kernel.Tests
             var genesisBlock = builder.Block;
             //var txs = builder.Txs;
             Assert.NotNull(genesisBlock);
-            Assert.Equal(genesisBlock.Header.PreviousBlockHash, Hash.Default);
+            Assert.Equal(genesisBlock.Header.PreviousBlockHash, Hash.Genesis);
             //Assert.NotNull(txs);
         }
 
@@ -107,15 +107,15 @@ namespace AElf.Kernel.Tests
         {
             var chain = await CreateChain();
 
-            var block = CreateBlock(chain.GenesisBlockHash, chain.Id);
+            var block = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             await _blockManager.AddBlockAsync(block);
             var b = await _blockManager.GetBlockAsync(block.GetHash());
             Assert.Equal(b, block);
         }
         
-        private Block CreateBlock(Hash preBlockHash, Hash chainId)
+        private Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)
         {
-            Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
+            Interlocked.CompareExchange(ref preBlockHash, Hash.Genesis, null);
             
             var block = new Block(Hash.Generate());
             block.AddTransaction(Hash.Generate());
@@ -126,6 +126,7 @@ namespace AElf.Kernel.Tests
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+            block.Header.Index = index;
             return block;
         }
         

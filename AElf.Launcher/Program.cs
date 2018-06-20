@@ -79,7 +79,7 @@ namespace AElf.Launcher
             {
                 try
                 {
-                    AElfKeyStore ks = new AElfKeyStore(confParser.DataDir);
+                    AElfKeyStore ks = new AElfKeyStore(nodeConfig.DataDir);
 
                     string pass = AskInvisible(confParser.NodeAccount);
                     ks.OpenAsync(confParser.NodeAccount, pass, false);
@@ -88,6 +88,7 @@ namespace AElf.Launcher
                 }
                 catch (Exception e)
                 {
+                    ;
                 }
             }
 
