@@ -22,7 +22,8 @@ namespace AElf.Kernel.Storages
         public async Task<WorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
-            var changesDict = ChangesDict.Parser.ParseFrom(await _keyValueDatabase.GetAsync(wsKey.Value.ToBase64() , typeof(ChangesDict)));
+            var changes = await _keyValueDatabase.GetAsync(wsKey.Value.ToBase64(), typeof(ChangesDict));
+            var changesDict = ChangesDict.Parser.ParseFrom(changes);
             return new WorldState(changesDict);
         }
     }
