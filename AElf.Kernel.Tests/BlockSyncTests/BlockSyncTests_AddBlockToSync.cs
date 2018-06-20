@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Kernel.BlockValidationFilters;
+using AElf.Kernel.Miner;
 using AElf.Kernel.Node;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.Protocol.Exceptions;
@@ -99,29 +101,28 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         public async Task AddBlockToSync_AlreadyInPool_ShouldPutBlockToSyncIfOrphan()
         {
             Mock<IAElfNode> mock = new Mock<IAElfNode>();
-            mock.Setup(n => n.GetMissingTransactions(It.IsAny<IBlock>())).Returns<List<Hash>>(null);
-        }
-
-        /*[Fact]
-        public async Task AddBlockToSync_TxMissing_ShouldPutBlockToSync()
-        {
-            Mock<IAElfNode> mock = new Mock<IAElfNode>();
             
-            mock.Setup(n => n.GetMissingTransactions(It.IsAny<IBlock>()))
-                .Returns(new List<Hash> { new Hash(RandomFill(256)) });
+            // Setup no missing transactions
+            mock.Setup(n => n.GetMissingTransactions(It.IsAny<IBlock>())).Returns(new List<Hash>());
+            
+            // Setup return oprhan block validation error
+            BlockExecutionResult res = new BlockExecutionResult(true, ValidationError.OrphanBlock);
+            mock.Setup(n => n.AddBlock(It.IsAny<IBlock>())).Returns(Task.FromResult(res));
             
             IAElfNode m = mock.Object;
             
-            BlockSynchronizer s = new BlockSynchronizer(m);
-
             Block b = GenerateValidBlockToSync();
+            b.AddTransaction(Hash.Generate());
+            
+            BlockSynchronizer s = new BlockSynchronizer(m);
             await s.AddBlockToSync(b);
-
+            
             byte[] array = b.GetHash().GetHashBytes();
             PendingBlock p = s.GetBlock(array);
             
             Assert.Equal(p.BlockHash, array);
-        }*/
+            Assert.Equal(p.IsWaitingForPrevious, true);
+        }
         
         /*[Fact]
         public void AddBlock_AllTxInPool_ShouldFireBlockSynched()

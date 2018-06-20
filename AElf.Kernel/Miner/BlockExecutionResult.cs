@@ -12,7 +12,8 @@ namespace AElf.Kernel.Miner
 
         public BlockExecutionResult(bool executed = true, ValidationError? validationError = null)
         {
-                
+            Executed = executed;
+            ValidationError = validationError;
         }
 
         public BlockExecutionResult(Exception e) : this()

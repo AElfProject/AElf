@@ -13,16 +13,9 @@ using AElf.Network.Peers;
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
 namespace AElf.Kernel.Node.Protocol
 {
-    // Messages :
-    
     // Initialization - On startup - For every peer get the height of the chain.
     // Distribute the work accordingly
     // We give everyone the current 
-
-    class SyncPeer
-    {
-        Peer _peer;
-    }
     
     public class BlockSynchedArgs : EventArgs
     {
@@ -64,7 +57,7 @@ namespace AElf.Kernel.Node.Protocol
             
         }
 
-        private void DoCycle(object state)
+        internal void DoCycle(object state)
         {
             
         }
@@ -125,8 +118,9 @@ namespace AElf.Kernel.Node.Protocol
                 if (res.ValidationError.HasValue && res.ValidationError.Value == ValidationError.OrphanBlock)
                 {
                     // Here we've come across a block that is higher than the current
-                    // chain height
-                    PendingBlock newPendingBlock = new PendingBlock(h, block);
+                    // chain height, we need to wait for it.
+                    PendingBlock newPendingBlock = new PendingBlock(h, block, null);
+                    newPendingBlock.IsWaitingForPrevious = true;
                     PendingBlocks.Add(newPendingBlock);
                 }
             }
@@ -134,7 +128,8 @@ namespace AElf.Kernel.Node.Protocol
 
         public void SetTransaction(byte[] blockHash, Transaction t)
         {
-            //PendingBlock p = _pendingBlocks.Where()
+            PendingBlock b = GetBlock(blockHash);
+            
         }
 
         public PendingBlock GetBlock(byte[] hash)
@@ -153,15 +148,12 @@ namespace AElf.Kernel.Node.Protocol
             
         public byte[] BlockHash { get; }
 
-        public PendingBlock(byte[] blockHash, Block block)
+        public PendingBlock(byte[] blockHash, Block block, List<Hash> missing)
         {
             _block = block;
             BlockHash = blockHash;
-        }
-
-        public PendingBlock(byte[] blockHash, Block block, List<Hash> missing) : this(blockHash, block)
-        {
-            MissingTxs = missing.Select(m => m.Value.ToByteArray()).ToList();
+            
+            MissingTxs = missing == null ? new List<byte[]>() : missing.Select(m => m.Value.ToByteArray()).ToList();
         }
         
         public void RemoveTransaction(byte[] txid)
