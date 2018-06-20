@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
@@ -37,7 +38,7 @@ namespace AElf.Contracts.DPoS
         private readonly Map<UInt64Value, StringValue> _firstPlaceMap
             = new Map<UInt64Value, StringValue>("FirstPlaceOfEachRound");
  
-        public UInt64Value RoundsCount => new UInt64Value {Value = _roundsCount.GetAsync().Result};
+        private UInt64Value RoundsCount => new UInt64Value {Value = _roundsCount.GetAsync().Result};
         
         #region Block Producers
         
@@ -56,7 +57,7 @@ namespace AElf.Contracts.DPoS
             return blockProducer;
         }
         
-        public async Task<object> SetBlockProducers()
+        /*public async Task<object> SetBlockProducers()
         {
             List<string> miningNodes;
             
@@ -81,7 +82,7 @@ namespace AElf.Contracts.DPoS
             await _blockProducer.SetAsync(blockProducers);
 
             return blockProducers;
-        }
+        }*/
         
         public async Task<object> SetBlockProducers(BlockProducer blockProducers)
         {
@@ -92,8 +93,9 @@ namespace AElf.Contracts.DPoS
 
             await _blockProducer.SetAsync(blockProducers);
 
+            Debugger.Break();
 
-            return blockProducers;
+            return blockProducers.AsTaskResult();
         }
         
         #endregion

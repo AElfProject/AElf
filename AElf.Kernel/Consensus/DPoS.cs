@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using System.IO;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Extensions;
-using AElf.Kernel.Managers;
 using AElf.Kernel.Node;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using ServiceStack;
 
 namespace AElf.Kernel.Consensus
 {
@@ -17,11 +14,26 @@ namespace AElf.Kernel.Consensus
     // ReSharper disable once ClassNeverInstantiated.Global
     public class DPoS
     {
-        private readonly MainChainNode _node;
-
-        public DPoS(MainChainNode node)
+        private readonly Hash _publicKey;
+        
+        public byte[] ContractCode
         {
-            _node = node;
+            get
+            {
+                byte[] code;
+                using (var file = 
+                    File.OpenRead(System.IO.Path.GetFullPath(
+                        "../../../../AElf.Contracts.DPoS/bin/Debug/netstandard2.0/AElf.Contracts.DPoS.dll")))
+                {
+                    code = file.ReadFully();
+                }
+                return code;
+            }
+        }
+
+        public DPoS(Hash publicKey)
+        {
+            _publicKey = publicKey;
         }
         
         // For genesis block and block producers
@@ -48,7 +60,7 @@ namespace AElf.Kernel.Consensus
             {
                 new Transaction
                 {
-                    From = _node.PublicKey,
+                    From = _publicKey,
                     To = Hash.Zero,
                     IncrementId = 0,
                     Fee = 3, //TODO: TBD
@@ -56,7 +68,7 @@ namespace AElf.Kernel.Consensus
                 },
                 new Transaction
                 {
-                    From = _node.PublicKey,
+                    From = _publicKey,
                     To = Hash.Zero,
                     IncrementId = 1, //TODO: not sure
                     Fee = 3, //TODO: TBD
@@ -64,7 +76,7 @@ namespace AElf.Kernel.Consensus
                 },
                 new Transaction
                 {
-                    From = _node.PublicKey,
+                    From = _publicKey,
                     To = Hash.Zero,
                     IncrementId = 2, //TODO: not sure
                     Fee = 3, //TODO: TBD
@@ -79,7 +91,7 @@ namespace AElf.Kernel.Consensus
             {
                 new Transaction
                 {
-                    From = _node.PublicKey,
+                    From = _publicKey,
                     To = Hash.Zero,
                     IncrementId = 0,
                     Fee = 3,
@@ -106,7 +118,7 @@ namespace AElf.Kernel.Consensus
         {
             tx =  new Transaction
             {
-                From = _node.PublicKey,
+                From = _publicKey,
                 To = Hash.Zero,
                 IncrementId = 0,
                 Fee = 3,

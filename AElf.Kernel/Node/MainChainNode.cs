@@ -77,11 +77,10 @@ namespace AElf.Kernel.Node
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
             _protocolDirector.SetCommandContext(this, !_nodeConfig.IsMiner); // If not miner do sync
-            
-            if(_nodeConfig.IsMiner)
-                _miner.Start(nodeKeyPair);    
-            
 
+            if (_nodeConfig.IsMiner)
+                _miner.Start(nodeKeyPair);
+            
             _logger.Log(LogLevel.Debug, "AElf node started.");
             _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig?.ChainId?.ToByteString().ToBase64());
             
@@ -92,10 +91,6 @@ namespace AElf.Kernel.Node
                 // todo
                 // Task.Delay(TimeSpan.FromSeconds(2));
                 // BroadcastBlock(null); 
-            }
-            else
-            {
-                
             }
         }
         
