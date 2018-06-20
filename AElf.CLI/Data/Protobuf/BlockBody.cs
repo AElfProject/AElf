@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Google.Protobuf.WellKnownTypes;
 using ProtoBuf;
 
 namespace AElf.CLI.Data.Protobuf
