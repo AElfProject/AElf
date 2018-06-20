@@ -17,17 +17,6 @@ namespace AElf.Kernel.Tests.BlockSyncTests
 {
     public class BlockSyncTests_AddBlockToSync
     {
-        private Block GenerateValidBlockToSync()
-        {
-            var block = new Block(ByteArrayHelpers.RandomFill(10));
-
-            block.Header.ChainId = ByteArrayHelpers.RandomFill(10);
-            block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
-            block.Header.PreviousBlockHash = ByteArrayHelpers.RandomFill(256);
-            
-            return block;
-        }
-
         [Fact]
         public async Task AddBlockToSync_NullBlock_ShouldThrow()
         {
@@ -83,7 +72,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             
             BlockSynchronizer s = new BlockSynchronizer(m);
 
-            Block b = GenerateValidBlockToSync();
+            Block b = BlockSyncHelpers.GenerateValidBlockToSync();
             b.AddTransaction(Hash.Generate());
             
             await s.AddBlockToSync(b);
@@ -111,7 +100,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             
             IAElfNode m = mock.Object;
             
-            Block b = GenerateValidBlockToSync();
+            Block b = BlockSyncHelpers.GenerateValidBlockToSync();
             b.AddTransaction(Hash.Generate());
             
             BlockSynchronizer s = new BlockSynchronizer(m);

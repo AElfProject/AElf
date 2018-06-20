@@ -130,17 +130,33 @@ namespace AElf.Kernel.Node.Protocol
         /// This adds a transaction to one off the blocks. Typically this happens when
         /// a transaction has been received throught the network.
         /// </summary>
-        /// <param name="blockHash"></param>
-        /// <param name="t"></param>
-        public void SetTransaction(byte[] blockHash, Transaction t)
+        /// <param name="txHash"></param>
+        public bool SetTransaction(byte[] txHash)
         {
-            PendingBlock b = GetBlock(blockHash);
-            
+            PendingBlock b = RemoveTxFromBlock(txHash);
+            return b != null;
         }
 
         public PendingBlock GetBlock(byte[] hash)
         {
             return PendingBlocks?.FirstOrDefault(p => p.BlockHash.BytesEqual(hash));
+        }
+        
+        public PendingBlock RemoveTxFromBlock(byte[] hash)
+        {
+            foreach (var pdBlock in PendingBlocks)
+            {
+                foreach (var msTx in pdBlock.MissingTxs)
+                {
+                    if (msTx.BytesEqual(hash))
+                    {
+                        pdBlock.RemoveTransaction(msTx);
+                        return pdBlock;
+                    }
+                }
+            }
+
+            return null;
         }
     }
 
@@ -164,7 +180,7 @@ namespace AElf.Kernel.Node.Protocol
         
         public void RemoveTransaction(byte[] txid)
         {
-            
+            MissingTxs.Remove(txid);
         }
     }
 }
