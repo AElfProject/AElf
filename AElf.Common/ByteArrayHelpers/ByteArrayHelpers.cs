@@ -33,5 +33,15 @@ namespace AElf.Common.ByteArrayHelpers
 
             return true;
         }
+        
+        public static byte[] RandomFill(int count)
+        {
+            Random rnd = new Random();
+            byte[] random = new byte[count];
+            
+            rnd.NextBytes(random);
+
+            return random;
+        }
     }
 }
