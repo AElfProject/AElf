@@ -27,16 +27,17 @@ namespace AElf.Kernel.Managers
         {
             if(block.Header == null)
                 throw new InvalidDataException("Invalid block");
-
+            
             var chainId = block.Header.ChainId;
-            await AppednBlockHeaderAsync(block.Header);
 
             await InitialHeightOfBlock(chainId);
             await _heightOfBlock.SetAsync(new UInt64Value {Value = block.Header.Index}.CalculateHash(), 
                 block.GetHash().ToByteArray());
+            
+            await AppendBlockHeaderAsync(block.Header);
         }
 
-        public async Task AppednBlockHeaderAsync(BlockHeader header)
+        public async Task AppendBlockHeaderAsync(BlockHeader header)
         {
             var chainId = header.ChainId;
             if (await _chainStore.GetAsync(chainId) == null)

@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;
 
 namespace AElf.Sdk.CSharp.Types

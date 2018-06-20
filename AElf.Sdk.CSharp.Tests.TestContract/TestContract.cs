@@ -1,10 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Sdk.CSharp.Types;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
-
 
 namespace AElf.Sdk.CSharp.Tests
 {

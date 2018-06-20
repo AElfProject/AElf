@@ -33,8 +33,10 @@ namespace AElf.Kernel.Managers
         public async Task<IWorldStateManager> OfChain(Hash chainId)
         {
             _chainId = chainId;
+
+            var key = Path.CalculatePointerForLastBlockHash(chainId);
             
-            _preBlockHash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(chainId));
+            _preBlockHash = await _dataStore.GetDataAsync(key);
 
             var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, _preBlockHash);
             if (await _dataStore.GetDataAsync(keyToGetCount) == null)
@@ -144,7 +146,7 @@ namespace AElf.Kernel.Managers
                 };
                 dict.Dict.Add(pairHashChange);
             }
-            await _worldStateStore.InsertWorldStateAsync(_chainId, preBlockHash, dict);
+            await _worldStateStore.InsertWorldStateAsync(_chainId, _preBlockHash, dict);
             
             //Refresh _preBlockHash after setting WorldState.
             _preBlockHash = preBlockHash;

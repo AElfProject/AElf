@@ -81,14 +81,14 @@ namespace AElf.Kernel.Tests
         {
             var chain = await CreateChainTest();
 
-            var block = CreateBlock(chain.GenesisBlockHash, chain.Id);
+            var block = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             await _chainManager.AppendBlockToChainAsync(block);
             Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)2);
             Assert.Equal(await _chainManager.GetChainLastBlockHash(chain.Id), block.GetHash());
             Assert.Equal(block.Header.Index, (ulong)1);
         }
         
-        private Block CreateBlock(Hash preBlockHash, Hash chainId)
+        private Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             
@@ -101,7 +101,7 @@ namespace AElf.Kernel.Tests
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
-
+            block.Header.Index = index;
             return block;
         }
     }

@@ -54,7 +54,7 @@ namespace AElf.Kernel.Tests
             Assert.NotNull(worldState);
         }
 
-        [Fact(Skip = "todo")]
+        [Fact]
         public async Task GetHistoryWorldStateRootTest()
         {
             var chain = await _blockTest.CreateChain();

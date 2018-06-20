@@ -92,15 +92,18 @@ namespace AElf.Kernel {
             "eRILCgNrZXkYASABKAkSIAoFdmFsdWUYAiABKAsyES5GdW5jdGlvbk1ldGFk",
             "YXRhOgI4ASIuChFDYWxsaW5nR3JhcGhFZGdlcxIZCgVFZGdlcxgBIAMoCzIK",
             "LkdyYXBoRWRnZSIrCglHcmFwaEVkZ2USDgoGU291cmNlGAEgASgJEg4KBlRh",
-            "cmdldBgCIAEoCSIeCg1CbG9ja1Byb2R1Y2VyEg0KBU5vZGVzGAEgAygJIo4B",
-            "Cg5NaW5pbmdUaW1lU2xvdBIvCgh0aW1lc2xvdBgBIAMoCzIdLk1pbmluZ1Rp",
-            "bWVTbG90LlRpbWVzbG90RW50cnkaSwoNVGltZXNsb3RFbnRyeRILCgNrZXkY",
-            "ASABKAkSKQoFdmFsdWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0",
-            "YW1wOgI4ASo8CgZTdGF0dXMSDgoKTm90RXhpc3RlZBAAEgsKB1BlbmRpbmcQ",
-            "ARIKCgZGYWlsZWQQAhIJCgVNaW5lZBADKl4KDkRhdGFBY2Nlc3NNb2RlEhoK",
-            "FlJlYWRPbmx5QWNjb3VudFNoYXJpbmcQABIbChdSZWFkV3JpdGVBY2NvdW50",
-            "U2hhcmluZxABEhMKD0FjY291bnRTcGVjaWZpYxACQg6qAgtBRWxmLktlcm5l",
-            "bGIGcHJvdG8z"));
+            "cmdldBgCIAEoCSIeCg1CbG9ja1Byb2R1Y2VyEg0KBU5vZGVzGAEgAygJIp8B",
+            "CgZCUEluZm8SDQoFT3JkZXIYASABKAUSDQoFSXNFQlAYAiABKAgSFgoHSW5W",
+            "YWx1ZRgDIAEoCzIFLkhhc2gSFwoIT3V0VmFsdWUYBCABKAsyBS5IYXNoEhgK",
+            "CVNpZ25hdHVyZRgFIAEoCzIFLkhhc2gSLAoIVGltZVNsb3QYBiABKAsyGi5n",
+            "b29nbGUucHJvdG9idWYuVGltZXN0YW1wImUKCVJvdW5kSW5mbxIiCgRJbmZv",
+            "GAEgAygLMhQuUm91bmRJbmZvLkluZm9FbnRyeRo0CglJbmZvRW50cnkSCwoD",
+            "a2V5GAEgASgJEhYKBXZhbHVlGAIgASgLMgcuQlBJbmZvOgI4ASIpCghEUG9T",
+            "SW5mbxIdCglSb3VuZEluZm8YASADKAsyCi5Sb3VuZEluZm8qPAoGU3RhdHVz",
+            "Eg4KCk5vdEV4aXN0ZWQQABILCgdQZW5kaW5nEAESCgoGRmFpbGVkEAISCQoF",
+            "TWluZWQQAypeCg5EYXRhQWNjZXNzTW9kZRIaChZSZWFkT25seUFjY291bnRT",
+            "aGFyaW5nEAASGwoXUmVhZFdyaXRlQWNjb3VudFNoYXJpbmcQARITCg9BY2Nv",
+            "dW50U3BlY2lmaWMQAkIOqgILQUVsZi5LZXJuZWxiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.AnyReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), typeof(global::AElf.Kernel.DataAccessMode), }, new pbr::GeneratedClrTypeInfo[] {
@@ -131,7 +134,9 @@ namespace AElf.Kernel {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.CallingGraphEdges), global::AElf.Kernel.CallingGraphEdges.Parser, new[]{ "Edges" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.GraphEdge), global::AElf.Kernel.GraphEdge.Parser, new[]{ "Source", "Target" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockProducer), global::AElf.Kernel.BlockProducer.Parser, new[]{ "Nodes" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.MiningTimeSlot), global::AElf.Kernel.MiningTimeSlot.Parser, new[]{ "Timeslot" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, })
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BPInfo), global::AElf.Kernel.BPInfo.Parser, new[]{ "Order", "IsEBP", "InValue", "OutValue", "Signature", "TimeSlot" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.RoundInfo), global::AElf.Kernel.RoundInfo.Parser, new[]{ "Info" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.DPoSInfo), global::AElf.Kernel.DPoSInfo.Parser, new[]{ "RoundInfo" }, null, null, null)
           }));
     }
     #endregion
@@ -5324,11 +5329,11 @@ namespace AElf.Kernel {
 
   }
 
-  public sealed partial class MiningTimeSlot : pb::IMessage<MiningTimeSlot> {
-    private static readonly pb::MessageParser<MiningTimeSlot> _parser = new pb::MessageParser<MiningTimeSlot>(() => new MiningTimeSlot());
+  public sealed partial class BPInfo : pb::IMessage<BPInfo> {
+    private static readonly pb::MessageParser<BPInfo> _parser = new pb::MessageParser<BPInfo>(() => new BPInfo());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<MiningTimeSlot> Parser { get { return _parser; } }
+    public static pb::MessageParser<BPInfo> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
@@ -5341,54 +5346,128 @@ namespace AElf.Kernel {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public MiningTimeSlot() {
+    public BPInfo() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public MiningTimeSlot(MiningTimeSlot other) : this() {
-      timeslot_ = other.timeslot_.Clone();
+    public BPInfo(BPInfo other) : this() {
+      order_ = other.order_;
+      isEBP_ = other.isEBP_;
+      InValue = other.inValue_ != null ? other.InValue.Clone() : null;
+      OutValue = other.outValue_ != null ? other.OutValue.Clone() : null;
+      Signature = other.signature_ != null ? other.Signature.Clone() : null;
+      TimeSlot = other.timeSlot_ != null ? other.TimeSlot.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public MiningTimeSlot Clone() {
-      return new MiningTimeSlot(this);
+    public BPInfo Clone() {
+      return new BPInfo(this);
     }
 
-    /// <summary>Field number for the "timeslot" field.</summary>
-    public const int TimeslotFieldNumber = 1;
-    private static readonly pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp>.Codec _map_timeslot_codec
-        = new pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::Google.Protobuf.WellKnownTypes.Timestamp.Parser), 10);
-    private readonly pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp> timeslot_ = new pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp>();
+    /// <summary>Field number for the "Order" field.</summary>
+    public const int OrderFieldNumber = 1;
+    private int order_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::MapField<string, global::Google.Protobuf.WellKnownTypes.Timestamp> Timeslot {
-      get { return timeslot_; }
+    public int Order {
+      get { return order_; }
+      set {
+        order_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "IsEBP" field.</summary>
+    public const int IsEBPFieldNumber = 2;
+    private bool isEBP_;
+    /// <summary>
+    ///EBP = Extra Block Producer
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool IsEBP {
+      get { return isEBP_; }
+      set {
+        isEBP_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "InValue" field.</summary>
+    public const int InValueFieldNumber = 3;
+    private global::AElf.Kernel.Hash inValue_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash InValue {
+      get { return inValue_; }
+      set {
+        inValue_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "OutValue" field.</summary>
+    public const int OutValueFieldNumber = 4;
+    private global::AElf.Kernel.Hash outValue_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash OutValue {
+      get { return outValue_; }
+      set {
+        outValue_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Signature" field.</summary>
+    public const int SignatureFieldNumber = 5;
+    private global::AElf.Kernel.Hash signature_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash Signature {
+      get { return signature_; }
+      set {
+        signature_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "TimeSlot" field.</summary>
+    public const int TimeSlotFieldNumber = 6;
+    private global::Google.Protobuf.WellKnownTypes.Timestamp timeSlot_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Google.Protobuf.WellKnownTypes.Timestamp TimeSlot {
+      get { return timeSlot_; }
+      set {
+        timeSlot_ = value;
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
-      return Equals(other as MiningTimeSlot);
+      return Equals(other as BPInfo);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(MiningTimeSlot other) {
+    public bool Equals(BPInfo other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (!Timeslot.Equals(other.Timeslot)) return false;
+      if (Order != other.Order) return false;
+      if (IsEBP != other.IsEBP) return false;
+      if (!object.Equals(InValue, other.InValue)) return false;
+      if (!object.Equals(OutValue, other.OutValue)) return false;
+      if (!object.Equals(Signature, other.Signature)) return false;
+      if (!object.Equals(TimeSlot, other.TimeSlot)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      hash ^= Timeslot.GetHashCode();
+      if (Order != 0) hash ^= Order.GetHashCode();
+      if (IsEBP != false) hash ^= IsEBP.GetHashCode();
+      if (inValue_ != null) hash ^= InValue.GetHashCode();
+      if (outValue_ != null) hash ^= OutValue.GetHashCode();
+      if (signature_ != null) hash ^= Signature.GetHashCode();
+      if (timeSlot_ != null) hash ^= TimeSlot.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -5402,7 +5481,30 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      timeslot_.WriteTo(output, _map_timeslot_codec);
+      if (Order != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Order);
+      }
+      if (IsEBP != false) {
+        output.WriteRawTag(16);
+        output.WriteBool(IsEBP);
+      }
+      if (inValue_ != null) {
+        output.WriteRawTag(26);
+        output.WriteMessage(InValue);
+      }
+      if (outValue_ != null) {
+        output.WriteRawTag(34);
+        output.WriteMessage(OutValue);
+      }
+      if (signature_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Signature);
+      }
+      if (timeSlot_ != null) {
+        output.WriteRawTag(50);
+        output.WriteMessage(TimeSlot);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -5411,7 +5513,24 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      size += timeslot_.CalculateSize(_map_timeslot_codec);
+      if (Order != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Order);
+      }
+      if (IsEBP != false) {
+        size += 1 + 1;
+      }
+      if (inValue_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(InValue);
+      }
+      if (outValue_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(OutValue);
+      }
+      if (signature_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Signature);
+      }
+      if (timeSlot_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(TimeSlot);
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -5419,11 +5538,193 @@ namespace AElf.Kernel {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(MiningTimeSlot other) {
+    public void MergeFrom(BPInfo other) {
       if (other == null) {
         return;
       }
-      timeslot_.Add(other.timeslot_);
+      if (other.Order != 0) {
+        Order = other.Order;
+      }
+      if (other.IsEBP != false) {
+        IsEBP = other.IsEBP;
+      }
+      if (other.inValue_ != null) {
+        if (inValue_ == null) {
+          inValue_ = new global::AElf.Kernel.Hash();
+        }
+        InValue.MergeFrom(other.InValue);
+      }
+      if (other.outValue_ != null) {
+        if (outValue_ == null) {
+          outValue_ = new global::AElf.Kernel.Hash();
+        }
+        OutValue.MergeFrom(other.OutValue);
+      }
+      if (other.signature_ != null) {
+        if (signature_ == null) {
+          signature_ = new global::AElf.Kernel.Hash();
+        }
+        Signature.MergeFrom(other.Signature);
+      }
+      if (other.timeSlot_ != null) {
+        if (timeSlot_ == null) {
+          timeSlot_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+        }
+        TimeSlot.MergeFrom(other.TimeSlot);
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            Order = input.ReadInt32();
+            break;
+          }
+          case 16: {
+            IsEBP = input.ReadBool();
+            break;
+          }
+          case 26: {
+            if (inValue_ == null) {
+              inValue_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(inValue_);
+            break;
+          }
+          case 34: {
+            if (outValue_ == null) {
+              outValue_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(outValue_);
+            break;
+          }
+          case 42: {
+            if (signature_ == null) {
+              signature_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(signature_);
+            break;
+          }
+          case 50: {
+            if (timeSlot_ == null) {
+              timeSlot_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+            }
+            input.ReadMessage(timeSlot_);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class RoundInfo : pb::IMessage<RoundInfo> {
+    private static readonly pb::MessageParser<RoundInfo> _parser = new pb::MessageParser<RoundInfo>(() => new RoundInfo());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<RoundInfo> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[28]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public RoundInfo() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public RoundInfo(RoundInfo other) : this() {
+      info_ = other.info_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public RoundInfo Clone() {
+      return new RoundInfo(this);
+    }
+
+    /// <summary>Field number for the "Info" field.</summary>
+    public const int InfoFieldNumber = 1;
+    private static readonly pbc::MapField<string, global::AElf.Kernel.BPInfo>.Codec _map_info_codec
+        = new pbc::MapField<string, global::AElf.Kernel.BPInfo>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::AElf.Kernel.BPInfo.Parser), 10);
+    private readonly pbc::MapField<string, global::AElf.Kernel.BPInfo> info_ = new pbc::MapField<string, global::AElf.Kernel.BPInfo>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::MapField<string, global::AElf.Kernel.BPInfo> Info {
+      get { return info_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as RoundInfo);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(RoundInfo other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!Info.Equals(other.Info)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= Info.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      info_.WriteTo(output, _map_info_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += info_.CalculateSize(_map_info_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(RoundInfo other) {
+      if (other == null) {
+        return;
+      }
+      info_.Add(other.info_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -5436,7 +5737,128 @@ namespace AElf.Kernel {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
-            timeslot_.AddEntriesFrom(input, _map_timeslot_codec);
+            info_.AddEntriesFrom(input, _map_info_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class DPoSInfo : pb::IMessage<DPoSInfo> {
+    private static readonly pb::MessageParser<DPoSInfo> _parser = new pb::MessageParser<DPoSInfo>(() => new DPoSInfo());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<DPoSInfo> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[29]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public DPoSInfo() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public DPoSInfo(DPoSInfo other) : this() {
+      roundInfo_ = other.roundInfo_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public DPoSInfo Clone() {
+      return new DPoSInfo(this);
+    }
+
+    /// <summary>Field number for the "RoundInfo" field.</summary>
+    public const int RoundInfoFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::AElf.Kernel.RoundInfo> _repeated_roundInfo_codec
+        = pb::FieldCodec.ForMessage(10, global::AElf.Kernel.RoundInfo.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.RoundInfo> roundInfo_ = new pbc::RepeatedField<global::AElf.Kernel.RoundInfo>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::AElf.Kernel.RoundInfo> RoundInfo {
+      get { return roundInfo_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as DPoSInfo);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(DPoSInfo other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!roundInfo_.Equals(other.roundInfo_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= roundInfo_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      roundInfo_.WriteTo(output, _repeated_roundInfo_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += roundInfo_.CalculateSize(_repeated_roundInfo_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(DPoSInfo other) {
+      if (other == null) {
+        return;
+      }
+      roundInfo_.Add(other.roundInfo_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            roundInfo_.AddEntriesFrom(input, _repeated_roundInfo_codec);
             break;
           }
         }

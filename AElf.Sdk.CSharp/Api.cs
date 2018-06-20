@@ -157,6 +157,7 @@ namespace AElf.Sdk.CSharp
         }
 
         #endregion Transaction API
+        
         #region Utility API
         public static void Assert(bool asserted, string message = "Assertion failed!")
         {
