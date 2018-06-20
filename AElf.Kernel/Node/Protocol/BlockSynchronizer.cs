@@ -8,7 +8,9 @@ using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Protocol.Exceptions;
+using AElf.Network.Data;
 using AElf.Network.Peers;
+using Google.Protobuf;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
 namespace AElf.Kernel.Node.Protocol
@@ -32,6 +34,8 @@ namespace AElf.Kernel.Node.Protocol
             
         private List<PendingBlock> PendingBlocks { get; }
 
+        private bool IsInitialSync { get; set; } = true;
+
         // The height of the chain 
         private int InitialHeight = 0;
         
@@ -41,25 +45,68 @@ namespace AElf.Kernel.Node.Protocol
         // The peer with the highest hight might not have all the blockchain
         // so the target height is PeerHighestHight + target.
         private int Security = 0;
+        
+        Dictionary<Peer, int> PeerToHeight = new Dictionary<Peer, int>();
 
         private Timer _cycleTimer;
         private IAElfNode _mainChainNode;
 
-        public BlockSynchronizer(IAElfNode node)
+        public BlockSynchronizer(IAElfNode node, IPeerManager peerManager)
         {
             PendingBlocks = new List<PendingBlock>();
             _mainChainNode = node;
-            _cycleTimer = new Timer(DoCycle, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+            _peerManager = peerManager;
+            _cycleTimer = new Timer(DoCycle, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(60));
         }
 
-        public void SetPeerHeight()
+        public void SetPeerHeight(Peer peer, int height)
         {
-            
+            if (PeerToHeight.ContainsKey(peer))
+            {
+                PeerToHeight[peer] = height;
+            }
+            else
+            {
+                PeerToHeight.Add(peer, height);
+            }
         }
 
-        internal void DoCycle(object state)
+        internal async void DoCycle(object state)
         {
+            if (IsInitialSync)
+            {
+                if (PeerToHeight == null)
+                    return;
+                
+                // It means we're still synchronizing old blocks 
+                
+                // In order to work we need at least one height from one of the peers
+                if (PeerToHeight.Count > 0)
+                {
+                    // todo use more that one peer
+                    // for now we use only one
+                    /*Peer peer = PeerToHeight.OrderByDescending(p => p.Value).First().Key;
+                    
+                    var req = NetRequestFactory.CreateRequest(MessageTypes.RequestBlock, new byte[] {}, null); 
+                    await peer.SendAsync(req.ToByteArray());*/
+                    
+                    return;
+                }
+                else
+                {
+                    // We need to query peers for their height
+                    // todo create request msg + broadcast
+                    if (_peerManager != null)
+                        await _peerManager.BroadcastMessage(MessageTypes.HeightRequest, new byte[] {}, 0);
+                }
+            }
+            else
+            {
+                
+            }
             
+            //List<PendingBlock> blocksToExecute = PendingBlocks.Where(p => p.IsSynced).ToList();
+            //await TryExecuteBlocks(blocksToExecute);
         }
 
         public void Start(Hash lastBlockHash)
@@ -115,7 +162,7 @@ namespace AElf.Kernel.Node.Protocol
                 // the chain
                 BlockExecutionResult res = await _mainChainNode.AddBlock(block);
                 
-                if (res.ValidationError.HasValue && res.ValidationError.Value == ValidationError.OrphanBlock)
+                if (res.Executed == false && res.ValidationError == ValidationError.OrphanBlock)
                 {
                     // Here we've come across a block that is higher than the current
                     // chain height, we need to wait for it.
@@ -123,12 +170,59 @@ namespace AElf.Kernel.Node.Protocol
                     newPendingBlock.IsWaitingForPrevious = true;
                     PendingBlocks.Add(newPendingBlock);
                 }
+            }    
+        }
+
+        /// <summary>
+        /// Tries to executes the specified blocks.
+        /// </summary>
+        /// <param name="pendingBlocks"></param>
+        /// <returns></returns>
+        internal async Task TryExecuteBlocks(List<PendingBlock> pendingBlocks)
+        {
+            List<PendingBlock> toRemove = new List<PendingBlock>();
+            
+            foreach (var pendingBlock in pendingBlocks)
+            {
+                Block block = pendingBlock.Block;
+                BlockExecutionResult res = await _mainChainNode.AddBlock(block);
+
+                if (res.Executed)
+                {
+                    // The block was executed and validation was a success
+                    if(res.ValidationError == ValidationError.Success)
+                    {
+                        // We can remove the pending block
+                        toRemove.Add(pendingBlock);
+                    }
+                }
+                else
+                {
+                    // The block wasn't executed
+                    if (res.ValidationError == ValidationError.OrphanBlock)
+                    {
+                        // We ensure that the property is coherent
+                        pendingBlock.IsWaitingForPrevious = true;
+                    }
+                    else
+                    {
+                        // todo deal with blocks that we're not executed
+                    }
+                }
+            }
+            
+            // remove the pending blocks
+            foreach (var pdBlock in PendingBlocks)
+            {
+                PendingBlocks.Remove(pdBlock);
             }
         }
 
         /// <summary>
         /// This adds a transaction to one off the blocks. Typically this happens when
-        /// a transaction has been received throught the network.
+        /// a transaction has been received throught the network (requested by this
+        /// synchronizer).
+        /// It removes the transaction from the corresponding missing block.
         /// </summary>
         /// <param name="txHash"></param>
         public bool SetTransaction(byte[] txHash)
@@ -162,7 +256,7 @@ namespace AElf.Kernel.Node.Protocol
 
     public class PendingBlock
     {
-        private Block _block;
+        public Block Block;
         
         public List<byte[]> MissingTxs { get; private set; }
 
@@ -170,9 +264,14 @@ namespace AElf.Kernel.Node.Protocol
             
         public byte[] BlockHash { get; }
 
+        public bool IsSynced
+        {
+            get { return MissingTxs.Count == 0; }
+        }
+
         public PendingBlock(byte[] blockHash, Block block, List<Hash> missing)
         {
-            _block = block;
+            Block = block;
             BlockHash = blockHash;
             
             MissingTxs = missing == null ? new List<byte[]>() : missing.Select(m => m.Value.ToByteArray()).ToList();

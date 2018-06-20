@@ -66,13 +66,12 @@ namespace AElf.Kernel.Node
             if (startRpc)
                 _rpcServer.Start();
             
-            
             _poolService.Start();
             _protocolDirector.Start();
             
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
-            _protocolDirector.SetCommandContext(this);
+            _protocolDirector.SetCommandContext(this, !_nodeConfig.IsMiner); // If not miner do sync
             
             if(_nodeConfig.IsMiner)
                 _miner.Start(nodeKeyPair);    
@@ -85,8 +84,13 @@ namespace AElf.Kernel.Node
             {
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner?.Coinbase?.Value?.ToStringUtf8());
                 
-                Task.Delay(TimeSpan.FromSeconds(2));
-                BroadcastBlock(null); //todo
+                // todo
+                // Task.Delay(TimeSpan.FromSeconds(2));
+                // BroadcastBlock(null); 
+            }
+            else
+            {
+                
             }
         }
         
@@ -199,9 +203,9 @@ namespace AElf.Kernel.Node
                     return new BlockExecutionResult(false, error);
                 }
             
-                await _blockExecutor.ExecuteBlock(block);
+                bool executed = await _blockExecutor.ExecuteBlock(block);
 
-                return new BlockExecutionResult();
+                return new BlockExecutionResult(executed, error);
             }
             catch (Exception e)
             {
@@ -237,6 +241,11 @@ namespace AElf.Kernel.Node
                 _logger?.Trace("Error while getting missing transactions");
                 return null;
             }
+        }
+
+        public int GetCurrentChainHeight()
+        {
+            return 5;
         }
 
         /// <summary>

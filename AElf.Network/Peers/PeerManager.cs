@@ -441,7 +441,7 @@ namespace AElf.Network.Peers
         {
             if (sender != null && e is MessageReceivedArgs args && args.Message != null)
             {
-                if (args.Message.MsgType == (int) MessageTypes.RequestPeers)
+                if (args.Message.MsgType == (int)MessageTypes.RequestPeers)
                 {
                     Random rand = new Random();
                     List<IPeer> peers = _peers.OrderBy(c => rand.Next()).Select(c => c).ToList();
@@ -470,7 +470,7 @@ namespace AElf.Network.Peers
 
                     Task.Run(async () => await args.Peer.SendAsync(resp.ToByteArray()));
                 }
-                else if (args.Message.MsgType == (int) MessageTypes.ReturnPeers)
+                else if (args.Message.MsgType == (int)MessageTypes.ReturnPeers)
                 {
                     Task.Run(() => ReceivePeers(args.Message.Payload));
                 }

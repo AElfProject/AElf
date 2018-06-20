@@ -37,10 +37,12 @@ namespace AElf.Kernel.Node.Protocol
         /// todo : remove dependency on the node
         /// </summary>
         /// <param name="node"></param>
-        public void SetCommandContext(MainChainNode node)
+        public void SetCommandContext(MainChainNode node, bool doSync = false)
         {
             _node = node;
-            _blockSynchronizer = new BlockSynchronizer(_node); // todo move
+            
+            if (doSync)
+                _blockSynchronizer = new BlockSynchronizer(_node, _peerManager); // todo move
         }
 
         public void AddTransaction(Transaction tx)
@@ -105,6 +107,18 @@ namespace AElf.Kernel.Node.Protocol
                     {
                         ;
                     }
+                }
+                else if (message.MsgType == (int) MessageTypes.Height)
+                {
+                    ;
+                    // todo _blockSynchronizer.SetPeerHeight();
+                }
+                else if (message.MsgType == (int) MessageTypes.HeightRequest)
+                {
+                    int height = _node.GetCurrentChainHeight();
+                    HeightData data = new HeightData { Height = height };
+                    var req = NetRequestFactory.CreateRequest(MessageTypes.Height, data.ToByteArray(), 0);
+                    await args.Peer.SendAsync(req.ToByteArray());
                 }
                 
                 // Process any messages

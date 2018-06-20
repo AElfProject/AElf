@@ -11,5 +11,7 @@ namespace AElf.Kernel.Node
 
         List<Hash> GetMissingTransactions(IBlock block);
         Task<BlockExecutionResult> AddBlock(IBlock block);
+
+        int GetCurrentChainHeight();
     }
 }

@@ -31,3 +31,7 @@ message BlockRequest {
 message TxRequest {
     
 }
+
+message HeightData {
+    int32 Height = 1;
+}

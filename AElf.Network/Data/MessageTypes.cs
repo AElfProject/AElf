@@ -5,6 +5,9 @@
         AskForTx,
         SendTx,
         
+        HeightRequest,
+        Height,
+        
         RequestPeers,
         ReturnPeers,
         
