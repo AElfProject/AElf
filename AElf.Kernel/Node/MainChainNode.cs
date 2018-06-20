@@ -210,12 +210,24 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         public async Task<bool> AddBlock(IBlock block)
         {
-            var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
-            var error = await _blockVaildationService.ValidateBlockAsync(block, context);
-            if (error != ValidationError.Success)
-                return false;
+            try
+            {
+                var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
+                var error = await _blockVaildationService.ValidateBlockAsync(block, context);
+                if (error != ValidationError.Success)
+                {
+                    _logger.Trace("Invalid block received from network");
+                    return false;
+                }
             
-            return await _synchronizer.ExecuteBlock(block);
+                return await _synchronizer.ExecuteBlock(block);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, "Block synchronzing failed");
+                return false;
+            }
+            
         }
         
         /// <summary>
