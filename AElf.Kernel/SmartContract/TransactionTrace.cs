@@ -18,7 +18,38 @@ namespace AElf.Kernel
                 {
                     o.AddRange(t.FlattenedLogs);
                 }
+
                 return o;
+            }
+        }
+
+        public bool IsSuccessful()
+        {
+            var successful = string.IsNullOrEmpty(StdErr);
+            foreach (var trace in InlineTraces)
+            {
+                successful &= IsSuccessful();
+            }
+
+            return successful;
+        }
+
+        public IEnumerable<StateValueChange> AllValueChanges
+        {
+            get
+            {
+                foreach (var vc in ValueChanges)
+                {
+                    yield return vc;
+                }
+
+                foreach (var trace in InlineTraces)
+                {
+                    foreach (var vc in ValueChanges)
+                    {
+                        yield return vc;
+                    }
+                }
             }
         }
     }
