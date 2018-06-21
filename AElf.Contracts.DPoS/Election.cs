@@ -14,7 +14,7 @@ using ServiceStack;
 
 namespace AElf.Contracts.DPoS
 {
-    public class Election : CSharpSmartContract
+    /*public class Election : CSharpSmartContract
     {
         public Map GoLivePoolMembers = new Map("GoLivePoolMembers");
         
@@ -61,5 +61,5 @@ namespace AElf.Contracts.DPoS
         {
             return await RemainVotes.GetValueAsync(voterAddress);
         }
-    }
+    }*/
 }
