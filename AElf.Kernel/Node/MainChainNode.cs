@@ -190,7 +190,7 @@ namespace AElf.Kernel.Node
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        public async Task<BlockExecutionResult> AddBlock(IBlock block)
+        public async Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block)
         {
             try
             {
@@ -199,7 +199,7 @@ namespace AElf.Kernel.Node
                 
                 if (error != ValidationError.Success)
                 {
-                    _logger.Trace("Invalid block received from network");
+                    _logger.Trace("Invalid block received from network" + error.ToString());
                     return new BlockExecutionResult(false, error);
                 }
             

@@ -1,9 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using AElf.Kernel.BlockValidationFilters;
+using AElf.Kernel.Miner;
 using AElf.Kernel.Node;
 using AElf.Kernel.Node.Protocol;
 using AElf.Network.Data;
 using AElf.Network.Peers;
 using Moq;
+using ServiceStack.Host;
 using Xunit;
 
 namespace AElf.Kernel.Tests.BlockSyncTests
@@ -19,8 +23,8 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         [Fact]
         public async Task OnePeerSynchronizeBlock_Sequential()
         {
-            int distantPeerHeight = 10;
-            int currentHeight = 1;
+            int distantPeerHeight = 2;
+            int currentHeight = 0;
             
             // Fake node 
             Mock<IAElfNode> mockNode = new Mock<IAElfNode>();
@@ -46,23 +50,64 @@ namespace AElf.Kernel.Tests.BlockSyncTests
                     It.IsAny<int>()), 
                 Times.Exactly(1));
             
+            /*** Cycle 1 - Send height requests ***/
+            
             // We simulate that the node has received a response to the request
             synchronizer.SetPeerHeight(peer, distantPeerHeight);
             
-            byte[] sendRequest = null;
-            mockPeer.Setup(p => p.SendAsync(It.IsAny<byte[]>())).Callback<byte[]>(b => sendRequest = b);
+            List<byte[]> sendRequests = new List<byte[]>();
+            mockPeer.Setup(p => p.SendAsync(It.IsAny<byte[]>())).Callback<byte[]>(b => sendRequests.Add(b));
             
             synchronizer.DoCycle(null);
             
             mockPeer.Verify(p => p.SendAsync(It.IsAny<byte[]>()), Times.Exactly(1));
-            AElfPacketData pd = AElfPacketData.Parser.ParseFrom(sendRequest);
+            AElfPacketData pd = AElfPacketData.Parser.ParseFrom(sendRequests[0]);
             BlockRequest req = BlockRequest.Parser.ParseFrom(pd.Payload);
             
             Assert.NotNull(req);
             Assert.Equal(synchronizer.CurrentHeight, req.Height);
 
-            //Block blockToAdd = BlockSyncHelpers.GenerateValidBlockToSync((ulong)synchronizer.CurrentHeight);
-            //await synchronizer.AddBlockToSync(blockToAdd);
+            /*** Cycle 2 - Add block + cycle (request next block) ***/
+            
+            FakeChain f = new FakeChain(3);
+            f.Generate();
+            
+            // Setup the node so there's never missing transactions
+            mockNode.Setup(n => n.GetMissingTransactions(It.IsAny<IBlock>()))
+                .Returns(new List<Hash>());
+            
+            // Block are always succesfully executed
+            mockNode.Setup(n => n.ExecuteAndAddBlock(It.IsAny<IBlock>()))
+                .Returns(Task.FromResult(new BlockExecutionResult(true, ValidationError.Success)));
+
+            mockPeer.ResetCalls();
+            
+            Block blockToAdd = f.GetAtHeight(0);
+            await synchronizer.AddBlockToSync(blockToAdd);
+            
+            synchronizer.DoCycle(null);
+            
+            mockPeer.Verify(p => p.SendAsync(It.IsAny<byte[]>()), Times.Exactly(1));
+            AElfPacketData pd2 = AElfPacketData.Parser.ParseFrom(sendRequests[1]);
+            BlockRequest req2 = BlockRequest.Parser.ParseFrom(pd2.Payload);
+            
+            Assert.NotNull(req2);
+            Assert.Equal(synchronizer.CurrentHeight, req2.Height);
+        }
+
+        [Fact]
+        public void TestChain()
+        {
+            FakeChain f = new FakeChain(3);
+            f.Generate();
+
+            Block b1 = f.GetAtHeight(0);
+            Block b2 = f.GetAtHeight(1);
+            Block b3 = f.GetAtHeight(2);
+
+            List<Transaction> txsB1 = f.GetBlockTransactions(b1);
+            ;
+
         }
     }
 }

@@ -55,7 +55,7 @@ namespace AElf.Kernel.Node.Protocol
         // todo maybe
         //private int Security = 0;
         
-        Dictionary<IPeer, int> PeerToHeight = new Dictionary<IPeer, int>();
+        Dictionary<IPeer, int> PeerToHeights = new Dictionary<IPeer, int>();
 
         private Timer _cycleTimer;
         private IAElfNode _mainChainNode;
@@ -67,16 +67,24 @@ namespace AElf.Kernel.Node.Protocol
             _peerManager = peerManager;
         }
 
-        public void SetPeerHeight(IPeer peer, int height)
+        public bool SetPeerHeight(IPeer peer, int height)
         {
-            if (PeerToHeight.ContainsKey(peer))
+            if (height < CurrentHeight)
+                return false;
+            
+            if (PeerToHeights.ContainsKey(peer))
             {
-                PeerToHeight[peer] = height;
+                if (PeerToHeights[peer] >= height)
+                    return false;
+                
+                PeerToHeights[peer] = height;
             }
             else
             {
-                PeerToHeight.Add(peer, height);
+                PeerToHeights.Add(peer, height);
             }
+
+            return true;
         }
 
         internal async void DoCycle(object state)
@@ -86,32 +94,33 @@ namespace AElf.Kernel.Node.Protocol
                 await ManagePeers();
             }
             
-            
             //List<PendingBlock> blocksToExecute = PendingBlocks.Where(p => p.IsSynced).ToList();
             //await TryExecuteBlocks(blocksToExecute);
+            
+            // todo ask for txs
         }
 
         /// <summary>
-        /// This method manages who we download the blocks from and also
+        /// This method manages the peers used for downloading the blocks and also
         /// the what blocks are requested from who.
         /// </summary>
         /// <returns></returns>
         private async Task ManagePeers()
         {
-            if (PeerToHeight == null)
+            if (PeerToHeights == null)
                 return;
                 
             // It means we're still synchronizing old blocks 
                 
             // In order to work we need at least one height from one of the peers
-            if (PeerToHeight.Count > 0)
+            if (PeerToHeights.Count > 0)
             {
                 /** Calculate block requests to send **/
                     
                 // todo use more that one peer
                     
                 // for now we use only one - the one with the highest hight
-                var peerHeightKvp = PeerToHeight.OrderByDescending(p => p.Value).First();
+                var peerHeightKvp = PeerToHeights.OrderByDescending(p => p.Value).First();
 
                 if (peerHeightKvp.Value < CurrentHeight)
                     return; // As far as we know he's behind us
@@ -192,15 +201,20 @@ namespace AElf.Kernel.Node.Protocol
             {
                 // Here all the txs where in the pool, we try to add the block to
                 // the chain
-                BlockExecutionResult res = await _mainChainNode.AddBlock(block);
+                BlockExecutionResult res = await _mainChainNode.ExecuteAndAddBlock(block);
                 
-                if (res.Executed == true && res.ValidationError == ValidationError.OrphanBlock)
+                if (res.Executed == false && res.ValidationError == ValidationError.OrphanBlock)
                 {
                     // Here we've come across a block that is higher than the current
                     // chain height, we need to wait for it.
                     PendingBlock newPendingBlock = new PendingBlock(h, block, null);
                     newPendingBlock.IsWaitingForPrevious = true;
                     PendingBlocks.Add(newPendingBlock);
+                }
+
+                if (res.Executed == true && res.ValidationError == ValidationError.Success)
+                {
+                    CurrentHeight++;
                 }
             }    
         }
@@ -217,7 +231,7 @@ namespace AElf.Kernel.Node.Protocol
             foreach (var pendingBlock in pendingBlocks)
             {
                 Block block = pendingBlock.Block;
-                BlockExecutionResult res = await _mainChainNode.AddBlock(block);
+                BlockExecutionResult res = await _mainChainNode.ExecuteAndAddBlock(block);
 
                 if (res.Executed)
                 {

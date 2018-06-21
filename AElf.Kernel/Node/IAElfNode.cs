@@ -10,7 +10,7 @@ namespace AElf.Kernel.Node
         void Start(ECKeyPair nodeKeyPair, bool startRpc);
 
         List<Hash> GetMissingTransactions(IBlock block);
-        Task<BlockExecutionResult> AddBlock(IBlock block);
+        Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block);
 
         int GetCurrentChainHeight();
     }
