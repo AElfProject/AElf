@@ -20,7 +20,6 @@ using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Config;
 using AElf.Runtime.CSharp;
-using Akka.Actor;
 using Autofac;
 using Google.Protobuf;
 using Newtonsoft.Json;
@@ -63,7 +62,7 @@ namespace AElf.Launcher
             var isNewChain = confParser.NewChain;
             var initData = confParser.InitData;
             
-            var runner = new SmartContractRunner("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/");
+            var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
             
@@ -122,7 +121,9 @@ namespace AElf.Launcher
             {
                 var ContractZeroName = "AElf.Kernel.Tests.TestContractZero";
                 
-                var contractZeroDllPath = $"{dir}/{ContractZeroName}.dll";
+                //var contractZeroDllPath = $"{dir}/{ContractZeroName}.dll";
+                
+                var contractZeroDllPath = $"../{ContractZeroName}/bin/Debug/netstandard2.0/{ContractZeroName}.dll";
                 
                 byte[] code = null;
                 using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(contractZeroDllPath)))
@@ -157,8 +158,8 @@ namespace AElf.Launcher
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
 
             // register actor system
-            ActorSystem sys = ActorSystem.Create("AElf");
-            builder.RegisterInstance(sys).As<ActorSystem>().SingleInstance();
+            /*ActorSystem sys = ActorSystem.Create("AElf");
+            builder.RegisterInstance(sys).As<ActorSystem>().SingleInstance();*/
             
             Hash chainId;
             if (isNewChain)

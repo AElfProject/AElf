@@ -35,7 +35,7 @@ namespace AElf.Kernel.Node
     public class MainChainNode : IAElfNode
     {   
         private ECKeyPair _nodeKeyPair;
-        private ActorSystem _sys;
+        private ActorSystem _sys ;
         private readonly ITxPoolService _poolService;
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
@@ -57,8 +57,8 @@ namespace AElf.Kernel.Node
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner,
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
-            IChainCreationService chainCreationService, IWorldStateManager worldStateManager, ActorSystem sys,
-            IChainManager chainManager, ISmartContractService smartContractService)
+            IChainCreationService chainCreationService, IWorldStateManager worldStateManager, 
+            IChainManager chainManager, ISmartContractService smartContractService, ActorSystem sys)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
@@ -155,9 +155,40 @@ namespace AElf.Kernel.Node
                     ResourceDetectionService = new MockResourceUsageDetectionService()
                 }));
                 IActorRef generalExecutor = _sys.ActorOf(GeneralExecutor.Props(_sys, serviceRouter), "exec");
-                generalExecutor.Tell(new RequestAddChainExecutor(_nodeConfig.ChainId), generalExecutor);
+                generalExecutor.Tell(new RequestAddChainExecutor(_nodeConfig.ChainId));
                 
                 _miner.Start(nodeKeyPair);
+                
+                /*ECKeyPair keyPair = new KeyPairGenerator().Generate();
+                ECSigner signer = new ECSigner();
+                var txPrint = new Transaction
+                {
+                    From = keyPair.GetAddress(),
+                    To = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount(),
+                    IncrementId = 0,
+                    MethodName = "Print",
+                    Params = ByteString.CopyFrom(new Parameters()
+                    {
+                        Params = {
+                            new Param
+                            {
+                                StrVal = "aElf"
+                            }
+                        }
+                    }.ToByteArray()),
+                
+                    Fee = TxPoolConfig.Default.FeeThreshold + 1
+                };
+            
+                Hash hash = txPrint.GetHash();
+
+                ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+                txPrint.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
+                txPrint.R = ByteString.CopyFrom(signature.R); 
+                txPrint.S = ByteString.CopyFrom(signature.S);
+
+                var res = BroadcastTransaction(txPrint).Result;*/
+                
                 Mine();
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
@@ -391,7 +422,7 @@ namespace AElf.Kernel.Node
             {
                 while (true)
                 {
-                    await Task.Delay(15000);
+                    await Task.Delay(20000);
                     var block = await _miner.Mine();
                     _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", block.GetHash(),
                         block.Body.Transactions.Count);

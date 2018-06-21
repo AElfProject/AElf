@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -21,6 +22,8 @@ namespace AElf.Kernel.Miner
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
         private readonly IWorldStateManager _worldStateManager;
+        private ISmartContractService _smartContractService;
+
 
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
@@ -43,7 +46,8 @@ namespace AElf.Kernel.Miner
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, 
             IParallelTransactionExecutingService parallelTransactionExecutingService, 
-                IChainManager chainManager, IBlockManager blockManager, IWorldStateManager worldStateManager)
+                IChainManager chainManager, IBlockManager blockManager, IWorldStateManager worldStateManager, 
+            ISmartContractService smartContractService)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -51,6 +55,7 @@ namespace AElf.Kernel.Miner
             _chainManager = chainManager;
             _blockManager = blockManager;
             _worldStateManager = worldStateManager;
+            _smartContractService = smartContractService;
         }
 
         
@@ -61,38 +66,50 @@ namespace AElf.Kernel.Miner
                 if (Cts == null || Cts.IsCancellationRequested)
                     return null;
             
-               var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
+                var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
                 // TODO：dispatch txs with ISParallel, return list of tx results
 
-                
-                
-            
                 // reset Promotable and update account context
             
-            
-            var traces =  ready.Count == 0
-                ? new List<TransactionTrace>()
-                : await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
-            
-            var results = new List<TransactionResult>();
-            foreach (var trace in traces)
-            {
-                var res = new TransactionResult()
-                {
-                    TransactionId = trace.TransactionId,
-                    
-                };
-                if (string.IsNullOrEmpty(trace.StdErr))
-                {
-                    res.Logs.AddRange(trace.FlattenedLogs);
-                    res.Status = Status.Mined;
+                List<TransactionTrace> traces = null;
+                if(Config.IsParallel)
+                {  
+                    traces = ready.Count == 0
+                    ? new List<TransactionTrace>()
+                    : await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
                 }
                 else
                 {
-                    res.Status = Status.Failed;
+                    foreach (var transaction in ready)
+                    {
+                        var executive = await _smartContractService.GetExecutiveAsync(transaction.To, Config.ChainId);
+                        var txnInitCtxt = new TransactionContext()
+                        {
+                            Transaction = transaction
+                        };
+                        await executive.SetTransactionContext(txnInitCtxt).Apply(true);
+                    }
                 }
-                results.Add(res);
-            }
+                
+                var results = new List<TransactionResult>();
+                foreach (var trace in traces)
+                {
+                    var res = new TransactionResult()
+                    {
+                        TransactionId = trace.TransactionId,
+                        
+                    };
+                    if (string.IsNullOrEmpty(trace.StdErr))
+                    {
+                        res.Logs.AddRange(trace.FlattenedLogs);
+                        res.Status = Status.Mined;
+                    }
+                    else
+                    {
+                        res.Status = Status.Failed;
+                    }
+                    results.Add(res);
+                }
             
                 // generate block
                 var block = await GenerateBlockAsync(Config.ChainId, results);
