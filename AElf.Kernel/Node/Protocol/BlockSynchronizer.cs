@@ -24,6 +24,16 @@ namespace AElf.Kernel.Node.Protocol
         public Block Block { get; set; }
     }
     
+    /// <summary>
+    /// When a node starts it creates this BlockSynchroniser for two reasons: the first
+    /// is that the node is very probably behind other nodes on the network and it needs
+    /// to perform an initial download of the already processed blocks; the second reason
+    /// this is needed is that when the node receives a block, it's possible that some of 
+    /// the transactions are not in the pool. In the later case, the block is placed here 
+    /// and requests are sent out to retrieve missing transactions. These two operation are
+    /// possibly performed at the same time, even though the Initial sync will at one point
+    /// stop because we'll be receiving the new blocks through the network.
+    /// </summary>
     public class BlockSynchronizer
     {
         public event EventHandler BlockSynched;
@@ -36,17 +46,16 @@ namespace AElf.Kernel.Node.Protocol
 
         private bool IsInitialSync { get; set; } = true;
 
-        // The height of the chain 
-        private int InitialHeight = 0;
+        // The height of the chain, this gets incremented each time a 
+        // block is successfully removed.
+        public int CurrentHeight { get; private set; } = 0;
         
-        // The peers blockchain height with the highest height
-        private int PeerHighestHight = 0;
-
         // The peer with the highest hight might not have all the blockchain
         // so the target height is PeerHighestHight + target.
-        private int Security = 0;
+        // todo maybe
+        //private int Security = 0;
         
-        Dictionary<Peer, int> PeerToHeight = new Dictionary<Peer, int>();
+        Dictionary<IPeer, int> PeerToHeight = new Dictionary<IPeer, int>();
 
         private Timer _cycleTimer;
         private IAElfNode _mainChainNode;
@@ -56,10 +65,9 @@ namespace AElf.Kernel.Node.Protocol
             PendingBlocks = new List<PendingBlock>();
             _mainChainNode = node;
             _peerManager = peerManager;
-            _cycleTimer = new Timer(DoCycle, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(60));
         }
 
-        public void SetPeerHeight(Peer peer, int height)
+        public void SetPeerHeight(IPeer peer, int height)
         {
             if (PeerToHeight.ContainsKey(peer))
             {
@@ -75,43 +83,67 @@ namespace AElf.Kernel.Node.Protocol
         {
             if (IsInitialSync)
             {
-                if (PeerToHeight == null)
-                    return;
-                
-                // It means we're still synchronizing old blocks 
-                
-                // In order to work we need at least one height from one of the peers
-                if (PeerToHeight.Count > 0)
-                {
-                    // todo use more that one peer
-                    // for now we use only one
-                    /*Peer peer = PeerToHeight.OrderByDescending(p => p.Value).First().Key;
-                    
-                    var req = NetRequestFactory.CreateRequest(MessageTypes.RequestBlock, new byte[] {}, null); 
-                    await peer.SendAsync(req.ToByteArray());*/
-                    
-                    return;
-                }
-                else
-                {
-                    // We need to query peers for their height
-                    // todo create request msg + broadcast
-                    if (_peerManager != null)
-                        await _peerManager.BroadcastMessage(MessageTypes.HeightRequest, new byte[] {}, 0);
-                }
+                await ManagePeers();
             }
-            else
-            {
-                
-            }
+            
             
             //List<PendingBlock> blocksToExecute = PendingBlocks.Where(p => p.IsSynced).ToList();
             //await TryExecuteBlocks(blocksToExecute);
         }
 
-        public void Start(Hash lastBlockHash)
+        /// <summary>
+        /// This method manages who we download the blocks from and also
+        /// the what blocks are requested from who.
+        /// </summary>
+        /// <returns></returns>
+        private async Task ManagePeers()
         {
-            // Start sync from block hash
+            if (PeerToHeight == null)
+                return;
+                
+            // It means we're still synchronizing old blocks 
+                
+            // In order to work we need at least one height from one of the peers
+            if (PeerToHeight.Count > 0)
+            {
+                /** Calculate block requests to send **/
+                    
+                // todo use more that one peer
+                    
+                // for now we use only one - the one with the highest hight
+                var peerHeightKvp = PeerToHeight.OrderByDescending(p => p.Value).First();
+
+                if (peerHeightKvp.Value < CurrentHeight)
+                    return; // As far as we know he's behind us
+
+                IPeer peer = peerHeightKvp.Key;
+
+                // Request the current block we're trying to sync
+                BlockRequest br = new BlockRequest { Height = CurrentHeight };
+                var req = NetRequestFactory.CreateRequest(MessageTypes.RequestBlock, br.ToByteArray(), null); 
+                    
+                await peer.SendAsync(req.ToByteArray());
+            }
+            else
+            {
+                // todo this is only executed if no peers have replied to the height request
+                // todo if at least one peer as been set, the requests will not be broadcast
+                    
+                // Query peers for their height
+                if (_peerManager != null)
+                    await _peerManager.BroadcastMessage(MessageTypes.HeightRequest, new byte[] {}, 0);
+            }
+        }
+
+        public void Start()
+        {
+            _cycleTimer = new Timer(DoCycle, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(60));
+        }
+
+        public void SetNodeHeight(int currentHeight)
+        {
+            // todo logic to handle a height change
+            CurrentHeight = currentHeight;
         }
 
         /// <summary>

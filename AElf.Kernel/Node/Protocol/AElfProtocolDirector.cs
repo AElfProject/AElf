@@ -108,12 +108,22 @@ namespace AElf.Kernel.Node.Protocol
                         ;
                     }
                 }
-                else if (message.MsgType == (int) MessageTypes.Height)
+                else if (message.MsgType == (int)MessageTypes.RequestBlock)
                 {
-                    ;
-                    // todo _blockSynchronizer.SetPeerHeight();
+                    // Get the requested blocks, send it back to the peer
                 }
-                else if (message.MsgType == (int) MessageTypes.HeightRequest)
+                else if (message.MsgType == (int)MessageTypes.SendBlock)
+                {
+                    // Reception a block
+                    Block b = Block.Parser.ParseFrom(message.Payload);
+                    await _blockSynchronizer.AddBlockToSync(b);
+                }
+                else if (message.MsgType == (int)MessageTypes.Height)
+                {
+                    HeightData height = HeightData.Parser.ParseFrom(message.Payload);
+                    _blockSynchronizer.SetPeerHeight(args.Peer, height.Height);
+                }
+                else if (message.MsgType == (int)MessageTypes.HeightRequest)
                 {
                     int height = _node.GetCurrentChainHeight();
                     HeightData data = new HeightData { Height = height };
