@@ -65,11 +65,11 @@ namespace AElf.Kernel.Tests.Miner
         private readonly IBlockManager _blockManager;
 
         
-        public MinerLifetime(IWorldStateManager worldStateManager, ISmartContractStore smartContractStore,
+        public MinerLifetime(IWorldStateManager worldStateManager, 
             IChainCreationService chainCreationService, 
             IChainContextService chainContextService, ILogger logger, IAccountContextService accountContextService, 
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
-            IChainManager chainManager, IBlockManager blockManager) : base(new XunitAssertions())
+            IChainManager chainManager, IBlockManager blockManager, ISmartContractManager smartContractManager) : base(new XunitAssertions())
         {
             _chainCreationService = chainCreationService;
             _chainContextService = chainContextService;
@@ -79,9 +79,9 @@ namespace AElf.Kernel.Tests.Miner
             _transactionResultManager = transactionResultManager;
             _chainManager = chainManager;
             _blockManager = blockManager;
+            _smartContractManager = smartContractManager;
 
             _worldStateManager = worldStateManager;
-            _smartContractManager = new SmartContractManager(smartContractStore);
         }
 
         public byte[] SmartContractZeroCode
@@ -240,7 +240,7 @@ namespace AElf.Kernel.Tests.Miner
         {
             var parallelTransactionExecutingService = new ParallelTransactionExecutingService(sys);
             return new Kernel.Miner.Miner(config, poolService,
-                parallelTransactionExecutingService,  _chainManager, _blockManager, _worldStateManager);
+                parallelTransactionExecutingService,  _chainManager, _blockManager, _worldStateManager, _smartContractService);
         }
 
         public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit, byte[] getAddress)
@@ -280,7 +280,7 @@ namespace AElf.Kernel.Tests.Miner
             
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             _smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, await _worldStateManager.OfChain(chain.Id));
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
             
             _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(new ServicePack
             {
@@ -326,9 +326,9 @@ namespace AElf.Kernel.Tests.Miner
 
             var miner = GetMiner(minerconfig, poolService);
             
-            var runner = new SmartContractRunner("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/");
+            var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, await _worldStateManager.OfChain(chain.Id));
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
             
             _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(new ServicePack
             {
