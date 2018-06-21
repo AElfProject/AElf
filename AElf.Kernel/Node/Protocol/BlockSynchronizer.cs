@@ -86,11 +86,27 @@ namespace AElf.Kernel.Node.Protocol
 
             return true;
         }
+        
+        public List<IPeer> RemoveLowerHeightPeers()
+        {
+            if (PeerToHeights == null)
+                return null;
+            
+            var toRemove = PeerToHeights.Where(kvp => kvp.Value < CurrentHeight).ToList();
+            
+            foreach (var kvp in toRemove)
+            {
+                PeerToHeights.Remove(kvp.Key);
+            }
+
+            return toRemove.Select(kvp => kvp.Key).ToList();
+        }
 
         internal async void DoCycle(object state)
         {
             if (IsInitialSync)
             {
+                RemoveLowerHeightPeers();
                 await ManagePeers();
             }
             
