@@ -92,50 +92,87 @@ namespace AElf.Kernel.Node.Protocol
             if (sender != null && e is MessageReceivedArgs args && args.Message != null)
             {
                 AElfPacketData message = args.Message;
+                MessageTypes msgType = (MessageTypes)message.MsgType;
 
-                if (message.MsgType == (int)MessageTypes.BroadcastTx || message.MsgType == (int)MessageTypes.Tx)
+                if (msgType == MessageTypes.BroadcastTx || msgType == MessageTypes.Tx)
                 {
-                    var fromSend = message.MsgType == (int) MessageTypes.Tx;
-                    await _node.ReceiveTransaction(message.Payload, fromSend);
+                    await HandleTransactionReception(message);
                 }
-                else if (message.MsgType == (int)MessageTypes.BroadcastBlock)
+                else if (msgType == MessageTypes.BroadcastBlock || message.MsgType == (int)MessageTypes.Block)
                 {
-                    try
-                    {
-                        Block b = Block.Parser.ParseFrom(message.Payload);
-                        await _blockSynchronizer.AddBlockToSync(b);
-                    }
-                    catch (Exception exception)
-                    {
-                        ;
-                    }
+                    // todo maybe merge the above types
+                    await HandleBlockReception(message);
                 }
-                else if (message.MsgType == (int)MessageTypes.RequestBlock)
+                else if (msgType == MessageTypes.RequestBlock)
                 {
                     // Get the requested blocks, send it back to the peer
                 }
-                else if (message.MsgType == (int)MessageTypes.Block)
+                else if (msgType == MessageTypes.Height)
                 {
-                    // Reception a block
-                    Block b = Block.Parser.ParseFrom(message.Payload);
-                    await _blockSynchronizer.AddBlockToSync(b);
+                    HandlePeerHeightReception(message, args);
                 }
-                else if (message.MsgType == (int)MessageTypes.Height)
+                else if (msgType == MessageTypes.HeightRequest)
                 {
-                    HeightData height = HeightData.Parser.ParseFrom(message.Payload);
-                    _blockSynchronizer.SetPeerHeight(args.Peer, height.Height);
-                }
-                else if (message.MsgType == (int)MessageTypes.HeightRequest)
-                {
-                    int height = _node.GetCurrentChainHeight();
-                    HeightData data = new HeightData { Height = height };
-                    var req = NetRequestFactory.CreateRequest(MessageTypes.Height, data.ToByteArray(), 0);
-                    await args.Peer.SendAsync(req.ToByteArray());
+                    await HandleHeightRequest(message, args);
                 }
                 
                 // Process any messages
                 
                 ClearResetEvent(message.Id);
+            }
+        }
+
+        internal async Task HandleHeightRequest(AElfPacketData message, MessageReceivedArgs args)
+        {
+            try
+            {
+                ulong height = await _node.GetCurrentChainHeight();
+                HeightData data = new HeightData { Height = (int)height };
+                var req = NetRequestFactory.CreateRequest(MessageTypes.Height, data.ToByteArray(), 0);
+                await args.Peer.SendAsync(req.ToByteArray());
+            }
+            catch (Exception e)
+            {
+                ; // todo
+            }
+        }
+
+        internal void HandlePeerHeightReception(AElfPacketData message, MessageReceivedArgs args)
+        {
+            try
+            {
+                HeightData height = HeightData.Parser.ParseFrom(message.Payload);
+                _blockSynchronizer.SetPeerHeight(args.Peer, height.Height);
+            }
+            catch (Exception e)
+            {
+                ; // todo
+            }
+        }
+
+        internal async Task HandleTransactionReception(AElfPacketData message)
+        {
+            try
+            {
+                var fromSend = message.MsgType == (int) MessageTypes.Tx;
+                await _node.ReceiveTransaction(message.Payload, fromSend);
+            }
+            catch (Exception e)
+            {
+                ; // todo
+            }
+        }
+
+        internal async Task HandleBlockReception(AElfPacketData message)
+        {
+            try
+            {
+                Block b = Block.Parser.ParseFrom(message.Payload);
+                await _blockSynchronizer.AddBlockToSync(b);
+            }
+            catch (Exception exception)
+            {
+                ; // todo
             }
         }
 
