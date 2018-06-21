@@ -63,10 +63,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 			var respond = ExpectMsg<RespondExecuteTransactions>();
 			Assert.Equal(33, respond.RequestId);
 			Assert.Equal(RespondExecuteTransactions.RequestStatus.Executed, respond.Status);
-			var results = respond.TransactionResults;
-            Assert.Equal(Status.Mined, results[0].Status);
-            Assert.Equal(Status.Mined, results[1].Status);
-            Assert.Equal(Status.Mined, results[2].Status);
+			var traces = respond.TransactionTraces;
+
+			Assert.True(string.IsNullOrEmpty(traces[0].StdErr));
+			Assert.True(string.IsNullOrEmpty(traces[1].StdErr));
+			Assert.True(string.IsNullOrEmpty(traces[2].StdErr));
+			
             foreach (var addFinbal in addresses.Zip(finalBalances, Tuple.Create))
             {
                 Assert.Equal((ulong)addFinbal.Item2, _mock.GetBalance1(addFinbal.Item1));

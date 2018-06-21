@@ -19,9 +19,9 @@ namespace AElf.Kernel.Concurrency
 			_requestor = system.ActorOf(GeneralRequestor.Props(system));
 		}
 
-		public async Task<List<TransactionResult>> ExecuteAsync(List<ITransaction> transactions, Hash chainId)
+		public async Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId)
 		{
-			var taskCompletionSource = new TaskCompletionSource<List<TransactionResult>>();
+			var taskCompletionSource = new TaskCompletionSource<List<TransactionTrace>>();
 			_requestor.Tell(new LocalExecuteTransactionsMessage(chainId, transactions, taskCompletionSource));
 			return await taskCompletionSource.Task;
 		}
