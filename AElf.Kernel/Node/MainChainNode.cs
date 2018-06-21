@@ -74,8 +74,7 @@ namespace AElf.Kernel.Node
             _protocolDirector.SetCommandContext(this, !_nodeConfig.IsMiner); // If not miner do sync
             
             if(_nodeConfig.IsMiner)
-                _miner.Start(nodeKeyPair);    
-            
+                _miner.Start(nodeKeyPair);
 
             _logger.Log(LogLevel.Debug, "AElf node started.");
             _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig?.ChainId?.ToByteString().ToBase64());
@@ -243,9 +242,10 @@ namespace AElf.Kernel.Node
             }
         }
 
-        public int GetCurrentChainHeight()
+        public async Task<ulong> GetCurrentChainHeight()
         {
-            return 5;
+            IChainContext chainContext = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
+            return chainContext.BlockHeight;
         }
 
         /// <summary>

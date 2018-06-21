@@ -21,12 +21,10 @@ namespace AElf.Kernel.Node.Protocol
         public AElfProtocolDirector(IPeerManager peerManager)
         {
             _peerManager = peerManager;
-            
         }
         
         public void Start()
         {
-            //_blockSynchronizer.Init();
             _peerManager.Start();
             _peerManager.MessageReceived += ProcessPeerMessage;
         }
@@ -40,9 +38,13 @@ namespace AElf.Kernel.Node.Protocol
         public void SetCommandContext(MainChainNode node, bool doSync = false)
         {
             _node = node;
-            
+
             if (doSync)
+            {
+                ulong height = _node.GetCurrentChainHeight().Result;
                 _blockSynchronizer = new BlockSynchronizer(_node, _peerManager); // todo move
+                _blockSynchronizer.SetNodeHeight((int)height);
+            }
         }
 
         public void AddTransaction(Transaction tx)
@@ -91,9 +93,9 @@ namespace AElf.Kernel.Node.Protocol
             {
                 AElfPacketData message = args.Message;
 
-                if (message.MsgType == (int)MessageTypes.BroadcastTx || message.MsgType == (int)MessageTypes.SendTx)
+                if (message.MsgType == (int)MessageTypes.BroadcastTx || message.MsgType == (int)MessageTypes.Tx)
                 {
-                    var fromSend = message.MsgType == (int) MessageTypes.SendTx;
+                    var fromSend = message.MsgType == (int) MessageTypes.Tx;
                     await _node.ReceiveTransaction(message.Payload, fromSend);
                 }
                 else if (message.MsgType == (int)MessageTypes.BroadcastBlock)
@@ -112,7 +114,7 @@ namespace AElf.Kernel.Node.Protocol
                 {
                     // Get the requested blocks, send it back to the peer
                 }
-                else if (message.MsgType == (int)MessageTypes.SendBlock)
+                else if (message.MsgType == (int)MessageTypes.Block)
                 {
                     // Reception a block
                     Block b = Block.Parser.ParseFrom(message.Payload);
