@@ -12,16 +12,16 @@ namespace AElf.Kernel.Concurrency.Metadata
 {
     public class ChainFunctionMetadata : IChainFunctionMetadata
     {
-        private readonly IChainFunctionMetadataTemplate _template;
+        public readonly IChainFunctionMetadataTemplate Template;
         private readonly ILogger _logger;
         private readonly IDataStore _dataStore;
-        private Hash ChainId => _template.ChainId;
+        private Hash ChainId => Template.ChainId;
         
         public Dictionary<string, FunctionMetadata> FunctionMetadataMap { get; }
         
         public ChainFunctionMetadata(IChainFunctionMetadataTemplate template, IDataStore dataStore,  ILogger logger = null)
         {
-            _template = template;
+            Template = template;
             _dataStore = dataStore;
             _logger = logger;
 
@@ -43,18 +43,18 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <param name="contractAddr"></param>
         /// <param name="contractReferences"></param>
         /// <exception cref="FunctionMetadataException"></exception>
-        public void DeployNewContract(string contractClassName, Hash contractAddr, Dictionary<string, Hash> contractReferences)
+        public async Task DeployNewContract(string contractClassName, Hash contractAddr, Dictionary<string, Hash> contractReferences)
         {
             Dictionary<string, FunctionMetadata> tempMap = new Dictionary<string, FunctionMetadata>();
             try
             {
-                if (!_template.ContractMetadataTemplateMap.TryGetValue(contractClassName, out var classTemplate))
+                if (!Template.ContractMetadataTemplateMap.TryGetValue(contractClassName, out var classTemplate))
                 {
                     throw new FunctionMetadataException("Cannot find contract named " + contractClassName + " in the template storage");
                 }
 
                 //local calling graph in template map of template must be topological, so ignore the callGraph
-                _template.TryGetLocalCallingGraph(classTemplate, out var callGraph, out var topologicRes);
+                Template.TryGetLocalCallingGraph(classTemplate, out var callGraph, out var topologicRes);
 
                 foreach (var localFuncName in topologicRes.Reverse())
                 {
@@ -71,7 +71,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                     FunctionMetadataMap.Add(functionMetadata.Key, functionMetadata.Value);
                 }
 
-                _dataStore.SetDataAsync(Path.CalculatePointerForMetadata(ChainId),
+                await _dataStore.SetDataAsync(Path.CalculatePointerForMetadata(ChainId),
                     GenerateSerializeFunctionMetadataMap().ToByteArray());
             }
             catch (FunctionMetadataException e)
