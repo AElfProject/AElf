@@ -79,6 +79,12 @@ namespace AElf.Kernel.Services
             await Task.CompletedTask;
         }
 
+        public Type GetContractType(SmartContractRegistration registration)
+        {
+            var runner = _smartContractRunnerFactory.GetRunner(registration.Category);
+            return runner.GetContractType(registration);
+        }
+        
         public async Task DeployContractAsync(Hash account, SmartContractRegistration registration)
         {
             await _smartContractManager.InsertAsync(account, registration);

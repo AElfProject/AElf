@@ -78,5 +78,35 @@ namespace AElf.Runtime.CSharp
 
             return await Task.FromResult(executive);
         }
+
+        public System.Type GetContractType(SmartContractRegistration reg)
+        {
+            // TODO: Maybe input arguments can be simplified
+
+            var code = reg.ContractBytes.ToByteArray();
+
+            var loadContext = GetLoadContext();
+
+            Assembly assembly = null;
+            using (Stream stream = new MemoryStream(code))
+            {
+                assembly = loadContext.LoadFromStream(stream);
+            }
+
+            if (assembly == null)
+            {
+                throw new InvalidCodeException("Invalid binary code.");
+            }
+
+            var abiModule = Generator.GetABIModule(code);
+            // TODO: Change back
+            var type = assembly.GetTypes().FirstOrDefault(x => x.FullName == abiModule.Name);
+            if (type == null)
+            {
+                throw new InvalidCodeException($"No SmartContract type {abiModule.Name} is defined in the code.");
+            }
+
+            return type;
+        }
     }
 }
