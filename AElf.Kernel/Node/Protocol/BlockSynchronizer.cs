@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
@@ -178,13 +179,16 @@ namespace AElf.Kernel.Node.Protocol
         /// network, it will be placed here to sync.
         /// </summary>
         /// <param name="block"></param>
-        public async Task AddBlockToSync(Block block)
+        public async Task<bool> AddBlockToSync(Block block)
         {
             if (block?.Header == null || block.Body == null)
                 throw new InvalidBlockException("The block, blockheader or body is null");
             
             if (block.Body.Transactions == null || block.Body.Transactions.Count <= 0)
                 throw new InvalidBlockException("The block contains no transactions");
+
+            if (block.Header.Index < (ulong)CurrentHeight)
+                return false;
 
             byte[] h = null;
             try
@@ -197,14 +201,14 @@ namespace AElf.Kernel.Node.Protocol
             }
 
             if (GetBlock(h) != null)
-                return;
+                return false;
 
             List<Hash> missingTxs = _mainChainNode.GetMissingTransactions(block);
 
             if (missingTxs == null)
             {
                 // todo what happend when the pool fails ?
-                return;
+                return false;
             }
 
             if (missingTxs.Any())
@@ -232,7 +236,9 @@ namespace AElf.Kernel.Node.Protocol
                 {
                     CurrentHeight++;
                 }
-            }    
+            }
+
+            return true;
         }
 
         /// <summary>
