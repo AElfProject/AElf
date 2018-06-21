@@ -41,7 +41,7 @@ namespace AElf.Runtime.CSharp.Tests
         public Hash ContractAddress2 { get; } = Hash.Generate();
 
         private ISmartContractManager _smartContractManager;
-        private IWorldStateManager _worldStateManager;
+        public IWorldStateManager WorldStateManager;
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
 
@@ -49,7 +49,7 @@ namespace AElf.Runtime.CSharp.Tests
 
         public MockSetup(IWorldStateManager worldStateManager, IChainCreationService chainCreationService, IBlockManager blockManager, SmartContractStore smartContractStore)
         {
-            _worldStateManager = worldStateManager;
+            WorldStateManager = worldStateManager;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             _smartContractManager = new SmartContractManager(smartContractStore);
@@ -59,7 +59,7 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
+            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, WorldStateManager);
             Task.Factory.StartNew(async () =>
             {
                 await DeploySampleContracts();
@@ -76,11 +76,11 @@ namespace AElf.Runtime.CSharp.Tests
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
-            DataProvider1 = (await _worldStateManager.OfChain(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
+            DataProvider1 = (await WorldStateManager.OfChain(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, reg);
             var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
-            DataProvider2 = (await _worldStateManager.OfChain(ChainId2)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId2));
+            DataProvider2 = (await WorldStateManager.OfChain(ChainId2)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId2));
         }
 
         private async Task DeploySampleContracts()

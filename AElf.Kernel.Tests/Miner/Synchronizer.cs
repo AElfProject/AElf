@@ -199,7 +199,7 @@ namespace AElf.Kernel.Tests.Miner
             
             block.FillTxsMerkleTreeRootInHeader();
             
-            var runner = new SmartContractRunner("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/");
+            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             _smartContractRunnerFactory.AddRunner(0, runner);
             _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, await _worldStateManager.OfChain(chain.Id));
             
@@ -215,7 +215,7 @@ namespace AElf.Kernel.Tests.Miner
 
             IParallelTransactionExecutingService parallelTransactionExecutingService =
                 new ParallelTransactionExecutingService(sys);
-            var synchronizer = new Kernel.Miner.Synchronizer(poolService, parallelTransactionExecutingService,
+            var synchronizer = new Kernel.Miner.BlockExecutor(poolService, parallelTransactionExecutingService,
                 _chainManager, _blockManager);
             var res = await synchronizer.ExecuteBlock(block);
             Assert.True(res);

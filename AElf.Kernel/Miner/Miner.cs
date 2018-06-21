@@ -64,15 +64,35 @@ namespace AElf.Kernel.Miner
                var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
                 // TODO：dispatch txs with ISParallel, return list of tx results
 
-                List<TransactionResult> results = ready.Count == 0
-                    ? new List<TransactionResult>()
-                    : await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
+                
                 
             
                 // reset Promotable and update account context
             
             
-                // TODO: commit tx results
+            var traces =  ready.Count == 0
+                ? new List<TransactionTrace>()
+                : await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
+            
+            var results = new List<TransactionResult>();
+            foreach (var trace in traces)
+            {
+                var res = new TransactionResult()
+                {
+                    TransactionId = trace.TransactionId,
+                    
+                };
+                if (string.IsNullOrEmpty(trace.StdErr))
+                {
+                    res.Logs.AddRange(trace.FlattenedLogs);
+                    res.Status = Status.Mined;
+                }
+                else
+                {
+                    res.Status = Status.Failed;
+                }
+                results.Add(res);
+            }
             
                 // generate block
                 var block = await GenerateBlockAsync(Config.ChainId, results);

@@ -17,7 +17,7 @@ namespace AElf.CLI.Command.Account
             return "usage";
         }
 
-        public override string Validate(CmdParseResult parsedCommand)
+        public override string Validate(CmdParseResult parsedCmd)
         {
             return null;
         }

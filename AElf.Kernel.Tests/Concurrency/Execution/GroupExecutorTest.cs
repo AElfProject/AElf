@@ -39,7 +39,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
              *    Job 1: (0-3, 7)
              */
 
-            var balances = new List<int>()
+            var balances = new List<ulong>()
             {
                 100, 0, 0, 200, 0
             };
@@ -47,7 +47,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             foreach (var addbal in addresses.Zip(balances, Tuple.Create))
             {
-                _mock.Initialize1(addbal.Item1, (ulong)addbal.Item2);
+                _mock.Initialize1(addbal.Item1, addbal.Item2);
             }
 
             var txs = new List<ITransaction>(){
@@ -58,7 +58,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             };
             var txsHashes = txs.Select(y => y.GetHash()).ToList();
 
-            var finalBalances = new List<int>
+            var finalBalances = new List<ulong>
             {
                 83, 1, 9, 199, 8
             };
@@ -66,12 +66,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var executor1 = sys.ActorOf(GroupExecutor.Props(_mock.ChainId1, _serviceRouter, txs, TestActor));
             Watch(executor1);
             executor1.Tell(StartExecutionMessage.Instance);
-            var results = new List<TransactionResult>()
+            var traces = new List<TransactionTrace>()
             {
-                ExpectMsg<TransactionResultMessage>().TransactionResult,
-                ExpectMsg<TransactionResultMessage>().TransactionResult,
-                ExpectMsg<TransactionResultMessage>().TransactionResult,
-                ExpectMsg<TransactionResultMessage>().TransactionResult,
+                ExpectMsg<TransactionTraceMessage>().TransactionTrace,
+                ExpectMsg<TransactionTraceMessage>().TransactionTrace,
+                ExpectMsg<TransactionTraceMessage>().TransactionTrace,
+                ExpectMsg<TransactionTraceMessage>().TransactionTrace,
             }.OrderBy(y => txsHashes.IndexOf(y.TransactionId)).ToList();
             ExpectTerminated(executor1);
 
@@ -80,9 +80,9 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 Assert.True(_mock.GetTransactionStartTime1(txs[3]) > _mock.GetTransactionEndTime1(tx));
             }
-            foreach (var r in results)
+            foreach (var r in traces)
             {
-                Assert.Equal(Status.Mined, r.Status);
+                Assert.True(string.IsNullOrEmpty(r.StdErr));
             }
             foreach (var addFinbal in addresses.Zip(finalBalances, Tuple.Create))
             {

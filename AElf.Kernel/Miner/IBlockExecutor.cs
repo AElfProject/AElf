@@ -2,7 +2,7 @@
 
 namespace AElf.Kernel.Miner
 {
-    public interface ISynchronizer
+    public interface IBlockExecutor
     {
         Task<bool> ExecuteBlock(IBlock block);
     }

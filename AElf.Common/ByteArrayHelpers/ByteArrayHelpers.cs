@@ -14,5 +14,34 @@ namespace AElf.Common.ByteArrayHelpers
             
             return bytes;
         }
+        
+        public static bool BytesEqual(this byte[] b1, byte[] b2)
+        {
+            if (b1 == b2) 
+                return true;
+            
+            if (b1 == null || b2 == null) 
+                return false;
+            
+            if (b1.Length != b2.Length) 
+                return false;
+            
+            for (var i = 0; i < b1.Length; i++)
+            {
+                if (b1[i] != b2[i]) return false;
+            }
+
+            return true;
+        }
+        
+        public static byte[] RandomFill(int count)
+        {
+            Random rnd = new Random();
+            byte[] random = new byte[count];
+            
+            rnd.NextBytes(random);
+
+            return random;
+        }
     }
 }
