@@ -163,6 +163,11 @@ namespace AElf.Kernel.Concurrency.Metadata
                     throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Duplicate name of function attribute" + functionAttribute.FunctionSignature + " in contract" + contractType.Name);
                 }
             }
+
+            if (localFunctionMetadataTemplateMap.Count == 0)
+            {
+                throw new FunctionMetadataException("ChainId [" + ChainId.Value + " no function marked in the target contract " + contractType.Name);
+            }
             
             //check for validaty of the calling set (whether have unknow reference)
             foreach (var kvPair in localFunctionMetadataTemplateMap)
