@@ -25,7 +25,7 @@ namespace AElf.Kernel.Node
     public class MainChainNode : IAElfNode
     {
         private ECKeyPair _nodeKeyPair;
-        
+
         private readonly ITxPoolService _poolService;
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
@@ -38,12 +38,14 @@ namespace AElf.Kernel.Node
         private readonly IChainContextService _chainContextService;
         private readonly IWorldStateManager _worldStateManager;
         private readonly IBlockExecutor _blockExecutor;
+        private readonly ISmartContractService _contractService;
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer,
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner,
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
-            IChainCreationService chainCreationService, IWorldStateManager worldStateManager)
+            IChainCreationService chainCreationService, IWorldStateManager worldStateManager,
+            ISmartContractService contractService)
         {
             _poolService = poolService;
             _protocolDirector = protocolDirector;
@@ -57,43 +59,43 @@ namespace AElf.Kernel.Node
             _chainContextService = chainContextService;
             _worldStateManager = worldStateManager;
             _blockExecutor = blockExecutor;
+            _contractService = contractService;
         }
 
         public void Start(ECKeyPair nodeKeyPair, bool startRpc)
         {
             _nodeKeyPair = nodeKeyPair;
-            
+
             if (startRpc)
                 _rpcServer.Start();
-            
+
             _poolService.Start();
             _protocolDirector.Start();
-            
+
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
             _protocolDirector.SetCommandContext(this, !_nodeConfig.IsMiner); // If not miner do sync
-            
-            if(_nodeConfig.IsMiner)
-                _miner.Start(nodeKeyPair);    
-            
+
+            if (_nodeConfig.IsMiner)
+                _miner.Start(nodeKeyPair);
+
 
             _logger.Log(LogLevel.Debug, "AElf node started.");
             _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig?.ChainId?.ToByteString().ToBase64());
-            
+
             if (_nodeConfig.IsMiner)
             {
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner?.Coinbase?.Value?.ToStringUtf8());
-                
+
                 // todo
                 // Task.Delay(TimeSpan.FromSeconds(2));
                 // BroadcastBlock(null); 
             }
             else
             {
-                
             }
         }
-        
+
         /// <summary>
         /// get the tx from tx pool or database
         /// </summary>
@@ -105,6 +107,7 @@ namespace AElf.Kernel.Node
             {
                 return tx;
             }
+
             return await _transactionManager.GetTransaction(txId);
         }
 
@@ -120,7 +123,7 @@ namespace AElf.Kernel.Node
         {
             return await _transactionManager.AddTransactionAsync(tx);
         }
-        
+
         /// <summary>
         /// This method processes a transaction received from one of the
         /// connected peers.
@@ -133,7 +136,7 @@ namespace AElf.Kernel.Node
             {
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
                 _logger.Trace("Received Transaction: " + JsonFormatter.Default.Format(tx));
-                
+
                 await _poolService.AddTxAsync(tx);
 
                 if (isFromSend)
@@ -167,7 +170,8 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId)).IncrementId;
+                var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId))
+                    .IncrementId;
                 var idInPool = _poolService.GetIncrementId(addr);
 
                 return Math.Max(idInDB, idInPool);
@@ -196,13 +200,13 @@ namespace AElf.Kernel.Node
             {
                 var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
                 var error = await _blockVaildationService.ValidateBlockAsync(block, context);
-                
+
                 if (error != ValidationError.Success)
                 {
                     _logger.Trace("Invalid block received from network");
                     return new BlockExecutionResult(false, error);
                 }
-            
+
                 bool executed = await _blockExecutor.ExecuteBlock(block);
 
                 return new BlockExecutionResult(executed, error);
@@ -213,7 +217,7 @@ namespace AElf.Kernel.Node
                 return new BlockExecutionResult(e);
             }
         }
-        
+
         /// <summary>
         /// get missing tx hashes for the block. If an exception occured it return
         /// null. If there's simply no transaction from this block in the pool it
@@ -234,6 +238,7 @@ namespace AElf.Kernel.Node
                         res.Add(id);
                     }
                 }
+
                 return res;
             }
             catch (Exception e)
@@ -268,22 +273,26 @@ namespace AElf.Kernel.Node
                 blockb.Header.ChainId = ByteArrayHelpers.RandomFill(10);
                 blockb.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
                 blockb.Header.PreviousBlockHash = ByteArrayHelpers.RandomFill(256);
-                
+
                 blockb.AddTransaction(Hash.Generate());
-                
+
                 await _protocolDirector.BroadcastBlock(blockb);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
             }
-            
+
             _logger.Trace("Broadcasted block to peers:");
-            
+
             return true;
-            
         }
-        
+
+        public async Task<IMessage> GetContractAbi(Hash address)
+        {
+            return await _contractService.GetAbiAsync(address);
+        }
+
         /// <summary>
         /// Broadcasts a transaction to the network. This method
         /// also places it in the transaction pool.
@@ -292,7 +301,7 @@ namespace AElf.Kernel.Node
         public async Task<bool> BroadcastTransaction(ITransaction tx)
         {
             bool res;
-            
+
             try
             {
                 res = await _poolService.AddTxAsync(tx);
@@ -313,11 +322,11 @@ namespace AElf.Kernel.Node
                 {
                     Console.WriteLine(e);
                 }
-                
+
                 _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return true;
             }
-            
+
             _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToBase64() + " }");
             return false;
         }
