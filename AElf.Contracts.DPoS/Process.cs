@@ -57,7 +57,7 @@ namespace AElf.Contracts.DPoS
             return blockProducer;
         }
         
-        /*public async Task<object> SetBlockProducers()
+        public async Task<object> SetBlockProducers()
         {
             List<string> miningNodes;
             
@@ -82,9 +82,9 @@ namespace AElf.Contracts.DPoS
             await _blockProducer.SetAsync(blockProducers);
 
             return blockProducers;
-        }*/
+        }
         
-        public async Task<object> SetBlockProducers(BlockProducer blockProducers)
+/*        public async Task<object> SetBlockProducers(BlockProducer blockProducers)
         {
             if (blockProducers.Nodes.Count < 1)
             {
@@ -96,7 +96,7 @@ namespace AElf.Contracts.DPoS
             Debugger.Break();
 
             return blockProducers.AsTaskResult();
-        }
+        }*/
         
         #endregion
         

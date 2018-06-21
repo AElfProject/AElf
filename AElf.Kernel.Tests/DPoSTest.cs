@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Services;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -21,12 +22,16 @@ namespace AElf.Kernel.Tests
 
         private readonly object _process;
 
-        public DPoSTest(DPoS dPos)
+        private readonly ISmartContractService _smartContractService;
+
+        public DPoSTest(DPoS dPos, ISmartContractService smartContractService)
         {
             _dPos = dPos;
             _dPoSContractAssembly = Assembly.Load(_dPos.ContractCode);
             _processType = _dPoSContractAssembly.GetType("AElf.Contracts.DPoS.Process");
             _process = Activator.CreateInstance(_processType);
+
+            _smartContractService = smartContractService;
         }
 
     }
