@@ -194,7 +194,7 @@ namespace AElf.Kernel.Node.Protocol
                 // the chain
                 BlockExecutionResult res = await _mainChainNode.AddBlock(block);
                 
-                if (res.Executed == false && res.ValidationError == ValidationError.OrphanBlock)
+                if (res.Executed == true && res.ValidationError == ValidationError.OrphanBlock)
                 {
                     // Here we've come across a block that is higher than the current
                     // chain height, we need to wait for it.

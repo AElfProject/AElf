@@ -21,7 +21,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             
             IAElfNode m = mock.Object;
             
-            BlockSynchronizer s = new BlockSynchronizer(m);
+            BlockSynchronizer s = new BlockSynchronizer(m, null);
 
             Block b = BlockSyncHelpers.GenerateValidBlockToSync();
             b.AddTransaction(missingTxHash);
