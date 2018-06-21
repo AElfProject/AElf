@@ -88,8 +88,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
             var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
 
-            var contractAddress = ChainId.CalculateHashWith("__SmartContractZero__");
-            var copy = await _smartContractManager.GetAsync(contractAddress);
+            var contractAddressZero = new Hash(ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
+            var copy = await _smartContractManager.GetAsync(contractAddressZero);
 
             // throw exception if not registered
             Assert.Equal(reg, copy);
@@ -117,7 +117,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 ContractHash = code.CalculateHash()
             };
 
-            var contractAddressZero = ChainId.CalculateHashWith("__SmartContractZero__");
+            var contractAddressZero = new Hash(ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
 
             var txnDep = new Transaction()
             {
@@ -166,7 +166,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 ContractHash = code.CalculateHash()
             };
 
-            var contractAddressZero = ChainId.CalculateHashWith("__SmartContractZero__");
+            var contractAddressZero = new Hash(ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
 
             var txnDep = new Transaction()
             {

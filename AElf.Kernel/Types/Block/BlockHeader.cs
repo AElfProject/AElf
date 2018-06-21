@@ -1,5 +1,6 @@
 ﻿using AElf.Kernel.Extensions;
 using System;
+using System.Security.Cryptography;
 using AElf.Cryptography.ECDSA;
 using Google.Protobuf;
 using Org.BouncyCastle.Math;
@@ -9,11 +10,6 @@ namespace AElf.Kernel
 {
     public partial class BlockHeader : IBlockHeader
     {
-        /// <summary>
-        /// The miner's signature.
-        /// </summary>
-        public byte[] Signatures;
-
         public BlockHeader(Hash preBlockHash)
         {
             PreviousBlockHash = preBlockHash;
@@ -21,7 +17,7 @@ namespace AElf.Kernel
 
         public Hash GetHash()
         {
-            return this.CalculateHash();
+            return SHA256.Create().ComputeHash(GetSignatureData());
         }
 
         public byte[] Serialize()
@@ -33,9 +29,22 @@ namespace AElf.Kernel
         {
             BigInteger[] sig = new BigInteger[2];
             sig[0] = new BigInteger(R.ToByteArray());
-            sig[1] = new BigInteger(S.ToByteArray());
+            sig[1] = new BigInteger(S.ToByteArray());        
             
             return new ECSignature(sig);
+        }
+        
+        public byte[] GetSignatureData()
+        {
+            var rawBlock = new BlockHeader
+            {
+                ChainId = ChainId.Clone(),
+                Index = Index,
+                PreviousBlockHash = PreviousBlockHash.Clone(),
+                Time = Time.Clone()
+            };
+            
+            return rawBlock.ToByteArray();
         }
     }
 }

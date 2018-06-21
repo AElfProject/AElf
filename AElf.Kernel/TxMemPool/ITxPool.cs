@@ -154,5 +154,16 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="addr"></param>
         /// <returns></returns>
         ulong GetPendingIncrementId(Hash addr);
+
+
+        /// <summary>
+        /// return ready txs from the addr
+        /// incrementIds should be 
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <param name="start"></param>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        List<ITransaction> ReadyTxs(Hash addr, ulong start, ulong count);
     }
 }

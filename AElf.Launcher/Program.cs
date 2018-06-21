@@ -30,8 +30,18 @@ namespace AElf.Launcher
         {
             // Parse options
             ConfigParser confParser = new ConfigParser();
-            bool parsed = confParser.Parse(args);
+            bool parsed;
+            try
+            {
+                parsed = confParser.Parse(args);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
 
+            
             if (!parsed)
                 return;
             
@@ -100,7 +110,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseModule(databaseConf));
-            builder.RegisterModule(new NetworkModule(netConf));
+            builder.RegisterModule(new NetworkModule(netConf, isMiner));
             builder.RegisterModule(new RpcServerModule());
 
             Hash chainId;
@@ -123,7 +133,7 @@ namespace AElf.Launcher
                 using (JsonTextReader reader = new JsonTextReader(file))
                 {
                     JObject chain = (JObject)JToken.ReadFrom(reader);
-                    chainId = new Hash(ByteString.CopyFromUtf8(chain.GetValue("id").ToString()));
+                    chainId = new Hash(ByteString.FromBase64(chain.GetValue("id").ToString()));
                 }
             }
 

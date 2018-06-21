@@ -25,8 +25,13 @@ namespace AElf.Network.Peers
         private readonly IPeerDatabase _peerDatabase;
         private readonly ILogger _logger;
 
+        // List of bootnodes that the manager was started with
         private readonly List<NodeData> _bootnodes = new List<NodeData>();
         
+        // List of connected bootnodes
+        private readonly List<IPeer> _bootnodePeers = new List<IPeer>();
+        
+        // List of non bootnode peers
         private readonly List<IPeer> _peers = new List<IPeer>();
         
         private readonly NodeData _nodeData;
@@ -418,8 +423,16 @@ namespace AElf.Network.Peers
         {
             if (sender != null && e is PeerDisconnectedArgs args && args.Peer != null)
             {
-                args.Peer.MessageReceived -= ProcessPeerMessage;
-                args.Peer.PeerDisconnected -= ProcessClientDisconnection;
+                IPeer peer = args.Peer;
+                
+                peer.MessageReceived -= ProcessPeerMessage;
+                peer.PeerDisconnected -= ProcessClientDisconnection;
+
+                if (peer.IsBootnode)
+                {
+                    _bootnodePeers.Remove(peer);
+                }
+                
                 RemovePeer(args.Peer);
             }
         }
@@ -428,7 +441,7 @@ namespace AElf.Network.Peers
         {
             if (sender != null && e is MessageReceivedArgs args && args.Message != null)
             {
-                if (args.Message.MsgType == (int) MessageTypes.RequestPeers)
+                if (args.Message.MsgType == (int)MessageTypes.RequestPeers)
                 {
                     Random rand = new Random();
                     List<IPeer> peers = _peers.OrderBy(c => rand.Next()).Select(c => c).ToList();
@@ -457,7 +470,7 @@ namespace AElf.Network.Peers
 
                     Task.Run(async () => await args.Peer.SendAsync(resp.ToByteArray()));
                 }
-                else if (args.Message.MsgType == (int) MessageTypes.ReturnPeers)
+                else if (args.Message.MsgType == (int)MessageTypes.ReturnPeers)
                 {
                     Task.Run(() => ReceivePeers(args.Message.Payload));
                 }
