@@ -18,6 +18,9 @@ namespace AElf.CLI
 {
     public class AElfCliProgram
     {
+
+        private const string RpcAddress = "http://localhost:5000";
+            
         private static readonly RpcCalls Rpc = new RpcCalls();
         
         private static List<CliCommandDefinition> _commands = new List<CliCommandDefinition>();
@@ -99,7 +102,7 @@ namespace AElf.CLI
                         var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);
                         
                         // todo send raw tx
-                        HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
+                        HttpRequestor reqhttp = new HttpRequestor(RpcAddress);
                         string resp = reqhttp.DoRequest(req.ToString());
                     }
                     else if (def is BroadcastBlockCmd bc)
@@ -114,7 +117,7 @@ namespace AElf.CLI
                 else
                 {
                     // RPC
-                    HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
+                    HttpRequestor reqhttp = new HttpRequestor(RpcAddress);
                     string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
 
                     if (resp == null)
