@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using AElf.Kernel.Managers;
 using AElf.Kernel.KernelAccount;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Services
 {
@@ -78,6 +79,13 @@ namespace AElf.Kernel.Services
         public async Task DeployContractAsync(Hash account, SmartContractRegistration registration)
         {
             await _smartContractManager.InsertAsync(account, registration);
+        }
+
+        public async Task<IMessage> GetAbiAsync(Hash account)
+        {
+            var reg = await _smartContractManager.GetAsync(account);
+            var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
+            return runner.GetAbi(reg);
         }
     }
 }

@@ -9,6 +9,7 @@ using AElf.Kernel.KernelAccount;
 using Google.Protobuf;
 using Path = System.IO.Path;
 using AElf.ABI.CSharp;
+using Module = AElf.ABI.CSharp.Module;
 
 namespace AElf.Runtime.CSharp
 {
@@ -57,7 +58,7 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
-            var abiModule = Generator.GetABIModule(code);
+            var abiModule = GetAbiModule(reg);
             // TODO: Change back
             var type = assembly.GetTypes().FirstOrDefault(x => x.FullName == abiModule.Name);
             if (type == null)
@@ -77,6 +78,18 @@ namespace AElf.Runtime.CSharp
             Executive executive = new Executive(abiModule).SetSmartContract(instance).SetApi(ApiSingleton);
 
             return await Task.FromResult(executive);
+        }
+
+        private Module GetAbiModule(SmartContractRegistration reg)
+        {
+            var code = reg.ContractBytes.ToByteArray();
+            var abiModule = Generator.GetABIModule(code);
+            return abiModule;
+        }
+        
+        public IMessage GetAbi(SmartContractRegistration reg)
+        {
+            return GetAbiModule(reg);
         }
     }
 }

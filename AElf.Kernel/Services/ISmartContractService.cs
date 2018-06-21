@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Services
 {
@@ -7,5 +8,6 @@ namespace AElf.Kernel.Services
         Task<IExecutive> GetExecutiveAsync(Hash account, Hash chainId);
         Task PutExecutiveAsync(Hash account, IExecutive executive);
         Task DeployContractAsync(Hash account, SmartContractRegistration registration);
+        Task<IMessage> GetAbiAsync(Hash account);
     }
 }
