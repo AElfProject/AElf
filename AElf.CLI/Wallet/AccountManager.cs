@@ -7,6 +7,7 @@ using AElf.CLI.Command;
 using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using Newtonsoft.Json.Linq;
@@ -130,9 +131,11 @@ namespace AElf.CLI.Wallet
 
             try
             {
-                tr.From = Convert.FromBase64String(addr);
+                tr.From = ByteArrayHelpers.FromHexString(addr);
                 tr.To = Convert.FromBase64String(t["to"].ToString());
                 tr.IncrementId = t["incr"].ToObject<ulong>();
+                tr.MethodName = t["method"].ToObject<string>();
+                tr.Params = Convert.FromBase64String(t["params"].ToString());
                 
                 MemoryStream ms = new MemoryStream();
                 Serializer.Serialize(ms, tr);

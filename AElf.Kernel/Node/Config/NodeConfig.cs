@@ -6,5 +6,6 @@
         public bool IsMiner { get; set; }
         public Hash ChainId { get; set; }
         public Hash Coinbase { get; set; }
+        public string DataDir { get; set; }
     }
 }

@@ -13,12 +13,12 @@ namespace AElf.Kernel
 
         public GenesisBlockBuilder Build(Hash chainId)
         {
-            var block = new Block(Hash.Default)
+            var block = new Block(Hash.Genesis)
             {
                 Header = new BlockHeader
                 {
                     Index = 0,
-                    PreviousBlockHash = Hash.Default,
+                    PreviousBlockHash = Hash.Genesis,
                     ChainId = chainId,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow)
                 },

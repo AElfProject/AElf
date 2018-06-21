@@ -87,6 +87,7 @@ message BlockBody{
 message Block{
     BlockHeader Header = 1;
     BlockBody Body = 2;
+    repeated Transaction fullTransactions = 3;
 }
 
 message SmartContractRegistration{

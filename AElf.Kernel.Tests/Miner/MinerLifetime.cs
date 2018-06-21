@@ -48,7 +48,6 @@ namespace AElf.Kernel.Tests.Miner
         }
 
         private ActorSystem sys = ActorSystem.Create("test");
-        private readonly IBlockGenerationService _blockGenerationService;
         private IActorRef _generalExecutor;
         private IChainCreationService _chainCreationService;
         private readonly ILogger _logger;
@@ -62,20 +61,27 @@ namespace AElf.Kernel.Tests.Miner
         private IAccountContextService _accountContextService;
         private ITransactionManager _transactionManager;
         private ITransactionResultManager _transactionResultManager;
+        private IChainManager _chainManager;
+        private readonly IBlockManager _blockManager;
 
-        public MinerLifetime(IWorldStateManager worldStateManager, ISmartContractStore smartContractStore,
-            IBlockGenerationService blockGenerationService, IChainCreationService chainCreationService, IChainContextService chainContextService, ILogger logger, IAccountContextService accountContextService, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager) : base(new XunitAssertions())
+        
+        public MinerLifetime(IWorldStateManager worldStateManager, 
+            IChainCreationService chainCreationService, 
+            IChainContextService chainContextService, ILogger logger, IAccountContextService accountContextService, 
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
+            IChainManager chainManager, IBlockManager blockManager, ISmartContractManager smartContractManager) : base(new XunitAssertions())
         {
-            _blockGenerationService = blockGenerationService;
             _chainCreationService = chainCreationService;
             _chainContextService = chainContextService;
             _logger = logger;
             _accountContextService = accountContextService;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
+            _chainManager = chainManager;
+            _blockManager = blockManager;
+            _smartContractManager = smartContractManager;
 
             _worldStateManager = worldStateManager;
-            _smartContractManager = new SmartContractManager(smartContractStore);
         }
 
         public byte[] SmartContractZeroCode
@@ -162,7 +168,7 @@ namespace AElf.Kernel.Tests.Miner
             
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
             ECSigner signer = new ECSigner();
-            var txnDep = new Transaction()
+            /*var txnDep = new Transaction()
             {
                 From = keyPair.GetAddress(),
                 To = contractAddressZero,
@@ -179,17 +185,38 @@ namespace AElf.Kernel.Tests.Miner
                 }.ToByteArray()),
                 
                 Fee = TxPoolConfig.Default.FeeThreshold + 1
+            };*/
+            
+            
+            
+            var txPrint = new Transaction()
+            {
+                From = keyPair.GetAddress(),
+                To = contractAddressZero,
+                IncrementId = NewIncrementId(),
+                MethodName = "Print",
+                Params = ByteString.CopyFrom(new Parameters()
+                {
+                    Params = {
+                        new Param
+                        {
+                            StrVal = "AElf"
+                        }
+                    }
+                }.ToByteArray()),
+                
+                Fee = TxPoolConfig.Default.FeeThreshold + 1
             };
             
-            Hash hash = txnDep.GetHash();
+            Hash hash = txPrint.GetHash();
 
             ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
-            txnDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txnDep.R = ByteString.CopyFrom(signature.R); 
-            txnDep.S = ByteString.CopyFrom(signature.S);
+            txPrint.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
+            txPrint.R = ByteString.CopyFrom(signature.R); 
+            txPrint.S = ByteString.CopyFrom(signature.S);
             
             var txs = new List<ITransaction>(){
-                txnDep
+                txPrint
             };
 
             return txs;
@@ -212,8 +239,8 @@ namespace AElf.Kernel.Tests.Miner
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {
             var parallelTransactionExecutingService = new ParallelTransactionExecutingService(sys);
-            return new Kernel.Miner.Miner(_blockGenerationService, config, poolService, 
-                parallelTransactionExecutingService);
+            return new Kernel.Miner.Miner(config, poolService,
+                parallelTransactionExecutingService,  _chainManager, _blockManager, _worldStateManager, _smartContractService);
         }
 
         public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit, byte[] getAddress)
@@ -253,7 +280,55 @@ namespace AElf.Kernel.Tests.Miner
             
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             _smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, await _worldStateManager.OfChain(chain.Id));
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
+            
+            _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(new ServicePack
+            {
+                ChainContextService = _chainContextService,
+                SmartContractService = _smartContractService,
+                ResourceDetectionService = new NewMockResourceUsageDetectionService()
+            }));
+            _generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _serviceRouter), "exec");
+            _generalExecutor.Tell(new RequestAddChainExecutor(chain.Id));
+            ExpectMsg<RespondAddChainExecutor>();
+            
+            miner.Start(keypair);
+            
+            var block = await miner.Mine();
+            
+            Assert.NotNull(block);
+            Assert.Equal((ulong)1, block.Header.Index);
+            
+            byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
+            Hash addr = uncompressedPrivKey.Take(ECKeyPair.AddressLength).ToArray();
+            Assert.Equal(minerconfig.CoinBase, addr);
+            
+            ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
+            ECVerifier verifier = new ECVerifier(recipientKeyPair);
+            Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().GetHashBytes()));
+
+        }
+        
+        [Fact]
+        public async Task ExecuteWithoutTransaction()
+        {
+            var keypair = new KeyPairGenerator().Generate();
+            var chain = await CreateChain();
+            var minerconfig = GetMinerConfig(chain.Id, 10, keypair.GetAddress());
+            var poolconfig = TxPoolConfig.Default;
+            poolconfig.ChainId = chain.Id;
+            var pool = new TxPool(poolconfig, _logger);
+            
+            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
+                _transactionResultManager);
+            
+            poolService.Start();
+
+            var miner = GetMiner(minerconfig, poolService);
+            
+            var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
+            _smartContractRunnerFactory.AddRunner(0, runner);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
             
             _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(new ServicePack
             {
@@ -282,6 +357,9 @@ namespace AElf.Kernel.Tests.Miner
             Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().GetHashBytes()));
 
         }
+        
+        
+        
         
     }
 }
