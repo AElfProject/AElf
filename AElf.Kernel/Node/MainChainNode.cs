@@ -6,6 +6,9 @@ using AElf.Common.Attributes;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.BlockValidationFilters;
+using AElf.Kernel.Concurrency;
+using AElf.Kernel.Concurrency.Execution;
+using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Miner;
@@ -16,6 +19,7 @@ using AElf.Kernel.Node.RPC.DTO;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
+using Akka.Actor;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
@@ -30,7 +34,7 @@ namespace AElf.Kernel.Node
     public class MainChainNode : IAElfNode
     {   
         private ECKeyPair _nodeKeyPair;
-        
+        private ActorSystem _sys;
         private readonly ITxPoolService _poolService;
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
@@ -45,16 +49,20 @@ namespace AElf.Kernel.Node
         private readonly IChainManager _chainManager;
         private readonly IChainCreationService _chainCreationService;
         private readonly IWorldStateManager _worldStateManager;
+        private readonly ISmartContractService _smartContractService;
+
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, 
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner, 
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
                 ISynchronizer synchronizer, IChainCreationService chainCreationService, 
-                IChainContextService chainContextService, IChainManager chainManager, IWorldStateManager worldStateManager)
+                IChainContextService chainContextService, IChainManager chainManager, IWorldStateManager worldStateManager, ISmartContractService smartContractService, ActorSystem sys)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
             _worldStateManager = worldStateManager;
+            _smartContractService = smartContractService;
+            _sys = sys;
             _poolService = poolService;
             _protocolDirector = protocolDirector;
             _transactionManager = txManager;
@@ -134,15 +142,23 @@ namespace AElf.Kernel.Node
             _rpcServer.SetCommandContext(this);
             _protocolDirector.SetCommandContext(this);
             
-            if (_nodeConfig.IsMiner)
-            {
-                _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
-            }
 
             if (_nodeConfig.IsMiner)
             {
-                _miner.Start(nodeKeyPair);  
+                // akka env 
+                
+                IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack
+                {
+                    ChainContextService = _chainContextService,
+                    SmartContractService = _smartContractService,
+                    ResourceDetectionService = new MockResourceUsageDetectionService()
+                }));
+                IActorRef generalExecutor = _sys.ActorOf(GeneralExecutor.Props(_sys, serviceRouter), "exec");
+                generalExecutor.Tell(new RequestAddChainExecutor(_nodeConfig.ChainId), generalExecutor);
+                
+                _miner.Start(nodeKeyPair);
                 Mine();
+                _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
                   
             

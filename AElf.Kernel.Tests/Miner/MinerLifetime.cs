@@ -168,7 +168,7 @@ namespace AElf.Kernel.Tests.Miner
             
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
             ECSigner signer = new ECSigner();
-            var txnDep = new Transaction()
+            /*var txnDep = new Transaction()
             {
                 From = keyPair.GetAddress(),
                 To = contractAddressZero,
@@ -185,17 +185,38 @@ namespace AElf.Kernel.Tests.Miner
                 }.ToByteArray()),
                 
                 Fee = TxPoolConfig.Default.FeeThreshold + 1
+            };*/
+            
+            
+            
+            var txPrint = new Transaction()
+            {
+                From = keyPair.GetAddress(),
+                To = contractAddressZero,
+                IncrementId = NewIncrementId(),
+                MethodName = "Print",
+                Params = ByteString.CopyFrom(new Parameters()
+                {
+                    Params = {
+                        new Param
+                        {
+                            StrVal = "AElf"
+                        }
+                    }
+                }.ToByteArray()),
+                
+                Fee = TxPoolConfig.Default.FeeThreshold + 1
             };
             
-            Hash hash = txnDep.GetHash();
+            Hash hash = txPrint.GetHash();
 
             ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
-            txnDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txnDep.R = ByteString.CopyFrom(signature.R); 
-            txnDep.S = ByteString.CopyFrom(signature.S);
+            txPrint.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
+            txPrint.R = ByteString.CopyFrom(signature.R); 
+            txPrint.S = ByteString.CopyFrom(signature.S);
             
             var txs = new List<ITransaction>(){
-                txnDep
+                txPrint
             };
 
             return txs;

@@ -9,12 +9,18 @@ using AElf.Cryptography.ECDSA;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency.Execution;
+using AElf.Kernel.Concurrency.Execution.Messages;
+using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
 using AElf.Kernel.Node.Config;
+using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Config;
+using AElf.Runtime.CSharp;
+using Akka.Actor;
 using Autofac;
 using Google.Protobuf;
 using Newtonsoft.Json;
@@ -57,8 +63,13 @@ namespace AElf.Launcher
             var isNewChain = confParser.NewChain;
             var initData = confParser.InitData;
             
+            var runner = new SmartContractRunner("../../../../AElf.Contracts.Examples/bin/Debug/netstandard2.0/");
+            var smartContractRunnerFactory = new SmartContractRunnerFactory();
+            smartContractRunnerFactory.AddRunner(0, runner);
+            
             // Setup ioc 
-            IContainer container = SetupIocContainer(isMiner, isNewChain, netConf, databaseConf, txPoolConf, minerConfig, nodeConfig);
+            IContainer container = SetupIocContainer(isMiner, isNewChain, netConf, databaseConf, txPoolConf, 
+                minerConfig, nodeConfig, smartContractRunnerFactory);
 
             if (container == null)
             {
@@ -88,7 +99,7 @@ namespace AElf.Launcher
                 }
                 catch (Exception e)
                 {
-                    ;
+                    throw new Exception("Load keystore failed");
                 }
             }
 
@@ -101,6 +112,7 @@ namespace AElf.Launcher
 
                 Console.ReadLine();
             }
+            
         }
 
         
@@ -125,8 +137,9 @@ namespace AElf.Launcher
         }
         
         
-        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, IAElfNetworkConfig netConf, 
-            IDatabaseConfig databaseConf, ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig)
+        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, IAElfNetworkConfig netConf,
+            IDatabaseConfig databaseConf, ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig,
+            SmartContractRunnerFactory smartContractRunnerFactory)
         {
             var builder = new ContainerBuilder();
             
@@ -140,6 +153,13 @@ namespace AElf.Launcher
             builder.RegisterModule(new NetworkModule(netConf));
             builder.RegisterModule(new RpcServerModule());
 
+            // register SmartContractRunnerFactory 
+            builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
+
+            // register actor system
+            ActorSystem sys = ActorSystem.Create("AElf");
+            builder.RegisterInstance(sys).As<ActorSystem>().SingleInstance();
+            
             Hash chainId;
             if (isNewChain)
             {
@@ -175,7 +195,7 @@ namespace AElf.Launcher
             txPoolConf.ChainId = chainId;
             builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
             
-                          
+            
             IContainer container = null;
             
             try

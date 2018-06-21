@@ -14,6 +14,7 @@
     <None Update="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.0" />

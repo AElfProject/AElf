@@ -61,23 +61,13 @@ namespace AElf.Kernel.Miner
                 if (Cts == null || Cts.IsCancellationRequested)
                     return null;
             
-                var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
+               var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
                 // TODO：dispatch txs with ISParallel, return list of tx results
 
-                List<TransactionResult> results;
-                if (Config.IsParallel)
-                {
-                    results = ready.Count == 0
-                        ? new List<TransactionResult>()
-                        : await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
-                }
-                else
-                {
-                    foreach (var transaction in ready)
-                    {
-                        
-                    }
-                }
+                List<TransactionResult> results = ready.Count == 0
+                    ? new List<TransactionResult>()
+                    : await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
+                
             
                 // reset Promotable and update account context
             
