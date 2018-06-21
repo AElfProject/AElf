@@ -30,6 +30,7 @@ namespace AElf.Kernel.Tests
         public void Print(string name)
         {
             Console.WriteLine("Hello, " + name);
+            //throw new Exception("hello");
         }
         
     }
