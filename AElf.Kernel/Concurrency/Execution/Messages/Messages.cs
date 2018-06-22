@@ -49,16 +49,16 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
             Rejected,
             Executed
         }
-        public RespondExecuteTransactions(long requestId, RequestStatus status, List<TransactionResult> transactionResults)
+        public RespondExecuteTransactions(long requestId, RequestStatus status, List<TransactionTrace> transactionTraces)
         {
             RequestId = requestId;
             Status = status;
-            TransactionResults = transactionResults;
+            TransactionTraces = transactionTraces;
         }
 
         public long RequestId { get; }
         public RequestStatus Status { get; }
-        public List<TransactionResult> TransactionResults { get; }
+        public List<TransactionTrace> TransactionTraces { get; }
     }
     #endregion ExecuteTransactions
 
@@ -135,7 +135,7 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
     /// </summary>
     public sealed class LocalExecuteTransactionsMessage
     {
-        public LocalExecuteTransactionsMessage(Hash chainId, List<ITransaction> transactions, TaskCompletionSource<List<TransactionResult>> taskCompletionSource)
+        public LocalExecuteTransactionsMessage(Hash chainId, List<ITransaction> transactions, TaskCompletionSource<List<TransactionTrace>> taskCompletionSource)
         {
             ChainId = chainId;
             Transactions = transactions;
@@ -144,17 +144,27 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 
         public Hash ChainId { get; }
         public List<ITransaction> Transactions { get; }
-        public TaskCompletionSource<List<TransactionResult>> TaskCompletionSource { get; }
+        public TaskCompletionSource<List<TransactionTrace>> TaskCompletionSource { get; }
     }
 
-    public sealed class TransactionResultMessage
+//    public sealed class TransactionResultMessage
+//    {
+//        public TransactionResultMessage(TransactionResult transactionResult)
+//        {
+//            TransactionResult = transactionResult;
+//        }
+//
+//        public TransactionResult TransactionResult { get; }
+//    }
+    
+    public sealed class TransactionTraceMessage
     {
-        public TransactionResultMessage(TransactionResult transactionResult)
+        public TransactionTraceMessage(TransactionTrace transactionTrace)
         {
-            TransactionResult = transactionResult;
+            TransactionTrace = transactionTrace;
         }
 
-        public TransactionResult TransactionResult { get; }
+        public TransactionTrace TransactionTrace { get; }
     }
 
     #region Singleton Messages

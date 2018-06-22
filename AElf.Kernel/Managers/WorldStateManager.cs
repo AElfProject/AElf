@@ -33,8 +33,9 @@ namespace AElf.Kernel.Managers
         public async Task<IWorldStateManager> OfChain(Hash chainId)
         {
             _chainId = chainId;
-            
-            _preBlockHash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(chainId));
+
+            var hash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(chainId));
+            _preBlockHash = hash ?? Hash.Genesis;
 
             var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, _preBlockHash);
             if (await _dataStore.GetDataAsync(keyToGetCount) == null)
@@ -297,7 +298,43 @@ namespace AElf.Kernel.Managers
         {
             return path.SetBlockHash(_preBlockHash).GetPointerHash();
         }
-       
+
+        public async Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId)
+        {
+            // The code chunk is copied from DataProvider
+
+            Hash prevBlockHash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(chainId));
+            
+            //Generate the new pointer hash (using previous block hash)
+            var pointerHashAfter = stateValueChange.Path.CalculateHashWith(prevBlockHash);
+
+            var change = await GetChangeAsync(stateValueChange.Path);
+            if (change == null)
+            {
+                change = new Change
+                {
+                    After = pointerHashAfter
+                };
+            }
+            else
+            {
+                //See whether the latest changes of this Change happened in this height,
+                //If not, clear the change, because this Change is too old to support rollback.
+                if (prevBlockHash != change.LatestChangedBlockHash)
+                {
+                    change.ClearChangeBefores();
+                }
+
+                change.UpdateHashAfter(pointerHashAfter);
+            }
+
+            change.LatestChangedBlockHash = prevBlockHash;
+
+            await InsertChangeAsync(stateValueChange.Path, change);
+            await SetDataAsync(pointerHashAfter, stateValueChange.AfterValue.ToByteArray());
+            return change;
+        }
+
         #region Private methods
 
         /// <summary>
