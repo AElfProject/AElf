@@ -421,15 +421,21 @@ namespace AElf.Kernel.Node
         {
             Task.Run(async () =>
             {
-                while (true)
+                try
                 {
-                    await Task.Delay(20000);
-                    var block = await _miner.Mine();
-                    _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", block.GetHash(),
-                        block.Body.Transactions.Count);
+                    while (true)
+                    {
+                        await Task.Delay(5000);
+                        var block = await _miner.Mine();
+                        _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", block.GetHash(),
+                            block.Body.Transactions.Count);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.Log(LogLevel.Debug, e);
                 }
             });
-
         }
 
         public async Task<bool> BroadcastBlock(IBlock block)

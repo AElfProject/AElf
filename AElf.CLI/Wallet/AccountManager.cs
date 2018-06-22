@@ -77,21 +77,40 @@ namespace AElf.CLI.Wallet
             }
             else if (subCommand.Equals(UnlockAccountCmdName, StringComparison.OrdinalIgnoreCase))
             {
-                UnlockAccount(parsedCmd.Args.ElementAt(1));
+                if (parsedCmd.Args.Count == 2)
+                {
+                    UnlockAccount(parsedCmd.Args.ElementAt(1));
+                }
+                else if (parsedCmd.Args.Count == 3)
+                {
+                    UnlockAccount(parsedCmd.Args.ElementAt(1), false);
+                }
+                else
+                {
+                    _screenManager.PrintError("error: wrong arguments.");
+                }
             }
         }
 
 
-        private void UnlockAccount(string address)
+        private void UnlockAccount(string address, bool timeout = true)
         {
-            if (!_keyStore.ListAccounts().Contains(address))
+            var accounts = _keyStore.ListAccounts();
+
+            if (accounts == null || accounts.Count <= 0)
+            {
+                _screenManager.PrintError("error: the account '" + address + "' does not exist.");
+                return;
+            }
+            
+            if (!accounts.Contains(address))
             {
                 _screenManager.PrintError("account does not exist!");
                 return;
             }
                 
             var password = _screenManager.AskInvisible("password: ");
-            var tryOpen = _keyStore.OpenAsync(address, password);
+            var tryOpen = _keyStore.OpenAsync(address, password, timeout);
             
             if (tryOpen == AElfKeyStore.Errors.WrongPassword)
                 _screenManager.PrintError("incorrect password!");
