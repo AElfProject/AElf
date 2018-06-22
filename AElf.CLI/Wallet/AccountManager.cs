@@ -7,6 +7,7 @@ using AElf.CLI.Command;
 using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
+using AElf.CLI.Wallet.Exceptions;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -128,6 +129,9 @@ namespace AElf.CLI.Wallet
             
             //UnlockAccount(addr);
             ECKeyPair kp = _keyStore.GetAccountKeyPair(addr);
+
+            if (kp == null)
+                throw new AccountLockedException(addr);
 
             try
             {
