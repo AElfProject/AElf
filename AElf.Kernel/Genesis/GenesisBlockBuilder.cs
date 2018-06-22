@@ -20,7 +20,8 @@ namespace AElf.Kernel
                     Index = 0,
                     PreviousBlockHash = Hash.Genesis,
                     ChainId = chainId,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                    Time = Timestamp.FromDateTime(DateTime.UtcNow),
+                    MerkleTreeRootOfWorldState = Hash.Default
                 },
                 Body = new BlockBody()
             };
