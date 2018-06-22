@@ -32,7 +32,7 @@ namespace AElf.Kernel.Services
             await _smartContractService.DeployContractAsync(contractAddress, smartContractRegistration);
             var builder = new GenesisBlockBuilder();
             builder.Build(chainId);
-            builder.Block.Header.MerkleTreeRootOfWorldState = Hash.Zero;
+            builder.Block.Header.MerkleTreeRootOfWorldState = Hash.Default;
 
             // add block to storage
             await _blockManager.AddBlockAsync(builder.Block);
