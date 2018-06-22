@@ -13,22 +13,24 @@ namespace AElf.Kernel
 
         public GenesisBlockBuilder Build(Hash chainId)
         {
-            var block = new Block(Hash.Default)
+            var block = new Block(Hash.Genesis)
             {
                 Header = new BlockHeader
                 {
                     Index = 0,
-                    PreviousBlockHash = Hash.Default,
+                    PreviousBlockHash = Hash.Genesis,
                     ChainId = chainId,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
-                },
-                Body = new BlockBody()
+                    Time = Timestamp.FromDateTime(DateTime.UtcNow),
+                    MerkleTreeRootOfWorldState = Hash.Default
+                }
             };
 
             // Genesis block is empty
             // TODO: Maybe add info like Consensus protocol in Genesis block
 
+            
             block.FillTxsMerkleTreeRootInHeader();
+            block.Body.BlockHeader = block.Header.GetHash();
             
             Block = block;
 

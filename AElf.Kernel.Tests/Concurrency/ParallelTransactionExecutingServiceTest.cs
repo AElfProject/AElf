@@ -58,14 +58,14 @@ namespace AElf.Kernel.Tests.Concurrency
 
 			var service = new ParallelTransactionExecutingService(sys);
 
-			var txsResults = Task.Factory.StartNew(async () =>
+			var traces = Task.Factory.StartNew(async () =>
 			{
                 return await service.ExecuteAsync(txs, _mock.ChainId1);
 			}).Unwrap().Result;
-			foreach (var txRes in txs.Zip(txsResults, Tuple.Create))
+			foreach (var txTrace in txs.Zip(traces, Tuple.Create))
 			{
-				Assert.Equal(txRes.Item1.GetHash(), txRes.Item2.TransactionId);
-				Assert.Equal(Status.Mined, txRes.Item2.Status);
+				Assert.Equal(txTrace.Item1.GetHash(), txTrace.Item2.TransactionId);
+				Assert.True(string.IsNullOrEmpty(txTrace.Item2.StdErr));
 			}
 			foreach (var addFinbal in addresses.Zip(finalBalances, Tuple.Create))
 			{

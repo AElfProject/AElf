@@ -281,7 +281,7 @@ namespace AElf.Kernel.Node.RPC
             byte[] b = Convert.FromBase64String(raw64);
             Transaction t = Transaction.Parser.ParseFrom(b);
 
-            bool correct = t.VerifySignature();
+            //bool correct = t.VerifySignature();
 
             //var tx = raw.ToTransaction();
 

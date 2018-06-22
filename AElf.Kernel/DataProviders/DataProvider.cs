@@ -8,11 +8,13 @@ namespace AElf.Kernel
     {
         private readonly IAccountDataContext _accountDataContext;
         private readonly IWorldStateManager _worldStateManager;
+
         /// <summary>
         /// To dictinct DataProviders of same account and same level.
         /// Using a string value is just a choise, actually we can use any type of value.
         /// </summary>
         private readonly string _dataProviderKey;
+
         private readonly Path _path;
 
         /// <summary>
@@ -20,7 +22,7 @@ namespace AElf.Kernel
         /// </summary>
         private Hash PreBlockHash { get; set; }
 
-        public DataProvider(IAccountDataContext accountDataContext, IWorldStateManager worldStateManager, 
+        public DataProvider(IAccountDataContext accountDataContext, IWorldStateManager worldStateManager,
             string dataProviderKey = "")
         {
             _worldStateManager = worldStateManager;
@@ -38,7 +40,7 @@ namespace AElf.Kernel
             // Use AccountDataContext instance + _dataProviderKey to calculate DataProvider's hash.
             return _accountDataContext.GetHash().CalculateHashWith(_dataProviderKey);
         }
-        
+
         /// <summary>
         /// Get a sub-level DataProvider.
         /// </summary>
@@ -63,7 +65,7 @@ namespace AElf.Kernel
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
             //Using path hash to get Change from WorldState
             var change = await worldState.GetChangeAsync(pathHash);
-            
+
             return await _worldStateManager.GetDataAsync(change.After);
         }
 
@@ -89,7 +91,7 @@ namespace AElf.Kernel
         {
             //Clean the path.
             _path.SetBlockHashToNull();
-            
+
             //Generate the path hash.
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
 
@@ -103,7 +105,7 @@ namespace AElf.Kernel
                     Path.CalculatePointerForLastBlockHash(_accountDataContext.ChainId));
                 preBlockHash = PreBlockHash;
             }
-            
+
             var change = await _worldStateManager.GetChangeAsync(pathHash);
             if (change == null)
             {
@@ -120,16 +122,23 @@ namespace AElf.Kernel
                 {
                     change.ClearChangeBefores();
                 }
-                
+
                 change.UpdateHashAfter(pointerHashAfter);
             }
-            
+
             change.LatestChangedBlockHash = preBlockHash;
-            
+
             await _worldStateManager.InsertChangeAsync(pathHash, change);
             await _worldStateManager.SetDataAsync(pointerHashAfter, obj);
-            
+
             return change;
+        }
+
+        public Hash GetPathFor(Hash keyHash)
+        {
+            var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
+
+            return pathHash;
         }
     }
 }

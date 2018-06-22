@@ -28,10 +28,10 @@ namespace AElf.Network.Data {
             "KAkSDAoEUG9ydBgCIAEoBSJOCg5BRWxmUGFja2V0RGF0YRIPCgdtc2dUeXBl",
             "GAEgASgFEgoKAklkGAIgASgFEg4KBmxlbmd0aBgDIAEoBRIPCgdwYXlsb2Fk",
             "GAQgASgMIisKDFBlZXJMaXN0RGF0YRIbCghub2RlRGF0YRgBIAMoCzIJLk5v",
-            "ZGVEYXRhIiMKD1JlcVBlZXJMaXN0RGF0YRIQCghudW1QZWVycxgBIAEoBSIc",
-            "CgxCbG9ja1JlcXVlc3QSDAoESGFzaBgBIAEoDCILCglUeFJlcXVlc3QiHAoK",
-            "SGVpZ2h0RGF0YRIOCgZIZWlnaHQYASABKAVCFKoCEUFFbGYuTmV0d29yay5E",
-            "YXRhYgZwcm90bzM="));
+            "ZGVEYXRhIiMKD1JlcVBlZXJMaXN0RGF0YRIQCghudW1QZWVycxgBIAEoBSIe",
+            "CgxCbG9ja1JlcXVlc3QSDgoGSGVpZ2h0GAEgASgFIgsKCVR4UmVxdWVzdCIc",
+            "CgpIZWlnaHREYXRhEg4KBkhlaWdodBgBIAEoBUIUqgIRQUVsZi5OZXR3b3Jr",
+            "LkRhdGFiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -39,7 +39,7 @@ namespace AElf.Network.Data {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.AElfPacketData), global::AElf.Network.Data.AElfPacketData.Parser, new[]{ "MsgType", "Id", "Length", "Payload" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.PeerListData), global::AElf.Network.Data.PeerListData.Parser, new[]{ "NodeData" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.ReqPeerListData), global::AElf.Network.Data.ReqPeerListData.Parser, new[]{ "NumPeers" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.BlockRequest), global::AElf.Network.Data.BlockRequest.Parser, new[]{ "Hash" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.BlockRequest), global::AElf.Network.Data.BlockRequest.Parser, new[]{ "Height" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.TxRequest), global::AElf.Network.Data.TxRequest.Parser, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.HeightData), global::AElf.Network.Data.HeightData.Parser, new[]{ "Height" }, null, null, null)
           }));
@@ -693,7 +693,7 @@ namespace AElf.Network.Data {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public BlockRequest(BlockRequest other) : this() {
-      hash_ = other.hash_;
+      height_ = other.height_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -702,14 +702,14 @@ namespace AElf.Network.Data {
       return new BlockRequest(this);
     }
 
-    /// <summary>Field number for the "Hash" field.</summary>
-    public const int HashFieldNumber = 1;
-    private pb::ByteString hash_ = pb::ByteString.Empty;
+    /// <summary>Field number for the "Height" field.</summary>
+    public const int HeightFieldNumber = 1;
+    private int height_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString Hash {
-      get { return hash_; }
+    public int Height {
+      get { return height_; }
       set {
-        hash_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        height_ = value;
       }
     }
 
@@ -726,14 +726,14 @@ namespace AElf.Network.Data {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (Hash != other.Hash) return false;
+      if (Height != other.Height) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (Hash.Length != 0) hash ^= Hash.GetHashCode();
+      if (Height != 0) hash ^= Height.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -747,9 +747,9 @@ namespace AElf.Network.Data {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (Hash.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(Hash);
+      if (Height != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Height);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -759,8 +759,8 @@ namespace AElf.Network.Data {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (Hash.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Hash);
+      if (Height != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Height);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -773,8 +773,8 @@ namespace AElf.Network.Data {
       if (other == null) {
         return;
       }
-      if (other.Hash.Length != 0) {
-        Hash = other.Hash;
+      if (other.Height != 0) {
+        Height = other.Height;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -787,8 +787,8 @@ namespace AElf.Network.Data {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 10: {
-            Hash = input.ReadBytes();
+          case 8: {
+            Height = input.ReadInt32();
             break;
           }
         }

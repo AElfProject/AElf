@@ -18,7 +18,7 @@ namespace AElf.Kernel.Concurrency.Execution
 		private readonly Hash _chainId;
 		private ActorSelection _chainExecutorActorSelection;
 		private long _nextRequestId = 0;
-		private Dictionary<long, TaskCompletionSource<List<TransactionResult>>> _requestIdToTaskCompleteSource = new Dictionary<long, TaskCompletionSource<List<TransactionResult>>>();
+		private Dictionary<long, TaskCompletionSource<List<TransactionTrace>>> _requestIdToTaskCompleteSource = new Dictionary<long, TaskCompletionSource<List<TransactionTrace>>>();
 
 		public ChainRequestor(ActorSystem system, Hash chainId)
 		{
@@ -40,7 +40,7 @@ namespace AElf.Kernel.Concurrency.Execution
 				case RespondExecuteTransactions res:
 					if (_requestIdToTaskCompleteSource.TryGetValue(res.RequestId, out var taskCompletionSource))
 					{
-						taskCompletionSource.TrySetResult(res.TransactionResults);
+						taskCompletionSource.TrySetResult(res.TransactionTraces);
 					}
 					break;
 			}

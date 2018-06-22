@@ -7,6 +7,8 @@ using AElf.CLI.Command;
 using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
+using AElf.CLI.Wallet.Exceptions;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using Newtonsoft.Json.Linq;
@@ -75,21 +77,40 @@ namespace AElf.CLI.Wallet
             }
             else if (subCommand.Equals(UnlockAccountCmdName, StringComparison.OrdinalIgnoreCase))
             {
-                UnlockAccount(parsedCmd.Args.ElementAt(1));
+                if (parsedCmd.Args.Count == 2)
+                {
+                    UnlockAccount(parsedCmd.Args.ElementAt(1));
+                }
+                else if (parsedCmd.Args.Count == 3)
+                {
+                    UnlockAccount(parsedCmd.Args.ElementAt(1), false);
+                }
+                else
+                {
+                    _screenManager.PrintError("error: wrong arguments.");
+                }
             }
         }
 
 
-        private void UnlockAccount(string address)
+        private void UnlockAccount(string address, bool timeout = true)
         {
-            if (!_keyStore.ListAccounts().Contains(address))
+            var accounts = _keyStore.ListAccounts();
+
+            if (accounts == null || accounts.Count <= 0)
+            {
+                _screenManager.PrintError("error: the account '" + address + "' does not exist.");
+                return;
+            }
+            
+            if (!accounts.Contains(address))
             {
                 _screenManager.PrintError("account does not exist!");
                 return;
             }
                 
             var password = _screenManager.AskInvisible("password: ");
-            var tryOpen = _keyStore.OpenAsync(address, password);
+            var tryOpen = _keyStore.OpenAsync(address, password, timeout);
             
             if (tryOpen == AElfKeyStore.Errors.WrongPassword)
                 _screenManager.PrintError("incorrect password!");
@@ -128,11 +149,16 @@ namespace AElf.CLI.Wallet
             //UnlockAccount(addr);
             ECKeyPair kp = _keyStore.GetAccountKeyPair(addr);
 
+            if (kp == null)
+                throw new AccountLockedException(addr);
+
             try
             {
-                tr.From = Convert.FromBase64String(addr);
+                tr.From = ByteArrayHelpers.FromHexString(addr);
                 tr.To = Convert.FromBase64String(t["to"].ToString());
                 tr.IncrementId = t["incr"].ToObject<ulong>();
+                tr.MethodName = t["method"].ToObject<string>();
+                tr.Params = Convert.FromBase64String(t["params"].ToString());
                 
                 MemoryStream ms = new MemoryStream();
                 Serializer.Serialize(ms, tr);
