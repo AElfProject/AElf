@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Database;
 
 namespace AElf.Kernel.Storages
@@ -19,8 +20,15 @@ namespace AElf.Kernel.Storages
 
         public async Task<BlockBody> GetAsync(Hash bodyHash)
         {
-            var blockBody =  await _keyValueDatabase.GetAsync(bodyHash.Value.ToBase64(), typeof(BlockBody));
-            return BlockBody.Parser.ParseFrom(blockBody);
+            try
+            {
+                var blockBody =  await _keyValueDatabase.GetAsync(bodyHash.Value.ToBase64(), typeof(BlockBody));
+                return BlockBody.Parser.ParseFrom(blockBody);
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
         }
     }
 }

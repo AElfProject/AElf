@@ -12,7 +12,8 @@ namespace AElf.Kernel.BlockValidationFilters
     {
         public Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context)
         {
-           
+            return Task.FromResult(ValidationError.Success);
+            
             // block signature
             var pubkey = block.Header.P.ToBase64();
             if (!MinersInfo.Instance.Producers.TryGetValue(pubkey, out var dict))

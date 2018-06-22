@@ -241,7 +241,8 @@ namespace AElf.Network.Peers
             {
                 PeerListData peerList = PeerListData.Parser.ParseFrom(messagePayload);
                 
-                _logger?.Trace("Peers received : " + peerList.GetLoggerString());
+                if (peerList.NodeData.Count > 0)
+                    _logger?.Trace("Peers received : " + peerList.GetLoggerString());
 
                 foreach (var peer in peerList.NodeData)
                 {

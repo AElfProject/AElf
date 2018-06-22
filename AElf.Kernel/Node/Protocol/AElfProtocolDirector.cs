@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using AElf.Network.Data;
 using AElf.Network.Peers;
 using Google.Protobuf;
+using LiteDB;
+using NLog;
 
 namespace AElf.Kernel.Node.Protocol
 {
@@ -18,9 +20,12 @@ namespace AElf.Kernel.Node.Protocol
         
         private MainChainNode _node;
 
+        private ILogger _logger;
+
         public AElfProtocolDirector(IPeerManager peerManager)
         {
             _peerManager = peerManager;
+            _logger = LogManager.GetLogger("ProtocolDirector");
         }
         
         public void Start()
@@ -44,6 +49,7 @@ namespace AElf.Kernel.Node.Protocol
                 ulong height = _node.GetCurrentChainHeight().Result;
                 _blockSynchronizer = new BlockSynchronizer(_node, _peerManager); // todo move
                 _blockSynchronizer.SetNodeHeight((int)height);
+                _blockSynchronizer.Start();
             }
         }
 
@@ -101,11 +107,12 @@ namespace AElf.Kernel.Node.Protocol
                 else if (msgType == MessageTypes.BroadcastBlock || message.MsgType == (int)MessageTypes.Block)
                 {
                     // todo maybe merge the above types
-                    await HandleBlockReception(message);
+                    await HandleBlockReception(message, msgType);
                 }
                 else if (msgType == MessageTypes.RequestBlock)
                 {
-                    // Get the requested blocks, send it back to the peer
+                    await HandleBlockRequest(message, args);
+
                 }
                 else if (msgType == MessageTypes.Height)
                 {
@@ -119,6 +126,24 @@ namespace AElf.Kernel.Node.Protocol
                 // Process any messages
                 
                 ClearResetEvent(message.Id);
+            }
+        }
+
+        internal async Task HandleBlockRequest(AElfPacketData message, MessageReceivedArgs args)
+        {
+            try
+            {
+                BlockRequest breq = BlockRequest.Parser.ParseFrom(message.Payload);
+                Block block = await _node.GetBlockAtHeight(breq.Height);
+                
+                var req = NetRequestFactory.CreateRequest(MessageTypes.Block, block.ToByteArray(), 0);
+                await args.Peer.SendAsync(req.ToByteArray());
+                
+                _logger?.Trace("Send block " + block.GetHash() + " to " + args.Peer);
+            }
+            catch (Exception e)
+            {
+                ; // todo
             }
         }
 
@@ -163,12 +188,21 @@ namespace AElf.Kernel.Node.Protocol
             }
         }
 
-        internal async Task HandleBlockReception(AElfPacketData message)
+        internal async Task HandleBlockReception(AElfPacketData message, MessageTypes types)
         {
             try
             {
                 Block b = Block.Parser.ParseFrom(message.Payload);
-                await _blockSynchronizer.AddBlockToSync(b);
+
+                if (types == MessageTypes.BroadcastBlock)
+                {
+                    await _blockSynchronizer.AddBlockToSync(b);
+                }
+                else
+                {
+                    // Block sent to answer a request
+                    await _blockSynchronizer.AddRequestedBlock(b);
+                }
             }
             catch (Exception exception)
             {
