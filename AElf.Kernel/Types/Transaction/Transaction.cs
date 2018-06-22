@@ -50,6 +50,8 @@ namespace AElf.Kernel
             txData.From = From.Clone();
             txData.To = To.Clone();
             txData.IncrementId = IncrementId;
+            txData.MethodName = MethodName;
+            txData.Params = Params;
             return txData.ToByteArray();
         }
         

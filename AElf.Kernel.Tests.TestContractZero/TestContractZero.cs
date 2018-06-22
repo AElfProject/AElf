@@ -29,5 +29,12 @@ namespace AElf.Kernel.Tests
             await Api.DeployContractAsync(account, registration);
             return account;
         }
+
+        public void Print(string name)
+        {
+            Console.WriteLine("Hello, " + name);
+            //throw new Exception("hello");
+        }
+        
     }
 }

@@ -135,41 +135,5 @@ namespace AElf.Kernel.Tests.Miner
         }
 
         
-        [Fact]
-        public async Task GenerateBlock()
-        {
-            var lastBlockHash = Hash.Generate();
-            var t1 = Hash.Generate();
-            var t2 = Hash.Generate();
-            var chainId = Hash.Generate();
-            var h1 = Hash.Generate();
-            var h2 = Hash.Generate();
-
-            var wsmanager = await GetWorldStateManager(lastBlockHash, t1, t2, h1, h2, chainId);
-
-            var blockGenerationService = new BlockGenerationService(wsmanager.Object,
-                GetChainManager(lastBlockHash).Object, _blockManager);
-
-            var txResults = new List<TransactionResult>
-            {
-                new TransactionResult
-                {
-                    TransactionId = t1
-                },
-                new TransactionResult
-                {
-                    TransactionId = t2
-                }
-            };
-            var block = await blockGenerationService.GenerateBlockAsync(chainId, txResults);
-            
-            Assert.Equal(block.Header.PreviousBlockHash, lastBlockHash);
-            Assert.Contains(t1, block.Body.Transactions);
-            Assert.Contains(t2, block.Body.Transactions);
-            Assert.NotNull(block.Header.MerkleTreeRootOfWorldState);
-            Assert.NotNull(block.Header.MerkleTreeRootOfTransactions);
-            Assert.NotNull(await _blockManager.GetBlockAsync(block.GetHash()));
-
-        }
     }
 }

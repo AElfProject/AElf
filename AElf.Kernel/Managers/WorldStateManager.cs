@@ -33,8 +33,9 @@ namespace AElf.Kernel.Managers
         public async Task<IWorldStateManager> OfChain(Hash chainId)
         {
             _chainId = chainId;
-            
-            _preBlockHash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(chainId));
+
+            var hash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(chainId));
+            _preBlockHash = hash ?? Hash.Genesis;
 
             var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, _preBlockHash);
             if (await _dataStore.GetDataAsync(keyToGetCount) == null)
