@@ -18,7 +18,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             _metadatas = new ConcurrentDictionary<Hash, ChainFunctionMetadata>();
         }
 
-        public async Task DeployContract(Hash chainId, Type contractType, Hash address)
+        public async Task DeployContract(Hash chainId, Type contractType, Hash address, Dictionary<string, Hash> contractReferences)
         {
             //For each chain, ChainFunctionMetadata should be used singlethreaded
             //which means transactions that deploy contracts need to execute serially
@@ -38,7 +38,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             //1.figure out where to have this "contractReferences" and
             //2.how to implement the action's that call other contracts and
             //3.as the contract reference can be changed, need to set up the contract update accordingly, which is the functions that are not yet implemented
-            await chainFuncMetadata.DeployNewContract(contractType.Name, address, new Dictionary<string, Hash>());
+            await chainFuncMetadata.DeployNewContract(contractType.Name, address, contractReferences);
         }
 
         public async Task<FunctionMetadata> GetFunctionMetadata(Hash chainId, string addrFunctionName)

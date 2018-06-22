@@ -16,7 +16,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
             _resourceUsageDetectionService = resourceUsageDetectionService;
         }
 
-        public List<List<ITransaction>> Process(List<ITransaction> transactions)
+        public List<List<ITransaction>> Process(Hash chainId, List<ITransaction> transactions)
         {
             var txResourceHandle = new Dictionary<ITransaction, string>();
             if (transactions.Count == 0)
@@ -30,7 +30,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
             foreach (var tx in transactions)
             {
                 UnionFindNode first = null;
-                foreach (var resource in _resourceUsageDetectionService.GetResources(tx))
+                foreach (var resource in _resourceUsageDetectionService.GetResources(chainId, tx))
                 {
                     if (!resourceUnionSet.TryGetValue(resource, out var node))
                     {

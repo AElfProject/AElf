@@ -6,6 +6,6 @@ namespace AElf.Kernel.Concurrency
 {
     public interface IResourceUsageDetectionService
     {
-        IEnumerable<string> GetResources(ITransaction transaction);
+        IEnumerable<string> GetResources(Hash chainId, ITransaction transaction);
     }
 }

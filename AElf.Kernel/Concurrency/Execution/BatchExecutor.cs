@@ -63,7 +63,7 @@ namespace AElf.Kernel.Concurrency.Execution
 	                    {
 		                    _groupingException = null;
 		                    _grouper = new Grouper(_servicePack.ResourceDetectionService);
-		                    _grouped = _grouper.Process(_transactions);
+		                    _grouped = _grouper.Process(_chainId, _transactions);
 		                    // TODO: Report and/or log grouping outcomes
 		                    CreateChildren();
 		                    _state = State.ReadyToRun;
