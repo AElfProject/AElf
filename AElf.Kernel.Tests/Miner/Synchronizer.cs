@@ -199,6 +199,7 @@ namespace AElf.Kernel.Tests.Miner
             }
             
             block.FillTxsMerkleTreeRootInHeader();
+            block.Body.BlockHeader = block.Header.GetHash();
             
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             _smartContractRunnerFactory.AddRunner(0, runner);

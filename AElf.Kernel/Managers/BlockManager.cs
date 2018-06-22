@@ -31,7 +31,7 @@ namespace AElf.Kernel.Managers
             }
 
             await _blockHeaderStore.InsertAsync(block.Header);
-            await _blockBodyStore.InsertAsync(block.Header.MerkleTreeRootOfTransactions, block.Body);
+            await _blockBodyStore.InsertAsync(block.Body.GetHash(), block.Body);
 
             return block;
         }
@@ -50,7 +50,7 @@ namespace AElf.Kernel.Managers
         public async Task<Block> GetBlockAsync(Hash blockHash)
         {
             var header = await _blockHeaderStore.GetAsync(blockHash);
-            var body = await _blockBodyStore.GetAsync(header.MerkleTreeRootOfTransactions);
+            var body = await _blockBodyStore.GetAsync(header.GetHash().CalculateHashWith(header.MerkleTreeRootOfTransactions));
             return new Block
             {
                 Header = header,
@@ -74,7 +74,7 @@ namespace AElf.Kernel.Managers
             var key = Hash.Parser.ParseFrom(await _heightOfBlock.GetAsync(new UInt64Value {Value = height}.CalculateHash()));
 
             var blockHeader = await _blockHeaderStore.GetAsync(key);
-            var blockBody = await _blockBodyStore.GetAsync(blockHeader.MerkleTreeRootOfTransactions);
+            var blockBody = await _blockBodyStore.GetAsync(blockHeader.GetHash().CalculateHashWith(blockHeader.MerkleTreeRootOfTransactions));
             return new Block
             {
                 Header = blockHeader,

@@ -25,7 +25,7 @@ message ReqPeerListData {
 }
 
 message BlockRequest {
-    bytes Hash = 1;
+    int32 Height = 1;
 }
 
 message TxRequest {
