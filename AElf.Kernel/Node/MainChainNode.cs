@@ -36,6 +36,7 @@ namespace AElf.Kernel.Node
     {   
         private ECKeyPair _nodeKeyPair;
         private ActorSystem _sys ;
+        private readonly IBlockManager _blockManager;
         private readonly ITxPoolService _poolService;
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
@@ -50,6 +51,7 @@ namespace AElf.Kernel.Node
         private readonly IChainCreationService _chainCreationService;
         private readonly IWorldStateManager _worldStateManager;
         private readonly ISmartContractService _smartContractService;
+        
 
         private readonly IBlockExecutor _blockExecutor;
 
@@ -58,13 +60,14 @@ namespace AElf.Kernel.Node
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
             IChainCreationService chainCreationService, IWorldStateManager worldStateManager, 
-            IChainManager chainManager, ISmartContractService smartContractService, ActorSystem sys)
+            IChainManager chainManager, ISmartContractService smartContractService, ActorSystem sys, IBlockManager blockManager)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
             _worldStateManager = worldStateManager;
             _smartContractService = smartContractService;
             _sys = sys;
+            _blockManager = blockManager;
             _poolService = poolService;
             _protocolDirector = protocolDirector;
             _transactionManager = txManager;
@@ -104,11 +107,11 @@ namespace AElf.Kernel.Node
                     {
                         Category = 0, 
                         ContractBytes = ByteString.CopyFrom(code),
-                        ContractHash = Hash.Zero
+                        ContractHash = code.CalculateHash()
                     };
                     var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg)
                         .Result;
-                    _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToByteString().ToBase64());
+                    _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.Value.ToBase64());
                     _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToBase64());
                     var contractAddress = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__"))
                         .ToAccount();
@@ -345,7 +348,7 @@ namespace AElf.Kernel.Node
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        public async Task<BlockExecutionResult> AddBlock(IBlock block)
+        public async Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block)
         {
             try
             {
@@ -354,7 +357,7 @@ namespace AElf.Kernel.Node
                 
                 if (error != ValidationError.Success)
                 {
-                    _logger.Trace("Invalid block received from network");
+                    _logger.Trace("Invalid block received from network" + error.ToString());
                     return new BlockExecutionResult(false, error);
                 }
             
@@ -398,9 +401,10 @@ namespace AElf.Kernel.Node
             }
         }
 
-        public int GetCurrentChainHeight()
+        public async Task<ulong> GetCurrentChainHeight()
         {
-            return 5;
+            IChainContext chainContext = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
+            return chainContext.BlockHeight;
         }
 
         /// <summary>
@@ -420,31 +424,48 @@ namespace AElf.Kernel.Node
         {
             Task.Run(async () =>
             {
-                while (true)
+                /*try
                 {
-                    await Task.Delay(20000);
+                    await Task.Delay(5000); // secs
+                    
                     var block = await _miner.Mine();
+                    
                     _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", block.GetHash(),
                         block.Body.Transactions.Count);
+                    
+                    await BroadcastBlock(block);
+                    
+                }
+                catch (Exception e)
+                {
+                    _logger.Log(LogLevel.Debug, e);
+                }*/
+                
+                try
+                {
+                    while(true)
+                    {
+                        await Task.Delay(10000); // secs
+                        
+                        var block = await _miner.Mine();
+                        
+                        _logger.Log(LogLevel.Debug, "Genereated block: {0}, with {1} transactions", block.GetHash(), block.Body.Transactions.Count);
+                        
+                        await BroadcastBlock(block);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.Log(LogLevel.Debug, e);
                 }
             });
-
         }
 
         public async Task<bool> BroadcastBlock(IBlock block)
         {
             try
             {
-                // todo : fake block for now
-                var blockb = new Block(ByteArrayHelpers.RandomFill(10));
-
-                blockb.Header.ChainId = ByteArrayHelpers.RandomFill(10);
-                blockb.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
-                blockb.Header.PreviousBlockHash = ByteArrayHelpers.RandomFill(256);
-                
-                blockb.AddTransaction(Hash.Generate());
-                
-                await _protocolDirector.BroadcastBlock(blockb);
+                await _protocolDirector.BroadcastBlock(block as Block);
             }
             catch (Exception e)
             {
@@ -493,6 +514,11 @@ namespace AElf.Kernel.Node
             
             _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToBase64() + " }");
             return false;
+        }
+
+        public async Task<Block> GetBlockAtHeight(int height)
+        {
+            return await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, (ulong)height);
         }
     }
 }

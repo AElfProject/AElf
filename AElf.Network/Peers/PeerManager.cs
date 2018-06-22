@@ -241,7 +241,8 @@ namespace AElf.Network.Peers
             {
                 PeerListData peerList = PeerListData.Parser.ParseFrom(messagePayload);
                 
-                _logger?.Trace("Peers received : " + peerList.GetLoggerString());
+                if (peerList.NodeData.Count > 0)
+                    _logger?.Trace("Peers received : " + peerList.GetLoggerString());
 
                 foreach (var peer in peerList.NodeData)
                 {
@@ -463,14 +464,14 @@ namespace AElf.Network.Peers
 
                     var resp = new AElfPacketData
                     {
-                        MsgType = (int)MessageTypes.ReturnPeers,
+                        MsgType = (int)MessageTypes.Peers,
                         Length = 1,
                         Payload = pListData.ToByteString()
                     };
 
                     Task.Run(async () => await args.Peer.SendAsync(resp.ToByteArray()));
                 }
-                else if (args.Message.MsgType == (int)MessageTypes.ReturnPeers)
+                else if (args.Message.MsgType == (int)MessageTypes.Peers)
                 {
                     Task.Run(() => ReceivePeers(args.Message.Payload));
                 }
