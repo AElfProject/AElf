@@ -12,6 +12,7 @@ using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.SmartContracts.CSharpSmartContract;
+using AElf.Kernel.Tests;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using ServiceStack;
@@ -67,13 +68,21 @@ namespace AElf.Runtime.CSharp.Tests
                 await DeploySampleContracts();
             }).Unwrap().Wait();
         }
+        
+        public byte[] SmartContractZeroCode
+        {
+            get
+            {
+                return ContractCodes.TestContractZeroCode;
+            }
+        }
 
         private async Task Init()
         {
             var reg = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFrom(new byte[] { }),
+                ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.Zero
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
@@ -94,8 +103,8 @@ namespace AElf.Runtime.CSharp.Tests
                 ContractHash = new Hash(ContractCode)
             };
 
-            await SmartContractService.DeployContractAsync(ContractAddress1, reg);
-            await SmartContractService.DeployContractAsync(ContractAddress2, reg);
+            await SmartContractService.DeployContractAsync(ChainId1, ContractAddress1, reg);
+            await SmartContractService.DeployContractAsync(ChainId2, ContractAddress2, reg);
         }
 
         public byte[] ContractCode

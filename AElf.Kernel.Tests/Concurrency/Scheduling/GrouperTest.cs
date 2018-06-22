@@ -63,7 +63,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var txDic = GetTestData();
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
-            var grouped = grouper.Process(txDic.Values.SelectMany(x => x).ToList());
+            var grouped = grouper.Process(Hash.Generate(), txDic.Values.SelectMany(x => x).ToList());
             var s = grouped.Select(
                 x =>
                 String.Join(" ", x.OrderBy(y => _accountList.IndexOf(y.From)).ThenBy(z => _accountList.IndexOf(z.To)).Select(
@@ -86,7 +86,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var txList = _dataUtil.GetFullTxList();
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
-            var grouped = grouper.Process(txList.Select(x => x).ToList());
+            var grouped = grouper.Process(Hash.Generate(), txList.Select(x => x).ToList());
             var s = grouped.Select(
                 x => _dataUtil.StringRepresentation(x)
             ).ToList();

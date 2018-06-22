@@ -17,22 +17,18 @@ namespace AElf.Kernel.Tests.Concurrency
     public class ResourceUsageDetectionServiceTest
     {
         private IDataStore _dataStore;
+        private IFunctionMetadataService _functionMetadataService;
 
-        public ResourceUsageDetectionServiceTest(IDataStore dataStore)
+        public ResourceUsageDetectionServiceTest(IDataStore dataStore, IFunctionMetadataService functionMetadataService)
         {
             _dataStore = dataStore;
+            _functionMetadataService = functionMetadataService;
         }
 
         [Fact]
         public async Task TestResoruceDetection()
         {
-            ChainFunctionMetadataTemplate template = new ChainFunctionMetadataTemplate(_dataStore, Hash.Generate());
-            Hash chainId = template.ChainId;
-            await template.TryAddNewContract(typeof(TestContractC));
-            await template.TryAddNewContract(typeof(TestContractB));
-            await template.TryAddNewContract(typeof(TestContractA));
-            
-            
+            Hash chainId = Hash.Generate();
             var addrA = new Hash("TestContractA".CalculateHash());
             var addrB = new Hash("TestContractB".CalculateHash());
             var addrC = new Hash("TestContractC".CalculateHash());
@@ -43,14 +39,12 @@ namespace AElf.Kernel.Tests.Concurrency
             var referenceBookForB = new Dictionary<string, Hash>();
             referenceBookForB.Add("ContractC", addrC);
             var referenceBookForC = new Dictionary<string, Hash>();
+
+            await _functionMetadataService.DeployContract(chainId, typeof(TestContractC), addrC, referenceBookForC);
+            await _functionMetadataService.DeployContract(chainId, typeof(TestContractB), addrB, referenceBookForB);
+            await _functionMetadataService.DeployContract(chainId, typeof(TestContractA), addrA, referenceBookForA);
             
-            ChainFunctionMetadata cfms = new ChainFunctionMetadata(template, _dataStore);
-            
-            cfms.DeployNewContract("TestContractC", addrC, referenceBookForC);
-            cfms.DeployNewContract("TestContractB", addrB, referenceBookForB);
-            cfms.DeployNewContract("TestContractA", addrA, referenceBookForA);
-            
-            ResourceUsageDetectionService detectionService = new ResourceUsageDetectionService(cfms);
+            ResourceUsageDetectionService detectionService = new ResourceUsageDetectionService(_functionMetadataService);
 
             var addr0 = new Hash("0".CalculateHash());
             var addr1 = new Hash("1".CalculateHash());
@@ -80,7 +74,7 @@ namespace AElf.Kernel.Tests.Concurrency
                 }.ToByteArray())
             };
 
-            var resources = detectionService.GetResources(tx);
+            var resources = detectionService.GetResources(chainId, tx);
             
 
             var groundTruth = new List<string>()

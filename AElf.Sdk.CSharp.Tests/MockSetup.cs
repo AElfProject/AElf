@@ -19,6 +19,7 @@ using Xunit;
 using AElf.Runtime.CSharp;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Metadata;
+using AElf.Kernel.Tests;
 using Xunit.Frameworks.Autofac;
 using Path = AElf.Kernel.Path;
 
@@ -75,12 +76,20 @@ namespace AElf.Sdk.CSharp.Tests
             };
         }
 
+        public byte[] SmartContractZeroCode
+        {
+            get
+            {
+                return ContractCodes.TestContractZeroCode;
+            }
+        }
+        
         private async Task Init()
         {
             var reg = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFrom(new byte[] { }),
+                ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.Zero
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
@@ -97,7 +106,7 @@ namespace AElf.Sdk.CSharp.Tests
                 ContractHash = new Hash(code)
             };
 
-            await SmartContractService.DeployContractAsync(address, reg);
+            await SmartContractService.DeployContractAsync(ChainId1, address, reg);
         }
 
         public async Task<IExecutive> GetExecutiveAsync(Hash address)
