@@ -26,5 +26,11 @@ namespace AElf.Kernel.Tests
             await Api.DeployContractAsync(account, registration);
             return account;
         }
+
+        #region DPoS
+
+        
+
+        #endregion
     }
 }

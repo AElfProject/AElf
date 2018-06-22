@@ -118,24 +118,6 @@ namespace AElf.Contracts.DPoS.Tests
             return tc.Trace.RetVal.DeserializeToString();
         }
 
-        public string GenerateNextRoundOrder(string accountAddress)
-        {
-            var tx = new Transaction
-            {
-                From = AddressStringToHash(accountAddress),
-                To = ContractAddres,
-                IncrementId = _mock.NewIncrementId(),
-                MethodName = "GenerateNextRoundOrder",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
-            };
-            var tc = new TransactionContext
-            {
-                Transaction = tx
-            };
-            Executive.SetTransactionContext(tc).Apply().Wait();
-            return tc.Trace.RetVal.DeserializeToString();
-        }
-
         public Hash CalculateSignature(Hash inValue)
         {
             var tx = new Transaction
@@ -176,6 +158,96 @@ namespace AElf.Contracts.DPoS.Tests
             }
 
             return roundInfo;
+        }
+        
+        public RoundInfo GenerateNextRoundOrder(string accountAddress)
+        {
+            var tx = new Transaction
+            {
+                From = AddressStringToHash(accountAddress),
+                To = ContractAddres,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = "GenerateNextRoundOrder",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+            };
+            var tc = new TransactionContext
+            {
+                Transaction = tx
+            };
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            return tc.Trace.RetVal.DeserializeToPbMessage<RoundInfo>();
+        }
+        
+        public string SetNextExtraBlockProducer()
+        {
+            var tx = new Transaction
+            {
+                From = Hash.Zero,
+                To = ContractAddres,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = "SetNextExtraBlockProducer",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+            };
+            var tc = new TransactionContext
+            {
+                Transaction = tx
+            };
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            return tc.Trace.RetVal.DeserializeToString();
+        }
+
+        public bool AbleToMine(string accountAddress)
+        {
+            var tx = new Transaction
+            {
+                From = AddressStringToHash(accountAddress),
+                To = ContractAddres,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = "AbleToMine",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+            };
+            var tc = new TransactionContext
+            {
+                Transaction = tx
+            };
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            return tc.Trace.RetVal.DeserializeToBool();
+        }
+
+        public bool IsTimeToProduceExtraBlock()
+        {
+            var tx = new Transaction
+            {
+                From = Hash.Zero,
+                To = ContractAddres,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = "IsTimeToProduceExtraBlock",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+            };
+            var tc = new TransactionContext
+            {
+                Transaction = tx
+            };
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            return tc.Trace.RetVal.DeserializeToBool();
+        }
+
+        public bool AbleToProduceExtraBlock(string accountAddress)
+        {
+            var tx = new Transaction
+            {
+                From = AddressStringToHash(accountAddress),
+                To = ContractAddres,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = "AbleToProduceExtraBlock",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+            };
+            var tc = new TransactionContext
+            {
+                Transaction = tx
+            };
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            return tc.Trace.RetVal.DeserializeToBool();
         }
         
         private string AddressHashToString(Hash accountHash)
