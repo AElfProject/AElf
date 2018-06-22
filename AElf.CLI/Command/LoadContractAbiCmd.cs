@@ -1,7 +1,14 @@
-﻿using System.Linq;
+﻿using System;
+using System.IO;
+using System.Linq;
 using AElf.CLI.Parsing;
 using AElf.CLI.RPC;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using ProtoBuf;
+using Method = AElf.CLI.Data.Protobuf.Method;
 
 namespace AElf.CLI.Command
 {
@@ -35,6 +42,17 @@ namespace AElf.CLI.Command
             var req = JsonRpcHelpers.CreateRequest(reqParams, "get_contract_abi", 1);
 
             return req;
+        }
+
+        public override string GetPrintString(JObject resp)
+        {
+            JToken ss = resp["abi"];
+            byte[] aa = Convert.FromBase64String(ss.ToString());
+            
+            MemoryStream ms = new MemoryStream(aa);
+            Method m = Serializer.Deserialize<Method>(ms);
+
+            return JsonConvert.SerializeObject(m);
         }
     }
 }

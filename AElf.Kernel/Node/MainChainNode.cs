@@ -111,9 +111,12 @@ namespace AElf.Kernel.Node
                     var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg)
                         .Result;
                     _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.Value.ToBase64());
-                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToBase64());
+                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", BitConverter.ToString(res.GenesisBlockHash.Value.ToByteArray()).Replace("-",""));
                     var contractAddress = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__"))
                         .ToAccount();
+                    _logger.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
+                        BitConverter.ToString(contractAddress.ToAccount().Value.ToByteArray()).Replace("-",""));
+                    
                     _logger.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"",
                         contractAddress.ToAccount().Value.ToBase64());
 
