@@ -8,7 +8,7 @@ namespace AElf.Kernel
     {
         public Hash ChainId { get; set; }
         public Hash ContractAddress { get; set; }
-        public IDataProvider DataProvider { get; set; }
+        public ICachedDataProvider DataProvider { get; set; }
         public ISmartContractService SmartContractService { get; set; }
     }
 }

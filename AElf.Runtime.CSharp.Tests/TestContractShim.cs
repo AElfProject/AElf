@@ -30,6 +30,19 @@ namespace AElf.Runtime.CSharp.Tests
             }
         }
         private IExecutive Executive { get; set; }
+
+        private Hash ChainId
+        {
+            get
+            {
+                if (!_second)
+                {
+                    return _mock.ChainId1;
+                }
+                return _mock.ChainId2;
+            }
+        }
+        
         private bool _second = false;
         public TestContractShim(MockSetup mock, bool second = false)
         {
@@ -50,7 +63,7 @@ namespace AElf.Runtime.CSharp.Tests
                 {
                     ChainId = _mock.ChainId1,
                     ContractAddress = _mock.ContractAddress1,
-                    DataProvider = _mock.DataProvider1.GetDataProvider(),
+                    DataProvider = new CachedDataProvider( _mock.DataProvider1.GetDataProvider()),
                     SmartContractService = _mock.SmartContractService
                 });
             }
@@ -63,7 +76,7 @@ namespace AElf.Runtime.CSharp.Tests
                 {
                     ChainId = _mock.ChainId2,
                     ContractAddress = _mock.ContractAddress2,
-                    DataProvider = _mock.DataProvider2.GetDataProvider(),
+                    DataProvider = new CachedDataProvider( _mock.DataProvider2.GetDataProvider()),
                     SmartContractService = _mock.SmartContractService
                 });
             }
@@ -83,7 +96,7 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
 
             return true;
         }
@@ -106,7 +119,9 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
+            
             return tc.Trace.RetVal.DeserializeToBool();
         }
 
@@ -124,7 +139,7 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToUInt64();
         }
 
@@ -142,7 +157,7 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToString();
         }
 
@@ -160,7 +175,7 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToString();
         }
     }

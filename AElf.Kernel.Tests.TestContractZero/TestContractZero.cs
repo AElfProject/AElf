@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -27,10 +27,11 @@ namespace AElf.Kernel.Tests
             return account;
         }
 
-        #region DPoS
-
+        public void Print(string name)
+        {
+            Console.WriteLine("Hello, " + name);
+            //throw new Exception("hello");
+        }
         
-
-        #endregion
     }
 }

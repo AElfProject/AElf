@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -34,9 +34,8 @@ namespace AElf.Kernel.Managers
         {
             _chainId = chainId;
 
-            var key = Path.CalculatePointerForLastBlockHash(chainId);
-            
-            _preBlockHash = await _dataStore.GetDataAsync(key);
+            var hash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(chainId));
+            _preBlockHash = hash ?? Hash.Genesis;
 
             var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, _preBlockHash);
             if (await _dataStore.GetDataAsync(keyToGetCount) == null)
@@ -146,7 +145,7 @@ namespace AElf.Kernel.Managers
                 };
                 dict.Dict.Add(pairHashChange);
             }
-            await _worldStateStore.InsertWorldStateAsync(_chainId, _preBlockHash, dict);
+            await _worldStateStore.InsertWorldStateAsync(_chainId, preBlockHash, dict);
             
             //Refresh _preBlockHash after setting WorldState.
             _preBlockHash = preBlockHash;
@@ -299,7 +298,43 @@ namespace AElf.Kernel.Managers
         {
             return path.SetBlockHash(_preBlockHash).GetPointerHash();
         }
-       
+
+        public async Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId)
+        {
+            // The code chunk is copied from DataProvider
+
+            Hash prevBlockHash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(chainId));
+            
+            //Generate the new pointer hash (using previous block hash)
+            var pointerHashAfter = stateValueChange.Path.CalculateHashWith(prevBlockHash);
+
+            var change = await GetChangeAsync(stateValueChange.Path);
+            if (change == null)
+            {
+                change = new Change
+                {
+                    After = pointerHashAfter
+                };
+            }
+            else
+            {
+                //See whether the latest changes of this Change happened in this height,
+                //If not, clear the change, because this Change is too old to support rollback.
+                if (prevBlockHash != change.LatestChangedBlockHash)
+                {
+                    change.ClearChangeBefores();
+                }
+
+                change.UpdateHashAfter(pointerHashAfter);
+            }
+
+            change.LatestChangedBlockHash = prevBlockHash;
+
+            await InsertChangeAsync(stateValueChange.Path, change);
+            await SetDataAsync(pointerHashAfter, stateValueChange.AfterValue.ToByteArray());
+            return change;
+        }
+
         #region Private methods
 
         /// <summary>

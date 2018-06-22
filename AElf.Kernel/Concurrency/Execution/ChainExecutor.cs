@@ -22,7 +22,7 @@ namespace AElf.Kernel.Concurrency.Execution
         private IActorRef _currentRequestor;
         private RequestExecuteTransactions _currentRequest;
         private IActorRef _currentExecutor;
-        private Dictionary<Hash, TransactionResult> _currentTransactionResults;
+        private Dictionary<Hash, TransactionTrace> _currentTransactionTraces;
 
         public ChainExecutor(Hash chainId, IActorRef serviceRouter)
         {
@@ -37,7 +37,7 @@ namespace AElf.Kernel.Concurrency.Execution
                 case RequestExecuteTransactions req:
                     if (_state == State.Running)
                     {
-                        Sender.Tell(new RespondExecuteTransactions(req.RequestId, RespondExecuteTransactions.RequestStatus.Rejected, new List<TransactionResult>()));
+                        Sender.Tell(new RespondExecuteTransactions(req.RequestId, RespondExecuteTransactions.RequestStatus.Rejected, new List<TransactionTrace>()));
                     }
                     else
                     {
@@ -46,13 +46,13 @@ namespace AElf.Kernel.Concurrency.Execution
                         _currentRequestor = Sender;
                         _currentRequest = req;
                         _currentExecutor = Context.ActorOf(BatchExecutor.Props(_chainId, _serviceRouter, req.Transactions, Self, BatchExecutor.ChildType.Group));
-                        _currentTransactionResults = new Dictionary<Hash, TransactionResult>();
+                        _currentTransactionTraces = new Dictionary<Hash, TransactionTrace>();
                         Context.Watch(_currentExecutor);
                         _currentExecutor.Tell(StartExecutionMessage.Instance);
                     }
                     break;
-                case TransactionResultMessage res:
-                    _currentTransactionResults[res.TransactionResult.TransactionId] = res.TransactionResult;
+                case TransactionTraceMessage res:
+                    _currentTransactionTraces[res.TransactionTrace.TransactionId] = res.TransactionTrace;
                     break;
                 case Terminated t when Sender.Equals(_currentExecutor):
                     Context.Unwatch(_currentExecutor);
@@ -64,22 +64,22 @@ namespace AElf.Kernel.Concurrency.Execution
 
         private void RespondToCurrentRequestorAndSetIdle()
         {
-            var txRes = new List<TransactionResult>();
+            var traces = new List<TransactionTrace>();
             foreach (var tx in _currentRequest.Transactions)
             {
                 var txId = tx.GetHash();
-                if (!_currentTransactionResults.TryGetValue(txId, out var r))
+                if (!_currentTransactionTraces.TryGetValue(txId, out var trace))
                 {
                     // TODO: Assuming Status.ExecutedFailed may not be correct
-                    r = new TransactionResult()
+                    trace = new TransactionTrace()
                     {
                         TransactionId = txId,
-                        Status = Status.Failed
+                        StdErr = "Failed"
                     };
                 }
-                txRes.Add(r);
+                traces.Add(trace);
             }
-            var response = new RespondExecuteTransactions(_currentRequest.RequestId, RespondExecuteTransactions.RequestStatus.Executed, txRes);
+            var response = new RespondExecuteTransactions(_currentRequest.RequestId, RespondExecuteTransactions.RequestStatus.Executed, traces);
             _currentRequestor.Tell(response);
             _state = State.Idle;
         }
