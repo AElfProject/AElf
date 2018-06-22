@@ -110,12 +110,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var code = ExampleContractCode;
 
-            var regExample = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = code.CalculateHash()
-            };
+            
 
             var contractAddressZero = new Hash(ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
 
@@ -125,7 +120,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(regExample))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code))
             };
 
             var txnCtxt = new TransactionContext()
@@ -138,6 +133,12 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var address = txnCtxt.Trace.RetVal.DeserializeToPbMessage<Hash>();
 
+            var regExample = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(code),
+                ContractHash = code.CalculateHash()
+            };
             var copy = await _smartContractManager.GetAsync(address);
 
             Assert.Equal(regExample, copy);
@@ -174,7 +175,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(regExample))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code))
             };
 
             var txnCtxt = new TransactionContext()
