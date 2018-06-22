@@ -120,6 +120,7 @@ namespace AElf.Kernel.Tests
             block.Header.ChainId = chainId;
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
             block.Header.Index = index;
+            block.Header.MerkleTreeRootOfWorldState = Hash.Default;
 
             return block;
         }

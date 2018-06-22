@@ -13,6 +13,8 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             block.Header.ChainId = ByteArrayHelpers.RandomFill(10);
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
             block.Header.PreviousBlockHash = ByteArrayHelpers.RandomFill(256);
+            block.Header.MerkleTreeRootOfWorldState = Hash.Default;
+            block.FillTxsMerkleTreeRootInHeader();
             
             return block;
         }

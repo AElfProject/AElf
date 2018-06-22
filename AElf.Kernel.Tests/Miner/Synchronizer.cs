@@ -94,10 +94,11 @@ namespace AElf.Kernel.Tests.Miner
                     ChainId = chainId,
                     Index = index,
                     PreviousBlockHash = previousHash,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                    Time = Timestamp.FromDateTime(DateTime.UtcNow),
+                    MerkleTreeRootOfWorldState = Hash.Default
                 }
             };
-            
+            block.FillTxsMerkleTreeRootInHeader();
             return block;
         }
         
