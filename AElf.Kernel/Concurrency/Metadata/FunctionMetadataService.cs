@@ -12,8 +12,9 @@ namespace AElf.Kernel.Concurrency.Metadata
         private IDataStore _dataStore;
         private readonly ConcurrentDictionary<Hash, ChainFunctionMetadata> _metadatas;
 
-        public FunctionMetadataService()
+        public FunctionMetadataService(IDataStore dataStore)
         {
+            _dataStore = dataStore;
             _metadatas = new ConcurrentDictionary<Hash, ChainFunctionMetadata>();
         }
 

@@ -1,5 +1,7 @@
 ﻿using AElf.Database.Config;
+using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Modules.AutofacModule;
+using AElf.Runtime.CSharp;
 using Autofac;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,6 +23,11 @@ namespace AElf.Sdk.CSharp.Tests
             builder.RegisterModule(new MainModule());
             builder.RegisterModule(new DatabaseModule(new DatabaseConfig()));
 
+            
+            var smartContractRunnerFactory = new SmartContractRunnerFactory();
+            var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
+            smartContractRunnerFactory.AddRunner(0, runner);
+            builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
             // configure your container
             // e.g. builder.RegisterModule<TestOverrideModule>();
         }

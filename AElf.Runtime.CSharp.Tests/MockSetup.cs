@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
@@ -44,22 +45,23 @@ namespace AElf.Runtime.CSharp.Tests
         public IWorldStateManager WorldStateManager;
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
+        private IFunctionMetadataService _functionMetadataService;
 
-        private ISmartContractRunnerFactory _smartContractRunnerFactory = new SmartContractRunnerFactory();
+        private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateManager worldStateManager, IChainCreationService chainCreationService, IBlockManager blockManager, SmartContractStore smartContractStore)
+        public MockSetup(IWorldStateManager worldStateManager, IChainCreationService chainCreationService, IBlockManager blockManager, SmartContractStore smartContractStore, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
             WorldStateManager = worldStateManager;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
+            _functionMetadataService = functionMetadataService;
+            _smartContractRunnerFactory = smartContractRunnerFactory;
             _smartContractManager = new SmartContractManager(smartContractStore);
-            var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
-            _smartContractRunnerFactory.AddRunner(0, runner);
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, WorldStateManager);
+            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, WorldStateManager, _functionMetadataService);
             Task.Factory.StartNew(async () =>
             {
                 await DeploySampleContracts();
