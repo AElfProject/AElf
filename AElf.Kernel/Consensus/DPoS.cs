@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Node;
@@ -14,44 +15,61 @@ namespace AElf.Kernel.Consensus
     // ReSharper disable once ClassNeverInstantiated.Global
     public class DPoS
     {
-        private readonly Hash _publicKey;
-        
-        public byte[] ContractCode
-        {
-            get
-            {
-                byte[] code;
-                using (var file = 
-                    File.OpenRead(System.IO.Path.GetFullPath(
-                        "../../../../AElf.Contracts.DPoS/bin/Debug/netstandard2.0/AElf.Contracts.DPoS.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
-            }
-        }
+        private readonly ECKeyPair _keyPair;
 
-        public DPoS(Hash publicKey)
+        public Hash AccountHash => _keyPair.GetAddress();
+
+        public DPoS(ECKeyPair keyPair)
         {
-            _publicKey = publicKey;
+            _keyPair = keyPair;
         }
         
         // For genesis block and block producers
         #region Get Txs to sync state
 
-        public List<ITransaction> GetTxsForGenesisBlock()
+        public List<ITransaction> GetTxsForGenesisBlock(ulong incrementId, ByteString blockProducerBytes)
         {
-            return new List<ITransaction>
+            var txs = new List<ITransaction>
             {
                 new Transaction
                 {
-                    From = Hash.Zero,
+                    From = AccountHash,
                     To = Hash.Zero,
-                    IncrementId = 0,
-                    Fee = 3, //TODO: TBD
-                    MethodName = "RandomizeInfoForFirstTwoRounds"
+                    IncrementId = incrementId++,
+                    MethodName = "SetBlockProducers",
+                    P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                    Params = ByteString.CopyFrom(new Parameters
+                    {
+                        Params =
+                        {
+                            new Param
+                            {
+                                BytesVal = blockProducerBytes
+                            }
+                        }
+                    }.ToByteArray())
+                },
+                new Transaction
+                {
+                    From = AccountHash,
+                    To = Hash.Zero,
+                    IncrementId = incrementId++,
+                    MethodName = "RandomizeInfoForFirstTwoRounds",
+                    P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                    Params = ByteString.CopyFrom()
                 }
             };
+
+            return txs.Select(t =>
+            {
+                var signer = new ECSigner();
+                var signature = signer.Sign(_keyPair, t.GetHash().GetHashBytes());
+
+                // Update the signature
+                ((Transaction) t).R = ByteString.CopyFrom(signature.R);
+                ((Transaction) t).S = ByteString.CopyFrom(signature.S);
+                return t;
+            }).ToList();
         }
 
         public List<ITransaction> GetTxsForExtraBlock()
@@ -60,7 +78,7 @@ namespace AElf.Kernel.Consensus
             {
                 new Transaction
                 {
-                    From = _publicKey,
+                    From = AccountHash,
                     To = Hash.Zero,
                     IncrementId = 0,
                     Fee = 3, //TODO: TBD
@@ -68,7 +86,7 @@ namespace AElf.Kernel.Consensus
                 },
                 new Transaction
                 {
-                    From = _publicKey,
+                    From = AccountHash,
                     To = Hash.Zero,
                     IncrementId = 1, //TODO: not sure
                     Fee = 3, //TODO: TBD
@@ -76,7 +94,7 @@ namespace AElf.Kernel.Consensus
                 },
                 new Transaction
                 {
-                    From = _publicKey,
+                    From = AccountHash,
                     To = Hash.Zero,
                     IncrementId = 2, //TODO: not sure
                     Fee = 3, //TODO: TBD
@@ -91,7 +109,7 @@ namespace AElf.Kernel.Consensus
             {
                 new Transaction
                 {
-                    From = _publicKey,
+                    From = AccountHash,
                     To = Hash.Zero,
                     IncrementId = 0,
                     Fee = 3,
@@ -118,7 +136,7 @@ namespace AElf.Kernel.Consensus
         {
             tx =  new Transaction
             {
-                From = _publicKey,
+                From = AccountHash,
                 To = Hash.Zero,
                 IncrementId = 0,
                 Fee = 3,

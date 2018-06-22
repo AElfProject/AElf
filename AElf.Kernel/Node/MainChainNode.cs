@@ -1,7 +1,8 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
+ using System.Reactive.Linq;
+ using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography;
@@ -10,7 +11,8 @@ using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
-using AElf.Kernel.Extensions;
+ using AElf.Kernel.Consensus;
+ using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Config;
@@ -50,6 +52,8 @@ namespace AElf.Kernel.Node
         private readonly IChainCreationService _chainCreationService;
         private readonly IWorldStateManager _worldStateManager;
         private readonly ISmartContractService _smartContractService;
+        
+        private DPoS _dPoS;
 
         private readonly IBlockExecutor _blockExecutor;
 
@@ -416,17 +420,43 @@ namespace AElf.Kernel.Node
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
-        public void Mine()
+        public async Task Mine()
         {
-            Task.Run(async () =>
+            //var executive = await _smartContractService.GetExecutiveAsync(new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount(),
+                //_nodeConfig.ChainId);
+
+            var dict = MinersInfo.Instance.Producers;
+            var blockProducer = new BlockProducer();
+            foreach (var bp in dict.Values)
             {
-                while (true)
-                {
-                    await Task.Delay(20000);
-                    var block = await _miner.Mine();
-                    _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", block.GetHash(),
-                        block.Body.Transactions.Count);
-                }
+                blockProducer.Nodes.Add(bp["pubkey"]);
+            }
+            
+            _dPoS = new DPoS(_nodeKeyPair);
+            
+            await Task.Run(() =>
+            {
+                var intervalSequnce = GetIntervalObservable();
+                intervalSequnce.Subscribe
+                (
+                    async x =>
+                    {
+                        if (x == 0)
+                        {
+                            var txsForGenesisBlock = _dPoS.GetTxsForGenesisBlock(await GetIncrementId(_nodeKeyPair.GetAddress()), blockProducer.ToByteString());
+                            foreach (var tx in txsForGenesisBlock)
+                            {
+                                await BroadcastTransaction(tx);
+                                //executive.SetTransactionContext(new TransactionContext {Transaction = tx}).Apply(true)
+                                //.Wait();
+                            }
+                        }
+
+                        var block = await _miner.Mine();
+                        _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", block.GetHash(),
+                            block.Body.Transactions.Count);
+                    }
+                );
             });
 
         }
@@ -493,6 +523,11 @@ namespace AElf.Kernel.Node
             
             _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToBase64() + " }");
             return false;
+        }
+        
+        private static IObservable<long> GetIntervalObservable()
+        {
+            return Observable.Interval(TimeSpan.FromMilliseconds(4000));
         }
     }
 }
