@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Collections.Generic;
+using Org.BouncyCastle.Security;
 
 namespace AElf.Kernel.Concurrency.Scheduling
 {
@@ -72,6 +74,64 @@ namespace AElf.Kernel.Concurrency.Scheduling
             }
             result.AddRange(grouped.Values);
             return result;
+        }
+        
+        public List<List<ITransaction>> ProcessWithCoreCount(int totalCores, Hash chainId, List<ITransaction> transactions)
+        {
+            if (transactions.Count == 0)
+            {
+                return new List<List<ITransaction>>();
+            }
+
+            if (totalCores <= 0)
+            {
+                throw new InvalidParameterException("Total core count " + totalCores + " is invalid");
+            }
+            
+            
+            var sortedUnmergedGroups = Process(chainId, transactions).OrderBy( a=> a.Count).ToList();
+
+            int resGroupCount = totalCores + 2;
+            //TODO: group's count can be a little bit more that core count, for now it's a constant, this value can latter make adjustable to deal with special uses
+            int mergeThreshold = transactions.Count / (resGroupCount);
+            var res = new List<List<ITransaction>>();
+
+            int startIndex = 0, endIndex = res.Count, totalCount = 0;
+
+            while (startIndex <= endIndex)
+            {
+                var tempList = sortedUnmergedGroups.ElementAt(startIndex);
+                while (tempList.Count + sortedUnmergedGroups.ElementAt(endIndex).Count <= mergeThreshold && startIndex < endIndex)
+                {
+                    tempList.AddRange(sortedUnmergedGroups.ElementAt(endIndex));
+                    endIndex--;
+                }
+                res.Add(tempList);
+                totalCount += tempList.Count;
+                startIndex++;
+            }
+
+            //in case there is a bug 
+            if (totalCount != transactions.Count)
+            {
+                throw new InvalidOperationException("There is a bug in the Grouper, get inconsist transaction count");
+            }
+            return res;
+        }
+
+        public List<ITransaction> NextBalancedGroup(int threshold, ref List<List<ITransaction>> sortedUnmergeList)
+        {
+            if(sortedUnmergeList.Count == 0) return new List<ITransaction>();
+            
+            var res = sortedUnmergeList.First();
+            sortedUnmergeList.RemoveAt(0);
+            while (res.Count + sortedUnmergeList.Last().Count <= threshold)
+            {
+                res.AddRange(sortedUnmergeList.Last());
+                sortedUnmergeList.RemoveAt(sortedUnmergeList.Count-1);
+            }
+
+            return res;
         }
     }
 }
