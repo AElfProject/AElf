@@ -49,8 +49,12 @@ namespace AElf.Kernel
                 ChainId = ChainId.Clone(),
                 Index = Index,
                 PreviousBlockHash = PreviousBlockHash.Clone(),
-                Time = Time.Clone()
+                MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions.Clone(),
+                MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState.Clone()
             };
+
+            if (Index != 0)
+                rawBlock.Time = Time.Clone();
             
             return rawBlock.ToByteArray();
         }
