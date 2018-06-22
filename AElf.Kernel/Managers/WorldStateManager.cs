@@ -62,11 +62,20 @@ namespace AElf.Kernel.Managers
             Check();
             
             await _changesStore.InsertChangeAsync(pathHash, change);
+            
+            var count = new UInt64Value {Value = 0};
 
             var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, _preBlockHash);
-
-            var count = UInt64Value.Parser.ParseFrom(await _dataStore.GetDataAsync(keyToGetCount));
-                
+            var result = await _dataStore.GetDataAsync(keyToGetCount);
+            if (result == null)
+            {
+                await _dataStore.SetDataAsync(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
+            }
+            else
+            {
+                count = UInt64Value.Parser.ParseFrom(result);
+            }
+            
             // make a path related to its order
             var key = CalculateKeyForPath(_preBlockHash, count);
             await _dataStore.SetDataAsync(key, pathHash.Value.ToByteArray());
@@ -145,7 +154,7 @@ namespace AElf.Kernel.Managers
                 };
                 dict.Dict.Add(pairHashChange);
             }
-            await _worldStateStore.InsertWorldStateAsync(_chainId, preBlockHash, dict);
+            await _worldStateStore.InsertWorldStateAsync(_chainId, _preBlockHash, dict);
             
             //Refresh _preBlockHash after setting WorldState.
             _preBlockHash = preBlockHash;
@@ -346,8 +355,19 @@ namespace AElf.Kernel.Managers
         {
             Check();
             
-            var changedPathsCount = UInt64Value.Parser.ParseFrom(
-                await _dataStore.GetDataAsync(Path.CalculatePointerForPathsCount(_chainId, blockHash)));
+            var changedPathsCount = new UInt64Value {Value = 0};
+            
+            var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, blockHash);
+            var result = await _dataStore.GetDataAsync(keyToGetCount);
+            if (result == null)
+            {
+                await _dataStore.SetDataAsync(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
+            }
+            else
+            {
+                changedPathsCount = UInt64Value.Parser.ParseFrom(result);
+            }
+            
             return changedPathsCount.Value;
         }
 

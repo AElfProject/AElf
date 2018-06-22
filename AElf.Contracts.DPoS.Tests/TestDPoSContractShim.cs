@@ -9,6 +9,7 @@ using ServiceStack;
 
 namespace AElf.Contracts.DPoS.Tests
 {
+    // ReSharper disable once InconsistentNaming
     public class TestDPoSContractShim
     {
         private DPoSMockSetup _mock;
@@ -59,7 +60,7 @@ namespace AElf.Contracts.DPoS.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToPbMessage<BlockProducer>();
         }
         
@@ -77,7 +78,7 @@ namespace AElf.Contracts.DPoS.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToPbMessage<BlockProducer>();
         }
 
@@ -95,7 +96,7 @@ namespace AElf.Contracts.DPoS.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToPbMessage<DPoSInfo>();
         }
 
@@ -114,7 +115,7 @@ namespace AElf.Contracts.DPoS.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToString();
         }
 
@@ -132,7 +133,7 @@ namespace AElf.Contracts.DPoS.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToPbMessage<Hash>(); 
         }
         
@@ -153,7 +154,7 @@ namespace AElf.Contracts.DPoS.Tests
                 {
                     Transaction = tx
                 };
-                Executive.SetTransactionContext(tc).Apply().Wait();
+                Executive.SetTransactionContext(tc).Apply(true).Wait();
                 roundInfo.Info[blockProducer.Nodes[i]] = tc.Trace.RetVal.DeserializeToPbMessage<BPInfo>();
             }
 
@@ -174,7 +175,7 @@ namespace AElf.Contracts.DPoS.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToPbMessage<RoundInfo>();
         }
         
@@ -192,7 +193,7 @@ namespace AElf.Contracts.DPoS.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToString();
         }
 
@@ -210,7 +211,7 @@ namespace AElf.Contracts.DPoS.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToBool();
         }
 
@@ -228,7 +229,7 @@ namespace AElf.Contracts.DPoS.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToBool();
         }
 
@@ -246,7 +247,7 @@ namespace AElf.Contracts.DPoS.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToBool();
         }
         
