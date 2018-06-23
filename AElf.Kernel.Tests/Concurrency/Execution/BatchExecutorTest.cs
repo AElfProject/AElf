@@ -31,8 +31,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         [Fact]
         public void TwoJobBatchExecutionTest()
         {
-            TwoJobBatchExecutionTestWithChildType(BatchExecutor.ChildType.Group);
             TwoJobBatchExecutionTestWithChildType(BatchExecutor.ChildType.Job);
+            TwoJobBatchExecutionTestWithChildType(BatchExecutor.ChildType.Group);
         }
 
         public void TwoJobBatchExecutionTestWithChildType(BatchExecutor.ChildType childType)
@@ -58,7 +58,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 _mock.GetTransferTxn1(addresses[1], addresses[2], 9),
                 _mock.GetTransferTxn1(addresses[3], addresses[4], 8)
             };
-            var txsHashes = txs.Select(y => y.GetHash()).ToList();
+           var txsHashes = txs.Select(y => y.GetHash()).ToList();
 
             var finalBalances = new List<ulong>
             {

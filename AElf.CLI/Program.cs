@@ -29,6 +29,7 @@ namespace AElf.CLI
             program.RegisterCommand(new GetIncrementCmd());
             program.RegisterCommand(new SendTransactionCmd());
             program.RegisterCommand(new LoadContractAbiCmd());
+            program.RegisterCommand(new GetTxResultCmd());
             
             // Start the CLI
             program.StartRepl();

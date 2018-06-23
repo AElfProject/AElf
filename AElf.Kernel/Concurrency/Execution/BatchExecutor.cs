@@ -63,7 +63,7 @@ namespace AElf.Kernel.Concurrency.Execution
 	                    {
 		                    _groupingException = null;
 		                    _grouper = new Grouper(_servicePack.ResourceDetectionService);
-		                    _grouped = _grouper.Process(_transactions);
+		                    _grouped = _grouper.SimpleProcessWithCoreCount(4, _chainId, _transactions); //4 is core count, for test it's constant, neet to somehow accquire this core count of the BP willing to give
 		                    // TODO: Report and/or log grouping outcomes
 		                    CreateChildren();
 		                    _state = State.ReadyToRun;

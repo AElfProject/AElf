@@ -44,14 +44,6 @@ namespace AElf.Kernel
         
         public byte[] GetSignatureData()
         {
-            /*var rawBlock = new BlockHeader
-            {
-                ChainId = ChainId.Clone(),
-                Index = Index,
-                PreviousBlockHash = PreviousBlockHash.Clone(),
-                Time = Time.Clone()
-            };*/
-            
             var rawBlock = new BlockHeader
             {
                 ChainId = ChainId.Clone(),

@@ -50,7 +50,7 @@ namespace AElf.Kernel.Managers
         public async Task<Block> GetBlockAsync(Hash blockHash)
         {
             var header = await _blockHeaderStore.GetAsync(blockHash);
-            var body = await _blockBodyStore.GetAsync(header.MerkleTreeRootOfTransactions);
+            var body = await _blockBodyStore.GetAsync(header.GetHash().CalculateHashWith(header.MerkleTreeRootOfTransactions));
             return new Block
             {
                 Header = header,

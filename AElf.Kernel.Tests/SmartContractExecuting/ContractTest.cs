@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
@@ -38,15 +39,16 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         private ITransactionManager _transactionManager;
         private ISmartContractManager _smartContractManager;
         private ISmartContractService _smartContractService;
+        private IFunctionMetadataService _functionMetadataService;
 
-        private ISmartContractRunnerFactory _smartContractRunnerFactory = new SmartContractRunnerFactory();
+        private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
         private Hash ChainId { get; } = Hash.Generate();
 
         public ContractTest(IWorldStateManager worldStateManager,
             IChainCreationService chainCreationService, IBlockManager blockManager,
             ITransactionManager transactionManager, ISmartContractManager smartContractManager,
-            IChainContextService chainContextService)
+            IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
             _worldStateManager = worldStateManager;
             _chainCreationService = chainCreationService;
@@ -54,9 +56,9 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             _transactionManager = transactionManager;
             _smartContractManager = smartContractManager;
             _chainContextService = chainContextService;
-            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
-            _smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
+            _functionMetadataService = functionMetadataService;
+            _smartContractRunnerFactory = smartContractRunnerFactory;
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager, _functionMetadataService);
         }
 
         public byte[] SmartContractZeroCode
@@ -110,12 +112,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var code = ExampleContractCode;
 
-            var regExample = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = code.CalculateHash()
-            };
+            
 
             var contractAddressZero = new Hash(ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
 
@@ -125,7 +122,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(regExample))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code))
             };
 
             var txnCtxt = new TransactionContext()
@@ -138,6 +135,12 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var address = txnCtxt.Trace.RetVal.DeserializeToPbMessage<Hash>();
 
+            var regExample = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(code),
+                ContractHash = code.CalculateHash()
+            };
             var copy = await _smartContractManager.GetAsync(address);
 
             Assert.Equal(regExample, copy);
@@ -174,7 +177,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(regExample))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code))
             };
 
             var txnCtxt = new TransactionContext()

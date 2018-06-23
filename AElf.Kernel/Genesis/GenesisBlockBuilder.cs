@@ -22,7 +22,8 @@ namespace AElf.Kernel
                     ChainId = chainId,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),
                     MerkleTreeRootOfWorldState = Hash.Default
-                }
+                },
+                Body = new BlockBody()
             };
 
             // Genesis block is empty

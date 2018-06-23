@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Extensions;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
@@ -17,10 +18,16 @@ namespace AElf.Runtime.CSharp.Tests
 {
     public class TestContract : CSharpSmartContract
     {
+        [SmartContractFieldData("${this}.Balances", DataAccessMode.AccountSpecific)]
         public MapToUInt64<Hash> Balances = new MapToUInt64<Hash>("Balances");
+        
+        [SmartContractFieldData("${this}.TransactionStartTimes", DataAccessMode.AccountSpecific)]
         public MapToString<Hash> TransactionStartTimes = new MapToString<Hash>("TransactionStartTimes");
+        
+        [SmartContractFieldData("${this}.TransactionEndTimes", DataAccessMode.AccountSpecific)]
         public MapToString<Hash> TransactionEndTimes = new MapToString<Hash>("TransactionEndTimes");
 
+        [SmartContractFunction("${this}.InitializeAsync", new string[]{}, new []{"${this}.Balances"})]
         public async Task<bool> InitializeAsync(Hash account, ulong qty)
         {
             await Balances.SetValueAsync(account, qty);
@@ -35,6 +42,7 @@ namespace AElf.Runtime.CSharp.Tests
             await Task.CompletedTask;
         }
 
+        [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances", "${this}.TransactionStartTimes", "${this}.TransactionEndTimes"})]
         public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
         {
             // This is for testing batched transaction sequence
@@ -54,17 +62,20 @@ namespace AElf.Runtime.CSharp.Tests
             return true;
         }
 
+        [SmartContractFunction("${this}.GetBalance", new string[]{}, new []{"${this}.Balances"})]
         public async Task<ulong> GetBalance(Hash account)
         {
             return await Balances.GetValueAsync(account);
         }
 
+        [SmartContractFunction("${this}.GetTransactionStartTime", new string[]{}, new []{"${this}.TransactionStartTimes"})]
         public async Task<string> GetTransactionStartTime(Hash transactionHash)
         {
             var startTime = await TransactionStartTimes.GetValueAsync(transactionHash);
             return startTime;
         }
 
+        [SmartContractFunction("${this}.GetTransactionEndTime", new string[]{}, new []{"${this}.TransactionEndTimes"})]
         public async Task<string> GetTransactionEndTime(Hash transactionHash)
         {
             var endTime = await TransactionEndTimes.GetValueAsync(transactionHash);

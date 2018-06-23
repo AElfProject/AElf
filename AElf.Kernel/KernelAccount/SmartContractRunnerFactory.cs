@@ -13,7 +13,7 @@ namespace AElf.Kernel.KernelAccount
                 return runner;
             }
 
-            throw new InvalidParameterException($"The runnder for category {category} is not registered.");
+            throw new InvalidParameterException($"The runner for category {category} is not registered.");
         }
 
         public void AddRunner(int category, ISmartContractRunner runner)

@@ -28,6 +28,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 using NLog.Common;
+using ServiceStack;
 
 namespace AElf.Kernel.Node
 {
@@ -51,7 +52,7 @@ namespace AElf.Kernel.Node
         private readonly IChainCreationService _chainCreationService;
         private readonly IWorldStateManager _worldStateManager;
         private readonly ISmartContractService _smartContractService;
-        
+        private readonly ITransactionResultService _transactionResultService;
 
         private readonly IBlockExecutor _blockExecutor;
 
@@ -60,13 +61,15 @@ namespace AElf.Kernel.Node
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
             IChainCreationService chainCreationService, IWorldStateManager worldStateManager, 
-            IChainManager chainManager, ISmartContractService smartContractService, ActorSystem sys, IBlockManager blockManager)
+            IChainManager chainManager, ISmartContractService smartContractService, ActorSystem sys, 
+            ITransactionResultService transactionResultService, IBlockManager blockManager)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
             _worldStateManager = worldStateManager;
             _smartContractService = smartContractService;
             _sys = sys;
+            _transactionResultService = transactionResultService;
             _blockManager = blockManager;
             _poolService = poolService;
             _protocolDirector = protocolDirector;
@@ -162,35 +165,7 @@ namespace AElf.Kernel.Node
                 
                 _miner.Start(nodeKeyPair);
                 
-                /*ECKeyPair keyPair = new KeyPairGenerator().Generate();
-                ECSigner signer = new ECSigner();
-                var txPrint = new Transaction
-                {
-                    From = keyPair.GetAddress(),
-                    To = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount(),
-                    IncrementId = 0,
-                    MethodName = "Print",
-                    Params = ByteString.CopyFrom(new Parameters()
-                    {
-                        Params = {
-                            new Param
-                            {
-                                StrVal = "aElf"
-                            }
-                        }
-                    }.ToByteArray()),
-                
-                    Fee = TxPoolConfig.Default.FeeThreshold + 1
-                };
-            
-                Hash hash = txPrint.GetHash();
-
-                ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
-                txPrint.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-                txPrint.R = ByteString.CopyFrom(signature.R); 
-                txPrint.S = ByteString.CopyFrom(signature.S);
-
-                var res = BroadcastTransaction(txPrint).Result;*/
+                DeployTxDemo();
                 
                 Mine();
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
@@ -199,10 +174,57 @@ namespace AElf.Kernel.Node
             
             _logger.Log(LogLevel.Debug, "AElf node started.");
             
-            
-
             return true;
         }
+
+
+        private ITransaction DeployTxDemo()
+        {
+            var ContractName = "AElf.Kernel.Tests.TestContract";
+            var contractZeroDllPath = $"../{ContractName}/bin/Debug/netstandard2.0/{ContractName}.dll";
+            
+            byte[] code = null;
+            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(contractZeroDllPath)))
+            {
+                code = file.ReadFully();
+            }
+            //System.Diagnostics.Debug.WriteLine(ByteString.CopyFrom(code).ToBase64());
+            ECKeyPair keyPair = new KeyPairGenerator().Generate();
+            ECSigner signer = new ECSigner();
+            var txDep = new Transaction
+            {
+                From = keyPair.GetAddress(),
+                To = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount(),
+                IncrementId = 0,
+                MethodName = "DeploySmartContract",
+                Params = ByteString.CopyFrom(new Parameters()
+                {
+                    Params = {
+                        new Param
+                        {
+                            IntVal = 0
+                        }, 
+                        new Param
+                        {
+                            BytesVal = ByteString.CopyFrom(code)
+                        }
+                    }
+                }.ToByteArray()),
+                
+                Fee = TxPoolConfig.Default.FeeThreshold + 1
+            };
+            
+            Hash hash = txDep.GetHash();
+
+            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
+            txDep.R = ByteString.CopyFrom(signature.R); 
+            txDep.S = ByteString.CopyFrom(signature.S);
+
+            var res = BroadcastTransaction(txDep).Result;
+            return txDep;
+        }
+        
         
         
         private async Task<bool> InitialDebugSync(string initFileName)
@@ -424,41 +446,37 @@ namespace AElf.Kernel.Node
         {
             Task.Run(async () =>
             {
-                /*try
+                var tx = DeployTxDemo();
+                var b = await _miner.Mine();
+                var result = await _transactionResultService.GetResultAsync(tx.GetHash());
+                //Console.WriteLine(result.RetVal.d);
+                _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", b.GetHash(),
+                    b.Body.Transactions.Count);
+                while (true)
                 {
-                    await Task.Delay(5000); // secs
-                    
-                    var block = await _miner.Mine();
-                    
-                    _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", block.GetHash(),
-                        block.Body.Transactions.Count);
-                    
-                    await BroadcastBlock(block);
-                    
-                }
-                catch (Exception e)
-                {
-                    _logger.Log(LogLevel.Debug, e);
-                }*/
-                
-                try
-                {
-                    while(true)
+                    await Task.Delay(5000);
+
+                    try
                     {
-                        await Task.Delay(10000); // secs
-                        
-                        var block = await _miner.Mine();
-                        
-                        _logger.Log(LogLevel.Debug, "Genereated block: {0}, with {1} transactions", block.GetHash(), block.Body.Transactions.Count);
-                        
-                        await BroadcastBlock(block);
+                        while (true)
+                        {
+                            await Task.Delay(10000); // secs
+
+                            var block = await _miner.Mine();
+
+                            _logger.Log(LogLevel.Debug, "Genereated block: {0}, with {1} transactions", block.GetHash(),
+                                block.Body.Transactions.Count);
+
+                            await BroadcastBlock(block);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Log(LogLevel.Debug, e);
                     }
                 }
-                catch (Exception e)
-                {
-                    _logger.Log(LogLevel.Debug, e);
-                }
             });
+
         }
 
         public async Task<bool> BroadcastBlock(IBlock block)
@@ -520,5 +538,17 @@ namespace AElf.Kernel.Node
         {
             return await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, (ulong)height);
         }
+
+        /// <summary>
+        /// return transaction execution result
+        /// </summary>
+        /// <param name="txHash"></param>
+        /// <returns></returns>
+        public async Task<TransactionResult> GetTransactionResult(Hash txHash)
+        {
+            var res = await _transactionResultService.GetResultAsync(txHash);
+            return res;
+        }
+        
     }
 }
