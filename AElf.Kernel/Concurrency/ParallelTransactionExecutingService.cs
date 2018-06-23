@@ -9,54 +9,74 @@ using AElf.Kernel;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Scheduling;
+using Org.BouncyCastle.Crypto.Modes;
 
 namespace AElf.Kernel.Concurrency
 {
-	public class ParallelTransactionExecutingService : IParallelTransactionExecutingService
-	{
-		private readonly IGrouper _grouper;
-		private readonly IActorRef _requestor;
+    public class ParallelTransactionExecutingService : IParallelTransactionExecutingService
+    {
+        private readonly IGrouper _grouper;
+        private readonly IActorRef _requestor;
 
-		public ParallelTransactionExecutingService(IActorRef requestor, IGrouper grouper)
-		{
-			_requestor = requestor;
-			_grouper = grouper;
-		}
+        public ParallelTransactionExecutingService(IActorRef requestor, IGrouper grouper)
+        {
+            _requestor = requestor;
+            _grouper = grouper;
+        }
 
-		public async Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId)
-		{
-			List<TaskCompletionSource<List<TransactionTrace>>> taskCompletionSources= new List<TaskCompletionSource<List<TransactionTrace>>>();
-				
-			// TODO: Flexible timeout setting
-			using (new Timer(
-				CancelExecutions,new object(), TimeSpan.FromMilliseconds(3500),
-				TimeSpan.FromMilliseconds(-1)
-			))
-			{
-				foreach (var group in _grouper.Process(transactions))
-				{
-					var tcs = new TaskCompletionSource<List<TransactionTrace>>();
-					_requestor.Tell(new LocalExecuteTransactionsMessage(chainId, group, tcs));
-					taskCompletionSources.Add(tcs);
-				}
-			}
-			
-//			foreach (var tcs in taskCompletionSources)
-//			{
-//				tcs.Task.Wait();
-//			}
-//			
-			var results = await Task.WhenAll(taskCompletionSources.Select(x=>x.Task).ToArray());
+        public async Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId)
+        {
+            // TODO: Move it to config
+            int timeoutMilliSeconds = 3500;
+            var taskCompletionSources = new List<TaskCompletionSource<List<TransactionTrace>>>();
 
-			return results.SelectMany(x => x).ToList();
-//			return await Task.FromResult( taskCompletionSources.Select(x=>x.Task.Result).SelectMany(x=>x).ToList());
-		}
+            var cts = new CancellationTokenSource();
 
+            cts.CancelAfter(timeoutMilliSeconds);
 
-		private void CancelExecutions(object stateInfo)
-		{
-			_requestor.Tell(JobExecutionCancelMessage.Instance);
-		}
-		// TODO: Maybe we need a finalizer
-	}
+            using (new Timer(
+                CancelExecutions, cts, TimeSpan.FromMilliseconds(timeoutMilliSeconds),
+                TimeSpan.FromMilliseconds(-1)
+            ))
+            {
+                var tasks = _grouper.Process(transactions).Select(
+                    txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, cts.Token), cts.Token)
+                ).ToArray();
+
+                var results = await Task.WhenAll(tasks);
+
+                return results.SelectMany(x => x).ToList();
+            }
+        }
+
+        private async Task<List<TransactionTrace>> AttemptToSendExecutionRequest(Hash chainId,
+            List<ITransaction> transactions, CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                var tcs = new TaskCompletionSource<List<TransactionTrace>>();
+                _requestor.Tell(new LocalExecuteTransactionsMessage(chainId, transactions, tcs));
+                var traces = await tcs.Task;
+   
+                if (traces.Count > 0)
+                {
+                    return traces;
+                }
+
+                Thread.Sleep(1);
+            }
+
+            // Cancelled
+            return transactions.Select(tx => new TransactionTrace()
+            {
+                TransactionId = tx.GetHash(),
+                StdErr = "Execution Cancelled2"
+            }).ToList();
+        }
+
+        private void CancelExecutions(object stateInfo)
+        {
+            _requestor.Tell(JobExecutionCancelMessage.Instance);
+        }
+    }
 }
