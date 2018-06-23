@@ -35,7 +35,7 @@ namespace AElf.Kernel.BlockValidationFilters
                 return ValidationError.OrphanBlock;
             
             // can be added to chain
-            if (currentChainHeight != index && currentPreviousBlockHash.Equals(previousBlockHash))
+            if (currentChainHeight == index && currentPreviousBlockHash.Equals(previousBlockHash))
                 return ValidationError.Success;
             
             // can not be added to chain with wrong prvious hash or wrong index

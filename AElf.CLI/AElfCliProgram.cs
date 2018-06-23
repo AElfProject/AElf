@@ -10,6 +10,7 @@ using AElf.CLI.Parsing;
 using AElf.CLI.RPC;
 using AElf.CLI.Screen;
 using AElf.CLI.Wallet;
+using AElf.CLI.Wallet.Exceptions;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Asn1.Misc;
 using ProtoBuf;
@@ -85,22 +86,36 @@ namespace AElf.CLI
                 {
                     if (def is SendTransactionCmd c)
                     {
-                        JObject j = JObject.Parse(parsedCmd.Args.ElementAt(0));
-                        Transaction tx = _accountManager.SignTransaction(j);
+                        try
+                        {
+                            JObject j = JObject.Parse(parsedCmd.Args.ElementAt(0));
+                            Transaction tx = _accountManager.SignTransaction(j);
                         
-                        MemoryStream ms = new MemoryStream();
-                        Serializer.Serialize(ms, tx);
+                            MemoryStream ms = new MemoryStream();
+                            Serializer.Serialize(ms, tx);
                         
-                        byte[] b = ms.ToArray();
+                            byte[] b = ms.ToArray();
 
-                        string payload = Convert.ToBase64String(b);
+                            string payload = Convert.ToBase64String(b);
                         
-                        var reqParams = new JObject { ["rawtx"] = payload };
-                        var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);
+                            var reqParams = new JObject { ["rawtx"] = payload };
+                            var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);
                         
-                        // todo send raw tx
-                        HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
-                        string resp = reqhttp.DoRequest(req.ToString());
+                            // todo send raw tx
+                            HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
+                            string resp = reqhttp.DoRequest(req.ToString());
+                        }
+                        catch (Exception e) 
+                        {
+                            if (e is AccountLockedException acce)
+                            {
+                                _screenManager.PrintLine(acce.Message);
+                            }
+                            else
+                            {
+                                _screenManager.PrintLine("Error sending transaction.");
+                            }
+                        }
                     }
                     else if (def is BroadcastBlockCmd bc)
                     {
