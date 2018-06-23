@@ -24,6 +24,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="TransactionTests.cs" />
+    <Compile Remove="Concurrency\Execution\ChainExecutorTest.cs" />
+    <Compile Remove="Concurrency\Execution\ChainRequestorTest.cs" />
+    <Compile Remove="Concurrency\Execution\GeneralExecutorTest.cs" />
+    <Compile Remove="Concurrency\Execution\GeneralRequestorTest.cs" />
+    <Compile Remove="Miner\MinerLifetime.cs" />
+    <Compile Remove="Miner\Synchronizer.cs" />
+    <Compile Remove="Concurrency\Execution\JobExecutorTest.cs" />
+    <Compile Remove="Concurrency\Execution\GroupExecutorTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Concurrency\" />
