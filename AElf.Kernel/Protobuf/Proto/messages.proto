@@ -53,6 +53,7 @@ message TransactionResult{
     Hash TransactionId = 1;
     Status status = 2;
     repeated LogEvent Logs = 3;
+    bytes RetVal = 4;
 }
 
 enum Status {
