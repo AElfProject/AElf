@@ -16,14 +16,10 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
     public class WorkerTest : TestKitBase
     {
         private MockSetup _mock;
-        private ActorSystem sys = ActorSystem.Create("test");
-        private IActorRef _worker;
 
         public WorkerTest(MockSetup mock) : base(new XunitAssertions())
         {
             _mock = mock;
-            _worker = sys.ActorOf(Props.Create<Worker>(), "worker1");
-            _worker.Tell(new LocalSerivcePack(_mock.ServicePack));
         }
 
         [Fact]
@@ -38,7 +34,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             // Normal transfer
             var tx1 = _mock.GetTransferTxn1(from, to, 10);
 
-            _worker.Tell(new JobExecutionRequest(0, _mock.ChainId1, new List<ITransaction>() {tx1}, TestActor,
+            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, new List<ITransaction>() {tx1}, TestActor,
                 TestActor));
 
             // Start processing
@@ -61,7 +57,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Assert.Equal((ulong) 10, _mock.GetBalance1(to));
 
             // Query status
-            _worker.Tell(new JobExecutionStatusQuery(0));
+            _mock.Worker1.Tell(new JobExecutionStatusQuery(0));
 
             // Invalid request id as it has already completed
             var js3 = ExpectMsg<JobExecutionStatus>();
@@ -91,7 +87,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 tx2
             };
 
-            _worker.Tell(new JobExecutionRequest(0, _mock.ChainId1, job1, TestActor,
+            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, job1, TestActor,
                 TestActor));
 
             // Start processing
@@ -131,11 +127,11 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 _mock.GetNoActionTxn1()
             };
 
-            _worker.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor,
+            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor,
                 TestActor));
 
             Thread.Sleep(1500);
-            _worker.Tell(JobExecutionCancelMessage.Instance);
+            _mock.Worker1.Tell(JobExecutionCancelMessage.Instance);
 
             var traces = new List<TransactionTrace>()
             {

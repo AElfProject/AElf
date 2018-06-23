@@ -17,19 +17,10 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
     public class TrackedRouterTest : TestKitBase
     {
         private MockSetup _mock;
-        private ActorSystem sys = ActorSystem.Create("test");
-        private IActorRef _router;
 
         public TrackedRouterTest(MockSetup mock) : base(new XunitAssertions())
         {
             _mock = mock;
-
-            var workers = new[] {"/user/worker1", "/user/worker2"};
-            var worker1 = sys.ActorOf(Props.Create<Worker>(), "worker1");
-            var worker2 = sys.ActorOf(Props.Create<Worker>(), "worker2");
-            _router = sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
-            worker1.Tell(new LocalSerivcePack(_mock.ServicePack));
-            worker2.Tell(new LocalSerivcePack(_mock.ServicePack));
         }
 
         [Fact]
@@ -38,9 +29,9 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             // As there are only two workers, the third job will fail
             var job = new List<ITransaction>() {_mock.GetSleepTxn1(1000)};
 
-            _router.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor, _router));
-            _router.Tell(new JobExecutionRequest(1, _mock.ChainId1, job, TestActor, _router));
-            _router.Tell(new JobExecutionRequest(2, _mock.ChainId1, job, TestActor, _router));
+            _mock.Router.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor, _mock.Router));
+            _mock.Router.Tell(new JobExecutionRequest(1, _mock.ChainId1, job, TestActor, _mock.Router));
+            _mock.Router.Tell(new JobExecutionRequest(2, _mock.ChainId1, job, TestActor, _mock.Router));
 
             // The third job fails
             FishForMessage(
@@ -70,8 +61,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             // As there are only two workers, the third job will fail
             var job = new List<ITransaction>() {_mock.GetSleepTxn1(1000)};
 
-            _router.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor, _router));
-            _router.Tell(new JobExecutionRequest(1, _mock.ChainId1, job, TestActor, _router));
+            _mock.Router.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor, _mock.Router));
+            _mock.Router.Tell(new JobExecutionRequest(1, _mock.ChainId1, job, TestActor, _mock.Router));
             
             FishForMessage(
                 (msg) =>
@@ -85,7 +76,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                     js.Status == JobExecutionStatus.RequestStatus.Completed
             );
 
-            _router.Tell(new JobExecutionRequest(2, _mock.ChainId1, job, TestActor, _router));
+            _mock.Router.Tell(new JobExecutionRequest(2, _mock.ChainId1, job, TestActor, _mock.Router));
 
             FishForMessage(
                 (msg) =>

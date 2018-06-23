@@ -19,10 +19,12 @@ using ServiceStack;
 using Xunit;
 using AElf.Runtime.CSharp;
 using AElf.Kernel.Concurrency.Execution;
+using AElf.Kernel.Concurrency.Execution.Messages;
 using Xunit.Frameworks.Autofac;
 using Path = AElf.Kernel.Path;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Types.CSharp;
+using Akka.Actor;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
@@ -37,6 +39,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var n = Interlocked.Increment(ref _incrementId);
             return (ulong) n;
         }
+
+        public ActorSystem Sys { get; } = ActorSystem.Create("test");
+        public IActorRef Router { get;  }
+        public IActorRef Worker1 { get; }
+        public IActorRef Worker2 { get; }
+        public IActorRef Requestor { get; }
 
         public Hash ChainId1 { get; } = Hash.Generate();
         public Hash ChainId2 { get; } = Hash.Generate();
@@ -82,6 +90,14 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = new NewMockResourceUsageDetectionService()
             };
+            
+            var workers = new[] {"/user/worker1", "/user/worker2"};
+            Worker1 = Sys.ActorOf(Props.Create<Worker>(), "worker1");
+            Worker2 = Sys.ActorOf(Props.Create<Worker>(), "worker2");
+            Router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
+            Worker1.Tell(new LocalSerivcePack(ServicePack));
+            Worker2.Tell(new LocalSerivcePack(ServicePack));
+            Requestor = Sys.ActorOf(AElf.Kernel.Concurrency.Execution.Requestor.Props(Router));
         }
 
         private async Task Init()
@@ -197,7 +213,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             };
         }
 
-        
+
         private Transaction GetTransferTxn(Hash contractAddress, Hash from, Hash to, ulong qty)
         {
             // TODO: Test with IncrementId
@@ -300,6 +316,5 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
         }
-
     }
 }
