@@ -20,6 +20,7 @@ using Xunit;
 using AElf.Runtime.CSharp;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
+using AElf.Kernel.Concurrency.Metadata;
 using Xunit.Frameworks.Autofac;
 using Path = AElf.Kernel.Path;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
@@ -67,22 +68,23 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private IWorldStateManager _worldStateManager;
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
+        private IFunctionMetadataService _functionMetadataService;
 
-        private ISmartContractRunnerFactory _smartContractRunnerFactory = new SmartContractRunnerFactory();
+        private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
         public MockSetup(IWorldStateManager worldStateManager, IChainCreationService chainCreationService,
-            IBlockManager blockManager, SmartContractStore smartContractStore, IChainContextService chainContextService)
+            IBlockManager blockManager, SmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
             _worldStateManager = worldStateManager;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             ChainContextService = chainContextService;
+            _functionMetadataService = functionMetadataService;
+            _smartContractRunnerFactory = smartContractRunnerFactory;
             SmartContractManager = new SmartContractManager(smartContractStore);
-            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
-            _smartContractRunnerFactory.AddRunner(0, runner);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateManager);
+                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateManager, functionMetadataService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
             {
@@ -99,13 +101,21 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Worker2.Tell(new LocalSerivcePack(ServicePack));
             Requestor = Sys.ActorOf(AElf.Kernel.Concurrency.Execution.Requestor.Props(Router));
         }
+        
+        public byte[] SmartContractZeroCode
+        {
+            get
+            {
+                return ContractCodes.TestContractZeroCode;
+            }
+        }
 
         private async Task Init()
         {
             var reg = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFrom(new byte[] { }),
+                ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.Zero
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
@@ -130,8 +140,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 ContractHash = new Hash(ExampleContractCode)
             };
 
-            await SmartContractService.DeployContractAsync(SampleContractAddress1, reg);
-            await SmartContractService.DeployContractAsync(SampleContractAddress2, reg);
+            await SmartContractService.DeployContractAsync(ChainId1, SampleContractAddress1, reg);
+            await SmartContractService.DeployContractAsync(ChainId2, SampleContractAddress2, reg);
             Executive1 = await SmartContractService.GetExecutiveAsync(SampleContractAddress1, ChainId1);
             Executive2 = await SmartContractService.GetExecutiveAsync(SampleContractAddress2, ChainId2);
         }

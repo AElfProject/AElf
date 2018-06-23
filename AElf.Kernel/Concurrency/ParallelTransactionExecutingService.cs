@@ -34,7 +34,7 @@ namespace AElf.Kernel.Concurrency
                 TimeSpan.FromMilliseconds(-1)
             ))
             {
-                var tasks = _grouper.Process(transactions).Select(
+                var tasks = _grouper.Process(chainId, transactions).Select(
                     txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, cts.Token), cts.Token)
                 ).ToArray();
 

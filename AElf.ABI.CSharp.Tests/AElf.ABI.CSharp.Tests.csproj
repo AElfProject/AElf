@@ -4,6 +4,7 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.ABI.CSharp.Tests.TestContract\AElf.ABI.CSharp.Tests.TestContract.csproj" />
     <ProjectReference Include="..\AElf.ABI.CSharp\AElf.ABI.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>

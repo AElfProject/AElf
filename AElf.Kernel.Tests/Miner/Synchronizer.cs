@@ -8,6 +8,7 @@ using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Scheduling;
+using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
@@ -35,16 +36,16 @@ namespace AElf.Kernel.Tests.Miner
     public class Synchronizer : TestKitBase
     {
         private IChainCreationService _chainCreationService;
-        private ActorSystem sys = ActorSystem.Create("test");
         private IChainContextService _chainContextService;
         private IWorldStateManager _worldStateManager;
         private ISmartContractManager _smartContractManager;
+        private IFunctionMetadataService _functionMetadataService;
 
         private ServicePack _servicePack;
         private IActorRef _requestor;
 
         public Synchronizer(IWorldStateManager worldStateManager, ISmartContractStore smartContractStore,
-            IChainCreationService chainCreationService, IChainContextService chainContextService, IChainManager chainManager, IBlockManager blockManager, ILogger logger, ITransactionResultManager transactionResultManager, ITransactionManager transactionManager, IAccountContextService accountContextService) : base(new XunitAssertions())
+            IChainCreationService chainCreationService, IChainContextService chainContextService, IChainManager chainManager, IBlockManager blockManager, ILogger logger, ITransactionResultManager transactionResultManager, ITransactionManager transactionManager, IAccountContextService accountContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory) : base(new XunitAssertions())
         {
             _chainCreationService = chainCreationService;
             _chainContextService = chainContextService;
@@ -54,6 +55,8 @@ namespace AElf.Kernel.Tests.Miner
             _transactionResultManager = transactionResultManager;
             _transactionManager = transactionManager;
             _accountContextService = accountContextService;
+            _functionMetadataService = functionMetadataService;
+            _smartContractRunnerFactory = smartContractRunnerFactory;
 
             _worldStateManager = worldStateManager;
             _smartContractManager = new SmartContractManager(smartContractStore);
@@ -113,10 +116,11 @@ namespace AElf.Kernel.Tests.Miner
                     ChainId = chainId,
                     Index = index,
                     PreviousBlockHash = previousHash,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                    Time = Timestamp.FromDateTime(DateTime.UtcNow),
+                    MerkleTreeRootOfWorldState = Hash.Default
                 }
             };
-            
+            block.FillTxsMerkleTreeRootInHeader();
             return block;
         }
         
@@ -188,7 +192,7 @@ namespace AElf.Kernel.Tests.Miner
         private readonly ILogger _logger;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        private ISmartContractRunnerFactory _smartContractRunnerFactory = new SmartContractRunnerFactory();
+        private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private ISmartContractService _smartContractService;
         private IActorRef _generalExecutor;
         private IActorRef _serviceRouter;
@@ -217,10 +221,9 @@ namespace AElf.Kernel.Tests.Miner
             }
             
             block.FillTxsMerkleTreeRootInHeader();
-            
-            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
-            _smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, await _worldStateManager.OfChain(chain.Id));
+            block.Body.BlockHeader = block.Header.GetHash();
+
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, await _worldStateManager.OfChain(chain.Id), _functionMetadataService);
 
             IParallelTransactionExecutingService parallelTransactionExecutingService =
                 new ParallelTransactionExecutingService(_requestor,
