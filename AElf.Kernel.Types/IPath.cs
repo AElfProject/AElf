@@ -1,4 +1,6 @@
-﻿namespace AElf.Kernel.Types
+﻿using AElf.Kernel.Types;
+
+namespace AElf.Kernel
 {
     /// <summary>
     /// There exists a Pointer class in System.Reflection namespace,

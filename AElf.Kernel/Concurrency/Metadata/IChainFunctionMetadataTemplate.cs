@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Types;
 using QuickGraph;
 
 namespace AElf.Kernel.Concurrency.Metadata
 {
     
-    public interface IChainFunctionMetadataTemplateService
+    public interface IChainFunctionMetadataTemplate
     {
         /// <summary>
         /// use Map to store the function's metadata
@@ -17,5 +18,7 @@ namespace AElf.Kernel.Concurrency.Metadata
 
         bool TryGetLocalCallingGraph(Dictionary<string, FunctionMetadataTemplate> localFunctionMetadataTemplateMap,
             out AdjacencyGraph<string, Edge<string>> callGraph, out IEnumerable<string> topologicRes);
+        
+        Hash ChainId { get;}
     }
 }

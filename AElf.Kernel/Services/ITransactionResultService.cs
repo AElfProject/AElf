@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
- 
- namespace AElf.Kernel.Services
+using AElf.Kernel.Types;
+
+namespace AElf.Kernel.Services
  {
      public interface ITransactionResultService
      {

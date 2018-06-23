@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel
 {

@@ -7,6 +7,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
+using AElf.Kernel.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;

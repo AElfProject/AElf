@@ -1,7 +1,8 @@
 ﻿using System;
+using AElf.Kernel.Types;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Types
+namespace AElf.Kernel
 {
     /// <summary>
     /// Account.

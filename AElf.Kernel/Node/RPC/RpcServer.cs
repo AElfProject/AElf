@@ -8,6 +8,7 @@ using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Node.RPC.DTO;
 using AElf.Kernel.TxMemPool;
+using AElf.Kernel.Types;
 using AElf.Network.Data;
 using AElf.Node.RPC.DTO;
 using Google.Protobuf;

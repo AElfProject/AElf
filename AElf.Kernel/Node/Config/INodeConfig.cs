@@ -1,4 +1,6 @@
-﻿namespace AElf.Kernel.Node.Config
+﻿using AElf.Kernel.Types;
+
+namespace AElf.Kernel.Node.Config
 {
     public interface INodeConfig
     {

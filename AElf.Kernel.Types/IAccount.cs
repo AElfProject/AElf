@@ -1,4 +1,4 @@
-﻿namespace AElf.Kernel.Types
+﻿namespace AElf.Kernel
 {
     /// <summary>
     /// Every smart contract was an account

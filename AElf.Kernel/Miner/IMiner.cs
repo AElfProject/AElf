@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Miner
 {

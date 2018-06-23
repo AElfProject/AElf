@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Types.Merkle;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Types
+namespace AElf.Kernel
 {
     public class WorldState : IWorldState
     {

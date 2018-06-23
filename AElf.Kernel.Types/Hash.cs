@@ -1,11 +1,12 @@
 using System;
 using System.Linq;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Types;
 using AElf.Kernel.Types.Extensions;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Types
+namespace AElf.Kernel
 {
     public partial class Hash : IHash
     {

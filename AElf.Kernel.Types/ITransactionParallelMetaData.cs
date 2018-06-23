@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace AElf.Kernel.Types
+namespace AElf.Kernel
 {
     public interface ITransactionParallelMetaData
     {

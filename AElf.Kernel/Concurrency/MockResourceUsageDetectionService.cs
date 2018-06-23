@@ -1,12 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using AElf.Kernel.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Concurrency
 {
     public class MockResourceUsageDetectionService : IResourceUsageDetectionService
     {
-        public IEnumerable<Hash> GetResources(ITransaction transaction)
+        public IEnumerable<string> GetResources(Hash chainId, ITransaction transaction)
         {
             //var hashes = Parameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
             List<Hash> hashes = new List<Hash>();
@@ -37,7 +39,7 @@ namespace AElf.Kernel.Concurrency
 
             hashes.Add(transaction.From);
 
-            return hashes;
+            return hashes.Select(a=>a.Value.ToBase64());
         }
     }
 }

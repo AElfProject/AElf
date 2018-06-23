@@ -9,7 +9,7 @@ using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
-namespace AElf.Kernel.Types {
+namespace AElf.Kernel {
 
   /// <summary>Holder for reflection information generated from messages.proto</summary>
   public static partial class MessagesReflection {
@@ -100,38 +100,37 @@ namespace AElf.Kernel.Types {
             "YXR1cxIOCgpOb3RFeGlzdGVkEAASCwoHUGVuZGluZxABEgoKBkZhaWxlZBAC",
             "EgkKBU1pbmVkEAMqXgoORGF0YUFjY2Vzc01vZGUSGgoWUmVhZE9ubHlBY2Nv",
             "dW50U2hhcmluZxAAEhsKF1JlYWRXcml0ZUFjY291bnRTaGFyaW5nEAESEwoP",
-            "QWNjb3VudFNwZWNpZmljEAJCFKoCEUFFbGYuS2VybmVsLlR5cGVzYgZwcm90",
-            "bzM="));
+            "QWNjb3VudFNwZWNpZmljEAJCDqoCC0FFbGYuS2VybmVsYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.AnyReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Types.Status), typeof(global::AElf.Kernel.Types.DataAccessMode), }, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.Transaction), global::AElf.Kernel.Types.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params", "Fee", "R", "S", "P" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.StateValueChange), global::AElf.Kernel.Types.StateValueChange.Parser, new[]{ "Path", "BeforeValue", "AfterValue" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.TransactionTrace), global::AElf.Kernel.Types.TransactionTrace.Parser, new[]{ "TransactionId", "RetVal", "StdOut", "StdErr", "Logs", "InlineTraces", "ValueChanges", "Elapsed" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.EventField), global::AElf.Kernel.Types.EventField.Parser, new[]{ "Name", "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.LogEvent), global::AElf.Kernel.Types.LogEvent.Parser, new[]{ "Address", "Topic", "Details" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.TransactionResult), global::AElf.Kernel.Types.TransactionResult.Parser, new[]{ "TransactionId", "Status", "Logs", "RetVal" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.Hash), global::AElf.Kernel.Types.Hash.Parser, new[]{ "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.BlockHeader), global::AElf.Kernel.Types.BlockHeader.Parser, new[]{ "Version", "PreviousBlockHash", "MerkleTreeRootOfTransactions", "MerkleTreeRootOfWorldState", "Index", "R", "S", "P", "Time", "ChainId" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.BlockBody), global::AElf.Kernel.Types.BlockBody.Parser, new[]{ "BlockHeader", "Transactions" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.Block), global::AElf.Kernel.Types.Block.Parser, new[]{ "Header", "Body", "FullTransactions" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.SmartContractRegistration), global::AElf.Kernel.Types.SmartContractRegistration.Parser, new[]{ "Category", "ContractHash", "ContractBytes" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.SmartContractDeployment), global::AElf.Kernel.Types.SmartContractDeployment.Parser, new[]{ "ContractHash", "Caller", "ConstructParams", "IncrementId" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.Parameters), global::AElf.Kernel.Types.Parameters.Parser, new[]{ "Params" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.Param), global::AElf.Kernel.Types.Param.Parser, new[]{ "IntVal", "UintVal", "LongVal", "UlongVal", "BoolVal", "BytesVal", "StrVal", "DVal", "HashVal", "RegisterVal", "DeploymentVal" }, new[]{ "Data" }, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.SmartContractInvokeContext), global::AElf.Kernel.Types.SmartContractInvokeContext.Parser, new[]{ "Caller", "IncrementId", "MethodName", "Params" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.Change), global::AElf.Kernel.Types.Change.Parser, new[]{ "Befores", "After", "TransactionIds", "LatestChangedBlockHash" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.PairHashChange), global::AElf.Kernel.Types.PairHashChange.Parser, new[]{ "Key", "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.ChangesDict), global::AElf.Kernel.Types.ChangesDict.Parser, new[]{ "Dict" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.Chain), global::AElf.Kernel.Types.Chain.Parser, new[]{ "Id", "GenesisBlockHash" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.SerializeContractMetadataTemplateMap), global::AElf.Kernel.Types.SerializeContractMetadataTemplateMap.Parser, new[]{ "MetadataTemplateMapForContract" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.SerializeFunctionMetadataTemplateMap), global::AElf.Kernel.Types.SerializeFunctionMetadataTemplateMap.Parser, new[]{ "TemplateMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.FunctionMetadataTemplate), global::AElf.Kernel.Types.FunctionMetadataTemplate.Parser, new[]{ "SerializeCallingSet", "SerializeLocalResourceSet" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.Resource), global::AElf.Kernel.Types.Resource.Parser, new[]{ "Name", "DataAccessMode" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.FunctionMetadata), global::AElf.Kernel.Types.FunctionMetadata.Parser, new[]{ "SerializeCallingSet", "SerializeFullResourceSet", "SerializeLocalResourceSet" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.SerializeFunctionMetadataMap), global::AElf.Kernel.Types.SerializeFunctionMetadataMap.Parser, new[]{ "MetadataMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.CallingGraphEdges), global::AElf.Kernel.Types.CallingGraphEdges.Parser, new[]{ "Edges" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Types.GraphEdge), global::AElf.Kernel.Types.GraphEdge.Parser, new[]{ "Source", "Target" }, null, null, null)
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), typeof(global::AElf.Kernel.DataAccessMode), }, new pbr::GeneratedClrTypeInfo[] {
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params", "Fee", "R", "S", "P" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.StateValueChange), global::AElf.Kernel.StateValueChange.Parser, new[]{ "Path", "BeforeValue", "AfterValue" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionTrace), global::AElf.Kernel.TransactionTrace.Parser, new[]{ "TransactionId", "RetVal", "StdOut", "StdErr", "Logs", "InlineTraces", "ValueChanges", "Elapsed" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.EventField), global::AElf.Kernel.EventField.Parser, new[]{ "Name", "Value" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.LogEvent), global::AElf.Kernel.LogEvent.Parser, new[]{ "Address", "Topic", "Details" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionResult), global::AElf.Kernel.TransactionResult.Parser, new[]{ "TransactionId", "Status", "Logs", "RetVal" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Hash), global::AElf.Kernel.Hash.Parser, new[]{ "Value" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PreviousBlockHash", "MerkleTreeRootOfTransactions", "MerkleTreeRootOfWorldState", "Index", "R", "S", "P", "Time", "ChainId" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockBody), global::AElf.Kernel.BlockBody.Parser, new[]{ "BlockHeader", "Transactions" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Block), global::AElf.Kernel.Block.Parser, new[]{ "Header", "Body", "FullTransactions" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractRegistration), global::AElf.Kernel.SmartContractRegistration.Parser, new[]{ "Category", "ContractHash", "ContractBytes" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractDeployment), global::AElf.Kernel.SmartContractDeployment.Parser, new[]{ "ContractHash", "Caller", "ConstructParams", "IncrementId" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Parameters), global::AElf.Kernel.Parameters.Parser, new[]{ "Params" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Param), global::AElf.Kernel.Param.Parser, new[]{ "IntVal", "UintVal", "LongVal", "UlongVal", "BoolVal", "BytesVal", "StrVal", "DVal", "HashVal", "RegisterVal", "DeploymentVal" }, new[]{ "Data" }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SmartContractInvokeContext), global::AElf.Kernel.SmartContractInvokeContext.Parser, new[]{ "Caller", "IncrementId", "MethodName", "Params" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Change), global::AElf.Kernel.Change.Parser, new[]{ "Befores", "After", "TransactionIds", "LatestChangedBlockHash" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.PairHashChange), global::AElf.Kernel.PairHashChange.Parser, new[]{ "Key", "Value" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.ChangesDict), global::AElf.Kernel.ChangesDict.Parser, new[]{ "Dict" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Chain), global::AElf.Kernel.Chain.Parser, new[]{ "Id", "GenesisBlockHash" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SerializeContractMetadataTemplateMap), global::AElf.Kernel.SerializeContractMetadataTemplateMap.Parser, new[]{ "MetadataTemplateMapForContract" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SerializeFunctionMetadataTemplateMap), global::AElf.Kernel.SerializeFunctionMetadataTemplateMap.Parser, new[]{ "TemplateMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.FunctionMetadataTemplate), global::AElf.Kernel.FunctionMetadataTemplate.Parser, new[]{ "SerializeCallingSet", "SerializeLocalResourceSet" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Resource), global::AElf.Kernel.Resource.Parser, new[]{ "Name", "DataAccessMode" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.FunctionMetadata), global::AElf.Kernel.FunctionMetadata.Parser, new[]{ "SerializeCallingSet", "SerializeFullResourceSet", "SerializeLocalResourceSet" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SerializeFunctionMetadataMap), global::AElf.Kernel.SerializeFunctionMetadataMap.Parser, new[]{ "MetadataMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.CallingGraphEdges), global::AElf.Kernel.CallingGraphEdges.Parser, new[]{ "Edges" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.GraphEdge), global::AElf.Kernel.GraphEdge.Parser, new[]{ "Source", "Target" }, null, null, null)
           }));
     }
     #endregion
@@ -162,7 +161,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[0]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -198,9 +197,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "From" field.</summary>
     public const int FromFieldNumber = 1;
-    private global::AElf.Kernel.Types.Hash from_;
+    private global::AElf.Kernel.Hash from_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash From {
+    public global::AElf.Kernel.Hash From {
       get { return from_; }
       set {
         from_ = value;
@@ -209,9 +208,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "To" field.</summary>
     public const int ToFieldNumber = 2;
-    private global::AElf.Kernel.Types.Hash to_;
+    private global::AElf.Kernel.Hash to_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash To {
+    public global::AElf.Kernel.Hash To {
       get { return to_; }
       set {
         to_ = value;
@@ -429,13 +428,13 @@ namespace AElf.Kernel.Types {
       }
       if (other.from_ != null) {
         if (from_ == null) {
-          from_ = new global::AElf.Kernel.Types.Hash();
+          from_ = new global::AElf.Kernel.Hash();
         }
         From.MergeFrom(other.From);
       }
       if (other.to_ != null) {
         if (to_ == null) {
-          to_ = new global::AElf.Kernel.Types.Hash();
+          to_ = new global::AElf.Kernel.Hash();
         }
         To.MergeFrom(other.To);
       }
@@ -473,14 +472,14 @@ namespace AElf.Kernel.Types {
             break;
           case 10: {
             if (from_ == null) {
-              from_ = new global::AElf.Kernel.Types.Hash();
+              from_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(from_);
             break;
           }
           case 18: {
             if (to_ == null) {
-              to_ = new global::AElf.Kernel.Types.Hash();
+              to_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(to_);
             break;
@@ -527,7 +526,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[1]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[1]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -557,9 +556,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Path" field.</summary>
     public const int PathFieldNumber = 1;
-    private global::AElf.Kernel.Types.Hash path_;
+    private global::AElf.Kernel.Hash path_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash Path {
+    public global::AElf.Kernel.Hash Path {
       get { return path_; }
       set {
         path_ = value;
@@ -668,7 +667,7 @@ namespace AElf.Kernel.Types {
       }
       if (other.path_ != null) {
         if (path_ == null) {
-          path_ = new global::AElf.Kernel.Types.Hash();
+          path_ = new global::AElf.Kernel.Hash();
         }
         Path.MergeFrom(other.Path);
       }
@@ -691,7 +690,7 @@ namespace AElf.Kernel.Types {
             break;
           case 10: {
             if (path_ == null) {
-              path_ = new global::AElf.Kernel.Types.Hash();
+              path_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(path_);
             break;
@@ -718,7 +717,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[2]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[2]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -753,9 +752,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "TransactionId" field.</summary>
     public const int TransactionIdFieldNumber = 1;
-    private global::AElf.Kernel.Types.Hash transactionId_;
+    private global::AElf.Kernel.Hash transactionId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash TransactionId {
+    public global::AElf.Kernel.Hash TransactionId {
       get { return transactionId_; }
       set {
         transactionId_ = value;
@@ -797,31 +796,31 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Logs" field.</summary>
     public const int LogsFieldNumber = 5;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Types.LogEvent> _repeated_logs_codec
-        = pb::FieldCodec.ForMessage(42, global::AElf.Kernel.Types.LogEvent.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Types.LogEvent> logs_ = new pbc::RepeatedField<global::AElf.Kernel.Types.LogEvent>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.LogEvent> _repeated_logs_codec
+        = pb::FieldCodec.ForMessage(42, global::AElf.Kernel.LogEvent.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.LogEvent> logs_ = new pbc::RepeatedField<global::AElf.Kernel.LogEvent>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Types.LogEvent> Logs {
+    public pbc::RepeatedField<global::AElf.Kernel.LogEvent> Logs {
       get { return logs_; }
     }
 
     /// <summary>Field number for the "InlineTraces" field.</summary>
     public const int InlineTracesFieldNumber = 6;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Types.TransactionTrace> _repeated_inlineTraces_codec
-        = pb::FieldCodec.ForMessage(50, global::AElf.Kernel.Types.TransactionTrace.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Types.TransactionTrace> inlineTraces_ = new pbc::RepeatedField<global::AElf.Kernel.Types.TransactionTrace>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.TransactionTrace> _repeated_inlineTraces_codec
+        = pb::FieldCodec.ForMessage(50, global::AElf.Kernel.TransactionTrace.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.TransactionTrace> inlineTraces_ = new pbc::RepeatedField<global::AElf.Kernel.TransactionTrace>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Types.TransactionTrace> InlineTraces {
+    public pbc::RepeatedField<global::AElf.Kernel.TransactionTrace> InlineTraces {
       get { return inlineTraces_; }
     }
 
     /// <summary>Field number for the "ValueChanges" field.</summary>
     public const int ValueChangesFieldNumber = 7;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Types.StateValueChange> _repeated_valueChanges_codec
-        = pb::FieldCodec.ForMessage(58, global::AElf.Kernel.Types.StateValueChange.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Types.StateValueChange> valueChanges_ = new pbc::RepeatedField<global::AElf.Kernel.Types.StateValueChange>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.StateValueChange> _repeated_valueChanges_codec
+        = pb::FieldCodec.ForMessage(58, global::AElf.Kernel.StateValueChange.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.StateValueChange> valueChanges_ = new pbc::RepeatedField<global::AElf.Kernel.StateValueChange>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Types.StateValueChange> ValueChanges {
+    public pbc::RepeatedField<global::AElf.Kernel.StateValueChange> ValueChanges {
       get { return valueChanges_; }
     }
 
@@ -946,7 +945,7 @@ namespace AElf.Kernel.Types {
       }
       if (other.transactionId_ != null) {
         if (transactionId_ == null) {
-          transactionId_ = new global::AElf.Kernel.Types.Hash();
+          transactionId_ = new global::AElf.Kernel.Hash();
         }
         TransactionId.MergeFrom(other.TransactionId);
       }
@@ -978,7 +977,7 @@ namespace AElf.Kernel.Types {
             break;
           case 10: {
             if (transactionId_ == null) {
-              transactionId_ = new global::AElf.Kernel.Types.Hash();
+              transactionId_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(transactionId_);
             break;
@@ -1025,7 +1024,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[3]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1188,7 +1187,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[4]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[4]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1218,9 +1217,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Address" field.</summary>
     public const int AddressFieldNumber = 1;
-    private global::AElf.Kernel.Types.Hash address_;
+    private global::AElf.Kernel.Hash address_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash Address {
+    public global::AElf.Kernel.Hash Address {
       get { return address_; }
       set {
         address_ = value;
@@ -1229,9 +1228,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Topic" field.</summary>
     public const int TopicFieldNumber = 2;
-    private global::AElf.Kernel.Types.Hash topic_;
+    private global::AElf.Kernel.Hash topic_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash Topic {
+    public global::AElf.Kernel.Hash Topic {
       get { return topic_; }
       set {
         topic_ = value;
@@ -1240,11 +1239,11 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Details" field.</summary>
     public const int DetailsFieldNumber = 3;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Types.EventField> _repeated_details_codec
-        = pb::FieldCodec.ForMessage(26, global::AElf.Kernel.Types.EventField.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Types.EventField> details_ = new pbc::RepeatedField<global::AElf.Kernel.Types.EventField>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.EventField> _repeated_details_codec
+        = pb::FieldCodec.ForMessage(26, global::AElf.Kernel.EventField.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.EventField> details_ = new pbc::RepeatedField<global::AElf.Kernel.EventField>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Types.EventField> Details {
+    public pbc::RepeatedField<global::AElf.Kernel.EventField> Details {
       get { return details_; }
     }
 
@@ -1323,13 +1322,13 @@ namespace AElf.Kernel.Types {
       }
       if (other.address_ != null) {
         if (address_ == null) {
-          address_ = new global::AElf.Kernel.Types.Hash();
+          address_ = new global::AElf.Kernel.Hash();
         }
         Address.MergeFrom(other.Address);
       }
       if (other.topic_ != null) {
         if (topic_ == null) {
-          topic_ = new global::AElf.Kernel.Types.Hash();
+          topic_ = new global::AElf.Kernel.Hash();
         }
         Topic.MergeFrom(other.Topic);
       }
@@ -1347,14 +1346,14 @@ namespace AElf.Kernel.Types {
             break;
           case 10: {
             if (address_ == null) {
-              address_ = new global::AElf.Kernel.Types.Hash();
+              address_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(address_);
             break;
           }
           case 18: {
             if (topic_ == null) {
-              topic_ = new global::AElf.Kernel.Types.Hash();
+              topic_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(topic_);
             break;
@@ -1377,7 +1376,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[5]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1408,9 +1407,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "TransactionId" field.</summary>
     public const int TransactionIdFieldNumber = 1;
-    private global::AElf.Kernel.Types.Hash transactionId_;
+    private global::AElf.Kernel.Hash transactionId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash TransactionId {
+    public global::AElf.Kernel.Hash TransactionId {
       get { return transactionId_; }
       set {
         transactionId_ = value;
@@ -1419,9 +1418,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "status" field.</summary>
     public const int StatusFieldNumber = 2;
-    private global::AElf.Kernel.Types.Status status_ = 0;
+    private global::AElf.Kernel.Status status_ = 0;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Status Status {
+    public global::AElf.Kernel.Status Status {
       get { return status_; }
       set {
         status_ = value;
@@ -1430,11 +1429,11 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Logs" field.</summary>
     public const int LogsFieldNumber = 3;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Types.LogEvent> _repeated_logs_codec
-        = pb::FieldCodec.ForMessage(26, global::AElf.Kernel.Types.LogEvent.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Types.LogEvent> logs_ = new pbc::RepeatedField<global::AElf.Kernel.Types.LogEvent>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.LogEvent> _repeated_logs_codec
+        = pb::FieldCodec.ForMessage(26, global::AElf.Kernel.LogEvent.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.LogEvent> logs_ = new pbc::RepeatedField<global::AElf.Kernel.LogEvent>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Types.LogEvent> Logs {
+    public pbc::RepeatedField<global::AElf.Kernel.LogEvent> Logs {
       get { return logs_; }
     }
 
@@ -1533,7 +1532,7 @@ namespace AElf.Kernel.Types {
       }
       if (other.transactionId_ != null) {
         if (transactionId_ == null) {
-          transactionId_ = new global::AElf.Kernel.Types.Hash();
+          transactionId_ = new global::AElf.Kernel.Hash();
         }
         TransactionId.MergeFrom(other.TransactionId);
       }
@@ -1557,13 +1556,13 @@ namespace AElf.Kernel.Types {
             break;
           case 10: {
             if (transactionId_ == null) {
-              transactionId_ = new global::AElf.Kernel.Types.Hash();
+              transactionId_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(transactionId_);
             break;
           }
           case 16: {
-            status_ = (global::AElf.Kernel.Types.Status) input.ReadEnum();
+            status_ = (global::AElf.Kernel.Status) input.ReadEnum();
             break;
           }
           case 26: {
@@ -1588,7 +1587,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[6]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1717,7 +1716,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[7]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[7]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1765,9 +1764,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "PreviousBlockHash" field.</summary>
     public const int PreviousBlockHashFieldNumber = 2;
-    private global::AElf.Kernel.Types.Hash previousBlockHash_;
+    private global::AElf.Kernel.Hash previousBlockHash_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash PreviousBlockHash {
+    public global::AElf.Kernel.Hash PreviousBlockHash {
       get { return previousBlockHash_; }
       set {
         previousBlockHash_ = value;
@@ -1776,9 +1775,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "MerkleTreeRootOfTransactions" field.</summary>
     public const int MerkleTreeRootOfTransactionsFieldNumber = 3;
-    private global::AElf.Kernel.Types.Hash merkleTreeRootOfTransactions_;
+    private global::AElf.Kernel.Hash merkleTreeRootOfTransactions_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash MerkleTreeRootOfTransactions {
+    public global::AElf.Kernel.Hash MerkleTreeRootOfTransactions {
       get { return merkleTreeRootOfTransactions_; }
       set {
         merkleTreeRootOfTransactions_ = value;
@@ -1787,9 +1786,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "MerkleTreeRootOfWorldState" field.</summary>
     public const int MerkleTreeRootOfWorldStateFieldNumber = 4;
-    private global::AElf.Kernel.Types.Hash merkleTreeRootOfWorldState_;
+    private global::AElf.Kernel.Hash merkleTreeRootOfWorldState_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash MerkleTreeRootOfWorldState {
+    public global::AElf.Kernel.Hash MerkleTreeRootOfWorldState {
       get { return merkleTreeRootOfWorldState_; }
       set {
         merkleTreeRootOfWorldState_ = value;
@@ -1853,9 +1852,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "ChainId" field.</summary>
     public const int ChainIdFieldNumber = 10;
-    private global::AElf.Kernel.Types.Hash chainId_;
+    private global::AElf.Kernel.Hash chainId_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash ChainId {
+    public global::AElf.Kernel.Hash ChainId {
       get { return chainId_; }
       set {
         chainId_ = value;
@@ -2008,19 +2007,19 @@ namespace AElf.Kernel.Types {
       }
       if (other.previousBlockHash_ != null) {
         if (previousBlockHash_ == null) {
-          previousBlockHash_ = new global::AElf.Kernel.Types.Hash();
+          previousBlockHash_ = new global::AElf.Kernel.Hash();
         }
         PreviousBlockHash.MergeFrom(other.PreviousBlockHash);
       }
       if (other.merkleTreeRootOfTransactions_ != null) {
         if (merkleTreeRootOfTransactions_ == null) {
-          merkleTreeRootOfTransactions_ = new global::AElf.Kernel.Types.Hash();
+          merkleTreeRootOfTransactions_ = new global::AElf.Kernel.Hash();
         }
         MerkleTreeRootOfTransactions.MergeFrom(other.MerkleTreeRootOfTransactions);
       }
       if (other.merkleTreeRootOfWorldState_ != null) {
         if (merkleTreeRootOfWorldState_ == null) {
-          merkleTreeRootOfWorldState_ = new global::AElf.Kernel.Types.Hash();
+          merkleTreeRootOfWorldState_ = new global::AElf.Kernel.Hash();
         }
         MerkleTreeRootOfWorldState.MergeFrom(other.MerkleTreeRootOfWorldState);
       }
@@ -2044,7 +2043,7 @@ namespace AElf.Kernel.Types {
       }
       if (other.chainId_ != null) {
         if (chainId_ == null) {
-          chainId_ = new global::AElf.Kernel.Types.Hash();
+          chainId_ = new global::AElf.Kernel.Hash();
         }
         ChainId.MergeFrom(other.ChainId);
       }
@@ -2065,21 +2064,21 @@ namespace AElf.Kernel.Types {
           }
           case 18: {
             if (previousBlockHash_ == null) {
-              previousBlockHash_ = new global::AElf.Kernel.Types.Hash();
+              previousBlockHash_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(previousBlockHash_);
             break;
           }
           case 26: {
             if (merkleTreeRootOfTransactions_ == null) {
-              merkleTreeRootOfTransactions_ = new global::AElf.Kernel.Types.Hash();
+              merkleTreeRootOfTransactions_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(merkleTreeRootOfTransactions_);
             break;
           }
           case 34: {
             if (merkleTreeRootOfWorldState_ == null) {
-              merkleTreeRootOfWorldState_ = new global::AElf.Kernel.Types.Hash();
+              merkleTreeRootOfWorldState_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(merkleTreeRootOfWorldState_);
             break;
@@ -2109,7 +2108,7 @@ namespace AElf.Kernel.Types {
           }
           case 82: {
             if (chainId_ == null) {
-              chainId_ = new global::AElf.Kernel.Types.Hash();
+              chainId_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(chainId_);
             break;
@@ -2128,7 +2127,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[8]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[8]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2157,9 +2156,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "BlockHeader" field.</summary>
     public const int BlockHeaderFieldNumber = 1;
-    private global::AElf.Kernel.Types.Hash blockHeader_;
+    private global::AElf.Kernel.Hash blockHeader_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash BlockHeader {
+    public global::AElf.Kernel.Hash BlockHeader {
       get { return blockHeader_; }
       set {
         blockHeader_ = value;
@@ -2168,11 +2167,11 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Transactions" field.</summary>
     public const int TransactionsFieldNumber = 2;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Types.Hash> _repeated_transactions_codec
-        = pb::FieldCodec.ForMessage(18, global::AElf.Kernel.Types.Hash.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Types.Hash> transactions_ = new pbc::RepeatedField<global::AElf.Kernel.Types.Hash>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.Hash> _repeated_transactions_codec
+        = pb::FieldCodec.ForMessage(18, global::AElf.Kernel.Hash.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.Hash> transactions_ = new pbc::RepeatedField<global::AElf.Kernel.Hash>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Types.Hash> Transactions {
+    public pbc::RepeatedField<global::AElf.Kernel.Hash> Transactions {
       get { return transactions_; }
     }
 
@@ -2242,7 +2241,7 @@ namespace AElf.Kernel.Types {
       }
       if (other.blockHeader_ != null) {
         if (blockHeader_ == null) {
-          blockHeader_ = new global::AElf.Kernel.Types.Hash();
+          blockHeader_ = new global::AElf.Kernel.Hash();
         }
         BlockHeader.MergeFrom(other.BlockHeader);
       }
@@ -2260,7 +2259,7 @@ namespace AElf.Kernel.Types {
             break;
           case 10: {
             if (blockHeader_ == null) {
-              blockHeader_ = new global::AElf.Kernel.Types.Hash();
+              blockHeader_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(blockHeader_);
             break;
@@ -2283,7 +2282,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[9]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[9]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2313,9 +2312,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Header" field.</summary>
     public const int HeaderFieldNumber = 1;
-    private global::AElf.Kernel.Types.BlockHeader header_;
+    private global::AElf.Kernel.BlockHeader header_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.BlockHeader Header {
+    public global::AElf.Kernel.BlockHeader Header {
       get { return header_; }
       set {
         header_ = value;
@@ -2324,9 +2323,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Body" field.</summary>
     public const int BodyFieldNumber = 2;
-    private global::AElf.Kernel.Types.BlockBody body_;
+    private global::AElf.Kernel.BlockBody body_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.BlockBody Body {
+    public global::AElf.Kernel.BlockBody Body {
       get { return body_; }
       set {
         body_ = value;
@@ -2335,11 +2334,11 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "fullTransactions" field.</summary>
     public const int FullTransactionsFieldNumber = 3;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Types.Transaction> _repeated_fullTransactions_codec
-        = pb::FieldCodec.ForMessage(26, global::AElf.Kernel.Types.Transaction.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Types.Transaction> fullTransactions_ = new pbc::RepeatedField<global::AElf.Kernel.Types.Transaction>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.Transaction> _repeated_fullTransactions_codec
+        = pb::FieldCodec.ForMessage(26, global::AElf.Kernel.Transaction.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.Transaction> fullTransactions_ = new pbc::RepeatedField<global::AElf.Kernel.Transaction>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Types.Transaction> FullTransactions {
+    public pbc::RepeatedField<global::AElf.Kernel.Transaction> FullTransactions {
       get { return fullTransactions_; }
     }
 
@@ -2418,13 +2417,13 @@ namespace AElf.Kernel.Types {
       }
       if (other.header_ != null) {
         if (header_ == null) {
-          header_ = new global::AElf.Kernel.Types.BlockHeader();
+          header_ = new global::AElf.Kernel.BlockHeader();
         }
         Header.MergeFrom(other.Header);
       }
       if (other.body_ != null) {
         if (body_ == null) {
-          body_ = new global::AElf.Kernel.Types.BlockBody();
+          body_ = new global::AElf.Kernel.BlockBody();
         }
         Body.MergeFrom(other.Body);
       }
@@ -2442,14 +2441,14 @@ namespace AElf.Kernel.Types {
             break;
           case 10: {
             if (header_ == null) {
-              header_ = new global::AElf.Kernel.Types.BlockHeader();
+              header_ = new global::AElf.Kernel.BlockHeader();
             }
             input.ReadMessage(header_);
             break;
           }
           case 18: {
             if (body_ == null) {
-              body_ = new global::AElf.Kernel.Types.BlockBody();
+              body_ = new global::AElf.Kernel.BlockBody();
             }
             input.ReadMessage(body_);
             break;
@@ -2472,7 +2471,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[10]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2513,9 +2512,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "ContractHash" field.</summary>
     public const int ContractHashFieldNumber = 2;
-    private global::AElf.Kernel.Types.Hash contractHash_;
+    private global::AElf.Kernel.Hash contractHash_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash ContractHash {
+    public global::AElf.Kernel.Hash ContractHash {
       get { return contractHash_; }
       set {
         contractHash_ = value;
@@ -2616,7 +2615,7 @@ namespace AElf.Kernel.Types {
       }
       if (other.contractHash_ != null) {
         if (contractHash_ == null) {
-          contractHash_ = new global::AElf.Kernel.Types.Hash();
+          contractHash_ = new global::AElf.Kernel.Hash();
         }
         ContractHash.MergeFrom(other.ContractHash);
       }
@@ -2640,7 +2639,7 @@ namespace AElf.Kernel.Types {
           }
           case 18: {
             if (contractHash_ == null) {
-              contractHash_ = new global::AElf.Kernel.Types.Hash();
+              contractHash_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(contractHash_);
             break;
@@ -2663,7 +2662,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[11]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[11]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2694,9 +2693,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "ContractHash" field.</summary>
     public const int ContractHashFieldNumber = 1;
-    private global::AElf.Kernel.Types.Hash contractHash_;
+    private global::AElf.Kernel.Hash contractHash_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash ContractHash {
+    public global::AElf.Kernel.Hash ContractHash {
       get { return contractHash_; }
       set {
         contractHash_ = value;
@@ -2705,9 +2704,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Caller" field.</summary>
     public const int CallerFieldNumber = 2;
-    private global::AElf.Kernel.Types.Hash caller_;
+    private global::AElf.Kernel.Hash caller_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash Caller {
+    public global::AElf.Kernel.Hash Caller {
       get { return caller_; }
       set {
         caller_ = value;
@@ -2825,13 +2824,13 @@ namespace AElf.Kernel.Types {
       }
       if (other.contractHash_ != null) {
         if (contractHash_ == null) {
-          contractHash_ = new global::AElf.Kernel.Types.Hash();
+          contractHash_ = new global::AElf.Kernel.Hash();
         }
         ContractHash.MergeFrom(other.ContractHash);
       }
       if (other.caller_ != null) {
         if (caller_ == null) {
-          caller_ = new global::AElf.Kernel.Types.Hash();
+          caller_ = new global::AElf.Kernel.Hash();
         }
         Caller.MergeFrom(other.Caller);
       }
@@ -2854,14 +2853,14 @@ namespace AElf.Kernel.Types {
             break;
           case 10: {
             if (contractHash_ == null) {
-              contractHash_ = new global::AElf.Kernel.Types.Hash();
+              contractHash_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(contractHash_);
             break;
           }
           case 18: {
             if (caller_ == null) {
-              caller_ = new global::AElf.Kernel.Types.Hash();
+              caller_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(caller_);
             break;
@@ -2888,7 +2887,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[12]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[12]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2916,11 +2915,11 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Params" field.</summary>
     public const int ParamsFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Types.Param> _repeated_params_codec
-        = pb::FieldCodec.ForMessage(10, global::AElf.Kernel.Types.Param.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Types.Param> params_ = new pbc::RepeatedField<global::AElf.Kernel.Types.Param>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.Param> _repeated_params_codec
+        = pb::FieldCodec.ForMessage(10, global::AElf.Kernel.Param.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.Param> params_ = new pbc::RepeatedField<global::AElf.Kernel.Param>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Types.Param> Params {
+    public pbc::RepeatedField<global::AElf.Kernel.Param> Params {
       get { return params_; }
     }
 
@@ -3009,7 +3008,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[13]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[13]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3164,8 +3163,8 @@ namespace AElf.Kernel.Types {
     /// <summary>Field number for the "hashVal" field.</summary>
     public const int HashValFieldNumber = 9;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash HashVal {
-      get { return dataCase_ == DataOneofCase.HashVal ? (global::AElf.Kernel.Types.Hash) data_ : null; }
+    public global::AElf.Kernel.Hash HashVal {
+      get { return dataCase_ == DataOneofCase.HashVal ? (global::AElf.Kernel.Hash) data_ : null; }
       set {
         data_ = value;
         dataCase_ = value == null ? DataOneofCase.None : DataOneofCase.HashVal;
@@ -3175,8 +3174,8 @@ namespace AElf.Kernel.Types {
     /// <summary>Field number for the "registerVal" field.</summary>
     public const int RegisterValFieldNumber = 10;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.SmartContractRegistration RegisterVal {
-      get { return dataCase_ == DataOneofCase.RegisterVal ? (global::AElf.Kernel.Types.SmartContractRegistration) data_ : null; }
+    public global::AElf.Kernel.SmartContractRegistration RegisterVal {
+      get { return dataCase_ == DataOneofCase.RegisterVal ? (global::AElf.Kernel.SmartContractRegistration) data_ : null; }
       set {
         data_ = value;
         dataCase_ = value == null ? DataOneofCase.None : DataOneofCase.RegisterVal;
@@ -3186,8 +3185,8 @@ namespace AElf.Kernel.Types {
     /// <summary>Field number for the "deploymentVal" field.</summary>
     public const int DeploymentValFieldNumber = 11;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.SmartContractDeployment DeploymentVal {
-      get { return dataCase_ == DataOneofCase.DeploymentVal ? (global::AElf.Kernel.Types.SmartContractDeployment) data_ : null; }
+    public global::AElf.Kernel.SmartContractDeployment DeploymentVal {
+      get { return dataCase_ == DataOneofCase.DeploymentVal ? (global::AElf.Kernel.SmartContractDeployment) data_ : null; }
       set {
         data_ = value;
         dataCase_ = value == null ? DataOneofCase.None : DataOneofCase.DeploymentVal;
@@ -3401,19 +3400,19 @@ namespace AElf.Kernel.Types {
           break;
         case DataOneofCase.HashVal:
           if (HashVal == null) {
-            HashVal = new global::AElf.Kernel.Types.Hash();
+            HashVal = new global::AElf.Kernel.Hash();
           }
           HashVal.MergeFrom(other.HashVal);
           break;
         case DataOneofCase.RegisterVal:
           if (RegisterVal == null) {
-            RegisterVal = new global::AElf.Kernel.Types.SmartContractRegistration();
+            RegisterVal = new global::AElf.Kernel.SmartContractRegistration();
           }
           RegisterVal.MergeFrom(other.RegisterVal);
           break;
         case DataOneofCase.DeploymentVal:
           if (DeploymentVal == null) {
-            DeploymentVal = new global::AElf.Kernel.Types.SmartContractDeployment();
+            DeploymentVal = new global::AElf.Kernel.SmartContractDeployment();
           }
           DeploymentVal.MergeFrom(other.DeploymentVal);
           break;
@@ -3463,7 +3462,7 @@ namespace AElf.Kernel.Types {
             break;
           }
           case 74: {
-            global::AElf.Kernel.Types.Hash subBuilder = new global::AElf.Kernel.Types.Hash();
+            global::AElf.Kernel.Hash subBuilder = new global::AElf.Kernel.Hash();
             if (dataCase_ == DataOneofCase.HashVal) {
               subBuilder.MergeFrom(HashVal);
             }
@@ -3472,7 +3471,7 @@ namespace AElf.Kernel.Types {
             break;
           }
           case 82: {
-            global::AElf.Kernel.Types.SmartContractRegistration subBuilder = new global::AElf.Kernel.Types.SmartContractRegistration();
+            global::AElf.Kernel.SmartContractRegistration subBuilder = new global::AElf.Kernel.SmartContractRegistration();
             if (dataCase_ == DataOneofCase.RegisterVal) {
               subBuilder.MergeFrom(RegisterVal);
             }
@@ -3481,7 +3480,7 @@ namespace AElf.Kernel.Types {
             break;
           }
           case 90: {
-            global::AElf.Kernel.Types.SmartContractDeployment subBuilder = new global::AElf.Kernel.Types.SmartContractDeployment();
+            global::AElf.Kernel.SmartContractDeployment subBuilder = new global::AElf.Kernel.SmartContractDeployment();
             if (dataCase_ == DataOneofCase.DeploymentVal) {
               subBuilder.MergeFrom(DeploymentVal);
             }
@@ -3503,7 +3502,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[14]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[14]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3534,9 +3533,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Caller" field.</summary>
     public const int CallerFieldNumber = 1;
-    private global::AElf.Kernel.Types.Hash caller_;
+    private global::AElf.Kernel.Hash caller_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash Caller {
+    public global::AElf.Kernel.Hash Caller {
       get { return caller_; }
       set {
         caller_ = value;
@@ -3665,7 +3664,7 @@ namespace AElf.Kernel.Types {
       }
       if (other.caller_ != null) {
         if (caller_ == null) {
-          caller_ = new global::AElf.Kernel.Types.Hash();
+          caller_ = new global::AElf.Kernel.Hash();
         }
         Caller.MergeFrom(other.Caller);
       }
@@ -3691,7 +3690,7 @@ namespace AElf.Kernel.Types {
             break;
           case 10: {
             if (caller_ == null) {
-              caller_ = new global::AElf.Kernel.Types.Hash();
+              caller_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(caller_);
             break;
@@ -3722,7 +3721,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[15]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[15]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3753,19 +3752,19 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Befores" field.</summary>
     public const int BeforesFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Types.Hash> _repeated_befores_codec
-        = pb::FieldCodec.ForMessage(10, global::AElf.Kernel.Types.Hash.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Types.Hash> befores_ = new pbc::RepeatedField<global::AElf.Kernel.Types.Hash>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.Hash> _repeated_befores_codec
+        = pb::FieldCodec.ForMessage(10, global::AElf.Kernel.Hash.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.Hash> befores_ = new pbc::RepeatedField<global::AElf.Kernel.Hash>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Types.Hash> Befores {
+    public pbc::RepeatedField<global::AElf.Kernel.Hash> Befores {
       get { return befores_; }
     }
 
     /// <summary>Field number for the "After" field.</summary>
     public const int AfterFieldNumber = 2;
-    private global::AElf.Kernel.Types.Hash after_;
+    private global::AElf.Kernel.Hash after_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash After {
+    public global::AElf.Kernel.Hash After {
       get { return after_; }
       set {
         after_ = value;
@@ -3774,9 +3773,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "TransactionIds" field.</summary>
     public const int TransactionIdsFieldNumber = 3;
-    private global::AElf.Kernel.Types.Hash transactionIds_;
+    private global::AElf.Kernel.Hash transactionIds_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash TransactionIds {
+    public global::AElf.Kernel.Hash TransactionIds {
       get { return transactionIds_; }
       set {
         transactionIds_ = value;
@@ -3785,9 +3784,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "LatestChangedBlockHash" field.</summary>
     public const int LatestChangedBlockHashFieldNumber = 4;
-    private global::AElf.Kernel.Types.Hash latestChangedBlockHash_;
+    private global::AElf.Kernel.Hash latestChangedBlockHash_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash LatestChangedBlockHash {
+    public global::AElf.Kernel.Hash LatestChangedBlockHash {
       get { return latestChangedBlockHash_; }
       set {
         latestChangedBlockHash_ = value;
@@ -3879,19 +3878,19 @@ namespace AElf.Kernel.Types {
       befores_.Add(other.befores_);
       if (other.after_ != null) {
         if (after_ == null) {
-          after_ = new global::AElf.Kernel.Types.Hash();
+          after_ = new global::AElf.Kernel.Hash();
         }
         After.MergeFrom(other.After);
       }
       if (other.transactionIds_ != null) {
         if (transactionIds_ == null) {
-          transactionIds_ = new global::AElf.Kernel.Types.Hash();
+          transactionIds_ = new global::AElf.Kernel.Hash();
         }
         TransactionIds.MergeFrom(other.TransactionIds);
       }
       if (other.latestChangedBlockHash_ != null) {
         if (latestChangedBlockHash_ == null) {
-          latestChangedBlockHash_ = new global::AElf.Kernel.Types.Hash();
+          latestChangedBlockHash_ = new global::AElf.Kernel.Hash();
         }
         LatestChangedBlockHash.MergeFrom(other.LatestChangedBlockHash);
       }
@@ -3912,21 +3911,21 @@ namespace AElf.Kernel.Types {
           }
           case 18: {
             if (after_ == null) {
-              after_ = new global::AElf.Kernel.Types.Hash();
+              after_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(after_);
             break;
           }
           case 26: {
             if (transactionIds_ == null) {
-              transactionIds_ = new global::AElf.Kernel.Types.Hash();
+              transactionIds_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(transactionIds_);
             break;
           }
           case 34: {
             if (latestChangedBlockHash_ == null) {
-              latestChangedBlockHash_ = new global::AElf.Kernel.Types.Hash();
+              latestChangedBlockHash_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(latestChangedBlockHash_);
             break;
@@ -3945,7 +3944,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[16]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[16]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3974,9 +3973,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Key" field.</summary>
     public const int KeyFieldNumber = 1;
-    private global::AElf.Kernel.Types.Hash key_;
+    private global::AElf.Kernel.Hash key_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash Key {
+    public global::AElf.Kernel.Hash Key {
       get { return key_; }
       set {
         key_ = value;
@@ -3985,9 +3984,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Value" field.</summary>
     public const int ValueFieldNumber = 2;
-    private global::AElf.Kernel.Types.Change value_;
+    private global::AElf.Kernel.Change value_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Change Value {
+    public global::AElf.Kernel.Change Value {
       get { return value_; }
       set {
         value_ = value;
@@ -4065,13 +4064,13 @@ namespace AElf.Kernel.Types {
       }
       if (other.key_ != null) {
         if (key_ == null) {
-          key_ = new global::AElf.Kernel.Types.Hash();
+          key_ = new global::AElf.Kernel.Hash();
         }
         Key.MergeFrom(other.Key);
       }
       if (other.value_ != null) {
         if (value_ == null) {
-          value_ = new global::AElf.Kernel.Types.Change();
+          value_ = new global::AElf.Kernel.Change();
         }
         Value.MergeFrom(other.Value);
       }
@@ -4088,14 +4087,14 @@ namespace AElf.Kernel.Types {
             break;
           case 10: {
             if (key_ == null) {
-              key_ = new global::AElf.Kernel.Types.Hash();
+              key_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(key_);
             break;
           }
           case 18: {
             if (value_ == null) {
-              value_ = new global::AElf.Kernel.Types.Change();
+              value_ = new global::AElf.Kernel.Change();
             }
             input.ReadMessage(value_);
             break;
@@ -4114,7 +4113,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[17]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[17]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4142,11 +4141,11 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Dict" field.</summary>
     public const int DictFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Types.PairHashChange> _repeated_dict_codec
-        = pb::FieldCodec.ForMessage(10, global::AElf.Kernel.Types.PairHashChange.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Types.PairHashChange> dict_ = new pbc::RepeatedField<global::AElf.Kernel.Types.PairHashChange>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.PairHashChange> _repeated_dict_codec
+        = pb::FieldCodec.ForMessage(10, global::AElf.Kernel.PairHashChange.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.PairHashChange> dict_ = new pbc::RepeatedField<global::AElf.Kernel.PairHashChange>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Types.PairHashChange> Dict {
+    public pbc::RepeatedField<global::AElf.Kernel.PairHashChange> Dict {
       get { return dict_; }
     }
 
@@ -4235,7 +4234,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[18]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[18]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4264,9 +4263,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Id" field.</summary>
     public const int IdFieldNumber = 1;
-    private global::AElf.Kernel.Types.Hash id_;
+    private global::AElf.Kernel.Hash id_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash Id {
+    public global::AElf.Kernel.Hash Id {
       get { return id_; }
       set {
         id_ = value;
@@ -4275,9 +4274,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "GenesisBlockHash" field.</summary>
     public const int GenesisBlockHashFieldNumber = 2;
-    private global::AElf.Kernel.Types.Hash genesisBlockHash_;
+    private global::AElf.Kernel.Hash genesisBlockHash_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.Hash GenesisBlockHash {
+    public global::AElf.Kernel.Hash GenesisBlockHash {
       get { return genesisBlockHash_; }
       set {
         genesisBlockHash_ = value;
@@ -4355,13 +4354,13 @@ namespace AElf.Kernel.Types {
       }
       if (other.id_ != null) {
         if (id_ == null) {
-          id_ = new global::AElf.Kernel.Types.Hash();
+          id_ = new global::AElf.Kernel.Hash();
         }
         Id.MergeFrom(other.Id);
       }
       if (other.genesisBlockHash_ != null) {
         if (genesisBlockHash_ == null) {
-          genesisBlockHash_ = new global::AElf.Kernel.Types.Hash();
+          genesisBlockHash_ = new global::AElf.Kernel.Hash();
         }
         GenesisBlockHash.MergeFrom(other.GenesisBlockHash);
       }
@@ -4378,14 +4377,14 @@ namespace AElf.Kernel.Types {
             break;
           case 10: {
             if (id_ == null) {
-              id_ = new global::AElf.Kernel.Types.Hash();
+              id_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(id_);
             break;
           }
           case 18: {
             if (genesisBlockHash_ == null) {
-              genesisBlockHash_ = new global::AElf.Kernel.Types.Hash();
+              genesisBlockHash_ = new global::AElf.Kernel.Hash();
             }
             input.ReadMessage(genesisBlockHash_);
             break;
@@ -4404,7 +4403,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[19]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[19]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4432,11 +4431,11 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "MetadataTemplateMapForContract" field.</summary>
     public const int MetadataTemplateMapForContractFieldNumber = 2;
-    private static readonly pbc::MapField<string, global::AElf.Kernel.Types.SerializeFunctionMetadataTemplateMap>.Codec _map_metadataTemplateMapForContract_codec
-        = new pbc::MapField<string, global::AElf.Kernel.Types.SerializeFunctionMetadataTemplateMap>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::AElf.Kernel.Types.SerializeFunctionMetadataTemplateMap.Parser), 18);
-    private readonly pbc::MapField<string, global::AElf.Kernel.Types.SerializeFunctionMetadataTemplateMap> metadataTemplateMapForContract_ = new pbc::MapField<string, global::AElf.Kernel.Types.SerializeFunctionMetadataTemplateMap>();
+    private static readonly pbc::MapField<string, global::AElf.Kernel.SerializeFunctionMetadataTemplateMap>.Codec _map_metadataTemplateMapForContract_codec
+        = new pbc::MapField<string, global::AElf.Kernel.SerializeFunctionMetadataTemplateMap>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::AElf.Kernel.SerializeFunctionMetadataTemplateMap.Parser), 18);
+    private readonly pbc::MapField<string, global::AElf.Kernel.SerializeFunctionMetadataTemplateMap> metadataTemplateMapForContract_ = new pbc::MapField<string, global::AElf.Kernel.SerializeFunctionMetadataTemplateMap>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::MapField<string, global::AElf.Kernel.Types.SerializeFunctionMetadataTemplateMap> MetadataTemplateMapForContract {
+    public pbc::MapField<string, global::AElf.Kernel.SerializeFunctionMetadataTemplateMap> MetadataTemplateMapForContract {
       get { return metadataTemplateMapForContract_; }
     }
 
@@ -4525,7 +4524,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[20]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[20]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4553,11 +4552,11 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "TemplateMap" field.</summary>
     public const int TemplateMapFieldNumber = 2;
-    private static readonly pbc::MapField<string, global::AElf.Kernel.Types.FunctionMetadataTemplate>.Codec _map_templateMap_codec
-        = new pbc::MapField<string, global::AElf.Kernel.Types.FunctionMetadataTemplate>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::AElf.Kernel.Types.FunctionMetadataTemplate.Parser), 18);
-    private readonly pbc::MapField<string, global::AElf.Kernel.Types.FunctionMetadataTemplate> templateMap_ = new pbc::MapField<string, global::AElf.Kernel.Types.FunctionMetadataTemplate>();
+    private static readonly pbc::MapField<string, global::AElf.Kernel.FunctionMetadataTemplate>.Codec _map_templateMap_codec
+        = new pbc::MapField<string, global::AElf.Kernel.FunctionMetadataTemplate>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::AElf.Kernel.FunctionMetadataTemplate.Parser), 18);
+    private readonly pbc::MapField<string, global::AElf.Kernel.FunctionMetadataTemplate> templateMap_ = new pbc::MapField<string, global::AElf.Kernel.FunctionMetadataTemplate>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::MapField<string, global::AElf.Kernel.Types.FunctionMetadataTemplate> TemplateMap {
+    public pbc::MapField<string, global::AElf.Kernel.FunctionMetadataTemplate> TemplateMap {
       get { return templateMap_; }
     }
 
@@ -4646,7 +4645,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[21]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[21]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4685,11 +4684,11 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "SerializeLocalResourceSet" field.</summary>
     public const int SerializeLocalResourceSetFieldNumber = 2;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Types.Resource> _repeated_serializeLocalResourceSet_codec
-        = pb::FieldCodec.ForMessage(18, global::AElf.Kernel.Types.Resource.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Types.Resource> serializeLocalResourceSet_ = new pbc::RepeatedField<global::AElf.Kernel.Types.Resource>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.Resource> _repeated_serializeLocalResourceSet_codec
+        = pb::FieldCodec.ForMessage(18, global::AElf.Kernel.Resource.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.Resource> serializeLocalResourceSet_ = new pbc::RepeatedField<global::AElf.Kernel.Resource>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Types.Resource> SerializeLocalResourceSet {
+    public pbc::RepeatedField<global::AElf.Kernel.Resource> SerializeLocalResourceSet {
       get { return serializeLocalResourceSet_; }
     }
 
@@ -4787,7 +4786,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[22]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[22]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4827,9 +4826,9 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "DataAccessMode" field.</summary>
     public const int DataAccessModeFieldNumber = 2;
-    private global::AElf.Kernel.Types.DataAccessMode dataAccessMode_ = 0;
+    private global::AElf.Kernel.DataAccessMode dataAccessMode_ = 0;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::AElf.Kernel.Types.DataAccessMode DataAccessMode {
+    public global::AElf.Kernel.DataAccessMode DataAccessMode {
       get { return dataAccessMode_; }
       set {
         dataAccessMode_ = value;
@@ -4927,7 +4926,7 @@ namespace AElf.Kernel.Types {
             break;
           }
           case 16: {
-            dataAccessMode_ = (global::AElf.Kernel.Types.DataAccessMode) input.ReadEnum();
+            dataAccessMode_ = (global::AElf.Kernel.DataAccessMode) input.ReadEnum();
             break;
           }
         }
@@ -4944,7 +4943,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[23]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[23]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4984,21 +4983,21 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "SerializeFullResourceSet" field.</summary>
     public const int SerializeFullResourceSetFieldNumber = 2;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Types.Resource> _repeated_serializeFullResourceSet_codec
-        = pb::FieldCodec.ForMessage(18, global::AElf.Kernel.Types.Resource.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Types.Resource> serializeFullResourceSet_ = new pbc::RepeatedField<global::AElf.Kernel.Types.Resource>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.Resource> _repeated_serializeFullResourceSet_codec
+        = pb::FieldCodec.ForMessage(18, global::AElf.Kernel.Resource.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.Resource> serializeFullResourceSet_ = new pbc::RepeatedField<global::AElf.Kernel.Resource>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Types.Resource> SerializeFullResourceSet {
+    public pbc::RepeatedField<global::AElf.Kernel.Resource> SerializeFullResourceSet {
       get { return serializeFullResourceSet_; }
     }
 
     /// <summary>Field number for the "SerializeLocalResourceSet" field.</summary>
     public const int SerializeLocalResourceSetFieldNumber = 3;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Types.Resource> _repeated_serializeLocalResourceSet_codec
-        = pb::FieldCodec.ForMessage(26, global::AElf.Kernel.Types.Resource.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Types.Resource> serializeLocalResourceSet_ = new pbc::RepeatedField<global::AElf.Kernel.Types.Resource>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.Resource> _repeated_serializeLocalResourceSet_codec
+        = pb::FieldCodec.ForMessage(26, global::AElf.Kernel.Resource.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.Resource> serializeLocalResourceSet_ = new pbc::RepeatedField<global::AElf.Kernel.Resource>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Types.Resource> SerializeLocalResourceSet {
+    public pbc::RepeatedField<global::AElf.Kernel.Resource> SerializeLocalResourceSet {
       get { return serializeLocalResourceSet_; }
     }
 
@@ -5105,7 +5104,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[24]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[24]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5133,11 +5132,11 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "MetadataMap" field.</summary>
     public const int MetadataMapFieldNumber = 1;
-    private static readonly pbc::MapField<string, global::AElf.Kernel.Types.FunctionMetadata>.Codec _map_metadataMap_codec
-        = new pbc::MapField<string, global::AElf.Kernel.Types.FunctionMetadata>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::AElf.Kernel.Types.FunctionMetadata.Parser), 10);
-    private readonly pbc::MapField<string, global::AElf.Kernel.Types.FunctionMetadata> metadataMap_ = new pbc::MapField<string, global::AElf.Kernel.Types.FunctionMetadata>();
+    private static readonly pbc::MapField<string, global::AElf.Kernel.FunctionMetadata>.Codec _map_metadataMap_codec
+        = new pbc::MapField<string, global::AElf.Kernel.FunctionMetadata>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::AElf.Kernel.FunctionMetadata.Parser), 10);
+    private readonly pbc::MapField<string, global::AElf.Kernel.FunctionMetadata> metadataMap_ = new pbc::MapField<string, global::AElf.Kernel.FunctionMetadata>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::MapField<string, global::AElf.Kernel.Types.FunctionMetadata> MetadataMap {
+    public pbc::MapField<string, global::AElf.Kernel.FunctionMetadata> MetadataMap {
       get { return metadataMap_; }
     }
 
@@ -5226,7 +5225,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[25]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[25]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5254,11 +5253,11 @@ namespace AElf.Kernel.Types {
 
     /// <summary>Field number for the "Edges" field.</summary>
     public const int EdgesFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::AElf.Kernel.Types.GraphEdge> _repeated_edges_codec
-        = pb::FieldCodec.ForMessage(10, global::AElf.Kernel.Types.GraphEdge.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Kernel.Types.GraphEdge> edges_ = new pbc::RepeatedField<global::AElf.Kernel.Types.GraphEdge>();
+    private static readonly pb::FieldCodec<global::AElf.Kernel.GraphEdge> _repeated_edges_codec
+        = pb::FieldCodec.ForMessage(10, global::AElf.Kernel.GraphEdge.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.GraphEdge> edges_ = new pbc::RepeatedField<global::AElf.Kernel.GraphEdge>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Kernel.Types.GraphEdge> Edges {
+    public pbc::RepeatedField<global::AElf.Kernel.GraphEdge> Edges {
       get { return edges_; }
     }
 
@@ -5347,7 +5346,7 @@ namespace AElf.Kernel.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.Types.MessagesReflection.Descriptor.MessageTypes[26]; }
+      get { return global::AElf.Kernel.MessagesReflection.Descriptor.MessageTypes[26]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common.Attributes;
+using AElf.Kernel.Types;
 using NLog;
 
 namespace AElf.Kernel.TxMemPool

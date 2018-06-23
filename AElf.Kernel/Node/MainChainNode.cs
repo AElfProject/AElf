@@ -19,6 +19,7 @@ using AElf.Kernel.Node.RPC;
 using AElf.Kernel.Node.RPC.DTO;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
+using AElf.Kernel.Types;
 using AElf.Network.Data;
 using AElf.Types.CSharp;
 using Akka.Actor;
@@ -189,7 +190,7 @@ namespace AElf.Kernel.Node
         {
             Task.Run(async () =>
             {
-                var keypair = new KeyPairGenerator().Generate();
+                /*var keypair = new KeyPairGenerator().Generate();
                 var txDevp = DeployTxDemo(keypair);
                 var b1 = await _miner.Mine();
                 await _transactionResultService.GetResultAsync(txDevp.GetHash());
@@ -204,7 +205,7 @@ namespace AElf.Kernel.Node
                 await _transactionResultService.GetResultAsync(txDevp.GetHash());
                 //Console.WriteLine(result.RetVal.d);
                 _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", b2.GetHash(),
-                    b2.Body.Transactions.Count);
+                    b2.Body.Transactions.Count);*/
                 
                 while (true)
                 {

@@ -1,4 +1,4 @@
-﻿namespace AElf.Kernel.Types
+﻿namespace AElf.Kernel
 {
     public partial class Block : IBlock
     {

@@ -1,5 +1,5 @@
 ﻿// ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Types
+namespace AElf.Kernel
 {
     public interface IHashProvider
     {

@@ -9,6 +9,7 @@ using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Protocol.Exceptions;
+using AElf.Kernel.Types;
 using AElf.Network.Data;
 using AElf.Network.Peers;
 using Google.Protobuf;

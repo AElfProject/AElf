@@ -1,4 +1,4 @@
-﻿namespace AElf.Kernel.Types
+﻿namespace AElf.Kernel
 {
     /// <summary>
     /// A chain only provides the ability to add and load block, but not keep them in memory

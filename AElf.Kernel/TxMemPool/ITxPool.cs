@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.TxMemPool
 {

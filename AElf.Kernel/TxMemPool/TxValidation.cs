@@ -2,6 +2,7 @@
 using System.Linq;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Extensions;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.TxMemPool
 {

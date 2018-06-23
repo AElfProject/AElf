@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.TxMemPool;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Services
 {

@@ -3,7 +3,7 @@ using AElf.Kernel.Types.Merkle;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Types
+namespace AElf.Kernel
 {
     public partial class BlockBody : IBlockBody
     {

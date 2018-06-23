@@ -1,6 +1,6 @@
 ﻿using Google.Protobuf.Collections;
 
-namespace AElf.Kernel.Types
+namespace AElf.Kernel
 {
     public interface IBlockBody : ISerializable, IHashProvider
     {

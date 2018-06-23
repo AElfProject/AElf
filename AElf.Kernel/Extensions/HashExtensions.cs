@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using AElf.Kernel.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Extensions

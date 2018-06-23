@@ -2,7 +2,7 @@
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Types
+namespace AElf.Kernel
 {
     public partial class Change : ISerializable
     {

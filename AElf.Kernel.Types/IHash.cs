@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Google.Protobuf;
 
-namespace AElf.Kernel.Types
+namespace AElf.Kernel
 {
     /// <inheritdoc cref="" />
     /// <summary>

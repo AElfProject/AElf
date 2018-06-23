@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Concurrency.Execution.Messages;
+using AElf.Kernel.Types;
 using Akka.Actor;
 using Akka.Util.Internal;
 

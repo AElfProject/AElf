@@ -4,6 +4,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Node.Config;
 using AElf.Kernel.Services;
+using AElf.Kernel.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.BlockValidationFilters

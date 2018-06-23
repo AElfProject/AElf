@@ -1,7 +1,8 @@
 ﻿using System;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Types;
 
-namespace AElf.Kernel.Types
+namespace AElf.Kernel
 {
     public interface IBlockHeader : IHashProvider, ISerializable
     {

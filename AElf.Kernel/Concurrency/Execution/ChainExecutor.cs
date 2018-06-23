@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using AElf.Kernel.Services;
 using AElf.Kernel.Concurrency.Execution.Messages;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Concurrency.Execution
 {

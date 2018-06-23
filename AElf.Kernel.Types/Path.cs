@@ -4,7 +4,7 @@ using AElf.Kernel.Types.Extensions;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Types
+namespace AElf.Kernel
 {
     public class Path : IPath
     {

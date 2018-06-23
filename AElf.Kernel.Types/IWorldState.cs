@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace AElf.Kernel.Types
+namespace AElf.Kernel
 {
     /// <summary>
     /// World State presents the state of a chain, changed by block. 

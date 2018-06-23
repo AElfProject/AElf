@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Security.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Types;
 using Google.Protobuf;
 using Org.BouncyCastle.Math;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Types
+namespace AElf.Kernel
 {
     public partial class BlockHeader : IBlockHeader
     {

@@ -1,8 +1,9 @@
 ﻿using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Types;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Types
+namespace AElf.Kernel
 {
     public interface ITransaction : IHashProvider, ISerializable
     {

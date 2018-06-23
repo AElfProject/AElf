@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.TxMemPool;
+using AElf.Kernel.Types;
 using Akka.Configuration;
 
 namespace AElf.Kernel.Miner
