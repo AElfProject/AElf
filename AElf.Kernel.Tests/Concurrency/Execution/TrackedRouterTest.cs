@@ -38,9 +38,9 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             // As there are only two workers, the third job will fail
             var job = new List<ITransaction>() {_mock.GetSleepTxn1(1000)};
 
-            _router.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor, null));
-            _router.Tell(new JobExecutionRequest(1, _mock.ChainId1, job, TestActor, null));
-            _router.Tell(new JobExecutionRequest(2, _mock.ChainId1, job, TestActor, null));
+            _router.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor, _router));
+            _router.Tell(new JobExecutionRequest(1, _mock.ChainId1, job, TestActor, _router));
+            _router.Tell(new JobExecutionRequest(2, _mock.ChainId1, job, TestActor, _router));
 
             // The third job fails
             FishForMessage(
@@ -53,17 +53,47 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             FishForMessage(
                 (msg) =>
                     msg is JobExecutionStatus js &&
-                    js.RequestId == 0 &&
                     js.Status == JobExecutionStatus.RequestStatus.Completed
             );
 
             FishForMessage(
                 (msg) =>
                     msg is JobExecutionStatus js &&
-                    js.RequestId == 1 &&
                     js.Status == JobExecutionStatus.RequestStatus.Completed
             );
 
+        }
+        
+        [Fact]
+        public void WorkerBecomeIdleExecutionTest()
+        {
+            // As there are only two workers, the third job will fail
+            var job = new List<ITransaction>() {_mock.GetSleepTxn1(1000)};
+
+            _router.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor, _router));
+            _router.Tell(new JobExecutionRequest(1, _mock.ChainId1, job, TestActor, _router));
+            
+            FishForMessage(
+                (msg) =>
+                    msg is JobExecutionStatus js &&
+                    js.Status == JobExecutionStatus.RequestStatus.Completed
+            );
+
+            FishForMessage(
+                (msg) =>
+                    msg is JobExecutionStatus js &&
+                    js.Status == JobExecutionStatus.RequestStatus.Completed
+            );
+
+            _router.Tell(new JobExecutionRequest(2, _mock.ChainId1, job, TestActor, _router));
+
+            FishForMessage(
+                (msg) =>
+                    msg is JobExecutionStatus js &&
+                    js.RequestId == 2 &&
+                    js.Status == JobExecutionStatus.RequestStatus.Running,
+                TimeSpan.FromSeconds(10)
+            );
         }
     }
 }
