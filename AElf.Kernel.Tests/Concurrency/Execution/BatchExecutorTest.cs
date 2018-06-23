@@ -28,7 +28,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(_mock.ServicePack));
         }
 
-        [Fact]
+        [Fact(Skip = "todo")]
         public void TwoJobBatchExecutionTest()
         {
             TwoJobBatchExecutionTestWithChildType(BatchExecutor.ChildType.Job);
