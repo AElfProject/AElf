@@ -22,7 +22,7 @@ namespace AElf.Sdk.CSharp.Tests
         {
             builder.RegisterModule(new MainModule());
             builder.RegisterModule(new DatabaseModule(new DatabaseConfig()));
-
+            builder.RegisterModule(new LoggerModule());
             
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
