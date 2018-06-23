@@ -2,7 +2,9 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Kernel.Storages;
+using NLog;
 using Org.BouncyCastle.Security;
 
 namespace AElf.Kernel.Concurrency.Metadata
@@ -11,10 +13,12 @@ namespace AElf.Kernel.Concurrency.Metadata
     {
         private IDataStore _dataStore;
         private readonly ConcurrentDictionary<Hash, ChainFunctionMetadata> _metadatas;
+        private ILogger _logger;
 
-        public FunctionMetadataService(IDataStore dataStore)
+        public FunctionMetadataService(IDataStore dataStore, ILogger logger)
         {
             _dataStore = dataStore;
+            _logger = logger;
             _metadatas = new ConcurrentDictionary<Hash, ChainFunctionMetadata>();
         }
 
@@ -26,12 +30,10 @@ namespace AElf.Kernel.Concurrency.Metadata
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
                 chainFuncMetadata = _metadatas.GetOrAdd(chainId,
-                    new ChainFunctionMetadata(new ChainFunctionMetadataTemplate(_dataStore, chainId), _dataStore));
+                    new ChainFunctionMetadata(new ChainFunctionMetadataTemplate(_dataStore, chainId, _logger), _dataStore, _logger));
             }
             
             await chainFuncMetadata.Template.TryAddNewContract(contractType);
-            //TODO: this will cause unnecessary restore when deploy a contract
-            
             
             //TODO: for now we don't support call other contracts, thus the reference book is empty, try to deploy a 
             //need to

@@ -29,7 +29,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         public Hash ChainId { get;}
         
 
-        public ChainFunctionMetadataTemplate(IDataStore dataStore, Hash chainId, ILogger logger = null)
+        public ChainFunctionMetadataTemplate(IDataStore dataStore, Hash chainId, ILogger logger)
         {
             _dataStore = dataStore;
             _logger = logger;

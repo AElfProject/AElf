@@ -19,7 +19,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         
         public Dictionary<string, FunctionMetadata> FunctionMetadataMap { get; }
         
-        public ChainFunctionMetadata(IChainFunctionMetadataTemplate template, IDataStore dataStore,  ILogger logger = null)
+        public ChainFunctionMetadata(IChainFunctionMetadataTemplate template, IDataStore dataStore,  ILogger logger)
         {
             Template = template;
             _dataStore = dataStore;

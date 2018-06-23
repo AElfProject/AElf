@@ -151,7 +151,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             await TestFailCases(cfts);
             
             //test restore
-            ChainFunctionMetadataTemplate newCFTS = new ChainFunctionMetadataTemplate(_store, cfts.ChainId);
+            ChainFunctionMetadataTemplate newCFTS = new ChainFunctionMetadataTemplate(_store, cfts.ChainId, null);
             Assert.Equal(util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap), util.ContractMetadataTemplateMapToString(newCFTS.ContractMetadataTemplateMap));
             
             return cfts;

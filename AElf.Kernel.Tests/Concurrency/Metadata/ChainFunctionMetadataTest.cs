@@ -7,6 +7,7 @@ using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -38,7 +39,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             await _template.TryAddNewContract(typeof(TestContractC));
             await _template.TryAddNewContract(typeof(TestContractB));
             await _template.TryAddNewContract(typeof(TestContractA));
-            ChainFunctionMetadata cfms = new ChainFunctionMetadata(_template, _templateStore);
+            ChainFunctionMetadata cfms = new ChainFunctionMetadata(_template, _templateStore, null);
             
             cfms.FunctionMetadataMap.Clear();
 
@@ -241,8 +242,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             Assert.Equal(util.FunctionMetadataMapToString(groundTruthMap), util.FunctionMetadataMapToString(cfms.FunctionMetadataMap));
 
             //test restore
-            ChainFunctionMetadataTemplate retoredTemplate  = new ChainFunctionMetadataTemplate(_templateStore, chainId);
-            ChainFunctionMetadata newCFMS = new ChainFunctionMetadata(retoredTemplate, _templateStore);
+            ChainFunctionMetadataTemplate retoredTemplate  = new ChainFunctionMetadataTemplate(_templateStore, chainId, null);
+            ChainFunctionMetadata newCFMS = new ChainFunctionMetadata(retoredTemplate, _templateStore, null);
             Assert.Equal(util.FunctionMetadataMapToString(cfms.FunctionMetadataMap), util.FunctionMetadataMapToString(newCFMS.FunctionMetadataMap));
             
             return cfms;
