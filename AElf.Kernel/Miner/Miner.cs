@@ -64,8 +64,8 @@ namespace AElf.Kernel.Miner
             try
             {
                 if (Cts == null || Cts.IsCancellationRequested)
-                    return null;
-            
+                    return null;            
+
                 var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
                 // TODO：dispatch txs with ISParallel, return list of tx results
 
@@ -103,6 +103,7 @@ namespace AElf.Kernel.Miner
                     {
                         res.Logs.AddRange(trace.FlattenedLogs);
                         res.Status = Status.Mined;
+                        res.RetVal = trace.RetVal;
                     }
                     else
                     {
@@ -172,7 +173,6 @@ namespace AElf.Kernel.Miner
             await _worldStateManager.SetWorldStateAsync(lastBlockHash);
             var ws = await _worldStateManager.GetWorldStateAsync(lastBlockHash);
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
-            
             
 
             if(ws != null)

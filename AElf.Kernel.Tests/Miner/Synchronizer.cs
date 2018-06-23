@@ -98,10 +98,11 @@ namespace AElf.Kernel.Tests.Miner
                     ChainId = chainId,
                     Index = index,
                     PreviousBlockHash = previousHash,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                    Time = Timestamp.FromDateTime(DateTime.UtcNow),
+                    MerkleTreeRootOfWorldState = Hash.Default
                 }
             };
-            
+            block.FillTxsMerkleTreeRootInHeader();
             return block;
         }
         
@@ -202,6 +203,7 @@ namespace AElf.Kernel.Tests.Miner
             }
             
             block.FillTxsMerkleTreeRootInHeader();
+            block.Body.BlockHeader = block.Header.GetHash();
             
             _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, await _worldStateManager.OfChain(chain.Id), _functionMetadataService);
             
