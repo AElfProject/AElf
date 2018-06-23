@@ -274,6 +274,21 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
         }
     }
 
+    public sealed class JobExecutionCancelAckMessage
+    {
+        private JobExecutionCancelAckMessage() { }
+
+        /// <summary>
+        /// The singleton instance of JobExecutionCancelMessage.
+        /// </summary>
+        public static JobExecutionCancelAckMessage Instance { get; } = new JobExecutionCancelAckMessage();
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return "<JobExecutionCancelAckMessage>";
+        }
+    }
     
     public sealed class JobExecutionStatusQuery
     {
