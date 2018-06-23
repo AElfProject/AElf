@@ -3,6 +3,7 @@ using System.Text;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Extensions;
@@ -35,6 +36,17 @@ namespace AElf.Kernel.CSharp.Tests
             await Task.CompletedTask;
         }
 
+        public void SleepMilliseconds(int milliSeconds)
+        {
+            // Used to test timeout
+            Thread.Sleep(milliSeconds);
+        }
+
+        public void NoAction()
+        {
+            // Don't delete, this is needed to test placeholder transactions
+        }
+        
         public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
         {
             // This is for testing batched transaction sequence

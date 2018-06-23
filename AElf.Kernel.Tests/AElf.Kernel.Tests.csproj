@@ -32,6 +32,7 @@
     <Compile Remove="Miner\Synchronizer.cs" />
     <Compile Remove="Concurrency\Execution\JobExecutorTest.cs" />
     <Compile Remove="Concurrency\Execution\GroupExecutorTest.cs" />
+    <Compile Remove="Concurrency\Execution\BatchExecutorTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Concurrency\" />

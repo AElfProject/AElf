@@ -163,6 +163,41 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             return GetTransferTxn(SampleContractAddress2, from, to, qty);
         }
 
+        public Transaction GetSleepTxn1(int milliSeconds)
+        {
+            return GetSleepTxn(SampleContractAddress1, milliSeconds);
+        }
+
+        private Transaction GetSleepTxn(Hash contractAddress, int milliSeconds)
+        {
+            return new Transaction
+            {
+                From = Hash.Zero,
+                To = contractAddress,
+                IncrementId = NewIncrementId(),
+                MethodName = "SleepMilliseconds",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(milliSeconds))
+            };
+        }
+
+        public Transaction GetNoActionTxn1()
+        {
+            return GetNoActionTxn(SampleContractAddress1);
+        }
+
+        private Transaction GetNoActionTxn(Hash contractAddress)
+        {
+            return new Transaction
+            {
+                From = Hash.Zero,
+                To = contractAddress,
+                IncrementId = NewIncrementId(),
+                MethodName = "NoAction",
+                Params = ByteString.Empty
+            };
+        }
+
+        
         private Transaction GetTransferTxn(Hash contractAddress, Hash from, Hash to, ulong qty)
         {
             // TODO: Test with IncrementId
