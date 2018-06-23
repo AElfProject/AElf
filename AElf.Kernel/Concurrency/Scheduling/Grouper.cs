@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using NLog;
 using Org.BouncyCastle.Security;
 
 namespace AElf.Kernel.Concurrency.Scheduling
@@ -12,12 +13,15 @@ namespace AElf.Kernel.Concurrency.Scheduling
     public class Grouper : IGrouper
     {
         private IResourceUsageDetectionService _resourceUsageDetectionService;
+        private ILogger _logger;
 
-        public Grouper(IResourceUsageDetectionService resourceUsageDetectionService)
+        public Grouper(IResourceUsageDetectionService resourceUsageDetectionService, ILogger logger = null)
         {
             _resourceUsageDetectionService = resourceUsageDetectionService;
+            _logger = logger;
         }
 
+        //TODO: for testnet we only have a single chain, thus grouper only take care of txList in one chain (hence Process has chainId as parameter)
         public List<List<ITransaction>> Process(Hash chainId, List<ITransaction> transactions)
         {
             var txResourceHandle = new Dictionary<ITransaction, string>();
@@ -73,10 +77,33 @@ namespace AElf.Kernel.Concurrency.Scheduling
                 }
             }
             result.AddRange(grouped.Values);
+
+            _logger?.Info(string.Format(
+                "Grouper on chainId [{0}] group {1} transactions into {2} groups with sizes [{3}]", chainId,
+                transactions.Count, result.Count, string.Join(", ", result.Select(a=>a.Count))));
+            
             return result;
         }
-        
+
         public List<List<ITransaction>> ProcessWithCoreCount(int totalCores, Hash chainId, List<ITransaction> transactions)
+        {
+            return SimpleProcessWithCoreCount(totalCores, chainId, transactions);
+        }
+        
+        /// <summary>
+        /// Reblancing the group, this is a simple version where calculate the threshold [= txCount / totalCores] first,
+        /// then fetch next biggest group in group result, merge smallest groups untill the transactions count in group reach threshold
+        /// 
+        /// Drawback of this approach: could produce some unbalance result in some cases:
+        ///     Consider group result is [499, 497, 496, 495, 6, 3, 2, 2] with 3 cores
+        ///     This func Will produce group in first step: [499, 499, 498, 498, 6], next step will be [1002, 499, 499] which is unbalanced
+        /// </summary>
+        /// <param name="totalCores"></param>
+        /// <param name="chainId"></param>
+        /// <param name="transactions"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidParameterException"></exception>
+        public List<List<ITransaction>> SimpleProcessWithCoreCount(int totalCores, Hash chainId, List<ITransaction> transactions)
         {
             if (transactions.Count == 0)
             {
@@ -89,14 +116,14 @@ namespace AElf.Kernel.Concurrency.Scheduling
             }
             
             
-            var sortedUnmergedGroups = Process(chainId, transactions).OrderBy( a=> a.Count).ToList();
+            var sortedUnmergedGroups = Process(chainId, transactions).OrderByDescending( a=> a.Count).ToList();
 
-            int resGroupCount = totalCores + 2;
-            //TODO: group's count can be a little bit more that core count, for now it's a constant, this value can latter make adjustable to deal with special uses
+            //TODO: group's count can be a little bit more that core count, for now it's 0, this value can latter make adjustable to deal with special uses
+            int resGroupCount = totalCores + 0;
             int mergeThreshold = transactions.Count / (resGroupCount);
             var res = new List<List<ITransaction>>();
 
-            int startIndex = 0, endIndex = res.Count, totalCount = 0;
+            int startIndex = 0, endIndex = sortedUnmergedGroups.Count - 1, totalCount = 0;
 
             while (startIndex <= endIndex)
             {
@@ -114,23 +141,29 @@ namespace AElf.Kernel.Concurrency.Scheduling
             //in case there is a bug 
             if (totalCount != transactions.Count)
             {
-                throw new InvalidOperationException("There is a bug in the Grouper, get inconsist transaction count");
+                _logger.Fatal("There is a bug in the Grouper, get inconsist transaction count, some tx lost");
             }
-            return res;
-        }
 
-        public List<ITransaction> NextBalancedGroup(int threshold, ref List<List<ITransaction>> sortedUnmergeList)
-        {
-            if(sortedUnmergeList.Count == 0) return new List<ITransaction>();
-            
-            var res = sortedUnmergeList.First();
-            sortedUnmergeList.RemoveAt(0);
-            while (res.Count + sortedUnmergeList.Last().Count <= threshold)
+            if (res.Count > resGroupCount)
             {
-                res.AddRange(sortedUnmergeList.Last());
-                sortedUnmergeList.RemoveAt(sortedUnmergeList.Count-1);
+                var temp = res.OrderBy(a => a.Count).ToList();
+                res.Clear();
+                int index;
+                var merge = new List<ITransaction>();
+                for (index = 0; index <= temp.Count - resGroupCount; index++)
+                {
+                    merge.AddRange(temp[index]);
+                }
+                res.Add(merge);
+                for (; index < temp.Count; index++)
+                {
+                    res.Add(temp[index]);
+                }
             }
-
+            
+            _logger?.Info(string.Format(
+                "Grouper on chainId [{0}] merge {1} groups into {2} groups with sizes [{3}]", chainId,
+                transactions.Count, res.Count, string.Join(", ", res.Select(a=>a.Count))));
             return res;
         }
     }

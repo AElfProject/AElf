@@ -102,27 +102,36 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
 
             var testCasesCount = 4;
-            var coreCountList = new int[] {7, 10, 1, 5, 100};
-            var testCase1SizesList = new List<List<int>>(new []
+            var coreCountList = new int[] {7, 10, 1, 5, 100, 1000, 5, 3};
+            var testCaseSizesList = new List<List<int>>(new []
             {
-                new List<int>(){100, 20, 30, 1, 2, 4, 5, 1, 50, 70, 90}, 
-                new List<int>(){1000},
-                new List<int>(){1,1,1,1,1,100,12,13,1},
-                new List<int>(){10, 10, 10, 10, 10, 10, 9, 11, 20}, 
-                new List<int>(), 
+                new List<int>(){100, 20, 30, 1, 2, 4, 5, 1, 50, 70, 90}, //normal cases
+                new List<int>(){1000}, // test a single giant group with multiple cores
+                new List<int>(){1,1,1,1,1,100,12,13,1}, //test one core
+                new List<int>(){10, 10, 10, 10, 10, 10, 9, 11, 20}, //normal cases
+                new List<int>(), //test empty tx list
+                new List<int>(){10, 20, 10, 4, 5, 12, 51, 25, 31}, //test when core is far bigger
+                new List<int>(){20, 20, 20, 20, 20}, //test when nothing changes needed
+                
+                new List<int>(){499, 2, 497, 2, 496, 3, 496, 6}, //test worst case
+                
             });
             var expectedSizesList = new List<List<int>>(new []
             {
-                new List<int>(){33, 30, 90, 70, 50, 100}, 
+                new List<int>(){100, 90, 70, 52, 41, 20}, 
                 new List<int>(){1000},
                 new List<int>(){131},
-                new List<int>(){19, 20, 20, 10, 11, 20}, 
+                new List<int>(){20, 20, 20, 20, 20}, 
+                new List<int>(), 
+                new List<int>(){10, 20, 10, 4, 5, 12, 51, 25, 31}, 
+                new List<int>(){20, 20, 20, 20, 20},
+                new List<int>(){1002, 499, 499}, 
             });
             
 
             for (int i = 0; i < testCasesCount; i++)
             {
-                var unmergedGroup = ProduceFakeTxGroup(testCase1SizesList[i]);
+                var unmergedGroup = ProduceFakeTxGroup(testCaseSizesList[i]);
                 var txList = new List<ITransaction>();
                 unmergedGroup.ForEach(a => txList.AddRange(a));
                 var actualRes = grouper.ProcessWithCoreCount(coreCountList[i], Hash.Zero, txList);
