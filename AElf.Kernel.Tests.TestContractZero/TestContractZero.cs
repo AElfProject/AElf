@@ -13,12 +13,14 @@ namespace AElf.Kernel.Tests
 {
     public class TestContractZero : CSharpSmartContract, ISmartContractZero
     {
+        [SmartContractFieldData("${this}._lock", DataAccessMode.ReadWriteAccountSharing)]
+        private object _lock;
         public override async Task InvokeAsync()
         {
             await Task.CompletedTask;
         }
 
-        [SmartContractFunction("${this}.DeploySmartContract", new string[]{}, new string[]{})]
+        [SmartContractFunction("${this}.DeploySmartContract", new string[]{}, new string[]{"${this}._lock"})]
         public async Task<Hash> DeploySmartContract(SmartContractRegistration registration)
         {
             var tx = Api.GetTransaction();
