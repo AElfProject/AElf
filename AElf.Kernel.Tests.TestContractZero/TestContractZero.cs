@@ -13,6 +13,7 @@ using AElf.Kernel.KernelAccount;
  using Api = AElf.Sdk.CSharp.Api;
  using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Tests
 {
     public class TestContractZero : CSharpSmartContract, ISmartContractZero
@@ -76,17 +77,16 @@ namespace AElf.Kernel.Tests
             return blockProducer;
         }
 
-        public async Task<BlockProducer> SetBlockProducers(ByteString blockProducersBytes)
+        public async Task<BlockProducer> SetBlockProducers(string blockProducerStr)
         {
-            var blockProducers = BlockProducer.Parser.ParseFrom(blockProducersBytes);
-            if (blockProducers.Nodes.Count < 1)
+            var blockProducers = new BlockProducer();
+            var bps = blockProducerStr.Split(';');
+            foreach (var bp in bps)
             {
-                throw new InvalidOperationException("Cannot find mining nodes in related config file.");
+                blockProducers.Nodes.Add(bp);
             }
-
-            await _blockProducer.SetAsync(blockProducers);
             
-            Api.Return(blockProducers);
+            await _blockProducer.SetAsync(blockProducers);
 
             return blockProducers;
         }
@@ -103,7 +103,7 @@ namespace AElf.Kernel.Tests
             // First round
             foreach (var node in blockProducers.Nodes)
             {
-                var random = new Random(DateTime.Now.Millisecond + node[2]);
+                var random = new Random(DateTime.Now.Millisecond + node[0]);
                 dict.Add(node, random.Next(0, 1000));
             }
 
@@ -154,7 +154,7 @@ namespace AElf.Kernel.Tests
             
             foreach (var node in blockProducers.Nodes)
             {
-                var random = new Random(DateTime.Now.Millisecond + node[7]);
+                var random = new Random(DateTime.Now.Millisecond + node[1]);
                 dict.Add(node, random.Next(0, 1000));
             }
             
@@ -197,12 +197,126 @@ namespace AElf.Kernel.Tests
             }
             
             await _dPoSInfoMap.SetValueAsync(RoundsCount, infosOfRound2);
-
-            return new DPoSInfo
+            
+            var dPoSInfo = new DPoSInfo
             {
                 RoundInfo = {infosOfRound1, infosOfRound2}
             };
+            
+            return dPoSInfo;
         }
+        
+        public async Task<DPoSInfo> GenerateInfoForFirstTwoRounds()
+        {
+            var blockProducers = await GetBlockProducers();
+            var dict = new Dictionary<string, int>();
+
+            // First round
+            foreach (var node in blockProducers.Nodes)
+            {
+                dict.Add(node, node[0]);
+            }
+
+            var sortedMiningNodes =
+                from obj in dict
+                orderby obj.Value descending
+                select obj.Key;
+
+            var enumerable = sortedMiningNodes.ToList();
+            
+            var infosOfRound1 = new RoundInfo();
+
+            await _roundsCount.SetAsync(1);
+
+            var selected = 1;
+            for (var i = 0; i < enumerable.Count; i++)
+            {
+                var bpInfo = new BPInfo {IsEBP = false};
+
+                if (i == 0)
+                {
+                    await _firstPlaceMap.SetValueAsync(RoundsCount, new StringValue {Value = enumerable[0]});
+                }
+                
+                if (i == selected)
+                {
+                    bpInfo.IsEBP = true;
+                    await _eBPMap.SetValueAsync(RoundsCount, new StringValue {Value = enumerable[i]});
+
+                }
+
+                bpInfo.Order = i + 1;
+                bpInfo.Signature = Hash.Generate();
+                bpInfo.TimeSlot = GetTimestamp(i * MiningTime);
+
+                if (i == enumerable.Count - 1)
+                {
+                    await _timeForProducingExtraBlock.SetAsync(GetTimestamp(i * MiningTime + MiningTime));
+                }
+
+                infosOfRound1.Info.Add(enumerable[i], bpInfo);
+            }
+            
+            await _dPoSInfoMap.SetValueAsync(RoundsCount, infosOfRound1);
+
+            // Second round
+            dict = new Dictionary<string, int>();
+            
+            foreach (var node in blockProducers.Nodes)
+            {
+                dict.Add(node, node[0]);
+            }
+            
+            sortedMiningNodes =
+                from obj in dict
+                orderby obj.Value descending
+                select obj.Key;
+            
+            enumerable = sortedMiningNodes.ToList();
+            
+            var infosOfRound2 = new RoundInfo();
+            
+            await _roundsCount.SetAsync(2);
+
+            selected = 0;
+            for (var i = 0; i < enumerable.Count; i++)
+            {
+                var bpInfo = new BPInfo {IsEBP = false};
+                
+                if (i == 0)
+                {
+                    await _firstPlaceMap.SetValueAsync(RoundsCount, new StringValue {Value = enumerable[0]});
+                }
+                
+                if (i == selected)
+                {
+                    bpInfo.IsEBP = true;
+                    await _eBPMap.SetValueAsync(RoundsCount, new StringValue {Value = enumerable[i]});
+                }
+
+                bpInfo.TimeSlot = GetTimestamp(i * MiningTime);
+                bpInfo.Order = i + 1;
+
+                if (i == enumerable.Count - 1)
+                {
+                    await _timeForProducingExtraBlock.SetAsync(GetTimestamp(i * MiningTime + MiningTime));
+                }
+
+                infosOfRound2.Info.Add(enumerable[i], bpInfo);
+            }
+            
+            await _dPoSInfoMap.SetValueAsync(RoundsCount, infosOfRound2);
+            
+            var dPoSInfo = new DPoSInfo
+            {
+                RoundInfo = {infosOfRound1, infosOfRound2}
+            };
+            
+            Api.Return(dPoSInfo);
+            
+            return dPoSInfo;
+        }
+
         
         #endregion
 

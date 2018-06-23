@@ -27,14 +27,14 @@ namespace AElf.Kernel.Consensus
         // For genesis block and block producers
         #region Get Txs to sync state
 
-        public List<ITransaction> GetTxsForGenesisBlock(ulong incrementId, ByteString blockProducerBytes)
+        public List<ITransaction> GetTxsForGenesisBlock(ulong incrementId, string blockProducerStr, Hash contractAccountHash)
         {
             var txs = new List<ITransaction>
             {
                 new Transaction
                 {
                     From = AccountHash,
-                    To = Hash.Zero,
+                    To = contractAccountHash,
                     IncrementId = incrementId++,
                     MethodName = "SetBlockProducers",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
@@ -44,7 +44,7 @@ namespace AElf.Kernel.Consensus
                         {
                             new Param
                             {
-                                BytesVal = blockProducerBytes
+                                StrVal = blockProducerStr
                             }
                         }
                     }.ToByteArray())
@@ -52,9 +52,9 @@ namespace AElf.Kernel.Consensus
                 new Transaction
                 {
                     From = AccountHash,
-                    To = Hash.Zero,
+                    To = contractAccountHash,
                     IncrementId = incrementId++,
-                    MethodName = "RandomizeInfoForFirstTwoRounds",
+                    MethodName = "GenerateInfoForFirstTwoRounds",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom()
                 }

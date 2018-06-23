@@ -434,6 +434,13 @@ namespace AElf.Kernel.Node
             {
                 blockProducer.Nodes.Add(bp["pubkey"]);
             }
+
+            var blockProducerStr = "";
+
+            foreach (var node in blockProducer.Nodes)
+            {
+                blockProducerStr += $";{node}";
+            }
             
             _dPoS = new DPoS(_nodeKeyPair);
             
@@ -446,7 +453,9 @@ namespace AElf.Kernel.Node
                     {
                         if (x == 0)
                         {
-                            var txsForGenesisBlock = _dPoS.GetTxsForGenesisBlock(await GetIncrementId(_nodeKeyPair.GetAddress()), blockProducer.ToByteString());
+                            var txsForGenesisBlock = _dPoS.GetTxsForGenesisBlock(
+                                await GetIncrementId(_nodeKeyPair.GetAddress()), blockProducerStr,
+                                new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount());
                             foreach (var tx in txsForGenesisBlock)
                             {
                                 await BroadcastTransaction(tx);
@@ -454,7 +463,6 @@ namespace AElf.Kernel.Node
                                 //.Wait();
                             }
                         }
-
                         var block = await _miner.Mine();
                         _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", block.GetHash(),
                             block.Body.Transactions.Count);
