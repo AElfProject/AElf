@@ -45,7 +45,7 @@ namespace AElf.Kernel.Consensus
                 {
                     From = AccountHash,
                     To = contractAccountHash,
-                    IncrementId = incrementId++,
+                    IncrementId = incrementId,
                     MethodName = "GenerateInfoForFirstTwoRounds",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom(ParamsPacker.Pack())
@@ -160,6 +160,15 @@ namespace AElf.Kernel.Consensus
         {
             var txs = new List<ITransaction>
             {
+                new Transaction
+                {
+                    From = AccountHash,
+                    To = contractAccountHash,
+                    IncrementId = incrementId++,
+                    MethodName = "SupplyRoundInfo",
+                    P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack())
+                },
                 new Transaction
                 {
                     From = AccountHash,
@@ -370,6 +379,50 @@ namespace AElf.Kernel.Consensus
                 To = contractAccountHash,
                 IncrementId = incrementId,
                 MethodName = "GetRoundsCount",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
+        }
+        
+        public Transaction GetTryToPublishInValueTx(ulong incrementId, Hash contractAccountHash, Hash inValue)
+        {
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "TryToPublishInValue",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(inValue))
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
+        }
+
+        public Transaction GetSupplyRoundInfoGTx(ulong incrementId, Hash contractAccountHash)
+        {
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "SupplyRoundInfo",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
