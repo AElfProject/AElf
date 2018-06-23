@@ -463,13 +463,6 @@ namespace AElf.Kernel.Node
             {
                 blockProducer.Nodes.Add(bp["pubkey"]);
             }
-
-            var blockProducerStr = "";
-
-            foreach (var node in blockProducer.Nodes)
-            {
-                blockProducerStr += $";{node}";
-            }
             
             _dPoS = new DPoS(_nodeKeyPair);
             
@@ -501,21 +494,13 @@ namespace AElf.Kernel.Node
                             inValue = Hash.Generate();
                         }
                         
-                        // ReSharper disable once InconsistentNaming
-                        var tcGetDPoSInfo = new TransactionContext
-                        {
-                            Transaction = _dPoS.GetDPoSInfoToStringTx(await GetIncrementId(_nodeKeyPair.GetAddress()), contractAccountHash)
-                        };
-                        executive.SetTransactionContext(tcGetDPoSInfo).Apply(true).Wait();
-                        _logger.Log(LogLevel.Debug, StringValue.Parser.ParseFrom(tcGetDPoSInfo.Trace.RetVal.ToByteArray()).Value);
-                        
                         if (x == 0)
                         {
                             if (!amIChainCreater) 
                                 return;
                             
                             var txsForGenesisBlock = _dPoS.GetTxsForGenesisBlock(
-                                await GetIncrementId(_nodeKeyPair.GetAddress()), blockProducerStr, contractAccountHash
+                                await GetIncrementId(_nodeKeyPair.GetAddress()), blockProducer, contractAccountHash
                             );
                             foreach (var tx in txsForGenesisBlock)
                             {
@@ -528,6 +513,16 @@ namespace AElf.Kernel.Node
 
                             return;
                         }
+                        
+                        // ReSharper disable once InconsistentNaming
+                        var tcGetDPoSInfo = new TransactionContext
+                        {
+                            Transaction = _dPoS.GetDPoSInfoToStringTx(await GetIncrementId(_nodeKeyPair.GetAddress()), contractAccountHash)
+                        };
+                        executive.SetTransactionContext(tcGetDPoSInfo).Apply(true).Wait();
+                        _logger.Log(LogLevel.Debug, StringValue.Parser.ParseFrom(tcGetDPoSInfo.Trace.RetVal.ToByteArray()).Value);
+                        
+                        
 
                         #region Mining normal block
 
@@ -709,7 +704,7 @@ namespace AElf.Kernel.Node
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private IObservable<long> GetIntervalObservable()
         {
-            return Observable.Interval(TimeSpan.FromMilliseconds(4000));
+            return Observable.Interval(TimeSpan.FromMilliseconds(3000));
         }
     }
 }

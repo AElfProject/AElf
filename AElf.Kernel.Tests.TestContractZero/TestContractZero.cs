@@ -50,7 +50,7 @@ namespace AElf.Kernel.Tests
 
         #region DPoS
 
-        private const int MiningTime = 6000;
+        private const int MiningTime = 5000;
 
         private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");
         
@@ -85,21 +85,12 @@ namespace AElf.Kernel.Tests
             return blockProducer;
         }
 
-        public async Task<BlockProducer> SetBlockProducers(string blockProducerStr)
+        public async Task<BlockProducer> SetBlockProducers(BlockProducer blockProducers)
         {
-            var blockProducers = new BlockProducer();
-            var bps = blockProducerStr.Split(';');
-            foreach (var bp in bps)
-            {
-                if (bp.Length < 18)
-                {
-                    continue;
-                }
-                blockProducers.Nodes.Add(bp);
-            }
-            
             await _blockProducer.SetAsync(blockProducers);
 
+            Api.Return(blockProducers);
+            
             return blockProducers;
         }
         
@@ -240,20 +231,21 @@ namespace AElf.Kernel.Tests
 
             await _roundsCount.SetAsync(1);
 
-            var selected = 1;
+            var selected = blockProducers.Nodes.Count / 2;
             for (var i = 0; i < enumerable.Count; i++)
             {
                 var bpInfo = new BPInfo {IsEBP = false};
 
                 if (i == 0)
                 {
-                    await _firstPlaceMap.SetValueAsync(RoundsCount, new StringValue {Value = enumerable[0]});
+                    await _firstPlaceMap.SetValueAsync(new UInt64Value {Value = 1},
+                        new StringValue {Value = enumerable[0]});
                 }
                 
                 if (i == selected)
                 {
                     bpInfo.IsEBP = true;
-                    await _eBPMap.SetValueAsync(RoundsCount, new StringValue {Value = enumerable[i]});
+                    await _eBPMap.SetValueAsync(new UInt64Value {Value = 1}, new StringValue {Value = enumerable[i]});
 
                 }
 
@@ -269,7 +261,7 @@ namespace AElf.Kernel.Tests
                 infosOfRound1.Info.Add(enumerable[i], bpInfo);
             }
             
-            await _dPoSInfoMap.SetValueAsync(RoundsCount, infosOfRound1);
+            await _dPoSInfoMap.SetValueAsync(new UInt64Value {Value = 1}, infosOfRound1);
 
             // Second round
             dict = new Dictionary<string, int>();
@@ -287,23 +279,21 @@ namespace AElf.Kernel.Tests
             enumerable = sortedMiningNodes.ToList();
             
             var infosOfRound2 = new RoundInfo();
-            
-            await _roundsCount.SetAsync(2);
 
-            selected = 0;
+            selected = blockProducers.Nodes.Count / 2;
             for (var i = 0; i < enumerable.Count; i++)
             {
                 var bpInfo = new BPInfo {IsEBP = false};
                 
                 if (i == 0)
                 {
-                    await _firstPlaceMap.SetValueAsync(RoundsCount, new StringValue {Value = enumerable[0]});
+                    await _firstPlaceMap.SetValueAsync(new UInt64Value {Value = 2}, new StringValue {Value = enumerable[0]});
                 }
                 
                 if (i == selected)
                 {
                     bpInfo.IsEBP = true;
-                    await _eBPMap.SetValueAsync(RoundsCount, new StringValue {Value = enumerable[i]});
+                    await _eBPMap.SetValueAsync(new UInt64Value {Value = 2}, new StringValue {Value = enumerable[i]});
                 }
 
                 bpInfo.TimeSlot = GetTimestamp(i * MiningTime);
@@ -317,7 +307,7 @@ namespace AElf.Kernel.Tests
                 infosOfRound2.Info.Add(enumerable[i], bpInfo);
             }
             
-            await _dPoSInfoMap.SetValueAsync(RoundsCount, infosOfRound2);
+            await _dPoSInfoMap.SetValueAsync(new UInt64Value {Value = 2}, infosOfRound2);
             
             var dPoSInfo = new DPoSInfo
             {
@@ -336,6 +326,11 @@ namespace AElf.Kernel.Tests
 
         public async Task<RoundInfo> GenerateNextRoundOrder()
         {
+            if (RoundsCount.Value == 1)
+            {
+                return await _dPoSInfoMap.GetValueAsync(RoundsCountAddOne(RoundsCount));
+            }
+            
             var infosOfNextRound = new RoundInfo();
             var signatureDict = new Dictionary<Hash, string>();
             var orderDict = new Dictionary<int, string>();
@@ -701,9 +696,9 @@ namespace AElf.Kernel.Tests
         }
 
         // ReSharper disable once InconsistentNaming
-        public async Task<string> GetDPoSInfoToString()
+        public async Task<StringValue> GetDPoSInfoToString()
         {
-            ulong count = 0;
+            ulong count = 1;
             if (RoundsCount != null)
             {
                 count = RoundsCount.Value;
@@ -711,14 +706,14 @@ namespace AElf.Kernel.Tests
             var result = "";
 
             ulong i = 1;
-            while (i < count)
+            while (i <= count)
             {
                 var roundInfoStr = await GetRoundInfoToString(new UInt64Value {Value = i});
                 result += $"\n[Round {i}]\n" + roundInfoStr;
                 i++;
             }
-            
-            return result;
+
+            return new StringValue {Value = result + "\nCurrent Round : " + RoundsCount?.Value};
         }
 
         public async Task<string> GetRoundInfoToString(UInt64Value roundsCount)

@@ -5,6 +5,7 @@ using System.Linq;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Node;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using ServiceStack;
@@ -27,7 +28,7 @@ namespace AElf.Kernel.Consensus
         // For genesis block and block producers
         #region Get Txs to sync state
 
-        public List<ITransaction> GetTxsForGenesisBlock(ulong incrementId, string blockProducerStr, Hash contractAccountHash)
+        public List<ITransaction> GetTxsForGenesisBlock(ulong incrementId, BlockProducer blockProducer, Hash contractAccountHash)
         {
             var txs = new List<ITransaction>
             {
@@ -38,16 +39,7 @@ namespace AElf.Kernel.Consensus
                     IncrementId = incrementId++,
                     MethodName = "SetBlockProducers",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                    Params = ByteString.CopyFrom(new Parameters
-                    {
-                        Params =
-                        {
-                            new Param
-                            {
-                                StrVal = blockProducerStr
-                            }
-                        }
-                    }.ToByteArray())
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(blockProducer))
                 },
                 new Transaction
                 {
@@ -56,7 +48,7 @@ namespace AElf.Kernel.Consensus
                     IncrementId = incrementId++,
                     MethodName = "GenerateInfoForFirstTwoRounds",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                    Params = ByteString.CopyFrom()
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack())
                 }
             };
 
@@ -81,7 +73,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "AbleToMine",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom()
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
             
             var signer = new ECSigner();
@@ -105,16 +97,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "IsBP",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(new Parameters
-                {
-                    Params =
-                    {
-                        new Param
-                        {
-                            StrVal = accoutAddress
-                        }
-                    }
-                }.ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(accoutAddress))
             };
             
             var signer = new ECSigner();
@@ -137,7 +120,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "IsTimeToProduceExtraBlock",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom()
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
             
             var signer = new ECSigner();
@@ -160,7 +143,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "AbleToProduceExtraBlock",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom()
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
             
             var signer = new ECSigner();
@@ -184,7 +167,7 @@ namespace AElf.Kernel.Consensus
                     IncrementId = incrementId++,
                     MethodName = "GenerateNextRoundOrder",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                    Params = ByteString.CopyFrom()
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack())
                 },
                 new Transaction
                 {
@@ -193,7 +176,7 @@ namespace AElf.Kernel.Consensus
                     IncrementId = incrementId++,
                     MethodName = "SetNextExtraBlockProducer",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                    Params = ByteString.CopyFrom()
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack())
                 },
                 new Transaction
                 {
@@ -202,7 +185,7 @@ namespace AElf.Kernel.Consensus
                     IncrementId = incrementId,
                     MethodName = "SetRoundsCount",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                    Params = ByteString.CopyFrom()
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack())
                 }
             };
 
@@ -221,7 +204,6 @@ namespace AElf.Kernel.Consensus
         public List<ITransaction> GetTxsForNormalBlock(ulong incrementId, Hash contractAccountHash, ulong roundsCount,
             Hash outValue, Hash sig)
         {
-            var foo = AddressHashToString(outValue);
             var txs = new List<ITransaction>
             {
                 new Transaction
@@ -229,26 +211,9 @@ namespace AElf.Kernel.Consensus
                     From = AccountHash,
                     To = contractAccountHash,
                     IncrementId = incrementId,
-                    MethodName = "PublishOutValueAndSignatureDebug",
+                    MethodName = "PublishOutValueAndSignature",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                    Params = ByteString.CopyFrom(new Parameters
-                    {
-                        Params =
-                        {
-                            new Param
-                            {
-                                StrVal = AddressHashToString(outValue)
-                            },
-                            new Param
-                            {
-                                StrVal = AddressHashToString(sig)
-                            },
-                            new Param
-                            {
-                                UlongVal = roundsCount
-                            }
-                        }
-                    }.ToByteArray())
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(outValue, sig, roundsCount))
                 }
             };
 
@@ -273,20 +238,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "GetOutValueOf",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(new Parameters
-                {
-                    Params =
-                    {
-                        new Param
-                        {
-                            StrVal = AddressHashToString(_keyPair.GetAddress())
-                        },
-                        new Param
-                        {
-                            UlongVal = roundsCount
-                        }
-                    }
-                }.ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(AddressHashToString(_keyPair.GetAddress()), roundsCount))
             };
             
             var signer = new ECSigner();
@@ -308,20 +260,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "GetInValueOf",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(new Parameters
-                {
-                    Params =
-                    {
-                        new Param
-                        {
-                            StrVal = AddressHashToString(_keyPair.GetAddress())
-                        },
-                        new Param
-                        {
-                            UlongVal = roundsCount
-                        }
-                    }
-                }.ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(AddressHashToString(_keyPair.GetAddress()), roundsCount))
             };
             
             var signer = new ECSigner();
@@ -343,20 +282,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "GetSignatureOf",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(new Parameters
-                {
-                    Params =
-                    {
-                        new Param
-                        {
-                            StrVal = AddressHashToString(_keyPair.GetAddress())
-                        },
-                        new Param
-                        {
-                            UlongVal = roundsCount
-                        }
-                    }
-                }.ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(AddressHashToString(_keyPair.GetAddress()), roundsCount))
             };
             
             var signer = new ECSigner();
@@ -369,7 +295,7 @@ namespace AElf.Kernel.Consensus
             return tx;
         }
 
-        public Transaction TryToGetTxForPublishInValue(ulong incrementId, Hash contractAccountHash)
+        public Transaction TryToGetTxForPublishInValue(ulong incrementId, Hash contractAccountHash, Hash inValue)
         {
             var tx =  new Transaction
             {
@@ -378,16 +304,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "TryToPublishInValue",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(new Parameters
-                {
-                    Params =
-                    {
-                        new Param
-                        {
-                            HashVal = Hash.Generate()
-                        }
-                    }
-                }.ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(inValue))
             };
             
             var signer = new ECSigner();
@@ -410,7 +327,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "GetDPoSInfoToString",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom()
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
             
             var signer = new ECSigner();
@@ -432,16 +349,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "CalculateSignature",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(new Parameters
-                {
-                    Params =
-                    {
-                        new Param
-                        {
-                            HashVal = inValue
-                        }
-                    }
-                }.ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(inValue))
             };
             
             var signer = new ECSigner();
@@ -463,7 +371,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "GetRoundsCount",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom()
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
             
             var signer = new ECSigner();
