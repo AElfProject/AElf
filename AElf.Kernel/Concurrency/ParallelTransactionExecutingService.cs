@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using System.Threading;
 using Akka.Actor;
-using AElf.Kernel;
-using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Scheduling;
-using Org.BouncyCastle.Crypto.Modes;
 
 namespace AElf.Kernel.Concurrency
 {
@@ -28,7 +24,6 @@ namespace AElf.Kernel.Concurrency
         {
             // TODO: Move it to config
             int timeoutMilliSeconds = 3500;
-            var taskCompletionSources = new List<TaskCompletionSource<List<TransactionTrace>>>();
 
             var cts = new CancellationTokenSource();
 
@@ -70,7 +65,7 @@ namespace AElf.Kernel.Concurrency
             return transactions.Select(tx => new TransactionTrace()
             {
                 TransactionId = tx.GetHash(),
-                StdErr = "Execution Cancelled2"
+                StdErr = "Execution Cancelled"
             }).ToList();
         }
 
