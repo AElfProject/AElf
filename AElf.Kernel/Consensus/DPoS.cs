@@ -72,75 +72,366 @@ namespace AElf.Kernel.Consensus
             }).ToList();
         }
 
-        public List<ITransaction> GetTxsForExtraBlock()
+        public Transaction GetAbleToMineTx(ulong incrementId, Hash contractAccountHash)
         {
-            return new List<ITransaction>
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "AbleToMine",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom()
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
+        }
+        
+        // ReSharper disable once InconsistentNaming
+        public Transaction GetIsBPTx(ulong incrementId, Hash contractAccountHash)
+        {
+            var accoutAddress = AddressHashToString(AccountHash.ToAccount());
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "IsBP",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom(new Parameters
+                {
+                    Params =
+                    {
+                        new Param
+                        {
+                            StrVal = accoutAddress
+                        }
+                    }
+                }.ToByteArray())
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
+        }
+        
+        // ReSharper disable once InconsistentNaming
+        public Transaction GetIsTimeToProduceExtraBlockTx(ulong incrementId, Hash contractAccountHash)
+        {
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "IsTimeToProduceExtraBlock",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom()
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
+        }
+        
+        // ReSharper disable once InconsistentNaming
+        public Transaction GetAbleToProduceExtraBlockTx(ulong incrementId, Hash contractAccountHash)
+        {
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "AbleToProduceExtraBlock",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom()
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
+        }
+        
+        public List<ITransaction> GetTxsForExtraBlock(ulong incrementId, Hash contractAccountHash)
+        {
+            var txs = new List<ITransaction>
             {
                 new Transaction
                 {
                     From = AccountHash,
-                    To = Hash.Zero,
-                    IncrementId = 0,
-                    Fee = 3, //TODO: TBD
-                    MethodName = "GenerateNextRoundOrder"
+                    To = contractAccountHash,
+                    IncrementId = incrementId++,
+                    MethodName = "GenerateNextRoundOrder",
+                    P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                    Params = ByteString.CopyFrom()
                 },
                 new Transaction
                 {
                     From = AccountHash,
-                    To = Hash.Zero,
-                    IncrementId = 1, //TODO: not sure
-                    Fee = 3, //TODO: TBD
-                    MethodName = "SetNextExtraBlockProducer"
+                    To = contractAccountHash,
+                    IncrementId = incrementId++,
+                    MethodName = "SetNextExtraBlockProducer",
+                    P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                    Params = ByteString.CopyFrom()
                 },
                 new Transaction
                 {
                     From = AccountHash,
-                    To = Hash.Zero,
-                    IncrementId = 2, //TODO: not sure
-                    Fee = 3, //TODO: TBD
-                    MethodName = "SetRoundsCount"
+                    To = contractAccountHash,
+                    IncrementId = incrementId,
+                    MethodName = "SetRoundsCount",
+                    P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                    Params = ByteString.CopyFrom()
                 }
             };
+
+            return txs.Select(t =>
+            {
+                var signer = new ECSigner();
+                var signature = signer.Sign(_keyPair, t.GetHash().GetHashBytes());
+
+                // Update the signature
+                ((Transaction) t).R = ByteString.CopyFrom(signature.R);
+                ((Transaction) t).S = ByteString.CopyFrom(signature.S);
+                return t;
+            }).ToList();
         }
 
-        public List<ITransaction> GetTxsForNormalBlock(Hash outValue, Hash sigValue)
+        public List<ITransaction> GetTxsForNormalBlock(ulong incrementId, Hash contractAccountHash, ulong roundsCount,
+            Hash outValue, Hash sig)
         {
-            return new List<ITransaction>
+            var foo = AddressHashToString(outValue);
+            var txs = new List<ITransaction>
             {
                 new Transaction
                 {
                     From = AccountHash,
-                    To = Hash.Zero,
-                    IncrementId = 0,
-                    Fee = 3,
-                    MethodName = "PublishOutValueAndSignature",
+                    To = contractAccountHash,
+                    IncrementId = incrementId,
+                    MethodName = "PublishOutValueAndSignatureDebug",
+                    P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom(new Parameters
                     {
                         Params =
                         {
                             new Param
                             {
-                                HashVal = outValue
+                                StrVal = AddressHashToString(outValue)
                             },
                             new Param
                             {
-                                HashVal = sigValue
+                                StrVal = AddressHashToString(sig)
+                            },
+                            new Param
+                            {
+                                UlongVal = roundsCount
                             }
                         }
                     }.ToByteArray())
                 }
             };
+
+            return txs.Select(t =>
+            {
+                var signer = new ECSigner();
+                var signature = signer.Sign(_keyPair, t.GetHash().GetHashBytes());
+
+                // Update the signature
+                ((Transaction) t).R = ByteString.CopyFrom(signature.R);
+                ((Transaction) t).S = ByteString.CopyFrom(signature.S);
+                return t;
+            }).ToList();
         }
 
-        public bool TryToGetTxForPublishInValue(Hash inValue, out ITransaction tx)
+        public Transaction GetOutValueOfMeTx(ulong incrementId, Hash contractAccountHash, ulong roundsCount)
         {
-            tx =  new Transaction
+            var tx = new Transaction
             {
                 From = AccountHash,
-                To = Hash.Zero,
-                IncrementId = 0,
-                Fee = 3,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "GetOutValueOf",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom(new Parameters
+                {
+                    Params =
+                    {
+                        new Param
+                        {
+                            StrVal = AddressHashToString(_keyPair.GetAddress())
+                        },
+                        new Param
+                        {
+                            UlongVal = roundsCount
+                        }
+                    }
+                }.ToByteArray())
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
+        }
+        
+        public Transaction GetInValueOfMeTx(ulong incrementId, Hash contractAccountHash, ulong roundsCount)
+        {
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "GetInValueOf",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom(new Parameters
+                {
+                    Params =
+                    {
+                        new Param
+                        {
+                            StrVal = AddressHashToString(_keyPair.GetAddress())
+                        },
+                        new Param
+                        {
+                            UlongVal = roundsCount
+                        }
+                    }
+                }.ToByteArray())
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
+        }
+        
+        public Transaction GetSignatureValueOfMeTx(ulong incrementId, Hash contractAccountHash, ulong roundsCount)
+        {
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "GetSignatureOf",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom(new Parameters
+                {
+                    Params =
+                    {
+                        new Param
+                        {
+                            StrVal = AddressHashToString(_keyPair.GetAddress())
+                        },
+                        new Param
+                        {
+                            UlongVal = roundsCount
+                        }
+                    }
+                }.ToByteArray())
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
+        }
+
+        public Transaction TryToGetTxForPublishInValue(ulong incrementId, Hash contractAccountHash)
+        {
+            var tx =  new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
                 MethodName = "TryToPublishInValue",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom(new Parameters
+                {
+                    Params =
+                    {
+                        new Param
+                        {
+                            HashVal = Hash.Generate()
+                        }
+                    }
+                }.ToByteArray())
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+            
+            return tx;
+        }
+
+        // ReSharper disable once InconsistentNaming
+        public Transaction GetDPoSInfoToStringTx(ulong incrementId, Hash contractAccountHash)
+        {
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "GetDPoSInfoToString",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom()
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
+        }
+
+        public Transaction GetCalculateSignatureTx(ulong incrementId, Hash contractAccountHash, Hash inValue)
+        {
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "CalculateSignature",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                 Params = ByteString.CopyFrom(new Parameters
                 {
                     Params =
@@ -152,7 +443,37 @@ namespace AElf.Kernel.Consensus
                     }
                 }.ToByteArray())
             };
-            return true;
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
+        }
+
+        public Transaction GetRoundsCountTx(ulong incrementId, Hash contractAccountHash)
+        {
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "GetRoundsCount",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom()
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
         }
         
         #endregion
@@ -197,6 +518,16 @@ namespace AElf.Kernel.Consensus
         private bool CompareTimestamp(Timestamp ts1, Timestamp ts2)
         {
             return ts1.ToDateTime() > ts2.ToDateTime();
+        }
+        
+        private string AddressHashToString(Hash accountHash)
+        {
+            return accountHash.ToAccount().Value.ToBase64();
+        }
+
+        private Hash AddressStringToHash(string accountAddress)
+        {
+            return Convert.FromBase64String(accountAddress);
         }
     }
 }

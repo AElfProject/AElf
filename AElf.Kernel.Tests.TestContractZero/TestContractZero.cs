@@ -49,7 +49,7 @@ namespace AElf.Kernel.Tests
 
         #region DPoS
 
-        private const int MiningTime = 4000;
+        private const int MiningTime = 6000;
 
         private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");
         
@@ -90,6 +90,10 @@ namespace AElf.Kernel.Tests
             var bps = blockProducerStr.Split(';');
             foreach (var bp in bps)
             {
+                if (bp.Length < 18)
+                {
+                    continue;
+                }
                 blockProducers.Nodes.Add(bp);
             }
             
@@ -501,27 +505,55 @@ namespace AElf.Kernel.Tests
 
             return newRoundsCount;
         }
+        
+        public async Task<UInt64Value> GetRoundsCount()
+        {
+            return new UInt64Value {Value = await _roundsCount.GetAsync()};
+        }
 
         #endregion
 
         #region BP Methods
 
-        public async Task<BPInfo> PublishOutValueAndSignature(Hash outValue, Hash signature)
+        public async Task<BPInfo> PublishOutValueAndSignature(Hash outValue, Hash signature, ulong roundsCount)
         {
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
-            var info = await GetBlockProducerInfoOfCurrentRound(accountAddress);
+            var count = roundsCount == 0 ? RoundsCount : new UInt64Value {Value = roundsCount};
+
+            var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, count);
+            
             info.OutValue = outValue;
-            info.Signature = signature;
-
-            var roundInfo = await _dPoSInfoMap.GetValueAsync(RoundsCount);
+            if (roundsCount > 1)
+                info.Signature = signature;
+            
+            var roundInfo = await _dPoSInfoMap.GetValueAsync(count);
             roundInfo.Info[accountAddress] = info;
+            
+            await _dPoSInfoMap.SetValueAsync(count, roundInfo);
 
-            await _dPoSInfoMap.SetValueAsync(RoundsCount, roundInfo);
+            return info;
+        }
+        
+        public async Task<BPInfo> PublishOutValueAndSignatureDebug(string outValue, string signature, ulong roundsCount)
+        {
+            var accountAddress = AddressHashToString(Api.GetTransaction().From);
+            var count = roundsCount == 0 ? RoundsCount : new UInt64Value {Value = roundsCount};
+
+            var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, count);
+            
+            info.OutValue = Base64StringToHash(outValue.Substring(2, outValue.Length - 2));
+            if (roundsCount > 1)
+                info.Signature = Base64StringToHash(signature.Substring(2, signature.Length - 2));
+            
+            var roundInfo = await _dPoSInfoMap.GetValueAsync(count);
+            roundInfo.Info[accountAddress] = info;
+            
+            await _dPoSInfoMap.SetValueAsync(count, roundInfo);
 
             return info;
         }
 
-        public async Task<object> TryToPublishInValue(Hash inValue)
+        public async Task<Hash> TryToPublishInValue(Hash inValue)
         {
             if (!await IsTimeToProduceExtraBlock())
             {
@@ -537,7 +569,7 @@ namespace AElf.Kernel.Tests
 
             await _dPoSInfoMap.SetValueAsync(RoundsCount, roundInfo);
 
-            return null;
+            return inValue;
         }
 
         #endregion
@@ -554,32 +586,29 @@ namespace AElf.Kernel.Tests
                 new UInt64Value {Value = roundsCount})).TimeSlot;
         }
 
-        public async Task<object> GetInValueOf(string accountAddress, ulong roundsCount = 0)
+        public async Task<Hash> GetInValueOf(string accountAddress, ulong roundsCount)
         {
             roundsCount = roundsCount == 0 ? RoundsCount.Value : roundsCount;
             return (await GetBlockProducerInfoOfSpecificRound(accountAddress,
                 new UInt64Value {Value = roundsCount}))?.InValue;
         }
         
-        public async Task<object> GetOutValueOf(string accountAddress, ulong roundsCount = 0)
+        public async Task<Hash> GetOutValueOf(string accountAddress, ulong roundsCount)
         {
-            roundsCount = roundsCount == 0 ? RoundsCount.Value : roundsCount;
-            return (await GetBlockProducerInfoOfSpecificRound(accountAddress,
-                new UInt64Value {Value = roundsCount}))?.OutValue;
+            var count = roundsCount == 0 ? RoundsCount : new UInt64Value {Value = roundsCount};
+            return (await GetBlockProducerInfoOfSpecificRound(accountAddress, count))?.OutValue;
         }
         
-        public async Task<object> GetSignatureOf(string accountAddress, ulong roundsCount = 0)
+        public async Task<Hash> GetSignatureOf(string accountAddress, ulong roundsCount)
         {
-            roundsCount = roundsCount == 0 ? RoundsCount.Value : roundsCount;
-            return (await GetBlockProducerInfoOfSpecificRound(accountAddress,
-                new UInt64Value {Value = roundsCount}))?.Signature;
+            var count = roundsCount == 0 ? RoundsCount : new UInt64Value {Value = roundsCount};
+            return (await GetBlockProducerInfoOfSpecificRound(accountAddress, count))?.Signature;
         }
         
-        public async Task<object> GetOrderOf(string accountAddress, ulong roundsCount = 0)
+        public async Task<int?> GetOrderOf(string accountAddress, ulong roundsCount)
         {
-            roundsCount = roundsCount == 0 ? RoundsCount.Value : roundsCount;
-            return (await GetBlockProducerInfoOfSpecificRound(accountAddress,
-                new UInt64Value {Value = roundsCount}))?.Order;
+            var count = roundsCount == 0 ? RoundsCount : new UInt64Value {Value = roundsCount};
+            return (await GetBlockProducerInfoOfSpecificRound(accountAddress, count))?.Order;
         }
         
         public async Task<Hash> CalculateSignature(Hash inValue)
@@ -659,10 +688,55 @@ namespace AElf.Kernel.Tests
         public async Task<bool> AbleToProduceExtraBlock()
         {
             var accountHash = Api.GetTransaction().From;
+            
             // ReSharper disable once InconsistentNaming
             var eBP = await _eBPMap.GetValueAsync(RoundsCount);
-            return await IsTimeToProduceExtraBlock()
-                   && AddressHashToString(accountHash) == eBP.Value;
+            if (AddressHashToString(accountHash) == eBP.Value)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        // ReSharper disable once InconsistentNaming
+        public async Task<string> GetDPoSInfoToString()
+        {
+            ulong count = 0;
+            if (RoundsCount != null)
+            {
+                count = RoundsCount.Value;
+            }
+            var result = "";
+
+            ulong i = 1;
+            while (i < count)
+            {
+                var roundInfoStr = await GetRoundInfoToString(new UInt64Value {Value = i});
+                result += $"\n[Round {i}]\n" + roundInfoStr;
+                i++;
+            }
+            
+            return result;
+        }
+
+        public async Task<string> GetRoundInfoToString(UInt64Value roundsCount)
+        {
+            var info = await _dPoSInfoMap.GetValueAsync(roundsCount);
+            var result = "";
+
+            foreach (var bpInfo in info.Info)
+            {
+                result += bpInfo.Key + ":\n";
+                result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";
+                result += "Order:\t\t" + bpInfo.Value.Order + "\n";
+                result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToString("u") + "\n";
+                result += "Signature:\t" + bpInfo.Value.Signature + "\n";
+                result += "Out Value:\t" + bpInfo.Value.OutValue + "\n";
+                result += "In Value:\t" + bpInfo.Value.InValue + "\n";
+            }
+
+            return result + "\n";
         }
 
         #region Private Methods
@@ -730,7 +804,7 @@ namespace AElf.Kernel.Tests
             return accountHash.ToAccount().Value.ToBase64();
         }
 
-        private Hash AddressStringToHash(string accountAddress)
+        private Hash Base64StringToHash(string accountAddress)
         {
             return Convert.FromBase64String(accountAddress);
         }

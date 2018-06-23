@@ -17,21 +17,21 @@ namespace AElf.Kernel.Node.Config
                     "1", new Dictionary<string, string>
                     {
                         {"coinbase", "GdsgFf\\="},
-                        {"pubkey", "MTIzNA=="}
+                        {"pubkey", "BMdbNxD7u7Hd9lkYGOC5nFT1"}
                     }
                 },
                 {
                     "2", new Dictionary<string, string>
                     {
                         {"coinbase", "KAOFepo=="},
-                        {"pubkey", "SrF!ve=="}
+                        {"pubkey", "BMdbNxD7u7Hd9lkYGOC5nFTl"}
                     }
                 },
                 {
                     "3", new Dictionary<string, string>
                     {
                         {"coinbase", "FfEpvVG!="},
-                        {"pubkey", "NTY3OA=="}
+                        {"pubkey", "BMdbNxD7u7Hd9lkYGOC5nFT2"}
                     }
                 }
             };

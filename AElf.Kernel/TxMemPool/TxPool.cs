@@ -516,7 +516,10 @@ namespace AElf.Kernel.TxMemPool
         {
             if (_waiting.TryGetValue(addr, out var dict))
             {
-                return dict.Keys.Max();
+                if (dict.Keys.Count != 0)
+                {
+                    return dict.Keys.Max();
+                }
             }
 
             if (_executable.TryGetValue(addr, out var txs) && txs.Count > 0)

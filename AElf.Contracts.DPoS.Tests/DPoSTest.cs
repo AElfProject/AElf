@@ -336,6 +336,7 @@ namespace AElf.Contracts.DPoS.Tests
             return Observable.Interval(TimeSpan.FromMilliseconds(100)).Timeout(TimeSpan.FromSeconds(timeout));
         }
         
+        // ReSharper disable once MemberCanBeMadeStatic.Local
         private string AddressHashToString(Hash accountHash)
         {
             return accountHash.ToAccount().Value.ToBase64();
