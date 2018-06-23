@@ -7,6 +7,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
+using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
@@ -39,6 +40,8 @@ namespace AElf.Kernel.Tests.Miner
         private IWorldStateManager _worldStateManager;
         private ISmartContractManager _smartContractManager;
 
+        private ServicePack _servicePack;
+        private IActorRef _requestor;
 
         public Synchronizer(IWorldStateManager worldStateManager, ISmartContractStore smartContractStore,
             IChainCreationService chainCreationService, IChainContextService chainContextService, IChainManager chainManager, IBlockManager blockManager, ILogger logger, ITransactionResultManager transactionResultManager, ITransactionManager transactionManager, IAccountContextService accountContextService) : base(new XunitAssertions())
@@ -54,6 +57,22 @@ namespace AElf.Kernel.Tests.Miner
 
             _worldStateManager = worldStateManager;
             _smartContractManager = new SmartContractManager(smartContractStore);
+            
+            
+            _servicePack = new ServicePack
+            {
+                ChainContextService = _chainContextService,
+                SmartContractService = _smartContractService,
+                ResourceDetectionService = new NewMockResourceUsageDetectionService()
+            };
+            
+            var workers = new[] {"/user/worker1", "/user/worker2"};
+            var worker1 = Sys.ActorOf(Props.Create<Worker>(), "worker1");
+            var worker2 = Sys.ActorOf(Props.Create<Worker>(), "worker2");
+            var router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
+            worker1.Tell(new LocalSerivcePack(_servicePack));
+            worker2.Tell(new LocalSerivcePack(_servicePack));
+            _requestor = Sys.ActorOf(Requestor.Props(router));
         }
 
         public byte[] SmartContractZeroCode
@@ -202,19 +221,10 @@ namespace AElf.Kernel.Tests.Miner
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             _smartContractRunnerFactory.AddRunner(0, runner);
             _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, await _worldStateManager.OfChain(chain.Id));
-            
-            _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(new ServicePack
-            {
-                ChainContextService = _chainContextService,
-                SmartContractService = _smartContractService,
-                ResourceDetectionService = new NewMockResourceUsageDetectionService()
-            }));
-            _generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _serviceRouter), "exec");
-            _generalExecutor.Tell(new RequestAddChainExecutor(chain.Id));
-            ExpectMsg<RespondAddChainExecutor>();
 
             IParallelTransactionExecutingService parallelTransactionExecutingService =
-                new ParallelTransactionExecutingService(sys);
+                new ParallelTransactionExecutingService(_requestor,
+                    new Grouper(_servicePack.ResourceDetectionService));
             var synchronizer = new Kernel.Miner.BlockExecutor(poolService, parallelTransactionExecutingService,
                 _chainManager, _blockManager);
             var res = await synchronizer.ExecuteBlock(block);
