@@ -10,6 +10,7 @@
       <Name>AElf.Kernel.Tests</Name>
     </ProjectReference>
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+    <ProjectReference Include="..\AElf.Runtime.CSharp.Tests.TestContract\AElf.Runtime.CSharp.Tests.TestContract.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
