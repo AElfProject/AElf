@@ -186,7 +186,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply(true);
 
-            var address = txnCtxt.Trace.RetVal.DeserializeToPbMessage<Hash>();
+            var bs = txnCtxt.Trace.RetVal;
+            var address = bs.DeserializeToPbMessage<Hash>();
 
             #region initialize account balance
             var account = Hash.Generate();
@@ -222,6 +223,24 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             await executiveUser.SetTransactionContext(txnBalCtxt).Apply(true);
 
             Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.DeserializeToUInt64());
+            #endregion
+            
+            
+            #region check account balance
+            var txnPrint = new Transaction
+            {
+                From = Hash.Zero,
+                To = address,
+                IncrementId = NewIncrementId(),
+                MethodName = "Print"
+            };
+            var txnPrintcxt = new TransactionContext()
+            {
+                Transaction = txnBal
+            };
+            await executiveUser.SetTransactionContext(txnPrintcxt).Apply(true);
+
+            //Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.DeserializeToUInt64());
             #endregion
         }
     }

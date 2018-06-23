@@ -159,7 +159,7 @@ namespace AElf.CLI.Wallet
                 tr.IncrementId = t["incr"].ToObject<ulong>();
                 tr.MethodName = t["method"].ToObject<string>();
                 tr.Params = Convert.FromBase64String(t["params"].ToString());
-                
+ 
                 MemoryStream ms = new MemoryStream();
                 Serializer.Serialize(ms, tr);
     

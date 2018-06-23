@@ -236,20 +236,18 @@ namespace AElf.Kernel.Node.RPC
             string adr = reqParams["txhash"].ToString();
             Hash txHash = Convert.FromBase64String(adr);
             
-            //TransactionResult txResult = await _node.GetTransactionResult(txHash);
-            
-            LogEvent ev = new LogEvent();
-            ev.Address = new byte[] {1, 2, 3};
-            ev.Topic = new byte[] {1, 2, 3, 2, 6, 2};
+            TransactionResult txResult = await _node.GetTransactionResult(txHash);
 
-            TransactionResult txResult = new TransactionResult();
-            txResult.Logs.Add(ev);
-            txResult.RetVal = ByteString.CopyFromUtf8("RestVal_HelloWorld");
-            txResult.Status = Status.Mined;
-            txResult.TransactionId = txHash;
+            // for the case that return type is Hash
+            Hash h = Hash.Parser.ParseFrom(txResult.RetVal);
+            txResult.RetVal = h.Value;
+            // Todo: it should be deserialized to obj ion cli, 
             
             string jsonResponse = JsonFormatter.Default.Format(txResult);
-            JObject j = new JObject { ["txresult"] = jsonResponse };
+            JObject j = new JObject
+            {
+                ["txresult"] = jsonResponse
+            };
             
             return JObject.FromObject(j);
         }
@@ -271,17 +269,12 @@ namespace AElf.Kernel.Node.RPC
             byte[] b = Convert.FromBase64String(raw64);
             Transaction t = Transaction.Parser.ParseFrom(b);
 
-            //bool correct = t.VerifySignature();
-
-            //var tx = raw.ToTransaction();
-
             var res = await _node.BroadcastTransaction(t);
 
-            /*var jobj = new JObject();
-            jobj.Add("txId", tx.GetHash().Value.ToBase64());
-            jobj.Add("status", res);
-            return jobj;*/
-            return null;
+            byte[] hash = t.GetHash().Value.ToByteArray();
+            JObject j = new JObject { ["hash"] = t.GetHash().Value.ToBase64() };
+            
+            return JObject.FromObject(j);
         }
 
         /// <summary>
@@ -382,5 +375,6 @@ namespace AElf.Kernel.Node.RPC
             
             await context.Response.WriteAsync(response.ToString(), Encoding.UTF8);
         }
+        
     }
 }
