@@ -1,0 +1,198 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel.Types";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+
+message Transaction
+{
+    Hash From = 1;
+    Hash To = 2;
+    uint64 IncrementId = 3;
+    string MethodName = 4;
+    bytes Params = 5;
+    uint64 Fee = 6;
+    bytes R = 7;
+    bytes S = 8;
+    bytes P = 9;
+}
+
+message StateValueChange{
+    Hash Path = 1;
+    bytes BeforeValue = 2;
+    bytes AfterValue = 3;
+}
+
+message TransactionTrace
+{
+    Hash TransactionId = 1;
+    bytes RetVal = 2;
+    string StdOut = 3;
+    string StdErr = 4;
+    repeated LogEvent Logs = 5;
+    repeated TransactionTrace InlineTraces = 6;
+    repeated StateValueChange ValueChanges = 7;
+    int64 Elapsed = 8;
+}
+
+message EventField
+{
+    string Name = 1;
+    google.protobuf.Any Value = 2;
+}
+
+message LogEvent
+{
+    Hash Address = 1;
+    Hash Topic = 2;
+    repeated EventField Details = 3;
+}
+
+message TransactionResult{
+    Hash TransactionId = 1;
+    Status status = 2;
+    repeated LogEvent Logs = 3;
+    bytes RetVal = 4;
+}
+
+enum Status {
+    NotExisted = 0;
+    Pending = 1;
+    Failed = 2;
+    Mined = 3;
+}
+
+message Hash{
+    bytes Value = 1;
+}
+
+message BlockHeader{
+    int32 Version = 1;
+    Hash PreviousBlockHash = 2;
+    Hash MerkleTreeRootOfTransactions = 3;
+    Hash MerkleTreeRootOfWorldState = 4;
+    uint64 Index = 5;
+    bytes R = 6;
+    bytes S = 7;
+    bytes P = 8;
+    google.protobuf.Timestamp Time = 9;
+    Hash ChainId = 10;
+}
+
+message BlockBody{
+    Hash BlockHeader = 1;
+    repeated Hash Transactions = 2;
+}
+
+message Block{
+    BlockHeader Header = 1;
+    BlockBody Body = 2;
+    repeated Transaction fullTransactions = 3;
+}
+
+message SmartContractRegistration{
+    int32 Category = 1;
+    Hash ContractHash = 2;
+    bytes ContractBytes = 3;
+}
+
+message SmartContractDeployment{
+    Hash ContractHash = 1;
+    Hash Caller = 2;
+    bytes ConstructParams = 3;
+    uint64 IncrementId = 4;
+}
+
+message Parameters{
+    repeated Param Params = 1;
+}
+
+message Param {
+    oneof data{
+        int32 intVal = 1;
+        uint32 uintVal = 2;
+        int64 longVal = 3;
+        uint64 ulongVal = 4;
+        bool boolVal = 5;
+        bytes bytesVal = 6;
+        string strVal = 7;
+        double dVal = 8; // Maybe don't allow floating point
+        Hash hashVal = 9;
+        SmartContractRegistration registerVal = 10;
+        SmartContractDeployment deploymentVal = 11;
+    }
+}
+
+message SmartContractInvokeContext{
+    Hash Caller = 1;
+    uint64 IncrementId = 2;
+    string MethodName = 3;
+    bytes Params = 4;
+}
+
+message Change{
+    repeated Hash Befores = 1;
+    Hash After = 2;
+    Hash TransactionIds = 3;
+    Hash LatestChangedBlockHash = 4;
+}
+
+message PairHashChange{
+    Hash Key = 1;
+    Change Value = 2;
+}
+
+message ChangesDict{
+    repeated PairHashChange Dict = 1;
+}
+
+message Chain{
+    Hash Id = 1;
+    Hash GenesisBlockHash = 2;
+}
+
+enum DataAccessMode {
+    ReadOnlyAccountSharing = 0;
+    ReadWriteAccountSharing = 1;
+    AccountSpecific = 2;
+}
+
+message SerializeContractMetadataTemplateMap {
+    map<string, SerializeFunctionMetadataTemplateMap> MetadataTemplateMapForContract = 2;
+}
+
+message SerializeFunctionMetadataTemplateMap {
+    map<string, FunctionMetadataTemplate> TemplateMap = 2;
+}
+
+
+message FunctionMetadataTemplate {
+    repeated string SerializeCallingSet = 1;
+    repeated Resource SerializeLocalResourceSet = 2;
+}
+
+message Resource {
+    string Name = 1;
+    DataAccessMode DataAccessMode  = 2;
+}
+
+message FunctionMetadata {
+    repeated string SerializeCallingSet = 1;
+    repeated Resource SerializeFullResourceSet = 2;
+    repeated Resource SerializeLocalResourceSet = 3;
+}
+
+message SerializeFunctionMetadataMap {
+    map<string, FunctionMetadata> MetadataMap = 1;
+}
+
+message CallingGraphEdges {
+    repeated GraphEdge Edges = 1;
+}
+
+message GraphEdge {
+    string Source = 1;
+    string Target = 2;
+}
+

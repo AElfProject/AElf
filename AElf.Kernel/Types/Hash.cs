@@ -18,7 +18,7 @@ namespace AElf.Kernel
         
         public Hash ToAccount()
         {
-            return Value.Take(ECKeyPair.AddressLength).ToArray();
+            return Value.ToByteArray().Take(ECKeyPair.AddressLength).ToArray();
         }
         
         public static readonly Hash Zero = new Hash("AElf".CalculateHash()).ToAccount();
@@ -80,5 +80,6 @@ namespace AElf.Kernel
         {
             return value == null ? Default : new Hash(value);
         }
+        
     }
 }

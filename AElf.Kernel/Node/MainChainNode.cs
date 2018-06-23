@@ -20,6 +20,7 @@ using AElf.Kernel.Node.RPC.DTO;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
+using AElf.Types.CSharp;
 using Akka.Actor;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
@@ -165,7 +166,7 @@ namespace AElf.Kernel.Node
                 
                 _miner.Start(nodeKeyPair);
                 
-                DeployTxDemo();
+                // DeployTxDemo();
                 
                 Mine();
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
@@ -178,7 +179,89 @@ namespace AElf.Kernel.Node
         }
 
 
-        private ITransaction DeployTxDemo()
+        
+        
+        
+        /// <summary>
+        /// temple mine to generate fake block data with loop
+        /// </summary>
+        public void Mine()
+        {
+            Task.Run(async () =>
+            {
+                var keypair = new KeyPairGenerator().Generate();
+                var txDevp = DeployTxDemo(keypair);
+                var b1 = await _miner.Mine();
+                await _transactionResultService.GetResultAsync(txDevp.GetHash());
+                //Console.WriteLine(result.RetVal.d);
+                _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", b1.GetHash(),
+                    b1.Body.Transactions.Count);
+
+                var txRes = await _transactionResultService.GetResultAsync(txDevp.GetHash());
+                var hash = Hash.Parser.ParseFrom(txRes.RetVal.ToByteArray());
+                var txInv = InvokTxDemo(keypair, hash);
+                var b2 = await _miner.Mine();
+                await _transactionResultService.GetResultAsync(txDevp.GetHash());
+                //Console.WriteLine(result.RetVal.d);
+                _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", b2.GetHash(),
+                    b2.Body.Transactions.Count);
+                
+                while (true)
+                {
+                    await Task.Delay(5000);
+
+                    try
+                    {
+                        while (true)
+                        {
+                            await Task.Delay(10000); // secs
+
+                            var block = await _miner.Mine();
+
+                            _logger.Log(LogLevel.Debug, "Genereated block: {0}, with {1} transactions", block.GetHash(),
+                                block.Body.Transactions.Count);
+
+                            await BroadcastBlock(block);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Log(LogLevel.Debug, e);
+                    }
+                }
+            });
+
+        }
+
+        private ITransaction InvokTxDemo(ECKeyPair keyPair, Hash hash)
+        {
+            ECSigner signer = new ECSigner();
+            var account = Hash.Generate().ToAccount();
+            var txInv = new Transaction
+            {
+                From = keyPair.GetAddress(),
+                To = hash,
+                IncrementId = 1,
+                MethodName = "InitializeAsync",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(account, (ulong)101)),
+                
+                Fee = TxPoolConfig.Default.FeeThreshold + 1
+            };
+            
+            Hash txhash = txInv.GetHash();
+
+            ECSignature signature = signer.Sign(keyPair, txhash.GetHashBytes());
+            txInv.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
+            txInv.R = ByteString.CopyFrom(signature.R); 
+            txInv.S = ByteString.CopyFrom(signature.S);
+
+            var res = BroadcastTransaction(txInv).Result;
+            return txInv;
+        }
+        
+        
+        
+        private ITransaction DeployTxDemo(ECKeyPair keyPair)
         {
             var ContractName = "AElf.Kernel.Tests.TestContract";
             var contractZeroDllPath = $"../{ContractName}/bin/Debug/netstandard2.0/{ContractName}.dll";
@@ -189,7 +272,7 @@ namespace AElf.Kernel.Node
                 code = file.ReadFully();
             }
             //System.Diagnostics.Debug.WriteLine(ByteString.CopyFrom(code).ToBase64());
-            ECKeyPair keyPair = new KeyPairGenerator().Generate();
+            
             ECSigner signer = new ECSigner();
             var txDep = new Transaction
             {
@@ -197,19 +280,7 @@ namespace AElf.Kernel.Node
                 To = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount(),
                 IncrementId = 0,
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(new Parameters()
-                {
-                    Params = {
-                        new Param
-                        {
-                            IntVal = 0
-                        }, 
-                        new Param
-                        {
-                            BytesVal = ByteString.CopyFrom(code)
-                        }
-                    }
-                }.ToByteArray()),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code)),
                 
                 Fee = TxPoolConfig.Default.FeeThreshold + 1
             };
@@ -220,13 +291,16 @@ namespace AElf.Kernel.Node
             txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txDep.R = ByteString.CopyFrom(signature.R); 
             txDep.S = ByteString.CopyFrom(signature.S);
-
             var res = BroadcastTransaction(txDep).Result;
+
             return txDep;
         }
         
-        
-        
+        /// <summary>
+        /// init fake data
+        /// </summary>
+        /// <param name="initFileName"></param>
+        /// <returns></returns>
         private async Task<bool> InitialDebugSync(string initFileName)
         {
             try
@@ -439,45 +513,7 @@ namespace AElf.Kernel.Node
             return await _poolService.AddTxAsync(tx);
         }
 
-        /// <summary>
-        /// temple mine to generate fake block data with loop
-        /// </summary>
-        public void Mine()
-        {
-            Task.Run(async () =>
-            {
-                var tx = DeployTxDemo();
-                var b = await _miner.Mine();
-                var result = await _transactionResultService.GetResultAsync(tx.GetHash());
-                //Console.WriteLine(result.RetVal.d);
-                _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", b.GetHash(),
-                    b.Body.Transactions.Count);
-                while (true)
-                {
-                    await Task.Delay(5000);
-
-                    try
-                    {
-                        while (true)
-                        {
-                            await Task.Delay(10000); // secs
-
-                            var block = await _miner.Mine();
-
-                            _logger.Log(LogLevel.Debug, "Genereated block: {0}, with {1} transactions", block.GetHash(),
-                                block.Body.Transactions.Count);
-
-                            await BroadcastBlock(block);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.Log(LogLevel.Debug, e);
-                    }
-                }
-            });
-
-        }
+        
 
         public async Task<bool> BroadcastBlock(IBlock block)
         {

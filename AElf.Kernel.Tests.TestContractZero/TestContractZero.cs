@@ -19,6 +19,7 @@ namespace AElf.Kernel.Tests
 
         public async Task<Hash> DeploySmartContract(int category, byte[] contract)
         {
+            Console.WriteLine("categort " + category);
             SmartContractRegistration registration = new SmartContractRegistration
             {
                 Category = category,
@@ -29,10 +30,10 @@ namespace AElf.Kernel.Tests
             var tx = Api.GetTransaction();
 
             // calculate new account address
-            var account = Path.CalculateAccountAddress(tx.From, tx.IncrementId);
+            var account = Path.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
 
             await Api.DeployContractAsync(account, registration);
-            Console.WriteLine("Deployment success");
+            Console.WriteLine("Deployment success, contract address: {0}", account.Value.ToBase64());
             return account;
         }
 
