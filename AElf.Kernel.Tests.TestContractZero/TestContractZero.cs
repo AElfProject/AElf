@@ -24,6 +24,7 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.DeploySmartContract", new string[]{}, new string[]{"${this}._lock"})]
         public async Task<Hash> DeploySmartContract(int category, byte[] contract)
         {
+            Console.WriteLine("catagory: " + category + " code size " + contract.Length);
             SmartContractRegistration registration = new SmartContractRegistration
             {
                 Category = category,

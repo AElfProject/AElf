@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ namespace AElf.Benchmark
     public class TestTokenContract : CSharpSmartContract
     {
         [SmartContractFieldData("${this}.Balances", DataAccessMode.AccountSpecific)]
-        public Map Balances = new Map("Balances");
+        public readonly MapToUInt64<Hash> Balances = new MapToUInt64<Hash>("Balances");
 
         [SmartContractFieldData("${this}.TokenContractName", DataAccessMode.ReadOnlyAccountSharing)]
         public string TokenContractName;
@@ -25,11 +26,12 @@ namespace AElf.Benchmark
         [SmartContractFieldData("${this}.Owner", DataAccessMode.ReadOnlyAccountSharing)]
         public Hash Owner;
         
-        public async Task<object> InitializeAsync(string tokenContractName, Hash owner)
+        public async Task<bool> InitializeAsync(string tokenContractName, Hash owner)
         {
+            Console.WriteLine("InitializeAsync " + tokenContractName + " " + owner.Value.ToBase64());
             TokenContractName = tokenContractName;
             Owner = owner;
-            return null;
+            return true;
         }
         
         public override async Task InvokeAsync()
@@ -41,59 +43,53 @@ namespace AElf.Benchmark
             var member = type.GetMethod(methodname);
             // params array
             var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
-            
             // invoke
             await (Task<object>) member.Invoke(this, parameters);
         }
         
-        public async Task<bool> InitBalance(Hash addr, Hash owner)
+        public async Task<bool> InitBalance(Hash addr)
         {
-            if (owner == Owner)
-            {
-                var balance = new UInt64Value();
-                balance.Value = 10000;
-                await Balances.SetValueAsync(addr, balance.ToByteArray());
-
+            Console.WriteLine("InitBalance " + addr + " real owner: " + Owner.Value.ToBase64());
+                ulong initBalance = 1000;
+                await Balances.SetValueAsync(addr, initBalance);
+                var fromBal = await Balances.GetValueAsync(addr);
+                Console.WriteLine("Read from db of account " + addr + " with balance " + fromBal);
                 return true;
-            }
-
-            return false;
         }
         
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances"})]
         public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
         {
-            var fromBalBytes = await Balances.GetValue(from);
-            var toBalBytes = await Balances.GetValue(to);
-            
-            var fromBal = fromBalBytes.ToUInt64();
-            var toBal = toBalBytes.ToUInt64();
+            Console.WriteLine("Transfer " + from.Value.ToBase64() + " , " + to.Value.ToBase64());
+            var fromBal = await Balances.GetValueAsync(from);
+            Console.WriteLine("from pass");
+            var toBal = await Balances.GetValueAsync(to);
+            Console.WriteLine("to pass");
             var newFromBal = fromBal - qty;
             if (newFromBal > 0)
             {
                 var newToBal = toBal + qty;
-                await Balances.SetValueAsync(from, new UInt64Value
-                {
-                    Value = newFromBal
-                }.ToByteArray());
-                await Balances.SetValueAsync(to, new UInt64Value
-                {
-                    Value = newToBal
-                }.ToByteArray());
+                
+                await Balances.SetValueAsync(from, newFromBal);
+                Console.WriteLine("set from pass");
+                await Balances.SetValueAsync(to, newToBal);
+                Console.WriteLine("set to pass");
+
+                Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
+                                  + to.Value.ToBase64() + "(" + newToBal + ")");
                 return true;
             }
             else
             {
+                Console.WriteLine("Not enough balance newFromBal " + newFromBal + " < 0");
                 return false;
             }
         }
 
         [SmartContractFunction("${this}.GetBalance", new string[]{}, new []{"${this}.Balances"})]
-        public async Task<object> GetBalance(Hash account)
+        public async Task<ulong> GetBalance(Hash account)
         {
-            var balBytes = await Balances.GetValue(account.CalculateHash());
-            Api.Return(new UInt64Value() { Value = balBytes.ToUInt64() });
-            return balBytes.ToUInt64();
+            return await Balances.GetValueAsync(account);
         }
     }
 }
