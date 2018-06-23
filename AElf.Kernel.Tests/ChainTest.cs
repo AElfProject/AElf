@@ -9,6 +9,7 @@ using AElf.Kernel.Storages;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using ServiceStack;
 
 namespace AElf.Kernel.Tests
@@ -22,6 +23,7 @@ namespace AElf.Kernel.Tests
         private readonly IWorldStateStore _worldStateStore;
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
+        
 
         public ChainTest(IChainCreationService chainCreationService,
             IChainManager chainManager, IWorldStateStore worldStateStore, 
@@ -39,12 +41,7 @@ namespace AElf.Kernel.Tests
         {
             get
             {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.SmartContractZero/bin/Debug/netstandard2.0/AElf.Contracts.SmartContractZero.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
+                return ContractCodes.TestContractZeroCode;
             }
         }
 
@@ -83,16 +80,34 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task AppendBlockTest()
         {
-            var chain = await CreateChainTest();
+            var reg = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
+                ContractHash = Hash.Zero
+            };
 
-            var block = CreateBlock(chain.GenesisBlockHash, chain.Id);
+            var chainId = Hash.Generate();
+            var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
+
+            // add chain to storage
+            
+            //var address = Hash.Generate();
+            //var worldStateManager = await new WorldStateManager(_worldStateStore, 
+            //    _changesStore, _dataStore).OfChain(chainId);
+            //var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
+            
+            //await _smartContractZero.InitializeAsync(accountDataProvider);
+            Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)1);
+
+            var block = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             await _chainManager.AppendBlockToChainAsync(block);
             Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)2);
             Assert.Equal(await _chainManager.GetChainLastBlockHash(chain.Id), block.GetHash());
             Assert.Equal(block.Header.Index, (ulong)1);
         }
         
-        private Block CreateBlock(Hash preBlockHash, Hash chainId)
+        private Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             
@@ -104,7 +119,33 @@ namespace AElf.Kernel.Tests
             block.FillTxsMerkleTreeRootInHeader();
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
+            block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+            block.Header.Index = index;
+            block.Header.MerkleTreeRootOfWorldState = Hash.Default;
+
             return block;
         }
+
+
+        [Fact]
+        public void Print()
+        {
+            var aelf = "AElf"; 
+            var @params = new Parameters
+            {
+                Params =
+                {
+                    new Param
+                    {
+                        StrVal = aelf
+                    }
+                }
+            };
+            var str = "CgY6BEFFbGY=";
+            var bytes = Convert.FromBase64String(str);
+            var p = Parameters.Parser.ParseFrom(ByteString.CopyFrom(bytes).ToByteArray());
+            Assert.Equal(aelf, p.Params[0].StrVal);
+        }
+        
     }
 }

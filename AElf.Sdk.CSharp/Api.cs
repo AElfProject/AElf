@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Types.CSharp;
 
 namespace AElf.Sdk.CSharp
 {
@@ -16,15 +17,15 @@ namespace AElf.Sdk.CSharp
         private static ITransactionContext _transactionContext;
         private static ITransactionContext _lastInlineCallContext;
 
+        public static ProtobufSerializer Serializer { get; } = new ProtobufSerializer();
+
         #region Setters used by runner and executor
 
         public static void SetSmartContractContext(ISmartContractContext contractContext)
         {
             _smartContractContext = contractContext;
-            _dataProviders = new Dictionary<string, IDataProvider>()
-            {
-                {"", _smartContractContext.DataProvider}
-            };
+            _dataProviders = new Dictionary<string, IDataProvider>();
+            _dataProviders.Add("", _smartContractContext.DataProvider);
         }
 
         public static void SetTransactionContext(ITransactionContext transactionContext)
@@ -39,7 +40,7 @@ namespace AElf.Sdk.CSharp
         #region Privileged API
         public static async Task DeployContractAsync(Hash address, SmartContractRegistration registration)
         {
-            await _smartContractContext.SmartContractService.DeployContractAsync(address, registration);
+            await _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration);
         }
 
         #endregion Privileged API
@@ -97,7 +98,8 @@ namespace AElf.Sdk.CSharp
             Task.Factory.StartNew(async () =>
             {
                 var executive = await _smartContractContext.SmartContractService.GetExecutiveAsync(contractAddress, _smartContractContext.ChainId);
-                await executive.SetTransactionContext(_lastInlineCallContext).Apply();
+                // Inline calls are not auto-committed.
+                await executive.SetTransactionContext(_lastInlineCallContext).Apply(false);
             }).Unwrap().Wait();
 
             _transactionContext.Trace.Logs.AddRange(_lastInlineCallContext.Trace.Logs);
@@ -109,20 +111,63 @@ namespace AElf.Sdk.CSharp
             return string.IsNullOrEmpty(_lastInlineCallContext.Trace.StdErr);
         }
 
-        public static Any GetCallResult()
+        public static byte[] GetCallResult()
         {
             if (_lastInlineCallContext == null)
             {
-                return _lastInlineCallContext.Trace.RetVal;
+                return _lastInlineCallContext.Trace.RetVal.ToByteArray();
             }
-            return new Any();
+            return new byte[] { };
         }
 
         public static void Return(IMessage retVal)
         {
-            _transactionContext.Trace.RetVal = Any.Pack(retVal);
+            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToByteArray());
         }
-        #endregion Transaction API
 
+        public static void Return(bool retVal)
+        {
+            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
+        }
+
+        public static void Return(uint retVal)
+        {
+            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
+        }
+
+        public static void Return(int retVal)
+        {
+            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
+        }
+
+        public static void Return(ulong retVal)
+        {
+            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
+        }
+
+        public static void Return(long retVal)
+        {
+            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
+        }
+
+        public static void Return(byte[] retVal)
+        {
+            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
+        }
+
+        #endregion Transaction API
+        #region Utility API
+        public static void Assert(bool asserted, string message = "Assertion failed!")
+        {
+            if (!asserted)
+            {
+                throw new AssertionError(message);
+            }
+        }
+        internal static void FireEvent(LogEvent logEvent)
+        {
+            _transactionContext.Trace.Logs.Add(logEvent);
+        }
+        #endregion Utility API
     }
 }

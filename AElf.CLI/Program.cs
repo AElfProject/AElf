@@ -28,6 +28,8 @@ namespace AElf.CLI
             
             program.RegisterCommand(new GetIncrementCmd());
             program.RegisterCommand(new SendTransactionCmd());
+            program.RegisterCommand(new LoadContractAbiCmd());
+            program.RegisterCommand(new GetTxResultCmd());
             
             // Start the CLI
             program.StartRepl();
@@ -36,6 +38,7 @@ namespace AElf.CLI
         private static void RegisterNetworkCommands(AElfCliProgram program)
         {
             program.RegisterCommand(new GetPeersCmd());
+            program.RegisterCommand(new GetCommandsCmd());
         }
 
         private static void RegisterAccountCommands(AElfCliProgram program)

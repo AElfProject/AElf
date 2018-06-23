@@ -10,6 +10,7 @@ using AElf.Kernel.Node.RPC.DTO;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
 using AElf.Node.RPC.DTO;
+using Google.Protobuf;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -27,6 +28,8 @@ namespace AElf.Kernel.Node.RPC
         private const string BroadcastTxMethodName = "broadcast_tx";
         private const string GetPeersMethodName = "get_peers";
         private const string GetIncrementIdMethodName = "get_increment";
+        private const string BroadcastBlockMethodName = "broadcast_block";
+        private const string GetTxResultMethodName = "get_tx_result";
         
         private const string GetCommandsMethodName = "get_commands";
         
@@ -41,7 +44,9 @@ namespace AElf.Kernel.Node.RPC
             BroadcastTxMethodName,
             GetPeersMethodName,
             GetCommandsMethodName,
-            GetIncrementIdMethodName
+            GetIncrementIdMethodName,
+            BroadcastBlockMethodName,
+            GetTxResultMethodName
         };
         
         /// <summary>
@@ -200,6 +205,12 @@ namespace AElf.Kernel.Node.RPC
                        case GetIncrementIdMethodName:
                            responseData = await ProcessGetIncrementId(reqParams);
                            break;
+                       case BroadcastBlockMethodName:
+                           responseData = await ProcessBroadcastBlock(reqParams);
+                           break;
+                       case GetTxResultMethodName:
+                           responseData = await ProcGetTxResult(reqParams);
+                           break;
                        default:
                            Console.WriteLine("Method name not found"); // todo log
                            break;
@@ -220,6 +231,29 @@ namespace AElf.Kernel.Node.RPC
             }
         }
 
+        private async Task<JObject> ProcGetTxResult(JObject reqParams)
+        {
+            string adr = reqParams["txhash"].ToString();
+            Hash txHash = Convert.FromBase64String(adr);
+            
+            //TransactionResult txResult = await _node.GetTransactionResult(txHash);
+            
+            LogEvent ev = new LogEvent();
+            ev.Address = new byte[] {1, 2, 3};
+            ev.Topic = new byte[] {1, 2, 3, 2, 6, 2};
+
+            TransactionResult txResult = new TransactionResult();
+            txResult.Logs.Add(ev);
+            txResult.RetVal = ByteString.CopyFromUtf8("RestVal_HelloWorld");
+            txResult.Status = Status.Mined;
+            txResult.TransactionId = txHash;
+            
+            string jsonResponse = JsonFormatter.Default.Format(txResult);
+            JObject j = new JObject { ["txresult"] = jsonResponse };
+            
+            return JObject.FromObject(j);
+        }
+
         private async Task<JObject> ProcessGetIncrementId(JObject reqParams)
         {
             string adr = reqParams["address"].ToString();
@@ -237,7 +271,7 @@ namespace AElf.Kernel.Node.RPC
             byte[] b = Convert.FromBase64String(raw64);
             Transaction t = Transaction.Parser.ParseFrom(b);
 
-            bool correct = t.VerifySignature();
+            //bool correct = t.VerifySignature();
 
             //var tx = raw.ToTransaction();
 
@@ -334,6 +368,11 @@ namespace AElf.Kernel.Node.RPC
             };
             
             return JObject.FromObject(j);
+        }
+
+        private async Task<JObject> ProcessBroadcastBlock(JObject reqParams)
+        {
+            throw new NotImplementedException();
         }
 
         private async Task WriteResponse(HttpContext context, JObject response)

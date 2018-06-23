@@ -24,15 +24,15 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         public static ValidationError ValidateTx(this ITxPool pool, ITransaction tx)
         {
-            if (tx.From == Hash.Zero || tx.MethodName == "" || Parameters.Parser.ParseFrom(tx.Params).Params.Count == 0 
-                || tx.IncrementId < 0)
+            if (tx.From == Hash.Zero || tx.MethodName == "" || tx.IncrementId < 0)
             {
                 // TODO: log errors
                 return ValidationError.InvalidTxFormat;
             }
             
             // size validation
-            if (GetTxSize(tx) > pool.TxLimitSize)
+            var size = GetTxSize(tx);
+            if (size > pool.TxLimitSize)
             {
                 // TODO: log errors, wrong size
                 return ValidationError.TooBigSize;

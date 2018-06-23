@@ -22,6 +22,10 @@ namespace AElf.Kernel.BlockValidationFilters
 
             var index = block.Header.Index;
             var previousBlockHash = block.Header.PreviousBlockHash;
+
+            // return success if genesis block
+            if (index == 0 && previousBlockHash.Equals(Hash.Zero))
+                return ValidationError.Success;
             
             var currentChainHeight = context.BlockHeight;
             var currentPreviousBlockHash = context.BlockHash;
@@ -31,7 +35,7 @@ namespace AElf.Kernel.BlockValidationFilters
                 return ValidationError.OrphanBlock;
             
             // can be added to chain
-            if (currentChainHeight != index && currentPreviousBlockHash.Equals(previousBlockHash))
+            if (currentChainHeight == index && currentPreviousBlockHash.Equals(previousBlockHash))
                 return ValidationError.Success;
             
             // can not be added to chain with wrong prvious hash or wrong index
@@ -40,7 +44,7 @@ namespace AElf.Kernel.BlockValidationFilters
             
             // todo : manage orphan blocks
             // orphan block
-            var pb = await _blockManager.GetBlockAsync(previousBlockHash);
+            /*var pb = await _blockManager.GetBlockAsync(previousBlockHash);
 
             // 
             if (pb == null)
@@ -50,7 +54,7 @@ namespace AElf.Kernel.BlockValidationFilters
             if (pbHeight + 1 != index)
             {
                 return ValidationError.InvalidBlcok;
-            }
+            }*/
             
             return ValidationError.OrphanBlock;
         }

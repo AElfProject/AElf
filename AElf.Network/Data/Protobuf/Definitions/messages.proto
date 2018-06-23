@@ -14,10 +14,24 @@ message AElfPacketData {
     bytes payload = 4;
 }
 
+// Payloads
+
 message PeerListData {
     repeated NodeData nodeData = 1;
 }
 
 message ReqPeerListData {
     int32 numPeers = 1;
+}
+
+message BlockRequest {
+    int32 Height = 1;
+}
+
+message TxRequest {
+    
+}
+
+message HeightData {
+    int32 Height = 1;
 }

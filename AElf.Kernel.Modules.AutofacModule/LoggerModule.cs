@@ -25,10 +25,10 @@ namespace AElf.Kernel.Modules.AutofacModule
             
             var highlightRule = new ConsoleRowHighlightingRule();
             
-            highlightRule.Condition = ConditionParser.ParseExpression("level == LogLevel.Trace");
+            /*highlightRule.Condition = ConditionParser.ParseExpression("level == LogLevel.Trace");
             highlightRule.BackgroundColor = ConsoleOutputColor.White;
             highlightRule.ForegroundColor = ConsoleOutputColor.Black;
-            consoleTarget.RowHighlightingRules.Add(highlightRule);
+            consoleTarget.RowHighlightingRules.Add(highlightRule);*/
 
             // Step 3. Set target properties 
             consoleTarget.Layout = @"[ ${date:format=HH\:mm\:ss} - ${logger} ] : ${message} ${exception:format=toString}";

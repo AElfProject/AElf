@@ -10,6 +10,7 @@ using AElf.CLI.Parsing;
 using AElf.CLI.RPC;
 using AElf.CLI.Screen;
 using AElf.CLI.Wallet;
+using AElf.CLI.Wallet.Exceptions;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Asn1.Misc;
 using ProtoBuf;
@@ -22,12 +23,8 @@ namespace AElf.CLI
         
         private static List<CliCommandDefinition> _commands = new List<CliCommandDefinition>();
         
-        private const string InvalidCommandError = "***** ERROR: INVALID COMMAND - SEE USAGE *****";
-        private const string InvalidParamsError = "***** ERROR: INVALID PARAMETERS - SEE USAGE *****";
-        private const string CommandNotAvailable = "***** ERROR: COMMAND NO LONGER AVAILABLE - PLEASE RESTART *****";
-        private const string ErrorLoadingCommands = "***** ERROR: COULD NOT LOAD COMMANDS - PLEASE RESTART SERVER *****";
-        
         private const string ExitReplCommand = "quit";
+        private const string ServerConnError = "could not connect to server";
         
         private readonly ScreenManager _screenManager;
         private readonly CommandParser _cmdParser;
@@ -64,7 +61,7 @@ namespace AElf.CLI
 
                 if (def == null)
                 {
-                    _screenManager.PrintCommandNotFount(command);
+                    _screenManager.PrintCommandNotFound(command);
                 }
                 else
                 {
@@ -89,34 +86,57 @@ namespace AElf.CLI
                 {
                     if (def is SendTransactionCmd c)
                     {
-                        JObject j = JObject.Parse(parsedCmd.Args.ElementAt(0));
-                        Transaction tx = _accountManager.SignTransaction(j);
+                        try
+                        {
+                            JObject j = JObject.Parse(parsedCmd.Args.ElementAt(0));
+                            Transaction tx = _accountManager.SignTransaction(j);
                         
-                        MemoryStream ms = new MemoryStream();
-                        Serializer.Serialize(ms, tx);
+                            MemoryStream ms = new MemoryStream();
+                            Serializer.Serialize(ms, tx);
                         
-                        byte[] b = ms.ToArray();
+                            byte[] b = ms.ToArray();
 
-                        string payload = Convert.ToBase64String(b);
+                            string payload = Convert.ToBase64String(b);
                         
-                        var reqParams = new JObject { ["rawtx"] = payload };
-                        var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);
+                            var reqParams = new JObject { ["rawtx"] = payload };
+                            var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);
                         
-                        // todo send raw tx
-                        HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
-                        string resp = reqhttp.DoRequest(req.ToString());
+                            // todo send raw tx
+                            HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
+                            string resp = reqhttp.DoRequest(req.ToString());
+                        }
+                        catch (Exception e) 
+                        {
+                            if (e is AccountLockedException acce)
+                            {
+                                _screenManager.PrintLine(acce.Message);
+                            }
+                            else
+                            {
+                                _screenManager.PrintLine("Error sending transaction.");
+                            }
+                        }
+                    }
+                    else if (def is BroadcastBlockCmd bc)
+                    {
+                        throw new NotImplementedException();
                     }
                     else
                     {
                         _accountManager.ProcessCommand(parsedCmd);
                     }
-                    
                 }
                 else
                 {
                     // RPC
                     HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
                     string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
+
+                    if (resp == null)
+                    {
+                        _screenManager.PrintError(ServerConnError);
+                        return;
+                    }
                     
                     JObject jObj = JObject.Parse(resp);
 

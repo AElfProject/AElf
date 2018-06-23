@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.Merkle;
+﻿using AElf.Kernel.Extensions;
+using AElf.Kernel.Merkle;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
@@ -20,6 +21,8 @@ namespace AElf.Kernel
 
         public Hash CalculateMerkleTreeRoot()
         {
+            if (Transactions.Count == 0)
+                return Hash.Default; 
             var merkleTree = new BinaryMerkleTree();
             merkleTree.AddNodes(transactions_);
             
@@ -33,7 +36,7 @@ namespace AElf.Kernel
 
         public Hash GetHash()
         {
-            throw new System.NotImplementedException();
+            return BlockHeader.CalculateHashWith(CalculateMerkleTreeRoot());
         }
     }
 }

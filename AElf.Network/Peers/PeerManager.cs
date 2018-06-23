@@ -25,8 +25,13 @@ namespace AElf.Network.Peers
         private readonly IPeerDatabase _peerDatabase;
         private readonly ILogger _logger;
 
+        // List of bootnodes that the manager was started with
         private readonly List<NodeData> _bootnodes = new List<NodeData>();
         
+        // List of connected bootnodes
+        private readonly List<IPeer> _bootnodePeers = new List<IPeer>();
+        
+        // List of non bootnode peers
         private readonly List<IPeer> _peers = new List<IPeer>();
         
         private readonly NodeData _nodeData;
@@ -236,7 +241,8 @@ namespace AElf.Network.Peers
             {
                 PeerListData peerList = PeerListData.Parser.ParseFrom(messagePayload);
                 
-                _logger?.Trace("Peers received : " + peerList.GetLoggerString());
+                if (peerList.NodeData.Count > 0)
+                    _logger?.Trace("Peers received : " + peerList.GetLoggerString());
 
                 foreach (var peer in peerList.NodeData)
                 {
@@ -418,8 +424,16 @@ namespace AElf.Network.Peers
         {
             if (sender != null && e is PeerDisconnectedArgs args && args.Peer != null)
             {
-                args.Peer.MessageReceived -= ProcessPeerMessage;
-                args.Peer.PeerDisconnected -= ProcessClientDisconnection;
+                IPeer peer = args.Peer;
+                
+                peer.MessageReceived -= ProcessPeerMessage;
+                peer.PeerDisconnected -= ProcessClientDisconnection;
+
+                if (peer.IsBootnode)
+                {
+                    _bootnodePeers.Remove(peer);
+                }
+                
                 RemovePeer(args.Peer);
             }
         }
@@ -428,7 +442,7 @@ namespace AElf.Network.Peers
         {
             if (sender != null && e is MessageReceivedArgs args && args.Message != null)
             {
-                if (args.Message.MsgType == (int) MessageTypes.RequestPeers)
+                if (args.Message.MsgType == (int)MessageTypes.RequestPeers)
                 {
                     Random rand = new Random();
                     List<IPeer> peers = _peers.OrderBy(c => rand.Next()).Select(c => c).ToList();
@@ -450,14 +464,14 @@ namespace AElf.Network.Peers
 
                     var resp = new AElfPacketData
                     {
-                        MsgType = (int)MessageTypes.ReturnPeers,
+                        MsgType = (int)MessageTypes.Peers,
                         Length = 1,
                         Payload = pListData.ToByteString()
                     };
 
                     Task.Run(async () => await args.Peer.SendAsync(resp.ToByteArray()));
                 }
-                else if (args.Message.MsgType == (int) MessageTypes.ReturnPeers)
+                else if (args.Message.MsgType == (int)MessageTypes.Peers)
                 {
                     Task.Run(() => ReceivePeers(args.Message.Payload));
                 }

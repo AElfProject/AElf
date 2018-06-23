@@ -22,6 +22,12 @@ namespace AElf.Launcher
         [Option("coinbase", HelpText = "Miner coinbase when a new chain created")]
         public string CoinBase { get; set; }
         
+        [Option("debug.initfile", HelpText = "Debug: initial chain to load")]
+        public string InitData { get; set; }
+        
+        [Option("tcl", Default = (ulong) 1024, HelpText  = "Transaction count limit in one block")]
+        public ulong TxCountLimit { get; set; }
+        
         /*[Option("ts", Default = (uint)1024, HelpText = "Transaction size limit")]
         public uint TxSizeLimit { get; set; }*/
         

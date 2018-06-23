@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Common.Application;
 using AElf.Database;
 using AElf.Database.Config;
- using AElf.Kernel;
- using AElf.Kernel.Miner;
- using AElf.Kernel.Node.Config;
- using AElf.Kernel.TxMemPool;
+using AElf.Kernel;
+using AElf.Kernel.Miner;
+using AElf.Kernel.Node.Config;
+using AElf.Kernel.TxMemPool;
 using AElf.Network.Config;
 using AElf.Network.Data;
 using AElf.Network.Peers;
@@ -30,6 +31,8 @@ namespace AElf.Launcher
         public bool Success { get; private set; }
         public bool IsMiner { get; private set; }
         public Hash Coinbase { get; private set; }
+        
+        public string InitData { get; private set; }
 
         /// <summary>
         /// fullnode if true, light node if false
@@ -67,8 +70,7 @@ namespace AElf.Launcher
         {
             Rpc = !opts.NoRpc;
             NodeAccount = opts.NodeAccount;
-
-            DataDir = string.IsNullOrEmpty(opts.DataDir) ? ApplicationHelpers.GetDefaultDataDir() : opts.DataDir;
+            InitData = opts.InitData;
             
             // Network
             AElfNetworkConfig netConfig = new AElfNetworkConfig();
@@ -139,16 +141,16 @@ namespace AElf.Launcher
             {
                 if (string.IsNullOrEmpty(opts.CoinBase))
                 {
-                    
+                    throw new Exception("coinbase is needed");
                 }
-                // full node for private chain
+                
                 Coinbase = ByteString.CopyFromUtf8(opts.CoinBase);
-
             }
             
             MinerConfig = new MinerConfig
             {
-                CoinBase = Coinbase
+                CoinBase = Coinbase,
+                TxCount = opts.TxCountLimit
             };
             
             
@@ -164,7 +166,8 @@ namespace AElf.Launcher
                 FullNode = true,
                 Coinbase = Coinbase
             };
-
+            
+            NodeConfig.DataDir = string.IsNullOrEmpty(opts.DataDir) ? ApplicationHelpers.GetDefaultDataDir() : opts.DataDir;
         }
     }
 
