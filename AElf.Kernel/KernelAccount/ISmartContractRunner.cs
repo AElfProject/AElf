@@ -10,5 +10,6 @@ namespace AElf.Kernel.KernelAccount
     public interface ISmartContractRunner
     {
         Task<IExecutive> RunAsync(SmartContractRegistration reg);
+        System.Type GetContractType(SmartContractRegistration reg);
     }
 }

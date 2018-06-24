@@ -1,31 +1,35 @@
-﻿﻿using System;
- using System.Collections.Generic;
- using System.Linq;
- using System.Threading;
- using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
- using AElf.Sdk.CSharp.Types;
- using Google.Protobuf;
- using Google.Protobuf.WellKnownTypes;
- using SharpRepository.Repository.Configuration;
- using Api = AElf.Sdk.CSharp.Api;
- using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
+using AElf.Sdk.CSharp.Types;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using SharpRepository.Repository.Configuration;
+using Api = AElf.Sdk.CSharp.Api;
+using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Tests
 {
     public class TestContractZero : CSharpSmartContract, ISmartContractZero
     {
+        [SmartContractFieldData("${this}._lock", DataAccessMode.ReadWriteAccountSharing)]
+        private object _lock;
         public override async Task InvokeAsync()
         {
             await Task.CompletedTask;
         }
 
+        [SmartContractFunction("${this}.DeploySmartContract", new string[]{}, new string[]{"${this}._lock"})]
         public async Task<Hash> DeploySmartContract(int category, byte[] contract)
         {
-            Console.WriteLine("categort " + category);
             SmartContractRegistration registration = new SmartContractRegistration
             {
                 Category = category,
@@ -34,12 +38,12 @@ namespace AElf.Kernel.Tests
             };
             
             var tx = Api.GetTransaction();
-
+            
             // calculate new account address
-            var account = Path.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
-
+            var account = Path.CalculateAccountAddress(tx.From, tx.IncrementId);
+            
             await Api.DeployContractAsync(account, registration);
-            Console.WriteLine("Deployment success, contract address: {0}", account.Value.ToBase64());
+            Console.WriteLine("Deployment success");
             return account;
         }
 
@@ -615,15 +619,9 @@ namespace AElf.Kernel.Tests
         #endregion
         
         
-        public async Task<Timestamp> GetTimeSlot(string accountAddress = null, ulong roundsCount = 0)
+        public async Task<Timestamp> GetTimeSlot(string accountAddress)
         {
-            Interlocked.CompareExchange(ref accountAddress, null,
-                AddressHashToString(Api.GetTransaction().From));
-            
-            roundsCount = roundsCount == 0 ? RoundsCount.Value : roundsCount;
-            
-            return (await GetBlockProducerInfoOfSpecificRound(accountAddress,
-                new UInt64Value {Value = roundsCount})).TimeSlot;
+            return (await GetBlockProducerInfoOfCurrentRound(accountAddress)).TimeSlot;
         }
 
         public async Task<Hash> GetInValueOf(string accountAddress, ulong roundsCount)
@@ -679,8 +677,7 @@ namespace AElf.Kernel.Tests
             var assignedTimeSlot = await GetTimeSlot(accountAddress);
             var timeSlotEnd = GetTimestamp(assignedTimeSlot, MiningTime);
 
-            return CompareTimestamp(now, assignedTimeSlot) 
-                   && CompareTimestamp(timeSlotEnd, now);
+            return CompareTimestamp(now, assignedTimeSlot) && CompareTimestamp(timeSlotEnd, now);
         }
 
         // ReSharper disable once InconsistentNaming

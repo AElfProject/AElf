@@ -28,7 +28,7 @@ namespace AElf.ABI.Tests
                 (ulong) 64,
                 "AElf",
                 new byte[] {0x01, 0x02, 0x03},
-                new Hash()
+                new Kernel.Hash()
                 {
                     Value = ByteString.CopyFrom(new byte[]
                     {

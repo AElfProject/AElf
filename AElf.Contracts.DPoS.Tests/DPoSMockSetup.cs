@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Concurrency.Execution;
+using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
@@ -36,15 +37,17 @@ namespace AElf.Contracts.DPoS.Tests
         private IWorldStateManager _worldStateManager;
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
-
+        private IFunctionMetadataService _functionMetadataService;
+        
         private ISmartContractRunnerFactory _smartContractRunnerFactory = new SmartContractRunnerFactory();
 
-        public DPoSMockSetup(IWorldStateManager worldStateManager, IChainCreationService chainCreationService, IBlockManager blockManager, ISmartContractStore smartContractStore, IChainContextService chainContextService)
+        public DPoSMockSetup(IWorldStateManager worldStateManager, IChainCreationService chainCreationService, IBlockManager blockManager, ISmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService)
         {
             _worldStateManager = worldStateManager;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             ChainContextService = chainContextService;
+            _functionMetadataService = functionMetadataService;
             SmartContractManager = new SmartContractManager(smartContractStore);
             var runner = new SmartContractRunner("../../../../AElf.Contracts.DPoS/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
@@ -52,7 +55,8 @@ namespace AElf.Contracts.DPoS.Tests
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateManager);
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, 
+                _worldStateManager, _functionMetadataService);
 
             ServicePack = new ServicePack()
             {
@@ -84,7 +88,7 @@ namespace AElf.Contracts.DPoS.Tests
                 ContractHash = new Hash(code)
             };
 
-            await SmartContractService.DeployContractAsync(address, reg);
+            await SmartContractService.DeployContractAsync(ChainId1, address, reg);
         }
 
         public async Task<IExecutive> GetExecutiveAsync(Hash address)
