@@ -31,6 +31,7 @@ using Newtonsoft.Json.Linq;
 using NLog;
 using NLog.Common;
 using ServiceStack;
+ using Type = System.Type;
 
 namespace AElf.Kernel.Node
 {
@@ -513,7 +514,7 @@ namespace AElf.Kernel.Node
 
                             }
                             var firstBlock = await _miner.Mine(); //Which is an extra block
-                            _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions, able to mine in {2}", firstBlock.GetHash(),
+                            _logger.Log(LogLevel.Debug, "Genereate first extra block: {0}, with {1} transactions, able to mine in {2}", firstBlock.GetHash(),
                                 firstBlock.Body.Transactions.Count, DateTime.UtcNow.ToString("u"));
 
                             return;
@@ -541,6 +542,7 @@ namespace AElf.Kernel.Node
                                     contractAccountHash)
                             };
                             executive.SetTransactionContext(tcAbleToMine).Apply(true).Wait();
+                            
                             var ableToMine = BoolValue.Parser.ParseFrom(tcAbleToMine.Trace.RetVal).Value;
                             if (ableToMine)
                             {
@@ -589,6 +591,7 @@ namespace AElf.Kernel.Node
                                     "Genereate block: {0}, with {1} transactions, able to mine in {2}\n Published out value: {3}\n signature: {4}",
                                     block.GetHash(), block.Body.Transactions.Count, DateTime.UtcNow.ToString("u"),
                                     outValue, signature);
+                                
                                 return;
                             }
                         }
@@ -599,13 +602,12 @@ namespace AElf.Kernel.Node
 
                         if (latestMinedExtraBlockRoundsCount != roundsCount)
                         {
-                            var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
                             // ReSharper disable once InconsistentNaming
                             var tcIsTimeToProduceEB = new TransactionContext
                             {
                                 Transaction =
                                     _dPoS.GetIsTimeToProduceExtraBlockTx(
-                                        incrementId, contractAccountHash)
+                                        await GetIncrementId(_nodeKeyPair.GetAddress()), contractAccountHash)
                             };
                             executive.SetTransactionContext(tcIsTimeToProduceEB).Apply(true).Wait();
 
@@ -613,16 +615,21 @@ namespace AElf.Kernel.Node
                             var isTimeToProduceEB = BoolValue.Parser.ParseFrom(tcIsTimeToProduceEB.Trace.RetVal).Value;
                             if (isTimeToProduceEB)
                             {
-                                //Try to publish in value
+                                var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
+
+                                //Try to publish in value (every BP can do this)
                                 await BroadcastTransaction(_dPoS.GetTryToPublishInValueTx(
                                     incrementId, contractAccountHash, inValue));
+
+                                latestMinedExtraBlockRoundsCount = roundsCount;
 
                                 // ReSharper disable once InconsistentNaming
                                 var tcAbleToProduceEB = new TransactionContext
                                 {
                                     Transaction =
-                                        _dPoS.GetIsTimeToProduceExtraBlockTx(
-                                            incrementId, contractAccountHash)
+                                        _dPoS.GetAbleToProduceExtraBlockTx(
+                                            // This tx won't be broadcasted
+                                            await GetIncrementId(_nodeKeyPair.GetAddress()), contractAccountHash)
                                 };
                                 executive.SetTransactionContext(tcAbleToProduceEB).Apply(true).Wait();
 
@@ -638,9 +645,7 @@ namespace AElf.Kernel.Node
                                     }
 
                                     var extraBlock = await _miner.Mine(); //Which is an extra block
-                                    
-                                    latestMinedExtraBlockRoundsCount = roundsCount;
-                                    
+                                                                        
                                     _logger.Log(LogLevel.Debug,
                                         "Genereate extra block: {0}, with {1} transactions, able to mine in {2}",
                                         extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
@@ -652,7 +657,7 @@ namespace AElf.Kernel.Node
                         
                         #endregion
 
-                        _logger.Log(LogLevel.Debug, "Find myself unable to mine in {0}", DateTime.UtcNow.ToString("u"));
+                        _logger.Log(LogLevel.Trace, "Find myself unable to mine in {0}", DateTime.UtcNow.ToString("u"));
                     }
                 );
             });
@@ -732,7 +737,7 @@ namespace AElf.Kernel.Node
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private IObservable<long> GetIntervalObservable()
         {
-            return Observable.Interval(TimeSpan.FromMilliseconds(3000));
+            return Observable.Interval(TimeSpan.FromMilliseconds(4000));
         }
     }
 }

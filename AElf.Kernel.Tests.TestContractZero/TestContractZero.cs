@@ -50,7 +50,9 @@ namespace AElf.Kernel.Tests
 
         #region DPoS
 
-        private const int MiningTime = 5000;
+        private const int MiningTime = 7000;
+
+        private const int WaitFirstRoundTime = 5000;
 
         private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");
         
@@ -144,7 +146,7 @@ namespace AElf.Kernel.Tests
 
                 if (i == enumerable.Count - 1)
                 {
-                    await _timeForProducingExtraBlock.SetAsync(GetTimestamp(i * MiningTime + MiningTime));
+                    await _timeForProducingExtraBlock.SetAsync(GetTimestamp(i * MiningTime + MiningTime + WaitFirstRoundTime));
                 }
 
                 infosOfRound1.Info.Add(enumerable[i], bpInfo);
@@ -193,7 +195,7 @@ namespace AElf.Kernel.Tests
 
                 if (i == enumerable.Count - 1)
                 {
-                    await _timeForProducingExtraBlock.SetAsync(GetTimestamp(i * MiningTime + MiningTime));
+                    await _timeForProducingExtraBlock.SetAsync(GetTimestamp(i * MiningTime + MiningTime + WaitFirstRoundTime));
                 }
 
                 infosOfRound2.Info.Add(enumerable[i], bpInfo);
@@ -251,11 +253,11 @@ namespace AElf.Kernel.Tests
 
                 bpInfo.Order = i + 1;
                 bpInfo.Signature = Hash.Generate();
-                bpInfo.TimeSlot = GetTimestamp(i * MiningTime);
+                bpInfo.TimeSlot = GetTimestamp(i * MiningTime + WaitFirstRoundTime);
 
                 if (i == enumerable.Count - 1)
                 {
-                    await _timeForProducingExtraBlock.SetAsync(GetTimestamp(i * MiningTime + MiningTime));
+                    await _timeForProducingExtraBlock.SetAsync(GetTimestamp(i * MiningTime + MiningTime + WaitFirstRoundTime));
                 }
 
                 infosOfRound1.Info.Add(enumerable[i], bpInfo);
@@ -298,7 +300,7 @@ namespace AElf.Kernel.Tests
                     await _eBPMap.SetValueAsync(new UInt64Value {Value = 2}, new StringValue {Value = enumerable[i]});
                 }
 
-                bpInfo.TimeSlot = GetTimestamp(i * MiningTime + addition);
+                bpInfo.TimeSlot = GetTimestamp(i * MiningTime + addition + WaitFirstRoundTime);
                 bpInfo.Order = i + 1;
 
                 infosOfRound2.Info.Add(enumerable[i], bpInfo);
@@ -677,7 +679,7 @@ namespace AElf.Kernel.Tests
             var assignedTimeSlot = await GetTimeSlot(accountAddress);
             var timeSlotEnd = GetTimestamp(assignedTimeSlot, MiningTime);
 
-            return CompareTimestamp(assignedTimeSlot, now) 
+            return CompareTimestamp(now, assignedTimeSlot) 
                    && CompareTimestamp(timeSlotEnd, now);
         }
 
@@ -729,12 +731,8 @@ namespace AElf.Kernel.Tests
             
             // ReSharper disable once InconsistentNaming
             var eBP = await _eBPMap.GetValueAsync(RoundsCount);
-            if (AddressHashToString(accountHash) == eBP.Value)
-            {
-                return false;
-            }
-
-            return true;
+            
+            return AddressHashToString(accountHash) == eBP.Value;
         }
 
         // ReSharper disable once InconsistentNaming
@@ -799,10 +797,16 @@ namespace AElf.Kernel.Tests
             return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
         }
 
+        /// <summary>
+        /// Return true if ts1 >= ts2
+        /// </summary>
+        /// <param name="ts1"></param>
+        /// <param name="ts2"></param>
+        /// <returns></returns>
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private bool CompareTimestamp(Timestamp ts1, Timestamp ts2)
         {
-            return ts1.ToDateTime() > ts2.ToDateTime();
+            return ts1.ToDateTime() >= ts2.ToDateTime();
         }
         
         // ReSharper disable once MemberCanBeMadeStatic.Local
