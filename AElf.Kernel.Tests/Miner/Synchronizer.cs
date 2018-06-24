@@ -18,6 +18,7 @@ using AElf.Kernel.Tests.Concurrency.Execution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Kernel.TxMemPool;
 using AElf.Runtime.CSharp;
+using AElf.Types.CSharp;
 using Akka.Actor;
 using Google.Protobuf;
 using ServiceStack;
@@ -155,14 +156,6 @@ namespace AElf.Kernel.Tests.Miner
             var contractAddressZero = new Hash(chainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
 
             var code = ExampleContractCode;
-
-            var regExample = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = code.CalculateHash()
-            };
-            
             
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
             ECSigner signer = new ECSigner();
@@ -172,7 +165,7 @@ namespace AElf.Kernel.Tests.Miner
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(regExample.ToByteArray()),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack((int)0, code)),
                 
                 Fee = TxPoolConfig.Default.FeeThreshold + 1
             };
