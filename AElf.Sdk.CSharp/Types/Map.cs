@@ -75,16 +75,20 @@ namespace AElf.Sdk.CSharp.Types
             _dataProvider = dataProvider;
         }
 
-        //public async Task SetValueAsync(Hash keyHash, byte[] value)
-        //{
-        //    await Api.GetDataProvider(_name).SetAsync(keyHash, value);
-        //}
+        public async Task SetValueAsync(Hash keyHash, byte[] value)
+        {
+            await Api.GetDataProvider(_name).SetAsync(keyHash, value);
+        }
 
-        //// TODO: Change name to GetValueAsync
-        //public async Task<byte[]> GetValue(Hash keyHash)
-        //{
-        //    return await Api.GetDataProvider(_name).GetAsync(keyHash);
-        //}
+        public async Task<byte[]> GetValueAsync(Hash keyHash)
+        {
+            return await Api.GetDataProvider(_name).GetAsync(keyHash);
+        }
+
+        public IDataProvider GetSubDataProvider(string dataProviderKey)
+        {
+            return Api.GetDataProvider(_name).GetDataProvider(dataProviderKey);
+        }
     }
 
     public class Map<TKey, TValue> : Map where TKey : IMessage where TValue : IMessage
@@ -316,6 +320,11 @@ namespace AElf.Sdk.CSharp.Types
             obj.Unpack(userTypeHolder);
             return obj;
         }
+        
+        public IDataProvider GetSubDataProvider(string dataProviderKey)
+        {
+            return Api.GetDataProvider(_name).GetDataProvider(dataProviderKey);
+        }
     }
 
     //public class MapToMap<TKey, TKey1, TValue, TMap> : Map where TKey : IMessage where TKey1 : IMessage where TValue : IMessage where TMap : Map<TKey1, TValue>
@@ -335,4 +344,5 @@ namespace AElf.Sdk.CSharp.Types
     //        //return Api.Serializer.Deserialize<TValue>(bytes);
     //    }
     //}
+    
 }

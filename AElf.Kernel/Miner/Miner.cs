@@ -95,6 +95,11 @@ namespace AElf.Kernel.Miner
                 var results = new List<TransactionResult>();
                 foreach (var trace in traces)
                 {
+                    if (ready.Count == 2)
+                    {
+                        var foo = BlockProducer.Parser.ParseFrom(trace.RetVal.ToByteArray());
+                    }
+                    
                     var res = new TransactionResult()
                     {
                         TransactionId = trace.TransactionId,

@@ -14,5 +14,9 @@ namespace AElf.Kernel.Node
         Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block);
 
         Task<ulong> GetCurrentChainHeight();
+        
+        BlockProducer BlockProducers { get; }
+        Hash ContractAccountHash { get; }
+        IExecutive Executive { get; }
     }
 }

@@ -20,6 +20,10 @@ namespace AElf.Kernel
         
         public static byte[] CalculateHashWith(this IMessage obj, IMessage another)
         {
+            if (another == null)
+            {
+                return (obj as Hash)?.Value.ToArray();
+            }
             var bytes = new byte[obj.CalculateSize() + another.CalculateSize()];
             using (var stream = new CodedOutputStream(bytes))
             {
