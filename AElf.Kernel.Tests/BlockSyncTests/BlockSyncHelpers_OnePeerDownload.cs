@@ -83,7 +83,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             mockPeer.ResetCalls();
             
             Block blockToAdd = f.GetAtHeight(0);
-            await synchronizer.AddBlockToSync(blockToAdd);
+            //await synchronizer.AddBlockToSync(blockToAdd);
             
             synchronizer.DoCycle(null);
             

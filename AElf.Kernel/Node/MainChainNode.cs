@@ -150,29 +150,29 @@ namespace AElf.Kernel.Node
             _rpcServer.SetCommandContext(this);
             _protocolDirector.SetCommandContext(this, !_nodeConfig.IsMiner); // If not miner do sync
             
+            // akka env 
+                
+            IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack
+            {
+                ChainContextService = _chainContextService,
+                SmartContractService = _smartContractService,
+                ResourceDetectionService = new MockResourceUsageDetectionService()
+            }));
+            IActorRef generalExecutor = _sys.ActorOf(GeneralExecutor.Props(_sys, serviceRouter), "exec");
+            generalExecutor.Tell(new RequestAddChainExecutor(_nodeConfig.ChainId));
+            
             if (_nodeConfig.IsMiner)
             {
-                // akka env 
-                
-                IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack
-                {
-                    ChainContextService = _chainContextService,
-                    SmartContractService = _smartContractService,
-                    ResourceDetectionService = new MockResourceUsageDetectionService()
-                }));
-                IActorRef generalExecutor = _sys.ActorOf(GeneralExecutor.Props(_sys, serviceRouter), "exec");
-                generalExecutor.Tell(new RequestAddChainExecutor(_nodeConfig.ChainId));
-                
                 _miner.Start(nodeKeyPair);
                 
-                DeployTxDemo();
+                //DeployTxDemo();
                 
                 Mine();
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
                   
             
-            _logger.Log(LogLevel.Debug, "AElf node started.");
+            _logger?.Log(LogLevel.Debug, "AElf node started.");
             
             return true;
         }
@@ -312,9 +312,12 @@ namespace AElf.Kernel.Node
             try
             {
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
-                _logger.Trace("Received Transaction: " + JsonFormatter.Default.Format(tx));
+                _logger.Trace("Received Transaction: " + Convert.ToBase64String(tx.GetHash().Value.ToByteArray()));
                 
-                await _poolService.AddTxAsync(tx);
+                bool success = await _poolService.AddTxAsync(tx);
+
+                if (!success)
+                    return;
 
                 if (isFromSend)
                 {
@@ -386,6 +389,7 @@ namespace AElf.Kernel.Node
                 bool executed = await _blockExecutor.ExecuteBlock(block);
 
                 return new BlockExecutionResult(executed, error);
+                //return new BlockExecutionResult(true, error);
             }
             catch (Exception e)
             {
@@ -439,6 +443,29 @@ namespace AElf.Kernel.Node
             return await _poolService.AddTxAsync(tx);
         }
 
+        private static int currentIncr = 0;
+        
+        private Transaction GetFakeTx()
+        {
+            ECKeyPair keyPair = new KeyPairGenerator().Generate();
+            ECSigner signer = new ECSigner();
+            var txDep = new Transaction
+            {
+                From = keyPair.GetAddress(),
+                To = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount(),
+                IncrementId = (ulong)currentIncr++,
+            };
+            
+            Hash hash = txDep.GetHash();
+
+            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
+            txDep.R = ByteString.CopyFrom(signature.R); 
+            txDep.S = ByteString.CopyFrom(signature.S);
+
+            return txDep;
+        }
+
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
@@ -446,7 +473,19 @@ namespace AElf.Kernel.Node
         {
             Task.Run(async () =>
             {
-                var tx = DeployTxDemo();
+                for (int i = 0; i < 1000; i++)
+                {
+                    await Task.Delay(5000); // secs
+                    
+                    var block = await _miner.Mine();
+
+                    _logger.Log(LogLevel.Debug, "Genereated block: {0}, with {1} transactions", block.GetHash(),
+                        block.Body.Transactions.Count);
+
+                    await BroadcastBlock(block);
+                }
+
+                /*var tx = DeployTxDemo();
                 var b = await _miner.Mine();
                 var result = await _transactionResultService.GetResultAsync(tx.GetHash());
                 //Console.WriteLine(result.RetVal.d);
@@ -474,7 +513,7 @@ namespace AElf.Kernel.Node
                     {
                         _logger.Log(LogLevel.Debug, e);
                     }
-                }
+                }*/
             });
 
         }

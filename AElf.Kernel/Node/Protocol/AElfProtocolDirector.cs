@@ -49,13 +49,13 @@ namespace AElf.Kernel.Node.Protocol
                 ulong height = _node.GetCurrentChainHeight().Result;
                 _blockSynchronizer = new BlockSynchronizer(_node, _peerManager); // todo move
                 _blockSynchronizer.SetNodeHeight((int)height);
-                _blockSynchronizer.Start();
+                Task.Run(() => _blockSynchronizer.Start());
             }
         }
 
         public void AddTransaction(Transaction tx)
         {
-            _blockSynchronizer.SetTransaction(tx.GetHash().ToByteArray());
+            _blockSynchronizer.SetTransaction(tx.GetHash().Value.ToByteArray());
         }
 
         public List<NodeData> GetPeers(ushort? numPeers)
@@ -122,10 +122,35 @@ namespace AElf.Kernel.Node.Protocol
                 {
                     await HandleHeightRequest(message, args);
                 }
+                else if (msgType == MessageTypes.TxRequest)
+                {
+                    await HandleTxRequest(message, args);
+                }
                 
                 // Process any messages
                 
                 ClearResetEvent(message.Id);
+            }
+        }
+        
+        private async Task HandleTxRequest(AElfPacketData message, MessageReceivedArgs args)
+        {
+            try
+            {
+                TxRequest breq = TxRequest.Parser.ParseFrom(message.Payload);
+                ITransaction tx = await _node.GetTransaction(breq.TxHash);
+
+                if (!(tx is Transaction t))
+                    return;
+                
+                var req = NetRequestFactory.CreateRequest(MessageTypes.Tx, t.ToByteArray(), 0);
+                await args.Peer.SendAsync(req.ToByteArray());
+                
+                _logger?.Trace("Send tx " + t.GetHash() + " to " + args.Peer + "(" + t.ToByteArray().Length + " bytes)");
+            }
+            catch (Exception e)
+            {
+                ; // todo
             }
         }
 
@@ -193,16 +218,19 @@ namespace AElf.Kernel.Node.Protocol
             try
             {
                 Block b = Block.Parser.ParseFrom(message.Payload);
+                
+                _blockSynchronizer.EnqueueJob(new Job { Block = b });
 
-                if (types == MessageTypes.BroadcastBlock)
+                /*if (types == MessageTypes.BroadcastBlock)
                 {
+                    
                     await _blockSynchronizer.AddBlockToSync(b);
                 }
                 else
                 {
                     // Block sent to answer a request
                     await _blockSynchronizer.AddRequestedBlock(b);
-                }
+                }*/
             }
             catch (Exception exception)
             {
