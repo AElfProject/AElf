@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Parsing;
 using AElf.CLI.RPC;
 using Google.Protobuf;
@@ -50,7 +51,7 @@ namespace AElf.CLI.Command
             byte[] aa = Convert.FromBase64String(ss.ToString());
             
             MemoryStream ms = new MemoryStream(aa);
-            Method m = Serializer.Deserialize<Method>(ms);
+            Module m = Serializer.Deserialize<Module>(ms);
 
             return JsonConvert.SerializeObject(m);
         }
