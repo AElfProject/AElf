@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using AElf.Kernel.Managers;
 using Google.Protobuf.Collections;
 
 namespace AElf.Kernel
@@ -8,6 +10,8 @@ namespace AElf.Kernel
     {
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
+
+        private bool _alreadyCommited;
 
         public RepeatedField<LogEvent> FlattenedLogs
         {
@@ -34,23 +38,26 @@ namespace AElf.Kernel
             return successful;
         }
 
-        public IEnumerable<StateValueChange> AllValueChanges
+        public async Task CommitChangesAsync(IWorldStateManager worldStateManager, Hash chainId)
         {
-            get
+            if (!IsSuccessful())
+            {
+                throw new InvalidOperationException("Attempting to commit an unsuccessful trace.");
+            }
+
+            if (!_alreadyCommited)
             {
                 foreach (var vc in ValueChanges)
                 {
-                    yield return vc;
+                    await worldStateManager.ApplyStateValueChangeAsync(vc, chainId);
                 }
-
-                foreach (var trace in InlineTraces)
+                foreach (var trc in InlineTraces)
                 {
-                    foreach (var vc in ValueChanges)
-                    {
-                        yield return vc;
-                    }
+                    await trc.CommitChangesAsync(worldStateManager, chainId);
                 }
             }
+
+            _alreadyCommited = true;
         }
     }
 }

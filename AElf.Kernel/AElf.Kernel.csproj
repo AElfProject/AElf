@@ -7,6 +7,14 @@
     <Compile Remove="MerkleTree.cs" />
     <Compile Remove="Merkle\Node.cs" />
     <Compile Remove="SmartContract\SmartContract.cs" />
+    <Compile Remove="Concurrency\Execution\ChainExecutor.cs" />
+    <Compile Remove="Concurrency\Execution\ChainRequestor.cs" />
+    <Compile Remove="Concurrency\Execution\GeneralExecutor.cs" />
+    <Compile Remove="Concurrency\Execution\GeneralRequestor.cs" />
+    <Compile Remove="Concurrency\Execution\GroupExecutor.cs" />
+    <Compile Remove="Concurrency\Execution\JobExecutor.cs" />
+    <Compile Remove="Concurrency\Execution\LocalServicesProvider.cs" />
+    <Compile Remove="Concurrency\Execution\BatchExecutor.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.5.1" />
@@ -16,6 +24,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
     <PackageReference Include="NLog" Version="4.5.6" />
     <PackageReference Include="QuickGraphCore" Version="1.0.0" />
+    <PackageReference Include="ServiceStack" Version="5.1.0" />
     <PackageReference Include="SharpRepository.Repository" Version="2.0.2" />
     <PackageReference Include="Akka" Version="1.3.6" />
   </ItemGroup>
@@ -34,6 +43,9 @@
   <ItemGroup>
     <Reference Include="Google.Protobuf, Version=3.5.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604">
       <HintPath>..\..\..\..\.nuget\packages\google.protobuf\3.5.1\lib\netstandard1.0\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Text, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\..\..\..\.nuget\packages\servicestack.text\5.1.0\lib\netstandard2.0\ServiceStack.Text.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

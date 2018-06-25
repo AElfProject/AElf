@@ -15,7 +15,7 @@ namespace AElf.CLI.Command
 
         public override string GetUsage()
         {
-            return "deploy-contract ";
+            return "deploy-contract <category> <filename>";
         }
 
         public override string Validate(CmdParseResult parsedCmd)

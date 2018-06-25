@@ -29,7 +29,7 @@ namespace AElf.Kernel.Node.RPC
         private const string GetPeersMethodName = "get_peers";
         private const string GetIncrementIdMethodName = "get_increment";
         private const string BroadcastBlockMethodName = "broadcast_block";
-
+        private const string GetTxResultMethodName = "get_tx_result";
         private const string GetCommandsMethodName = "get_commands";
         private const string GetContractAbi = "get_contract_abi";
 
@@ -46,7 +46,8 @@ namespace AElf.Kernel.Node.RPC
             GetCommandsMethodName,
             GetIncrementIdMethodName,
             BroadcastBlockMethodName,
-            GetContractAbi
+            GetContractAbi,
+            GetTxResultMethodName
         };
 
         /// <summary>
@@ -211,6 +212,9 @@ namespace AElf.Kernel.Node.RPC
                     case GetContractAbi:
                         responseData = await ProcessGetContractAbi(reqParams);
                         break;
+                    case GetTxResultMethodName:
+                        responseData = await ProcGetTxResult(reqParams);
+                        break;
                     default:
                         Console.WriteLine("Method name not found"); // todo log
                         break;
@@ -229,6 +233,29 @@ namespace AElf.Kernel.Node.RPC
             {
                 Console.WriteLine(e);
             }
+        }
+
+        private async Task<JObject> ProcGetTxResult(JObject reqParams)
+        {
+            string adr = reqParams["txhash"].ToString();
+            Hash txHash = Convert.FromBase64String(adr);
+            
+            //TransactionResult txResult = await _node.GetTransactionResult(txHash);
+            
+            LogEvent ev = new LogEvent();
+            ev.Address = new byte[] {1, 2, 3};
+            ev.Topic = new byte[] {1, 2, 3, 2, 6, 2};
+
+            TransactionResult txResult = new TransactionResult();
+            txResult.Logs.Add(ev);
+            txResult.RetVal = ByteString.CopyFromUtf8("RestVal_HelloWorld");
+            txResult.Status = Status.Mined;
+            txResult.TransactionId = txHash;
+            
+            string jsonResponse = JsonFormatter.Default.Format(txResult);
+            JObject j = new JObject { ["txresult"] = jsonResponse };
+            
+            return JObject.FromObject(j);
         }
 
         private async Task<JObject> ProcessGetIncrementId(JObject reqParams)

@@ -12,22 +12,21 @@ using Xunit.Frameworks.Autofac;
 namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
     [UseAutofacTestFramework]
-    public class ChainFunctionMetadataTemplateServiceTest
+    public class ChainFunctionMetadataTemplateTest
     {
         private ParallelTestDataUtil util = new ParallelTestDataUtil();
-        private IDataStore _dataStore;
-        private Hash chainId;
+        private ChainFunctionMetadataTemplate cfts;
+        private IDataStore _store;
 
-        public ChainFunctionMetadataTemplateServiceTest(IDataStore dataStore, Hash chainId)
+        public ChainFunctionMetadataTemplateTest(ChainFunctionMetadataTemplate cfts, IDataStore store)
         {
-            _dataStore = dataStore ?? throw new ArgumentNullException(nameof(dataStore));
-            this.chainId = chainId;
+            this.cfts = cfts;
+            _store = store;
         }
 
         [Fact]
-        public async Task<ChainFunctionMetadataTemplateService> TestTryAddNewContract()
+        public async Task<ChainFunctionMetadataTemplate> TestTryAddNewContract()
         {
-            ChainFunctionMetadataTemplateService cfts = new ChainFunctionMetadataTemplateService(_dataStore, chainId);
             cfts.CallingGraph.Clear();
             cfts.ContractMetadataTemplateMap.Clear();
             
@@ -46,7 +45,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                 new Dictionary<string, FunctionMetadataTemplate>(new[]                            // function metadata map for contract
                 {
                     new KeyValuePair<string, FunctionMetadataTemplate>(
-                        "${this}.Func0()",                                                        //     local function name
+                        "${this}.Func0",                                                        //     local function name
                         new FunctionMetadataTemplate(                                             //     local function metadata
                             new HashSet<string>(),                                                //         calling set of this function metadata
                             new HashSet<Resource>(new[]                                           //         local resource set of this function metadata
@@ -56,7 +55,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                             }))),
 
                     new KeyValuePair<string, FunctionMetadataTemplate>(
-                        "${this}.Func1()",
+                        "${this}.Func1",
                         new FunctionMetadataTemplate(
                             new HashSet<string>(),
                             new HashSet<Resource>(new[]
@@ -73,13 +72,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             groundTruthMap.Add("TestContractB", new Dictionary<string, FunctionMetadataTemplate>(new[]
             {
                 new KeyValuePair<string, FunctionMetadataTemplate>(
-                    "${this}.Func0()", 
+                    "${this}.Func0", 
                     new FunctionMetadataTemplate(
-                        new HashSet<string>(new[] {"${ContractC}.Func1()"}),
+                        new HashSet<string>(new[] {"${ContractC}.Func1"}),
                         new HashSet<Resource>(new[] {new Resource("${this}.resource2", DataAccessMode.AccountSpecific)}))),
                 
                 new KeyValuePair<string, FunctionMetadataTemplate>(
-                    "${this}.Func1()", 
+                    "${this}.Func1", 
                     new FunctionMetadataTemplate(
                         new HashSet<string>(),
                         new HashSet<Resource>(new[] {new Resource("${this}.resource3", DataAccessMode.ReadOnlyAccountSharing)})))
@@ -97,25 +96,25 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                         new HashSet<string>(), new HashSet<Resource>())),
 
                 new KeyValuePair<string, FunctionMetadataTemplate>(
-                    "${this}.Func0()", 
+                    "${this}.Func0", 
                     new FunctionMetadataTemplate(
-                        new HashSet<string>(new[] {"${this}.Func1()"}),
+                        new HashSet<string>(new[] {"${this}.Func1"}),
                         new HashSet<Resource>(new[]
                         {
                             new Resource("${this}.resource0", DataAccessMode.AccountSpecific)
                         }))),
 
                 new KeyValuePair<string, FunctionMetadataTemplate>(
-                    "${this}.Func1()", 
+                    "${this}.Func1", 
                     new FunctionMetadataTemplate(
-                        new HashSet<string>(new[] {"${this}.Func2()"}),
+                        new HashSet<string>(new[] {"${this}.Func2"}),
                         new HashSet<Resource>(new[]
                         {
                             new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing)
                         }))),
 
                 new KeyValuePair<string, FunctionMetadataTemplate>(
-                    "${this}.Func2()", 
+                    "${this}.Func2", 
                     new FunctionMetadataTemplate(
                         new HashSet<string>(),
                         new HashSet<Resource>(new[]
@@ -125,24 +124,24 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                         }))),
 
                 new KeyValuePair<string, FunctionMetadataTemplate>(
-                    "${this}.Func3()", 
+                    "${this}.Func3", 
                     new FunctionMetadataTemplate(
-                        new HashSet<string>(new[] {"${_contractB}.Func0()", "${this}.Func0()", "${ContractC}.Func0()"}),
+                        new HashSet<string>(new[] {"${_contractB}.Func0", "${this}.Func0", "${ContractC}.Func0"}),
                         new HashSet<Resource>(new[]
                         {
                             new Resource("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing)
                         }))),
 
                 new KeyValuePair<string, FunctionMetadataTemplate>(
-                    "${this}.Func4()", 
+                    "${this}.Func4", 
                     new FunctionMetadataTemplate(
-                        new HashSet<string>(new[] {"${this}.Func2()", "${this}.Func2()"}),
+                        new HashSet<string>(new[] {"${this}.Func2", "${this}.Func2"}),
                         new HashSet<Resource>())),
 
                 new KeyValuePair<string, FunctionMetadataTemplate>(
-                    "${this}.Func5()", 
+                    "${this}.Func5", 
                     new FunctionMetadataTemplate(
-                        new HashSet<string>(new[] {"${_contractB}.Func1()", "${this}.Func3()"}),
+                        new HashSet<string>(new[] {"${_contractB}.Func1", "${this}.Func3"}),
                         new HashSet<Resource>())),
             }));
             
@@ -152,14 +151,14 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             await TestFailCases(cfts);
             
             //test restore
-            ChainFunctionMetadataTemplateService newCFTS = new ChainFunctionMetadataTemplateService(_dataStore, chainId);    
+            ChainFunctionMetadataTemplate newCFTS = new ChainFunctionMetadataTemplate(_store, cfts.ChainId, null);
             Assert.Equal(util.ContractMetadataTemplateMapToString(cfts.ContractMetadataTemplateMap), util.ContractMetadataTemplateMapToString(newCFTS.ContractMetadataTemplateMap));
             
             return cfts;
         }
 
 
-        public async Task<ChainFunctionMetadataTemplateService> TestFailCases(ChainFunctionMetadataTemplateService cfts)
+        public async Task<ChainFunctionMetadataTemplate> TestFailCases(ChainFunctionMetadataTemplate cfts)
         {
             var groundTruthMap = new Dictionary<string, Dictionary<string, FunctionMetadataTemplate>>(cfts.ContractMetadataTemplateMap);
             
@@ -202,9 +201,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [SmartContractFieldData("${this}.resource5", DataAccessMode.ReadOnlyAccountSharing)]
         private int resource5;
         
-        [SmartContractFunction("${this}.Func0()", new string[]{}, new []{"${this}.resource4"})]
+        [SmartContractFunction("${this}.Func0", new string[]{}, new []{"${this}.resource4"})]
         public void Func0(){}
-        [SmartContractFunction("${this}.Func1()", new string[]{}, new []{"${this}.resource5"})]
+        [SmartContractFunction("${this}.Func1", new string[]{}, new []{"${this}.resource5"})]
         public void Func1(){}
     }
 
@@ -218,10 +217,10 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [SmartContractReference("ContractC", typeof(TestContractC))]
         public TestContractC ContractC;
         
-        [SmartContractFunction("${this}.Func0()", new []{"${ContractC}.Func1()"}, new []{"${this}.resource2"})]
+        [SmartContractFunction("${this}.Func0", new []{"${ContractC}.Func1"}, new []{"${this}.resource2"})]
         public void Func0(){}
         
-        [SmartContractFunction("${this}.Func1()", new string[]{}, new []{"${this}.resource3"})]
+        [SmartContractFunction("${this}.Func1", new string[]{}, new []{"${this}.resource3"})]
         public void Func1(){}
     }
     
@@ -249,28 +248,28 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         
         //test for same func name but different parameter
         //test for local function references recursive (resource completation)
-        [SmartContractFunction("${this}.Func0()", new []{"${this}.Func1()"}, new string[]{"${this}.resource0"})]
+        [SmartContractFunction("${this}.Func0", new []{"${this}.Func1"}, new string[]{"${this}.resource0"})]
         public void Func0(){}
         
         //test for local function reference non-recursive and test for overlap resource set
-        [SmartContractFunction("${this}.Func1()", new []{"${this}.Func2()"}, new []{"${this}.resource1"})]
+        [SmartContractFunction("${this}.Func1", new []{"${this}.Func2"}, new []{"${this}.resource1"})]
         public void Func1(){}
         
         //test for foreign contract, test for duplicate local resource
         //when deploy: test for recursive foreign resource collect
-        [SmartContractFunction("${this}.Func2()", new string[]{}, new []{"${this}.resource1", "${this}.resource2"})]
+        [SmartContractFunction("${this}.Func2", new string[]{}, new []{"${this}.resource1", "${this}.resource2"})]
         protected void Func2(){}
         
         //test for foreign calling set only
-        [SmartContractFunction("${this}.Func3()", new []{"${_contractB}.Func0()", "${this}.Func0()", "${ContractC}.Func0()"}, new []{"${this}.resource1"})]
+        [SmartContractFunction("${this}.Func3", new []{"${_contractB}.Func0", "${this}.Func0", "${ContractC}.Func0"}, new []{"${this}.resource1"})]
         public void Func3(){}
         
         //test for duplication in calling set
-        [SmartContractFunction("${this}.Func4()", new []{"${this}.Func2()", "${this}.Func2()"}, new string[]{})]
+        [SmartContractFunction("${this}.Func4", new []{"${this}.Func2", "${this}.Func2"}, new string[]{})]
         public void Func4(){}
         
         //test for duplicate foreign call
-        [SmartContractFunction("${this}.Func5()", new []{"${_contractB}.Func1()", "${this}.Func3()"}, new string[]{})]
+        [SmartContractFunction("${this}.Func5", new []{"${_contractB}.Func1", "${this}.Func3"}, new string[]{})]
         public void Func5(){}
     }
     
@@ -311,44 +310,44 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         public int resource0;
         
         //unknown local field
-        [SmartContractFunction("${this}.Func0()", new string[]{}, new []{"${this}.resource1"})]
+        [SmartContractFunction("${this}.Func0", new string[]{}, new []{"${this}.resource1"})]
         public void Func0(){}
     }
     
     internal class TestContractG
     {
         //duplicate function attribute
-        [SmartContractFunction("${this}.Func0()", new string[]{}, new string[]{})]
+        [SmartContractFunction("${this}.Func0", new string[]{}, new string[]{})]
         public void Func0(){}
         
-        [SmartContractFunction("${this}.Func0()", new string[]{}, new string[]{})]
+        [SmartContractFunction("${this}.Func0", new string[]{}, new string[]{})]
         public void Func1(){}
     }
     
     internal class TestContractH
     {
         //unknown local function reference
-        [SmartContractFunction("${this}.Func0()", new string[]{"${this}.Func1()"}, new string[]{})]
+        [SmartContractFunction("${this}.Func0", new string[]{"${this}.Func1"}, new string[]{})]
         public void Func0(){}
     }
     
     internal class TestContractI
     {
         //unknown foreign function reference
-        [SmartContractFunction("${this}.Func0()", new string[]{"${_contractA}.Func1()"}, new string[]{})]
+        [SmartContractFunction("${this}.Func0", new string[]{"${_contractA}.Func1"}, new string[]{})]
         public void Func0(){}
     }
 
     internal class TestContractJ
     {
         //for Non-DAG
-        [SmartContractFunction("${this}.Func0()", new string[]{"${this}.Func1()"}, new string[]{})]
+        [SmartContractFunction("${this}.Func0", new string[]{"${this}.Func1"}, new string[]{})]
         public void Func0(){}
-        [SmartContractFunction("${this}.Func1()", new string[]{"${this}.Func2()"}, new string[]{})]
+        [SmartContractFunction("${this}.Func1", new string[]{"${this}.Func2"}, new string[]{})]
         public void Func1(){}
-        [SmartContractFunction("${this}.Func2()", new string[]{"${this}.Func3()"}, new string[]{})]
+        [SmartContractFunction("${this}.Func2", new string[]{"${this}.Func3"}, new string[]{})]
         public void Func2(){}
-        [SmartContractFunction("${this}.Func3()", new string[]{"${this}.Func1()"}, new string[]{})]
+        [SmartContractFunction("${this}.Func3", new string[]{"${this}.Func1"}, new string[]{})]
         public void Func3(){}
     }
     
@@ -357,7 +356,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [SmartContractReference("_contractB", typeof(TestContractB))]
         private TestContractB _contractB;
         //want to call foreign function that Not Exist
-        [SmartContractFunction("${this}.Func0()", new string[]{"${_contractB}.Func10()"}, new string[]{})]
+        [SmartContractFunction("${this}.Func0", new string[]{"${_contractB}.Func10"}, new string[]{})]
         public void Func0(){}
     }
 

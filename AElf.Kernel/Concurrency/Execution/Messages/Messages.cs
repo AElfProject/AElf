@@ -16,15 +16,13 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
         public long RequestId { get; }
     }
 
-    public sealed class RespondLocalSerivcePack
+    public sealed class LocalSerivcePack
     {
-        public RespondLocalSerivcePack(long requestId, ServicePack servicePack)
+        public LocalSerivcePack(ServicePack servicePack)
         {
-            RequestId = requestId;
             ServicePack = servicePack;
         }
 
-        public long RequestId { get; }
         public ServicePack ServicePack { get; }
     }
     #endregion LocalServices
@@ -159,11 +157,13 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
     
     public sealed class TransactionTraceMessage
     {
-        public TransactionTraceMessage(TransactionTrace transactionTrace)
+        public TransactionTraceMessage(long requestId, TransactionTrace transactionTrace)
         {
+            RequestId = requestId;
             TransactionTrace = transactionTrace;
         }
 
+        public long RequestId { get; }
         public TransactionTrace TransactionTrace { get; }
     }
 
@@ -225,4 +225,103 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
         }
     }
     #endregion Singleton Messages
+
+    #region Routed workers
+
+//    public sealed class RoutedJobExecutionRequest
+//    {
+//        public RoutedJobExecutionRequest(JobExecutionRequest request, IActorRef router)
+//        {
+//            Request = request;
+//            Router = router;
+//        }
+//
+//        public JobExecutionRequest Request { get; }
+//        public IActorRef Router { get; }
+//    }
+    
+    public sealed class JobExecutionRequest
+    {
+        public JobExecutionRequest(long requestId, Hash chainId, List<ITransaction> transactions, IActorRef resultCollector, IActorRef router)
+        {
+            RequestId = requestId;
+            ChainId = chainId;
+            Transactions = transactions;
+            ResultCollector = resultCollector;
+            Router = router;
+        }
+
+        public long RequestId { get; }
+        public Hash ChainId { get; }
+        public List<ITransaction> Transactions { get; }
+        public IActorRef ResultCollector { get; }
+        public IActorRef Router { get; }
+    }
+    
+    public sealed class JobExecutionCancelMessage
+    {
+        private JobExecutionCancelMessage() { }
+
+        /// <summary>
+        /// The singleton instance of JobExecutionCancelMessage.
+        /// </summary>
+        public static JobExecutionCancelMessage Instance { get; } = new JobExecutionCancelMessage();
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return "<JobExecutionCancelMessage>";
+        }
+    }
+
+    public sealed class JobExecutionCancelAckMessage
+    {
+        private JobExecutionCancelAckMessage() { }
+
+        /// <summary>
+        /// The singleton instance of JobExecutionCancelMessage.
+        /// </summary>
+        public static JobExecutionCancelAckMessage Instance { get; } = new JobExecutionCancelAckMessage();
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return "<JobExecutionCancelAckMessage>";
+        }
+    }
+    
+    public sealed class JobExecutionStatusQuery
+    {
+        public JobExecutionStatusQuery(long requestId)
+        {
+            RequestId = requestId;
+        }
+
+        public long RequestId { get; }
+    }
+    
+    public sealed class JobExecutionStatus
+    {
+        public enum RequestStatus
+        {
+            FailedDueToNoAvailableWorker,
+            FailedDueToWorkerNotReady,
+            Running,
+            Completed,
+            Rejected,
+            InvalidRequestId
+        }
+        
+        public JobExecutionStatus(long requestId, RequestStatus status)
+        {
+            RequestId = requestId;
+            Status = status;
+        }
+
+        public long RequestId { get; }
+        public RequestStatus Status { get; }
+    }
+
+    #endregion Routed workers
+    
 }

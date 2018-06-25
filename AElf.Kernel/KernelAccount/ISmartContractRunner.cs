@@ -11,5 +11,6 @@ namespace AElf.Kernel.KernelAccount
     {
         Task<IExecutive> RunAsync(SmartContractRegistration reg);
         IMessage GetAbi(SmartContractRegistration reg);
+        System.Type GetContractType(SmartContractRegistration reg);
     }
 }

@@ -23,6 +23,7 @@ namespace AElf.Kernel.Tests
         private readonly IWorldStateStore _worldStateStore;
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
+        
 
         public ChainTest(IChainCreationService chainCreationService,
             IChainManager chainManager, IWorldStateStore worldStateStore, 
@@ -120,6 +121,7 @@ namespace AElf.Kernel.Tests
             block.Header.ChainId = chainId;
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
             block.Header.Index = index;
+            block.Header.MerkleTreeRootOfWorldState = Hash.Default;
 
             return block;
         }
