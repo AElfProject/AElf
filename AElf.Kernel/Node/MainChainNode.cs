@@ -162,14 +162,14 @@ namespace AElf.Kernel.Node
             {
                 // akka env 
                 
-                IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack
-                {
-                    ChainContextService = _chainContextService,
-                    SmartContractService = _smartContractService,
-                    ResourceDetectionService = new MockResourceUsageDetectionService()
-                }));
-                IActorRef generalExecutor = _sys.ActorOf(GeneralExecutor.Props(_sys, serviceRouter), "exec");
-                generalExecutor.Tell(new RequestAddChainExecutor(_nodeConfig.ChainId));
+//                IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack
+//                {
+//                    ChainContextService = _chainContextService,
+//                    SmartContractService = _smartContractService,
+//                    ResourceDetectionService = new MockResourceUsageDetectionService()
+//                }));
+//                IActorRef generalExecutor = _sys.ActorOf(GeneralExecutor.Props(_sys, serviceRouter), "exec");
+//                generalExecutor.Tell(new RequestAddChainExecutor(_nodeConfig.ChainId));
                 
                 _miner.Start(nodeKeyPair);
                 
