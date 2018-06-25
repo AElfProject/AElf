@@ -269,8 +269,6 @@ namespace AElf.Kernel.Node
             return txDep;
         }
         
-        
-        
         private async Task<bool> InitialDebugSync(string initFileName)
         {
             try
@@ -426,7 +424,7 @@ namespace AElf.Kernel.Node
                 
                 if (error != ValidationError.Success)
                 {
-                    _logger.Trace("Invalid block received from network" + error.ToString());
+                    _logger.Trace("Invalid block received from network " + error.ToString());
                     return new BlockExecutionResult(false, error);
                 }
             

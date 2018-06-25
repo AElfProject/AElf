@@ -208,15 +208,6 @@ namespace AElf.Kernel.Consensus
                     MethodName = "SetNextExtraBlockProducer",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom(ParamsPacker.Pack())
-                },
-                new Transaction
-                {
-                    From = AccountHash,
-                    To = contractAccountHash,
-                    IncrementId = incrementId,
-                    MethodName = "SetRoundsCount",
-                    P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack())
                 }
             };
 

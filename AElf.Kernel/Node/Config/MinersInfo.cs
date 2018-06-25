@@ -24,7 +24,7 @@ namespace AElf.Kernel.Node.Config
                     "2", new Dictionary<string, string>
                     {
                         {"coinbase", "KAOFepo=="},
-                        {"pubkey", "BH7TrIINjocJl5wdfL11UU8T"}
+                        {"pubkey", "BDlxj44jQtS9Qmt+iOCVod4Y"}
                     }
                 },
                 {
