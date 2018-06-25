@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Concurrency.Scheduling;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Metadata;
 using Google.Protobuf;

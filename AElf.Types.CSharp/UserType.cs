@@ -13,7 +13,8 @@ namespace AElf.Types.CSharp
 {
     public class UserType
     {
-        private static Dictionary<System.Type, List<UserFieldInfo>> _fieldInfosByType = new Dictionary<System.Type, List<UserFieldInfo>>();
+        private static Dictionary<System.Type, List<UserFieldInfo>> _fieldInfosByType 
+            = new Dictionary<System.Type, List<UserFieldInfo>>();
 
         public UserTypeHolder Pack()
         {

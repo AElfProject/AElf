@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using AElf.Kernel.Concurrency.Scheduling;
-using AElf.Kernel.Extensions;
 using Xunit;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling

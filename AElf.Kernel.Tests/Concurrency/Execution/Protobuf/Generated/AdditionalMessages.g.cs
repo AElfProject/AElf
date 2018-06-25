@@ -24,12 +24,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution {
     static AdditionalMessagesReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChlhZGRpdGlvbmFsX21lc3NhZ2VzLnByb3RvGg5tZXNzYWdlcy5wcm90byJI",
-            "CgxUcmFuc2ZlckFyZ3MSEwoEZnJvbRgBIAEoCzIFLkhhc2gSEQoCdG8YAiAB",
-            "KAsyBS5IYXNoEhAKCHF1YW50aXR5GAMgASgEQiqqAidBRWxmLktlcm5lbC5U",
-            "ZXN0cy5Db25jdXJyZW5jeS5FeGVjdXRpb25iBnByb3RvMw=="));
+            "ChlhZGRpdGlvbmFsX21lc3NhZ2VzLnByb3RvGgxrZXJuZWwucHJvdG8iSAoM",
+            "VHJhbnNmZXJBcmdzEhMKBGZyb20YASABKAsyBS5IYXNoEhEKAnRvGAIgASgL",
+            "MgUuSGFzaBIQCghxdWFudGl0eRgDIAEoBEIqqgInQUVsZi5LZXJuZWwuVGVz",
+            "dHMuQ29uY3VycmVuY3kuRXhlY3V0aW9uYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::AElf.Kernel.MessagesReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::AElf.Kernel.KernelReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Tests.Concurrency.Execution.TransferArgs), global::AElf.Kernel.Tests.Concurrency.Execution.TransferArgs.Parser, new[]{ "From", "To", "Quantity" }, null, null, null)
           }));

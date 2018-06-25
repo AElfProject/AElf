@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Services
 {

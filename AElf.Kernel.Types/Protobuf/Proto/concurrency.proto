@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel";
+import "kernel.proto";
+import "google/protobuf/any.proto";
+
+
+
+message StateValueChange{
+    Hash Path = 1;
+    bytes BeforeValue = 2;
+    bytes AfterValue = 3;
+}
+
+message TransactionTrace
+{
+    Hash TransactionId = 1;
+    bytes RetVal = 2;
+    string StdOut = 3;
+    string StdErr = 4;
+    repeated LogEvent Logs = 5;
+    repeated TransactionTrace InlineTraces = 6;
+    repeated StateValueChange ValueChanges = 7;
+    int64 Elapsed = 8;
+}
+
+message EventField
+{
+    string Name = 1;
+    google.protobuf.Any Value = 2;
+}
+
+message LogEvent
+{
+    Hash Address = 1;
+    Hash Topic = 2;
+    repeated EventField Details = 3;
+}
+
+message TransactionResult{
+    Hash TransactionId = 1;
+    Status status = 2;
+    repeated LogEvent Logs = 3;
+    bytes RetVal = 4;
+}
+
+enum Status {
+    NotExisted = 0;
+    Pending = 1;
+    Failed = 2;
+    Mined = 3;
+}
+
+
+enum DataAccessMode {
+    ReadOnlyAccountSharing = 0;
+    ReadWriteAccountSharing = 1;
+    AccountSpecific = 2;
+}
+
+message SerializeContractMetadataTemplateMap {
+    map<string, SerializeFunctionMetadataTemplateMap> MetadataTemplateMapForContract = 2;
+}
+
+message SerializeFunctionMetadataTemplateMap {
+    map<string, FunctionMetadataTemplate> TemplateMap = 2;
+}
+
+
+message FunctionMetadataTemplate {
+    repeated string SerializeCallingSet = 1;
+    repeated Resource SerializeLocalResourceSet = 2;
+}
+
+message Resource {
+    string Name = 1;
+    DataAccessMode DataAccessMode  = 2;
+}
+
+message FunctionMetadata {
+    repeated string SerializeCallingSet = 1;
+    repeated Resource SerializeFullResourceSet = 2;
+    repeated Resource SerializeLocalResourceSet = 3;
+}
+
+message SerializeFunctionMetadataMap {
+    map<string, FunctionMetadata> MetadataMap = 1;
+}
+
+message CallingGraphEdges {
+    repeated GraphEdge Edges = 1;
+}
+
+message GraphEdge {
+    string Source = 1;
+    string Target = 2;
+}
+

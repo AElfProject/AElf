@@ -29,9 +29,10 @@ message BlockRequest {
 }
 
 message TxRequest {
-    
+    bytes TxHash = 1;
 }
 
 message HeightData {
     int32 Height = 1;
 }
+

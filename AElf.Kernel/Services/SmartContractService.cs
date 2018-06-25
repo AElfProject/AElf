@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Managers;
 using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Services

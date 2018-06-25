@@ -1,5 +1,6 @@
 ﻿using System;
 using AElf.Kernel.Services;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel
 {

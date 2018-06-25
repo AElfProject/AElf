@@ -2,7 +2,7 @@
 {
     public enum MessageTypes
     {
-        AskForTx,
+        TxRequest,
         Tx,
         
         HeightRequest,

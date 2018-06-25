@@ -9,7 +9,7 @@
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.5.1" />
+    <PackageReference Include="Google.Protobuf" Version="3.6.0" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Runtime.Loader, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

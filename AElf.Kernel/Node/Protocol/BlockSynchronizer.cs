@@ -1,18 +1,22 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Protocol.Exceptions;
+using AElf.Kernel.Types;
 using AElf.Network.Data;
 using AElf.Network.Peers;
 using Google.Protobuf;
 using NLog;
+using ServiceStack;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
 namespace AElf.Kernel.Node.Protocol
@@ -23,6 +27,12 @@ namespace AElf.Kernel.Node.Protocol
     
     public class BlockSynchedArgs : EventArgs
     {
+        public Block Block { get; set; }
+    }
+
+    public class Job
+    {
+        public bool IsSend { get; set; }
         public Block Block { get; set; }
     }
     
@@ -51,7 +61,8 @@ namespace AElf.Kernel.Node.Protocol
 
         // The height of the chain, this gets incremented each time a 
         // block is successfully removed.
-        public int CurrentHeight { get; private set; } = 0;
+        //public int CurrentHeight { get; private set; } = 0;
+        public int CurrentExecHeight = 0;
 
         public int SyncTargetHeight = 0;
         
@@ -65,9 +76,13 @@ namespace AElf.Kernel.Node.Protocol
         private Timer _cycleTimer;
         private IAElfNode _mainChainNode;
 
+        private BlockingCollection<Job> _jobQueue;
+
         public BlockSynchronizer(IAElfNode node, IPeerManager peerManager)
         {
             PendingBlocks = new List<PendingBlock>();
+            _jobQueue = new BlockingCollection<Job>();
+            
             _mainChainNode = node;
             _peerManager = peerManager;
             _logger = LogManager.GetLogger("BlockSync");
@@ -78,7 +93,7 @@ namespace AElf.Kernel.Node.Protocol
             if (!IsInitialSync)
                 return false;
                 
-            if (height <= CurrentHeight)
+            if (height <= CurrentExecHeight)
                 return false;
             
             if (PeerToHeights.ContainsKey(peer))
@@ -109,7 +124,7 @@ namespace AElf.Kernel.Node.Protocol
             if (PeerToHeights == null)
                 return null;
             
-            var toRemove = PeerToHeights.Where(kvp => kvp.Value <= CurrentHeight).ToList();
+            var toRemove = PeerToHeights.Where(kvp => kvp.Value <= CurrentExecHeight).ToList();
             
             foreach (var kvp in toRemove)
             {
@@ -133,7 +148,7 @@ namespace AElf.Kernel.Node.Protocol
             
             // todo ask for txs
 
-            await TryExecuteBlocks(PendingBlocks);
+            //await TryExecuteBlocks(PendingBlocks);
         }
 
         /// <summary>
@@ -158,18 +173,18 @@ namespace AElf.Kernel.Node.Protocol
                 // for now we use only one - the one with the highest hight
                 var peerHeightKvp = PeerToHeights.OrderByDescending(p => p.Value).First();
 
-                if (peerHeightKvp.Value < CurrentHeight)
+                if (peerHeightKvp.Value <= CurrentExecHeight)
                     return; // As far as we know he's behind us
 
                 IPeer peer = peerHeightKvp.Key;
 
                 // Request the current block we're trying to sync
-                BlockRequest br = new BlockRequest { Height = CurrentHeight };
+                BlockRequest br = new BlockRequest { Height = CurrentExecHeight };
                 var req = NetRequestFactory.CreateRequest(MessageTypes.RequestBlock, br.ToByteArray(), null); 
                     
                 await peer.SendAsync(req.ToByteArray());
                 
-                _logger?.Trace("Block request for height " + CurrentHeight + " to " + peer);
+                _logger?.Trace("Block request for height " + CurrentExecHeight + " to " + peer);
             }
             else
             {
@@ -189,22 +204,130 @@ namespace AElf.Kernel.Node.Protocol
         public void Start()
         {
             _cycleTimer = new Timer(DoCycle, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(3));
+            DoSync();
         }
 
         public void SetNodeHeight(int currentHeight)
         {
             // todo logic to handle a height change
-            CurrentHeight = currentHeight;
+            //CurrentHeight = currentHeight;
+            CurrentExecHeight = currentHeight;
+            
+            _logger?.Trace("Sync started at height: " + CurrentExecHeight);
         }
 
+        public void EnqueueJob(Job job)
+        {
+            _jobQueue.Add(job);
+        }
+
+        //AutoResetEvent theEvent = new AutoResetEvent(false);
+        
+        private void DoSync()
+        {
+            while (true)
+            {
+                Job j = _jobQueue.Take();
+                bool b = AddBlockToSync(j.Block).Result;
+                
+                var bte = GetBlocksToExecute();
+
+                if (bte != null && bte.Count > 0)
+                {
+                    // Execute and log
+                    List<PendingBlock> br = TryExecuteBlocks(bte).Result;
+
+                    if (br != null && br.Count > 0)
+                    {
+                        StringBuilder brString = new StringBuilder();
+                        brString.Append(br.ElementAt(0).Block.Header.Index);
+                        
+                        for (int i = 1; i < br.Count; i++)
+                        {
+                            brString.Append(" - " + br.ElementAt(i).Block.Header.Index);
+                        }
+                        
+                        _logger?.Trace("Executed the blocks at the following height : " + brString);
+                    }
+                }
+
+                bool success = RequestMissingTxs().Result;
+            }
+        }
+        
+        private async Task<bool> RequestMissingTxs()
+        {
+            if (PeerToHeights == null || PeerToHeights.Count <= 0)
+                return false;
+                
+            var peerHeightKvp = PeerToHeights.OrderByDescending(p => p.Value).First();
+            
+            List<byte[]> listOfMissingTxToRequest = new List<byte[]>();
+            
+            foreach (var pdBlock in PendingBlocks)
+            {
+                if (!pdBlock.IsSynced)
+                {
+                    foreach (var tx in pdBlock.MissingTxs)
+                    {
+                        if (listOfMissingTxToRequest.Count >= 5) // only 5 at a time
+                            break;
+                        
+                        listOfMissingTxToRequest.Add(tx);
+                    }
+                }
+            }
+
+            IPeer peer = peerHeightKvp.Key;
+            
+            foreach (var tx in listOfMissingTxToRequest)
+            {
+                TxRequest br = new TxRequest { TxHash = ByteString.CopyFrom(tx) };
+                var req = NetRequestFactory.CreateRequest(MessageTypes.TxRequest, br.ToByteArray(), null);
+                
+                await peer.SendAsync(req.ToByteArray());
+                
+                _logger?.Trace("Request tx:" + Convert.ToBase64String(br.TxHash.ToByteArray()));
+            }
+
+            return true;
+        }
+
+        internal List<PendingBlock> GetBlocksToExecute()
+        {
+            // Calculate the next batch to execute
+            List<PendingBlock> ordered = PendingBlocks.Where(p => p.IsSynced).OrderBy(p => p.Block.Header.Index).ToList();
+            
+            if (ordered.Count <= 0)
+                return new List<PendingBlock>();
+
+            List<PendingBlock> pending = new List<PendingBlock>();
+
+            int currentIndex = (int)ordered[0].Block.Header.Index;
+
+            if (currentIndex > CurrentExecHeight)
+                return null;
+            
+            for (int i = 0; i < ordered.Count; i++)
+            {
+                pending.Add(ordered[i]);
+
+                if (i+1 >= ordered.Count || (int) ordered[i+1].Block.Header.Index > currentIndex + 1)
+                    break;
+                
+                currentIndex = (int)ordered[i+1].Block.Header.Index;
+            }
+            
+            return pending;
+        }
+        
         /// <summary>
         /// When a block is received through the network it is placed here for sync
-        /// purposes. Most of the time it will directly throw the <see cref="BlockSynched"/>
-        /// event. In the case that the transaction was not received through the
+        /// purposes. In the case that the transaction was not received through the
         /// network, it will be placed here to sync.
         /// </summary>
         /// <param name="block"></param>
-        public async Task<bool> AddBlockToSync(Block block)
+        private async Task<bool> AddBlockToSync(Block block)
         {
             if (block?.Header == null || block.Body == null)
                 throw new InvalidBlockException("The block, blockheader or body is null");
@@ -212,7 +335,7 @@ namespace AElf.Kernel.Node.Protocol
             /*if (block.Body.Transactions == null || block.Body.Transactions.Count <= 0)
                 throw new InvalidBlockException("The block contains no transactions");*/
 
-            if (block.Header.Index < (ulong)CurrentHeight)
+            if (block.Header.Index < (ulong)CurrentExecHeight)
                 return false;
 
             byte[] h = null;
@@ -222,25 +345,38 @@ namespace AElf.Kernel.Node.Protocol
             }
             catch (Exception e)
             {
+                //theEvent.WaitOne();
                 throw new InvalidBlockException("Invalid block hash");
             }
 
             if (GetBlock(h) != null)
+            {
+                //theEvent.WaitOne();
                 return false;
+            }
 
             List<Hash> missingTxs = _mainChainNode.GetMissingTransactions(block);
 
             if (missingTxs == null)
             {
+                //theEvent.WaitOne();
                 // todo what happend when the pool fails ?
                 return false;
             }
+            
+            // todo check that the returned txs are actually in the block
+            PendingBlock newPendingBlock = new PendingBlock(h, block, missingTxs);
+            PendingBlocks.Add(newPendingBlock);
+            
+            return true;
 
-            if (missingTxs.Any())
+            /*if (missingTxs.Any())
             {
                 // todo check that the returned txs are actually in the block
                 PendingBlock newPendingBlock = new PendingBlock(h, block, missingTxs);
                 PendingBlocks.Add(newPendingBlock);
+                
+                CurrentHeight++;
             }
             else
             {
@@ -260,11 +396,14 @@ namespace AElf.Kernel.Node.Protocol
                 if (res.Executed == true && res.ValidationError == ValidationError.Success)
                 {
                     CurrentHeight++;
+                    CurrentExecHeight++;
                     _logger?.Trace("Block directly added and executed: " + block.GetHash().Value.ToBase64());
                 }
             }
+            
+            //theEvent.WaitOne();
 
-            return true;
+            return true; */
         }
         
         private object objLock = new object();
@@ -274,7 +413,7 @@ namespace AElf.Kernel.Node.Protocol
         /// </summary>
         /// <param name="pendingBlocks"></param>
         /// <returns></returns>
-        internal async Task TryExecuteBlocks(List<PendingBlock> pendingBlocks)
+        internal async Task<List<PendingBlock>> TryExecuteBlocks(List<PendingBlock> pendingBlocks)
         {
             List<PendingBlock> toRemove = new List<PendingBlock>();
 
@@ -291,7 +430,13 @@ namespace AElf.Kernel.Node.Protocol
                     {
                         // We can remove the pending block
                         toRemove.Add(pendingBlock);
-                        _logger?.Trace("Block executed.");
+                        CurrentExecHeight++;
+                        
+                        if (CurrentExecHeight == SyncTargetHeight)
+                        {
+                            IsInitialSync = false;
+                            _logger?.Trace("-- Initial sync is finished at height: " + CurrentExecHeight);
+                        }
                     }
                 }
                 else
@@ -317,6 +462,8 @@ namespace AElf.Kernel.Node.Protocol
                     PendingBlocks.Remove(pdBlock);
                 }
             }
+
+            return toRemove;
         }
 
         /// <summary>
@@ -329,7 +476,13 @@ namespace AElf.Kernel.Node.Protocol
         public bool SetTransaction(byte[] txHash)
         {
             PendingBlock b = RemoveTxFromBlock(txHash);
-            return b != null;
+
+            if (b == null)
+                return false;
+            
+            _logger?.Trace("Transaction removed from sync: " + Convert.ToBase64String(txHash));
+            
+            return true;
         }
 
         public PendingBlock GetBlock(byte[] hash)
@@ -354,7 +507,7 @@ namespace AElf.Kernel.Node.Protocol
             return null;
         }
 
-        public async Task AddRequestedBlock(Block block)
+        /*public async Task AddRequestedBlock(Block block)
         {
             BlockExecutionResult res = await _mainChainNode.ExecuteAndAddBlock(block);
             
@@ -369,7 +522,7 @@ namespace AElf.Kernel.Node.Protocol
                     _logger.Trace("Initial sync is finished at height: " + CurrentHeight);
                 }
             }
-        }
+        }*/
     }
 
     public class PendingBlock

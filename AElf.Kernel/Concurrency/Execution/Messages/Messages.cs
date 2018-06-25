@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Types;
 using Akka.Actor;
 
 namespace AElf.Kernel.Concurrency.Execution.Messages

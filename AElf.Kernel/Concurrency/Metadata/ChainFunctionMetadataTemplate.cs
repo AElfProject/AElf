@@ -4,8 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
+using AElf.Kernel.Types;
 using Akka.Util.Internal;
 using Google.Protobuf;
 using NLog;
@@ -151,7 +151,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 {
                     if (!templocalFieldMap.TryGetValue(resource, out var dataAccessMode))
                     {
-                        throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Unknown reference local field " + resource +
+                        throw new FunctionMetadataException("ChainId [" + ChainId.Value.ToBase64() + "] Unknown reference local field " + resource +
                                                             " in function " + functionAttribute.FunctionSignature);
                     }
                     return new Resource(resource, dataAccessMode);

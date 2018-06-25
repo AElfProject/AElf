@@ -103,7 +103,7 @@ namespace AElf.CLI.Data.Protobuf
             {
                 if (_parsers == null)
                 {
-                    _parsers = Params.Select(x => StringInputParsers.GetStringParserFor(x.Type)).ToList();
+                    _parsers = Params.Select(x => AElf.ABI.CSharp.StringInputParsers.GetStringParserFor(x.Type)).ToList();
                 }
 
                 return _parsers;

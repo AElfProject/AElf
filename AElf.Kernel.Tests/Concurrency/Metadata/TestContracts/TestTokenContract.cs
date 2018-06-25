@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.Extensions;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;

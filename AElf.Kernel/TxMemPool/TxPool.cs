@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common.Attributes;
+using AElf.Kernel.Types;
 using NLog;
 
 namespace AElf.Kernel.TxMemPool
@@ -516,7 +517,10 @@ namespace AElf.Kernel.TxMemPool
         {
             if (_waiting.TryGetValue(addr, out var dict))
             {
-                return dict.Keys.Max();
+                if (dict.Keys.Count != 0)
+                {
+                    return dict.Keys.Max();
+                }
             }
 
             if (_executable.TryGetValue(addr, out var txs) && txs.Count > 0)

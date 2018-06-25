@@ -25,8 +25,8 @@ namespace AElf.Kernel.Modules.AutofacModule
                 builder.RegisterInstance(MinerConfig.Default).As<IMinerConfig>();
             }
 
-            builder.RegisterInstance(ActorSystem.Create("AElf")).As<ActorSystem>();
-            builder.RegisterType(typeof(ParallelTransactionExecutingService)).As<IParallelTransactionExecutingService>();
+            
+            //builder.RegisterType(typeof(ParallelTransactionExecutingService)).As<IParallelTransactionExecutingService>();
             builder.RegisterType(typeof(Miner.Miner)).As<IMiner>();
         }
         

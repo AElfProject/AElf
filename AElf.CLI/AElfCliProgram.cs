@@ -13,7 +13,6 @@ using AElf.CLI.Screen;
 using AElf.CLI.Wallet;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common.ByteArrayHelpers;
-using AElf.Kernel.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Asn1.Misc;
@@ -183,8 +182,9 @@ namespace AElf.CLI
                         {
                             JObject j = JObject.Parse(parsedCmd.Args.ElementAt(0));
                             Transaction tx = _accountManager.SignTransaction(j);
-                        
+                            
                             SignAndSendTransaction(tx);
+                            return;
                         }
                         catch (Exception e) 
                         {

@@ -1,4 +1,5 @@
 ﻿using AElf.Kernel.Concurrency.Metadata;
+using AElf.Kernel.Types;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule

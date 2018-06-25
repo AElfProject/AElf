@@ -1,16 +1,16 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
-using AElf.Kernel.Extensions;
+using AElf.Kernel.Concurrency.Scheduling;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Config;
@@ -22,22 +22,20 @@ using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
 using Akka.Actor;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
-using NLog.Common;
 using ServiceStack;
+ using Type = System.Type;
 
 namespace AElf.Kernel.Node
 {
     [LoggerName("Node")]
     public class MainChainNode : IAElfNode
-    {   
+    {
         private ECKeyPair _nodeKeyPair;
-        private ActorSystem _sys ;
-        
+        private ActorSystem _sys = ActorSystem.Create("AElf");
         private readonly IBlockManager _blockManager;
         private readonly ITxPoolService _poolService;
         private readonly ITransactionManager _transactionManager;
@@ -57,19 +55,44 @@ namespace AElf.Kernel.Node
 
         private readonly IBlockExecutor _blockExecutor;
 
+        private DPoS _dPoS;
+
+        private bool amIChainCreater;
+
+        public Hash ContractAccountHash =>
+            new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
+
+        public IExecutive Executive =>
+            _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
+
+        public BlockProducer BlockProducers
+        {
+            get
+            {
+                var dict = MinersInfo.Instance.Producers;
+                var blockProducers = new BlockProducer();
+                foreach (var bp in dict.Values)
+                {
+                    blockProducers.Nodes.Add(bp["pubkey"]);
+                }
+
+                return blockProducers;
+            }
+        }
+        
+
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer,
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner,
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
             IChainCreationService chainCreationService, IWorldStateManager worldStateManager, 
-            IChainManager chainManager, ISmartContractService smartContractService, ActorSystem sys, 
+            IChainManager chainManager, ISmartContractService smartContractService,
             ITransactionResultService transactionResultService, IBlockManager blockManager)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
             _worldStateManager = worldStateManager;
             _smartContractService = smartContractService;
-            _sys = sys;
             _transactionResultService = transactionResultService;
             _blockManager = blockManager;
             _poolService = poolService;
@@ -125,6 +148,7 @@ namespace AElf.Kernel.Node
                     _logger.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"",
                         contractAddress.ToAccount().Value.ToBase64());
 
+                    amIChainCreater = true;
                 }
             }
             catch (Exception e)
@@ -154,22 +178,42 @@ namespace AElf.Kernel.Node
             _rpcServer.SetCommandContext(this);
             _protocolDirector.SetCommandContext(this, !_nodeConfig.IsMiner); // If not miner do sync
             
+            // akka env 
+            /*IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack
+            {
+                ChainContextService = _chainContextService,
+                SmartContractService = _smartContractService,
+                ResourceDetectionService = new MockResourceUsageDetectionService()
+            }));
+            IActorRef generalExecutor = _sys.ActorOf(GeneralExecutor.Props(_sys, serviceRouter), "exec");
+            generalExecutor.Tell(new RequestAddChainExecutor(_nodeConfig.ChainId));*/
+            
+            
+            var sys = ActorSystem.Create("AElf");
+            var workers = new[] {"/user/worker1", "/user/worker2"};
+            IActorRef worker1 = sys.ActorOf(Props.Create<Worker>(), "worker1");
+            IActorRef worker2 = sys.ActorOf(Props.Create<Worker>(), "worker2");
+            IActorRef router = sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
+
+            var servicePack = new ServicePack
+            {
+                ChainContextService = _chainContextService,
+                SmartContractService = _smartContractService,
+                ResourceDetectionService = new MockResourceUsageDetectionService()
+            };
+            worker1.Tell(new LocalSerivcePack(servicePack));
+            worker2.Tell(new LocalSerivcePack(servicePack));
+            IActorRef requestor = sys.ActorOf(AElf.Kernel.Concurrency.Execution.Requestor.Props(router));
+       
+            
+            var parallelTransactionExecutingService = new ParallelTransactionExecutingService(requestor,
+                new Grouper(servicePack.ResourceDetectionService));
+            
+            _blockExecutor.Start(parallelTransactionExecutingService);
+            
             if (_nodeConfig.IsMiner)
             {
-                // akka env 
-                
-//                IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack
-//                {
-//                    ChainContextService = _chainContextService,
-//                    SmartContractService = _smartContractService,
-//                    ResourceDetectionService = new MockResourceUsageDetectionService()
-//                }));
-//                IActorRef generalExecutor = _sys.ActorOf(GeneralExecutor.Props(_sys, serviceRouter), "exec");
-//                generalExecutor.Tell(new RequestAddChainExecutor(_nodeConfig.ChainId));
-                
-                _miner.Start(nodeKeyPair);
-                
-                DeployTxDemo();
+                _miner.Start(nodeKeyPair, parallelTransactionExecutingService);
                 
                 Mine();
                 
@@ -225,7 +269,7 @@ namespace AElf.Kernel.Node
             txDep.R = ByteString.CopyFrom(signature.R); 
             txDep.S = ByteString.CopyFrom(signature.S);
 
-            var res = BroadcastTransaction(txDep).Result;
+            //var res = BroadcastTransaction(txDep).Result;
             return txDep;
         }
         
@@ -315,9 +359,13 @@ namespace AElf.Kernel.Node
             try
             {
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
-                _logger.Trace("Received Transaction: " + JsonFormatter.Default.Format(tx));
 
-                await _poolService.AddTxAsync(tx);
+                _logger.Trace("Received Transaction: " + Convert.ToBase64String(tx.GetHash().Value.ToByteArray()));
+                
+                bool success = await _poolService.AddTxAsync(tx);
+
+                if (!success)
+                    return;
 
                 if (isFromSend)
                 {
@@ -390,6 +438,7 @@ namespace AElf.Kernel.Node
                 bool executed = await _blockExecutor.ExecuteBlock(block);
 
                 return new BlockExecutionResult(executed, error);
+                //return new BlockExecutionResult(true, error);
             }
             catch (Exception e)
             {
@@ -444,44 +493,186 @@ namespace AElf.Kernel.Node
             return await _poolService.AddTxAsync(tx);
         }
 
+
+        private static int currentIncr = 0;
+        
+        private Transaction GetFakeTx()
+        {
+            ECKeyPair keyPair = new KeyPairGenerator().Generate();
+            ECSigner signer = new ECSigner();
+            var txDep = new Transaction
+            {
+                From = keyPair.GetAddress(),
+                To = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount(),
+                IncrementId = (ulong)currentIncr++,
+            };
+            
+            Hash hash = txDep.GetHash();
+
+            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
+            txDep.R = ByteString.CopyFrom(signature.R); 
+            txDep.S = ByteString.CopyFrom(signature.S);
+
+            return txDep;
+        }
+
+        
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
-        public void Mine()
+        public async Task Mine()
         {
-            Task.Run(async () =>
+            _dPoS = new DPoS(_nodeKeyPair);
+            
+            await Task.Run(() =>
             {
-                var tx = DeployTxDemo();
-                var b = await _miner.Mine();
-                var result = await _transactionResultService.GetResultAsync(tx.GetHash());
-                //Console.WriteLine(result.RetVal.d);
-                _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", b.GetHash(),
-                    b.Body.Transactions.Count);
-                while (true)
-                {
-                    await Task.Delay(5000);
+                //Record the rounds count in local memory
+                ulong roundsCount = 0;
+                
+                //In Value of the BP in one round, will update in every round
+                var inValue = Hash.Generate();
+                
+                //Use this value to make sure every BP produce one block in one timeslot
+                ulong latestMinedNormalBlockRoundsCount = 0;
+                //Use this value to make sure every EBP produce one block in one timeslot
+                ulong latestMinedExtraBlockRoundsCount = 0;
 
-                    try
+                var dPoSInfo = "";
+                
+                var intervalSequnce = GetIntervalObservable();
+                intervalSequnce.Subscribe
+                (
+                    async x =>
                     {
-                        while (true)
+                        //Change in value in another round
+                        if (roundsCount != await GetActualRoundsCount())
                         {
-                            await Task.Delay(10000); // secs
-
-                            var block = await _miner.Mine();
-
-                            _logger.Log(LogLevel.Debug, "Genereated block: {0}, with {1} transactions", block.GetHash(),
-                                block.Body.Transactions.Count);
-
-                            await BroadcastBlock(block);
+                            roundsCount = await GetActualRoundsCount();
+                            
+                            //Update the In Value
+                            inValue = Hash.Generate();
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.Log(LogLevel.Debug, e);
-                    }
-                }
-            });
 
+                        #region Try to generate first extra block
+
+                        if (x == 0)
+                        {
+                            if (!amIChainCreater) 
+                                return;
+
+                            await BroadcastTxsForFirstExtraBlock();
+                            
+                            var firstBlock = await _miner.Mine(); //Which is an extra block
+                            _logger.Log(LogLevel.Debug, "Genereate first extra block: {0}, with {1} transactions, able to mine in {2}", firstBlock.GetHash(),
+                                firstBlock.Body.Transactions.Count, DateTime.UtcNow.ToString("u"));
+
+                            return;
+                        }
+
+                        #endregion
+  
+                        #region Log the DPoS info
+
+                        Console.WriteLine("start logging");
+                        // ReSharper disable once InconsistentNaming
+                        var currentDPoSInfo = await GetDPoSInfo();
+                        if (dPoSInfo != currentDPoSInfo)
+                        {
+                            dPoSInfo = currentDPoSInfo;
+                            _logger.Log(LogLevel.Debug, dPoSInfo);
+                        }
+                        
+                        #endregion
+                        
+                        #region Try to mine normal block
+
+                        if (latestMinedNormalBlockRoundsCount != roundsCount)
+                        {
+                            if (await CheckAbleToMineNormalBlock())
+                            {
+                                var signature = Hash.Default;
+                                if (roundsCount > 1)
+                                {
+                                    signature = await CalculateSignature(inValue);
+                                }
+
+                                // out = hash(in)
+                                Hash outValue = inValue.CalculateHash();
+
+                                await BroadcastTxsForNormalBlock(roundsCount, outValue, signature);
+
+                                var block = await _miner.Mine();
+
+                                #region Do the log
+
+                                var tcGetOut = new TransactionContext
+                                {
+                                    Transaction =
+                                        _dPoS.GetOutValueOfMeTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
+                                            ContractAccountHash, roundsCount)
+                                };
+                                Executive.SetTransactionContext(tcGetOut).Apply(true).Wait();
+                                
+                                var tcGetSignature = new TransactionContext
+                                {
+                                    Transaction =
+                                        _dPoS.GetSignatureValueOfMeTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
+                                            ContractAccountHash, roundsCount)
+                                };
+                                Executive.SetTransactionContext(tcGetSignature).Apply(true).Wait();
+                                
+                                latestMinedNormalBlockRoundsCount = roundsCount;
+                                _logger.Log(LogLevel.Debug,
+                                    "Genereate block: {0}, with {1} transactions, able to mine in {2}\n Published out value: {3}\n signature: {4}",
+                                    block.GetHash(), block.Body.Transactions.Count, DateTime.UtcNow.ToString("u"),
+                                    Hash.Parser.ParseFrom(tcGetOut.Trace.RetVal), 
+                                    Hash.Parser.ParseFrom(tcGetSignature.Trace.RetVal));
+
+                                #endregion
+                                
+                                return;
+                            }
+                        }
+
+                        #endregion
+
+                        #region Try to mine extra block
+
+                        if (latestMinedExtraBlockRoundsCount != roundsCount)
+                        {
+                            if (await CheckIsTimeToMineExtraBlock())
+                            {
+                                var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
+
+                                //Try to publish in value (every BP can do this)
+                                await BroadcastTransaction(_dPoS.GetTryToPublishInValueTx(
+                                    incrementId, ContractAccountHash, inValue));
+
+                                latestMinedExtraBlockRoundsCount = roundsCount;
+
+                                if (await CheckAbleToMineExtraBlock())
+                                {
+                                    await BroadcastTxsForExtraBlock(incrementId + 1);
+
+                                    var extraBlock = await _miner.Mine(); //Which is an extra block
+                                                                        
+                                    _logger.Log(LogLevel.Debug,
+                                        "Genereate extra block: {0}, with {1} transactions, able to mine in {2}",
+                                        extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
+                                        DateTime.UtcNow.ToString("u"));
+                                    return;
+                                }
+                            }
+                        }
+                        
+                        #endregion
+
+                        // If this node doesn't produce any block this interval.
+                        _logger.Log(LogLevel.Trace, "Find myself unable to mine in {0}", DateTime.UtcNow.ToString("u"));
+                    }
+                );
+            });
         }
 
         public async Task<bool> BroadcastBlock(IBlock block)
@@ -558,6 +749,129 @@ namespace AElf.Kernel.Node
             var res = await _transactionResultService.GetResultAsync(txHash);
             return res;
         }
+
+        private async Task BroadcastTxsForFirstExtraBlock()
+        {
+            var txsForGenesisBlock = _dPoS.GetTxsForGenesisBlock(
+                await GetIncrementId(_nodeKeyPair.GetAddress()), BlockProducers, ContractAccountHash
+            );
+            
+            foreach (var tx in txsForGenesisBlock)
+            {
+                await BroadcastTransaction(tx);
+            }
+        }
+
+        private async Task BroadcastTxsForNormalBlock(ulong roundsCount, Hash outValue, Hash signature)
+        {
+            var txForNormalBlock = _dPoS.GetTxsForNormalBlock(
+                await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash, roundsCount,
+                outValue, signature);
+            foreach (var tx in txForNormalBlock)
+            {
+                await BroadcastTransaction(tx);
+            }
+        }
+
+        private async Task BroadcastTxsForExtraBlock(ulong incrementId)
+        {
+            var txForExtraBlock = _dPoS.GetTxsForExtraBlock(
+                incrementId, ContractAccountHash);
+            foreach (var tx in txForExtraBlock)
+            {
+                await BroadcastTransaction(tx);
+            }
+        }
+
+        private async Task<ulong> GetActualRoundsCount()
+        {
+            var tcGetRoundsCountTx = new TransactionContext
+            {
+                Transaction = _dPoS.GetRoundsCountTx(await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
+            };
+            Executive.SetTransactionContext(tcGetRoundsCountTx).Apply(true).Wait();
+            
+            if (tcGetRoundsCountTx.Trace.StdErr.IsNullOrEmpty())
+            {
+                return UInt64Value.Parser.ParseFrom(tcGetRoundsCountTx.Trace.RetVal.ToByteArray()).Value;
+            }
+
+            return 0;
+        }
+
+        // ReSharper disable once InconsistentNaming
+        private async Task<string> GetDPoSInfo()
+        {
+            // ReSharper disable once InconsistentNaming
+            var tcGetDPoSInfo = new TransactionContext
+            {
+                Transaction = _dPoS.GetDPoSInfoToStringTx(await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
+            };
+            Executive.SetTransactionContext(tcGetDPoSInfo).Apply(true).Wait();
+
+            return StringValue.Parser.ParseFrom(tcGetDPoSInfo.Trace.RetVal.ToByteArray()).Value;
+        }
         
+        // ReSharper disable once MemberCanBeMadeStatic.Local
+        private IObservable<long> GetIntervalObservable()
+        {
+            return Observable.Interval(TimeSpan.FromMilliseconds(10000));
+        }
+
+        private async Task<Hash> CalculateSignature(Hash inValue)
+        {
+            var tcCalculateSignature = new TransactionContext
+            {
+                Transaction =
+                    _dPoS.GetCalculateSignatureTx(
+                        await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash,
+                        inValue)
+            };
+            Executive.SetTransactionContext(tcCalculateSignature).Apply(true).Wait();
+            return Hash.Parser.ParseFrom(tcCalculateSignature.Trace.RetVal.ToByteArray());
+        }
+
+        private async Task<bool> CheckAbleToMineNormalBlock()
+        {
+            var tcAbleToMine = new TransactionContext
+            {
+                Transaction = _dPoS.GetAbleToMineTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
+                    ContractAccountHash)
+            };
+            Executive.SetTransactionContext(tcAbleToMine).Apply(true).Wait();
+                            
+            return BoolValue.Parser.ParseFrom(tcAbleToMine.Trace.RetVal).Value;
+        }
+
+        private async Task<bool> CheckIsTimeToMineExtraBlock()
+        {
+            // ReSharper disable once InconsistentNaming
+            var tcIsTimeToProduceEB = new TransactionContext
+            {
+                Transaction =
+                    _dPoS.GetIsTimeToProduceExtraBlockTx(
+                        await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
+            };
+            Executive.SetTransactionContext(tcIsTimeToProduceEB).Apply(true).Wait();
+
+            // ReSharper disable once InconsistentNaming
+            return BoolValue.Parser.ParseFrom(tcIsTimeToProduceEB.Trace.RetVal).Value;
+        }
+
+        private async Task<bool> CheckAbleToMineExtraBlock()
+        {
+            // ReSharper disable once InconsistentNaming
+            var tcAbleToProduceEB = new TransactionContext
+            {
+                Transaction =
+                    _dPoS.GetAbleToProduceExtraBlockTx(
+                        // This tx won't be broadcasted
+                        await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
+            };
+            Executive.SetTransactionContext(tcAbleToProduceEB).Apply(true).Wait();
+
+            // ReSharper disable once InconsistentNaming
+            return BoolValue.Parser.ParseFrom(tcAbleToProduceEB.Trace.RetVal).Value;
+        }
     }
 }
