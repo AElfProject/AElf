@@ -216,6 +216,8 @@ namespace AElf.Kernel.Tests
             block.Header.ChainId = chainId;
             block.Header.Index = index;
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+            block.Header.MerkleTreeRootOfWorldState = Hash.Generate();
+            
             return block;
         }
     }
