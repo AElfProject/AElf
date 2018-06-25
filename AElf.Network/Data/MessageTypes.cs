@@ -3,18 +3,18 @@
     public enum MessageTypes
     {
         AskForTx,
-        SendTx,
+        Tx,
         
         HeightRequest,
         Height,
         
         RequestPeers,
-        ReturnPeers,
+        Peers,
         
         BroadcastTx,
         BroadcastBlock,
         
         RequestBlock,
-        SendBlock
+        Block
     }
 }

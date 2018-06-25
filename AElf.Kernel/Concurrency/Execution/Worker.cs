@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.KernelAccount;
-using Akka.IO;
 using Akka.Routing;
 using Google.Protobuf;
 
@@ -49,10 +48,15 @@ namespace AElf.Kernel.Concurrency.Execution
                 case JobExecutionRequest req:
                     if (_state == State.Idle)
                     {
+                        _cancellationTokenSource?.Dispose();
+                        _cancellationTokenSource = new CancellationTokenSource();
+                        Task.Run(() =>
+                            RunJob(req).ContinueWith(
+                                task => task.Result,
+                                TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
+                            ).PipeTo(Self)
+                        );
                         Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Running));
-                        RunJob(req).ContinueWith(
-                            task => task.Result
-                        ).PipeTo(Self);
                     }
                     else if (_state == State.PendingSetSericePack)
                     {
@@ -67,6 +71,7 @@ namespace AElf.Kernel.Concurrency.Execution
                     break;
                 case JobExecutionCancelMessage c:
                     _cancellationTokenSource?.Cancel();
+                    Sender.Tell(JobExecutionCancelAckMessage.Instance);
                     break;
                 case JobExecutionStatusQuery query:
                     if (query.RequestId != _servingRequestId)
@@ -86,7 +91,7 @@ namespace AElf.Kernel.Concurrency.Execution
         private async Task<JobExecutionStatus> RunJob(JobExecutionRequest request)
         {
             _state = State.Running;
-            _cancellationTokenSource = new CancellationTokenSource();
+
             var chainContext = await _servicePack.ChainContextService.GetChainContextAsync(request.ChainId);
 
             foreach (var tx in request.Transactions)
@@ -111,7 +116,6 @@ namespace AElf.Kernel.Concurrency.Execution
                 request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, trace));
             }
 
-            _cancellationTokenSource = null;
             // TODO: What if actor died in the middle
 
             var retMsg = new JobExecutionStatus(request.RequestId, JobExecutionStatus.RequestStatus.Completed);

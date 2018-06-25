@@ -18,6 +18,8 @@
   <ItemGroup>
     <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
     <ProjectReference Include="..\AElf.Kernel.SmartContracts.CSharpSmartContract\AElf.Kernel.SmartContracts.CSharpSmartContract.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Tests.TestContractZero\AElf.Kernel.Tests.TestContractZero.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Tests.TestContract\AElf.Kernel.Tests.TestContract.csproj" />
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
     <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
@@ -28,10 +30,9 @@
     <Compile Remove="Concurrency\Execution\ChainRequestorTest.cs" />
     <Compile Remove="Concurrency\Execution\GeneralExecutorTest.cs" />
     <Compile Remove="Concurrency\Execution\GeneralRequestorTest.cs" />
-    <Compile Remove="Miner\MinerLifetime.cs" />
-    <Compile Remove="Miner\Synchronizer.cs" />
     <Compile Remove="Concurrency\Execution\JobExecutorTest.cs" />
     <Compile Remove="Concurrency\Execution\GroupExecutorTest.cs" />
+    <Compile Remove="Concurrency\Execution\BatchExecutorTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Concurrency\" />

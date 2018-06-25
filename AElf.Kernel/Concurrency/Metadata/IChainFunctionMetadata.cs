@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AElf.Kernel.Concurrency.Metadata
 {
-    public interface IChainFunctionMetadataService
+    public interface IChainFunctionMetadata
     {
         /// <summary>
         /// Called when deploy a new contract
@@ -14,7 +15,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// <param name="contractReferences">the map where smart contract member reference to its acutal address</param>
         /// <exception cref="InvalidOperationException">Throw when FunctionMetadataMap already contains a function with same fullname</exception>
         /// <returns>True when success, false when something is wrong (usually is cannot find record with respect to functionName in the parameter otherFunctionsCallByThis)</returns>
-        void DeployNewContract(string contractClassName, Hash contractAddr,
+        Task DeployNewContract(string contractClassName, Hash contractAddr,
             Dictionary<string, Hash> contractReferences);
         
         /// <summary>

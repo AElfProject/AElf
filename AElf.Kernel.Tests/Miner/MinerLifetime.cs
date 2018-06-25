@@ -8,6 +8,8 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
+using AElf.Kernel.Concurrency.Scheduling;
+using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner;
@@ -55,21 +57,26 @@ namespace AElf.Kernel.Tests.Miner
         private ISmartContractManager _smartContractManager;
 
         private IActorRef _serviceRouter;
-        private ISmartContractRunnerFactory _smartContractRunnerFactory = new SmartContractRunnerFactory();
+        private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private ISmartContractService _smartContractService;
         private IChainContextService _chainContextService;
         private IAccountContextService _accountContextService;
         private ITransactionManager _transactionManager;
         private ITransactionResultManager _transactionResultManager;
+            
+        private IFunctionMetadataService _functionMetadataService;
+
         private IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
 
+        private ServicePack _servicePack;
+        private IActorRef _requestor;
         
         public MinerLifetime(IWorldStateManager worldStateManager, 
             IChainCreationService chainCreationService, 
             IChainContextService chainContextService, ILogger logger, IAccountContextService accountContextService, 
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
-            IChainManager chainManager, IBlockManager blockManager, ISmartContractManager smartContractManager) : base(new XunitAssertions())
+            IChainManager chainManager, IBlockManager blockManager, ISmartContractManager smartContractManager, ISmartContractRunnerFactory smartContractRunnerFactory, IFunctionMetadataService functionMetadataService) : base(new XunitAssertions())
         {
             _chainCreationService = chainCreationService;
             _chainContextService = chainContextService;
@@ -77,11 +84,30 @@ namespace AElf.Kernel.Tests.Miner
             _accountContextService = accountContextService;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
+
             _chainManager = chainManager;
             _blockManager = blockManager;
             _smartContractManager = smartContractManager;
+            _smartContractRunnerFactory = smartContractRunnerFactory;
+            _functionMetadataService = functionMetadataService;
 
             _worldStateManager = worldStateManager;
+
+            _servicePack = new ServicePack
+            {
+                ChainContextService = _chainContextService,
+                SmartContractService = _smartContractService,
+                ResourceDetectionService = new NewMockResourceUsageDetectionService()
+            };
+            
+            var workers = new[] {"/user/worker1", "/user/worker2"};
+            var worker1 = Sys.ActorOf(Props.Create<Worker>(), "worker1");
+            var worker2 = Sys.ActorOf(Props.Create<Worker>(), "worker2");
+            var router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
+            worker1.Tell(new LocalSerivcePack(_servicePack));
+            worker2.Tell(new LocalSerivcePack(_servicePack));
+            _requestor = Sys.ActorOf(Requestor.Props(router));
+            
         }
 
         public byte[] SmartContractZeroCode
@@ -238,7 +264,8 @@ namespace AElf.Kernel.Tests.Miner
         
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {
-            var parallelTransactionExecutingService = new ParallelTransactionExecutingService(sys);
+            var parallelTransactionExecutingService = new ParallelTransactionExecutingService(_requestor,
+                new Grouper(_servicePack.ResourceDetectionService));
             return new Kernel.Miner.Miner(config, poolService,
                 parallelTransactionExecutingService,  _chainManager, _blockManager, _worldStateManager, _smartContractService);
         }
@@ -278,19 +305,8 @@ namespace AElf.Kernel.Tests.Miner
             
             var miner = GetMiner(minerconfig, poolService);
             
-            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
-            _smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
-            
-            _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(new ServicePack
-            {
-                ChainContextService = _chainContextService,
-                SmartContractService = _smartContractService,
-                ResourceDetectionService = new NewMockResourceUsageDetectionService()
-            }));
-            _generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _serviceRouter), "exec");
-            _generalExecutor.Tell(new RequestAddChainExecutor(chain.Id));
-            ExpectMsg<RespondAddChainExecutor>();
+
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager, _functionMetadataService);
             
             miner.Start(keypair);
             
@@ -326,20 +342,10 @@ namespace AElf.Kernel.Tests.Miner
 
             var miner = GetMiner(minerconfig, poolService);
             
+            SmartContractRunnerFactory smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
-            _smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager);
-            
-            _serviceRouter = sys.ActorOf(LocalServicesProvider.Props(new ServicePack
-            {
-                ChainContextService = _chainContextService,
-                SmartContractService = _smartContractService,
-                ResourceDetectionService = new NewMockResourceUsageDetectionService()
-            }));
-            _generalExecutor = sys.ActorOf(GeneralExecutor.Props(sys, _serviceRouter), "exec");
-            _generalExecutor.Tell(new RequestAddChainExecutor(chain.Id));
-            ExpectMsg<RespondAddChainExecutor>();
-            
+            smartContractRunnerFactory.AddRunner(0, runner);
+            _smartContractService = new SmartContractService(_smartContractManager, smartContractRunnerFactory, _worldStateManager, _functionMetadataService);
             
             miner.Start(keypair);
             

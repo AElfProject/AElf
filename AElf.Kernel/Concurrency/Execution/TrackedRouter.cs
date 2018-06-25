@@ -80,6 +80,7 @@ namespace AElf.Kernel.Concurrency.Execution
 
                         _idleRouteeIndexes.Remove(ind);
                         _runningRouteeIndexes.Add(ind);
+                        _requestIdToRouteeIndex.Add(req.RequestId, ind);
                         return routees[ind];
                     }
 

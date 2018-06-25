@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Threading;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Akka.Actor;
@@ -14,14 +16,10 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
     public class WorkerTest : TestKitBase
     {
         private MockSetup _mock;
-        private ActorSystem sys = ActorSystem.Create("test");
-        private IActorRef _worker;
 
         public WorkerTest(MockSetup mock) : base(new XunitAssertions())
         {
             _mock = mock;
-            _worker = sys.ActorOf(Props.Create<Worker>(), "worker1");
-            _worker.Tell(new LocalSerivcePack(_mock.ServicePack));
         }
 
         [Fact]
@@ -36,7 +34,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             // Normal transfer
             var tx1 = _mock.GetTransferTxn1(from, to, 10);
 
-            _worker.Tell(new JobExecutionRequest(0, _mock.ChainId1, new List<ITransaction>() {tx1}, TestActor,
+            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, new List<ITransaction>() {tx1}, TestActor,
                 TestActor));
 
             // Start processing
@@ -45,7 +43,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             // Return result
             var trace = ExpectMsg<TransactionTraceMessage>().TransactionTrace;
-            
+
             // Completed, two messages will be received
             // 1 for sender, 1 for router (in this test both are TestActor)
             ExpectMsg<JobExecutionStatus>();
@@ -55,11 +53,11 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Assert.Equal(tx1.GetHash(), trace.TransactionId);
             Assert.True(string.IsNullOrEmpty(trace.StdErr));
 
-            Assert.Equal((ulong)90, _mock.GetBalance1(from));
-            Assert.Equal((ulong)10, _mock.GetBalance1(to));
-            
+            Assert.Equal((ulong) 90, _mock.GetBalance1(from));
+            Assert.Equal((ulong) 10, _mock.GetBalance1(to));
+
             // Query status
-            _worker.Tell(new JobExecutionStatusQuery(0));
+            _mock.Worker1.Tell(new JobExecutionStatusQuery(0));
 
             // Invalid request id as it has already completed
             var js3 = ExpectMsg<JobExecutionStatus>();
@@ -89,9 +87,9 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 tx2
             };
 
-            _worker.Tell(new JobExecutionRequest(0, _mock.ChainId1, job1, TestActor,
+            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, job1, TestActor,
                 TestActor));
-            
+
             // Start processing
             var js1 = ExpectMsg<JobExecutionStatus>();
             Assert.Equal(JobExecutionStatus.RequestStatus.Running, js1.Status);
@@ -99,7 +97,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             // Return result
             var trace1 = ExpectMsg<TransactionTraceMessage>().TransactionTrace;
             var trace2 = ExpectMsg<TransactionTraceMessage>().TransactionTrace;
-            
+
             // Completed
             var js2 = ExpectMsg<JobExecutionStatus>();
             Assert.Equal(JobExecutionStatus.RequestStatus.Completed, js2.Status);
@@ -117,6 +115,35 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var end1 = _mock.GetTransactionEndTime1(tx1);
             var start2 = _mock.GetTransactionStartTime1(tx2);
             Assert.True(end1 < start2);
+        }
+
+        [Fact]
+        public void JobCancelTest()
+        {
+            var job = new List<ITransaction>()
+            {
+                _mock.GetSleepTxn1(1000),
+                _mock.GetSleepTxn1(1000),
+                _mock.GetNoActionTxn1()
+            };
+
+            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor,
+                TestActor));
+
+            Thread.Sleep(1500);
+            _mock.Worker1.Tell(JobExecutionCancelMessage.Instance);
+
+            var traces = new List<TransactionTrace>()
+            {
+                ((TransactionTraceMessage) FishForMessage(msg => msg is TransactionTraceMessage))
+                .TransactionTrace,
+                ((TransactionTraceMessage) FishForMessage(msg => msg is TransactionTraceMessage))
+                .TransactionTrace,
+                ((TransactionTraceMessage) FishForMessage(msg => msg is TransactionTraceMessage))
+                .TransactionTrace
+            };
+
+            Assert.Equal("Execution Cancelled", traces[2].StdErr);
         }
     }
 }
