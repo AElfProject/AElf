@@ -19,11 +19,13 @@ using ServiceStack;
 using Xunit;
 using AElf.Runtime.CSharp;
 using AElf.Kernel.Concurrency.Execution;
+using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Metadata;
 using Xunit.Frameworks.Autofac;
 using Path = AElf.Kernel.Path;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Types.CSharp;
+using Akka.Actor;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
@@ -38,6 +40,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var n = Interlocked.Increment(ref _incrementId);
             return (ulong) n;
         }
+
+        public ActorSystem Sys { get; } = ActorSystem.Create("test");
+        public IActorRef Router { get;  }
+        public IActorRef Worker1 { get; }
+        public IActorRef Worker2 { get; }
+        public IActorRef Requestor { get; }
 
         public Hash ChainId1 { get; } = Hash.Generate();
         public Hash ChainId2 { get; } = Hash.Generate();
@@ -82,8 +90,17 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
-                ResourceDetectionService = new NewMockResourceUsageDetectionService()
+                ResourceDetectionService = new NewMockResourceUsageDetectionService(),
+                WorldStateManager = _worldStateManager
             };
+            
+            var workers = new[] {"/user/worker1", "/user/worker2"};
+            Worker1 = Sys.ActorOf(Props.Create<Worker>(), "worker1");
+            Worker2 = Sys.ActorOf(Props.Create<Worker>(), "worker2");
+            Router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
+            Worker1.Tell(new LocalSerivcePack(ServicePack));
+            Worker2.Tell(new LocalSerivcePack(ServicePack));
+            Requestor = Sys.ActorOf(AElf.Kernel.Concurrency.Execution.Requestor.Props(Router));
         }
         
         public byte[] SmartContractZeroCode
@@ -172,6 +189,41 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         {
             return GetTransferTxn(SampleContractAddress2, from, to, qty);
         }
+
+        public Transaction GetSleepTxn1(int milliSeconds)
+        {
+            return GetSleepTxn(SampleContractAddress1, milliSeconds);
+        }
+
+        private Transaction GetSleepTxn(Hash contractAddress, int milliSeconds)
+        {
+            return new Transaction
+            {
+                From = Hash.Zero,
+                To = contractAddress,
+                IncrementId = NewIncrementId(),
+                MethodName = "SleepMilliseconds",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(milliSeconds))
+            };
+        }
+
+        public Transaction GetNoActionTxn1()
+        {
+            return GetNoActionTxn(SampleContractAddress1);
+        }
+
+        private Transaction GetNoActionTxn(Hash contractAddress)
+        {
+            return new Transaction
+            {
+                From = Hash.Zero,
+                To = contractAddress,
+                IncrementId = NewIncrementId(),
+                MethodName = "NoAction",
+                Params = ByteString.Empty
+            };
+        }
+
 
         private Transaction GetTransferTxn(Hash contractAddress, Hash from, Hash to, ulong qty)
         {
@@ -275,6 +327,5 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
         }
-
     }
 }
