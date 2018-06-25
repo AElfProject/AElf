@@ -7,6 +7,14 @@
     <Compile Remove="MerkleTree.cs" />
     <Compile Remove="Merkle\Node.cs" />
     <Compile Remove="SmartContract\SmartContract.cs" />
+    <Compile Remove="Concurrency\Execution\ChainExecutor.cs" />
+    <Compile Remove="Concurrency\Execution\ChainRequestor.cs" />
+    <Compile Remove="Concurrency\Execution\GeneralExecutor.cs" />
+    <Compile Remove="Concurrency\Execution\GeneralRequestor.cs" />
+    <Compile Remove="Concurrency\Execution\GroupExecutor.cs" />
+    <Compile Remove="Concurrency\Execution\JobExecutor.cs" />
+    <Compile Remove="Concurrency\Execution\LocalServicesProvider.cs" />
+    <Compile Remove="Concurrency\Execution\BatchExecutor.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.5.1" />
