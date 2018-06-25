@@ -9,9 +9,4 @@
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
     <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="AElf.Kernel, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\AElf.Launcher\bin\Debug\netcoreapp2.0\AElf.Kernel.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 </Project>

@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
-using AElf.Kernel.Extensions;
+using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Config;
@@ -19,17 +17,14 @@ using AElf.Kernel.Node.RPC;
 using AElf.Kernel.Node.RPC.DTO;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
-using AElf.Kernel.Types;
 using AElf.Network.Data;
 using AElf.Types.CSharp;
 using Akka.Actor;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
-using NLog.Common;
 using ServiceStack;
 
 namespace AElf.Kernel.Node
@@ -38,7 +33,7 @@ namespace AElf.Kernel.Node
     public class MainChainNode : IAElfNode
     {   
         private ECKeyPair _nodeKeyPair;
-        private ActorSystem _sys ;
+        private ActorSystem _sys = ActorSystem.Create("AElf");
         private readonly IBlockManager _blockManager;
         private readonly ITxPoolService _poolService;
         private readonly ITransactionManager _transactionManager;
@@ -63,14 +58,13 @@ namespace AElf.Kernel.Node
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
             IChainCreationService chainCreationService, IWorldStateManager worldStateManager, 
-            IChainManager chainManager, ISmartContractService smartContractService, ActorSystem sys, 
+            IChainManager chainManager, ISmartContractService smartContractService,
             ITransactionResultService transactionResultService, IBlockManager blockManager)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
             _worldStateManager = worldStateManager;
             _smartContractService = smartContractService;
-            _sys = sys;
             _transactionResultService = transactionResultService;
             _blockManager = blockManager;
             _poolService = poolService;
@@ -152,29 +146,49 @@ namespace AElf.Kernel.Node
             _rpcServer.SetCommandContext(this);
             _protocolDirector.SetCommandContext(this, !_nodeConfig.IsMiner); // If not miner do sync
             
+            // akka env 
+            /*IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack
+            {
+                ChainContextService = _chainContextService,
+                SmartContractService = _smartContractService,
+                ResourceDetectionService = new MockResourceUsageDetectionService()
+            }));
+            IActorRef generalExecutor = _sys.ActorOf(GeneralExecutor.Props(_sys, serviceRouter), "exec");
+            generalExecutor.Tell(new RequestAddChainExecutor(_nodeConfig.ChainId));*/
+            
+            
+            var sys = ActorSystem.Create("AElf");
+            var workers = new[] {"/user/worker1", "/user/worker2"};
+            IActorRef worker1 = sys.ActorOf(Props.Create<Worker>(), "worker1");
+            IActorRef worker2 = sys.ActorOf(Props.Create<Worker>(), "worker2");
+            IActorRef router = sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
+
+            var servicePack = new ServicePack
+            {
+                ChainContextService = _chainContextService,
+                SmartContractService = _smartContractService,
+                ResourceDetectionService = new MockResourceUsageDetectionService()
+            };
+            worker1.Tell(new LocalSerivcePack(servicePack));
+            worker2.Tell(new LocalSerivcePack(servicePack));
+            IActorRef requestor = sys.ActorOf(AElf.Kernel.Concurrency.Execution.Requestor.Props(router));
+       
+            
+            var parallelTransactionExecutingService = new ParallelTransactionExecutingService(requestor,
+                new Grouper(servicePack.ResourceDetectionService));
+            
+            
+            
             if (_nodeConfig.IsMiner)
             {
-                // akka env 
-                
-//                IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack
-//                {
-//                    ChainContextService = _chainContextService,
-//                    SmartContractService = _smartContractService,
-//                    ResourceDetectionService = new MockResourceUsageDetectionService()
-//                }));
-//                IActorRef generalExecutor = _sys.ActorOf(GeneralExecutor.Props(_sys, serviceRouter), "exec");
-//                generalExecutor.Tell(new RequestAddChainExecutor(_nodeConfig.ChainId));
-                
-                _miner.Start(nodeKeyPair);
-                
-                // DeployTxDemo();
+                _miner.Start(nodeKeyPair, parallelTransactionExecutingService);
                 
                 Mine();
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
                   
             
-            _logger.Log(LogLevel.Debug, "AElf node started.");
+            _logger?.Log(LogLevel.Debug, "AElf node started.");
             
             return true;
         }
@@ -190,7 +204,7 @@ namespace AElf.Kernel.Node
         {
             Task.Run(async () =>
             {
-                /*var keypair = new KeyPairGenerator().Generate();
+                var keypair = new KeyPairGenerator().Generate();
                 var txDevp = DeployTxDemo(keypair);
                 var b1 = await _miner.Mine();
                 await _transactionResultService.GetResultAsync(txDevp.GetHash());
@@ -205,7 +219,7 @@ namespace AElf.Kernel.Node
                 await _transactionResultService.GetResultAsync(txDevp.GetHash());
                 //Console.WriteLine(result.RetVal.d);
                 _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", b2.GetHash(),
-                    b2.Body.Transactions.Count);*/
+                    b2.Body.Transactions.Count);
                 
                 while (true)
                 {
@@ -387,9 +401,12 @@ namespace AElf.Kernel.Node
             try
             {
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
-                _logger.Trace("Received Transaction: " + JsonFormatter.Default.Format(tx));
+                _logger.Trace("Received Transaction: " + Convert.ToBase64String(tx.GetHash().Value.ToByteArray()));
                 
-                await _poolService.AddTxAsync(tx);
+                bool success = await _poolService.AddTxAsync(tx);
+
+                if (!success)
+                    return;
 
                 if (isFromSend)
                 {
@@ -461,6 +478,7 @@ namespace AElf.Kernel.Node
                 bool executed = await _blockExecutor.ExecuteBlock(block);
 
                 return new BlockExecutionResult(executed, error);
+                //return new BlockExecutionResult(true, error);
             }
             catch (Exception e)
             {
@@ -512,6 +530,29 @@ namespace AElf.Kernel.Node
         public async Task<bool> AddTransaction(ITransaction tx)
         {
             return await _poolService.AddTxAsync(tx);
+        }
+
+        private static int currentIncr = 0;
+        
+        private Transaction GetFakeTx()
+        {
+            ECKeyPair keyPair = new KeyPairGenerator().Generate();
+            ECSigner signer = new ECSigner();
+            var txDep = new Transaction
+            {
+                From = keyPair.GetAddress(),
+                To = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount(),
+                IncrementId = (ulong)currentIncr++,
+            };
+            
+            Hash hash = txDep.GetHash();
+
+            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
+            txDep.R = ByteString.CopyFrom(signature.R); 
+            txDep.S = ByteString.CopyFrom(signature.S);
+
+            return txDep;
         }
 
         

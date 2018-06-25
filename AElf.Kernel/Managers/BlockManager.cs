@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
 using Google.Protobuf.WellKnownTypes;

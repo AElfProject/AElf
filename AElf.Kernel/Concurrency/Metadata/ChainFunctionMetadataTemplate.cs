@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
 using Akka.Util.Internal;

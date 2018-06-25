@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;

@@ -18,7 +18,6 @@ namespace AElf.Kernel.Miner
     public class Miner : IMiner
     {
         private readonly ITxPoolService _txPoolService;
-        private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
         private ECKeyPair _keyPair;
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
@@ -33,8 +32,11 @@ namespace AElf.Kernel.Miner
         /// <summary>
         /// Signals to a CancellationToken that mining should be canceled
         /// </summary>
-        public CancellationTokenSource Cts { get; private set; } 
-        
+        public CancellationTokenSource Cts { get; private set; }
+
+
+        private IParallelTransactionExecutingService _parallelTransactionExecutingService;
+
         
         /// <summary>
         /// event set to mine
@@ -46,13 +48,11 @@ namespace AElf.Kernel.Miner
         public Hash Coinbase => Config.CoinBase;
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, 
-            IParallelTransactionExecutingService parallelTransactionExecutingService, 
                 IChainManager chainManager, IBlockManager blockManager, IWorldStateManager worldStateManager, 
             ISmartContractService smartContractService)
         {
             Config = config;
             _txPoolService = txPoolService;
-            _parallelTransactionExecutingService = parallelTransactionExecutingService;
             _chainManager = chainManager;
             _blockManager = blockManager;
             _worldStateManager = worldStateManager;
@@ -222,10 +222,11 @@ namespace AElf.Kernel.Miner
         /// <summary>
         /// start mining  
         /// </summary>
-        public void Start(ECKeyPair nodeKeyPair)
+        public void Start(ECKeyPair nodeKeyPair, IParallelTransactionExecutingService parallelTransactionExecutingService)
         {
             Cts = new CancellationTokenSource();
             _keyPair = nodeKeyPair;
+            _parallelTransactionExecutingService = parallelTransactionExecutingService;
             //MiningResetEvent = new AutoResetEvent(false);
         }
 

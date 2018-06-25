@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Google.Protobuf;
 
-namespace AElf.Kernel.Types.Extensions
+namespace AElf.Kernel
 {
     public static class HashExtensions
     {

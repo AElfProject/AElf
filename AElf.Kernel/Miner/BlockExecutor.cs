@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.TxMemPool;
@@ -12,25 +13,31 @@ namespace AElf.Kernel.Miner
     public class BlockExecutor : IBlockExecutor
     {
         private readonly ITxPoolService _txPoolService;
-        private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
+        private IParallelTransactionExecutingService _parallelTransactionExecutingService;
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
 
-        public BlockExecutor(ITxPoolService txPoolService, 
-            IParallelTransactionExecutingService parallelTransactionExecutingService, IChainManager chainManager, 
+        public BlockExecutor(ITxPoolService txPoolService, IChainManager chainManager, 
             IBlockManager blockManager)
         {
             _txPoolService = txPoolService;
-            _parallelTransactionExecutingService = parallelTransactionExecutingService;
             _chainManager = chainManager;
             _blockManager = blockManager;
         }
+        
+        /// <summary>
+        /// Signals to a CancellationToken that mining should be canceled
+        /// </summary>
+        public CancellationTokenSource Cts { get; private set; } 
 
         /// <inheritdoc/>
         public async Task<bool> ExecuteBlock(IBlock block)
         {
             try
             {
+                if (Cts == null || Cts.IsCancellationRequested)
+                    return false;
+                
                 var map = new Dictionary<Hash, HashSet<ulong>>();
                 var txs = block.Body.Transactions;
                 foreach (var id in txs)
@@ -87,6 +94,12 @@ namespace AElf.Kernel.Miner
             }
             
             return true;
+        }
+
+        public void Start(IParallelTransactionExecutingService parallelTransactionExecutingService)
+        {
+            Cts = new CancellationTokenSource();
+            _parallelTransactionExecutingService = parallelTransactionExecutingService;
         }
     }
 }

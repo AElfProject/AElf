@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using AElf.Kernel.Types.Extensions;
+
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace

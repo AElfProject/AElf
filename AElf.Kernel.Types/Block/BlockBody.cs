@@ -1,4 +1,4 @@
-﻿using AElf.Kernel.Types.Extensions;
+﻿
 using AElf.Kernel.Types.Merkle;
 using Google.Protobuf;
 

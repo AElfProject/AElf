@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using AElf.Database;
-using AElf.Kernel.Extensions;
+
 using AElf.Kernel.Managers;
 using AElf.Kernel;
 using AElf.Kernel.Types;

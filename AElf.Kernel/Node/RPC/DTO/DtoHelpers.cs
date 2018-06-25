@@ -1,5 +1,4 @@
 ﻿using System;
-using AElf.Kernel.Types;
 using AElf.Network.Data;
 using AElf.Node.RPC.DTO;
 using Google.Protobuf;

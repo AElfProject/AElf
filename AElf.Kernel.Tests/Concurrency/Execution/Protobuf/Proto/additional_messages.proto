@@ -2,7 +2,7 @@
 
 option csharp_namespace = "AElf.Kernel.Tests.Concurrency.Execution";
 
-import "messages.proto";
+import "kernel.proto";
 
 message TransferArgs
 {

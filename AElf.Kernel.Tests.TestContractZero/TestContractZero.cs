@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;

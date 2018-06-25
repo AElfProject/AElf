@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Database;
-using AElf.Kernel.Extensions;
+
 using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Storages

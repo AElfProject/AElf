@@ -1,4 +1,4 @@
-﻿namespace AElf.Kernel.Types.Extensions
+﻿namespace AElf.Kernel
 {
     public static class HexExtensions
     {

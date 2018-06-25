@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using AElf.Kernel.Types.Extensions;
+
 
 namespace AElf.Kernel.Types.Merkle
 {

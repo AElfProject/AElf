@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using AElf.Kernel.Concurrency.Execution.Messages;
-using AElf.Kernel.Extensions;
 using Akka.Routing;
 using Google.Protobuf;
 

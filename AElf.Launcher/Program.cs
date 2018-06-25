@@ -10,6 +10,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.KernelAccount;
@@ -21,6 +22,7 @@ using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Config;
 using AElf.Runtime.CSharp;
+using Akka.Actor;
 using Autofac;
 using Google.Protobuf;
 using Newtonsoft.Json;
@@ -337,6 +339,8 @@ namespace AElf.Launcher
 
             txPoolConf.ChainId = chainId;
             builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
+
+            
             
             
             IContainer container = null;

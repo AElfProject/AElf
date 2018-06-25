@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace AElf.Kernel.Types.Extensions
+namespace AElf.Kernel
 {
     public static class ConvertExtensions
     {

@@ -10,7 +10,6 @@ using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Managers;
@@ -274,10 +273,8 @@ namespace AElf.Kernel.Tests.Miner
         
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {
-            var parallelTransactionExecutingService = new ParallelTransactionExecutingService(_requestor,
-                new Grouper(_servicePack.ResourceDetectionService));
-            return new Kernel.Miner.Miner(config, poolService,
-                parallelTransactionExecutingService,  _chainManager, _blockManager, _worldStateManager, _smartContractService);
+            var miner =  new Kernel.Miner.Miner(config, poolService, _chainManager, _blockManager, _worldStateManager, _smartContractService);
+            return miner;
         }
 
         public IMinerConfig GetMinerConfig(Hash chainId, ulong txCountLimit, byte[] getAddress)
@@ -315,7 +312,9 @@ namespace AElf.Kernel.Tests.Miner
             
             var miner = GetMiner(minerconfig, poolService);
 
-            miner.Start(keypair);
+            var parallelTransactionExecutingService = new ParallelTransactionExecutingService(_requestor,
+                new Grouper(_servicePack.ResourceDetectionService));
+            miner.Start(keypair, parallelTransactionExecutingService);
             
             var block = await miner.Mine();
             
@@ -349,7 +348,9 @@ namespace AElf.Kernel.Tests.Miner
 
             var miner = GetMiner(minerconfig, poolService);
             
-            miner.Start(keypair);
+            var parallelTransactionExecutingService = new ParallelTransactionExecutingService(_requestor,
+                new Grouper(_servicePack.ResourceDetectionService));
+            miner.Start(keypair, parallelTransactionExecutingService);
             
             var block = await miner.Mine();
             
