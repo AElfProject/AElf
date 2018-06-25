@@ -64,7 +64,8 @@ namespace AElf.Launcher
             var isMiner = confParser.IsMiner;
             var isNewChain = confParser.NewChain;
             var initData = confParser.InitData;
-            
+            nodeConfig.IsChainCreator = confParser.NewChain;
+                
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);

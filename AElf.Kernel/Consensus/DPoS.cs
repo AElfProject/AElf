@@ -24,10 +24,10 @@ namespace AElf.Kernel.Consensus
             _keyPair = keyPair;
         }
         
-        // For genesis block and block producers
+        // For first extra block and block producers
         #region Get Txs to sync state
 
-        public List<ITransaction> GetTxsForGenesisBlock(ulong incrementId, BlockProducer blockProducer, Hash contractAccountHash)
+        public List<ITransaction> GetTxsForFirstExtraBlock(ulong incrementId, BlockProducer blockProducer, Hash contractAccountHash)
         {
             var txs = new List<ITransaction>
             {
@@ -47,7 +47,7 @@ namespace AElf.Kernel.Consensus
                     IncrementId = incrementId,
                     MethodName = "GenerateInfoForFirstTwoRounds",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack())
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(blockProducer))
                 }
             };
 
@@ -61,6 +61,29 @@ namespace AElf.Kernel.Consensus
                 ((Transaction) t).S = ByteString.CopyFrom(signature.S);
                 return t;
             }).ToList();
+        }
+
+        public Transaction GetTxToSyncFirstExtraBlock(ulong incrementId, Hash contractAccountHash,
+            DPoSInfo dPoSInfo, BlockProducer blockProducer)
+        {
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "SyncStateOfFirstTwoRounds",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(dPoSInfo, blockProducer))
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
         }
 
         public Transaction GetAbleToMineTx(ulong incrementId, Hash contractAccountHash)
@@ -207,6 +230,30 @@ namespace AElf.Kernel.Consensus
                 ((Transaction) t).S = ByteString.CopyFrom(signature.S);
                 return t;
             }).ToList();
+        }
+
+        public Transaction GetTxToSyncExtraBlock(ulong incrementId, Hash contractAccountHash,
+            // ReSharper disable once InconsistentNaming
+            RoundInfo roundInfo, StringValue nextEBP)
+        {
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "SyncStateOfNextRound",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(roundInfo, nextEBP))
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
         }
 
         public List<ITransaction> GetTxsForNormalBlock(ulong incrementId, Hash contractAccountHash, ulong roundsCount,

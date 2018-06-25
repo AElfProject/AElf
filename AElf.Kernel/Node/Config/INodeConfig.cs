@@ -8,5 +8,6 @@ namespace AElf.Kernel.Node.Config
         bool IsMiner { get; set; }
         Hash ChainId { get; set; }
         string DataDir { get; set; }
+        bool IsChainCreator { get; set; }
     }
 }

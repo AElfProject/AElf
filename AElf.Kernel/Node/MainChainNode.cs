@@ -57,8 +57,6 @@ namespace AElf.Kernel.Node
 
         private DPoS _dPoS;
 
-        private bool amIChainCreater;
-
         public Hash ContractAccountHash =>
             new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
 
@@ -144,8 +142,6 @@ namespace AElf.Kernel.Node
                         .ToAccount();
                     _logger.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"",
                         contractAddress.ToAccount().Value.ToBase64());
-
-                    amIChainCreater = true;
                 }
             }
             catch (Exception e)
@@ -173,7 +169,7 @@ namespace AElf.Kernel.Node
             
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
-            _protocolDirector.SetCommandContext(this, !_nodeConfig.IsMiner); // If not miner do sync
+            _protocolDirector.SetCommandContext(this, true); // If not miner do sync
             
             // akka env 
             /*IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack
@@ -192,11 +188,14 @@ namespace AElf.Kernel.Node
             IActorRef worker2 = sys.ActorOf(Props.Create<Worker>(), "worker2");
             IActorRef router = sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
 
+            _worldStateManager.OfChain(_nodeConfig.ChainId);
             var servicePack = new ServicePack
             {
                 ChainContextService = _chainContextService,
                 SmartContractService = _smartContractService,
-                ResourceDetectionService = new MockResourceUsageDetectionService()
+                ResourceDetectionService = new MockResourceUsageDetectionService(),
+                WorldStateManager = _worldStateManager,
+                AccountContextService = _accountContextService
             };
             worker1.Tell(new LocalSerivcePack(servicePack));
             worker2.Tell(new LocalSerivcePack(servicePack));
@@ -553,12 +552,17 @@ namespace AElf.Kernel.Node
 
                         if (x == 0)
                         {
-                            if (!amIChainCreater) 
+                            if (!_nodeConfig.IsChainCreator) 
                                 return;
 
-                            await BroadcastTxsForFirstExtraBlock();
+                            var dpoSInfo = await ExecuteTxsForFirstExtraBlock();
+
+                            await BroadcastSyncTxForFirstExtraBlock(dpoSInfo);
                             
                             var firstBlock = await _miner.Mine(); //Which is an extra block
+
+                            await BroadcastBlock(firstBlock);
+                            
                             _logger.Log(LogLevel.Debug, "Genereate first extra block: {0}, with {1} transactions, able to mine in {2}", firstBlock.GetHash(),
                                 firstBlock.Body.Transactions.Count, DateTime.UtcNow.ToString("u"));
 
@@ -569,7 +573,6 @@ namespace AElf.Kernel.Node
   
                         #region Log the DPoS info
 
-                        Console.WriteLine("start logging");
                         // ReSharper disable once InconsistentNaming
                         var currentDPoSInfo = await GetDPoSInfo();
                         if (dPoSInfo != currentDPoSInfo)
@@ -598,6 +601,8 @@ namespace AElf.Kernel.Node
                                 await BroadcastTxsForNormalBlock(roundsCount, outValue, signature);
 
                                 var block = await _miner.Mine();
+                                
+                                await BroadcastBlock(block);
 
                                 #region Do the log
 
@@ -648,10 +653,14 @@ namespace AElf.Kernel.Node
 
                                 if (await CheckAbleToMineExtraBlock())
                                 {
-                                    await BroadcastTxsForExtraBlock(incrementId + 1);
+                                    var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId);
+
+                                    await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, extraBlockResult.Item2);
 
                                     var extraBlock = await _miner.Mine(); //Which is an extra block
-                                                                        
+
+                                    await BroadcastBlock(extraBlock);
+                                    
                                     _logger.Log(LogLevel.Debug,
                                         "Genereate extra block: {0}, with {1} transactions, able to mine in {2}",
                                         extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
@@ -741,16 +750,39 @@ namespace AElf.Kernel.Node
             return res;
         }
 
-        private async Task BroadcastTxsForFirstExtraBlock()
+        #region Private Methods for DPoS
+
+        private async Task<DPoSInfo> ExecuteTxsForFirstExtraBlock()
         {
-            var txsForGenesisBlock = _dPoS.GetTxsForGenesisBlock(
+            var txsForFirstExtraBlock = _dPoS.GetTxsForFirstExtraBlock(
                 await GetIncrementId(_nodeKeyPair.GetAddress()), BlockProducers, ContractAccountHash
             );
+
+            var dPoSInfo = new DPoSInfo();
             
-            foreach (var tx in txsForGenesisBlock)
+            foreach (var tx in txsForFirstExtraBlock)
             {
-                await BroadcastTransaction(tx);
+                var tc = new TransactionContext
+                {
+                    Transaction = tx
+                };
+                Executive.SetTransactionContext(tc).Apply(true).Wait();
+                
+                if (tx.MethodName.StartsWith("Generate"))
+                {
+                    dPoSInfo = DPoSInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                }
             }
+
+            return dPoSInfo;
+        }
+
+        private async Task BroadcastSyncTxForFirstExtraBlock(DPoSInfo dPoSInfo)
+        {
+            var txToSyncFirstExtraBlock = _dPoS.GetTxToSyncFirstExtraBlock(
+                await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash, dPoSInfo, BlockProducers);
+
+            await BroadcastTransaction(txToSyncFirstExtraBlock);
         }
 
         private async Task BroadcastTxsForNormalBlock(ulong roundsCount, Hash outValue, Hash signature)
@@ -763,15 +795,44 @@ namespace AElf.Kernel.Node
                 await BroadcastTransaction(tx);
             }
         }
-
-        private async Task BroadcastTxsForExtraBlock(ulong incrementId)
+        
+        private async Task<Tuple<RoundInfo, StringValue>> ExecuteTxsForExtraBlock(ulong incrementId)
         {
-            var txForExtraBlock = _dPoS.GetTxsForExtraBlock(
+            var txsForNormalBlock = _dPoS.GetTxsForExtraBlock(
                 incrementId, ContractAccountHash);
-            foreach (var tx in txForExtraBlock)
+
+            var roundInfo = new RoundInfo();
+            // ReSharper disable once InconsistentNaming
+            var nextEBP = new StringValue();
+            
+            foreach (var tx in txsForNormalBlock)
             {
-                await BroadcastTransaction(tx);
+                var tc = new TransactionContext
+                {
+                    Transaction = tx
+                };
+                Executive.SetTransactionContext(tc).Apply(true).Wait();
+
+                if (tx.MethodName.StartsWith("Generate"))
+                {
+                    roundInfo = RoundInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                }
+
+                if (tx.MethodName.StartsWith("Set"))
+                {
+                    nextEBP = StringValue.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                }
             }
+
+            return Tuple.Create(roundInfo, nextEBP);
+        }
+
+        private async Task BroadcastTxsToSyncExtraBlock(ulong incrementId, RoundInfo roundInfo, StringValue nextEBP)
+        {
+            var txForExtraBlock = _dPoS.GetTxToSyncExtraBlock(
+                incrementId, ContractAccountHash, roundInfo, nextEBP);
+
+            await BroadcastTransaction(txForExtraBlock);
         }
 
         private async Task<ulong> GetActualRoundsCount()
@@ -806,7 +867,7 @@ namespace AElf.Kernel.Node
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private IObservable<long> GetIntervalObservable()
         {
-            return Observable.Interval(TimeSpan.FromMilliseconds(10000));
+            return Observable.Interval(TimeSpan.FromMilliseconds(4000));
         }
 
         private async Task<Hash> CalculateSignature(Hash inValue)
@@ -862,7 +923,10 @@ namespace AElf.Kernel.Node
             Executive.SetTransactionContext(tcAbleToProduceEB).Apply(true).Wait();
 
             // ReSharper disable once InconsistentNaming
-            return BoolValue.Parser.ParseFrom(tcAbleToProduceEB.Trace.RetVal).Value;
+            var res = BoolValue.Parser.ParseFrom(tcAbleToProduceEB.Trace.RetVal).Value;
+            return res;
         }
+
+        #endregion
     }
 }
