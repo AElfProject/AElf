@@ -94,11 +94,17 @@ namespace AElf.Benchmark
             
             _dataGenerater = new TransactionDataGenerator(maxTxNum);
             byte[] code = null;
+            #if DEBUG
             using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("./bin/Debug/netcoreapp2.0/AElf.Benchmark.dll")))
             {
                 code = file.ReadFully();
             }
-            
+            #else
+            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("./bin/Release/netcoreapp2.0/AElf.Benchmark.dll")))
+            {
+                code = file.ReadFully();
+            }
+            #endif
             _contractHash = Prepare(code).Result;
             
             InitContract(_contractHash, _dataGenerater.KeyDict.Keys).GetResult();
@@ -115,7 +121,12 @@ namespace AElf.Benchmark
         {
             get
             {
+#if DEBUG
                 return $"../{TestContractZeroName}/bin/Debug/netstandard2.0";
+    #else
+                return $"../{TestContractZeroName}/bin/Release/netstandard2.0";
+#endif
+                
             }
         }
         

@@ -29,8 +29,11 @@ namespace AElf.Benchmark
             builder.RegisterModule(new DatabaseModule(new DatabaseConfig()));
             builder.RegisterModule(new LoggerModule());
             builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 100);
-            
+            #if DEBUG
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
+            #else
+            var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Release/netstandard2.0/");
+            #endif
             SmartContractRunnerFactory smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);

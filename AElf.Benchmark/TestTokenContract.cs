@@ -56,7 +56,30 @@ namespace AElf.Benchmark
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances"})]
         public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
         {
-            return true;
+            //Console.WriteLine("Transfer " + from.Value.ToBase64() + " , " + to.Value.ToBase64());
+            var fromBal = await Balances.GetValueAsync(from);
+            //Console.WriteLine("from pass");
+            var toBal = await Balances.GetValueAsync(to);
+            //Console.WriteLine("to pass");
+            var newFromBal = fromBal - qty;
+            if (newFromBal > 0)
+            {
+                var newToBal = toBal + qty;
+                
+                await Balances.SetValueAsync(from, newFromBal);
+                //Console.WriteLine("set from pass");
+                await Balances.SetValueAsync(to, newToBal);
+                //Console.WriteLine("set to pass");
+
+                //Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
+                //+ to.Value.ToBase64() + "(" + newToBal + ")");
+                return true;
+            }
+            else
+            {
+                //Console.WriteLine("Not enough balance newFromBal " + newFromBal + " < 0");
+                return false;
+            }
         }
 
         [SmartContractFunction("${this}.GetBalance", new string[]{}, new []{"${this}.Balances"})]
