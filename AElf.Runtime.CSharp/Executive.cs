@@ -206,14 +206,9 @@ namespace AElf.Runtime.CSharp
                             .GetValueChanges());
                         if (autoCommit)
                         {
-                            // Inline calls will not be auto-committed.
-                            foreach (var vc in _currentTransactionContext.Trace.AllValueChanges)
-                            {
-                                await _worldStateManager.ApplyStateValueChangeAsync(vc,
-                                    _currentSmartContractContext.ChainId);
-                            }                            
+                            await _currentTransactionContext.Trace.CommitChangesAsync(_worldStateManager,
+                                _currentSmartContractContext.ChainId);                            
                         }
-
                     }
                 }
             }

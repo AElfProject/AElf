@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Sdk.CSharp.Types;
@@ -35,6 +36,17 @@ namespace AElf.Kernel.CSharp.Tests
             // Not needed anymore. Keep here to comply with interface.
 
             await Task.CompletedTask;
+        }
+
+        public void SleepMilliseconds(int milliSeconds)
+        {
+            // Used to test timeout
+            Thread.Sleep(milliSeconds);
+        }
+
+        public void NoAction()
+        {
+            // Don't delete, this is needed to test placeholder transactions
         }
         
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances", "${this}.TransactionStartTimes", "${this}.TransactionEndTimes"})]
