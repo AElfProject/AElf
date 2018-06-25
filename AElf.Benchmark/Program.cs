@@ -28,7 +28,7 @@ namespace AElf.Benchmark
             dataConfig.Port = 8888;
             builder.RegisterModule(new DatabaseModule(new DatabaseConfig()));
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 2);
+            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 100);
             
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             SmartContractRunnerFactory smartContractRunnerFactory = new SmartContractRunnerFactory();
@@ -85,7 +85,7 @@ namespace AElf.Benchmark
                     }
                 }
                 */
-                var multiGroupRes = benchmarkTps.MultipleGroupBenchmark(1, 1).Result;
+                var multiGroupRes = benchmarkTps.MultipleGroupBenchmark(8, 8).Result;
             }
         }
         

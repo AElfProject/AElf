@@ -21,12 +21,12 @@ namespace AElf.Benchmark
         public readonly MapToUInt64<Hash> Balances = new MapToUInt64<Hash>("Balances");
 
         [SmartContractFieldData("${this}.TokenContractName", DataAccessMode.ReadOnlyAccountSharing)]
-        public string TokenContractName;
+        public StringField TokenContractName;
         
         public async Task<bool> InitializeAsync(string tokenContractName, Hash owner)
         {
             Console.WriteLine("InitializeAsync " + tokenContractName + " " + owner.Value.ToBase64());
-            TokenContractName = tokenContractName;
+            await TokenContractName.SetAsync(tokenContractName);
             return true;
         }
         
@@ -45,11 +45,11 @@ namespace AElf.Benchmark
         
         public async Task<bool> InitBalance(Hash addr)
         {
-            Console.WriteLine("InitBalance " + addr);
+            //Console.WriteLine("InitBalance " + addr);
             ulong initBalance = 1000;
             await Balances.SetValueAsync(addr, initBalance);
             var fromBal = await Balances.GetValueAsync(addr);
-            Console.WriteLine("Read from db of account " + addr + " with balance " + fromBal);
+            //Console.WriteLine("Read from db of account " + addr + " with balance " + fromBal);
             return true;
         }
         

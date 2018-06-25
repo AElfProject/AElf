@@ -36,8 +36,11 @@ namespace AElf.Kernel.Concurrency.Scheduling
             foreach (var tx in transactions)
             {
                 UnionFindNode first = null;
+                var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
+                Console.Write("Tx with from {0} and params is {1}, {2} has resources: [ ", tx.From.Value.ToBase64(), ((Hash)parameters[0]).Value.ToBase64(), ((Hash)parameters[1]).Value.ToBase64());
                 foreach (var resource in _resourceUsageDetectionService.GetResources(chainId, tx))
                 {
+                    Console.Write(string.Format(",{0} ", resource));
                     if (!resourceUnionSet.TryGetValue(resource, out var node))
                     {
                         node = new UnionFindNode();
@@ -53,6 +56,8 @@ namespace AElf.Kernel.Concurrency.Scheduling
                         node.Union(first);
                     }
                 }
+
+                Console.WriteLine(" ]");
             }
 
             Dictionary<int, List<ITransaction>> grouped = new Dictionary<int, List<ITransaction>>();
@@ -79,6 +84,9 @@ namespace AElf.Kernel.Concurrency.Scheduling
             result.AddRange(grouped.Values);
 
             _logger?.Info(string.Format(
+                "Grouper on chainId [{0}] group {1} transactions into {2} groups with sizes [{3}]", chainId,
+                transactions.Count, result.Count, string.Join(", ", result.Select(a=>a.Count))));
+            Console.WriteLine(string.Format(
                 "Grouper on chainId [{0}] group {1} transactions into {2} groups with sizes [{3}]", chainId,
                 transactions.Count, result.Count, string.Join(", ", result.Select(a=>a.Count))));
             
@@ -162,6 +170,9 @@ namespace AElf.Kernel.Concurrency.Scheduling
             }
             
             _logger?.Info(string.Format(
+                "Grouper on chainId [{0}] merge {1} groups into {2} groups with sizes [{3}]", chainId,
+                transactions.Count, res.Count, string.Join(", ", res.Select(a=>a.Count))));
+            Console.WriteLine(string.Format(
                 "Grouper on chainId [{0}] merge {1} groups into {2} groups with sizes [{3}]", chainId,
                 transactions.Count, res.Count, string.Join(", ", res.Select(a=>a.Count))));
             return res;
