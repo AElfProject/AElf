@@ -56,7 +56,7 @@ namespace AElf.Kernel.Tests
 
         private const int MiningTime = 7000;
 
-        private const int WaitFirstRoundTime = 5000;
+        private const int WaitFirstRoundTime = 30000;
 
         private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");
         
