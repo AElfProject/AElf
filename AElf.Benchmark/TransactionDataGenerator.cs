@@ -98,7 +98,7 @@ namespace AElf.Benchmark
                     To = tokenContractAddr,
                     IncrementId = 0,
                     MethodName = "Transfer",
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack(addressPair.Key, addressPair.Value, (ulong)50)),
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(addressPair.Key, addressPair.Value, (ulong)20)),
                     P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
                 };
 

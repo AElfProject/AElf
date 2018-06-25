@@ -24,11 +24,11 @@ namespace AElf.Benchmark
             builder.RegisterModule(new MainModule());
             var dataConfig = new DatabaseConfig();
             dataConfig.Type = DatabaseType.Ssdb;
-            dataConfig.Host = "192.168.197.28";
+            dataConfig.Host = "127.0.0.1";
             dataConfig.Port = 8888;
             builder.RegisterModule(new DatabaseModule(new DatabaseConfig()));
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 100);
+            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 1000);
             #if DEBUG
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             #else
@@ -88,7 +88,7 @@ namespace AElf.Benchmark
                     }
                 }
                 */
-                var multiGroupRes = benchmarkTps.MultipleGroupBenchmark(80, 3).Result;
+                var multiGroupRes = benchmarkTps.MultipleGroupBenchmark(1000, 8).Result;
                 foreach (var kv in multiGroupRes)
                 {
                     Console.WriteLine(kv.Key + kv.Value);

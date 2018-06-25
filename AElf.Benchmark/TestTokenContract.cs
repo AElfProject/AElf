@@ -32,6 +32,8 @@ namespace AElf.Benchmark
         
         public override async Task InvokeAsync()
         {
+            //not needed anymore
+            return;
             var tx = Api.GetTransaction();
 
             var methodname = tx.MethodName;
@@ -57,12 +59,13 @@ namespace AElf.Benchmark
         public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
         {
             //Console.WriteLine("Transfer " + from.Value.ToBase64() + " , " + to.Value.ToBase64());
+            
             var fromBal = await Balances.GetValueAsync(from);
             //Console.WriteLine("from pass");
             var toBal = await Balances.GetValueAsync(to);
             //Console.WriteLine("to pass");
             var newFromBal = fromBal - qty;
-            if (newFromBal > 0)
+            if (newFromBal >= 0)
             {
                 var newToBal = toBal + qty;
                 
@@ -71,8 +74,8 @@ namespace AElf.Benchmark
                 await Balances.SetValueAsync(to, newToBal);
                 //Console.WriteLine("set to pass");
 
-                //Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
-                //+ to.Value.ToBase64() + "(" + newToBal + ")");
+                Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
+                + to.Value.ToBase64() + "(" + newToBal + ")");
                 return true;
             }
             else

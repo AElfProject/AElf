@@ -75,17 +75,17 @@ namespace AElf.Benchmark
             var workers = new[]
             {
                 "/user/worker1", "/user/worker2"
-                //, "/user/worker3", "/user/worker4", "/user/worker5", "/user/worker6",
-                //"/user/worker7", "/user/worker8", "/user/worker9", "/user/worker10", "/user/worker11", "/user/worker12"
+                , "/user/worker3", "/user/worker4", "/user/worker5", "/user/worker6",
+                "/user/worker7", "/user/worker8", "/user/worker9", "/user/worker10", "/user/worker11", "/user/worker12"
             };
             Workers = new []
             {
                 Sys.ActorOf(Props.Create<Worker>(), "worker1"), Sys.ActorOf(Props.Create<Worker>(), "worker2"),
-                /*Sys.ActorOf(Props.Create<Worker>(), "worker3"), Sys.ActorOf(Props.Create<Worker>(), "worker4"),
+                Sys.ActorOf(Props.Create<Worker>(), "worker3"), Sys.ActorOf(Props.Create<Worker>(), "worker4"),
                 Sys.ActorOf(Props.Create<Worker>(), "worker5"), Sys.ActorOf(Props.Create<Worker>(), "worker6"),
                 Sys.ActorOf(Props.Create<Worker>(), "worker7"), Sys.ActorOf(Props.Create<Worker>(), "worker8"),
                 Sys.ActorOf(Props.Create<Worker>(), "worker9"), Sys.ActorOf(Props.Create<Worker>(), "worker10"),
-                Sys.ActorOf(Props.Create<Worker>(), "worker11"), Sys.ActorOf(Props.Create<Worker>(), "worker12")*/
+                Sys.ActorOf(Props.Create<Worker>(), "worker11"), Sys.ActorOf(Props.Create<Worker>(), "worker12")
             };
             Router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
             Workers.ForEach(worker => worker.Tell(new LocalSerivcePack(_servicePack)));
@@ -219,7 +219,7 @@ namespace AElf.Benchmark
             {
                 var txList = _dataGenerater.GetMultipleGroupTx(txNumber, groupCount, _contractHash);
                 long timeused = 0;
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < 1; i++)
                 {
                     foreach (var tx in txList)
                     {
@@ -228,19 +228,27 @@ namespace AElf.Benchmark
                     Stopwatch swExec = new Stopwatch();
                     swExec.Start();
 
-                    var txResult = Task.Factory.StartNew(async () =>
+                    var txResult = await Task.Factory.StartNew(async () =>
                     {
                         return await _parallelTransactionExecutingService.ExecuteAsync(txList, ChainId);
-                    }).Unwrap().Result;
+                    }).Unwrap();
             
                     swExec.Stop();
                     long total = 0;
+                    txResult.ForEach(result =>
+                    {
+                        if (!result.StdErr.IsNullOrEmpty())
+                        {
+                            Console.WriteLine(result.StdErr);
+                        }
+                    } );
                     txResult.ForEach(result => total += result.Elapsed);
                     Console.WriteLine("Average elapsed: " + total / txResult.Count);
                     timeused += swExec.ElapsedMilliseconds;
+                    Console.WriteLine(txResult.Last().StdErr);
                 }
                 
-                var time = txNumber / (timeused / 1000.0 / 10.0);
+                var time = txNumber / (timeused / 1000.0 / 1.0);
                 var str = groupCount + " groups with " + txList.Count + " tx in total";
                 res.Add(str, time);
                 Console.WriteLine(str + ": " + time);
