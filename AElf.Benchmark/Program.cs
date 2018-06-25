@@ -85,7 +85,11 @@ namespace AElf.Benchmark
                     }
                 }
                 */
-                var multiGroupRes = benchmarkTps.MultipleGroupBenchmark(8, 8).Result;
+                var multiGroupRes = benchmarkTps.MultipleGroupBenchmark(80, 3).Result;
+                foreach (var kv in multiGroupRes)
+                {
+                    Console.WriteLine(kv.Key + kv.Value);
+                }
             }
         }
         

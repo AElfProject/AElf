@@ -47,4 +47,7 @@
       <HintPath>..\..\..\..\.nuget\packages\google.protobuf\3.5.1\lib\netstandard1.0\Google.Protobuf.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Concurrency\ResourceUsageDetectionServiceTest.cs" />
+  </ItemGroup>
 </Project>

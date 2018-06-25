@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Metadata;
