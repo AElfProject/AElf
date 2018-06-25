@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Services;
-using Google.Protobuf;
+using AElf.Kernel.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel

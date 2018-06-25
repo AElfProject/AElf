@@ -94,5 +94,10 @@ namespace AElf.Kernel.CSharp.Tests
             var dtStr = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff");
             return dtStr;
         }
+
+        public void Print(string name)
+        {
+            Console.WriteLine("Hello, {0}", name);
+        }
     }
 }

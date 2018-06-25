@@ -104,6 +104,10 @@ namespace AElf.CLI
                             // todo send raw tx
                             HttpRequestor reqhttp = new HttpRequestor("http://localhost:5000");
                             string resp = reqhttp.DoRequest(req.ToString());
+                            
+                            JObject jObj = JObject.Parse(resp);
+                            
+                            _screenManager.PrintLine(jObj["result"]["hash"].ToString());
                         }
                         catch (Exception e) 
                         {

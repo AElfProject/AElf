@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Concurrency.Metadata
 {

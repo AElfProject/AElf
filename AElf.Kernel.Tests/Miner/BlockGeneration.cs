@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Merkle;
 using AElf.Kernel.Services;

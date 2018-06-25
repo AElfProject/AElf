@@ -3,6 +3,7 @@ using AElf.ABI.CSharp;
 using Google.Protobuf;
 using Newtonsoft.Json;
 using AElf.Kernel;
+using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Xunit;
 
@@ -11,7 +12,7 @@ namespace AElf.ABI.Tests
     public class MethodTest
     {
         [Fact]
-        public void Test()
+        public void  Test()
         {
             var methodAbi =
                 @"{""ReturnType"": ""bool"", ""IsAsync"": true, ""Params"": [{""Type"": ""bool"", ""Name"": ""Bool""}, {""Type"": ""int"", ""Name"": ""Int""}, {""Type"": ""uint"", ""Name"": ""UInt""}, {""Type"": ""long"", ""Name"": ""Long""}, {""Type"": ""ulong"", ""Name"": ""ULong""}, {""Type"": ""string"", ""Name"": ""String""}, {""Type"": ""byte[]"", ""Name"": ""Bytes""}, {""Type"": ""AElf.Kernel.Hash"", ""Name"": ""Hash""}], ""Name"": ""TestMethod""}";
@@ -27,7 +28,7 @@ namespace AElf.ABI.Tests
                 (ulong) 64,
                 "AElf",
                 new byte[] {0x01, 0x02, 0x03},
-                new Hash()
+                new Kernel.Hash()
                 {
                     Value = ByteString.CopyFrom(new byte[]
                     {

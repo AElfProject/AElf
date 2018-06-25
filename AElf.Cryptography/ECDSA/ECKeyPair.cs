@@ -7,6 +7,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace AElf.Cryptography.ECDSA
 {
+    // ReSharper disable once InconsistentNaming
     public class ECKeyPair
     {
         public static int AddressLength { get; } = 18;
@@ -37,7 +38,7 @@ namespace AElf.Cryptography.ECDSA
 
         public byte[] GetAddress()
         {
-            return this.GetEncodedPublicKey().Take(AddressLength).ToArray();
+            return GetEncodedPublicKey().Take(AddressLength).ToArray();
         }
 
         public string GetAddressHex()

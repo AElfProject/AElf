@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Metadata;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Concurrency.Scheduling
 {

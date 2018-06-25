@@ -9,7 +9,6 @@ using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
@@ -223,8 +222,9 @@ namespace AElf.Kernel.Tests.Miner
             IParallelTransactionExecutingService parallelTransactionExecutingService =
                 new ParallelTransactionExecutingService(_requestor,
                     new Grouper(_servicePack.ResourceDetectionService));
-            var synchronizer = new Kernel.Miner.BlockExecutor(poolService, parallelTransactionExecutingService,
+            var synchronizer = new Kernel.Miner.BlockExecutor(poolService,
                 _chainManager, _blockManager);
+            synchronizer.Start(parallelTransactionExecutingService);
             var res = await synchronizer.ExecuteBlock(block);
             Assert.True(res);
             Assert.Equal((ulong)2, await _chainManager.GetChainCurrentHeight(chain.Id));

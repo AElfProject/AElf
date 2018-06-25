@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AElf.Kernel.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Concurrency

@@ -1,5 +1,6 @@
 ﻿using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Types;
 using Xunit;
 
 namespace AElf.Cryptography.Tests.ECDSA

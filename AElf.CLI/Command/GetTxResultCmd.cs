@@ -39,7 +39,7 @@ namespace AElf.CLI.Command
 
         public override string GetPrintString(JObject resp)
         {
-            return resp["txresult"].ToString();
+            return resp["txresult"] + " :: retval - " + resp["retval"];
         }
     }
 }

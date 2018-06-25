@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using AElf.Kernel.Types;
 using NLog;
 using Org.BouncyCastle.Security;
 

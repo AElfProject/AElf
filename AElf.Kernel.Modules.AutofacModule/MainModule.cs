@@ -1,4 +1,6 @@
-﻿using Autofac;
+﻿using AElf.Kernel;
+using AElf.Kernel.Managers;
+using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
@@ -8,7 +10,7 @@ namespace AElf.Kernel.Modules.AutofacModule
         {
             //TODO : REVIEW - probably not a good idea
             
-            var assembly = typeof(IAccount).Assembly;
+            var assembly = typeof(IWorldStateManager).Assembly;
             
             builder.RegisterInstance<IHash>(new Hash()).As<Hash>();
             

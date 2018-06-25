@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel";
+
+import "google/protobuf/timestamp.proto";
+
+message Transaction
+{
+    Hash From = 1;
+    Hash To = 2;
+    uint64 IncrementId = 3;
+    string MethodName = 4;
+    bytes Params = 5;
+    uint64 Fee = 6;
+    bytes R = 7;
+    bytes S = 8;
+    bytes P = 9;
+}
+
+message Hash{
+    bytes Value = 1;
+}
+
+message BlockHeader{
+    int32 Version = 1;
+    Hash PreviousBlockHash = 2;
+    Hash MerkleTreeRootOfTransactions = 3;
+    Hash MerkleTreeRootOfWorldState = 4;
+    uint64 Index = 5;
+    bytes R = 6;
+    bytes S = 7;
+    bytes P = 8;
+    google.protobuf.Timestamp Time = 9;
+    Hash ChainId = 10;
+}
+
+message BlockBody{
+    Hash BlockHeader = 1;
+    repeated Hash Transactions = 2;
+}
+
+message Block{
+    BlockHeader Header = 1;
+    BlockBody Body = 2;
+    repeated Transaction fullTransactions = 3;
+}
+
+message SmartContractRegistration{
+    int32 Category = 1;
+    Hash ContractHash = 2;
+    bytes ContractBytes = 3;
+}
+
+message SmartContractDeployment{
+    Hash ContractHash = 1;
+    Hash Caller = 2;
+    bytes ConstructParams = 3;
+    uint64 IncrementId = 4;
+}
+
+message Parameters{
+    repeated Param Params = 1;
+}
+
+message Param {
+    oneof data{
+        int32 intVal = 1;
+        uint32 uintVal = 2;
+        int64 longVal = 3;
+        uint64 ulongVal = 4;
+        bool boolVal = 5;
+        bytes bytesVal = 6;
+        string strVal = 7;
+        double dVal = 8; // Maybe don't allow floating point
+        Hash hashVal = 9;
+        SmartContractRegistration registerVal = 10;
+        SmartContractDeployment deploymentVal = 11;
+    }
+}
+
+message SmartContractInvokeContext{
+    Hash Caller = 1;
+    uint64 IncrementId = 2;
+    string MethodName = 3;
+    bytes Params = 4;
+}
+
+message Change{
+    repeated Hash Befores = 1;
+    Hash After = 2;
+    Hash TransactionIds = 3;
+    Hash LatestChangedBlockHash = 4;
+}
+
+message PairHashChange{
+    Hash Key = 1;
+    Change Value = 2;
+}
+
+message ChangesDict{
+    repeated PairHashChange Dict = 1;
+}
+
+message Chain{
+    Hash Id = 1;
+    Hash GenesisBlockHash = 2;
+}
+
+
+message BlockProducer {
+    repeated string Nodes = 1;
+}
+
+message BPInfo {
+    int32 Order = 1;
+    bool IsEBP = 2; //EBP = Extra Block Producer
+    Hash InValue = 3;
+    Hash OutValue = 4;
+    Hash Signature = 5;
+    google.protobuf.Timestamp TimeSlot = 6;
+}
+
+message RoundInfo {
+    map<string, BPInfo> Info = 1;
+}
+
+message DPoSInfo {
+    repeated RoundInfo RoundInfo = 1;
+}

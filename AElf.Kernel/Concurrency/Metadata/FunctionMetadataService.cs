@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Kernel.Storages;
+using AElf.Kernel.Types;
 using NLog;
 using Org.BouncyCastle.Security;
 

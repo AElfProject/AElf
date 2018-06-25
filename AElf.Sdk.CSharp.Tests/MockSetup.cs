@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Reflection;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
@@ -51,7 +50,7 @@ namespace AElf.Sdk.CSharp.Tests
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
 
-        private ISmartContractRunnerFactory _smartContractRunnerFactory ;
+        private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
         public MockSetup(IWorldStateManager worldStateManager, IChainCreationService chainCreationService, IBlockManager blockManager, ISmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
