@@ -25,9 +25,6 @@ namespace AElf.Kernel.Concurrency.Metadata
 
         public async Task DeployContract(Hash chainId, Type contractType, Hash address, Dictionary<string, Hash> contractReferences)
         {
-            System.Diagnostics.StackTrace t = new System.Diagnostics.StackTrace();
-            _logger.Fatal(t.ToString());
-            _logger.Info("Size of " + _metadatas.Count + " and this service is" + this.GetHashCode());
             //For each chain, ChainFunctionMetadata should be used singlethreaded
             //which means transactions that deploy contracts need to execute serially
             //TODO: find a way to mark these transaction as a same group (maybe by using "r/w account sharing data"?)
