@@ -36,7 +36,7 @@ namespace AElf.Kernel.Tests
 
             var address = Hash.Generate();
             
-            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
+            var worldStateManager = await new WorldStateConsole(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
             
             await worldStateManager.SetWorldStateAsync(chain.GenesisBlockHash);
             

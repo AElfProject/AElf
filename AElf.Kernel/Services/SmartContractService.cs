@@ -16,14 +16,14 @@ namespace AElf.Kernel.Services
         private readonly ISmartContractManager _smartContractManager;
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
-        private readonly IWorldStateManager _worldStateManager;
+        private readonly IWorldStateConsole _worldStateConsole;
         private readonly IFunctionMetadataService _functionMetadataService;
 
-        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerFactory smartContractRunnerFactory, IWorldStateManager worldStateManager, IFunctionMetadataService functionMetadataService)
+        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerFactory smartContractRunnerFactory, IWorldStateConsole worldStateConsole, IFunctionMetadataService functionMetadataService)
         {
             _smartContractManager = smartContractManager;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _worldStateManager = worldStateManager;
+            _worldStateConsole = worldStateConsole;
             _functionMetadataService = functionMetadataService;
         }
 
@@ -56,14 +56,14 @@ namespace AElf.Kernel.Services
             }
 
             // get account dataprovider
-            var dataProvider = new CachedDataProvider((await _worldStateManager.OfChain(chainId))
+            var dataProvider = new CachedDataProvider((await _worldStateConsole.OfChain(chainId))
                 .GetAccountDataProvider(account).GetDataProvider());
 
             // run smartcontract executive info and return executive
 
             executive = await runner.RunAsync(reg);
 
-            executive.SetWorldStateManager(_worldStateManager);
+            executive.SetWorldStateManager(_worldStateConsole);
             
             executive.SetSmartContractContext(new SmartContractContext()
             {

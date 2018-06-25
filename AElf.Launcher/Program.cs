@@ -293,6 +293,7 @@ namespace AElf.Launcher
             
             // Module registrations
             builder.RegisterModule(new TransactionManagerModule());
+            builder.RegisterModule(new WorldStateManagerModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseModule(databaseConf));
             builder.RegisterModule(new NetworkModule(netConf, isMiner));

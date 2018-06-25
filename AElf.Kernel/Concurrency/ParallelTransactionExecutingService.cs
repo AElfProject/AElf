@@ -23,7 +23,7 @@ namespace AElf.Kernel.Concurrency
         public async Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId)
         {
             // TODO: Move it to config
-            int timeoutMilliSeconds = 3500;
+            int timeoutMilliSeconds = 200000;
 
             var cts = new CancellationTokenSource();
 

@@ -7,7 +7,7 @@ namespace AElf.Kernel
     {
         IExecutive SetSmartContractContext(ISmartContractContext contractContext);
         IExecutive SetTransactionContext(ITransactionContext transactionContext);
-        IExecutive SetWorldStateManager(IWorldStateManager worldStateManager);
+        IExecutive SetWorldStateManager(IWorldStateConsole worldStateConsole);
         Task Apply(bool autoCommit);
     }
 }

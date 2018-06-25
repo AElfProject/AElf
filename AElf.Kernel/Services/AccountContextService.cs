@@ -15,11 +15,11 @@ namespace AElf.Kernel.Services
         private readonly ConcurrentDictionary<Hash, IAccountDataContext> _accountDataContexts =
             new ConcurrentDictionary<Hash, IAccountDataContext>();
 
-        private readonly IWorldStateManager _worldStateManager;
+        private readonly IWorldStateConsole _worldStateConsole;
 
-        public AccountContextService(IWorldStateManager worldStateManager)
+        public AccountContextService(IWorldStateConsole worldStateConsole)
         {   
-            _worldStateManager = worldStateManager;
+            _worldStateConsole = worldStateConsole;
         }
         
         /// <inheritdoc/>
@@ -31,8 +31,8 @@ namespace AElf.Kernel.Services
                 return ctx;
             }
             
-            await _worldStateManager.OfChain(chainId);
-            var adp = _worldStateManager.GetAccountDataProvider(account);
+            await _worldStateConsole.OfChain(chainId);
+            var adp = _worldStateConsole.GetAccountDataProvider(account);
 
             var idBytes = await adp.GetDataProvider().GetAsync(GetKeyForIncrementId());
             var id = idBytes == null ? 0 : UInt64Value.Parser.ParseFrom(idBytes).Value;
@@ -55,8 +55,8 @@ namespace AElf.Kernel.Services
             _accountDataContexts.AddOrUpdate(accountDataContext.ChainId.CalculateHashWith(accountDataContext.Address),
                 accountDataContext, (hash, context) => accountDataContext);
             
-            await _worldStateManager.OfChain(accountDataContext.ChainId);
-            var adp = _worldStateManager.GetAccountDataProvider(accountDataContext.Address);
+            await _worldStateConsole.OfChain(accountDataContext.ChainId);
+            var adp = _worldStateConsole.GetAccountDataProvider(accountDataContext.Address);
 
             //await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), accountDataContext.IncrementId.ToBytes());
             await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), new UInt64Value

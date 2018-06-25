@@ -52,7 +52,7 @@ namespace AElf.Kernel.Tests.Miner
         private IActorRef _generalExecutor;
         private IChainCreationService _chainCreationService;
         private readonly ILogger _logger;
-        private IWorldStateManager _worldStateManager;
+        private IWorldStateConsole _worldStateConsole;
         private ISmartContractManager _smartContractManager;
 
         private IActorRef _serviceRouter;
@@ -71,7 +71,7 @@ namespace AElf.Kernel.Tests.Miner
         private ServicePack _servicePack;
         private IActorRef _requestor;
         
-        public MinerLifetime(IWorldStateManager worldStateManager, 
+        public MinerLifetime(IWorldStateConsole worldStateConsole, 
             IChainCreationService chainCreationService, 
             IChainContextService chainContextService, ILogger logger, IAccountContextService accountContextService, 
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
@@ -90,7 +90,7 @@ namespace AElf.Kernel.Tests.Miner
             _smartContractRunnerFactory = smartContractRunnerFactory;
             _functionMetadataService = functionMetadataService;
 
-            _worldStateManager = worldStateManager;
+            _worldStateConsole = worldStateConsole;
             
             Initialize();
         }
@@ -100,14 +100,14 @@ namespace AElf.Kernel.Tests.Miner
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager, _functionMetadataService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateConsole, _functionMetadataService);
             
             _servicePack = new ServicePack
             {
                 ChainContextService = _chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new NewMockResourceUsageDetectionService(),
-                WorldStateManager = _worldStateManager
+                WorldStateConsole = _worldStateConsole
             };
             
             var workers = new[] {"/user/worker1", "/user/worker2"};
@@ -273,7 +273,7 @@ namespace AElf.Kernel.Tests.Miner
         
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {
-            var miner =  new Kernel.Miner.Miner(config, poolService, _chainManager, _blockManager, _worldStateManager, _smartContractService);
+            var miner =  new Kernel.Miner.Miner(config, poolService, _chainManager, _blockManager, _worldStateConsole, _smartContractService);
             return miner;
         }
 

@@ -31,7 +31,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             return (ulong)n;
         }
 
-        private IWorldStateManager _worldStateManager;
+        private IWorldStateConsole _worldStateConsole;
         private IChainCreationService _chainCreationService;
         private IChainContextService _chainContextService;
         private IBlockManager _blockManager;
@@ -44,12 +44,12 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
         private Hash ChainId { get; } = Hash.Generate();
 
-        public ContractTest(IWorldStateManager worldStateManager,
+        public ContractTest(IWorldStateConsole worldStateConsole,
             IChainCreationService chainCreationService, IBlockManager blockManager,
             ITransactionManager transactionManager, ISmartContractManager smartContractManager,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            _worldStateManager = worldStateManager;
+            _worldStateConsole = worldStateConsole;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             _transactionManager = transactionManager;
@@ -57,7 +57,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             _chainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager, _functionMetadataService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateConsole, _functionMetadataService);
         }
 
         public byte[] SmartContractZeroCode
@@ -206,6 +206,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
             var executiveUser = await _smartContractService.GetExecutiveAsync(address, ChainId);
             await executiveUser.SetTransactionContext(txnInitCtxt).Apply(true);
+            
             #endregion initialize account balance
 
             #region check account balance
@@ -235,6 +236,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 IncrementId = NewIncrementId(),
                 MethodName = "Print"
             };
+            
             var txnPrintcxt = new TransactionContext()
             {
                 Transaction = txnBal

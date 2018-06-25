@@ -38,7 +38,7 @@ namespace AElf.Kernel
             return successful;
         }
 
-        public async Task CommitChangesAsync(IWorldStateManager worldStateManager, Hash chainId)
+        public async Task CommitChangesAsync(IWorldStateConsole worldStateConsole, Hash chainId)
         {
             if (!IsSuccessful())
             {
@@ -49,11 +49,11 @@ namespace AElf.Kernel
             {
                 foreach (var vc in ValueChanges)
                 {
-                    await worldStateManager.ApplyStateValueChangeAsync(vc, chainId);
+                    await worldStateConsole.ApplyStateValueChangeAsync(vc, chainId);
                 }
                 foreach (var trc in InlineTraces)
                 {
-                    await trc.CommitChangesAsync(worldStateManager, chainId);
+                    await trc.CommitChangesAsync(worldStateConsole, chainId);
                 }
             }
 

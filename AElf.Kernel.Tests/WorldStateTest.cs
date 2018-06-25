@@ -176,7 +176,7 @@ namespace AElf.Kernel.Tests
             var chain = await _blockTest.CreateChain();
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             
-            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
+            var worldStateManager = await new WorldStateConsole(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
             var chainManger = new ChainManager(_chainStore, _dataStore, worldStateManager);
             
             var address = Hash.Generate();

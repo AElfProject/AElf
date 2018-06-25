@@ -4,9 +4,9 @@ using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Managers
 {
-    public interface IWorldStateManager
+    public interface IWorldStateConsole
     {
-        Task<IWorldStateManager> OfChain(Hash chainId);
+        Task<IWorldStateConsole> OfChain(Hash chainId);
         
         Task<IWorldState> GetWorldStateAsync(Hash blockHash);
 
@@ -39,5 +39,7 @@ namespace AElf.Kernel.Managers
         Task<byte[]> GetDataAsync(Hash pointerHash);
 
         Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId);
+        
+        Hash PreBlockHash { get; set; }
     }
 }
