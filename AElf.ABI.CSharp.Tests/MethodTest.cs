@@ -12,7 +12,7 @@ namespace AElf.ABI.Tests
     public class MethodTest
     {
         [Fact]
-        public void Test()
+        public void  Test()
         {
             var methodAbi =
                 @"{""ReturnType"": ""bool"", ""IsAsync"": true, ""Params"": [{""Type"": ""bool"", ""Name"": ""Bool""}, {""Type"": ""int"", ""Name"": ""Int""}, {""Type"": ""uint"", ""Name"": ""UInt""}, {""Type"": ""long"", ""Name"": ""Long""}, {""Type"": ""ulong"", ""Name"": ""ULong""}, {""Type"": ""string"", ""Name"": ""String""}, {""Type"": ""byte[]"", ""Name"": ""Bytes""}, {""Type"": ""AElf.Kernel.Hash"", ""Name"": ""Hash""}], ""Name"": ""TestMethod""}";

@@ -150,7 +150,7 @@ namespace AElf.Types.CSharp.Tests
         [Fact]
         public void HashTest()
         {
-            var parser = StringInputParsers.GetStringParserFor(typeof(Hash).FullName);
+            var parser = StringInputParsers.GetStringParserFor(typeof(Kernel.Types.Hash).FullName);
             // TODO: Value has to be a fixed length
             var hash = Hash.Generate();
             var hashHex = BitConverter.ToString(hash.Value.ToByteArray()).Replace("-", "");

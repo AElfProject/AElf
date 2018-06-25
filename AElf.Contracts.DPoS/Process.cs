@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Extensions;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
@@ -29,6 +30,9 @@ namespace AElf.Contracts.DPoS
         /// Should be 4000
         /// </summary>
         private const int MiningTime = 100;
+        
+        [SmartContractFieldData("${this}._lock", DataAccessMode.ReadWriteAccountSharing)]
+        private object _lock;
 
         private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");
         
@@ -48,6 +52,7 @@ namespace AElf.Contracts.DPoS
         
         #region Block Producers
         
+        [SmartContractFunction("${this}.GetBlockProducers", new string[]{}, new[]{"${this}._lock"})]
         public async Task<BlockProducer> GetBlockProducers()
         {
             // Should be setted before

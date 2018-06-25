@@ -28,8 +28,6 @@ namespace AElf.Contracts.DPoS.Tests
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
 
-        public IChainContextService ChainContextService;
-
         public IAccountDataProvider DataProvider1;
 
         public ServicePack ServicePack;
@@ -39,43 +37,35 @@ namespace AElf.Contracts.DPoS.Tests
         private IBlockManager _blockManager;
         private IFunctionMetadataService _functionMetadataService;
         
-        private ISmartContractRunnerFactory _smartContractRunnerFactory = new SmartContractRunnerFactory();
+        private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public DPoSMockSetup(IWorldStateManager worldStateManager, IChainCreationService chainCreationService, IBlockManager blockManager, ISmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService)
+        public DPoSMockSetup(IWorldStateManager worldStateManager, IChainCreationService chainCreationService, 
+            IBlockManager blockManager, ISmartContractStore smartContractStore, IChainContextService chainContextService,
+            IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
             _worldStateManager = worldStateManager;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
-            ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
+            _smartContractRunnerFactory = smartContractRunnerFactory;
             SmartContractManager = new SmartContractManager(smartContractStore);
-            var runner = new SmartContractRunner("../../../../AElf.Contracts.DPoS/bin/Debug/netstandard2.0/");
-            _smartContractRunnerFactory.AddRunner(0, runner);
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, 
-                _worldStateManager, _functionMetadataService);
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateManager, _functionMetadataService);
 
             ServicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
-                ResourceDetectionService = null
+                ResourceDetectionService = null,
+                WorldStateManager = _worldStateManager
             };
         }
 
         private async Task Init()
         {
-            var reg = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFrom(),
-                ContractHash = Hash.Zero
-            };
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
-            var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
             DataProvider1 = (await _worldStateManager.OfChain(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
         }
 
