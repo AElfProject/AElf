@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
@@ -16,19 +17,19 @@ namespace AElf.Benchmark
     public class Program
     {
         
-        public static void Main()
+        public static async Task Main()
         {
             Hash chainId = Hash.Generate();
             var builder = new ContainerBuilder();
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new MainModule());
             var dataConfig = new DatabaseConfig();
-            dataConfig.Type = DatabaseType.Ssdb;
+            dataConfig.Type = DatabaseType.Redis;
             dataConfig.Host = "127.0.0.1";
-            dataConfig.Port = 8888;
+            dataConfig.Port = 6379;
             builder.RegisterModule(new DatabaseModule(new DatabaseConfig()));
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 1000);
+            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 100);
             #if DEBUG
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             #else
@@ -88,7 +89,7 @@ namespace AElf.Benchmark
                     }
                 }
                 */
-                var multiGroupRes = benchmarkTps.MultipleGroupBenchmark(1000, 8).Result;
+                var multiGroupRes = await benchmarkTps.MultipleGroupBenchmark(100, 8);
                 foreach (var kv in multiGroupRes)
                 {
                     Console.WriteLine(kv.Key + kv.Value);

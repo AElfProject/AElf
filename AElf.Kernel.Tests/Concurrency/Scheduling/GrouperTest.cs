@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Extensions;
 using Xunit;
@@ -60,11 +61,11 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         }
 
         [Fact]
-        public void MergeByAccountTest()
+        public async Task MergeByAccountTest()
         {
             var txDic = GetTestData();
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
-            var grouped = grouper.Process(Hash.Generate(), txDic.Values.SelectMany(x => x).ToList());
+            var grouped = await grouper.Process(Hash.Generate(), txDic.Values.SelectMany(x => x).ToList());
             var s = grouped.Select(
                 x =>
                 String.Join(" ", x.OrderBy(y => _accountList.IndexOf(y.From)).ThenBy(z => _accountList.IndexOf(z.To)).Select(
@@ -83,11 +84,11 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         }
 
         [Fact]
-        public void MergeByAccountTestFullTxList()
+        public async Task MergeByAccountTestFullTxList()
         {
             var txList = _dataUtil.GetFullTxList();
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
-            var grouped = grouper.Process(Hash.Generate(), txList.Select(x => x).ToList());
+            var grouped = await grouper.Process(Hash.Generate(), txList.Select(x => x).ToList());
             var s = grouped.Select(
                 x => _dataUtil.StringRepresentation(x)
             ).ToList();
@@ -97,7 +98,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         }
 
         [Fact]
-        public void TestReblancedGrouping()
+        public async Task TestReblancedGrouping()
         {
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
 
@@ -134,7 +135,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                 var unmergedGroup = ProduceFakeTxGroup(testCaseSizesList[i]);
                 var txList = new List<ITransaction>();
                 unmergedGroup.ForEach(a => txList.AddRange(a));
-                var actualRes = grouper.ProcessWithCoreCount(coreCountList[i], Hash.Zero, txList);
+                var actualRes = await grouper.ProcessWithCoreCount(coreCountList[i], Hash.Zero, txList);
                 var acutalSizes = actualRes.Select(a => a.Count).ToList();
                 Assert.Equal(expectedSizesList[i].OrderBy(a=>a), acutalSizes.OrderBy(a=>a));
             }

@@ -69,7 +69,8 @@ namespace AElf.Benchmark
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new ResourceUsageDetectionService(functionMetadataService),
                 WorldStateManager = _worldStateManager,
-                AccountContextService = _accountContextService
+                AccountContextService = _accountContextService,
+                Logger = logger
             };
 
             var workers = new[]

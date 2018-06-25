@@ -18,14 +18,14 @@ namespace AElf.Kernel.Concurrency.Scheduling
             _functionMetadataService = functionMetadataService;
         }
 
-        public IEnumerable<string> GetResources(Hash chainId, ITransaction transaction)
+        public async Task<IEnumerable<string>> GetResources(Hash chainId, ITransaction transaction)
         {
             var addrs = ParamsPacker.Unpack(transaction.Params.ToByteArray(),
                 new[] {typeof(Hash), typeof(Hash), typeof(ulong)}).Where(item => item is Hash).Cast<Hash>().Select(a => a.Value.ToBase64()).ToImmutableHashSet();
 
             addrs.Add(transaction.From.Value.ToBase64());
             var results = new List<string>();
-            var functionMetadata = _functionMetadataService.GetFunctionMetadata(chainId, GetFunctionName(transaction)).Result;
+            var functionMetadata = await _functionMetadataService.GetFunctionMetadata(chainId, GetFunctionName(transaction));
             foreach (var resource in functionMetadata.FullResourceSet)
             {
                 switch (resource.DataAccessMode)

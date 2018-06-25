@@ -1,4 +1,5 @@
-﻿using AElf.Database;
+﻿using System;
+using AElf.Database;
 using AElf.Database.Config;
 using Autofac;
 
@@ -29,6 +30,12 @@ namespace AElf.Kernel.Modules.AutofacModule
                     }
 #endif
                     builder.RegisterType<SsdbDatabase>().As<IKeyValueDatabase>();
+                    break;
+                case DatabaseType.Redis:
+                    if (!new RedisDatabase(_config).IsConnected())
+                    {
+                        Console.WriteLine("db connection failed");
+                    }
                     break;
             }
         }
