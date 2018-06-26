@@ -50,9 +50,11 @@ namespace AElf.Kernel.Tests
 
         #region DPoS
 
-        private const int MiningTime = 7000;
+        private const int MiningTime = 16000;
 
-        private const int WaitFirstRoundTime = 15000;
+        private const int WaitFirstRoundTime = 25000;
+
+        private const int CheckTime = 6000;
 
         private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");
         
@@ -202,7 +204,7 @@ namespace AElf.Kernel.Tests
             await _eBPMap.SetValueAsync(secondRound, new StringValue {Value = eBPOfRound2.Key});
 
             await _timeForProducingExtraBlock.SetAsync(
-                GetTimestamp(dPoSInfo.RoundInfo[0].Info.Last().Value.TimeSlot, MiningTime));
+                GetTimestamp(dPoSInfo.RoundInfo[0].Info.Last().Value.TimeSlot, MiningTime+ CheckTime));
         }
         
         #endregion
@@ -321,7 +323,8 @@ namespace AElf.Kernel.Tests
 
             await _firstPlaceMap.SetValueAsync(RoundsCount, new StringValue {Value = roundInfo.Info.First().Key});
 
-            await _timeForProducingExtraBlock.SetAsync(GetTimestamp(roundInfo.Info.Last().Value.TimeSlot, MiningTime));
+            await _timeForProducingExtraBlock.SetAsync(GetTimestamp(roundInfo.Info.Last().Value.TimeSlot,
+                MiningTime + CheckTime));
 
             await _roundsCount.SetAsync(RoundsCountAddOne(RoundsCount).Value);
         }
@@ -368,14 +371,14 @@ namespace AElf.Kernel.Tests
             return info;
         }
 
-        public async Task<Hash> TryToPublishInValue(Hash inValue)
+        public async Task<Hash> TryToPublishInValue(Hash inValue, UInt64Value roundsCount)
         {
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
             
-            var info = await GetBlockProducerInfoOfCurrentRound(accountAddress);
+            var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, roundsCount);
             info.InValue = inValue;
 
-            var roundInfo = await _dPoSInfoMap.GetValueAsync(RoundsCount);
+            var roundInfo = await _dPoSInfoMap.GetValueAsync(roundsCount);
             roundInfo.Info[accountAddress] = info;
 
             await _dPoSInfoMap.SetValueAsync(RoundsCount, roundInfo);

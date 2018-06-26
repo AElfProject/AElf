@@ -428,7 +428,8 @@ namespace AElf.Kernel.Node
 
                 if (error != ValidationError.Success)
                 {
-                    _logger.Trace("Invalid block received from network " + error.ToString());
+                    _logger.Trace("Invalid block received from network " + error);
+                    Console.WriteLine("Unsuccess block hash: " + block.GetHash().Value.ToBase64());
                     return new BlockExecutionResult(false, error);
                 }
 
@@ -604,7 +605,6 @@ namespace AElf.Kernel.Node
                                 await BroadcastTxsForNormalBlock(roundsCount, outValue, signature);
 
                                 var block = await _miner.Mine();
-                                
                                 await BroadcastBlock(block);
 
                                 #region Do the log
@@ -649,8 +649,8 @@ namespace AElf.Kernel.Node
                                 var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
 
                                 //Try to publish in value (every BP can do this)
-                                await BroadcastTransaction(_dPoS.GetTryToPublishInValueTx(
-                                    incrementId, ContractAccountHash, inValue));
+                                await BroadcastTransaction(_dPoS.GetTxToPublishInValueTx(
+                                    incrementId, ContractAccountHash, inValue, new UInt64Value {Value = roundsCount}));
 
                                 latestMinedExtraBlockRoundsCount = roundsCount;
 
@@ -874,7 +874,7 @@ namespace AElf.Kernel.Node
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private IObservable<long> GetIntervalObservable()
         {
-            return Observable.Interval(TimeSpan.FromMilliseconds(4000));
+            return Observable.Interval(TimeSpan.FromMilliseconds(6000));
         }
 
         private async Task<Hash> CalculateSignature(Hash inValue)

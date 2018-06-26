@@ -332,7 +332,8 @@ namespace AElf.Kernel.Consensus
             return tx;
         }
 
-        public Transaction TryToGetTxForPublishInValue(ulong incrementId, Hash contractAccountHash, Hash inValue)
+        public Transaction TryToGetTxForPublishInValue(ulong incrementId, Hash contractAccountHash,
+            Hash inValue, UInt64Value roundsCount)
         {
             var tx =  new Transaction
             {
@@ -341,7 +342,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "TryToPublishInValue",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(inValue))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(inValue, roundsCount))
             };
             
             var signer = new ECSigner();
@@ -421,7 +422,8 @@ namespace AElf.Kernel.Consensus
             return tx;
         }
         
-        public Transaction GetTryToPublishInValueTx(ulong incrementId, Hash contractAccountHash, Hash inValue)
+        public Transaction GetTxToPublishInValueTx(ulong incrementId, Hash contractAccountHash,
+            Hash inValue, UInt64Value roundsCount)
         {
             var tx = new Transaction
             {
@@ -430,7 +432,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "TryToPublishInValue",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(inValue))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(inValue, roundsCount))
             };
             
             var signer = new ECSigner();
