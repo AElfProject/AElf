@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="protobuf-net" Version="2.3.9" />
+    <PackageReference Include="ReadLine" Version="2.0.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.ABI.CSharp\AElf.ABI.CSharp.csproj">

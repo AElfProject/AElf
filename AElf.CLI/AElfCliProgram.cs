@@ -21,6 +21,23 @@ using ServiceStack;
 
 namespace AElf.CLI
 {
+    public class AutoCompleteWithRegisteredCommand : IAutoCompleteHandler
+    {
+        private List<string> _commands;
+
+        public AutoCompleteWithRegisteredCommand(List<string> commandNames)
+        {
+            _commands = commandNames;
+        }
+        
+        public string[] GetSuggestions(string text, int index)
+        {
+            return _commands.Where(c => c.StartsWith(text)).ToArray();
+        }
+
+        public char[] Separators { get; set; } = {' '};
+    }
+    
     public class AElfCliProgram
     {
 
@@ -55,9 +72,18 @@ namespace AElf.CLI
             _screenManager.PrintUsage();
             _screenManager.PrintLine();
             
+            ReadLine.AutoCompletionHandler = new AutoCompleteWithRegisteredCommand(_commands.Select(c => c.Name).ToList());
+            
             while (true)
             {
-                string command = _screenManager.GetCommand();
+                //string command = _screenManager.GetCommand();
+                string command = ReadLine.Read("aelf> ");
+                
+                
+                if (string.IsNullOrWhiteSpace(command))
+                    continue;
+                    
+                ReadLine.AddHistory(command);
 
                 // stop the repl if "quit", "Quit", "QuiT", ... is encountered
                 if (command.Equals(ExitReplCommand, StringComparison.OrdinalIgnoreCase))
