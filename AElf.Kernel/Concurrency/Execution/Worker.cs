@@ -136,7 +136,7 @@ namespace AElf.Kernel.Concurrency.Execution
                             trace = task.Result;
                             if (trace.IsSuccessful())
                             {
-                                await trace.CommitChangesAsync(_servicePack.WorldStateConsole, chainContext.ChainId);
+                                await trace.CommitChangesAsync(_servicePack.WorldStateDictator, chainContext.ChainId);
                             }
                         }
                         catch (OperationCanceledException)

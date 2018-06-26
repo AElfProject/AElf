@@ -50,7 +50,7 @@ namespace AElf.Kernel.Node
         private readonly IChainContextService _chainContextService;
         private readonly IChainManager _chainManager;
         private readonly IChainCreationService _chainCreationService;
-        private readonly IWorldStateConsole _worldStateConsole;
+        private readonly IWorldStateDictator _worldStateDictator;
         private readonly ISmartContractService _smartContractService;
         private readonly ITransactionResultService _transactionResultService;
 
@@ -86,13 +86,13 @@ namespace AElf.Kernel.Node
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner,
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
-            IChainCreationService chainCreationService, IWorldStateConsole worldStateConsole, 
+            IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator, 
             IChainManager chainManager, ISmartContractService smartContractService,
             ITransactionResultService transactionResultService, IBlockManager blockManager)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
-            _worldStateConsole = worldStateConsole;
+            _worldStateDictator = worldStateDictator;
             _smartContractService = smartContractService;
             _transactionResultService = transactionResultService;
             _blockManager = blockManager;
@@ -106,7 +106,7 @@ namespace AElf.Kernel.Node
             _accountContextService = accountContextService;
             _blockVaildationService = blockVaildationService;
             _chainContextService = chainContextService;
-            _worldStateConsole = worldStateConsole;
+            _worldStateDictator = worldStateDictator;
             _blockExecutor = blockExecutor;
         }
 
@@ -140,9 +140,12 @@ namespace AElf.Kernel.Node
                     var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg)
                         .Result;
                     _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.Value.ToBase64());
-                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToBase64());
+                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", BitConverter.ToString(res.GenesisBlockHash.Value.ToByteArray()).Replace("-",""));
                     var contractAddress = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__"))
                         .ToAccount();
+                    _logger.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
+                        BitConverter.ToString(contractAddress.ToAccount().Value.ToByteArray()).Replace("-",""));
+                    
                     _logger.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"",
                         contractAddress.ToAccount().Value.ToBase64());
 
@@ -163,17 +166,18 @@ namespace AElf.Kernel.Node
                     return false;
                 }*/
             }
-
             
+            // set world state
+            _worldStateDictator.SetChainId(_nodeConfig.ChainId);
             
             _nodeKeyPair = nodeKeyPair;
-            
+
             if (startRpc)
                 _rpcServer.Start();
-            
+
             _poolService.Start();
             _protocolDirector.Start();
-            
+
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
             _protocolDirector.SetCommandContext(this, !_nodeConfig.IsMiner); // If not miner do sync
@@ -200,7 +204,7 @@ namespace AElf.Kernel.Node
                 ChainContextService = _chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new MockResourceUsageDetectionService(),
-                WorldStateConsole = _worldStateConsole
+                WorldStateDictator = _worldStateDictator
             };
             worker1.Tell(new LocalSerivcePack(servicePack));
             worker2.Tell(new LocalSerivcePack(servicePack));
@@ -219,7 +223,6 @@ namespace AElf.Kernel.Node
                 Mine(nodeKeyPair);
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
-                  
             
             _logger?.Log(LogLevel.Debug, "AElf node started.");
             
@@ -227,9 +230,6 @@ namespace AElf.Kernel.Node
         }
 
 
-        
-        
-        
         
         private async Task<bool> InitialDebugSync(string initFileName)
         {
@@ -255,9 +255,7 @@ namespace AElf.Kernel.Node
                         var address = Convert.FromBase64String(kv.Key);
                         var balance = kv.Value.ToObject<ulong>();
                         
-                        await _worldStateConsole.OfChain(_nodeConfig.ChainId);
-            
-                        var accountDataProvider = _worldStateConsole.GetAccountDataProvider(address);
+                        var accountDataProvider = await _worldStateDictator.GetAccountDataProvider(address);
                         var dataProvider = accountDataProvider.GetDataProvider();
                         
                         // set balance
@@ -270,13 +268,12 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                ;
                 return false;
-            }        
+            }
 
             return true;
         }
-        
+
         /// <summary>
         /// get the tx from tx pool or database
         /// </summary>
@@ -288,6 +285,7 @@ namespace AElf.Kernel.Node
             {
                 return tx;
             }
+
             return await _transactionManager.GetTransaction(txId);
         }
 
@@ -303,7 +301,6 @@ namespace AElf.Kernel.Node
         {
             return await _transactionManager.AddTransactionAsync(tx);
         }
-
         
         /// <summary>
         /// This method processes a transaction received from one of the
@@ -316,6 +313,7 @@ namespace AElf.Kernel.Node
             try
             {
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
+
                 _logger.Trace("Received Transaction: " + Convert.ToBase64String(tx.GetHash().Value.ToByteArray()));
                 
                 bool success = await _poolService.AddTxAsync(tx);
@@ -354,7 +352,8 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId)).IncrementId;
+                var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId))
+                    .IncrementId;
                 var idInPool = _poolService.GetIncrementId(addr);
 
                 return Math.Max(idInDB, idInPool);
@@ -368,7 +367,7 @@ namespace AElf.Kernel.Node
         public async Task<Hash> GetLastValidBlockHash()
         {
             var pointer = Path.CalculatePointerForLastBlockHash(_nodeConfig.ChainId);
-            return await _worldStateConsole.GetDataAsync(pointer);
+            return await _worldStateDictator.GetDataAsync(pointer);
         }
 
         /// <summary>
@@ -383,13 +382,13 @@ namespace AElf.Kernel.Node
             {
                 var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
                 var error = await _blockVaildationService.ValidateBlockAsync(block, context);
-                
+
                 if (error != ValidationError.Success)
                 {
                     _logger.Trace("Invalid block received from network" + error.ToString());
                     return new BlockExecutionResult(false, error);
                 }
-            
+
                 bool executed = await _blockExecutor.ExecuteBlock(block);
 
                 return new BlockExecutionResult(executed, error);
@@ -401,7 +400,7 @@ namespace AElf.Kernel.Node
                 return new BlockExecutionResult(e);
             }
         }
-        
+
         /// <summary>
         /// get missing tx hashes for the block. If an exception occured it return
         /// null. If there's simply no transaction from this block in the pool it
@@ -422,6 +421,7 @@ namespace AElf.Kernel.Node
                         res.Add(id);
                     }
                 }
+
                 return res;
             }
             catch (Exception e)
@@ -541,6 +541,32 @@ namespace AElf.Kernel.Node
         /// </summary>
         public async Task Mine(ECKeyPair keyPair)
         {
+
+            /*var txDev = DeployTxDemo(keyPair);
+            var b1 = await _miner.Mine();
+
+            var devRes = await _transactionResultService.GetResultAsync(txDev.GetHash());
+            Hash addr = devRes.RetVal.DeserializeToPbMessage<Hash>();
+
+            var acc1 = Hash.Generate().ToAccount();
+            var txInv1 = InvokTxDemo(keyPair, addr, "InitializeAsync", ParamsPacker.Pack(acc1, (ulong)101), 1);
+
+            var acc2 = Hash.Generate().ToAccount();
+            var txInv2 = InvokTxDemo(keyPair, addr, "InitializeAsync", ParamsPacker.Pack(acc2, (ulong)101), 2);
+            
+            var b2 = await _miner.Mine();
+            
+            var txInv3 = InvokTxDemo(keyPair, addr, "GetBalance", ParamsPacker.Pack(acc1), 3);
+            var txInv4 = InvokTxDemo(keyPair, addr, "GetBalance", ParamsPacker.Pack(acc2), 4);
+
+            var b3 = await _miner.Mine();
+            
+            var inv3Res = await _transactionResultService.GetResultAsync(txInv3.GetHash());
+            var inv4Res = await _transactionResultService.GetResultAsync(txInv4.GetHash());
+
+            Console.WriteLine(inv3Res.RetVal.DeserializeToUInt64());
+            Console.WriteLine(inv4Res.RetVal.DeserializeToUInt64());*/
+
             _dPoS = new DPoS(_nodeKeyPair);
             
             await Task.Run(() =>
@@ -703,13 +729,17 @@ namespace AElf.Kernel.Node
             {
                 Console.WriteLine(e);
             }
-            
+
             _logger.Trace("Broadcasted block to peers:");
-            
+
             return true;
-            
         }
-        
+
+        public async Task<IMessage> GetContractAbi(Hash address)
+        {
+            return await _smartContractService.GetAbiAsync(address);
+        }
+
         /// <summary>
         /// Broadcasts a transaction to the network. This method
         /// also places it in the transaction pool.
@@ -718,7 +748,7 @@ namespace AElf.Kernel.Node
         public async Task<bool> BroadcastTransaction(ITransaction tx)
         {
             bool res;
-            
+
             try
             {
                 res = await _poolService.AddTxAsync(tx);
@@ -739,11 +769,11 @@ namespace AElf.Kernel.Node
                 {
                     Console.WriteLine(e);
                 }
-                
+
                 _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return true;
             }
-            
+
             _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToBase64() + " }");
             return false;
         }

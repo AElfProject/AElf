@@ -32,18 +32,18 @@ namespace AElf.Contracts.DPoS.Tests
 
         public ServicePack ServicePack;
 
-        private IWorldStateConsole _worldStateConsole;
+        private IWorldStateDictator _worldStateDictator;
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
         private IFunctionMetadataService _functionMetadataService;
         
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public DPoSMockSetup(IWorldStateConsole worldStateConsole, IChainCreationService chainCreationService, 
+        public DPoSMockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, 
             IBlockManager blockManager, ISmartContractStore smartContractStore, IChainContextService chainContextService,
             IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            _worldStateConsole = worldStateConsole;
+            _worldStateDictator = worldStateDictator;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             _functionMetadataService = functionMetadataService;
@@ -53,20 +53,20 @@ namespace AElf.Contracts.DPoS.Tests
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateConsole, _functionMetadataService);
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator, _functionMetadataService);
 
             ServicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = null,
-                WorldStateConsole = _worldStateConsole
+                WorldStateDictator = _worldStateDictator
             };
         }
 
         private async Task Init()
         {
-            DataProvider1 = (await _worldStateConsole.OfChain(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
+            DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
         }
 
         public async Task DeployContractAsync(byte[] code, Hash address)

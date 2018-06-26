@@ -10,7 +10,7 @@ namespace AElf.Kernel.Modules.AutofacModule
         {
             //TODO : REVIEW - probably not a good idea
             
-            var assembly = typeof(IWorldStateConsole).Assembly;
+            var assembly = typeof(IWorldStateDictator).Assembly;
             
             builder.RegisterInstance<IHash>(new Hash()).As<Hash>();
             

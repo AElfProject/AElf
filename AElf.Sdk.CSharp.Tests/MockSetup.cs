@@ -46,15 +46,15 @@ namespace AElf.Sdk.CSharp.Tests
 
         public ServicePack ServicePack;
 
-        private IWorldStateConsole _worldStateConsole;
+        private IWorldStateDictator _worldStateDictator;
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateConsole worldStateConsole, IChainCreationService chainCreationService, IBlockManager blockManager, ISmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, IBlockManager blockManager, ISmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            _worldStateConsole = worldStateConsole;
+            _worldStateDictator = worldStateDictator;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             ChainContextService = chainContextService;
@@ -65,14 +65,14 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateConsole, _functionMetadataService);
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator, _functionMetadataService);
 
             ServicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = null,
-                WorldStateConsole = _worldStateConsole
+                WorldStateDictator = _worldStateDictator
             };
         }
 
@@ -94,7 +94,7 @@ namespace AElf.Sdk.CSharp.Tests
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
-            DataProvider1 = (await _worldStateConsole.OfChain(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
+            DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
         }
 
         public async Task DeployContractAsync(byte[] code, Hash address)

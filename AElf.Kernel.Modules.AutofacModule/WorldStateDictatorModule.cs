@@ -4,11 +4,11 @@ using Org.BouncyCastle.Crypto.Tls;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
-    public class WorldStateManagerModule : Module
+    public class WorldStateDictatorModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<WorldStateConsole>().As<IWorldStateConsole>().SingleInstance();
+            builder.RegisterType<WorldStateDictator>().As<IWorldStateDictator>().SingleInstance();
         }
     }
 }

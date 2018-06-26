@@ -7,6 +7,7 @@ using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Managers;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Types;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Services
 {
@@ -16,14 +17,14 @@ namespace AElf.Kernel.Services
         private readonly ISmartContractManager _smartContractManager;
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
-        private readonly IWorldStateConsole _worldStateConsole;
+        private readonly IWorldStateDictator _worldStateDictator;
         private readonly IFunctionMetadataService _functionMetadataService;
 
-        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerFactory smartContractRunnerFactory, IWorldStateConsole worldStateConsole, IFunctionMetadataService functionMetadataService)
+        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerFactory smartContractRunnerFactory, IWorldStateDictator worldStateDictator, IFunctionMetadataService functionMetadataService)
         {
             _smartContractManager = smartContractManager;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _worldStateConsole = worldStateConsole;
+            _worldStateDictator = worldStateDictator;
             _functionMetadataService = functionMetadataService;
         }
 
@@ -31,8 +32,8 @@ namespace AElf.Kernel.Services
         {
             if (!_executivePools.TryGetValue(account, out var pool))
             {
-                // Virtually never happens
                 pool = new ConcurrentBag<IExecutive>();
+                _executivePools[account] = pool;
             }
             return pool;
         }
@@ -56,14 +57,14 @@ namespace AElf.Kernel.Services
             }
 
             // get account dataprovider
-            var dataProvider = new CachedDataProvider((await _worldStateConsole.OfChain(chainId))
-                .GetAccountDataProvider(account).GetDataProvider());
+            var dataProvider =
+                new CachedDataProvider((await _worldStateDictator.GetAccountDataProvider(account)).GetDataProvider());
 
             // run smartcontract executive info and return executive
 
             executive = await runner.RunAsync(reg);
 
-            executive.SetWorldStateManager(_worldStateConsole);
+            executive.SetWorldStateManager(_worldStateDictator);
             
             executive.SetSmartContractContext(new SmartContractContext()
             {
@@ -100,6 +101,13 @@ namespace AElf.Kernel.Services
             await _functionMetadataService.DeployContract(chainId, contractType, account, new Dictionary<string, Hash>());
 
             await _smartContractManager.InsertAsync(account, registration);
+        }
+
+        public async Task<IMessage> GetAbiAsync(Hash account)
+        {
+            var reg = await _smartContractManager.GetAsync(account);
+            var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
+            return runner.GetAbi(reg);
         }
     }
 }

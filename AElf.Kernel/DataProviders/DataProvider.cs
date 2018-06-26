@@ -7,7 +7,7 @@ namespace AElf.Kernel
     public class DataProvider : IDataProvider
     {
         private readonly IAccountDataContext _accountDataContext;
-        private readonly IWorldStateConsole _worldStateConsole;
+        private readonly IWorldStateDictator _worldStateDictator;
 
         /// <summary>
         /// To dictinct DataProviders of same account and same level.
@@ -22,10 +22,10 @@ namespace AElf.Kernel
         /// </summary>
         private Hash PreBlockHash { get; set; }
 
-        public DataProvider(IAccountDataContext accountDataContext, IWorldStateConsole worldStateConsole,
+        public DataProvider(IAccountDataContext accountDataContext, IWorldStateDictator worldStateDictator,
             string dataProviderKey = "")
         {
-            _worldStateConsole = worldStateConsole;
+            _worldStateDictator = worldStateDictator;
             _accountDataContext = accountDataContext;
             _dataProviderKey = dataProviderKey;
 
@@ -48,7 +48,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public IDataProvider GetDataProvider(string dataProviderKey)
         {
-            return new DataProvider(_accountDataContext, _worldStateConsole, dataProviderKey);
+            return new DataProvider(_accountDataContext, _worldStateDictator, dataProviderKey);
         }
 
         /// <summary>
@@ -60,13 +60,13 @@ namespace AElf.Kernel
         public async Task<byte[]> GetAsync(Hash keyHash, Hash preBlockHash)
         {
             //Get correspoding WorldState instance
-            var worldState = await _worldStateConsole.GetWorldStateAsync(preBlockHash);
+            var worldState = await _worldStateDictator.GetWorldStateAsync(preBlockHash);
             //Get corresponding path hash
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
             //Using path hash to get Change from WorldState
             var change = await worldState.GetChangeAsync(pathHash);
 
-            return await _worldStateConsole.GetDataAsync(change.After);
+            return await _worldStateDictator.GetDataAsync(change.After);
         }
 
         /// <summary>
@@ -77,8 +77,8 @@ namespace AElf.Kernel
         public async Task<byte[]> GetAsync(Hash keyHash)
         {
             var foo = _path.SetDataKey(keyHash).GetPathHash();
-            var pointerHash = await _worldStateConsole.GetPointerAsync(foo);
-            return await _worldStateConsole.GetDataAsync(pointerHash);
+            var pointerHash = await _worldStateDictator.GetPointerAsync(foo);
+            return await _worldStateDictator.GetDataAsync(pointerHash);
         }
 
         /// <summary>
@@ -96,17 +96,17 @@ namespace AElf.Kernel
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
 
             //Generate the new pointer hash (using previous block hash)
-            var pointerHashAfter = _worldStateConsole.CalculatePointerHashOfCurrentHeight(_path);
+            var pointerHashAfter =await _worldStateDictator.CalculatePointerHashOfCurrentHeight(_path);
 
             var preBlockHash = PreBlockHash;
             if (preBlockHash == null)
             {
-                PreBlockHash = await _worldStateConsole.GetDataAsync(
+                PreBlockHash = await _worldStateDictator.GetDataAsync(
                     Path.CalculatePointerForLastBlockHash(_accountDataContext.ChainId));
                 preBlockHash = PreBlockHash;
             }
 
-            var change = await _worldStateConsole.GetChangeAsync(pathHash);
+            var change = await _worldStateDictator.GetChangeAsync(pathHash);
             if (change == null)
             {
                 change = new Change
@@ -128,8 +128,8 @@ namespace AElf.Kernel
 
             change.LatestChangedBlockHash = preBlockHash;
 
-            await _worldStateConsole.InsertChangeAsync(pathHash, change);
-            await _worldStateConsole.SetDataAsync(pointerHashAfter, obj);
+            await _worldStateDictator.InsertChangeAsync(pathHash, change);
+            await _worldStateDictator.SetDataAsync(pointerHashAfter, obj);
 
             return change;
         }

@@ -37,14 +37,14 @@ namespace AElf.Kernel.Tests.Miner
     {
         private IChainCreationService _chainCreationService;
         private IChainContextService _chainContextService;
-        private IWorldStateConsole _worldStateConsole;
+        private IWorldStateDictator _worldStateDictator;
         private ISmartContractManager _smartContractManager;
         private IFunctionMetadataService _functionMetadataService;
 
         private ServicePack _servicePack;
         private IActorRef _requestor;
 
-        public Synchronizer(IWorldStateConsole worldStateConsole, ISmartContractStore smartContractStore,
+        public Synchronizer(IWorldStateDictator worldStateDictator, ISmartContractStore smartContractStore,
             IChainCreationService chainCreationService, IChainContextService chainContextService, IChainManager chainManager, IBlockManager blockManager, ILogger logger, ITransactionResultManager transactionResultManager, ITransactionManager transactionManager, IAccountContextService accountContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory) : base(new XunitAssertions())
         {
             _chainCreationService = chainCreationService;
@@ -58,7 +58,7 @@ namespace AElf.Kernel.Tests.Miner
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
 
-            _worldStateConsole = worldStateConsole;
+            _worldStateDictator = worldStateDictator;
             _smartContractManager = new SmartContractManager(smartContractStore);
         }
 
@@ -67,14 +67,14 @@ namespace AElf.Kernel.Tests.Miner
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, await _worldStateConsole.OfChain(chainId), _functionMetadataService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateDictator.SetChainId(chainId), _functionMetadataService);
 
             _servicePack = new ServicePack
             {
                 ChainContextService = _chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new NewMockResourceUsageDetectionService(),
-                WorldStateConsole = _worldStateConsole
+                WorldStateDictator = _worldStateDictator
             };
             
             var workers = new[] {"/user/worker1", "/user/worker2"};

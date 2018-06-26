@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using AElf.Kernel;
 using Google.Protobuf;
+using  AElf.Types.CSharp;
 using Xunit;
 
-namespace AElf.Types.CSharp.Tests
+namespace AElf.ABI.CSharp.Tests
 {
     public class StringInputParsersTest
     {
@@ -154,12 +155,15 @@ namespace AElf.Types.CSharp.Tests
             // TODO: Value has to be a fixed length
             var hash = Hash.Generate();
             var hashHex = BitConverter.ToString(hash.Value.ToByteArray()).Replace("-", "");
-            Assert.Equal(hash, parser(hashHex));
-            Assert.Equal(hash, parser("0x" + hashHex));
+            
+            // Note: Hash has the same structure as BytesValue, hence using BytesValue for serialization.
+            // So that we don't need dependency AElf.Kernel.
+            Assert.Equal(hash.ToByteArray(), ((IMessage)parser(hashHex)).ToByteArray());
+            Assert.Equal(hash.ToByteArray(), ((IMessage)parser("0x" + hashHex)).ToByteArray());
 
             // Lowercase
-            Assert.Equal(hash, parser(hashHex.ToLower()));
-            Assert.Equal(hash, parser("0x" + hashHex.ToLower()));
+            Assert.Equal(hash.ToByteArray(), ((IMessage)parser(hashHex.ToLower())).ToByteArray());
+            Assert.Equal(hash.ToByteArray(), ((IMessage)parser("0x" + hashHex.ToLower())).ToByteArray());
 
             var tooShort = "0x101010";
             Assert.ThrowsAny<Exception>(() => parser(tooShort));

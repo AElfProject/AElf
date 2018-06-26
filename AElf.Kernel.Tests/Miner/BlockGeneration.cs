@@ -17,19 +17,19 @@ namespace AElf.Kernel.Tests.Miner
     public class BlockGeneration
     {
         private readonly IBlockManager _blockManager;
-        private readonly IWorldStateConsole _worldStateConsole;
+        private readonly IWorldStateDictator _worldStateDictator;
 
-        public BlockGeneration(IBlockManager blockManager, IWorldStateConsole worldStateConsole)
+        public BlockGeneration(IBlockManager blockManager, IWorldStateDictator worldStateDictator)
         {
             _blockManager = blockManager;
-            _worldStateConsole = worldStateConsole;
+            _worldStateDictator = worldStateDictator;
         }
 
 
         public async Task SetWorldState()
         {
             var address = Hash.Generate();
-            var accountDataProvider = _worldStateConsole.GetAccountDataProvider(address);
+            var accountDataProvider = await _worldStateDictator.GetAccountDataProvider(address);
             var dataProvider = accountDataProvider.GetDataProvider();
             var data1 = Hash.Generate().Value.ToArray();
             var key = new Hash("testkey".CalculateHash());
@@ -74,10 +74,10 @@ namespace AElf.Kernel.Tests.Miner
             return Task.FromResult(dict);
         }
 
-        public async Task<Mock<IWorldStateConsole>> GetWorldStateManager(Hash lastBlockHash, Hash txId1, Hash txId2, Hash h1, Hash h2, Hash chainId)
+        public async Task<Mock<IWorldStateDictator>> GetWorldStateManager(Hash lastBlockHash, Hash txId1, Hash txId2, Hash h1, Hash h2, Hash chainId)
         {
             var dic = new Dictionary<string, byte[]>();
-            var mock = new Mock<IWorldStateConsole>();
+            var mock = new Mock<IWorldStateDictator>();
             mock.Setup(ws => ws.GetChangesDictionaryAsync()).Returns(() => GetChangesDictionaryAsync(lastBlockHash, txId1, txId2, h1, h2));
 
             var changes = await GetChangesDictionaryAsync(lastBlockHash, txId1, txId2, h1, h2);

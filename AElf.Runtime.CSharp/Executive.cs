@@ -58,7 +58,7 @@ namespace AElf.Runtime.CSharp
         private ISmartContract _smartContract;
         private ITransactionContext _currentTransactionContext;
         private ISmartContractContext _currentSmartContractContext;
-        private IWorldStateConsole _worldStateConsole;
+        private IWorldStateDictator _worldStateDictator;
 
         public Executive(Module abiModule)
         {
@@ -68,9 +68,9 @@ namespace AElf.Runtime.CSharp
             }
         }
 
-        public IExecutive SetWorldStateManager(IWorldStateConsole worldStateConsole)
+        public IExecutive SetWorldStateManager(IWorldStateDictator worldStateDictator)
         {
-            _worldStateConsole = worldStateConsole;
+            _worldStateDictator = worldStateDictator;
             return this;
         }
 
@@ -206,7 +206,7 @@ namespace AElf.Runtime.CSharp
                             .GetValueChanges());
                         if (autoCommit)
                         {
-                            await _currentTransactionContext.Trace.CommitChangesAsync(_worldStateConsole,
+                            await _currentTransactionContext.Trace.CommitChangesAsync(_worldStateDictator,
                                 _currentSmartContractContext.ChainId);                            
                         }
                     }

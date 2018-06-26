@@ -12,15 +12,15 @@ namespace AElf.Kernel.Managers
 
         private readonly IBlockBodyStore _blockBodyStore;
 
-        private readonly IWorldStateConsole _worldStateConsole;
+        private readonly IWorldStateDictator _worldStateDictator;
 
         private IDataProvider _heightOfBlock;
 
-        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore, IWorldStateConsole worldStateConsole)
+        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore, IWorldStateDictator worldStateDictator)
         {
             _blockHeaderStore = blockHeaderStore;
             _blockBodyStore = blockBodyStore;
-            _worldStateConsole = worldStateConsole;
+            _worldStateDictator = worldStateDictator;
         }
 
         public async Task<IBlock> AddBlockAsync(IBlock block)
@@ -97,8 +97,8 @@ namespace AElf.Kernel.Managers
 
         private async Task InitialHeightOfBlock(Hash chainId)
         {
-            await _worldStateConsole.OfChain(chainId);
-            _heightOfBlock = _worldStateConsole.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId))
+            _worldStateDictator.SetChainId(chainId);
+            _heightOfBlock = (await _worldStateDictator.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId)))
                 .GetDataProvider().GetDataProvider("HeightOfBlock");
         }
     }

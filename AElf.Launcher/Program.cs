@@ -10,9 +10,6 @@ using AElf.Cryptography.ECDSA;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
-using AElf.Kernel.Concurrency;
-using AElf.Kernel.Concurrency.Execution;
-using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Modules.AutofacModule;
@@ -119,146 +116,6 @@ namespace AElf.Launcher
         }
         
         
-        /*/// <summary>
-        /// temple mine to generate fake block data with loop
-        /// </summary>
-        public static void Mine(IAElfNode node)
-        {
-            Task.Run(async () =>
-            {
-                var keypair = new KeyPairGenerator().Generate();
-                var txDevp = DeployTxDemo(keypair);
-                node.BroadcastTransaction(txDep).Result;
-                //var b1 = await _miner.Mine();
-                await _transactionResultService.GetResultAsync(txDevp.GetHash());
-                //Console.WriteLine(result.RetVal.d);
-                _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", b1.GetHash(),
-                    b1.Body.Transactions.Count);
-
-                var txRes = await _transactionResultService.GetResultAsync(txDevp.GetHash());
-                var hash = Hash.Parser.ParseFrom(txRes.RetVal.ToByteArray());
-                var txInv = InvokTxDemo(keypair, hash);
-                var b2 = await _miner.Mine();
-                await _transactionResultService.GetResultAsync(txDevp.GetHash());
-                //Console.WriteLine(result.RetVal.d);
-                _logger.Log(LogLevel.Debug, "Genereate block: {0}, with {1} transactions", b2.GetHash(),
-                    b2.Body.Transactions.Count);
-                
-                while (true)
-                {
-                    await Task.Delay(5000);
-
-                    try
-                    {
-                        while (true)
-                        {
-                            await Task.Delay(10000); // secs
-
-                            var block = await _miner.Mine();
-
-                            _logger.Log(LogLevel.Debug, "Genereated block: {0}, with {1} transactions", block.GetHash(),
-                                block.Body.Transactions.Count);
-
-                            await BroadcastBlock(block);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.Log(LogLevel.Debug, e);
-                    }
-                }
-            });
-
-        }
-
-        private ITransaction InvokTxDemo(ECKeyPair keyPair, Hash hash)
-        {
-            ECSigner signer = new ECSigner();
-            var txInv = new Transaction
-            {
-                From = keyPair.GetAddress(),
-                To = hash,
-                IncrementId = 1,
-                MethodName = "InitializeAsync",
-                Params = ByteString.CopyFrom(new Parameters()
-                {
-                    Params = {
-                        new Param
-                        {
-                            HashVal = Hash.Generate().ToAccount()
-                        },
-                        new Param
-                        {
-                            UlongVal = 101
-                        }
-                    }
-                }.ToByteArray()),
-                
-                Fee = TxPoolConfig.Default.FeeThreshold + 1
-            };
-            
-            Hash txhash = txInv.GetHash();
-
-            ECSignature signature = signer.Sign(keyPair, txhash.GetHashBytes());
-            txInv.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txInv.R = ByteString.CopyFrom(signature.R); 
-            txInv.S = ByteString.CopyFrom(signature.S);
-
-            var res = BroadcastTransaction(txInv).Result;
-            return txInv;
-        }
-        
-        
-        private ITransaction DeployTxDemo(ECKeyPair keyPair)
-        {
-            var ContractName = "AElf.Kernel.Tests.TestContract";
-            var contractZeroDllPath = $"../{ContractName}/bin/Debug/netstandard2.0/{ContractName}.dll";
-            
-            byte[] code = null;
-            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(contractZeroDllPath)))
-            {
-                code = file.ReadFully();
-            }
-            //System.Diagnostics.Debug.WriteLine(ByteString.CopyFrom(code).ToBase64());
-            
-            ECSigner signer = new ECSigner();
-            var txDep = new Transaction
-            {
-                From = keyPair.GetAddress(),
-                To = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount(),
-                IncrementId = 0,
-                MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(new Parameters()
-                {
-                    Params = {
-                        new Param
-                        {
-                            IntVal = 0
-                        }, 
-                        new Param
-                        {
-                            BytesVal = ByteString.CopyFrom(code)
-                        }
-                    }
-                }.ToByteArray()),
-                
-                Fee = TxPoolConfig.Default.FeeThreshold + 1
-            };
-            
-            Hash hash = txDep.GetHash();
-
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
-            txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txDep.R = ByteString.CopyFrom(signature.R); 
-            txDep.S = ByteString.CopyFrom(signature.S);
-            
-            return txDep;
-        }
-        */
-
-        
-
-        
         private static byte[] SmartContractZeroCode
         {
             get
@@ -293,7 +150,7 @@ namespace AElf.Launcher
             
             // Module registrations
             builder.RegisterModule(new TransactionManagerModule());
-            builder.RegisterModule(new WorldStateManagerModule());
+            builder.RegisterModule(new WorldStateDictatorModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseModule(databaseConf));
             builder.RegisterModule(new NetworkModule(netConf, isMiner));
