@@ -65,6 +65,8 @@ namespace AElf.Launcher
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
+            smartContractRunnerFactory.AddRunner(1, runner);
+
             
             // Setup ioc 
             IContainer container = SetupIocContainer(isMiner, isNewChain, netConf, databaseConf, txPoolConf, 

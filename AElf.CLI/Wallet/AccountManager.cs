@@ -140,6 +140,12 @@ namespace AElf.CLI.Wallet
                 _screenManager.PrintLine("no accounts available");
         }
 
+        public ECKeyPair GetKeyPair(string addr)
+        {
+            ECKeyPair kp = _keyStore.GetAccountKeyPair(addr);
+            return kp;
+        }
+
         public Transaction SignTransaction(JObject t)
         {
             Transaction tr = new Transaction();
@@ -158,7 +164,8 @@ namespace AElf.CLI.Wallet
                 tr.To = Convert.FromBase64String(t["to"].ToString());
                 tr.IncrementId = t["incr"].ToObject<ulong>();
                 tr.MethodName = t["method"].ToObject<string>();
-                tr.Params = Convert.FromBase64String(t["params"].ToString());
+                var p = Convert.FromBase64String(t["params"].ToString());
+                tr.Params = p.Length == 0 ? null : p;
  
                 MemoryStream ms = new MemoryStream();
                 Serializer.Serialize(ms, tr);

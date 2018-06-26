@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using AElf.CLI.Command;
 using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Helpers;
@@ -13,6 +14,7 @@ using AElf.CLI.Screen;
 using AElf.CLI.Wallet;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Cryptography.ECDSA;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Asn1.Misc;
@@ -191,6 +193,24 @@ namespace AElf.CLI
                     t.To = Convert.FromBase64String(parsedCmd.Args.ElementAt(3));
                     t.MethodName = "DeploySmartContract";
                     t.Params = serializedParams;
+                    
+                    MemoryStream ms = new MemoryStream();
+                    Serializer.Serialize(ms, t);
+    
+                    byte[] b = ms.ToArray();
+                    byte[] toSig = SHA256.Create().ComputeHash(b);
+
+                    ECKeyPair kp = _accountManager.GetKeyPair(parsedCmd.Args.ElementAt(2));
+                    
+                    // Sign the hash
+                    ECSigner signer = new ECSigner();
+                    ECSignature signature = signer.Sign(kp, toSig);
+                
+                    // Update the signature
+                    t.R = signature.R;
+                    t.S = signature.S;
+                
+                    t.P = kp.PublicKey.Q.GetEncoded();
                     
                     SignAndSendTransaction(t);
 
