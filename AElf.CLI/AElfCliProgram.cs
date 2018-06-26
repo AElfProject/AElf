@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using AElf.CLI.Command;
 using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Helpers;
@@ -13,6 +15,7 @@ using AElf.CLI.Screen;
 using AElf.CLI.Wallet;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Cryptography.ECDSA;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Asn1.Misc;
@@ -41,7 +44,7 @@ namespace AElf.CLI
     public class AElfCliProgram
     {
 
-        private const string RpcAddress = "http://localhost:5000";
+        private string _rpcAddress;
             
         private static readonly RpcCalls Rpc = new RpcCalls();
         
@@ -54,14 +57,17 @@ namespace AElf.CLI
         private readonly CommandParser _cmdParser;
         private readonly AccountManager _accountManager;
 
-        private readonly List<Module> _loadedModules;
+        private readonly Dictionary<string, Module> _loadedModules;
         
-        public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager)
+        public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager,
+            int port = 5000)
         {
+            _rpcAddress = "http://localhost:" + port;
+            
             _screenManager = screenManager;
             _cmdParser = cmdParser;
             _accountManager = accountManager;
-            _loadedModules = new List<Module>();
+            _loadedModules = new Dictionary<string, Module>();
 
             _commands = new List<CliCommandDefinition>();
         }
@@ -121,7 +127,7 @@ namespace AElf.CLI
                     try
                     {
                         // RPC
-                        HttpRequestor reqhttp = new HttpRequestor(RpcAddress);
+                        HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
                         string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
         
                         if (resp == null)
@@ -141,7 +147,7 @@ namespace AElf.CLI
                         
                         _screenManager.Print(JsonConvert.SerializeObject(m));
                         
-                        _loadedModules.Add(m);
+                        _loadedModules.Add(res["address"].ToString(), m);
                         
                     }
                     catch (Exception e)
@@ -168,7 +174,7 @@ namespace AElf.CLI
                     byte[] sc = screader.Read(filename);
                     string hex = BitConverter.ToString(sc).Replace("-", string.Empty).ToLower();
 
-                    Module m = _loadedModules.FirstOrDefault(ld => ld.Name.Equals("AElf.Kernel.Tests.TestContractZero"));
+                    Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals("AElf.Kernel.Tests.TestContractZero"));
 
                     if (m == null)
                     {
@@ -192,6 +198,24 @@ namespace AElf.CLI
                     t.MethodName = "DeploySmartContract";
                     t.Params = serializedParams;
                     
+                    MemoryStream ms = new MemoryStream();
+                    Serializer.Serialize(ms, t);
+    
+                    byte[] b = ms.ToArray();
+                    byte[] toSig = SHA256.Create().ComputeHash(b);
+
+                    ECKeyPair kp = _accountManager.GetKeyPair(parsedCmd.Args.ElementAt(2));
+                    
+                    // Sign the hash
+                    ECSigner signer = new ECSigner();
+                    ECSignature signature = signer.Sign(kp, toSig);
+                
+                    // Update the signature
+                    t.R = signature.R;
+                    t.S = signature.S;
+                
+                    t.P = kp.PublicKey.Q.GetEncoded();
+                    
                     SignAndSendTransaction(t);
 
                     return;
@@ -207,9 +231,43 @@ namespace AElf.CLI
                         try
                         {
                             JObject j = JObject.Parse(parsedCmd.Args.ElementAt(0));
-                            Transaction tx = _accountManager.SignTransaction(j);
                             
-                            SignAndSendTransaction(tx);
+                            Transaction tr = new Transaction();
+
+                            try
+                            {
+                                tr.From = ByteArrayHelpers.FromHexString(j["from"].ToString());
+                                tr.To = Convert.FromBase64String(j["to"].ToString());
+                                tr.IncrementId = j["incr"].ToObject<ulong>();
+                                tr.MethodName = j["method"].ToObject<string>();
+                                
+                                JArray p = JArray.Parse(j["params"].ToString());
+                                
+                                string hex = BitConverter.ToString(tr.To.Value).Replace("-", string.Empty).ToLower();
+
+                                Module m = null;
+                                if (!_loadedModules.TryGetValue(hex, out m))
+                                {
+                                    return;
+                                }
+                                
+                                //Module m = _loadedModules?.FirstOrDefault(ld => ld.Key.Equals(hex));
+                                Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(tr.MethodName));
+
+                                if (method == null)
+                                    return;
+
+                                tr.Params = method.SerializeParams(p.ToObject<string[]>());
+
+                                _accountManager.SignTransaction(tr);
+                                
+                                SignAndSendTransaction(tr);
+                            }
+                            catch (Exception e)
+                            {
+                                return;
+                            }
+                            
                             return;
                         }
                         catch (Exception e) 
@@ -236,7 +294,7 @@ namespace AElf.CLI
                 else
                 {
                     // RPC
-                    HttpRequestor reqhttp = new HttpRequestor(RpcAddress);
+                    HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
                     string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
 
                     if (resp == null)
@@ -266,7 +324,7 @@ namespace AElf.CLI
             var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);
                         
             // todo send raw tx
-            HttpRequestor reqhttp = new HttpRequestor(RpcAddress);
+            HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
             string resp = reqhttp.DoRequest(req.ToString());
         }
 

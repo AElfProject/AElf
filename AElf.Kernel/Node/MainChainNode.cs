@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reactive.Linq;
@@ -20,15 +20,14 @@ using AElf.Kernel.Node.RPC.DTO;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
- using AElf.Types.CSharp;
- using Akka.Actor;
+using AElf.Types.CSharp;
+using Akka.Actor;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 using ServiceStack;
- using Type = System.Type;
 
 namespace AElf.Kernel.Node
 {
@@ -110,7 +109,8 @@ namespace AElf.Kernel.Node
             _blockExecutor = blockExecutor;
         }
 
-        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, string initdata, byte[] code = null)
+        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string initdata,
+            byte[] code = null)
         {
             if (_nodeConfig == null)
             {
@@ -140,7 +140,7 @@ namespace AElf.Kernel.Node
                     var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg)
                         .Result;
                     _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.Value.ToBase64());
-                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", BitConverter.ToString(res.GenesisBlockHash.Value.ToByteArray()).Replace("-",""));
+                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToBase64());
                     var contractAddress = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__"))
                         .ToAccount();
                     _logger.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
@@ -173,7 +173,7 @@ namespace AElf.Kernel.Node
             _nodeKeyPair = nodeKeyPair;
 
             if (startRpc)
-                _rpcServer.Start();
+                _rpcServer.Start(rpcPort);
 
             _poolService.Start();
             _protocolDirector.Start();
@@ -220,7 +220,7 @@ namespace AElf.Kernel.Node
             {
                 _miner.Start(nodeKeyPair, parallelTransactionExecutingService);
                 
-                Mine(nodeKeyPair);
+                Mine();
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
             
@@ -539,7 +539,7 @@ namespace AElf.Kernel.Node
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
-        public async Task Mine(ECKeyPair keyPair)
+        public Task Mine()
         {
 
             /*var txDev = DeployTxDemo(keyPair);
@@ -567,7 +567,28 @@ namespace AElf.Kernel.Node
             Console.WriteLine(inv3Res.RetVal.DeserializeToUInt64());
             Console.WriteLine(inv4Res.RetVal.DeserializeToUInt64());*/
 
-            _dPoS = new DPoS(_nodeKeyPair);
+
+            return Task.Run(async () =>
+            {
+                while (true)
+                {
+                    await Task.Delay(10000);
+                    var b = await _miner.Mine();
+                    if (b == null)
+                    {
+                        _logger.Log(LogLevel.Debug, "Block generation failed");
+                        continue;
+                    }
+                    
+                    _logger.Log(LogLevel.Debug,
+                        "Generated block: {0}, with {1} txs and index {2}, previous block hash: {3}",
+                        b.Header.GetHash().Value.ToBase64(), b.Body.Transactions.Count, b.Header.Index,
+                        b.Header.PreviousBlockHash.Value.ToBase64());
+
+                    await BroadcastBlock(b);
+                }
+            });
+            /*_dPoS = new DPoS(_nodeKeyPair);
             
             await Task.Run(() =>
             {
@@ -716,7 +737,7 @@ namespace AElf.Kernel.Node
                         _logger.Log(LogLevel.Trace, "Find myself unable to mine in {0}", DateTime.UtcNow.ToString("u"));
                     }
                 );
-            });
+            });*/
         }
 
         public async Task<bool> BroadcastBlock(IBlock block)

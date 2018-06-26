@@ -45,9 +45,12 @@ namespace AElf.Kernel.CSharp.Tests
             Thread.Sleep(milliSeconds);
         }
 
-        public void NoAction()
+        public string NoAction()
         {
             // Don't delete, this is needed to test placeholder transactions
+            var str = "NoAction";
+            Console.WriteLine("NoAction");
+            return str;
         }
         
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances", "${this}.TransactionStartTimes", "${this}.TransactionEndTimes"})]

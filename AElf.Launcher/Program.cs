@@ -65,6 +65,8 @@ namespace AElf.Launcher
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
+            smartContractRunnerFactory.AddRunner(1, runner);
+
             
             // Setup ioc 
             IContainer container = SetupIocContainer(isMiner, isNewChain, netConf, databaseConf, txPoolConf, 
@@ -107,7 +109,7 @@ namespace AElf.Launcher
                 IAElfNode node = scope.Resolve<IAElfNode>();
                
                 // Start the system
-                node.Start(nodeKey, confParser.Rpc, initData, SmartContractZeroCode);
+                node.Start(nodeKey, confParser.Rpc, confParser.RpcPort, initData, SmartContractZeroCode);
 
                 //Mine(node);
                 Console.ReadLine();
