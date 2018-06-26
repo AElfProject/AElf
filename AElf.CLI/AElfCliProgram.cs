@@ -43,7 +43,7 @@ namespace AElf.CLI
     public class AElfCliProgram
     {
 
-        private const string RpcAddress = "http://localhost:5000";
+        private string _rpcAddress;
             
         private static readonly RpcCalls Rpc = new RpcCalls();
         
@@ -58,8 +58,11 @@ namespace AElf.CLI
 
         private readonly List<Module> _loadedModules;
         
-        public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager)
+        public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager,
+            int port = 5000)
         {
+            _rpcAddress = "http://localhost:" + port;
+            
             _screenManager = screenManager;
             _cmdParser = cmdParser;
             _accountManager = accountManager;
@@ -123,7 +126,7 @@ namespace AElf.CLI
                     try
                     {
                         // RPC
-                        HttpRequestor reqhttp = new HttpRequestor(RpcAddress);
+                        HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
                         string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
         
                         if (resp == null)
@@ -256,7 +259,7 @@ namespace AElf.CLI
                 else
                 {
                     // RPC
-                    HttpRequestor reqhttp = new HttpRequestor(RpcAddress);
+                    HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
                     string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
 
                     if (resp == null)
@@ -286,7 +289,7 @@ namespace AElf.CLI
             var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);
                         
             // todo send raw tx
-            HttpRequestor reqhttp = new HttpRequestor(RpcAddress);
+            HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
             string resp = reqhttp.DoRequest(req.ToString());
         }
 
