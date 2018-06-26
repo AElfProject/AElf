@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -56,7 +57,7 @@ namespace AElf.CLI
         private readonly CommandParser _cmdParser;
         private readonly AccountManager _accountManager;
 
-        private readonly List<Module> _loadedModules;
+        private readonly Dictionary<string, Module> _loadedModules;
         
         public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager,
             int port = 5000)
@@ -66,7 +67,7 @@ namespace AElf.CLI
             _screenManager = screenManager;
             _cmdParser = cmdParser;
             _accountManager = accountManager;
-            _loadedModules = new List<Module>();
+            _loadedModules = new Dictionary<string, Module>();
 
             _commands = new List<CliCommandDefinition>();
         }
@@ -146,7 +147,7 @@ namespace AElf.CLI
                         
                         _screenManager.Print(JsonConvert.SerializeObject(m));
                         
-                        _loadedModules.Add(m);
+                        _loadedModules.Add(res["address"].ToString(), m);
                         
                     }
                     catch (Exception e)
@@ -173,7 +174,7 @@ namespace AElf.CLI
                     byte[] sc = screader.Read(filename);
                     string hex = BitConverter.ToString(sc).Replace("-", string.Empty).ToLower();
 
-                    Module m = _loadedModules.FirstOrDefault(ld => ld.Name.Equals("AElf.Kernel.Tests.TestContractZero"));
+                    Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals("AElf.Kernel.Tests.TestContractZero"));
 
                     if (m == null)
                     {
@@ -230,9 +231,43 @@ namespace AElf.CLI
                         try
                         {
                             JObject j = JObject.Parse(parsedCmd.Args.ElementAt(0));
-                            Transaction tx = _accountManager.SignTransaction(j);
                             
-                            SignAndSendTransaction(tx);
+                            Transaction tr = new Transaction();
+
+                            try
+                            {
+                                tr.From = ByteArrayHelpers.FromHexString(j["from"].ToString());
+                                tr.To = Convert.FromBase64String(j["to"].ToString());
+                                tr.IncrementId = j["incr"].ToObject<ulong>();
+                                tr.MethodName = j["method"].ToObject<string>();
+                                
+                                JArray p = JArray.Parse(j["params"].ToString());
+                                
+                                string hex = BitConverter.ToString(tr.To.Value).Replace("-", string.Empty).ToLower();
+
+                                Module m = null;
+                                if (!_loadedModules.TryGetValue(hex, out m))
+                                {
+                                    return;
+                                }
+                                
+                                //Module m = _loadedModules?.FirstOrDefault(ld => ld.Key.Equals(hex));
+                                Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(tr.MethodName));
+
+                                if (method == null)
+                                    return;
+
+                                tr.Params = method.SerializeParams(p.ToObject<string[]>());
+
+                                _accountManager.SignTransaction(tr);
+                                
+                                SignAndSendTransaction(tr);
+                            }
+                            catch (Exception e)
+                            {
+                                return;
+                            }
+                            
                             return;
                         }
                         catch (Exception e) 
