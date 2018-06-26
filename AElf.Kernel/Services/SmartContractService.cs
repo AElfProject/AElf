@@ -7,6 +7,7 @@ using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Managers;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Types;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Services
 {
@@ -100,6 +101,13 @@ namespace AElf.Kernel.Services
             await _functionMetadataService.DeployContract(chainId, contractType, account, new Dictionary<string, Hash>());
 
             await _smartContractManager.InsertAsync(account, registration);
+        }
+
+        public async Task<IMessage> GetAbiAsync(Hash account)
+        {
+            var reg = await _smartContractManager.GetAsync(account);
+            var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
+            return runner.GetAbi(reg);
         }
     }
 }

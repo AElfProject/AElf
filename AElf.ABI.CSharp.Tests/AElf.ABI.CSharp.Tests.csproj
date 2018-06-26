@@ -6,6 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AElf.ABI.CSharp.Tests.TestContract\AElf.ABI.CSharp.Tests.TestContract.csproj" />
     <ProjectReference Include="..\AElf.ABI.CSharp\AElf.ABI.CSharp.csproj" />
+    <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-preview-20170628-02" />
