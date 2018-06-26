@@ -585,6 +585,8 @@ namespace AElf.Kernel.Node
                         "Generated block: {0}, with {1} txs and index {2}, previous block hash: {3}",
                         b.Header.GetHash().Value.ToBase64(), b.Body.Transactions.Count, b.Header.Index,
                         b.Header.PreviousBlockHash.Value.ToBase64());
+
+                    await BroadcastBlock(b);
                 }
             });
             /*_dPoS = new DPoS(_nodeKeyPair);
