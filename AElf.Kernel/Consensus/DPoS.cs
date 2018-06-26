@@ -187,15 +187,6 @@ namespace AElf.Kernel.Consensus
                     From = AccountHash,
                     To = contractAccountHash,
                     IncrementId = incrementId++,
-                    MethodName = "SupplyRoundInfo",
-                    P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack())
-                },
-                new Transaction
-                {
-                    From = AccountHash,
-                    To = contractAccountHash,
-                    IncrementId = incrementId++,
                     MethodName = "GenerateNextRoundOrder",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom(ParamsPacker.Pack())
@@ -204,7 +195,7 @@ namespace AElf.Kernel.Consensus
                 {
                     From = AccountHash,
                     To = contractAccountHash,
-                    IncrementId = incrementId++,
+                    IncrementId = incrementId,
                     MethodName = "SetNextExtraBlockProducer",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom(ParamsPacker.Pack())

@@ -215,8 +215,8 @@ namespace AElf.Kernel.Tests
             {
                 return await _dPoSInfoMap.GetValueAsync(RoundsCountAddOne(RoundsCount));
             }
-            
-            var infosOfNextRound = new RoundInfo();
+
+            var infosOfNextRound = await SupplyRoundInfo();
             var signatureDict = new Dictionary<Hash, string>();
             var orderDict = new Dictionary<int, string>();
 

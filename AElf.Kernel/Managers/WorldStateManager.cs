@@ -38,12 +38,6 @@ namespace AElf.Kernel.Managers
             var hash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(chainId));
             _preBlockHash = hash ?? Hash.Genesis;
 
-            var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, _preBlockHash);
-            if (await _dataStore.GetDataAsync(keyToGetCount) == null)
-            {
-                await _dataStore.SetDataAsync(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
-            }
-
             _isChainIdSetted = true;
 
             return this;
@@ -67,6 +61,10 @@ namespace AElf.Kernel.Managers
             var count = new UInt64Value {Value = 0};
 
             var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, _preBlockHash);
+            if (await _dataStore.GetDataAsync(keyToGetCount) == null)
+            {
+                await _dataStore.SetDataAsync(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
+            }
             var result = await _dataStore.GetDataAsync(keyToGetCount);
             if (result == null)
             {
@@ -359,6 +357,10 @@ namespace AElf.Kernel.Managers
             var changedPathsCount = new UInt64Value {Value = 0};
             
             var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, blockHash);
+            if (await _dataStore.GetDataAsync(keyToGetCount) == null)
+            {
+                await _dataStore.SetDataAsync(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
+            }
             var result = await _dataStore.GetDataAsync(keyToGetCount);
             if (result == null)
             {
