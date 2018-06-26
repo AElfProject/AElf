@@ -251,7 +251,8 @@ namespace AElf.Kernel.Node.RPC
             string jsonResponse = JsonFormatter.Default.Format(txResult);
             JObject j = new JObject
             {
-                ["txresult"] = jsonResponse
+                ["txresult"] = jsonResponse,
+                ["retval"] = h.Value.ToBase64()
             };
             
             return JObject.FromObject(j);
