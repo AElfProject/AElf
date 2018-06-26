@@ -1,5 +1,4 @@
-﻿using AElf.Cryptography.ECDSA;
-using Akka.Routing;
+﻿﻿using AElf.Cryptography.ECDSA;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace

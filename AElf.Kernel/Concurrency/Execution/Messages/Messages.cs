@@ -267,8 +267,6 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
     {
         private JobExecutionCancelMessage() { }
 
-        public int Count = 111;
-
         /// <summary>
         /// The singleton instance of JobExecutionCancelMessage.
         /// </summary>
@@ -330,11 +328,5 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
     }
 
     #endregion Routed workers
-
-    public class TestMessage:IConsistentHashable
-    {
-        public long RequestId { get; set; }
-        public object ConsistentHashKey { get; }
-    }
 
 }

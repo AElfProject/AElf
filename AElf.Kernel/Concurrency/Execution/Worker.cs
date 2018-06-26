@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,6 @@ using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.KernelAccount;
 using Akka.Routing;
 using Google.Protobuf;
-using Org.BouncyCastle.Asn1;
 
 namespace AElf.Kernel.Concurrency.Execution
 {
@@ -39,7 +38,6 @@ namespace AElf.Kernel.Concurrency.Execution
             switch (message)
             {
                 case LocalSerivcePack res:
-                    Console.WriteLine("job receive LocalSerivcePack"); 
                     if (_state == State.PendingSetSericePack)
                     {
                         _servicePack = res.ServicePack;
@@ -48,21 +46,16 @@ namespace AElf.Kernel.Concurrency.Execution
 
                     break;
                 case JobExecutionRequest req:
-                   Console.WriteLine("job receive JobExecutionRequest");
-                    Console.WriteLine(req.RequestId);
-                    Console.WriteLine(req.Transactions.Count);
-
                     if (_state == State.Idle)
                     {
-                        Console.WriteLine("job run");
                         _cancellationTokenSource?.Dispose();
                         _cancellationTokenSource = new CancellationTokenSource();
-//                        Task.Run(() =>
-//                            RunJob(req).ContinueWith(
-//                                task => task.Result,
-//                                TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
-//                            ).PipeTo(Self)
-//                        );
+                        Task.Run(() =>
+                            RunJob(req).ContinueWith(
+                                task => task.Result,
+                                TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
+                            ).PipeTo(Self)
+                        );
                         Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Running));
                     }
                     else if (_state == State.PendingSetSericePack)
@@ -77,12 +70,10 @@ namespace AElf.Kernel.Concurrency.Execution
 
                     break;
                 case JobExecutionCancelMessage c:
-                    Console.WriteLine("job receive JobExecutionCancelMessage:"+c.Count); 
                     _cancellationTokenSource?.Cancel();
                     Sender.Tell(JobExecutionCancelAckMessage.Instance);
                     break;
                 case JobExecutionStatusQuery query:
-                    Console.WriteLine("job receive JobExecutionStatusQuery"); 
                     if (query.RequestId != _servingRequestId)
                     {
                         Sender.Tell(new JobExecutionStatus(query.RequestId,
