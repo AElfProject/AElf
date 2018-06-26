@@ -38,7 +38,7 @@ namespace AElf.Kernel.Node.Protocol
     /// </summary>
     public class BlockSynchronizer
     {
-        public event EventHandler BlockSynched;
+        public event EventHandler SyncFinished;
         
         // React to new peers connected
         // when a peer connects get the height of his chain
@@ -199,7 +199,7 @@ namespace AElf.Kernel.Node.Protocol
 
         /// <summary>
         /// When a block is received through the network it is placed here for sync
-        /// purposes. Most of the time it will directly throw the <see cref="BlockSynched"/>
+        /// purposes. Most of the time it will directly throw the <see cref="SyncFinished"/>
         /// event. In the case that the transaction was not received through the
         /// network, it will be placed here to sync.
         /// </summary>
@@ -366,7 +366,9 @@ namespace AElf.Kernel.Node.Protocol
                 if (CurrentHeight == SyncTargetHeight)
                 {
                     IsInitialSync = false;
-                    _logger.Trace("Initial sync is finished at height: " + CurrentHeight);
+                    _logger?.Trace("Initial sync is finished at height: " + CurrentHeight);
+                    
+                    SyncFinished?.Invoke(this, EventArgs.Empty);
                 }
             }
         }

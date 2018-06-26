@@ -819,5 +819,10 @@ namespace AElf.Kernel.Node
             // ReSharper disable once InconsistentNaming
             return BoolValue.Parser.ParseFrom(tcAbleToProduceEB.Trace.RetVal).Value;
         }
+
+        public void NotifySyncFinished()
+        {
+            // Called when sync is finished
+        }
     }
 }

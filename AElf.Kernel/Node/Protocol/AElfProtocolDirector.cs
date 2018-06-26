@@ -49,8 +49,14 @@ namespace AElf.Kernel.Node.Protocol
                 ulong height = _node.GetCurrentChainHeight().Result;
                 _blockSynchronizer = new BlockSynchronizer(_node, _peerManager); // todo move
                 _blockSynchronizer.SetNodeHeight((int)height);
+                _blockSynchronizer.SyncFinished += SyncFinished;
                 _blockSynchronizer.Start();
             }
+        }
+
+        private void SyncFinished(object sender, EventArgs e)
+        {
+            _node.NotifySyncFinished();
         }
 
         public void AddTransaction(Transaction tx)
