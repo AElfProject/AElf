@@ -28,7 +28,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 using ServiceStack;
-using Type = System.Type;
 
 namespace AElf.Kernel.Node
 {
