@@ -32,8 +32,8 @@ namespace AElf.Kernel.Services
         {
             if (!_executivePools.TryGetValue(account, out var pool))
             {
-                // Virtually never happens
                 pool = new ConcurrentBag<IExecutive>();
+                _executivePools[account] = pool;
             }
             return pool;
         }
