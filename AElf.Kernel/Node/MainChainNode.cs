@@ -58,8 +58,8 @@ namespace AElf.Kernel.Node
         private readonly IBlockExecutor _blockExecutor;
 
         private DPoS _dPoS;
-
-        private bool amIChainCreater;
+        
+        private const int CheckTime = 1000;
 
         public Hash ContractAccountHash =>
             new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
@@ -149,8 +149,6 @@ namespace AElf.Kernel.Node
                     
                     _logger.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"",
                         contractAddress.ToAccount().Value.ToBase64());
-
-                    amIChainCreater = true;
                 }
             }
             catch (Exception e)
@@ -922,7 +920,7 @@ namespace AElf.Kernel.Node
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private IObservable<long> GetIntervalObservable()
         {
-            return Observable.Interval(TimeSpan.FromMilliseconds(2000));
+            return Observable.Interval(TimeSpan.FromMilliseconds(CheckTime));
         }
 
         private async Task<Hash> CalculateSignature(Hash inValue)

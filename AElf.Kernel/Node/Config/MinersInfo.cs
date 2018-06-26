@@ -19,14 +19,14 @@ namespace AElf.Kernel.Node.Config
                         {"coinbase", "GdsgFf\\="},
                         {"pubkey", "BJHHuAdKY0pAu8ww2QtypFBr"}
                     }
-                }/*,
+                },
                 {
                     "2", new Dictionary<string, string>
                     {
                         {"coinbase", "KAOFepo=="},
                         {"pubkey", "BDlxj44jQtS9Qmt+iOCVod4Y"}
                     }
-                },
+                }/*,
                 {
                     "3", new Dictionary<string, string>
                     {

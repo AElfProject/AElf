@@ -54,7 +54,7 @@ namespace AElf.Kernel.Tests
 
         private const int WaitFirstRoundTime = 1000;
 
-        private const int CheckTime = 2000;
+        private const int CheckTime = 1000;
 
         private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");
         
@@ -84,7 +84,6 @@ namespace AElf.Kernel.Tests
                 throw new ConfigurationErrorsException("No block producer.");
             }
 
-            
             return blockProducer;
         }
 
