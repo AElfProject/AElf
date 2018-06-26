@@ -195,8 +195,17 @@ namespace AElf.Kernel.Consensus
                 {
                     From = AccountHash,
                     To = contractAccountHash,
-                    IncrementId = incrementId,
+                    IncrementId = incrementId++,
                     MethodName = "SetNextExtraBlockProducer",
+                    P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack())
+                },
+                new Transaction
+                {
+                    From = AccountHash,
+                    To = contractAccountHash,
+                    IncrementId = incrementId,
+                    MethodName = "SupplyPreviousRoundInfo",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom(ParamsPacker.Pack())
                 }
@@ -216,7 +225,7 @@ namespace AElf.Kernel.Consensus
 
         public Transaction GetTxToSyncExtraBlock(ulong incrementId, Hash contractAccountHash,
             // ReSharper disable once InconsistentNaming
-            RoundInfo roundInfo, StringValue nextEBP)
+            RoundInfo currentRoundInfo, RoundInfo nextRoundInfo, StringValue nextEBP)
         {
             var tx = new Transaction
             {
@@ -225,7 +234,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "SyncStateOfNextRound",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(roundInfo, nextEBP))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(currentRoundInfo, nextRoundInfo, nextEBP))
             };
             
             var signer = new ECSigner();

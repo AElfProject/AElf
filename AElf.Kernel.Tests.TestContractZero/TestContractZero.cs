@@ -50,11 +50,11 @@ namespace AElf.Kernel.Tests
 
         #region DPoS
 
-        private const int MiningTime = 4000;
+        private const int MiningTime = 8000;
 
-        private const int WaitFirstRoundTime = 1000;
+        private const int WaitFirstRoundTime = 10000;
 
-        private const int CheckTime = 1000;
+        private const int CheckTime = 3000;
 
         private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");
         
@@ -217,7 +217,7 @@ namespace AElf.Kernel.Tests
                 return await _dPoSInfoMap.GetValueAsync(RoundsCountAddOne(RoundsCount));
             }
 
-            var infosOfNextRound = await SupplyRoundInfo();
+            var infosOfNextRound = new RoundInfo();
             var signatureDict = new Dictionary<Hash, string>();
             var orderDict = new Dictionary<int, string>();
 
@@ -306,21 +306,37 @@ namespace AElf.Kernel.Tests
         }
 
         // ReSharper disable once InconsistentNaming
-        public async Task SyncStateOfNextRound(RoundInfo roundInfo, StringValue nextEBP)
+        public async Task SyncStateOfNextRound(RoundInfo suppliedPreviousRoundInfo, RoundInfo nextRoundInfo, StringValue nextEBP)
         {
             if (RoundsCount.Value != 1)
             {
                 await _eBPMap.SetValueAsync(RoundsCountAddOne(RoundsCount), nextEBP);
-                roundInfo.Info.First(info => info.Key == nextEBP.Value).Value.IsEBP = true;
+                nextRoundInfo.Info.First(info => info.Key == nextEBP.Value).Value.IsEBP = true;
             }
+
+            var currentRoundInfo = await _dPoSInfoMap.GetValueAsync(RoundsCount);
+
+            foreach (var infoPair in currentRoundInfo.Info)
+            {
+                if (infoPair.Value.InValue != null) 
+                    continue;
+                
+                var supplyValue = suppliedPreviousRoundInfo.Info.First(info => info.Key == infoPair.Key)
+                    .Value;
+                infoPair.Value.InValue = supplyValue.InValue;
+                infoPair.Value.OutValue = supplyValue.OutValue;
+                infoPair.Value.Signature = supplyValue.Signature;
+            }
+            await _dPoSInfoMap.SetValueAsync(RoundsCount, currentRoundInfo);
             
-            await _dPoSInfoMap.SetValueAsync(RoundsCountAddOne(RoundsCount), roundInfo);
+            await _dPoSInfoMap.SetValueAsync(RoundsCountAddOne(RoundsCount), nextRoundInfo);
 
-            await _firstPlaceMap.SetValueAsync(RoundsCountAddOne(RoundsCount), new StringValue {Value = roundInfo.Info.First().Key});
+            await _firstPlaceMap.SetValueAsync(RoundsCountAddOne(RoundsCount), new StringValue {Value = nextRoundInfo.Info.First().Key});
 
-            await _timeForProducingExtraBlock.SetAsync(GetTimestamp(roundInfo.Info.Last().Value.TimeSlot,
+            await _timeForProducingExtraBlock.SetAsync(GetTimestamp(nextRoundInfo.Info.Last().Value.TimeSlot,
                 MiningTime + CheckTime));
 
+            //Update the rounds count at last
             await _roundsCount.SetAsync(RoundsCountAddOne(RoundsCount).Value);
         }
 
@@ -385,11 +401,11 @@ namespace AElf.Kernel.Tests
         /// Supplement of Round info.
         /// </summary>
         /// <returns></returns>
-        public async Task<RoundInfo> SupplyRoundInfo()
+        public async Task<RoundInfo> SupplyPreviousRoundInfo()
         {
-            var currentRoundInfo = await _dPoSInfoMap.GetValueAsync(RoundsCount);
+            var roundInfo = await _dPoSInfoMap.GetValueAsync(RoundsCount);
 
-            foreach (var info in currentRoundInfo.Info)
+            foreach (var info in roundInfo.Info)
             {
                 if (info.Value.InValue == null)
                 {
@@ -400,19 +416,17 @@ namespace AElf.Kernel.Tests
                     info.Value.InValue = inValue;
                     
                     //For the first round, the sig value is auto generated
-                    if (info.Value.Signature == null)
+                    if (info.Value.Signature == null || info.Value.Signature.Value.Length == 0)
                     {
                         var signature = await CalculateSignature(inValue);
                         info.Value.Signature = signature;
                     }
 
-                    currentRoundInfo.Info[info.Key] = info.Value;
+                    roundInfo.Info[info.Key] = info.Value;
                 }
             }
 
-            await _dPoSInfoMap.SetValueAsync(RoundsCount, currentRoundInfo);
-
-            return currentRoundInfo;
+            return roundInfo;
         }
 
         #endregion

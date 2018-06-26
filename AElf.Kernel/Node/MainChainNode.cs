@@ -59,7 +59,7 @@ namespace AElf.Kernel.Node
 
         private DPoS _dPoS;
         
-        private const int CheckTime = 1000;
+        private const int CheckTime = 3000;
 
         public Hash ContractAccountHash =>
             new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
@@ -179,7 +179,7 @@ namespace AElf.Kernel.Node
 
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
-            _protocolDirector.SetCommandContext(this, !_nodeConfig.IsMiner); // If not miner do sync
+            _protocolDirector.SetCommandContext(this, true); // If not miner do sync
             
             // akka env 
             /*IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack
@@ -703,7 +703,8 @@ namespace AElf.Kernel.Node
                                 {
                                     var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId + 1);
 
-                                    await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, extraBlockResult.Item2);
+                                    await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
+                                        extraBlockResult.Item2, extraBlockResult.Item3);
 
                                     var extraBlock = await _miner.Mine(); //Which is an extra block
 
@@ -848,12 +849,13 @@ namespace AElf.Kernel.Node
             }
         }
         
-        private async Task<Tuple<RoundInfo, StringValue>> ExecuteTxsForExtraBlock(ulong incrementId)
+        private async Task<Tuple<RoundInfo, RoundInfo, StringValue>> ExecuteTxsForExtraBlock(ulong incrementId)
         {
             var txsForNormalBlock = _dPoS.GetTxsForExtraBlock(
                 incrementId, ContractAccountHash);
-
-            var roundInfo = new RoundInfo();
+            
+            var currentRoundInfo = new RoundInfo();
+            var nextRoundInfo = new RoundInfo();
             // ReSharper disable once InconsistentNaming
             var nextEBP = new StringValue();
             
@@ -867,23 +869,29 @@ namespace AElf.Kernel.Node
 
                 if (tx.MethodName.StartsWith("Generate"))
                 {
-                    roundInfo = RoundInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                    nextRoundInfo = RoundInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
                 }
 
                 if (tx.MethodName.StartsWith("Set"))
                 {
                     nextEBP = StringValue.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
                 }
+                
+                if (tx.MethodName.StartsWith("Supply"))
+                {
+                    currentRoundInfo = RoundInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                }
             }
 
-            return Tuple.Create(roundInfo, nextEBP);
+            return Tuple.Create(currentRoundInfo, nextRoundInfo, nextEBP);
         }
 
         // ReSharper disable once InconsistentNaming
-        private async Task BroadcastTxsToSyncExtraBlock(ulong incrementId, RoundInfo roundInfo, StringValue nextEBP)
+        private async Task BroadcastTxsToSyncExtraBlock(ulong incrementId,
+            RoundInfo currentRoundInfo, RoundInfo nextRoundInfo, StringValue nextEBP)
         {
             var txForExtraBlock = _dPoS.GetTxToSyncExtraBlock(
-                incrementId, ContractAccountHash, roundInfo, nextEBP);
+                incrementId, ContractAccountHash, currentRoundInfo, nextRoundInfo, nextEBP);
 
             await BroadcastTransaction(txForExtraBlock);
         }
