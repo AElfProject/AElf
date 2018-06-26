@@ -90,7 +90,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
-                ResourceDetectionService = new NewMockResourceUsageDetectionService()
+                ResourceDetectionService = new NewMockResourceUsageDetectionService(),
+                WorldStateManager = _worldStateManager
             };
             
             var workers = new[] {"/user/worker1", "/user/worker2"};

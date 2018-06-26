@@ -92,12 +92,23 @@ namespace AElf.Kernel.Tests.Miner
             _functionMetadataService = functionMetadataService;
 
             _worldStateManager = worldStateManager;
+            
+            Initialize();
+        }
 
+        private void Initialize()
+        {
+            _smartContractRunnerFactory = new SmartContractRunnerFactory();
+            var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
+            _smartContractRunnerFactory.AddRunner(0, runner);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager, _functionMetadataService);
+            
             _servicePack = new ServicePack
             {
                 ChainContextService = _chainContextService,
                 SmartContractService = _smartContractService,
-                ResourceDetectionService = new NewMockResourceUsageDetectionService()
+                ResourceDetectionService = new NewMockResourceUsageDetectionService(),
+                WorldStateManager = _worldStateManager
             };
             
             var workers = new[] {"/user/worker1", "/user/worker2"};
@@ -107,9 +118,8 @@ namespace AElf.Kernel.Tests.Miner
             worker1.Tell(new LocalSerivcePack(_servicePack));
             worker2.Tell(new LocalSerivcePack(_servicePack));
             _requestor = Sys.ActorOf(Requestor.Props(router));
-            
         }
-
+        
         public byte[] SmartContractZeroCode
         {
             get
@@ -304,10 +314,7 @@ namespace AElf.Kernel.Tests.Miner
             }
             
             var miner = GetMiner(minerconfig, poolService);
-            
 
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateManager, _functionMetadataService);
-            
             miner.Start(keypair);
             
             var block = await miner.Mine();
@@ -341,11 +348,6 @@ namespace AElf.Kernel.Tests.Miner
             poolService.Start();
 
             var miner = GetMiner(minerconfig, poolService);
-            
-            SmartContractRunnerFactory smartContractRunnerFactory = new SmartContractRunnerFactory();
-            var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
-            smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, smartContractRunnerFactory, _worldStateManager, _functionMetadataService);
             
             miner.Start(keypair);
             

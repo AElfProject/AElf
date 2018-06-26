@@ -1,6 +1,7 @@
 ﻿﻿using System;
 using System.Text;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.KernelAccount;
 using Akka.Routing;
 using Google.Protobuf;
+using Microsoft.AspNetCore.Server.Kestrel.Transport.Libuv.Internal.Networking;
 
 namespace AElf.Kernel.Concurrency.Execution
 {
@@ -92,7 +94,14 @@ namespace AElf.Kernel.Concurrency.Execution
         {
             _state = State.Running;
 
-            var chainContext = await _servicePack.ChainContextService.GetChainContextAsync(request.ChainId);
+            IChainContext chainContext = null;
+            try
+            {
+                chainContext = await _servicePack.ChainContextService.GetChainContextAsync(request.ChainId);
+            }
+            catch (Exception)
+            {
+            }
 
             foreach (var tx in request.Transactions)
             {
@@ -108,9 +117,45 @@ namespace AElf.Kernel.Concurrency.Execution
                 }
                 else
                 {
-                    // TODO: Abort task when cancellation is requested
-                    // TODO: Change commit has to be moved to here
-                    trace = await ExecuteTransaction(chainContext, tx);
+                    if (chainContext == null)
+                    {
+                        trace = new TransactionTrace()
+                        {
+                            TransactionId = tx.GetHash(),
+                            StdErr = "Invalid chain"
+                        };
+                    }
+                    else
+                    {
+                        // TODO: The job is still running but we will leave it, we need a way to abort the job if it runs for too long
+                        var task = Task.Run(async () => await ExecuteTransaction(chainContext, tx),
+                            _cancellationTokenSource.Token);
+                        try
+                        {
+                            task.Wait(_cancellationTokenSource.Token);
+                            trace = task.Result;
+                            if (trace.IsSuccessful())
+                            {
+                                await trace.CommitChangesAsync(_servicePack.WorldStateManager, chainContext.ChainId);
+                            }
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            trace = new TransactionTrace()
+                            {
+                                TransactionId = tx.GetHash(),
+                                StdErr = "Execution Cancelled"
+                            };
+                        }
+                        catch (Exception e)
+                        {
+                            trace = new TransactionTrace()
+                            {
+                                TransactionId = tx.GetHash(),
+                                StdErr = e + "\n"
+                            };
+                        }
+                    }
                 }
 
                 request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, trace));
@@ -133,6 +178,7 @@ namespace AElf.Kernel.Concurrency.Execution
                 TransactionId = transaction.GetHash()
             };
 
+
             var txCtxt = new TransactionContext()
             {
                 PreviousBlockHash = chainContext.BlockHash,
@@ -147,7 +193,7 @@ namespace AElf.Kernel.Concurrency.Execution
                 executive = await _servicePack.SmartContractService
                     .GetExecutiveAsync(transaction.To, chainContext.ChainId);
 
-                await executive.SetTransactionContext(txCtxt).Apply(true);
+                await executive.SetTransactionContext(txCtxt).Apply(false);
                 trace.Logs.AddRange(txCtxt.Trace.FlattenedLogs);
                 // TODO: Check run results / logs etc.
             }

@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 
 namespace AElf.Kernel.Concurrency.Execution
@@ -9,5 +10,6 @@ namespace AElf.Kernel.Concurrency.Execution
         public ISmartContractService SmartContractService { get; set; }
         public IChainContextService ChainContextService { get; set; }
         public IAccountContextService AccountContextService { get; set; }
+        public IWorldStateManager WorldStateManager { get; set; }
     }
 }

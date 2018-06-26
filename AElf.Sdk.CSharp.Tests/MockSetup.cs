@@ -72,7 +72,8 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
-                ResourceDetectionService = null
+                ResourceDetectionService = null,
+                WorldStateManager = _worldStateManager
             };
         }
 

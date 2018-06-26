@@ -18,6 +18,7 @@ using AElf.Kernel.Tests.Concurrency.Execution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Kernel.TxMemPool;
 using AElf.Runtime.CSharp;
+using AElf.Types.CSharp;
 using Akka.Actor;
 using Google.Protobuf;
 using ServiceStack;
@@ -60,13 +61,21 @@ namespace AElf.Kernel.Tests.Miner
 
             _worldStateManager = worldStateManager;
             _smartContractManager = new SmartContractManager(smartContractStore);
-            
-            
+        }
+
+        private async Task Initialize(Hash chainId)
+        {
+            _smartContractRunnerFactory = new SmartContractRunnerFactory();
+            var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
+            _smartContractRunnerFactory.AddRunner(0, runner);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, await _worldStateManager.OfChain(chainId), _functionMetadataService);
+
             _servicePack = new ServicePack
             {
                 ChainContextService = _chainContextService,
                 SmartContractService = _smartContractService,
-                ResourceDetectionService = new NewMockResourceUsageDetectionService()
+                ResourceDetectionService = new NewMockResourceUsageDetectionService(),
+                WorldStateManager = _worldStateManager
             };
             
             var workers = new[] {"/user/worker1", "/user/worker2"};
@@ -77,7 +86,7 @@ namespace AElf.Kernel.Tests.Miner
             worker2.Tell(new LocalSerivcePack(_servicePack));
             _requestor = Sys.ActorOf(Requestor.Props(router));
         }
-
+        
         public byte[] SmartContractZeroCode
         {
             get
@@ -135,6 +144,9 @@ namespace AElf.Kernel.Tests.Miner
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
+
+            await Initialize(chainId);
+            
             return chain;
         }
 
@@ -144,14 +156,6 @@ namespace AElf.Kernel.Tests.Miner
             var contractAddressZero = new Hash(chainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
 
             var code = ExampleContractCode;
-
-            var regExample = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = code.CalculateHash()
-            };
-            
             
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
             ECSigner signer = new ECSigner();
@@ -161,15 +165,7 @@ namespace AElf.Kernel.Tests.Miner
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(new Parameters()
-                {
-                    Params = {
-                        new Param
-                        {
-                            RegisterVal = regExample
-                        }
-                    }
-                }.ToByteArray()),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack((int)0, code)),
                 
                 Fee = TxPoolConfig.Default.FeeThreshold + 1
             };
@@ -223,7 +219,6 @@ namespace AElf.Kernel.Tests.Miner
             block.FillTxsMerkleTreeRootInHeader();
             block.Body.BlockHeader = block.Header.GetHash();
 
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, await _worldStateManager.OfChain(chain.Id), _functionMetadataService);
 
             IParallelTransactionExecutingService parallelTransactionExecutingService =
                 new ParallelTransactionExecutingService(_requestor,
