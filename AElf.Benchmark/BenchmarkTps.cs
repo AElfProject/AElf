@@ -41,6 +41,7 @@ namespace AElf.Benchmark
         private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
         private readonly IWorldStateManager _worldStateManager;
         private readonly IAccountContextService _accountContextService;
+        private readonly ILogger _logger;
         
         public ActorSystem Sys { get; } = ActorSystem.Create("benchmark");
         public IActorRef Router { get;  }
@@ -52,7 +53,7 @@ namespace AElf.Benchmark
         private readonly TransactionDataGenerator _dataGenerater;
         private readonly Hash _contractHash;
 
-        public Benchmarks(IChainCreationService chainCreationService, IBlockManager blockManager, IChainContextService chainContextService, int maxTxNum, ISmartContractRunnerFactory smartContractRunnerFactory, ISmartContractService smartContractService, ILogger logger, IFunctionMetadataService functionMetadataService, IWorldStateManager worldStateManager, IAccountContextService accountContextService)
+        public Benchmarks(IChainCreationService chainCreationService, IBlockManager blockManager, IChainContextService chainContextService, int maxTxNum, ISmartContractRunnerFactory smartContractRunnerFactory, ISmartContractService smartContractService, ILogger logger, IFunctionMetadataService functionMetadataService, IWorldStateManager worldStateManager, IAccountContextService accountContextService, ILogger logger1)
         {
             ChainId = Hash.Generate();
             _chainCreationService = chainCreationService;
@@ -60,6 +61,7 @@ namespace AElf.Benchmark
             _smartContractService = smartContractService;
             _worldStateManager = worldStateManager;
             _accountContextService = accountContextService;
+            _logger = logger1;
 
             _worldStateManager.OfChain(ChainId);
 
@@ -208,52 +210,58 @@ namespace AElf.Benchmark
             return res;
         }
 
-        public async Task<Dictionary<string, double>> MultipleGroupBenchmark(int txNumber, int maxGroupNumber)
+        public async Task<Dictionary<string, double>> MultipleGroupBenchmark(int txNumber, int groupCount)
         {
             var res = new Dictionary<string, double>();
             //prepare data
             Console.WriteLine("-------------------------------------");
             Console.WriteLine("Benchmark with multiple conflict group");
             Console.WriteLine("-------------------------------------");
-            
-            for (int groupCount = 1; groupCount <= maxGroupNumber; groupCount++)
-            {
-                var txList = _dataGenerater.GetMultipleGroupTx(txNumber, groupCount, _contractHash);
-                long timeused = 0;
-                for (int i = 0; i < 1; i++)
-                {
-                    foreach (var tx in txList)
-                    {
-                        tx.IncrementId += 1;
-                    }
-                    Stopwatch swExec = new Stopwatch();
-                    swExec.Start();
 
-                    var txResult = await Task.Factory.StartNew(async () =>
-                    {
-                        return await _parallelTransactionExecutingService.ExecuteAsync(txList, ChainId);
-                    }).Unwrap();
-            
-                    swExec.Stop();
-                    long total = 0;
-                    txResult.ForEach(result =>
-                    {
-                        if (!result.StdErr.IsNullOrEmpty())
-                        {
-                            Console.WriteLine(result.StdErr);
-                        }
-                    } );
-                    txResult.ForEach(result => total += result.Elapsed);
-                    Console.WriteLine("Average elapsed: " + total / txResult.Count);
-                    timeused += swExec.ElapsedMilliseconds;
-                    Console.WriteLine(txResult.Last().StdErr);
+            int repeatTime = 10;
+        
+            var txList = _dataGenerater.GetMultipleGroupTx(txNumber, groupCount, _contractHash);
+            long timeused = 0;
+            for (int i = 0; i < repeatTime; i++)
+            {
+                foreach (var tx in txList)
+                {
+                    tx.IncrementId += 1;
                 }
-                
-                var time = txNumber / (timeused / 1000.0 / 1.0);
-                var str = groupCount + " groups with " + txList.Count + " tx in total";
-                res.Add(str, time);
-                Console.WriteLine(str + ": " + time);
+                Stopwatch swExec = new Stopwatch();
+                swExec.Start();
+
+                var txResult = await Task.Factory.StartNew(async () =>
+                {
+                    return await _parallelTransactionExecutingService.ExecuteAsync(txList, ChainId);
+                }).Unwrap();
+        
+                swExec.Stop();
+                timeused += swExec.ElapsedMilliseconds;
+                long total = 0;
+                txResult.ForEach(result =>
+                {
+                    if (!result.StdErr.IsNullOrEmpty())
+                    {
+                        Console.WriteLine(result.StdErr);
+                    }
+                } );
+                string timeStr = string.Join(", ", txResult.Select(a => a.Elapsed.ToString()));
+                _logger.Info("Elapsed of every contract: " + timeStr);
+                txResult.ForEach(trace =>
+                {
+                    if (!trace.StdErr.IsNullOrEmpty())
+                    {
+                        _logger.Error("Execution error: " + trace.StdErr);
+                    }
+                });
+                Thread.Sleep(10000);
             }
+            
+            var time = txNumber / (timeused / 1000.0 / (double)repeatTime);
+            var str = groupCount + " groups with " + txList.Count + " tx in total";
+            res.Add(str, time);
+            Console.WriteLine(str + ": " + time);
 
             return res;
         }
