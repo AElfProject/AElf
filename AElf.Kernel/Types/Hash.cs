@@ -2,6 +2,7 @@ using AElf.Kernel.Extensions;
 using System;
 using System.Linq;
 using AElf.Cryptography.ECDSA;
+using Akka.Routing;
 using Google.Protobuf;
 using Org.BouncyCastle.Asn1.Mozilla;
 

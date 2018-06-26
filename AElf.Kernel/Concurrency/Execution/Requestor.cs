@@ -48,7 +48,11 @@ namespace AElf.Kernel.Concurrency.Execution
             switch (message)
             {
                 case JobExecutionCancelMessage r:
-                    _router.Tell(new Broadcast(r));
+                    //_router.Tell(new Broadcast(r));
+                    var trans = new List<ITransaction>();
+                    trans.Add(new Transaction());
+                    trans.Add(new Transaction());
+                    _router.Tell(new JobExecutionRequest(123, new Hash(), trans, Self, _router));
                     break;
                 case LocalExecuteTransactionsMessage req:
                     var reqId = NextRequestId;
@@ -61,6 +65,7 @@ namespace AElf.Kernel.Concurrency.Execution
                         hashes.Add(tx.GetHash());
                     }
 //                    _requestIdToPendingTransactionIds.Add(reqId, hashes);
+                    //_router.Tell(new TestMessage {RequestId = 112});
                     _router.Tell(new JobExecutionRequest(reqId, req.ChainId, req.Transactions, Self, _router));
                     break;
                 case TransactionTraceMessage msg:

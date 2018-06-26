@@ -54,6 +54,7 @@ namespace AElf.Kernel
             txData.Params = Params;
             return txData.ToByteArray();
         }
-        
+
+        public object ConsistentHashKey { get; }
     }
 }

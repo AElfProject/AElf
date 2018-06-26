@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Akka.Cluster;
+using Akka.Routing;
 
 namespace AElf.Kernel.Concurrency.Execution.Messages
 {
@@ -239,8 +241,8 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 //        public JobExecutionRequest Request { get; }
 //        public IActorRef Router { get; }
 //    }
-    
-    public sealed class JobExecutionRequest
+
+    public class JobExecutionRequest:IConsistentHashable
     {
         public JobExecutionRequest(long requestId, Hash chainId, List<ITransaction> transactions, IActorRef resultCollector, IActorRef router)
         {
@@ -249,18 +251,23 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
             Transactions = transactions;
             ResultCollector = resultCollector;
             Router = router;
+            ConsistentHashKey = GetHashCode();
         }
 
-        public long RequestId { get; }
-        public Hash ChainId { get; }
-        public List<ITransaction> Transactions { get; }
-        public IActorRef ResultCollector { get; }
-        public IActorRef Router { get; }
+        public long RequestId { get; set; }
+        public Hash ChainId { get; set; }
+        public List<ITransaction> Transactions { get; set; }
+        public IActorRef ResultCollector { get; set; }
+        public IActorRef Router { get; set; }
+
+        public object ConsistentHashKey { get; }
     }
-    
+
     public sealed class JobExecutionCancelMessage
     {
         private JobExecutionCancelMessage() { }
+
+        public int Count = 111;
 
         /// <summary>
         /// The singleton instance of JobExecutionCancelMessage.
@@ -323,5 +330,11 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
     }
 
     #endregion Routed workers
-    
+
+    public class TestMessage:IConsistentHashable
+    {
+        public long RequestId { get; set; }
+        public object ConsistentHashKey { get; }
+    }
+
 }

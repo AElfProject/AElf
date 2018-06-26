@@ -95,7 +95,7 @@ namespace AElf.Kernel.Concurrency.Execution
 
     public sealed class TrackedGroup : Group
     {
-        public TrackedGroup(Config config)
+        public TrackedGroup(Akka.Configuration.Config config)
             : this(
                 config.GetStringList("routees.paths"),
                 Dispatchers.DefaultDispatcherId)
