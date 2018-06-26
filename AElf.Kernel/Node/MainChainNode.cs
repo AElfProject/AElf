@@ -137,9 +137,12 @@ namespace AElf.Kernel.Node
                     var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg)
                         .Result;
                     _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.Value.ToBase64());
-                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToBase64());
+                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", BitConverter.ToString(res.GenesisBlockHash.Value.ToByteArray()).Replace("-",""));
                     var contractAddress = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__"))
                         .ToAccount();
+                    _logger.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
+                        BitConverter.ToString(contractAddress.ToAccount().Value.ToByteArray()).Replace("-",""));
+                    
                     _logger.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"",
                         contractAddress.ToAccount().Value.ToBase64());
                 }
@@ -160,13 +163,13 @@ namespace AElf.Kernel.Node
             }
             
             _nodeKeyPair = nodeKeyPair;
-            
+
             if (startRpc)
                 _rpcServer.Start();
-            
+
             _poolService.Start();
             _protocolDirector.Start();
-            
+
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
             _protocolDirector.SetCommandContext(this, true); // If not miner do sync
@@ -212,9 +215,9 @@ namespace AElf.Kernel.Node
                 _miner.Start(nodeKeyPair, parallelTransactionExecutingService);
                 
                 Mine();
+                
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
-                  
             
             _logger?.Log(LogLevel.Debug, "AElf node started.");
             
@@ -308,13 +311,12 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                ;
                 return false;
-            }        
+            }
 
             return true;
         }
-        
+
         /// <summary>
         /// get the tx from tx pool or database
         /// </summary>
@@ -326,6 +328,7 @@ namespace AElf.Kernel.Node
             {
                 return tx;
             }
+
             return await _transactionManager.GetTransaction(txId);
         }
 
@@ -341,7 +344,6 @@ namespace AElf.Kernel.Node
         {
             return await _transactionManager.AddTransactionAsync(tx);
         }
-
         
         /// <summary>
         /// This method processes a transaction received from one of the
@@ -354,6 +356,7 @@ namespace AElf.Kernel.Node
             try
             {
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
+
                 _logger.Trace("Received Transaction: " + Convert.ToBase64String(tx.GetHash().Value.ToByteArray()));
                 
                 bool success = await _poolService.AddTxAsync(tx);
@@ -392,7 +395,8 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId)).IncrementId;
+                var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId))
+                    .IncrementId;
                 var idInPool = _poolService.GetIncrementId(addr);
 
                 return Math.Max(idInDB, idInPool);
@@ -421,13 +425,13 @@ namespace AElf.Kernel.Node
             {
                 var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
                 var error = await _blockVaildationService.ValidateBlockAsync(block, context);
-                
+
                 if (error != ValidationError.Success)
                 {
                     _logger.Trace("Invalid block received from network " + error.ToString());
                     return new BlockExecutionResult(false, error);
                 }
-            
+
                 bool executed = await _blockExecutor.ExecuteBlock(block);
 
                 return new BlockExecutionResult(executed, error);
@@ -439,7 +443,7 @@ namespace AElf.Kernel.Node
                 return new BlockExecutionResult(e);
             }
         }
-        
+
         /// <summary>
         /// get missing tx hashes for the block. If an exception occured it return
         /// null. If there's simply no transaction from this block in the pool it
@@ -460,6 +464,7 @@ namespace AElf.Kernel.Node
                         res.Add(id);
                     }
                 }
+
                 return res;
             }
             catch (Exception e)
@@ -687,13 +692,17 @@ namespace AElf.Kernel.Node
             {
                 Console.WriteLine(e);
             }
-            
+
             _logger.Trace("Broadcasted block to peers:");
-            
+
             return true;
-            
         }
-        
+
+        public async Task<IMessage> GetContractAbi(Hash address)
+        {
+            return await _smartContractService.GetAbiAsync(address);
+        }
+
         /// <summary>
         /// Broadcasts a transaction to the network. This method
         /// also places it in the transaction pool.
@@ -702,7 +711,7 @@ namespace AElf.Kernel.Node
         public async Task<bool> BroadcastTransaction(ITransaction tx)
         {
             bool res;
-            
+
             try
             {
                 res = await _poolService.AddTxAsync(tx);
@@ -723,11 +732,11 @@ namespace AElf.Kernel.Node
                 {
                     Console.WriteLine(e);
                 }
-                
+
                 _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return true;
             }
-            
+
             _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToBase64() + " }");
             return false;
         }

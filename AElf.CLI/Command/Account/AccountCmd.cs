@@ -1,4 +1,5 @@
-﻿using AElf.CLI.Parsing;
+﻿using System.Collections.Generic;
+using AElf.CLI.Parsing;
 
 namespace AElf.CLI.Command.Account
 {
