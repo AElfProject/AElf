@@ -25,6 +25,7 @@ namespace AElf.Kernel.CSharp.Tests
         [SmartContractFunction("${this}.InitializeAsync", new string[]{}, new []{"${this}.Balances"})]
         public async Task<bool> InitializeAsync(Hash account, ulong qty)
         {
+            Console.WriteLine("Initialize");
             await Balances.SetValueAsync(account, qty);
             return true;
         }
@@ -72,7 +73,9 @@ namespace AElf.Kernel.CSharp.Tests
         [SmartContractFunction("${this}.GetBalance", new string[]{}, new []{"${this}.Balances"})]
         public async Task<ulong> GetBalance(Hash account)
         {
-            return await Balances.GetValueAsync(account);
+            var b = await Balances.GetValueAsync(account);
+            //Console.WriteLine(b);
+            return b;
         }
 
         [SmartContractFunction("${this}.GetTransactionStartTime", new string[]{}, new []{"${this}.TransactionStartTimes"})]

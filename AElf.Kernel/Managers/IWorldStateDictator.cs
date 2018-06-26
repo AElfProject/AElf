@@ -4,9 +4,9 @@ using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Managers
 {
-    public interface IWorldStateManager
+    public interface IWorldStateDictator
     {
-        Task<IWorldStateManager> OfChain(Hash chainId);
+        IWorldStateDictator SetChainId(Hash chainId);
         
         Task<IWorldState> GetWorldStateAsync(Hash blockHash);
 
@@ -16,7 +16,7 @@ namespace AElf.Kernel.Managers
         
         Task<Hash> GetPointerAsync(Hash pathHash);
         
-        Hash CalculatePointerHashOfCurrentHeight(Path path);
+        Task<Hash> CalculatePointerHashOfCurrentHeight(Path path);
         
         Task InsertChangeAsync(Hash pathHash, Change change);
 
@@ -32,12 +32,14 @@ namespace AElf.Kernel.Managers
 
         Task<Dictionary<Hash, Change>> GetChangesDictionaryAsync();
 
-        IAccountDataProvider GetAccountDataProvider(Hash accountAddress);
+        Task<IAccountDataProvider> GetAccountDataProvider(Hash accountAddress);
 
         Task SetDataAsync(Hash pointerHash, byte[] data);
 
         Task<byte[]> GetDataAsync(Hash pointerHash);
 
         Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId);
+        
+        Hash PreBlockHash { get; set; }
     }
 }

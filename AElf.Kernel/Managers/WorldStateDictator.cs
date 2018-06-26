@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,7 +11,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Managers
 {
-    public class WorldStateManager: IWorldStateManager
+    public class WorldStateDictator: IWorldStateDictator
     {
         #region Stores
         private readonly IWorldStateStore _worldStateStore;
@@ -21,9 +21,9 @@ namespace AElf.Kernel.Managers
         
         private bool _isChainIdSetted;
         private Hash _chainId;
-        private Hash _preBlockHash;
+        
 
-        public WorldStateManager(IWorldStateStore worldStateStore,
+        public WorldStateDictator(IWorldStateStore worldStateStore,
             IChangesStore changesStore, IDataStore dataStore)
         {
             _worldStateStore = worldStateStore;
@@ -31,15 +31,10 @@ namespace AElf.Kernel.Managers
             _dataStore = dataStore;
         }
 
-        public async Task<IWorldStateManager> OfChain(Hash chainId)
+        public IWorldStateDictator SetChainId(Hash chainId)
         {
             _chainId = chainId;
-
-            var hash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(chainId));
-            _preBlockHash = hash ?? Hash.Genesis;
-
             _isChainIdSetted = true;
-
             return this;
         }
         
@@ -47,24 +42,25 @@ namespace AElf.Kernel.Managers
         /// Insert a Change to ChangesStore.
         /// And refresh the paths count of current world state,
         /// as well as insert a changed path to DataStore.
-        /// The key to get the changed path can be calculated by _preBlockHash and the order.
+        /// The key to get the changed path can be calculated by PreBlockHash and the order.
         /// </summary>
         /// <param name="pathHash"></param>
         /// <param name="change"></param>
         /// <returns></returns>
         public async Task InsertChangeAsync(Hash pathHash, Change change)
         {
-            Check();
+            await Check();
             
             await _changesStore.InsertChangeAsync(pathHash, change);
             
             var count = new UInt64Value {Value = 0};
 
-            var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, _preBlockHash);
+            var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, PreBlockHash);
             if (await _dataStore.GetDataAsync(keyToGetCount) == null)
             {
                 await _dataStore.SetDataAsync(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
             }
+            
             var result = await _dataStore.GetDataAsync(keyToGetCount);
             if (result == null)
             {
@@ -76,7 +72,7 @@ namespace AElf.Kernel.Managers
             }
             
             // make a path related to its order
-            var key = CalculateKeyForPath(_preBlockHash, count);
+            var key = CalculateKeyForPath(PreBlockHash, count);
             await _dataStore.SetDataAsync(key, pathHash.Value.ToByteArray());
 
             // update the count of changes
@@ -111,9 +107,9 @@ namespace AElf.Kernel.Managers
         /// </summary>
         /// <param name="accountAddress"></param>
         /// <returns></returns>
-        public IAccountDataProvider GetAccountDataProvider(Hash accountAddress)
+        public async Task<IAccountDataProvider> GetAccountDataProvider(Hash accountAddress)
         {
-            Check();
+            await Check();
             
             return new AccountDataProvider(_chainId, accountAddress, this);
         }
@@ -127,7 +123,7 @@ namespace AElf.Kernel.Managers
         /// <returns></returns>
         public async Task<IWorldState> GetWorldStateAsync(Hash blockHash)
         {
-            Check();
+            await Check();
             
             return await _worldStateStore.GetWorldStateAsync(_chainId, blockHash);
         }
@@ -140,7 +136,7 @@ namespace AElf.Kernel.Managers
         /// <returns></returns>
         public async Task SetWorldStateAsync(Hash preBlockHash)
         {
-            Check();
+            await Check();
             
             var changes = await GetChangesDictionaryAsync();
             var dict = new ChangesDict();
@@ -153,10 +149,10 @@ namespace AElf.Kernel.Managers
                 };
                 dict.Dict.Add(pairHashChange);
             }
-            await _worldStateStore.InsertWorldStateAsync(_chainId, _preBlockHash, dict);
+            await _worldStateStore.InsertWorldStateAsync(_chainId, PreBlockHash, dict);
             
-            //Refresh _preBlockHash after setting WorldState.
-            _preBlockHash = preBlockHash;
+            //Refresh PreBlockHash after setting WorldState.
+            PreBlockHash = preBlockHash;
         }
         #endregion
 
@@ -215,7 +211,8 @@ namespace AElf.Kernel.Managers
         /// <returns></returns>
         public async Task<List<Hash>> GetPathsAsync(Hash blockHash = null)
         {
-            Interlocked.CompareExchange(ref blockHash, _preBlockHash, null);
+            await Check();
+            Interlocked.CompareExchange(ref blockHash, PreBlockHash, null);
             
             var paths = new List<Hash>();
 
@@ -240,7 +237,7 @@ namespace AElf.Kernel.Managers
         /// <returns></returns>
         public async Task<List<Change>> GetChangesAsync(Hash blockHash)
         {
-            Check();
+            await Check();
 
             var paths = await GetPathsAsync(blockHash);
             var worldState = await _worldStateStore.GetWorldStateAsync(_chainId, blockHash);
@@ -302,9 +299,10 @@ namespace AElf.Kernel.Managers
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public Hash CalculatePointerHashOfCurrentHeight(Path path)
+        public async Task<Hash> CalculatePointerHashOfCurrentHeight(Path path)
         {
-            return path.SetBlockHash(_preBlockHash).GetPointerHash();
+            await Check();
+            return path.SetBlockHash(PreBlockHash).GetPointerHash();
         }
 
         public async Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId)
@@ -343,6 +341,8 @@ namespace AElf.Kernel.Managers
             return change;
         }
 
+        public Hash PreBlockHash { get; set; }
+
         #region Private methods
 
         /// <summary>
@@ -352,7 +352,7 @@ namespace AElf.Kernel.Managers
         /// <returns></returns>
         private async Task<ulong> GetChangedPathsCountAsync(Hash blockHash)
         {
-            Check();
+            await Check();
             
             var changedPathsCount = new UInt64Value {Value = 0};
             
@@ -361,6 +361,7 @@ namespace AElf.Kernel.Managers
             {
                 await _dataStore.SetDataAsync(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
             }
+            
             var result = await _dataStore.GetDataAsync(keyToGetCount);
             if (result == null)
             {
@@ -386,11 +387,17 @@ namespace AElf.Kernel.Managers
             return blockHash.CombineReverseHashWith(obj.CalculateHash());
         }
 
-        private void Check()
+        private async Task Check()
         {
             if (!_isChainIdSetted)
             {
                 throw new InvalidOperationException("Should set chain id before using a WorldStateManager");
+            }
+
+            if (PreBlockHash == null)
+            {
+                var hash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(_chainId));
+                PreBlockHash = hash ?? Hash.Genesis;
             }
         }
         #endregion
