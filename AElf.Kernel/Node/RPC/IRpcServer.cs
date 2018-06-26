@@ -2,7 +2,7 @@
 {
     public interface IRpcServer
     {
-        bool Start();
+        bool Start(int rpcPort);
         void SetCommandContext(MainChainNode node);
     }
 }
