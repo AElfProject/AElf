@@ -24,10 +24,10 @@ namespace AElf.Benchmark
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new MainModule());
             var dataConfig = new DatabaseConfig();
-            dataConfig.Type = DatabaseType.Redis;
-            dataConfig.Host = "127.0.0.1";
-            dataConfig.Port = 6379;
-            builder.RegisterModule(new DatabaseModule(new DatabaseConfig()));
+            dataConfig.Type = DatabaseType.KeyValue;
+            dataConfig.Host = "192.168.197.28";
+            dataConfig.Port = 8888;
+            builder.RegisterModule(new DatabaseModule(dataConfig));
             builder.RegisterModule(new LoggerModule());
             builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 100);
             #if DEBUG

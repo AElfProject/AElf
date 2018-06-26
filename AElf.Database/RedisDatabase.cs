@@ -9,8 +9,7 @@ namespace AElf.Database
     {
         private readonly ConfigurationOptions _options;
 
-        public RedisDatabase()
-        : this(new DatabaseConfig {Host = "127.0.0.1", Port = 8888})
+        public RedisDatabase() : this(new DatabaseConfig())
         {
         }
 
@@ -50,7 +49,6 @@ namespace AElf.Database
                     var db = conn.GetDatabase(0);
                     db.Ping();
                 }
-
                 return true;
             }
             catch
