@@ -62,7 +62,7 @@ namespace AElf.Kernel.Tests
             
             //var address = Hash.Generate();
             //var worldStateManager = await new WorldStateManager(_worldStateStore, 
-            //    _changesStore, _dataStore).OfChain(chainId);
+            //    _changesStore, _dataStore).SetChainId(chainId);
             //var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             
             //await _smartContractZero.InitializeAsync(accountDataProvider);
@@ -94,7 +94,7 @@ namespace AElf.Kernel.Tests
             
             //var address = Hash.Generate();
             //var worldStateManager = await new WorldStateManager(_worldStateStore, 
-            //    _changesStore, _dataStore).OfChain(chainId);
+            //    _changesStore, _dataStore).SetChainId(chainId);
             //var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             
             //await _smartContractZero.InitializeAsync(accountDataProvider);

@@ -36,11 +36,11 @@ namespace AElf.Kernel.Tests
 
             var address = Hash.Generate();
             
-            var worldStateManager = await new WorldStateManager(_worldStateStore, _changesStore, _dataStore).OfChain(chain.Id);
+            var worldStateManager =  new WorldStateDictator(_worldStateStore, _changesStore, _dataStore).SetChainId(chain.Id);
             
             await worldStateManager.SetWorldStateAsync(chain.GenesisBlockHash);
             
-            var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
+            var accountDataProvider = await worldStateManager.GetAccountDataProvider(address);
             var dataProvider = accountDataProvider.GetDataProvider();
 
             for (var i = 0; i < count; i++)

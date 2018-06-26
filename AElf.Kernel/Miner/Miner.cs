@@ -21,7 +21,7 @@ namespace AElf.Kernel.Miner
         private ECKeyPair _keyPair;
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
-        private readonly IWorldStateManager _worldStateManager;
+        private readonly IWorldStateDictator _worldStateDictator;
         private ISmartContractService _smartContractService;
 
 
@@ -48,14 +48,14 @@ namespace AElf.Kernel.Miner
         public Hash Coinbase => Config.CoinBase;
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, 
-                IChainManager chainManager, IBlockManager blockManager, IWorldStateManager worldStateManager, 
+                IChainManager chainManager, IBlockManager blockManager, IWorldStateDictator worldStateDictator, 
             ISmartContractService smartContractService)
         {
             Config = config;
             _txPoolService = txPoolService;
             _chainManager = chainManager;
             _blockManager = blockManager;
-            _worldStateManager = worldStateManager;
+            _worldStateDictator = worldStateDictator;
             _smartContractService = smartContractService;
         }
 
@@ -136,7 +136,6 @@ namespace AElf.Kernel.Miner
                 await _blockManager.AddBlockAsync(block);
                 await _chainManager.AppendBlockToChainAsync(block);
             
-            
                 return block;
             }
             catch (Exception e)
@@ -174,10 +173,8 @@ namespace AElf.Kernel.Miner
             
             
             // set ws merkle tree root
-            await _worldStateManager.OfChain(chainId);
-            
-            await _worldStateManager.SetWorldStateAsync(lastBlockHash);
-            var ws = await _worldStateManager.GetWorldStateAsync(lastBlockHash);
+            await _worldStateDictator.SetWorldStateAsync(lastBlockHash);
+            var ws = await _worldStateDictator.GetWorldStateAsync(lastBlockHash);
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
             
 
@@ -206,8 +203,7 @@ namespace AElf.Kernel.Miner
             block.Header.ChainId = chainId;
             
             
-            await _worldStateManager.OfChain(chainId);
-            var ws = await _worldStateManager.GetWorldStateAsync(lastBlockHash);
+            var ws = await _worldStateDictator.GetWorldStateAsync(lastBlockHash);
             var state = await ws.GetWorldStateMerkleTreeRootAsync();
             
             var header = new BlockHeader

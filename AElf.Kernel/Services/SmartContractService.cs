@@ -17,14 +17,14 @@ namespace AElf.Kernel.Services
         private readonly ISmartContractManager _smartContractManager;
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
-        private readonly IWorldStateManager _worldStateManager;
+        private readonly IWorldStateDictator _worldStateDictator;
         private readonly IFunctionMetadataService _functionMetadataService;
 
-        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerFactory smartContractRunnerFactory, IWorldStateManager worldStateManager, IFunctionMetadataService functionMetadataService)
+        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerFactory smartContractRunnerFactory, IWorldStateDictator worldStateDictator, IFunctionMetadataService functionMetadataService)
         {
             _smartContractManager = smartContractManager;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _worldStateManager = worldStateManager;
+            _worldStateDictator = worldStateDictator;
             _functionMetadataService = functionMetadataService;
         }
 
@@ -57,14 +57,14 @@ namespace AElf.Kernel.Services
             }
 
             // get account dataprovider
-            var dataProvider = new CachedDataProvider((await _worldStateManager.OfChain(chainId))
-                .GetAccountDataProvider(account).GetDataProvider());
+            var dataProvider =
+                new CachedDataProvider((await _worldStateDictator.GetAccountDataProvider(account)).GetDataProvider());
 
             // run smartcontract executive info and return executive
 
             executive = await runner.RunAsync(reg);
 
-            executive.SetWorldStateManager(_worldStateManager);
+            executive.SetWorldStateManager(_worldStateDictator);
             
             executive.SetSmartContractContext(new SmartContractContext()
             {

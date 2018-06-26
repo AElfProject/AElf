@@ -20,7 +20,8 @@ using AElf.Kernel.Node.RPC.DTO;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
-using Akka.Actor;
+ using AElf.Types.CSharp;
+ using Akka.Actor;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
@@ -49,7 +50,7 @@ namespace AElf.Kernel.Node
         private readonly IChainContextService _chainContextService;
         private readonly IChainManager _chainManager;
         private readonly IChainCreationService _chainCreationService;
-        private readonly IWorldStateManager _worldStateManager;
+        private readonly IWorldStateDictator _worldStateDictator;
         private readonly ISmartContractService _smartContractService;
         private readonly ITransactionResultService _transactionResultService;
 
@@ -85,13 +86,13 @@ namespace AElf.Kernel.Node
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner,
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
-            IChainCreationService chainCreationService, IWorldStateManager worldStateManager, 
+            IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator, 
             IChainManager chainManager, ISmartContractService smartContractService,
             ITransactionResultService transactionResultService, IBlockManager blockManager)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
-            _worldStateManager = worldStateManager;
+            _worldStateDictator = worldStateDictator;
             _smartContractService = smartContractService;
             _transactionResultService = transactionResultService;
             _blockManager = blockManager;
@@ -105,7 +106,7 @@ namespace AElf.Kernel.Node
             _accountContextService = accountContextService;
             _blockVaildationService = blockVaildationService;
             _chainContextService = chainContextService;
-            _worldStateManager = worldStateManager;
+            _worldStateDictator = worldStateDictator;
             _blockExecutor = blockExecutor;
         }
 
@@ -166,6 +167,9 @@ namespace AElf.Kernel.Node
                 }*/
             }
             
+            // set world state
+            _worldStateDictator.SetChainId(_nodeConfig.ChainId);
+            
             _nodeKeyPair = nodeKeyPair;
 
             if (startRpc)
@@ -199,7 +203,8 @@ namespace AElf.Kernel.Node
             {
                 ChainContextService = _chainContextService,
                 SmartContractService = _smartContractService,
-                ResourceDetectionService = new MockResourceUsageDetectionService()
+                ResourceDetectionService = new MockResourceUsageDetectionService(),
+                WorldStateDictator = _worldStateDictator
             };
             worker1.Tell(new LocalSerivcePack(servicePack));
             worker2.Tell(new LocalSerivcePack(servicePack));
@@ -215,8 +220,7 @@ namespace AElf.Kernel.Node
             {
                 _miner.Start(nodeKeyPair, parallelTransactionExecutingService);
                 
-                Mine();
-                
+                Mine(nodeKeyPair);
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
             
@@ -226,54 +230,6 @@ namespace AElf.Kernel.Node
         }
 
 
-        private ITransaction DeployTxDemo()
-        {
-            var ContractName = "AElf.Kernel.Tests.TestContract";
-            var contractZeroDllPath = $"../{ContractName}/bin/Debug/netstandard2.0/{ContractName}.dll";
-            
-            byte[] code = null;
-            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(contractZeroDllPath)))
-            {
-                code = file.ReadFully();
-            }
-            //System.Diagnostics.Debug.WriteLine(ByteString.CopyFrom(code).ToBase64());
-            ECKeyPair keyPair = new KeyPairGenerator().Generate();
-            ECSigner signer = new ECSigner();
-            var txDep = new Transaction
-            {
-                From = keyPair.GetAddress(),
-                To = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount(),
-                IncrementId = 0,
-                MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(new Parameters()
-                {
-                    Params = {
-                        new Param
-                        {
-                            IntVal = 0
-                        }, 
-                        new Param
-                        {
-                            BytesVal = ByteString.CopyFrom(code)
-                        }
-                    }
-                }.ToByteArray()),
-                
-                Fee = TxPoolConfig.Default.FeeThreshold + 1
-            };
-            
-            Hash hash = txDep.GetHash();
-
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
-            txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txDep.R = ByteString.CopyFrom(signature.R); 
-            txDep.S = ByteString.CopyFrom(signature.S);
-
-            //var res = BroadcastTransaction(txDep).Result;
-            return txDep;
-        }
-        
-        
         
         private async Task<bool> InitialDebugSync(string initFileName)
         {
@@ -299,9 +255,7 @@ namespace AElf.Kernel.Node
                         var address = Convert.FromBase64String(kv.Key);
                         var balance = kv.Value.ToObject<ulong>();
                         
-                        await _worldStateManager.OfChain(_nodeConfig.ChainId);
-            
-                        var accountDataProvider = _worldStateManager.GetAccountDataProvider(address);
+                        var accountDataProvider = await _worldStateDictator.GetAccountDataProvider(address);
                         var dataProvider = accountDataProvider.GetDataProvider();
                         
                         // set balance
@@ -413,7 +367,7 @@ namespace AElf.Kernel.Node
         public async Task<Hash> GetLastValidBlockHash()
         {
             var pointer = Path.CalculatePointerForLastBlockHash(_nodeConfig.ChainId);
-            return await _worldStateManager.GetDataAsync(pointer);
+            return await _worldStateDictator.GetDataAsync(pointer);
         }
 
         /// <summary>
@@ -518,11 +472,101 @@ namespace AElf.Kernel.Node
         }
 
         
+        
+        private ITransaction InvokTxDemo(ECKeyPair keyPair, Hash hash, string methodName, byte[] param, ulong index)
+        {
+            ECSigner signer = new ECSigner();
+            var txInv = new Transaction
+            {
+                From = keyPair.GetAddress(),
+                To = hash,
+                IncrementId = index,
+                MethodName = methodName,
+                Params = ByteString.CopyFrom(param),
+                
+                Fee = TxPoolConfig.Default.FeeThreshold + 1
+            };
+            
+            Hash txhash = txInv.GetHash();
+
+            ECSignature signature = signer.Sign(keyPair, txhash.GetHashBytes());
+            txInv.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
+            txInv.R = ByteString.CopyFrom(signature.R); 
+            txInv.S = ByteString.CopyFrom(signature.S);
+
+            var res = BroadcastTransaction(txInv).Result;
+            return txInv;
+        }
+        
+        
+        
+        private ITransaction DeployTxDemo(ECKeyPair keyPair)
+        {
+            var ContractName = "AElf.Kernel.Tests.TestContract";
+            var contractZeroDllPath = $"../{ContractName}/bin/Debug/netstandard2.0/{ContractName}.dll";
+            
+            byte[] code = null;
+            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(contractZeroDllPath)))
+            {
+                code = file.ReadFully();
+            }
+            //System.Diagnostics.Debug.WriteLine(ByteString.CopyFrom(code).ToBase64());
+            
+            ECSigner signer = new ECSigner();
+            var txDep = new Transaction
+            {
+                From = keyPair.GetAddress(),
+                To = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount(),
+                IncrementId = 0,
+                MethodName = "DeploySmartContract",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code)),
+                
+                Fee = TxPoolConfig.Default.FeeThreshold + 1
+            };
+            
+            Hash hash = txDep.GetHash();
+
+            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
+            txDep.R = ByteString.CopyFrom(signature.R); 
+            txDep.S = ByteString.CopyFrom(signature.S);
+            var res = BroadcastTransaction(txDep).Result;
+
+            return txDep;
+        }
+        
+        
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
-        public async Task Mine()
+        public async Task Mine(ECKeyPair keyPair)
         {
+
+            /*var txDev = DeployTxDemo(keyPair);
+            var b1 = await _miner.Mine();
+
+            var devRes = await _transactionResultService.GetResultAsync(txDev.GetHash());
+            Hash addr = devRes.RetVal.DeserializeToPbMessage<Hash>();
+
+            var acc1 = Hash.Generate().ToAccount();
+            var txInv1 = InvokTxDemo(keyPair, addr, "InitializeAsync", ParamsPacker.Pack(acc1, (ulong)101), 1);
+
+            var acc2 = Hash.Generate().ToAccount();
+            var txInv2 = InvokTxDemo(keyPair, addr, "InitializeAsync", ParamsPacker.Pack(acc2, (ulong)101), 2);
+            
+            var b2 = await _miner.Mine();
+            
+            var txInv3 = InvokTxDemo(keyPair, addr, "GetBalance", ParamsPacker.Pack(acc1), 3);
+            var txInv4 = InvokTxDemo(keyPair, addr, "GetBalance", ParamsPacker.Pack(acc2), 4);
+
+            var b3 = await _miner.Mine();
+            
+            var inv3Res = await _transactionResultService.GetResultAsync(txInv3.GetHash());
+            var inv4Res = await _transactionResultService.GetResultAsync(txInv4.GetHash());
+
+            Console.WriteLine(inv3Res.RetVal.DeserializeToUInt64());
+            Console.WriteLine(inv4Res.RetVal.DeserializeToUInt64());*/
+
             _dPoS = new DPoS(_nodeKeyPair);
             
             await Task.Run(() =>
@@ -815,7 +859,7 @@ namespace AElf.Kernel.Node
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private IObservable<long> GetIntervalObservable()
         {
-            return Observable.Interval(TimeSpan.FromMilliseconds(10000));
+            return Observable.Interval(TimeSpan.FromMilliseconds(4000));
         }
 
         private async Task<Hash> CalculateSignature(Hash inValue)
