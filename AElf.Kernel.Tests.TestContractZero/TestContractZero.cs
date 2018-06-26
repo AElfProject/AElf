@@ -50,11 +50,11 @@ namespace AElf.Kernel.Tests
 
         #region DPoS
 
-        private const int MiningTime = 16000;
+        private const int MiningTime = 4000;
 
-        private const int WaitFirstRoundTime = 25000;
+        private const int WaitFirstRoundTime = 1000;
 
-        private const int CheckTime = 6000;
+        private const int CheckTime = 2000;
 
         private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");
         
@@ -289,12 +289,7 @@ namespace AElf.Kernel.Tests
             
             // ReSharper disable once InconsistentNaming
             var nextEBP = blockProducer.Nodes[order];
-
-            var bpInfo = await GetBlockProducerInfoOfSpecificRound(nextEBP, RoundsCountAddOne(RoundsCount));
-            bpInfo.IsEBP = true;
-            var roundInfo = await _dPoSInfoMap.GetValueAsync(RoundsCountAddOne(RoundsCount));
-            roundInfo.Info[nextEBP] = bpInfo;
-
+            
             return new StringValue {Value = nextEBP};
         }
 
@@ -317,11 +312,12 @@ namespace AElf.Kernel.Tests
             if (RoundsCount.Value != 1)
             {
                 await _eBPMap.SetValueAsync(RoundsCountAddOne(RoundsCount), nextEBP);
+                roundInfo.Info.First(info => info.Key == nextEBP.Value).Value.IsEBP = true;
             }
             
             await _dPoSInfoMap.SetValueAsync(RoundsCountAddOne(RoundsCount), roundInfo);
 
-            await _firstPlaceMap.SetValueAsync(RoundsCount, new StringValue {Value = roundInfo.Info.First().Key});
+            await _firstPlaceMap.SetValueAsync(RoundsCountAddOne(RoundsCount), new StringValue {Value = roundInfo.Info.First().Key});
 
             await _timeForProducingExtraBlock.SetAsync(GetTimestamp(roundInfo.Info.Last().Value.TimeSlot,
                 MiningTime + CheckTime));

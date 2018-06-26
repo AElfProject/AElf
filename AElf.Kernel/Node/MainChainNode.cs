@@ -1,7 +1,8 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reactive.Linq;
+ using System.Linq;
+ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
@@ -702,7 +703,7 @@ namespace AElf.Kernel.Node
 
                                 if (await CheckAbleToMineExtraBlock())
                                 {
-                                    var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId);
+                                    var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId + 1);
 
                                     await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, extraBlockResult.Item2);
 
@@ -880,6 +881,7 @@ namespace AElf.Kernel.Node
             return Tuple.Create(roundInfo, nextEBP);
         }
 
+        // ReSharper disable once InconsistentNaming
         private async Task BroadcastTxsToSyncExtraBlock(ulong incrementId, RoundInfo roundInfo, StringValue nextEBP)
         {
             var txForExtraBlock = _dPoS.GetTxToSyncExtraBlock(
@@ -920,7 +922,7 @@ namespace AElf.Kernel.Node
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private IObservable<long> GetIntervalObservable()
         {
-            return Observable.Interval(TimeSpan.FromMilliseconds(6000));
+            return Observable.Interval(TimeSpan.FromMilliseconds(2000));
         }
 
         private async Task<Hash> CalculateSignature(Hash inValue)
