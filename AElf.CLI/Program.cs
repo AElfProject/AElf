@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System;
+using System.Linq.Expressions;
 using AElf.CLI.Command;
 using AElf.CLI.Command.Account;
 using AElf.CLI.Parsing;
@@ -20,7 +21,9 @@ namespace AElf.CLI
             AElfKeyStore kstore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
             AccountManager manager = new AccountManager(kstore, screenManager);
             
-            AElfCliProgram program = new AElfCliProgram(screenManager, parser, manager);
+            int port = args.Length > 0 ? Int32.Parse(args[0]) : 5000;
+            
+            AElfCliProgram program = new AElfCliProgram(screenManager, parser, manager, port);
 
             // Register local commands
             RegisterAccountCommands(program);
