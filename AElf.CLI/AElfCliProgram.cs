@@ -237,7 +237,7 @@ namespace AElf.CLI
                             try
                             {
                                 tr.From = ByteArrayHelpers.FromHexString(j["from"].ToString());
-                                tr.To = Convert.FromBase64String(j["to"].ToString());
+                                tr.To = ByteArrayHelpers.FromHexString(j["to"].ToString());
                                 tr.IncrementId = j["incr"].ToObject<ulong>();
                                 tr.MethodName = j["method"].ToObject<string>();
                                 

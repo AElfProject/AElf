@@ -589,8 +589,7 @@ namespace AElf.Kernel.Node
             var inv4Res = await _transactionResultService.GetResultAsync(txInv6.GetHash());
 
             Console.WriteLine(inv3Res.RetVal.DeserializeToUInt64());
-            Console.WriteLine(inv4Res.RetVal.DeserializeToUInt64());
-*/
+            Console.WriteLine(inv4Res.RetVal.DeserializeToUInt64());*/
 
 
             Task.Run(async () =>
