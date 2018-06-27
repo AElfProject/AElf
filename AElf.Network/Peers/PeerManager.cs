@@ -517,46 +517,50 @@ namespace AElf.Network.Peers
         /// <param name="payload"></param>
         /// <param name="messageId"></param>
         /// <returns></returns>
-        public async Task<bool> BroadcastMessage(MessageTypes messageType, byte[] payload, int messageId)
+        public async Task<int> BroadcastMessage(MessageTypes messageType, byte[] payload, int messageId)
         {
             if (_peers == null || !_peers.Any())
-                return false;
+                return 0;
 
             try
             {
                 AElfPacketData packet = NetRequestFactory.CreateRequest(messageType, payload, messageId);
-                bool success = await BroadcastMessage(packet);
-                
-                return success;
+                return await BroadcastMessage(packet);
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error while sending a message to the peers");
-                return false;
+                _logger?.Error(e, "Error while sending a message to the peers.");
+                return 0;
             }
         }
 
-        public async Task<bool> BroadcastMessage(AElfPacketData packet)
+        public async Task<int> BroadcastMessage(AElfPacketData packet)
         {
             if (_peers == null || !_peers.Any())
-                return false;
+                return 0;
 
+            int count = 0;
+            
             try
             {
                 byte[] data = packet.ToByteArray();
 
                 foreach (var peer in _peers)
                 {
-                    await peer.SendAsync(data);
+                    try
+                    {
+                        await peer.SendAsync(data);
+                        count++;
+                    }
+                    catch (Exception e) { }
                 }
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error while sending a message to the peers");
-                throw;
+                _logger?.Error(e, "Error while sending a message to the peers.");
             }
 
-            return true;
+            return count;
         }
 
         public void Dispose()

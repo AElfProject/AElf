@@ -742,16 +742,16 @@ namespace AElf.Kernel.Node
 
         public async Task<bool> BroadcastBlock(IBlock block)
         {
+            int count = 0;
             try
             {
-                await _protocolDirector.BroadcastBlock(block as Block);
+                count = await _protocolDirector.BroadcastBlock(block as Block);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
             }
 
-            _logger.Trace("Broadcasted block to peers:");
+            _logger.Trace("Broadcasted block " + Convert.ToBase64String(block.GetHash().Value.ToByteArray()) + " to " + count + " peers.");
 
             return true;
         }

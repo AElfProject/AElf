@@ -232,7 +232,7 @@ namespace AElf.Network.Peers
             throw new NotImplementedException();
         }
 
-        public Task<bool> BroadcastMessage(MessageTypes messageType, byte[] payload, int requestId)
+        public Task<int> BroadcastMessage(MessageTypes messageType, byte[] payload, int requestId)
         {
             throw new NotImplementedException();
         }
