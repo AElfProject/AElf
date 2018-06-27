@@ -50,11 +50,11 @@ namespace AElf.Kernel.Tests
 
         #region DPoS
 
-        private const int MiningTime = 8000;
+        private const int MiningTime = 12000;
 
-        private const int WaitFirstRoundTime = 10000;
+        private const int WaitFirstRoundTime = 20000;
 
-        private const int CheckTime = 3000;
+        private const int CheckTime = 5000;
 
         private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");
         
@@ -344,21 +344,22 @@ namespace AElf.Kernel.Tests
 
         #region BP Methods
 
-        public async Task<BPInfo> PublishOutValueAndSignature(Hash outValue, Hash signature, ulong roundsCount)
+        public async Task<BPInfo> PublishOutValueAndSignature(Hash outValue, Hash signature, UInt64Value roundsCount)
         {
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
-            var count = roundsCount == 0 ? RoundsCount : new UInt64Value {Value = roundsCount};
+            
+            Console.WriteLine("For round:" + roundsCount.Value + " of " + accountAddress);
 
-            var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, count);
+            var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, roundsCount);
             
             info.OutValue = outValue;
-            if (roundsCount > 1)
+            if (roundsCount.Value > 1)
                 info.Signature = signature;
             
-            var roundInfo = await _dPoSInfoMap.GetValueAsync(count);
+            var roundInfo = await _dPoSInfoMap.GetValueAsync(roundsCount);
             roundInfo.Info[accountAddress] = info;
             
-            await _dPoSInfoMap.SetValueAsync(count, roundInfo);
+            await _dPoSInfoMap.SetValueAsync(roundsCount, roundInfo);
 
             return info;
         }
@@ -426,6 +427,8 @@ namespace AElf.Kernel.Tests
                 }
             }
 
+            await _dPoSInfoMap.SetValueAsync(RoundsCount, roundInfo);
+
             return roundInfo;
         }
 
@@ -472,8 +475,9 @@ namespace AElf.Kernel.Tests
                 var lastSignature = bpInfo.Signature;
                 add = add.CalculateHashWith(lastSignature);
             }
-            
-            return inValue.CalculateHashWith(add);
+
+            Hash sig = inValue.CalculateHashWith(add);
+            return sig;
         }
         
         public async Task<bool> AbleToMine()

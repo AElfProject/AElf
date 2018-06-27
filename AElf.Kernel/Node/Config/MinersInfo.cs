@@ -19,7 +19,7 @@ namespace AElf.Kernel.Node.Config
                         {"coinbase", "GdsgFf\\="},
                         {"pubkey", "BJHHuAdKY0pAu8ww2QtypFBr"}
                     }
-                }/*,
+                },
                 {
                     "2", new Dictionary<string, string>
                     {
@@ -33,7 +33,7 @@ namespace AElf.Kernel.Node.Config
                         {"coinbase", "FfEpvVG!="},
                         {"pubkey", "BFSux7m1cg8yZv2griHLT0J0"}
                     }
-                }*/
+                }
             };
         }
     }

@@ -17,6 +17,8 @@ namespace AElf.Kernel.Consensus
     {
         private readonly ECKeyPair _keyPair;
 
+        public Hash TransferContractAddress { get; set; }
+
         public Hash AccountHash => _keyPair.GetAddress();
 
         public DPoS(ECKeyPair keyPair)
@@ -187,7 +189,7 @@ namespace AElf.Kernel.Consensus
                     From = AccountHash,
                     To = contractAccountHash,
                     IncrementId = incrementId++,
-                    MethodName = "GenerateNextRoundOrder",
+                    MethodName = "SupplyPreviousRoundInfo",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom(ParamsPacker.Pack())
                 },
@@ -196,7 +198,7 @@ namespace AElf.Kernel.Consensus
                     From = AccountHash,
                     To = contractAccountHash,
                     IncrementId = incrementId++,
-                    MethodName = "SetNextExtraBlockProducer",
+                    MethodName = "GenerateNextRoundOrder",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom(ParamsPacker.Pack())
                 },
@@ -205,7 +207,7 @@ namespace AElf.Kernel.Consensus
                     From = AccountHash,
                     To = contractAccountHash,
                     IncrementId = incrementId,
-                    MethodName = "SupplyPreviousRoundInfo",
+                    MethodName = "SetNextExtraBlockProducer",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom(ParamsPacker.Pack())
                 }
@@ -259,7 +261,8 @@ namespace AElf.Kernel.Consensus
                     IncrementId = incrementId,
                     MethodName = "PublishOutValueAndSignature",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack(outValue, sig, roundsCount))
+                    Params = ByteString.CopyFrom(
+                        ParamsPacker.Pack(outValue, sig, new UInt64Value {Value = roundsCount}))
                 }
             };
 

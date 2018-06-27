@@ -50,8 +50,8 @@ namespace AElf.Kernel.Node.Protocol
                 _blockSynchronizer.SetNodeHeight((int)height);
                 _blockSynchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
 
-                if (!_blockSynchronizer.IsInitialSync)
-                    _node.Mine();
+                //if (!_blockSynchronizer.IsInitialSync)
+                    //_node.Mine();
                 
                 Task.Run(() => _blockSynchronizer.Start());
             }
@@ -59,7 +59,7 @@ namespace AElf.Kernel.Node.Protocol
 
         private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
         {
-            _node.Mine();
+            //_node.Mine();
         }
 
         public void AddTransaction(Transaction tx)

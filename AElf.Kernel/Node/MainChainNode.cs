@@ -63,7 +63,7 @@ namespace AElf.Kernel.Node
         public IExecutive Executive =>
             _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
         
-        private const int CheckTime = 3000;
+        private const int CheckTime = 5000;
 
         public BlockProducer BlockProducers
         {
@@ -109,8 +109,7 @@ namespace AElf.Kernel.Node
             _blockExecutor = blockExecutor;
         }
 
-        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string initdata,
-            byte[] code = null)
+        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int confParserRpcPort, string initData, byte[] code)
         {
             if (_nodeConfig == null)
             {
@@ -156,7 +155,7 @@ namespace AElf.Kernel.Node
             }
             
             
-            if (!string.IsNullOrWhiteSpace(initdata))
+            if (!string.IsNullOrWhiteSpace(initData))
             {
                 /*if (!InitialDebugSync(initdata).Result)
                 {
@@ -171,7 +170,7 @@ namespace AElf.Kernel.Node
             _nodeKeyPair = nodeKeyPair;
 
             if (startRpc)
-                _rpcServer.Start(rpcPort);
+                _rpcServer.Start(confParserRpcPort);
 
             _poolService.Start();
             _protocolDirector.Start();
@@ -539,54 +538,6 @@ namespace AElf.Kernel.Node
         /// </summary>
         public async Task Mine()
         {
-
-            /*var txDev = DeployTxDemo(keyPair);
-            var b1 = await _miner.Mine();
-
-            var devRes = await _transactionResultService.GetResultAsync(txDev.GetHash());
-            Hash addr = devRes.RetVal.DeserializeToPbMessage<Hash>();
-
-            var acc1 = Hash.Generate().ToAccount();
-            var txInv1 = InvokTxDemo(keyPair, addr, "InitializeAsync", ParamsPacker.Pack(acc1, (ulong)101), 1);
-
-            var acc2 = Hash.Generate().ToAccount();
-            var txInv2 = InvokTxDemo(keyPair, addr, "InitializeAsync", ParamsPacker.Pack(acc2, (ulong)101), 2);
-            
-            var b2 = await _miner.Mine();
-            
-            var txInv3 = InvokTxDemo(keyPair, addr, "GetBalance", ParamsPacker.Pack(acc1), 3);
-            var txInv4 = InvokTxDemo(keyPair, addr, "GetBalance", ParamsPacker.Pack(acc2), 4);
-
-            var b3 = await _miner.Mine();
-            
-            var inv3Res = await _transactionResultService.GetResultAsync(txInv3.GetHash());
-            var inv4Res = await _transactionResultService.GetResultAsync(txInv4.GetHash());
-
-            Console.WriteLine(inv3Res.RetVal.DeserializeToUInt64());
-            Console.WriteLine(inv4Res.RetVal.DeserializeToUInt64());*/
-
-
-            /*await Task.Run(async () =>
-            {
-                while (true)
-                {
-                    await Task.Delay(10000);
-                    var b = await _miner.Mine();
-                    if (b == null)
-                    {
-                        _logger.Log(LogLevel.Debug, "Block generation failed");
-                        continue;
-                    }
-                    
-                    _logger.Log(LogLevel.Debug,
-                        "Generated block: {0}, with {1} txs and index {2}, previous block hash: {3}",
-                        b.Header.GetHash().Value.ToBase64(), b.Body.Transactions.Count, b.Header.Index,
-                        b.Header.PreviousBlockHash.Value.ToBase64());
-
-                    await BroadcastBlock(b);
-                }
-            });*/
-
             await DoDPoSMining();
         }
 
@@ -671,11 +622,10 @@ namespace AElf.Kernel.Node
         // ReSharper disable once InconsistentNaming
         private async Task DoDPoSMining(bool doLogsAboutConsensus = true)
         {
-            //Initialize DPoS helper with an ECKeyPair instance
-            _dPoS = new DPoS(_nodeKeyPair);
-            
             await Task.Run(() =>
             {
+                _dPoS = new DPoS(_nodeKeyPair);
+                    
                 //Record the rounds count in local memory
                 ulong roundsCount = 0;
                 
@@ -713,7 +663,7 @@ namespace AElf.Kernel.Node
 
                             var dpoSInfo = await ExecuteTxsForFirstExtraBlock();
 
-                            await BroadcastSyncTxForFirstExtraBlock(dpoSInfo);
+                            BroadcastSyncTxForFirstExtraBlock(dpoSInfo).Wait();
                             
                             var firstBlock = await _miner.Mine(); //Which is an extra block
 
@@ -902,6 +852,11 @@ namespace AElf.Kernel.Node
                 };
                 Executive.SetTransactionContext(tc).Apply(true).Wait();
 
+                if (tx.MethodName.StartsWith("Supply"))
+                {
+                    currentRoundInfo = RoundInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                }
+                
                 if (tx.MethodName.StartsWith("Generate"))
                 {
                     nextRoundInfo = RoundInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
@@ -910,11 +865,6 @@ namespace AElf.Kernel.Node
                 if (tx.MethodName.StartsWith("Set"))
                 {
                     nextEBP = StringValue.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
-                }
-                
-                if (tx.MethodName.StartsWith("Supply"))
-                {
-                    currentRoundInfo = RoundInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
                 }
             }
 
