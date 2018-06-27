@@ -78,17 +78,17 @@ namespace AElf.Benchmark
             var workers = new[]
             {
                 "/user/worker1", "/user/worker2"
-                , "/user/worker3", "/user/worker4", "/user/worker5", "/user/worker6",
-                "/user/worker7", "/user/worker8", "/user/worker9", "/user/worker10", "/user/worker11", "/user/worker12"
+//                , "/user/worker3", "/user/worker4", "/user/worker5", "/user/worker6",
+//                "/user/worker7", "/user/worker8", "/user/worker9", "/user/worker10", "/user/worker11", "/user/worker12"
             };
             Workers = new []
             {
                 Sys.ActorOf(Props.Create<Worker>(), "worker1"), Sys.ActorOf(Props.Create<Worker>(), "worker2"),
-                Sys.ActorOf(Props.Create<Worker>(), "worker3"), Sys.ActorOf(Props.Create<Worker>(), "worker4"),
-                Sys.ActorOf(Props.Create<Worker>(), "worker5"), Sys.ActorOf(Props.Create<Worker>(), "worker6"),
-                Sys.ActorOf(Props.Create<Worker>(), "worker7"), Sys.ActorOf(Props.Create<Worker>(), "worker8"),
-                Sys.ActorOf(Props.Create<Worker>(), "worker9"), Sys.ActorOf(Props.Create<Worker>(), "worker10"),
-                Sys.ActorOf(Props.Create<Worker>(), "worker11"), Sys.ActorOf(Props.Create<Worker>(), "worker12")
+//                Sys.ActorOf(Props.Create<Worker>(), "worker3"), Sys.ActorOf(Props.Create<Worker>(), "worker4"),
+//                Sys.ActorOf(Props.Create<Worker>(), "worker5"), Sys.ActorOf(Props.Create<Worker>(), "worker6"),
+//                Sys.ActorOf(Props.Create<Worker>(), "worker7"), Sys.ActorOf(Props.Create<Worker>(), "worker8"),
+//                Sys.ActorOf(Props.Create<Worker>(), "worker9"), Sys.ActorOf(Props.Create<Worker>(), "worker10"),
+//                Sys.ActorOf(Props.Create<Worker>(), "worker11"), Sys.ActorOf(Props.Create<Worker>(), "worker12")
             };
             Router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
             Workers.ForEach(worker => worker.Tell(new LocalSerivcePack(_servicePack)));
@@ -218,7 +218,7 @@ namespace AElf.Benchmark
             Console.WriteLine("Benchmark with multiple conflict group");
             Console.WriteLine("-------------------------------------");
 
-            int repeatTime = 10;
+            int repeatTime = 1;
         
             var txList = _dataGenerater.GetMultipleGroupTx(txNumber, groupCount, _contractHash);
             long timeused = 0;
