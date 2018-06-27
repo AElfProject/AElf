@@ -1,6 +1,4 @@
-using AElf.Kernel.Concurrency;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Concurrency.Metadata;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
@@ -15,7 +13,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             
             builder.RegisterInstance<IHash>(new Hash()).As<Hash>();
             
-            builder.RegisterAssemblyTypes(assembly).Where(r => r.Name != typeof(FunctionMetadataService).Name && r.Name != typeof(ConcurrencyExecutingService).Name).AsImplementedInterfaces();
+            builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
 
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));
 

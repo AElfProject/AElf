@@ -81,7 +81,7 @@ namespace AElf.Kernel.Concurrency
             if (ActorConfig.Instance.IsCluster)
             {
                 //Todo waiting for join cluster. we should get the status here.
-                Thread.Sleep(3000);
+                Thread.Sleep(2000);
             }
             else
             {

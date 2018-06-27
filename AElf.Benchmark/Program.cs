@@ -32,6 +32,7 @@ namespace AElf.Benchmark
                 Host = "192.168.9.9",
                 Port = 6379
             };
+            DatabaseConfig.Instance.Type = DatabaseType.Ssdb;
             builder.RegisterModule(new WorldStateDictatorModule());
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new LoggerModule());

@@ -35,6 +35,13 @@ namespace AElf.Kernel.Node.Protocol
         public bool IsSend { get; set; }
         public Block Block { get; set; }
     }
+
+    public class SyncPeer
+    {
+        public IPeer Peer { get; set; }
+        public int? LastKnownHight { get; set; }
+        public int RequestCount { get; set; } = 0;
+    }
     
     /// <summary>
     /// When a node starts it creates this BlockSynchroniser for two reasons: the first
@@ -49,6 +56,7 @@ namespace AElf.Kernel.Node.Protocol
     public class BlockSynchronizer
     {
         public event EventHandler BlockSynched;
+        public event EventHandler SyncFinished;
         
         // React to new peers connected
         // when a peer connects get the height of his chain
@@ -57,7 +65,7 @@ namespace AElf.Kernel.Node.Protocol
 
         private List<PendingBlock> PendingBlocks { get; }
 
-        private bool IsInitialSync { get; set; } = true;
+        public bool IsInitialSync { get; set; } = true;
 
         // The height of the chain, this gets incremented each time a 
         // block is successfully removed.
@@ -71,12 +79,15 @@ namespace AElf.Kernel.Node.Protocol
         // todo maybe
         //private int Security = 0;
         
-        Dictionary<IPeer, int> PeerToHeights = new Dictionary<IPeer, int>();
+        //Dictionary<IPeer, int> PeerToHeights = new Dictionary<IPeer, int>();
+        private List<SyncPeer> _syncPeers = new List<SyncPeer>();
 
         private Timer _cycleTimer;
         private IAElfNode _mainChainNode;
 
         private BlockingCollection<Job> _jobQueue;
+
+        private bool AskedForHeight = false;
 
         public BlockSynchronizer(IAElfNode node, IPeerManager peerManager)
         {
@@ -86,27 +97,77 @@ namespace AElf.Kernel.Node.Protocol
             _mainChainNode = node;
             _peerManager = peerManager;
             _logger = LogManager.GetLogger("BlockSync");
+            
+            if (_peerManager.NoPeers)
+            {
+                FinishSync();
+                _logger?.Trace("Finished sync : no peers.");
+            }
+            
+            _peerManager.PeerListEmpty += OnPeerListEmpty;
         }
+        
+        public async Task Start()
+        {
+            if (IsInitialSync)
+            {
+                // Initialy connected nodes 
+                List<IPeer> peers = _peerManager.GetPeers();
+                
+                peers.ForEach(p => _syncPeers.Add(new SyncPeer { Peer = p}));
 
+                foreach (var syncPeer in _syncPeers)
+                {
+                    IPeer p = syncPeer.Peer;
+                    
+                    var req = NetRequestFactory.CreateRequest(MessageTypes.HeightRequest, new byte[] {}, 0);
+                    await p.SendAsync(req.ToByteArray());
+
+                    syncPeer.RequestCount++;
+                    
+                    Console.WriteLine(DateTime.Now.TimeOfDay + " [BlockSynchronizer] Broadcasting height request to " + p);
+                }
+            }
+            
+            _cycleTimer = new Timer(DoCycle, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(3));
+            
+            DoSync();
+        }
+        
+        private void FinishSync()
+        {
+            IsInitialSync = false;
+            SyncFinished?.Invoke(this, EventArgs.Empty);
+        }
+        
+        private void OnPeerListEmpty(object sender, EventArgs eventArgs)
+        {
+            if (_peerManager.NoPeers && IsInitialSync)
+            {
+                FinishSync();
+                _logger?.Trace("Finished sync : no peers.");
+            }
+        }
+        
         public bool SetPeerHeight(IPeer peer, int height)
         {
             if (!IsInitialSync)
                 return false;
-                
+
             if (height <= CurrentExecHeight)
+            {
+                if (_syncPeers.Count == 1)
+                    FinishSync();
+                    
                 return false;
-            
-            if (PeerToHeights.ContainsKey(peer))
-            {
-                if (PeerToHeights[peer] >= height)
-                    return false;
-                
-                PeerToHeights[peer] = height;
             }
-            else
-            {
-                PeerToHeights.Add(peer, height);
-            }
+
+            SyncPeer p = _syncPeers.FirstOrDefault(s => s.Peer.Equals(peer));
+
+            if (p == null)
+                return false;
+
+            p.LastKnownHight = height;
             
             _logger?.Trace("Set peer height :: Peer " + peer + ", heigh " + height);
 
@@ -116,12 +177,24 @@ namespace AElf.Kernel.Node.Protocol
                 _logger?.Trace("New sync target height: " + height);
             }
             
+            /*if (PeerToHeights.ContainsKey(peer))
+            {
+                if (PeerToHeights[peer] >= height)
+                    return false;
+                
+                PeerToHeights[peer] = height;
+            }
+            else
+            {
+                PeerToHeights.Add(peer, height);
+            }*/
+            
             return true;
         }
         
         public List<IPeer> RemoveLowerHeightPeers()
         {
-            if (PeerToHeights == null)
+            /*if (PeerToHeights == null)
                 return null;
             
             var toRemove = PeerToHeights.Where(kvp => kvp.Value <= CurrentExecHeight).ToList();
@@ -132,14 +205,15 @@ namespace AElf.Kernel.Node.Protocol
                 _logger?.Trace("Clearing peer : " + kvp.Key);
             }
 
-            return toRemove.Select(kvp => kvp.Key).ToList();
+            return toRemove.Select(kvp => kvp.Key).ToList();*/
+            return null;
         }
 
         internal async void DoCycle(object state)
         {
             if (IsInitialSync)
             {
-                RemoveLowerHeightPeers();
+                //RemoveLowerHeightPeers();
                 await ManagePeers();
             }
             
@@ -158,25 +232,33 @@ namespace AElf.Kernel.Node.Protocol
         /// <returns></returns>
         private async Task ManagePeers()
         {
-            if (PeerToHeights == null)
+            if (_syncPeers == null)
                 return;
             
             // It means we're still synchronizing old blocks 
                 
             // In order to work we need at least one height from one of the peers
-            if (PeerToHeights.Count > 0)
+            if (_syncPeers.Count > 0)
             {
                 /** Calculate block requests to send **/
                     
                 // todo use more that one peer
                     
                 // for now we use only one - the one with the highest hight
-                var peerHeightKvp = PeerToHeights.OrderByDescending(p => p.Value).First();
+                var peerHeightKvp = _syncPeers.Where(p => p.LastKnownHight.HasValue)
+                    .OrderByDescending(p => p.LastKnownHight)
+                    .FirstOrDefault();
 
-                if (peerHeightKvp.Value <= CurrentExecHeight)
+                if (peerHeightKvp == null)
+                {
+                    _logger?.Trace("No peers have a know height.");
+                    return;
+                }
+
+                if (peerHeightKvp.LastKnownHight <= CurrentExecHeight)
                     return; // As far as we know he's behind us
 
-                IPeer peer = peerHeightKvp.Key;
+                IPeer peer = peerHeightKvp.Peer;
 
                 // Request the current block we're trying to sync
                 BlockRequest br = new BlockRequest { Height = CurrentExecHeight };
@@ -192,7 +274,7 @@ namespace AElf.Kernel.Node.Protocol
                 // todo if at least one peer as been set, the requests will not be broadcast
                 
                 // If InitSync is finished we don't query nodes for their height anymore
-                if (IsInitialSync)
+                if (IsInitialSync && AskedForHeight)
                 {
                     // Query peers for their height
                     if (_peerManager != null)
@@ -201,19 +283,12 @@ namespace AElf.Kernel.Node.Protocol
             }
         }
 
-        public void Start()
-        {
-            _cycleTimer = new Timer(DoCycle, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(3));
-            DoSync();
-        }
-
         public void SetNodeHeight(int currentHeight)
         {
             // todo logic to handle a height change
-            //CurrentHeight = currentHeight;
             CurrentExecHeight = currentHeight;
             
-            _logger?.Trace("Sync started at height: " + CurrentExecHeight);
+            _logger?.Trace("Current node height is set at " + CurrentExecHeight);
         }
 
         public void EnqueueJob(Job job)
@@ -257,10 +332,11 @@ namespace AElf.Kernel.Node.Protocol
         
         private async Task<bool> RequestMissingTxs()
         {
-            if (PeerToHeights == null || PeerToHeights.Count <= 0)
+            if (_syncPeers == null || _syncPeers.Count <= 0)
                 return false;
                 
-            var peerHeightKvp = PeerToHeights.OrderByDescending(p => p.Value).First();
+            var peerHeightKvp = _syncPeers.Where(p=>p.LastKnownHight.HasValue).OrderByDescending(p => p.LastKnownHight)
+                .First();
             
             List<byte[]> listOfMissingTxToRequest = new List<byte[]>();
             
@@ -278,7 +354,7 @@ namespace AElf.Kernel.Node.Protocol
                 }
             }
 
-            IPeer peer = peerHeightKvp.Key;
+            IPeer peer = peerHeightKvp.Peer;
             
             foreach (var tx in listOfMissingTxToRequest)
             {
@@ -349,6 +425,8 @@ namespace AElf.Kernel.Node.Protocol
                 throw new InvalidBlockException("Invalid block hash");
             }
 
+            
+            
             if (GetBlock(h) != null)
             {
                 //theEvent.WaitOne();
@@ -368,42 +446,9 @@ namespace AElf.Kernel.Node.Protocol
             PendingBlock newPendingBlock = new PendingBlock(h, block, missingTxs);
             PendingBlocks.Add(newPendingBlock);
             
-            return true;
-
-            /*if (missingTxs.Any())
-            {
-                // todo check that the returned txs are actually in the block
-                PendingBlock newPendingBlock = new PendingBlock(h, block, missingTxs);
-                PendingBlocks.Add(newPendingBlock);
-                
-                CurrentHeight++;
-            }
-            else
-            {
-                // Here all the txs where in the pool, we try to add the block to
-                // the chain
-                BlockExecutionResult res = await _mainChainNode.ExecuteAndAddBlock(block);
-                
-                if (res.Executed == false && res.ValidationError == ValidationError.OrphanBlock)
-                {
-                    // Here we've come across a block that is higher than the current
-                    // chain height, we need to wait for it.
-                    PendingBlock newPendingBlock = new PendingBlock(h, block, null);
-                    newPendingBlock.IsWaitingForPrevious = true;
-                    PendingBlocks.Add(newPendingBlock);
-                }
-
-                if (res.Executed == true && res.ValidationError == ValidationError.Success)
-                {
-                    CurrentHeight++;
-                    CurrentExecHeight++;
-                    _logger?.Trace("Block directly added and executed: " + block.GetHash().Value.ToBase64());
-                }
-            }
+            _logger?.Trace("Added block to sync : " + Convert.ToBase64String(h));
             
-            //theEvent.WaitOne();
-
-            return true; */
+            return true;
         }
         
         private object objLock = new object();
@@ -436,6 +481,8 @@ namespace AElf.Kernel.Node.Protocol
                         {
                             IsInitialSync = false;
                             _logger?.Trace("-- Initial sync is finished at height: " + CurrentExecHeight);
+                            
+                            SyncFinished?.Invoke(this, EventArgs.Empty);
                         }
                     }
                 }
@@ -446,6 +493,11 @@ namespace AElf.Kernel.Node.Protocol
                     {
                         // We ensure that the property is coherent
                         pendingBlock.IsWaitingForPrevious = true;
+                    }
+                    else if (res.ValidationError == ValidationError.AlreadyExecuted)
+                    {
+                        toRemove.Add(pendingBlock);
+                        _logger?.Trace("Block { " + Convert.ToBase64String(pendingBlock.BlockHash) + " } at height " + pendingBlock.Block.Header.Index + " was already executed.");
                     }
                     else
                     {
@@ -506,23 +558,6 @@ namespace AElf.Kernel.Node.Protocol
 
             return null;
         }
-
-        /*public async Task AddRequestedBlock(Block block)
-        {
-            BlockExecutionResult res = await _mainChainNode.ExecuteAndAddBlock(block);
-            
-            if (res.ValidationError == ValidationError.Success)
-            {
-                _logger?.Trace("Block executed: " + block.GetHash());
-                CurrentHeight++;
-
-                if (CurrentHeight == SyncTargetHeight)
-                {
-                    IsInitialSync = false;
-                    _logger.Trace("Initial sync is finished at height: " + CurrentHeight);
-                }
-            }
-        }*/
     }
 
     public class PendingBlock
