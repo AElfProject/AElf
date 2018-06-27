@@ -11,5 +11,6 @@
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
     <PackageReference Include="Mono.Cecil" Version="0.10.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 </Project>

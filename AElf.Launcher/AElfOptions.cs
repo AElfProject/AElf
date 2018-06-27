@@ -86,5 +86,12 @@ namespace AElf.Launcher
         public int? DBPort { get; set; }
         
         #endregion
+
+        #region Runner
+
+        [Option("runner.config", HelpText = "The path to the runner config in json format.")]
+        public string RunnerConfig { get; set; }
+
+        #endregion
     }
 }
