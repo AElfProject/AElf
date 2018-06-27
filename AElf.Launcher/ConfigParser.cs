@@ -175,7 +175,7 @@ namespace AElf.Launcher
                 ActorConfig.Instance.Port = opts.ActorPort.Value;
             if (opts.ActorIsSeed.HasValue)
                 ActorWorkerConfig.Instance.IsSeedNode = opts.ActorIsSeed.Value;
-            if (string.IsNullOrWhiteSpace(opts.ActorWorkerHostName))
+            if (!string.IsNullOrWhiteSpace(opts.ActorWorkerHostName))
                 ActorWorkerConfig.Instance.HostName = opts.ActorWorkerHostName;
             if (opts.ActorWorkerPort.HasValue)
                 ActorWorkerConfig.Instance.Port = opts.ActorWorkerPort.Value;
