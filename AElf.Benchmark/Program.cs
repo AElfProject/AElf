@@ -23,13 +23,15 @@ namespace AElf.Benchmark
             var builder = new ContainerBuilder();
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new MainModule());
-            var dataConfig = new DatabaseConfig();
-            dataConfig.Type = DatabaseType.KeyValue;
-            dataConfig.Host = "192.168.197.28";
-            dataConfig.Port = 8888;
+            var dataConfig = new DatabaseConfig
+            {
+                Type = DatabaseType.Redis,
+                Host = "192.168.9.9",
+                Port = 6379
+            };
             builder.RegisterModule(new DatabaseModule(dataConfig));
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 1000);
+            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 100);
             #if DEBUG
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             #else
@@ -89,7 +91,7 @@ namespace AElf.Benchmark
                     }
                 }
                 */
-                var multiGroupRes = await benchmarkTps.MultipleGroupBenchmark(1000, 1);
+                var multiGroupRes = await benchmarkTps.MultipleGroupBenchmark(100, 1);
                 foreach (var kv in multiGroupRes)
                 {
                     Console.WriteLine(kv.Key + kv.Value);

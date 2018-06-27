@@ -1,59 +1,54 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.Database.Config;
-using StackExchange.Redis;
+using AElf.Database.SsdbClient;
 
 namespace AElf.Database
 {
     public class SsdbDatabase : IKeyValueDatabase
     {
-        private readonly ConfigurationOptions _options;
+        private readonly Client _client;
 
-        public SsdbDatabase()
-            : this(new DatabaseConfig())
+        public SsdbDatabase() : this(new DatabaseConfig())
         {
         }
 
         public SsdbDatabase(IDatabaseConfig config)
         {
-            _options = new ConfigurationOptions
-            {
-                EndPoints = {{config.Host, config.Port}},
-                CommandMap = CommandMap.SSDB
-            };
+            _client = new Client(config.Host, config.Port);
+            _client.Connect();
         }
 
         public async Task<byte[]> GetAsync(string key, Type type)
         {
-            using (var conn = ConnectionMultiplexer.Connect(_options))
-            {
-                var db = conn.GetDatabase(0);
-                return await db.StringGetAsync(key);
-            }
+            return await Task.FromResult(Get(key));
         }
 
         public async Task SetAsync(string key, byte[] bytes)
         {
-            using (var conn = ConnectionMultiplexer.Connect(_options))
-            {
-                var db = conn.GetDatabase(0);
-                await db.StringSetAsync(key, bytes);
-            }
+            await Task.FromResult(Set(key, bytes));
+        }
+
+        private byte[] Get(string key)
+        {
+            var ret = _client.Get(key, out byte[] result);
+            return ret ? result : null;
+        }
+
+        private bool Set(string key, byte[] bytes)
+        {
+            _client.Set(key, bytes);
+            return true;
         }
 
         public bool IsConnected()
         {
             try
             {
-                using (var conn = ConnectionMultiplexer.Connect(_options))
-                {
-                    var db = conn.GetDatabase(0);
-                    db.Ping();
-                }
-
+                _client.Set("test", "test");
                 return true;
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 return false;
             }
