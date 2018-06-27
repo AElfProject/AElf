@@ -274,12 +274,12 @@ namespace AElf.Kernel.Node.Protocol
                 // todo if at least one peer as been set, the requests will not be broadcast
                 
                 // If InitSync is finished we don't query nodes for their height anymore
-                if (IsInitialSync && AskedForHeight)
+                /*if (IsInitialSync && AskedForHeight)
                 {
                     // Query peers for their height
                     if (_peerManager != null)
                         await _peerManager.BroadcastMessage(MessageTypes.HeightRequest, new byte[] {}, 0);
-                }
+                }*/
             }
         }
 
@@ -293,7 +293,17 @@ namespace AElf.Kernel.Node.Protocol
 
         public void EnqueueJob(Job job)
         {
-            _jobQueue.Add(job);
+            try
+            {
+                Task.Run(() =>
+                {
+                    _jobQueue.Add(job);
+                });
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace("Error while adding " + job.Block.GetHash().Value.ToBase64());
+            }
         }
 
         //AutoResetEvent theEvent = new AutoResetEvent(false);
@@ -302,31 +312,80 @@ namespace AElf.Kernel.Node.Protocol
         {
             while (true)
             {
-                Job j = _jobQueue.Take();
-                bool b = AddBlockToSync(j.Block).Result;
-                
-                var bte = GetBlocksToExecute();
+                Job j = null;
 
-                if (bte != null && bte.Count > 0)
+                try
                 {
-                    // Execute and log
-                    List<PendingBlock> br = TryExecuteBlocks(bte).Result;
-
-                    if (br != null && br.Count > 0)
-                    {
-                        StringBuilder brString = new StringBuilder();
-                        brString.Append(br.ElementAt(0).Block.Header.Index);
-                        
-                        for (int i = 1; i < br.Count; i++)
-                        {
-                            brString.Append(" - " + br.ElementAt(i).Block.Header.Index);
-                        }
-                        
-                        _logger?.Trace("Executed the blocks at the following height : " + brString);
-                    }
+                    j = _jobQueue.Take();
+                }
+                catch (Exception e)
+                {
+                    _logger?.Trace("Error while dequeuing " + j?.Block.GetHash().Value.ToBase64());
+                    continue;
                 }
 
-                bool success = RequestMissingTxs().Result;
+                try
+                {
+                    _logger?.Trace("Dequed block : " + j.Block.GetHash().Value.ToBase64());
+                
+                    bool b = AddBlockToSync(j.Block).Result;
+               
+                    /* print candidates */
+
+                    if (!b)
+                    {
+                        _logger.Trace("Could not add block to sync");
+                    }
+
+                    if (PendingBlocks == null || PendingBlocks.Count <= 0)
+                    {
+                        _logger.Trace("No pending blocks");
+                        continue;
+                    }
+                    
+                    var str = PendingBlocks.Select(bb => bb.ToString()).Aggregate((i, jf) => i + " || " + jf);
+                    _logger?.Trace("Candidates for execution: " + str);
+                
+                    List<PendingBlock> bte = GetBlocksToExecute();
+                    
+                    if (bte == null || bte.Count <= 0)
+                    {
+                        _logger.Trace("No blocks to execute !");
+                        continue;
+                    }
+                
+                    var str2 = bte.Select(bb => bb.ToString()).Aggregate((i, jf) => i + " || " + jf);
+                    _logger?.Trace("Chosen for execution: " + str2);
+                
+                    if (string.IsNullOrEmpty(str2))
+                        _logger?.Trace("Nobody chosen for execution.");
+
+                    if (bte != null && bte.Count > 0)
+                    {
+                        // Execute and log
+                        List<PendingBlock> br = TryExecuteBlocks(bte).Result;
+
+                        if (br != null && br.Count > 0)
+                        {
+                            StringBuilder brString = new StringBuilder();
+                            brString.Append(br.ElementAt(0).Block.Header.Index);
+                        
+                            for (int i = 1; i < br.Count; i++)
+                            {
+                                brString.Append(" - " + br.ElementAt(i).Block.Header.Index);
+                            }
+                        
+                            _logger?.Trace("Executed the blocks with the following index(es) : " + brString);
+                        }
+                    }
+
+                    bool success = RequestMissingTxs().Result;
+
+                }
+                catch (Exception e)
+                {
+                    _logger?.Trace("ERROR...");
+                }
             }
         }
         
@@ -334,9 +393,8 @@ namespace AElf.Kernel.Node.Protocol
         {
             if (_syncPeers == null || _syncPeers.Count <= 0)
                 return false;
-                
-            var peerHeightKvp = _syncPeers.Where(p=>p.LastKnownHight.HasValue).OrderByDescending(p => p.LastKnownHight)
-                .First();
+
+            var peerHeightKvp = _syncPeers.FirstOrDefault();
             
             List<byte[]> listOfMissingTxToRequest = new List<byte[]>();
             
@@ -381,7 +439,7 @@ namespace AElf.Kernel.Node.Protocol
 
             int currentIndex = (int)ordered[0].Block.Header.Index;
 
-            if (currentIndex > CurrentExecHeight)
+            if (IsInitialSync && currentIndex > CurrentExecHeight)
                 return null;
             
             for (int i = 0; i < ordered.Count; i++)
@@ -410,7 +468,7 @@ namespace AElf.Kernel.Node.Protocol
             
             /*if (block.Body.Transactions == null || block.Body.Transactions.Count <= 0)
                 throw new InvalidBlockException("The block contains no transactions");*/
-
+            
             if (block.Header.Index < (ulong)CurrentExecHeight)
                 return false;
 
@@ -424,8 +482,6 @@ namespace AElf.Kernel.Node.Protocol
                 //theEvent.WaitOne();
                 throw new InvalidBlockException("Invalid block hash");
             }
-
-            
             
             if (GetBlock(h) != null)
             {
@@ -586,6 +642,11 @@ namespace AElf.Kernel.Node.Protocol
         public void RemoveTransaction(byte[] txid)
         {
             MissingTxs.Remove(txid);
+        }
+
+        public override string ToString()
+        {
+            return "{ " + Convert.ToBase64String(BlockHash) + ", " + IsSynced + ", " + Block?.Header?.Index + " }";
         }
     }
 }

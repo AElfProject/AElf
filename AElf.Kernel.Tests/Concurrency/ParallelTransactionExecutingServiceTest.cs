@@ -122,7 +122,10 @@ namespace AElf.Kernel.Tests.Concurrency
             foreach (var txTrace in txs.Zip(traces, Tuple.Create))
             {
                 Assert.Equal(txTrace.Item1.GetHash(), txTrace.Item2.TransactionId);
-				Assert.True(string.IsNullOrEmpty(txTrace.Item2.StdErr));
+                if (!string.IsNullOrEmpty(txTrace.Item2.StdErr))
+                {
+                    Assert.Null(txTrace.Item2.StdErr);
+                }
             }
 
             Assert.Equal(

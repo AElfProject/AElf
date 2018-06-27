@@ -20,16 +20,16 @@ using Path = AElf.Kernel.Path;
 namespace AElf.Runtime.CSharp.Tests
 {
     [UseAutofacTestFramework]
-    public class CSharpAssemblyLoadContextTest
+    public class ContractCodeLoadContextTest
     {
 
         private string _apiDllDirectory = "../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/";
         private string _codePath = "../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/AElf.Runtime.CSharp.Tests.TestContract.dll";
 
-        private CSharpAssemblyLoadContext _loadContext;
-        public CSharpAssemblyLoadContextTest()
+        private ContractCodeLoadContext _loadContext;
+        public ContractCodeLoadContextTest()
         {
-            _loadContext = new CSharpAssemblyLoadContext(System.IO.Path.GetFullPath(_apiDllDirectory), AppDomain.CurrentDomain.GetAssemblies());
+            _loadContext = new ContractCodeLoadContext(System.IO.Path.GetFullPath(_apiDllDirectory));
         }
 
         [Fact]

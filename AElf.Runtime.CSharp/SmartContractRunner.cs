@@ -23,21 +23,21 @@ namespace AElf.Runtime.CSharp
 
     public class SmartContractRunner : ISmartContractRunner
     {
-        private readonly string _apiDllDirectory;
+        private readonly string _sdkDir;
 
-        public SmartContractRunner(string apiDllDirectory)
+        public SmartContractRunner(string sdkDir)
         {
-            _apiDllDirectory = Path.GetFullPath(apiDllDirectory);
+            _sdkDir = Path.GetFullPath(sdkDir);
         }
 
         /// <summary>
         /// Creates an isolated context for the smart contract residing with an Api singleton.
         /// </summary>
         /// <returns></returns>
-        private CSharpAssemblyLoadContext GetLoadContext()
+        private ContractCodeLoadContext GetLoadContext()
         {
             // To make sure each smart contract resides in an isolated context with an Api singleton
-            return new CSharpAssemblyLoadContext(_apiDllDirectory, AppDomain.CurrentDomain.GetAssemblies());
+            return new ContractCodeLoadContext(_sdkDir);
         }
 
         public async Task<IExecutive> RunAsync(SmartContractRegistration reg)

@@ -17,18 +17,16 @@ namespace AElf.Kernel.Modules.AutofacModule
         {
             switch (_config.Type)
             {
+                case DatabaseType.Ssdb:
+                    builder.RegisterType<SsdbDatabase>().WithParameter("config", _config).As<IKeyValueDatabase>()
+                        .SingleInstance();
+                    break;
+                case DatabaseType.Redis:
+                    builder.RegisterType<RedisDatabase>().WithParameter("config", _config).As<IKeyValueDatabase>()
+                        .SingleInstance();
+                    break;
                 case DatabaseType.KeyValue:
                     builder.RegisterType<KeyValueDatabase>().As<IKeyValueDatabase>().SingleInstance();
-                    break;
-                case DatabaseType.Ssdb:
-#if DEBUG
-                    if (!new SsdbDatabase(_config).IsConnected())
-                    {
-                        builder.RegisterType<KeyValueDatabase>().As<IKeyValueDatabase>().SingleInstance();
-                        break;
-                    }
-#endif
-                    builder.RegisterType<SsdbDatabase>().As<IKeyValueDatabase>();
                     break;
             }
         }

@@ -9,7 +9,6 @@ using Akka.TestKit;
 using Akka.TestKit.Xunit;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
-using StackExchange.Redis;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
