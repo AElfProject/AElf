@@ -10,6 +10,6 @@ namespace AElf.Kernel.Concurrency.Execution
         public ISmartContractService SmartContractService { get; set; }
         public IChainContextService ChainContextService { get; set; }
         public IAccountContextService AccountContextService { get; set; }
-        public IWorldStateManager WorldStateManager { get; set; }
+        public IWorldStateDictator WorldStateDictator { get; set; }
     }
 }

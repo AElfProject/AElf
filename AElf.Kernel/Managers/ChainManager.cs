@@ -13,15 +13,15 @@ namespace AElf.Kernel.Managers
     {
         private readonly IChainStore _chainStore;
         private readonly IDataStore _dataStore;
-        private readonly IWorldStateManager _worldStateManager;
+        private readonly IWorldStateDictator _worldStateDictator;
         
         private IDataProvider _heightOfBlock;
 
-        public ChainManager(IChainStore chainStore, IDataStore dataStore, IWorldStateManager worldStateManager)
+        public ChainManager(IChainStore chainStore, IDataStore dataStore, IWorldStateDictator worldStateDictator)
         {
             _chainStore = chainStore;
             _dataStore = dataStore;
-            _worldStateManager = worldStateManager;
+            _worldStateDictator = worldStateDictator;
         }
 
         public async Task<bool> AppendBlockToChainAsync(IBlock block)
@@ -121,13 +121,14 @@ namespace AElf.Kernel.Managers
         public async Task SetChainLastBlockHash(Hash chainId, Hash blockHash)
         {
             var key = Path.CalculatePointerForLastBlockHash(chainId);
+            _worldStateDictator.PreBlockHash = blockHash;
             await _dataStore.SetDataAsync(key, blockHash.GetHashBytes());
         }
         
         private async Task InitialHeightOfBlock(Hash chainId)
         {
-            await _worldStateManager.OfChain(chainId);
-            _heightOfBlock = _worldStateManager.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId))
+            _worldStateDictator.SetChainId(chainId);
+            _heightOfBlock = (await _worldStateDictator.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId)))
                 .GetDataProvider().GetDataProvider("HeightOfBlock");
         }
     }

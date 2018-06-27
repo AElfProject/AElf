@@ -30,9 +30,12 @@ namespace AElf.Kernel.Tests.TxMemPool
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
+        private IWorldStateDictator _worldStateDictator;
 
         public IntegrationTest(IAccountContextService accountContextService, ILogger logger,
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, IChainCreationService chainCreationService, IBlockManager blockManager)
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
+            IChainCreationService chainCreationService, IBlockManager blockManager, 
+            IWorldStateDictator worldStateDictator)
         {
             _accountContextService = accountContextService;
             _logger = logger;
@@ -40,11 +43,13 @@ namespace AElf.Kernel.Tests.TxMemPool
             _transactionResultManager = transactionResultManager;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
+            _worldStateDictator = worldStateDictator;
         }
         
         private TxPool GetPool(Hash chainId = null)
         {
             var config = TxPoolConfig.Default;
+            _worldStateDictator.SetChainId(config.ChainId);
             return new TxPool(config, _logger);
         }
 

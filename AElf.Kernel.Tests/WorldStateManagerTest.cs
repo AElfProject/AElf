@@ -10,14 +10,14 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class WorldStateManagerTest
     {
-        private readonly IWorldStateManager _worldStateManager;
+        private readonly IWorldStateDictator _worldStateDictator;
 
         private readonly BlockTest _blockTest;
 
         public WorldStateManagerTest(IWorldStateStore worldStateStore, IChangesStore changesStore, 
             IDataStore dataStore, BlockTest blockTest)
         {
-            _worldStateManager = new WorldStateManager(worldStateStore, changesStore, dataStore);
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore);
             _blockTest = blockTest;
 
         }
@@ -27,9 +27,9 @@ namespace AElf.Kernel.Tests
         {
             var key = Hash.Generate();
             var data = Hash.Generate().Value.ToArray();
-            await _worldStateManager.SetDataAsync(key, data);
+            await _worldStateDictator.SetDataAsync(key, data);
 
-            var getData = await _worldStateManager.GetDataAsync(key);
+            var getData = await _worldStateDictator.GetDataAsync(key);
             
             Assert.True(data.SequenceEqual(getData));
         }
@@ -41,9 +41,9 @@ namespace AElf.Kernel.Tests
             
             var address = Hash.Generate();
 
-            await _worldStateManager.OfChain(chain.Id);
+            _worldStateDictator.SetChainId(chain.Id);
             
-            var accountDataProvider = _worldStateManager.GetAccountDataProvider(address);
+            var accountDataProvider = await _worldStateDictator.GetAccountDataProvider(address);
             
             Assert.True(accountDataProvider.Context.Address == address);
             Assert.True(accountDataProvider.Context.ChainId == chain.Id);
