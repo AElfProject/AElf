@@ -21,8 +21,8 @@ namespace AElf.Benchmark
         {
             Hash chainId = Hash.Generate();
             var builder = new ContainerBuilder();
-            builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new MainModule());
+            builder.RegisterModule(new MetadataModule());
             var dataConfig = new DatabaseConfig();
             dataConfig.Type = DatabaseType.KeyValue;
             dataConfig.Host = "192.168.197.28";
