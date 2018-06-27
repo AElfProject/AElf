@@ -78,18 +78,18 @@ namespace AElf.Benchmark
             {
                   "/user/worker1", "/user/worker2", 
                   "/user/worker3", "/user/worker4",
-//                  "/user/worker5", "/user/worker6",
-//                  "/user/worker7", "/user/worker8",
-//                  "/user/worker9", "/user/worker10",
+                  "/user/worker5", "/user/worker6",
+                  "/user/worker7", "/user/worker8",
+                  "/user/worker9", "/user/worker10",
 //                  "/user/worker11", "/user/worker12"
             };
             Workers = new []
             {
                 Sys.ActorOf(Props.Create<Worker>(), "worker1"), Sys.ActorOf(Props.Create<Worker>(), "worker2"),
                 Sys.ActorOf(Props.Create<Worker>(), "worker3"), Sys.ActorOf(Props.Create<Worker>(), "worker4"),
-//                Sys.ActorOf(Props.Create<Worker>(), "worker5"), Sys.ActorOf(Props.Create<Worker>(), "worker6"),
-//                Sys.ActorOf(Props.Create<Worker>(), "worker7"), Sys.ActorOf(Props.Create<Worker>(), "worker8"),
-//                Sys.ActorOf(Props.Create<Worker>(), "worker9"), Sys.ActorOf(Props.Create<Worker>(), "worker10"),
+                Sys.ActorOf(Props.Create<Worker>(), "worker5"), Sys.ActorOf(Props.Create<Worker>(), "worker6"),
+                Sys.ActorOf(Props.Create<Worker>(), "worker7"), Sys.ActorOf(Props.Create<Worker>(), "worker8"),
+                Sys.ActorOf(Props.Create<Worker>(), "worker9"), Sys.ActorOf(Props.Create<Worker>(), "worker10"),
 //                Sys.ActorOf(Props.Create<Worker>(), "worker11"), Sys.ActorOf(Props.Create<Worker>(), "worker12")
             };
             Router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
@@ -159,7 +159,7 @@ namespace AElf.Benchmark
             Console.WriteLine("Benchmark with multiple conflict group");
             Console.WriteLine("-------------------------------------");
 
-            int repeatTime = 1;
+            int repeatTime = 20;
         
             var txList = _dataGenerater.GetMultipleGroupTx(txNumber, groupCount, _contractHash);
             long timeused = 0;
@@ -184,11 +184,11 @@ namespace AElf.Benchmark
                 {
                     if (!result.StdErr.IsNullOrEmpty())
                     {
-                        Console.WriteLine(result.StdErr);
+                        _logger.Error("Error from contract: \n" + result.StdErr);
                     }
                 } );
-                string timeStr = string.Join(", ", txResult.Select(a => a.Elapsed.ToString()));
-                _logger.Info("Elapsed of every contract: " + timeStr);
+                //string timeStr = string.Join(", ", txResult.Select(a => a.Elapsed.ToString()));
+                //_logger.Info("Elapsed of every contract: " + timeStr);
                 txResult.ForEach(trace =>
                 {
                     if (!trace.StdErr.IsNullOrEmpty())
@@ -200,7 +200,6 @@ namespace AElf.Benchmark
             
             var time = txNumber / (timeused / 1000.0 / (double)repeatTime);
             var str = groupCount + " groups with " + txList.Count + " tx in total";
-            Console.WriteLine(str + ": " + time);
 
             return new KeyValuePair<string,double>(str, time);
         }
