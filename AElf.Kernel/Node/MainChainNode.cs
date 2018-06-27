@@ -110,7 +110,7 @@ namespace AElf.Kernel.Node
         }
 
         public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string initdata,
-            byte[] code = null, bool x=false)
+            byte[] code = null)
         {
             if (_nodeConfig == null)
             {
