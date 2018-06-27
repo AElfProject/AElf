@@ -5,6 +5,7 @@ using AElf.Common.Application;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency.Execution.Config;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Config;
 using AElf.Kernel.TxMemPool;
@@ -170,6 +171,20 @@ namespace AElf.Launcher
             };
             
             NodeConfig.DataDir = string.IsNullOrEmpty(opts.DataDir) ? ApplicationHelpers.GetDefaultDataDir() : opts.DataDir;
+            
+            // Actor
+            if (opts.ActorIsCluster.HasValue)
+                ActorConfig.Instance.IsCluster = opts.ActorIsCluster.Value;
+            if (!string.IsNullOrWhiteSpace(opts.ActorHostName))
+                ActorConfig.Instance.HostName = opts.ActorHostName;
+            if (opts.ActorPort.HasValue)
+                ActorConfig.Instance.Port = opts.ActorPort.Value;
+            if (opts.ActorIsSeed.HasValue)
+                ActorWorkerConfig.Instance.IsSeedNode = opts.ActorIsSeed.Value;
+            if (string.IsNullOrWhiteSpace(opts.ActorWorkerHostName))
+                ActorWorkerConfig.Instance.HostName = opts.ActorWorkerHostName;
+            if (opts.ActorWorkerPort.HasValue)
+                ActorWorkerConfig.Instance.Port = opts.ActorWorkerPort.Value;
         }
     }
 
