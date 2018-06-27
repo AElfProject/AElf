@@ -9,8 +9,8 @@ namespace AElf.Kernel.Node.Protocol
     {
         void Start();
 
-        Task BroadcastBlock(Block block);
-        Task BroadcastTransaction(ITransaction transaction);
+        Task<int> BroadcastBlock(Block block);
+        Task<int> BroadcastTransaction(ITransaction transaction);
         
         void SetCommandContext(MainChainNode node, bool doSync = false);
 
