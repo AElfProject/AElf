@@ -15,18 +15,17 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
     public class ChainFunctionMetadataTemplateTest
     {
         private ParallelTestDataUtil util = new ParallelTestDataUtil();
-        private ChainFunctionMetadataTemplate cfts;
         private IDataStore _store;
 
-        public ChainFunctionMetadataTemplateTest(ChainFunctionMetadataTemplate cfts, IDataStore store)
+        public ChainFunctionMetadataTemplateTest(IDataStore store)
         {
-            this.cfts = cfts;
             _store = store;
         }
 
         [Fact]
         public async Task<ChainFunctionMetadataTemplate> TestTryAddNewContract()
         {
+            ChainFunctionMetadataTemplate cfts = new ChainFunctionMetadataTemplate(_store, Hash.Zero, null);
             cfts.CallingGraph.Clear();
             cfts.ContractMetadataTemplateMap.Clear();
             
