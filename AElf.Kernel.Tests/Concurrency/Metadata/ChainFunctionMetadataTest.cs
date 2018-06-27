@@ -20,25 +20,24 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         private ParallelTestDataUtil util = new ParallelTestDataUtil();
         
         private IDataStore _templateStore;
-        private ChainFunctionMetadataTemplate _template;
         
 
-        public ChainFunctionMetadataTest(IDataStore templateStore, ChainFunctionMetadataTemplate template)
+        public ChainFunctionMetadataTest(IDataStore templateStore)
         {
             _templateStore = templateStore ?? throw new ArgumentNullException(nameof(templateStore));
-            _template = template;
         }
 
         [Fact]
         public async Task<ChainFunctionMetadata> TestDeployNewFunction()
         {
-            Hash chainId = _template.ChainId;
-            _template.CallingGraph.Clear();
-            _template.ContractMetadataTemplateMap.Clear();
-            await _template.TryAddNewContract(typeof(TestContractC));
-            await _template.TryAddNewContract(typeof(TestContractB));
-            await _template.TryAddNewContract(typeof(TestContractA));
-            ChainFunctionMetadata cfms = new ChainFunctionMetadata(_template, _templateStore, null);
+            var template = new ChainFunctionMetadataTemplate(_templateStore, Hash.Zero, null);
+            Hash chainId = template.ChainId;
+            template.CallingGraph.Clear();
+            template.ContractMetadataTemplateMap.Clear();
+            await template.TryAddNewContract(typeof(TestContractC));
+            await template.TryAddNewContract(typeof(TestContractB));
+            await template.TryAddNewContract(typeof(TestContractA));
+            ChainFunctionMetadata cfms = new ChainFunctionMetadata(template, _templateStore, null);
             
             cfms.FunctionMetadataMap.Clear();
 
