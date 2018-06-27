@@ -63,6 +63,8 @@ namespace AElf.Kernel.CSharp.Tests
 
             var toBal = await Balances.GetValueAsync(to);
 
+            Api.Assert(fromBal > qty);
+            
             var newFromBal = fromBal - qty;
             var newToBal = toBal + qty;
             await Balances.SetValueAsync(from, newFromBal);
