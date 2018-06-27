@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Node.RPC.DTO;
@@ -20,16 +21,21 @@ namespace AElf.Kernel.Tests.TxMemPool
     {
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
+        private readonly IWorldStateDictator _worldStateDictator;
 
-        public TxPoolTest(IAccountContextService accountContextService, ILogger logger)
+
+        public TxPoolTest(IAccountContextService accountContextService, ILogger logger, IWorldStateDictator worldStateDictator)
         {
             _accountContextService = accountContextService;
             _logger = logger;
+            _worldStateDictator = worldStateDictator;
         }
 
         private TxPool GetPool()
         {
-            return new TxPool(TxPoolConfig.Default, _logger);
+            var config = TxPoolConfig.Default;
+            _worldStateDictator.SetChainId(config.ChainId);
+            return new TxPool(config, _logger);
         }
 
         public static Transaction BuildTransaction(Hash adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
@@ -81,14 +87,12 @@ namespace AElf.Kernel.Tests.TxMemPool
         public async Task EntryThreshold_Test()
         {
             // setup config
-            var conf = TxPoolConfig.Default;
-
-            var pool = new TxPool(conf, _logger);
+            var pool = GetPool();
             
             // Add a valid transaction
             var tx = BuildTransaction();
             var tmp = new HashSet<ITransaction> {tx};
-            var ctx = await _accountContextService.GetAccountDataContext(tx.From, conf.ChainId);
+            var ctx = await _accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
             pool.Nonces[tx.From] = ctx.IncrementId;
             pool.EnQueueTxs(tmp);
             
