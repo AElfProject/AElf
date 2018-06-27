@@ -7,6 +7,7 @@ using System.Reflection;
 using Google.Protobuf.Reflection;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Kernel;
 using AElf.Types.CSharp;
 
 namespace AElf.Types.CSharp

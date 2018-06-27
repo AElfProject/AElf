@@ -4,11 +4,12 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using Google.Protobuf;
 using Path = System.IO.Path;
 using AElf.ABI.CSharp;
+using AElf.Kernel;
+using AElf.Kernel.Types;
 using Module = AElf.ABI.CSharp.Module;
 
 namespace AElf.Runtime.CSharp

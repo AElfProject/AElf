@@ -1,4 +1,6 @@
-﻿namespace AElf.Kernel
+﻿using StackExchange.Redis;
+
+namespace AElf.Kernel
 {
     public interface ITransactionContext
     {
