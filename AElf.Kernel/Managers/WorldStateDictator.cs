@@ -22,6 +22,7 @@ namespace AElf.Kernel.Managers
         private bool _isChainIdSetted;
         private Hash _chainId;
         
+        public bool DeleteChangeBeforesImmidiately => false;
 
         public WorldStateDictator(IWorldStateStore worldStateStore,
             IChangesStore changesStore, IDataStore dataStore)
@@ -326,7 +327,7 @@ namespace AElf.Kernel.Managers
             {
                 //See whether the latest changes of this Change happened in this height,
                 //If not, clear the change, because this Change is too old to support rollback.
-                if (prevBlockHash != change.LatestChangedBlockHash)
+                if (DeleteChangeBeforesImmidiately || prevBlockHash != change.LatestChangedBlockHash)
                 {
                     change.ClearChangeBefores();
                 }

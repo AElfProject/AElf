@@ -118,11 +118,11 @@ namespace AElf.Kernel
             {
                 //See whether the latest changes of this Change happened in this height,
                 //If not, clear the change, because this Change is too old to support rollback.
-                if (preBlockHash != change.LatestChangedBlockHash)
+                if (_worldStateDictator.DeleteChangeBeforesImmidiately || preBlockHash != change.LatestChangedBlockHash)
                 {
                     change.ClearChangeBefores();
                 }
-
+                
                 change.UpdateHashAfter(pointerHashAfter);
             }
 

@@ -103,7 +103,7 @@ namespace AElf.Kernel.Node.Protocol
 
                 if (msgType == MessageTypes.BroadcastTx || msgType == MessageTypes.Tx)
                 {
-                    await HandleTransactionReception(message);
+                    await  HandleTransactionReception(message);
                 }
                 else if (msgType == MessageTypes.BroadcastBlock || message.MsgType == (int)MessageTypes.Block)
                 {

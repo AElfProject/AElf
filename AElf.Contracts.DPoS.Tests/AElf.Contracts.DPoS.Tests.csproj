@@ -42,4 +42,7 @@
     <PackageReference Include="xunit.runner.console" Version="2.4.0-beta.2.build4010" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0-beta.2.build4010" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="RxDPoSTest.cs" />
+  </ItemGroup>
 </Project>
