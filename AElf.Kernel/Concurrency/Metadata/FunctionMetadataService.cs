@@ -44,7 +44,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             await chainFuncMetadata.DeployNewContract(contractType.Name, address, contractReferences);
         }
 
-        public async Task<FunctionMetadata> GetFunctionMetadata(Hash chainId, string addrFunctionName)
+        public FunctionMetadata GetFunctionMetadata(Hash chainId, string addrFunctionName)
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
