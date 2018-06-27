@@ -25,6 +25,7 @@ namespace AElf.Launcher
         public INodeConfig NodeConfig { get; private set; }
 
         public bool Rpc { get; private set; }
+        public int RpcPort { get; private set; }
         public string DataDir { get; private set; }
         public string NodeAccount { get; set; }
 
@@ -69,6 +70,7 @@ namespace AElf.Launcher
         private void MapOptions(AElfOptions opts)
         {
             Rpc = !opts.NoRpc;
+            RpcPort = opts.RpcPort;
             NodeAccount = opts.NodeAccount;
             InitData = opts.InitData;
             

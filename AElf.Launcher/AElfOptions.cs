@@ -63,8 +63,11 @@ namespace AElf.Launcher
         [Option(HelpText = "The port this node is listening on.")]
         public int? Port { get; set; }
         
-        [Option(Default = false, HelpText = "Starts the node without exposing the RPC interface")]
+        [Option(Default = false, HelpText = "Starts the node without exposing the RPC interface.")]
         public bool NoRpc { get; set; }
+        
+        [Option("rpc.port", Default = 5000, HelpText = "The port that the RPC server.")]
+        public int RpcPort { get; set; }
         
         [Option(HelpText = "The absolute path where to store the peer database.")]
         public string PeersDbPath { get; set; }

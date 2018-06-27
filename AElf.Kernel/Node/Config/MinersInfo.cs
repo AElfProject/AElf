@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿﻿using System.Collections.Generic;
 using AElf.Configuration;
 using Newtonsoft.Json;
 

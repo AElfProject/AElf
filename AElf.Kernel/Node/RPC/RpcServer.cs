@@ -75,13 +75,15 @@ namespace AElf.Kernel.Node.RPC
         /// <summary>
         /// Starts the Kestrel server.
         /// </summary>
+        /// <param name="rpcPort"></param>
         /// <returns></returns>
-        public bool Start()
+        public bool Start(int rpcPort)
         {
             try
             {
                 var host = new WebHostBuilder()
                     .UseKestrel()
+                    .UseUrls("http://localhost:" + rpcPort)
                     .ConfigureLogging((hostingContext, logging) =>
                     {
                         //logging.ClearProviders(); 
@@ -249,7 +251,8 @@ namespace AElf.Kernel.Node.RPC
             string jsonResponse = JsonFormatter.Default.Format(txResult);
             JObject j = new JObject
             {
-                ["txresult"] = jsonResponse
+                ["txresult"] = jsonResponse,
+                ["retval"] = h.Value.ToBase64()
             };
             
             return JObject.FromObject(j);

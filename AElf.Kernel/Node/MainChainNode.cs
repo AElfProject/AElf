@@ -1,8 +1,7 @@
-﻿﻿﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
- using System.Linq;
- using System.Reactive.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
@@ -21,15 +20,14 @@ using AElf.Kernel.Node.RPC.DTO;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
- using AElf.Types.CSharp;
- using Akka.Actor;
+using AElf.Types.CSharp;
+using Akka.Actor;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 using ServiceStack;
- using Type = System.Type;
 
 namespace AElf.Kernel.Node
 {
@@ -58,8 +56,8 @@ namespace AElf.Kernel.Node
         private readonly IBlockExecutor _blockExecutor;
 
         private DPoS _dPoS;
-        
-        private const int CheckTime = 3000;
+
+        private bool amIChainCreater;
 
         public Hash ContractAccountHash =>
             new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
@@ -111,7 +109,8 @@ namespace AElf.Kernel.Node
             _blockExecutor = blockExecutor;
         }
 
-        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, string initdata, byte[] code = null)
+        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string initdata,
+            byte[] code = null)
         {
             if (_nodeConfig == null)
             {
@@ -141,7 +140,7 @@ namespace AElf.Kernel.Node
                     var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg)
                         .Result;
                     _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.Value.ToBase64());
-                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", BitConverter.ToString(res.GenesisBlockHash.Value.ToByteArray()).Replace("-",""));
+                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToBase64());
                     var contractAddress = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__"))
                         .ToAccount();
                     _logger.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
@@ -149,6 +148,8 @@ namespace AElf.Kernel.Node
                     
                     _logger.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"",
                         contractAddress.ToAccount().Value.ToBase64());
+
+                    amIChainCreater = true;
                 }
             }
             catch (Exception e)
@@ -172,14 +173,14 @@ namespace AElf.Kernel.Node
             _nodeKeyPair = nodeKeyPair;
 
             if (startRpc)
-                _rpcServer.Start();
+                _rpcServer.Start(rpcPort);
 
             _poolService.Start();
             _protocolDirector.Start();
 
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
-            _protocolDirector.SetCommandContext(this, true); // If not miner do sync
+            _protocolDirector.SetCommandContext(this, !_nodeConfig.IsMiner); // If not miner do sync
             
             // akka env 
             /*IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack
@@ -219,7 +220,7 @@ namespace AElf.Kernel.Node
             {
                 _miner.Start(nodeKeyPair, parallelTransactionExecutingService);
                 
-                Mine(nodeKeyPair);
+                Mine();
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
             }
             
@@ -538,7 +539,7 @@ namespace AElf.Kernel.Node
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
-        public async Task Mine(ECKeyPair keyPair)
+        public async Task Mine()
         {
 
             /*var txDev = DeployTxDemo(keyPair);
@@ -565,6 +566,28 @@ namespace AElf.Kernel.Node
 
             Console.WriteLine(inv3Res.RetVal.DeserializeToUInt64());
             Console.WriteLine(inv4Res.RetVal.DeserializeToUInt64());*/
+
+
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    await Task.Delay(10000);
+                    var b = await _miner.Mine();
+                    if (b == null)
+                    {
+                        _logger.Log(LogLevel.Debug, "Block generation failed");
+                        continue;
+                    }
+                    
+                    _logger.Log(LogLevel.Debug,
+                        "Generated block: {0}, with {1} txs and index {2}, previous block hash: {3}",
+                        b.Header.GetHash().Value.ToBase64(), b.Body.Transactions.Count, b.Header.Index,
+                        b.Header.PreviousBlockHash.Value.ToBase64());
+
+                    await BroadcastBlock(b);
+                }
+            });
 
             _dPoS = new DPoS(_nodeKeyPair);
             
@@ -727,6 +750,7 @@ namespace AElf.Kernel.Node
                 );
             });
         }
+
 
         public async Task<bool> BroadcastBlock(IBlock block)
         {

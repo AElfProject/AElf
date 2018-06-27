@@ -46,12 +46,15 @@ namespace AElf.Kernel
 
         public byte[] GetSignatureData()
         {
-            Transaction txData = new Transaction();
-            txData.From = From.Clone();
-            txData.To = To.Clone();
-            txData.IncrementId = IncrementId;
-            txData.MethodName = MethodName;
-            txData.Params = Params;
+            Transaction txData = new Transaction
+            {
+                From = From.Clone(),
+                To = To.Clone(),
+                IncrementId = IncrementId,
+                MethodName = MethodName,
+            };
+            if (Params.Length != 0)
+                txData.Params = Params;
             return txData.ToByteArray();
         }
         
