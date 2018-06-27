@@ -22,7 +22,7 @@ namespace AElf.Kernel.Tests
         {
             builder.RegisterModule(new MainModule());
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterModule(new DatabaseModule(new DatabaseConfig()));
+            builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new WorldStateDictatorModule());
 

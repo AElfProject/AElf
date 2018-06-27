@@ -10,15 +10,10 @@ namespace AElf.Database
         private readonly ConfigurationOptions _options;
 
         public RedisDatabase()
-        : this(new DatabaseConfig {Host = "127.0.0.1", Port = 8888})
-        {
-        }
-
-        public RedisDatabase(IDatabaseConfig config)
         {
             _options = new ConfigurationOptions
             {
-                EndPoints = {{config.Host, config.Port}},
+                EndPoints = {{DatabaseConfig.Instance.Host, DatabaseConfig.Instance.Port}},
                 CommandMap = CommandMap.Default
             };
         }

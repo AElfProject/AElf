@@ -10,15 +10,10 @@ namespace AElf.Database
         private readonly ConfigurationOptions _options;
 
         public SsdbDatabase()
-            : this(new DatabaseConfig())
-        {
-        }
-
-        public SsdbDatabase(IDatabaseConfig config)
         {
             _options = new ConfigurationOptions
             {
-                EndPoints = {{config.Host, config.Port}},
+                EndPoints = {{DatabaseConfig.Instance.Host, DatabaseConfig.Instance.Port}},
                 CommandMap = CommandMap.SSDB
             };
         }

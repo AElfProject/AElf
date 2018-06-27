@@ -21,7 +21,7 @@ namespace AElf.Sdk.CSharp.Tests
         protected override void ConfigureContainer(ContainerBuilder builder)
         {
             builder.RegisterModule(new MainModule());
-            builder.RegisterModule(new DatabaseModule(new DatabaseConfig()));
+            builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new LoggerModule());
             
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
