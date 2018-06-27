@@ -4,6 +4,7 @@
     {
         Success,
         InvalidBlock,
-        OrphanBlock
+        OrphanBlock,
+        AlreadyExecuted
     }
 }

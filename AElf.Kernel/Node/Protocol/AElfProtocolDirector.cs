@@ -48,8 +48,18 @@ namespace AElf.Kernel.Node.Protocol
                 ulong height = _node.GetCurrentChainHeight().Result;
                 _blockSynchronizer = new BlockSynchronizer(_node, _peerManager); // todo move
                 _blockSynchronizer.SetNodeHeight((int)height);
+                _blockSynchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
+
+                if (!_blockSynchronizer.IsInitialSync)
+                    _node.Mine();
+                
                 Task.Run(() => _blockSynchronizer.Start());
             }
+        }
+
+        private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
+        {
+            _node.Mine();
         }
 
         public void AddTransaction(Transaction tx)
@@ -218,6 +228,7 @@ namespace AElf.Kernel.Node.Protocol
             {
                 Block b = Block.Parser.ParseFrom(message.Payload);
                 
+                _logger?.Trace("Block received: " + Convert.ToBase64String(b.GetHash().Value.ToByteArray()));
                 _blockSynchronizer.EnqueueJob(new Job { Block = b });
 
                 /*if (types == MessageTypes.BroadcastBlock)

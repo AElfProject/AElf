@@ -370,6 +370,11 @@ namespace AElf.Network.Peers
             _logger?.Trace("Peer removed : " + peer);
         }
 
+        public List<IPeer> GetPeers()
+        {
+            return _peers.Union(_bootnodePeers).ToList();
+        }
+
         /// <summary>
         /// Returns a specified number of random peers from the peer
         /// list.

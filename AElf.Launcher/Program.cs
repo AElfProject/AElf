@@ -109,7 +109,7 @@ namespace AElf.Launcher
                 IAElfNode node = scope.Resolve<IAElfNode>();
                
                 // Start the system
-                node.Start(nodeKey, confParser.Rpc, confParser.RpcPort, initData, SmartContractZeroCode);
+                node.Start(nodeKey, confParser.Rpc, confParser.RpcPort, initData, SmartContractZeroCode, isNewChain);
 
                 //Mine(node);
                 Console.ReadLine();

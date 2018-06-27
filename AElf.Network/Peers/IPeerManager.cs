@@ -15,6 +15,7 @@ namespace AElf.Network.Peers
         
         bool NoPeers { get; }
 
+        List<IPeer> GetPeers();
         List<NodeData> GetPeers(ushort? numPeers, bool includeBootnodes = true);
 
         Task<int> BroadcastMessage(MessageTypes messageType, byte[] payload, int requestId);

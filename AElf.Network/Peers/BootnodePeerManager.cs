@@ -227,6 +227,11 @@ namespace AElf.Network.Peers
             return _peers?.FirstOrDefault(p => p.Equals(peer));
         }
 
+        public List<IPeer> GetPeers()
+        {
+            throw new NotImplementedException();
+        }
+
         public List<NodeData> GetPeers(ushort? numPeers, bool includeBootnodes = true)
         {
             throw new NotImplementedException();
