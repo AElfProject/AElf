@@ -570,7 +570,7 @@ namespace AElf.Kernel.Node
             Console.WriteLine(inv4Res.RetVal.DeserializeToUInt64());*/
 
 
-            Task.Run(async () =>
+            /*await Task.Run(async () =>
             {
                 while (true)
                 {
@@ -589,7 +589,7 @@ namespace AElf.Kernel.Node
 
                     await BroadcastBlock(b);
                 }
-            });
+            });*/
 
             _dPoS = new DPoS(_nodeKeyPair);
             

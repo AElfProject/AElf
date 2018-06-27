@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 
 using AElf.Kernel.Managers;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public class DataProvider : IDataProvider

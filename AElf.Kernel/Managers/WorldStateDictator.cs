@@ -22,7 +22,7 @@ namespace AElf.Kernel.Managers
         private bool _isChainIdSetted;
         private Hash _chainId;
 
-        public bool DeleteChangeBeforesImmidiately => false;
+        public bool DeleteChangeBeforesImmidiately { get; set; } = false;
 
         public WorldStateDictator(IWorldStateStore worldStateStore,
             IChangesStore changesStore, IDataStore dataStore)

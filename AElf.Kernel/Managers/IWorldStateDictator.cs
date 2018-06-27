@@ -6,7 +6,8 @@ namespace AElf.Kernel.Managers
 {
     public interface IWorldStateDictator
     {
-        bool DeleteChangeBeforesImmidiately { get; }
+        bool DeleteChangeBeforesImmidiately { get; set; }
+        
         IWorldStateDictator SetChainId(Hash chainId);
         
         Task<IWorldState> GetWorldStateAsync(Hash blockHash);
