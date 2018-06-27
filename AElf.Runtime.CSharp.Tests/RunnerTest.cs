@@ -57,7 +57,7 @@ namespace AElf.Runtime.CSharp.Tests
                 @"System\.Net\..*",
                 @"System\.Threading\..*",
             };
-            var runner1 = new SmartContractRunner(new Config()
+            var runner1 = new SmartContractRunner(new RunnerConfig()
             {
                 SdkDir = _mock.SdkDir,
                 BlackList = bl1,
@@ -70,7 +70,7 @@ namespace AElf.Runtime.CSharp.Tests
                 @".*"
             };
             
-            var runner2 = new SmartContractRunner(new Config()
+            var runner2 = new SmartContractRunner(new RunnerConfig()
             {
                 SdkDir = _mock.SdkDir,
                 BlackList = bl2,

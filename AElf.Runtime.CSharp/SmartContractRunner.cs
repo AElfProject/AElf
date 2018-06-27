@@ -20,7 +20,7 @@ namespace AElf.Runtime.CSharp
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
 
-        public SmartContractRunner(IConfig config) : this(config.SdkDir, config.BlackList, config.WhiteList)
+        public SmartContractRunner(IRunnerConfig runnerConfig) : this(runnerConfig.SdkDir, runnerConfig.BlackList, runnerConfig.WhiteList)
         {
         }
 

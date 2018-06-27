@@ -2,7 +2,7 @@
 
 namespace AElf.Runtime.CSharp
 {
-    public class Config : IConfig
+    public class RunnerConfig : IRunnerConfig
     {
         public string SdkDir { get; set; }
         public IEnumerable<string> BlackList { get; set; }
