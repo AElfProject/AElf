@@ -8,9 +8,12 @@ namespace AElf.Network.Peers
     public interface IPeerManager
     {
         event EventHandler MessageReceived;
+        event EventHandler PeerListEmpty;
         
         void Start();
         bool AddPeer(IPeer peer);
+        
+        bool NoPeers { get; }
 
         List<NodeData> GetPeers(ushort? numPeers, bool includeBootnodes = true);
 

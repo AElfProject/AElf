@@ -13,7 +13,8 @@ namespace AElf.Network.Peers
     public class BootnodePeerManager: IPeerManager, IDisposable
     {
         public event EventHandler MessageReceived;
-        
+        public event EventHandler PeerListEmpty;
+
         private INodeDialer _nodeDialer;
         private IAElfNetworkConfig _networkConfig;
         private ILogger _logger;
@@ -35,6 +36,8 @@ namespace AElf.Network.Peers
         private Timer _maintenanceTimer = null;
         private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(5);
         private readonly TimeSpan _maintenancePeriod = TimeSpan.FromSeconds(10);
+        
+        public bool NoPeers { get; }
 
         public BootnodePeerManager(IAElfServer server, IAElfNetworkConfig config, 
             INodeDialer nodeDialer, ILogger logger)
@@ -212,7 +215,7 @@ namespace AElf.Network.Peers
 
             return true;
         }
-        
+
         /// <summary>
         /// Returns the first occurence of the peer. IPeer
         /// implementations may override the equality logic.

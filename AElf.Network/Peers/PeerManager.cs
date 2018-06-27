@@ -18,6 +18,7 @@ namespace AElf.Network.Peers
         public const int TargetPeerCount = 8; 
         
         public event EventHandler MessageReceived;
+        public event EventHandler PeerListEmpty;
         
         private readonly IAElfNetworkConfig _networkConfig;
         private readonly INodeDialer _nodeDialer;
@@ -44,6 +45,8 @@ namespace AElf.Network.Peers
         private Timer _maintenanceTimer = null;
         private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(5);
         private readonly TimeSpan _maintenancePeriod = TimeSpan.FromMinutes(1);
+        
+        public bool NoPeers { get; set; } = true;
 
         public PeerManager(IAElfServer server, IAElfNetworkConfig config, 
             INodeDialer nodeDialer, ILogger logger)
@@ -94,7 +97,7 @@ namespace AElf.Network.Peers
         public void Start()
         {
             Task.Run(() => _server.StartAsync());
-            Setup();
+            Setup().GetAwaiter().GetResult();
             
             _server.ClientConnected += HandleConnection;
         }
@@ -130,7 +133,17 @@ namespace AElf.Network.Peers
             await AddBootnodes();
 
             if (_peers.Count < 1)
-                throw new NoPeersConnectedException("Could not connect to any of the bootnodes");
+            {
+                //throw new NoPeersConnectedException("Could not connect to any of the bootnodes");
+                
+                // Either a network problem or this node is the first to come online.
+                NoPeers = true;
+                PeerListEmpty?.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                NoPeers = false;
+            }
 
             _maintenanceTimer = new Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
         }
@@ -199,6 +212,18 @@ namespace AElf.Network.Peers
             }
 
             UndergoingPm = false;
+            
+            if (_peers.Count < 1)
+            {
+                // Connection to all peers have been lost
+                NoPeers = true;
+                PeerListEmpty?.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                NoPeers = false;
+            }
+
         }
 
         /// <summary>

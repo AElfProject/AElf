@@ -180,7 +180,7 @@ namespace AElf.Kernel.Node
 
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
-            _protocolDirector.SetCommandContext(this, !_nodeConfig.IsMiner); // If not miner do sync
+            _protocolDirector.SetCommandContext(this, true); // If not miner do sync
             
             // akka env 
             /*IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack

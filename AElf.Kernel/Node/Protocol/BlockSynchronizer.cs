@@ -86,6 +86,23 @@ namespace AElf.Kernel.Node.Protocol
             _mainChainNode = node;
             _peerManager = peerManager;
             _logger = LogManager.GetLogger("BlockSync");
+            
+            if (_peerManager.NoPeers)
+            {
+                IsInitialSync = false;
+                _logger?.Trace("Finished sync : no peers.");
+            }
+            
+            _peerManager.PeerListEmpty += OnPeerListEmpty;
+        }
+        
+        private void OnPeerListEmpty(object sender, EventArgs eventArgs)
+        {
+            if (_peerManager.NoPeers && IsInitialSync)
+            {
+                IsInitialSync = false;
+                _logger?.Trace("Finished sync : no peers.");
+            }
         }
 
         public bool SetPeerHeight(IPeer peer, int height)
@@ -213,7 +230,7 @@ namespace AElf.Kernel.Node.Protocol
             //CurrentHeight = currentHeight;
             CurrentExecHeight = currentHeight;
             
-            _logger?.Trace("Sync started at height: " + CurrentExecHeight);
+            _logger?.Trace("Current node height is set at " + CurrentExecHeight);
         }
 
         public void EnqueueJob(Job job)
