@@ -1,5 +1,4 @@
-﻿using AElf.Kernel;
-using AElf.Kernel.Managers;
+﻿using AElf.Kernel.Managers;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
