@@ -391,7 +391,7 @@ namespace AElf.Kernel.Managers
         {
             if (!_isChainIdSetted)
             {
-                throw new InvalidOperationException("Should set chain id before using a WorldStateManager");
+                throw new InvalidOperationException("Should set chain id before using a WorldStateDictator");
             }
 
             if (PreBlockHash == null)

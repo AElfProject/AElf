@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Scheduling;
 using Xunit;
 using Xunit.Sdk;
@@ -48,7 +49,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 		}
 
 		[Fact]
-		public void TestJobInBatch()
+		public async Task TestJobInBatch()
 		{
 			var txList = _dataUtil.GetFirstBatchTxList();
 			var batcher = new Batcher();
