@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Database;
@@ -27,14 +28,14 @@ namespace AElf.Benchmark
 
             var dataConfig = new DatabaseConfig
             {
-                Type = DatabaseType.KeyValue,
-                Host = "192.168.9.9",
+                Type = DatabaseType.Redis,
+                Host = "127.0.0.1",
                 Port = 6379
             };
             builder.RegisterModule(new WorldStateDictatorModule());
             builder.RegisterModule(new DatabaseModule(dataConfig));
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 1000);
+            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 20);
             #if DEBUG
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             #else
@@ -59,46 +60,19 @@ namespace AElf.Benchmark
                 return;
             }
             
+            
             using(var scope = container.BeginLifetimeScope())
             {
                 var benchmarkTps = scope.Resolve<Benchmarks>();
-
-                
-                /*
-                 var baseline = benchmarkTps.SingleGroupBenchmark(2000, 1).Result;
-                Console.WriteLine("Base line");
-                foreach (var kv in baseline)
+                var resDict = new Dictionary<string, double>();
+                int groupCount = 2;
+                for (int i = 1; i <= groupCount; i++)
                 {
-                    Console.WriteLine(kv.Key + ": " + kv.Value);
-                }
-                var baseline = benchmarkTps.SingleGroupBenchmark(3000, 1).Result;
-                Console.WriteLine("Base line");
-                foreach (var kv in baseline)
-                {
-                    Console.WriteLine(kv.Key + ": " + kv.Value);
-                }
-                Console.WriteLine("Base line");
-                foreach (var kv in baseline)
-                {
-                    Console.WriteLine(kv.Key + ": " + kv.Value);
+                    var res = await benchmarkTps.MultipleGroupBenchmark(20, i);
+                    resDict.Add(res.Key, res.Value);
                 }
 
-                for (double i = 0; i < 1; i+= 0.2)
-                {
-                    var resDict = benchmarkTps.SingleGroupBenchmark(3000, 0).Result;
-
-                    Console.WriteLine("--------------------\n" + "Tx count: " + 3000 + "| Conflict rate: " + i);
-                    foreach (var kv in resDict)
-                    {
-                        Console.WriteLine(kv.Key + ": " + kv.Value);
-                    }
-                }
-                */
-                var multiGroupRes = await benchmarkTps.MultipleGroupBenchmark(1000, 1);
-                foreach (var kv in multiGroupRes)
-                {
-                    Console.WriteLine(kv.Key + kv.Value);
-                }
+                resDict.ForEach((info, time) => Console.WriteLine(info + ": " + time));
             }
         }
         
