@@ -6,7 +6,7 @@ namespace AElf.Kernel
 {
 	public interface IParallelTransactionExecutingService
     {
-	    int TimeoutMilliSeconds { get; set; };
+	    int TimeoutMilliSeconds { get; set; }
 	    Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId);
     }
 }
