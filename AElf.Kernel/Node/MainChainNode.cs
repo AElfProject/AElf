@@ -64,6 +64,8 @@ namespace AElf.Kernel.Node
 
         public IExecutive Executive =>
             _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
+        
+        private const int CheckTime = 3000;
 
         public BlockProducer BlockProducers
         {
