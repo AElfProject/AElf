@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.Types;
 using AElf.Network.Data;
 using AElf.Network.Peers;
 using Google.Protobuf;
-using LiteDB;
 using NLog;
 
 namespace AElf.Kernel.Node.Protocol
@@ -50,8 +48,18 @@ namespace AElf.Kernel.Node.Protocol
                 ulong height = _node.GetCurrentChainHeight().Result;
                 _blockSynchronizer = new BlockSynchronizer(_node, _peerManager); // todo move
                 _blockSynchronizer.SetNodeHeight((int)height);
+                _blockSynchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
+
+                if (!_blockSynchronizer.IsInitialSync)
+                    _node.Mine();
+                
                 Task.Run(() => _blockSynchronizer.Start());
             }
+        }
+
+        private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
+        {
+            _node.Mine();
         }
 
         public void AddTransaction(Transaction tx)
@@ -64,27 +72,27 @@ namespace AElf.Kernel.Node.Protocol
             return _peerManager.GetPeers(numPeers);
         }
         
-        public async Task BroadcastTransaction(ITransaction tx)
+        public async Task<int> BroadcastTransaction(ITransaction tx)
         {
             byte[] transaction = tx.Serialize();
             
             var pendingRequest = BuildRequest();
             
-            bool success 
+            int broadcastCount 
                 = await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, transaction, pendingRequest.Id);
-            
+
+            return broadcastCount;
+
             /*if (success)
                 _resetEvents.Add(pendingRequest);
 
             pendingRequest.ResetEvent.WaitOne();*/
         }
         
-        public async Task BroadcastBlock(Block block)
+        public async Task<int> BroadcastBlock(Block block)
         {
             byte[] serializedBlock = block.ToByteArray();
-            
-            bool success 
-                = await _peerManager.BroadcastMessage(MessageTypes.BroadcastBlock, serializedBlock, 0);
+            return await _peerManager.BroadcastMessage(MessageTypes.BroadcastBlock, serializedBlock, 0);
         }
         
         #region Response handling
@@ -220,6 +228,7 @@ namespace AElf.Kernel.Node.Protocol
             {
                 Block b = Block.Parser.ParseFrom(message.Payload);
                 
+                _logger?.Trace("Block received: " + Convert.ToBase64String(b.GetHash().Value.ToByteArray()));
                 _blockSynchronizer.EnqueueJob(new Job { Block = b });
 
                 /*if (types == MessageTypes.BroadcastBlock)
