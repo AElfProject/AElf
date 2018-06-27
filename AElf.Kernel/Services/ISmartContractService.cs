@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AElf.Kernel.Types;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Services
 {
@@ -9,5 +11,6 @@ namespace AElf.Kernel.Services
         Task PutExecutiveAsync(Hash account, IExecutive executive);
         Task DeployContractAsync(Hash chainId, Hash account, SmartContractRegistration registration);
         Type GetContractType(SmartContractRegistration registration);
+        Task<IMessage> GetAbiAsync(Hash account);
     }
 }

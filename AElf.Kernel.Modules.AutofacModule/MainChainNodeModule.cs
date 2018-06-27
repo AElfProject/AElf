@@ -1,5 +1,6 @@
 ﻿using AElf.Kernel.Node;
 using AElf.Kernel.Node.Config;
+using AElf.Kernel.Services;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
@@ -19,6 +20,9 @@ namespace AElf.Kernel.Modules.AutofacModule
                 builder.RegisterInstance(_nodeConfig).As<INodeConfig>();
             }
             builder.RegisterType<MainChainNode>().As<IAElfNode>();
+            
+            builder.RegisterType<AccountContextService>().As<IAccountContextService>().SingleInstance();
+
         }
     }
 }

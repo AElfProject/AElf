@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using AElf.Kernel;
-using AElf.Kernel.Extensions;
 using Google.Protobuf.WellKnownTypes;
 using Type = System.Type;
 using Google.Protobuf;

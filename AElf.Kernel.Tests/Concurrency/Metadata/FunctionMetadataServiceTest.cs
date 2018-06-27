@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -213,7 +212,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 
             foreach (var kv in groundTruthMap)
             {
-                Assert.Equal(util.FunctionMetadataToString(kv.Value), util.FunctionMetadataToString(_functionMetadataService.GetFunctionMetadata(chainId, kv.Key).Result));
+                Assert.Equal(util.FunctionMetadataToString(kv.Value), util.FunctionMetadataToString(_functionMetadataService.GetFunctionMetadata(chainId, kv.Key)));
             }
         }
     }

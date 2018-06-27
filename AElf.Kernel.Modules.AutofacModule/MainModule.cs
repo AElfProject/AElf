@@ -1,4 +1,4 @@
-﻿using AElf.Kernel.Concurrency.Metadata;
+using AElf.Kernel.Managers;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
@@ -9,7 +9,7 @@ namespace AElf.Kernel.Modules.AutofacModule
         {
             //TODO : REVIEW - probably not a good idea
             
-            var assembly = typeof(IAccount).Assembly;
+            var assembly = typeof(IWorldStateDictator).Assembly;
             
             builder.RegisterInstance<IHash>(new Hash()).As<Hash>();
             

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Reflection;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
@@ -47,15 +46,15 @@ namespace AElf.Sdk.CSharp.Tests
 
         public ServicePack ServicePack;
 
-        private IWorldStateManager _worldStateManager;
+        private IWorldStateDictator _worldStateDictator;
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
 
-        private ISmartContractRunnerFactory _smartContractRunnerFactory ;
+        private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateManager worldStateManager, IChainCreationService chainCreationService, IBlockManager blockManager, ISmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, IBlockManager blockManager, ISmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            _worldStateManager = worldStateManager;
+            _worldStateDictator = worldStateDictator;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             ChainContextService = chainContextService;
@@ -66,14 +65,14 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateManager, _functionMetadataService);
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator, _functionMetadataService);
 
             ServicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = null,
-                WorldStateManager = _worldStateManager
+                WorldStateDictator = _worldStateDictator
             };
         }
 
@@ -95,7 +94,7 @@ namespace AElf.Sdk.CSharp.Tests
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
-            DataProvider1 = (await _worldStateManager.OfChain(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
+            DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
         }
 
         public async Task DeployContractAsync(byte[] code, Hash address)

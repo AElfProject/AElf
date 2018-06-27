@@ -57,7 +57,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 			var batched = batcher.Process(txList.Select(x => x).ToList());
 
 			var firstBatch = batched.First();
-			var jobs = await grouper.Process(Hash.Generate(), firstBatch);
+			var jobs = grouper.Process(Hash.Generate(), firstBatch);
 			
 			Assert.Equal(4, jobs.Count);
 

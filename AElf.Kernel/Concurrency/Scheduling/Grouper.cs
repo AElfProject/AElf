@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using AElf.Kernel.Types;
 using NLog;
 using Org.BouncyCastle.Security;
 
@@ -23,7 +23,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
         }
 
         //TODO: for testnet we only have a single chain, thus grouper only take care of txList in one chain (hence Process has chainId as parameter)
-        public async Task<List<List<ITransaction>>> Process(Hash chainId, List<ITransaction> transactions)
+        public List<List<ITransaction>> Process(Hash chainId, List<ITransaction> transactions)
         {
             var txResourceHandle = new Dictionary<ITransaction, string>();
             if (transactions.Count == 0)
@@ -37,7 +37,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
             foreach (var tx in transactions)
             {
                 UnionFindNode first = null;
-                var resources = await _resourceUsageDetectionService.GetResources(chainId, tx);
+                var resources = _resourceUsageDetectionService.GetResources(chainId, tx);
                 foreach (var resource in resources)
                 {
                     if (!resourceUnionSet.TryGetValue(resource, out var node))
@@ -87,10 +87,9 @@ namespace AElf.Kernel.Concurrency.Scheduling
             return result;
         }
 
-        public async Task<List<List<ITransaction>>> ProcessWithCoreCount(int totalCores, Hash chainId,
-            List<ITransaction> transactions)
+        public List<List<ITransaction>> ProcessWithCoreCount(int totalCores, Hash chainId, List<ITransaction> transactions)
         {
-            return await SimpleProcessWithCoreCount(totalCores, chainId, transactions);
+            return SimpleProcessWithCoreCount(totalCores, chainId, transactions);
         }
         
         /// <summary>
@@ -106,7 +105,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
         /// <param name="transactions"></param>
         /// <returns></returns>
         /// <exception cref="InvalidParameterException"></exception>
-        public async Task<List<List<ITransaction>>> SimpleProcessWithCoreCount(int totalCores, Hash chainId, List<ITransaction> transactions)
+        public List<List<ITransaction>> SimpleProcessWithCoreCount(int totalCores, Hash chainId, List<ITransaction> transactions)
         {
             if (transactions.Count == 0)
             {
@@ -119,7 +118,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
             }
             
             
-            var sortedUnmergedGroups = (await Process(chainId, transactions)).OrderByDescending( a=> a.Count).ToList();
+            var sortedUnmergedGroups = Process(chainId, transactions).OrderByDescending( a=> a.Count).ToList();
 
             //TODO: group's count can be a little bit more that core count, for now it's 0, this value can latter make adjustable to deal with special uses
             int resGroupCount = totalCores + 0;
@@ -167,9 +166,6 @@ namespace AElf.Kernel.Concurrency.Scheduling
             _logger?.Info(string.Format(
                 "Grouper on chainId [{0}] merge {1} groups into {2} groups with sizes [{3}]", chainId,
                 transactions.Count, res.Count, string.Join(", ", res.Select(a=>a.Count))));
-            Console.WriteLine(string.Format(
-                "Grouper on chainId [{0}] merge {1} groups into {2} groups with sizes [{3}]", chainId,
-                sortedUnmergedGroups.Count, res.Count, string.Join(", ", res.Select(a=>a.Count))));
             return res;
         }
     }

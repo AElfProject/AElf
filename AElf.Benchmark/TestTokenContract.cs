@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.Extensions;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Benchmark

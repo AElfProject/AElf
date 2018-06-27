@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Kernel.Storages;
+using AElf.Kernel.Types;
 using NLog;
 using Org.BouncyCastle.Security;
 using ServiceStack;
@@ -46,7 +47,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             _logger?.Info("Contract " + contractType.FullName + " depolyed");
         }
 
-        public async Task<FunctionMetadata> GetFunctionMetadata(Hash chainId, string addrFunctionName)
+        public FunctionMetadata GetFunctionMetadata(Hash chainId, string addrFunctionName)
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {

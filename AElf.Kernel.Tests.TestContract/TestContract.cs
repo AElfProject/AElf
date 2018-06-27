@@ -25,6 +25,7 @@ namespace AElf.Kernel.CSharp.Tests
         [SmartContractFunction("${this}.InitializeAsync", new string[]{}, new []{"${this}.Balances"})]
         public async Task<bool> InitializeAsync(Hash account, ulong qty)
         {
+            Console.WriteLine("Initialize");
             await Balances.SetValueAsync(account, qty);
             return true;
         }
@@ -44,9 +45,12 @@ namespace AElf.Kernel.CSharp.Tests
             Thread.Sleep(milliSeconds);
         }
 
-        public void NoAction()
+        public string NoAction()
         {
             // Don't delete, this is needed to test placeholder transactions
+            var str = "NoAction";
+            Console.WriteLine("NoAction");
+            return str;
         }
         
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances", "${this}.TransactionStartTimes", "${this}.TransactionEndTimes"})]
@@ -72,7 +76,9 @@ namespace AElf.Kernel.CSharp.Tests
         [SmartContractFunction("${this}.GetBalance", new string[]{}, new []{"${this}.Balances"})]
         public async Task<ulong> GetBalance(Hash account)
         {
-            return await Balances.GetValueAsync(account);
+            var b = await Balances.GetValueAsync(account);
+            //Console.WriteLine(b);
+            return b;
         }
 
         [SmartContractFunction("${this}.GetTransactionStartTime", new string[]{}, new []{"${this}.TransactionStartTimes"})]
@@ -93,6 +99,11 @@ namespace AElf.Kernel.CSharp.Tests
         {
             var dtStr = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.ffffff");
             return dtStr;
+        }
+
+        public void Print(string name)
+        {
+            Console.WriteLine("Hello, {0}", name);
         }
     }
 }

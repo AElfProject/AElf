@@ -23,7 +23,7 @@ namespace AElf.Kernel.Concurrency
         public async Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId)
         {
             // TODO: Move it to config
-            int timeoutMilliSeconds = int.MaxValue;
+            int timeoutMilliSeconds = 200000;
 
             var cts = new CancellationTokenSource();
 
@@ -34,7 +34,8 @@ namespace AElf.Kernel.Concurrency
                 TimeSpan.FromMilliseconds(-1)
             ))
             {
-                var tasks = (await _grouper.ProcessWithCoreCount(8, chainId, transactions)).Select(
+                //TODO: the core count should in the configure file
+                var tasks = _grouper.ProcessWithCoreCount(8, chainId, transactions).Select(
                     txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, cts.Token), cts.Token)
                 ).ToArray();
 
@@ -52,7 +53,6 @@ namespace AElf.Kernel.Concurrency
                 var tcs = new TaskCompletionSource<List<TransactionTrace>>();
                 _requestor.Tell(new LocalExecuteTransactionsMessage(chainId, transactions, tcs));
                 var traces = await tcs.Task;
-                
    
                 if (traces.Count > 0)
                 {

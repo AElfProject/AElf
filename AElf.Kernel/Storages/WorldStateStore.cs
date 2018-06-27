@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AElf.Database;
-using AElf.Kernel.Extensions;
+
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Storages
 {
@@ -23,7 +24,7 @@ namespace AElf.Kernel.Storages
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
             var changes = await _keyValueDatabase.GetAsync(wsKey.Value.ToBase64(), typeof(ChangesDict));
-            var changesDict = ChangesDict.Parser.ParseFrom(changes);
+            var changesDict = changes == null ?  new ChangesDict() : ChangesDict.Parser.ParseFrom(changes);
             return new WorldState(changesDict);
         }
     }

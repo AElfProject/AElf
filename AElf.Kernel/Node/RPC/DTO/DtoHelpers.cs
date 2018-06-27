@@ -13,10 +13,11 @@ namespace AElf.Kernel.Node.RPC.DTO
         {
             return new JObject {
                 ["tx"] = new JObject {
-                    {"txId", tx.GetHash().Value.ToBase64()},
+                    {"TxId", tx.GetHash().Value.ToBase64()},
                     {"From", tx.From.Value.ToBase64()},
                     {"To", tx.To.Value.ToBase64()},
-                    {"Method", tx.MethodName}
+                    {"Method", tx.MethodName},
+                    {"IncrementId", tx.IncrementId}
                 }
             };
         }

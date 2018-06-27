@@ -1,18 +1,19 @@
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel
 {
     public class AccountDataProvider : IAccountDataProvider
     {
-        private readonly IWorldStateManager _worldStateManager;
+        private readonly IWorldStateDictator _worldStateDictator;
         
         public IAccountDataContext Context { get; set; }
 
         public AccountDataProvider(Hash chainId, Hash accountAddress, 
-            IWorldStateManager worldStateManager)
+            IWorldStateDictator worldStateDictator)
         {
-            _worldStateManager = worldStateManager;
+            _worldStateDictator = worldStateDictator;
             
             //Just use its structure to store info.
             Context = new AccountDataContext
@@ -25,7 +26,7 @@ namespace AElf.Kernel
 
         public IDataProvider GetDataProvider()
         {
-            return new DataProvider(Context, _worldStateManager);
+            return new DataProvider(Context, _worldStateDictator);
         }
     }
 }

@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.Extensions;
+using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Metadata;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -27,9 +29,9 @@ namespace AElf.Kernel.Tests.Concurrency
         public async Task TestResoruceDetection()
         {
             Hash chainId = Hash.Generate();
-            var addrA = new Hash("TestContractA".CalculateHash());
-            var addrB = new Hash("TestContractB".CalculateHash());
-            var addrC = new Hash("TestContractC".CalculateHash());
+            var addrA = new Hash("TestContractA".CalculateHash()).ToAccount();
+            var addrB = new Hash("TestContractB".CalculateHash()).ToAccount();
+            var addrC = new Hash("TestContractC".CalculateHash()).ToAccount();
 
             var referenceBookForA = new Dictionary<string, Hash>();
             referenceBookForA.Add("ContractC", addrC);
@@ -44,32 +46,16 @@ namespace AElf.Kernel.Tests.Concurrency
             
             ResourceUsageDetectionService detectionService = new ResourceUsageDetectionService(_functionMetadataService);
 
-            var addr0 = new Hash("0".CalculateHash());
-            var addr1 = new Hash("1".CalculateHash());
+            var addr0 = new Hash("0".CalculateHash()).ToAccount();
+            var addr1 = new Hash("1".CalculateHash()).ToAccount();
             
             var tx = new Transaction()
             {
                 From = Hash.Zero,
-                To = new Hash("TestContractA".CalculateHash()),
+                To = new Hash("TestContractA".CalculateHash()) .ToAccount(),
                 IncrementId = 0,
                 MethodName = "Func5",
-                Params = ByteString.CopyFrom(new AElf.Kernel.Parameters()
-                {
-                    Params = {
-                        new Param
-                        {
-                            HashVal = addr0
-                        },
-                        new Param
-                        {
-                            HashVal = addr1
-                        },
-                        new Param()
-                        {
-                            IntVal = 5
-                        }
-                    }
-                }.ToByteArray())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(addr0 , addr1 , (ulong)20))
             };
 
             var resources = detectionService.GetResources(chainId, tx);

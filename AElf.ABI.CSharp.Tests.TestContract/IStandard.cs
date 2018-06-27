@@ -2,6 +2,7 @@
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.ABI.CSharp;
+using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 
 namespace AElf.ABI.CSharp.Tests

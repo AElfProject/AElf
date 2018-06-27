@@ -3,14 +3,13 @@ using System.IO;
 using System.Net;
 using System.Runtime.InteropServices.ComTypes;
 using System.Security;
+using System.Threading.Tasks;
 using AElf.ABI.CSharp;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
-using AElf.Kernel.Concurrency.Execution;
-using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Modules.AutofacModule;
@@ -20,6 +19,7 @@ using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Network.Config;
 using AElf.Runtime.CSharp;
+using Akka.Actor;
 using Autofac;
 using Google.Protobuf;
 using Newtonsoft.Json;
@@ -65,6 +65,8 @@ namespace AElf.Launcher
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
+            smartContractRunnerFactory.AddRunner(1, runner);
+
             
             // Setup ioc 
             IContainer container = SetupIocContainer(isMiner, isNewChain, netConf, databaseConf, txPoolConf, 
@@ -107,13 +109,14 @@ namespace AElf.Launcher
                 IAElfNode node = scope.Resolve<IAElfNode>();
                
                 // Start the system
-                node.Start(nodeKey, confParser.Rpc, initData, SmartContractZeroCode);
+                node.Start(nodeKey, confParser.Rpc, confParser.RpcPort, initData, SmartContractZeroCode);
 
+                //Mine(node);
                 Console.ReadLine();
             }
             
         }
-
+        
         
         private static byte[] SmartContractZeroCode
         {
@@ -149,6 +152,7 @@ namespace AElf.Launcher
             
             // Module registrations
             builder.RegisterModule(new TransactionManagerModule());
+            builder.RegisterModule(new WorldStateDictatorModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseModule(databaseConf));
             builder.RegisterModule(new NetworkModule(netConf, isMiner));
@@ -195,6 +199,8 @@ namespace AElf.Launcher
 
             txPoolConf.ChainId = chainId;
             builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
+
+            
             
             
             IContainer container = null;

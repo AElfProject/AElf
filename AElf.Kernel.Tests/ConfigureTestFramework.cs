@@ -24,6 +24,7 @@ namespace AElf.Kernel.Tests
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseModule(new DatabaseConfig()));
             builder.RegisterModule(new MetadataModule());
+            builder.RegisterModule(new WorldStateDictatorModule());
 
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);

@@ -29,6 +29,9 @@ namespace AElf.Network.Peers
     public class Peer : IPeer
     {
         private const int DefaultReadTimeOut = 3000;
+        private const int BufferSize = 20000;
+
+        private byte[] _receptionBuffer;
         
         /// <summary>
         /// The event that's raised when a message is received
@@ -63,6 +66,7 @@ namespace AElf.Network.Peers
         {
             _nodeData = nodeData;
             DistantNodeData = peerData;
+            _receptionBuffer = new byte[BufferSize];
         }
 
         /// <summary>
@@ -124,18 +128,29 @@ namespace AElf.Network.Peers
             // a listening state.
             if (!IsConnected || IsListening) 
                 return; // todo error
-            
+
             try
             {
                 _isListening = true;
-                
+
                 while (true)
                 {
-                    AElfPacketData packet = await ListenForPacketAsync();
-                    
-                    // raise the event so the higher levels can process it.
-                    var args = new MessageReceivedArgs { Message = packet, Peer = this };
-                    MessageReceived?.Invoke(this, args);
+                    try
+                    {
+                        AElfPacketData packet = await ListenForPacketAsync();
+                        
+                        // raise the event so the higher levels can process it.
+                        var args = new MessageReceivedArgs { Message = packet, Peer = this };
+                        MessageReceived?.Invoke(this, args);
+                    }
+                    catch (InvalidProtocolBufferException invalidProtocol)
+                    {
+                        Console.WriteLine("Received an invalid message", invalidProtocol);
+                    }
+                    catch (Exception e)
+                    {
+                        ;
+                    }
                 }
             }
             catch (Exception e)
@@ -155,17 +170,20 @@ namespace AElf.Network.Peers
 
         private async Task<AElfPacketData> ListenForPacketAsync()
         {
-            byte[] bytes = new byte[1024];
-            int bytesRead = await _stream.ReadAsync(bytes, 0, 1024);
+            byte[] bytes = new byte[20000];
+            int bytesRead = await _stream.ReadAsync(bytes, 0, BufferSize);
 
-            byte[] readBytes = new byte[bytesRead];
-            Array.Copy(bytes, readBytes, bytesRead);
+            /*byte[] readBytes = new byte[bytesRead];
+            Array.Copy(bytes, readBytes, bytesRead);*/
+            
+            //int bytesRead = await _stream.ReadAsync(_receptionBuffer, 0, BufferSize);
 
             AElfPacketData packet = null;
             if (bytesRead > 0)
             {
                 // Deserialize
-                packet = AElfPacketData.Parser.ParseFrom(readBytes);
+                packet = AElfPacketData.Parser.ParseFrom(bytes, 0, bytesRead);
+                Console.WriteLine("Packet received: " + ((MessageTypes)packet.MsgType) + ", bytes read: " + bytesRead);
             }
             else
             {

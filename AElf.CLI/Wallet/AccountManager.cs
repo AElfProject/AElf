@@ -140,17 +140,15 @@ namespace AElf.CLI.Wallet
                 _screenManager.PrintLine("no accounts available");
         }
 
-        public Transaction SignTransaction(JObject t)
+        public ECKeyPair GetKeyPair(string addr)
+        {
+            ECKeyPair kp = _keyStore.GetAccountKeyPair(addr);
+            return kp;
+        }
+
+        /*public Transaction SignTransaction(JObject t)
         {
             Transaction tr = new Transaction();
-
-            string addr = t["from"].ToString();
-            
-            //UnlockAccount(addr);
-            ECKeyPair kp = _keyStore.GetAccountKeyPair(addr);
-
-            if (kp == null)
-                throw new AccountLockedException(addr);
 
             try
             {
@@ -158,23 +156,10 @@ namespace AElf.CLI.Wallet
                 tr.To = Convert.FromBase64String(t["to"].ToString());
                 tr.IncrementId = t["incr"].ToObject<ulong>();
                 tr.MethodName = t["method"].ToObject<string>();
-                tr.Params = Convert.FromBase64String(t["params"].ToString());
-                
-                MemoryStream ms = new MemoryStream();
-                Serializer.Serialize(ms, tr);
-    
-                byte[] b = ms.ToArray();
-                byte[] toSig = SHA256.Create().ComputeHash(b);
-                
-                // Sign the hash
-                ECSigner signer = new ECSigner();
-                ECSignature signature = signer.Sign(kp, toSig);
-                
-                // Update the signature
-                tr.R = signature.R;
-                tr.S = signature.S;
-                
-                tr.P = kp.PublicKey.Q.GetEncoded();
+                var p = Convert.FromBase64String(t["params"].ToString());
+                tr.Params = p.Length == 0 ? null : p;
+
+                SignTransaction(tr);
 
                 return tr;
             }
@@ -184,6 +169,34 @@ namespace AElf.CLI.Wallet
             }
             
             return null;
+        }*/
+
+        public Transaction SignTransaction(Transaction tx)
+        {
+            string addr = BitConverter.ToString(tx.From.Value).Replace("-", string.Empty).ToLower();
+            
+            ECKeyPair kp = _keyStore.GetAccountKeyPair(addr);
+
+            if (kp == null)
+                throw new AccountLockedException(addr);
+            
+            MemoryStream ms = new MemoryStream();
+            Serializer.Serialize(ms, tx);
+    
+            byte[] b = ms.ToArray();
+            byte[] toSig = SHA256.Create().ComputeHash(b);
+                
+            // Sign the hash
+            ECSigner signer = new ECSigner();
+            ECSignature signature = signer.Sign(kp, toSig);
+                
+            // Update the signature
+            tx.R = signature.R;
+            tx.S = signature.S;
+                
+            tx.P = kp.PublicKey.Q.GetEncoded();
+
+            return tx;
         }
     }
 }

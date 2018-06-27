@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
+using AElf.Kernel.Types;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
 namespace AElf.Kernel.TxMemPool

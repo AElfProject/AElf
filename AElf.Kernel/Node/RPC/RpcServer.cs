@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Node.RPC.DTO;
-using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
 using AElf.Node.RPC.DTO;
 using Google.Protobuf;
@@ -30,9 +29,9 @@ namespace AElf.Kernel.Node.RPC
         private const string GetIncrementIdMethodName = "get_increment";
         private const string BroadcastBlockMethodName = "broadcast_block";
         private const string GetTxResultMethodName = "get_tx_result";
-        
         private const string GetCommandsMethodName = "get_commands";
-        
+        private const string GetContractAbi = "get_contract_abi";
+
         /// <summary>
         /// The names of the exposed RPC methods and also the
         /// names used in the JSON to perform a call.
@@ -46,16 +45,17 @@ namespace AElf.Kernel.Node.RPC
             GetCommandsMethodName,
             GetIncrementIdMethodName,
             BroadcastBlockMethodName,
+            GetContractAbi,
             GetTxResultMethodName
         };
-        
+
         /// <summary>
         /// Represents the node itself.
         /// </summary>
         private MainChainNode _node;
-        
+
         private readonly ILogger _logger;
-        
+
         public RpcServer(ILogger logger)
         {
             _logger = logger;
@@ -71,24 +71,26 @@ namespace AElf.Kernel.Node.RPC
         {
             _node = node;
         }
-        
+
         /// <summary>
         /// Starts the Kestrel server.
         /// </summary>
+        /// <param name="rpcPort"></param>
         /// <returns></returns>
-        public bool Start() 
+        public bool Start(int rpcPort)
         {
             try
             {
                 var host = new WebHostBuilder()
                     .UseKestrel()
+                    .UseUrls("http://localhost:" + rpcPort)
                     .ConfigureLogging((hostingContext, logging) =>
                     {
                         //logging.ClearProviders(); 
                     })
                     .Configure(a => a.Run(ProcessAsync))
                     .Build();
-                
+
                 host.RunAsync();
             }
             catch (Exception e)
@@ -99,7 +101,7 @@ namespace AElf.Kernel.Node.RPC
 
             return true;
         }
-        
+
         private JObject ParseRequest(HttpContext context)
         {
             if (context?.Request?.Body == null)
@@ -112,7 +114,7 @@ namespace AElf.Kernel.Node.RPC
                 {
                     bodyAsString = streamReader.ReadToEnd();
                 }
-            
+
                 JObject req = JObject.Parse(bodyAsString);
 
                 return req;
@@ -123,7 +125,7 @@ namespace AElf.Kernel.Node.RPC
                 return null;
             }
         }
-        
+
         /// <summary>
         /// Verifies the request, it especially checks to see if the command is
         /// registered.
@@ -134,7 +136,7 @@ namespace AElf.Kernel.Node.RPC
         {
             if (request == null)
                 return null;
-            
+
             JToken method = JToken.FromObject(request["method"]);
 
             if (method != null)
@@ -145,10 +147,10 @@ namespace AElf.Kernel.Node.RPC
                     return ErrorResponseFactory.GetMethodNotFound(request["id"].ToObject<int>());
                 }
             }
-            
+
             return null;
         }
-        
+
         /// <summary>
         /// Callback that setup to process the requests : parse, validate and dispatch
         /// </summary>
@@ -158,16 +160,16 @@ namespace AElf.Kernel.Node.RPC
         {
             if (context?.Request?.Body == null)
                 return;
-            
+
             JObject request = ParseRequest(context);
-            
+
             if (request == null)
             {
                 JObject err = ErrorResponseFactory.GetParseError(0);
                 await WriteResponse(context, err);
                 return;
             }
-            
+
             JObject validErr = ValidateRequest(request);
 
             if (validErr != null)
@@ -180,40 +182,43 @@ namespace AElf.Kernel.Node.RPC
             {
                 // read id
                 int reqId = request["id"].ToObject<int>();
-                
+
                 string methodName = JToken.FromObject(request["method"]).ToObject<string>();
                 JObject reqParams = JObject.FromObject(request["params"]);
 
                 JObject responseData = null;
                 switch (methodName)
                 {
-                       case GetTxMethodName:
-                           responseData = await ProcessGetTx(reqParams);
-                           break;
-                       case InsertTxMethodName:
-                           responseData = await ProcessInsertTx(reqParams);
-                           break;
-                       case BroadcastTxMethodName:
-                           responseData = await ProcessBroadcastTx(reqParams);
-                           break;
-                       case GetPeersMethodName:
-                           responseData = await ProcessGetPeers(reqParams);
-                           break;
-                       case GetCommandsMethodName:
-                           responseData = ProcessGetCommands();
-                           break;
-                       case GetIncrementIdMethodName:
-                           responseData = await ProcessGetIncrementId(reqParams);
-                           break;
-                       case BroadcastBlockMethodName:
-                           responseData = await ProcessBroadcastBlock(reqParams);
-                           break;
-                       case GetTxResultMethodName:
-                           responseData = await ProcGetTxResult(reqParams);
-                           break;
-                       default:
-                           Console.WriteLine("Method name not found"); // todo log
-                           break;
+                    case GetTxMethodName:
+                        responseData = await ProcessGetTx(reqParams);
+                        break;
+                    case InsertTxMethodName:
+                        responseData = await ProcessInsertTx(reqParams);
+                        break;
+                    case BroadcastTxMethodName:
+                        responseData = await ProcessBroadcastTx(reqParams);
+                        break;
+                    case GetPeersMethodName:
+                        responseData = await ProcessGetPeers(reqParams);
+                        break;
+                    case GetCommandsMethodName:
+                        responseData = ProcessGetCommands();
+                        break;
+                    case GetIncrementIdMethodName:
+                        responseData = await ProcessGetIncrementId(reqParams);
+                        break;
+                    case BroadcastBlockMethodName:
+                        responseData = await ProcessBroadcastBlock(reqParams);
+                        break;
+                    case GetContractAbi:
+                        responseData = await ProcessGetContractAbi(reqParams);
+                        break;
+                    case GetTxResultMethodName:
+                        responseData = await ProcGetTxResult(reqParams);
+                        break;
+                    default:
+                        Console.WriteLine("Method name not found"); // todo log
+                        break;
                 }
 
                 if (responseData == null)
@@ -222,7 +227,7 @@ namespace AElf.Kernel.Node.RPC
                 }
 
                 JObject resp = JsonRpcHelpers.CreateResponse(responseData, reqId);
-                
+
                 await WriteResponse(context, resp);
             }
             catch (Exception e)
@@ -236,20 +241,19 @@ namespace AElf.Kernel.Node.RPC
             string adr = reqParams["txhash"].ToString();
             Hash txHash = Convert.FromBase64String(adr);
             
-            //TransactionResult txResult = await _node.GetTransactionResult(txHash);
-            
-            LogEvent ev = new LogEvent();
-            ev.Address = new byte[] {1, 2, 3};
-            ev.Topic = new byte[] {1, 2, 3, 2, 6, 2};
+            TransactionResult txResult = await _node.GetTransactionResult(txHash);
 
-            TransactionResult txResult = new TransactionResult();
-            txResult.Logs.Add(ev);
-            txResult.RetVal = ByteString.CopyFromUtf8("RestVal_HelloWorld");
-            txResult.Status = Status.Mined;
-            txResult.TransactionId = txHash;
+            // for the case that return type is Hash
+            Hash h = Hash.Parser.ParseFrom(txResult.RetVal);
+            txResult.RetVal = h.Value;
+            // Todo: it should be deserialized to obj ion cli, 
             
             string jsonResponse = JsonFormatter.Default.Format(txResult);
-            JObject j = new JObject { ["txresult"] = jsonResponse };
+            JObject j = new JObject
+            {
+                ["txresult"] = jsonResponse,
+                ["retval"] = h.Value.ToBase64()
+            };
             
             return JObject.FromObject(j);
         }
@@ -258,10 +262,43 @@ namespace AElf.Kernel.Node.RPC
         {
             string adr = reqParams["address"].ToString();
             ulong current = await _node.GetIncrementId(new Hash(ByteArrayHelpers.FromHexString(adr)));
-            
-            JObject j = new JObject { ["increment"] = current };
-            
+
+            JObject j = new JObject {["increment"] = current};
+
             return JObject.FromObject(j);
+        }
+
+        private async Task<JObject> ProcessGetContractAbi(JObject reqParams)
+        {
+            string addr = reqParams["address"].ToString();
+            Hash addrHash = new Hash()
+            {
+                Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(addr))
+            };
+
+            JObject j = null;
+
+            try
+            {
+                var abi = await _node.GetContractAbi(addrHash);
+                j = new JObject
+                {
+                    ["address"] = addr,
+                    ["abi"] = Convert.ToBase64String(abi.ToByteArray()),
+                    ["error"] = ""
+                };
+            }
+            catch (ArgumentNullException e)
+            {
+                j = new JObject
+                {
+                    ["address"] = addr,
+                    ["abi"] = "",
+                    ["error"] = "Not Found"
+                };
+            }
+
+            return j;
         }
 
         private async Task<JObject> ProcessBroadcastTx(JObject reqParams)
@@ -271,17 +308,12 @@ namespace AElf.Kernel.Node.RPC
             byte[] b = Convert.FromBase64String(raw64);
             Transaction t = Transaction.Parser.ParseFrom(b);
 
-            //bool correct = t.VerifySignature();
-
-            //var tx = raw.ToTransaction();
-
             var res = await _node.BroadcastTransaction(t);
 
-            /*var jobj = new JObject();
-            jobj.Add("txId", tx.GetHash().Value.ToBase64());
-            jobj.Add("status", res);
-            return jobj;*/
-            return null;
+            byte[] hash = t.GetHash().Value.ToByteArray();
+            JObject j = new JObject { ["hash"] = t.GetHash().Value.ToBase64() };
+            
+            return JObject.FromObject(j);
         }
 
         /// <summary>
@@ -295,11 +327,11 @@ namespace AElf.Kernel.Node.RPC
             byte[] txid = reqParams["txid"].ToObject<byte[]>();
             ITransaction tx = await _node.GetTransaction(txid);
 
-            var txInfo = tx == null ? new JObject{["tx"] = "Not Found"} : tx.GetTransactionInfo();
-            
+            var txInfo = tx == null ? new JObject {["tx"] = "Not Found"} : tx.GetTransactionInfo();
+
             return txInfo;
         }
-        
+
         private async Task<JObject> ProcessInsertTx(JObject reqParams)
         {
             var raw = reqParams["tx"].First;
@@ -311,7 +343,7 @@ namespace AElf.Kernel.Node.RPC
             {
                 ["hash"] = txHash.Value.ToBase64()
             };
-            
+
             return JObject.FromObject(j);
         }
 
@@ -347,7 +379,7 @@ namespace AElf.Kernel.Node.RPC
             {
                 ["data"] = arrPeersDto
             };
-            
+
             return JObject.FromObject(j);
         }
 
@@ -366,7 +398,7 @@ namespace AElf.Kernel.Node.RPC
             {
                 ["commands"] = arrCommands
             };
-            
+
             return JObject.FromObject(j);
         }
 
@@ -379,8 +411,9 @@ namespace AElf.Kernel.Node.RPC
         {
             if (context?.Response == null)
                 return;
-            
+
             await context.Response.WriteAsync(response.ToString(), Encoding.UTF8);
         }
+        
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace AElf.Kernel.Miner
+﻿using AElf.Kernel.Types;
+
+namespace AElf.Kernel.Miner
 {
     public class MinerConfig : IMinerConfig
     {

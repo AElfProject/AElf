@@ -5,6 +5,7 @@ using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
 using AElf.Kernel.Services;
@@ -26,13 +27,14 @@ namespace AElf.Benchmark
 
             var dataConfig = new DatabaseConfig
             {
-                Type = DatabaseType.Redis,
+                Type = DatabaseType.KeyValue,
                 Host = "192.168.9.9",
                 Port = 6379
             };
+            builder.RegisterModule(new WorldStateDictatorModule());
             builder.RegisterModule(new DatabaseModule(dataConfig));
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 100);
+            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 1000);
             #if DEBUG
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             #else
@@ -92,7 +94,7 @@ namespace AElf.Benchmark
                     }
                 }
                 */
-                var multiGroupRes = await benchmarkTps.MultipleGroupBenchmark(100, 1);
+                var multiGroupRes = await benchmarkTps.MultipleGroupBenchmark(1000, 1);
                 foreach (var kv in multiGroupRes)
                 {
                     Console.WriteLine(kv.Key + kv.Value);

@@ -13,8 +13,6 @@ using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Concurrency.Scheduling;
-using AElf.Kernel.Extensions;
-using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Services;
@@ -39,7 +37,7 @@ namespace AElf.Benchmark
         private readonly IBlockManager _blockManager;
         private readonly ISmartContractService _smartContractService;
         private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
-        private readonly IWorldStateManager _worldStateManager;
+        private readonly IWorldStateDictator _worldStateDictator;
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
         
@@ -53,38 +51,42 @@ namespace AElf.Benchmark
         private readonly TransactionDataGenerator _dataGenerater;
         private readonly Hash _contractHash;
 
-        public Benchmarks(IChainCreationService chainCreationService, IBlockManager blockManager, IChainContextService chainContextService, int maxTxNum, ISmartContractRunnerFactory smartContractRunnerFactory, ISmartContractService smartContractService, ILogger logger, IFunctionMetadataService functionMetadataService, IWorldStateManager worldStateManager, IAccountContextService accountContextService, ILogger logger1)
+        public Benchmarks(IChainCreationService chainCreationService, IBlockManager blockManager, IChainContextService chainContextService, int maxTxNum, ISmartContractService smartContractService, ILogger logger, IFunctionMetadataService functionMetadataService, IAccountContextService accountContextService, ILogger logger1, IWorldStateDictator worldStateDictator)
         {
             ChainId = Hash.Generate();
+            
+            _worldStateDictator = worldStateDictator;
+            _worldStateDictator.SetChainId(ChainId);
+            
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             _smartContractService = smartContractService;
-            _worldStateManager = worldStateManager;
             _accountContextService = accountContextService;
             _logger = logger1;
 
-            _worldStateManager.OfChain(ChainId);
 
             _servicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new ResourceUsageDetectionService(functionMetadataService),
-                WorldStateManager = _worldStateManager,
+                WorldStateDictator = _worldStateDictator,
                 AccountContextService = _accountContextService,
-                Logger = logger
             };
 
             var workers = new[]
             {
-                "/user/worker1", "/user/worker2"
-//                , "/user/worker3", "/user/worker4", "/user/worker5", "/user/worker6",
-//                "/user/worker7", "/user/worker8", "/user/worker9", "/user/worker10", "/user/worker11", "/user/worker12"
+                  "/user/worker1", "/user/worker2", 
+                  "/user/worker3", "/user/worker4",
+//                  "/user/worker5", "/user/worker6",
+//                  "/user/worker7", "/user/worker8",
+//                  "/user/worker9", "/user/worker10",
+//                  "/user/worker11", "/user/worker12"
             };
             Workers = new []
             {
                 Sys.ActorOf(Props.Create<Worker>(), "worker1"), Sys.ActorOf(Props.Create<Worker>(), "worker2"),
-//                Sys.ActorOf(Props.Create<Worker>(), "worker3"), Sys.ActorOf(Props.Create<Worker>(), "worker4"),
+                Sys.ActorOf(Props.Create<Worker>(), "worker3"), Sys.ActorOf(Props.Create<Worker>(), "worker4"),
 //                Sys.ActorOf(Props.Create<Worker>(), "worker5"), Sys.ActorOf(Props.Create<Worker>(), "worker6"),
 //                Sys.ActorOf(Props.Create<Worker>(), "worker7"), Sys.ActorOf(Props.Create<Worker>(), "worker8"),
 //                Sys.ActorOf(Props.Create<Worker>(), "worker9"), Sys.ActorOf(Props.Create<Worker>(), "worker10"),
@@ -255,7 +257,6 @@ namespace AElf.Benchmark
                         _logger.Error("Execution error: " + trace.StdErr);
                     }
                 });
-                Thread.Sleep(10000);
             }
             
             var time = txNumber / (timeused / 1000.0 / (double)repeatTime);

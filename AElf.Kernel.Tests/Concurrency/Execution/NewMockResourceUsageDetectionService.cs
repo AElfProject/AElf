@@ -16,7 +16,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
     public class NewMockResourceUsageDetectionService : IResourceUsageDetectionService
     {
-        public Task<IEnumerable<string>> GetResources(Hash chainId, ITransaction transaction)
+        public IEnumerable<string> GetResources(Hash chainId, ITransaction transaction)
         {
             //var hashes = Parameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
             List<Hash> hashes = new List<Hash>();
@@ -47,7 +47,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 
             hashes.Add(transaction.From);
 
-            return Task.FromResult(hashes.Select(a => a.Value.ToBase64()));
+            return hashes.Select(a => a.Value.ToBase64());
         }
     }
 }

@@ -7,14 +7,14 @@ using System.Reflection;
 using Google.Protobuf.Reflection;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Kernel;
 using AElf.Types.CSharp;
 
 namespace AElf.Types.CSharp
 {
     public class UserType
     {
-        private static Dictionary<System.Type, List<UserFieldInfo>> _fieldInfosByType = new Dictionary<System.Type, List<UserFieldInfo>>();
+        private static Dictionary<System.Type, List<UserFieldInfo>> _fieldInfosByType 
+            = new Dictionary<System.Type, List<UserFieldInfo>>();
 
         public UserTypeHolder Pack()
         {
