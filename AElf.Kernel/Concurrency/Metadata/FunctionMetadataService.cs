@@ -42,13 +42,14 @@ namespace AElf.Kernel.Concurrency.Metadata
             //2.how to implement the action's that call other contracts and
             //3.as the contract reference can be changed, need to set up the contract update accordingly, which is the functions that are not yet implemented
             await chainFuncMetadata.DeployNewContract(contractType.Name, address, contractReferences);
+            _logger?.Info("Contract " + contractType.FullName + " depolyed");
         }
 
         public FunctionMetadata GetFunctionMetadata(Hash chainId, string addrFunctionName)
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
-                throw new InvalidParameterException("No chainFunctionMetadata with chainId: " + chainId.Value);
+                throw new InvalidParameterException("No chainFunctionMetadata with chainId: " + chainId.Value.ToBase64());
             }
 
             return chainFuncMetadata.GetFunctionMetadata(addrFunctionName);
