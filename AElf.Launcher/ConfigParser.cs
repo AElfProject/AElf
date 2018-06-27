@@ -17,6 +17,7 @@ using CommandLine;
 using Google.Protobuf;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Path = System.IO.Path;
 
 namespace AElf.Launcher
 {
@@ -174,7 +175,10 @@ namespace AElf.Launcher
                 : opts.DataDir;
 
             // runner config
-            RunnerConfig = new RunnerConfig();
+            RunnerConfig = new RunnerConfig()
+            {
+                SdkDir = Path.GetDirectoryName(typeof(AElf.Kernel.Node.MainChainNode).Assembly.Location)
+            };
 
             if (opts.RunnerConfig != null)
             {
