@@ -46,7 +46,7 @@ namespace AElf.Benchmark
             ulong initBalance = 10000;
             await Balances.SetValueAsync(addr, initBalance);
             var fromBal = await Balances.GetValueAsync(addr);
-            Console.WriteLine("Read from db of account " + addr + " with balance " + fromBal);
+            //Console.WriteLine("Read from db of account " + addr + " with balance " + fromBal);
             return true;
         }
         
@@ -69,8 +69,8 @@ namespace AElf.Benchmark
                 await Balances.SetValueAsync(to, newToBal);
                 //Console.WriteLine("set to pass");
 
-                Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
-                + to.Value.ToBase64() + "(" + newToBal + ")");
+                //Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
+                //+ to.Value.ToBase64() + "(" + newToBal + ")");
                 return true;
             }
             else
