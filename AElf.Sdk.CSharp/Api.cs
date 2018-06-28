@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
@@ -140,5 +141,11 @@ namespace AElf.Sdk.CSharp
             _transactionContext.Trace.Logs.Add(logEvent);
         }
         #endregion Utility API
+        #region Diagonstics API
+        public static void Sleep(int milliSedonds)
+        {
+            Thread.Sleep(milliSedonds);
+        }
+        #endregion Diagonstics API
     }
 }
