@@ -15,7 +15,7 @@ namespace AElf.Kernel.Concurrency
         private readonly IActorRef _requestor;
         
         // TODO: Move it to config
-        public int TimeoutMilliSeconds { get; set; } = 20000;
+        public int TimeoutMilliSeconds { get; set; } = int.MaxValue;
 
         public ParallelTransactionExecutingService(IActorRef requestor, IGrouper grouper)
         {
