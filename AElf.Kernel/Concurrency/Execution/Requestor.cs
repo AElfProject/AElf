@@ -59,6 +59,7 @@ namespace AElf.Kernel.Concurrency.Execution
                     {
                         hashes.Add(tx.GetHash());
                     }
+
 //                    _requestIdToPendingTransactionIds.Add(reqId, hashes);
                     _router.Tell(new JobExecutionRequest(reqId, req.ChainId, req.Transactions, Self, _router));
                     break;
@@ -67,6 +68,7 @@ namespace AElf.Kernel.Concurrency.Execution
                     {
                         throw new TaskNotCompletedProperlyException("TransactionTrace is received after the task has completed.");
                     }
+
                     traces.Add(msg.TransactionTrace);
 //                    _requestIdToPendingTransactionIds[msg.RequestId].Remove(msg.TransactionTrace.TransactionId);
                     if (traces.Count == _requesteIdTransactionCounts[msg.RequestId])
@@ -76,6 +78,7 @@ namespace AElf.Kernel.Concurrency.Execution
                         _requestIdToTaskCompleteSource.Remove(msg.RequestId);
                         _requestIdToTraces.Remove(msg.RequestId);
                     }
+
                     break;
                 case JobExecutionStatus status:
                     HandleExecutionStatus(status);

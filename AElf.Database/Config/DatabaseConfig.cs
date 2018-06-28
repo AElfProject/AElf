@@ -1,6 +1,8 @@
-﻿namespace AElf.Database.Config
+﻿using AElf.Configuration;
+
+namespace AElf.Database.Config
 {
-    public class DatabaseConfig:IDatabaseConfig
+    public class DatabaseConfig : ConfigBase<DatabaseConfig>
     {
         public DatabaseType Type { get; set; }
         public string Host { get; set; }

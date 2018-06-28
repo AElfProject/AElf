@@ -10,13 +10,9 @@ namespace AElf.Database
     {
         private readonly PooledRedisClientManager _client;
 
-        public SsdbDatabase() : this(new DatabaseConfig())
+        public SsdbDatabase()
         {
-        }
-
-        public SsdbDatabase(IDatabaseConfig config)
-        {
-            _client = new PooledRedisClientManager($"{config.Host}:{config.Port}");
+            _client = new PooledRedisClientManager($"{DatabaseConfig.Instance.Host}:{DatabaseConfig.Instance.Port}");
         }
 
         public async Task<byte[]> GetAsync(string key, Type type)
