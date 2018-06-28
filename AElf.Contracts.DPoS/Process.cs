@@ -61,8 +61,6 @@ namespace AElf.Contracts.DPoS
             {
                 throw new ConfigurationErrorsException("No block producer.");
             }
-            
-            Api.Return(blockProducer);
 
             return blockProducer;
         }
@@ -106,8 +104,6 @@ namespace AElf.Contracts.DPoS
             }
 
             await _blockProducer.SetAsync(blockProducers);
-            
-            Api.Return(blockProducers);
 
             return blockProducers;
         }

@@ -48,10 +48,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
         }
 
         [SmartContractFunction("${this}.GetBalance(AElf.Kernel.Hash)", new string[]{}, new []{"${this}.Balances"})]
-        public async Task<object> GetBalance(Hash account)
+        public async Task<ulong> GetBalance(Hash account)
         {
             var bal= await Balances.GetValueAsync(account.CalculateHash());
-            Api.Return(new UInt64Value() { Value = bal});
             return bal;
         }
     }

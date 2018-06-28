@@ -119,42 +119,6 @@ namespace AElf.Sdk.CSharp
             }
             return new byte[] { };
         }
-
-        public static void Return(IMessage retVal)
-        {
-            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToByteArray());
-        }
-
-        public static void Return(bool retVal)
-        {
-            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
-        }
-
-        public static void Return(uint retVal)
-        {
-            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
-        }
-
-        public static void Return(int retVal)
-        {
-            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
-        }
-
-        public static void Return(ulong retVal)
-        {
-            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
-        }
-
-        public static void Return(long retVal)
-        {
-            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
-        }
-
-        public static void Return(byte[] retVal)
-        {
-            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
-        }
-
         #endregion Transaction API
         
         #region Utility API
