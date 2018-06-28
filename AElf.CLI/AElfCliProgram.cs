@@ -45,6 +45,8 @@ namespace AElf.CLI
     {
 
         private string _rpcAddress;
+
+        private string _genesisAddress;
             
         private static readonly RpcCalls Rpc = new RpcCalls();
         
@@ -128,10 +130,20 @@ namespace AElf.CLI
                     {
                         // RPC
                         HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
+                        if (!parsedCmd.Args.Any())
+                        {
+                            if (_genesisAddress == null)
+                            {
+                                _screenManager.PrintError("Please connect-blockchain first!");
+                                return;
+                            }
+                            parsedCmd.Args.Add(_genesisAddress);
+                        }
+                        
                         string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
         
                         if (resp == null)
-                        {
+                        { 
                             _screenManager.PrintError(ServerConnError);
                             return;
                         }
@@ -144,8 +156,9 @@ namespace AElf.CLI
                         
                         MemoryStream ms = new MemoryStream(aa);
                         Module m = Serializer.Deserialize<Module>(ms);
-                        
-                        _screenManager.Print(JsonConvert.SerializeObject(m));
+
+                        var obj = JObject.FromObject(m);
+                        _screenManager.PrintLine(obj.ToString());
                         
                         _loadedModules.Add(res["address"].ToString(), m);
                         
@@ -157,68 +170,98 @@ namespace AElf.CLI
 
                     return;
                 }
-                else if (def is DeployContractCommand dcc)
+                if (def is DeployContractCommand dcc)
                 {
-                    string err = dcc.Validate(parsedCmd);
-                    if (!string.IsNullOrEmpty(err))
+                    try
                     {
-                        _screenManager.PrintLine(err);
-                        return;
-                    }
+                        string err = dcc.Validate(parsedCmd);
+                        if (!string.IsNullOrEmpty(err))
+                        {
+                            _screenManager.PrintLine(err);
+                            return;
+                        }
+            
+                        //string cat = parsedCmd.Args.ElementAt(0);
+                        string filename = parsedCmd.Args.ElementAt(0);
+                        
+                        // Read sc bytes
+                        SmartContractReader screader = new SmartContractReader();
+                        byte[] sc = screader.Read(filename);
+                        string hex = BitConverter.ToString(sc).Replace("-", string.Empty).ToLower();
+            
+                        Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals("AElf.Kernel.Tests.TestContractZero"));
+            
+                        if (m == null)
+                        {
+                            _screenManager.PrintError("Module not loaded !");
+                            return;
+                        }
+            
+                        Method meth = m.Methods.FirstOrDefault(mt => mt.Name.Equals("DeploySmartContract"));
+                        
+                        if (meth == null)
+                        {
+                            _screenManager.PrintError("Method not found in module !");
+                            return;
+                        }
 
-                    string cat = parsedCmd.Args.ElementAt(0);
-                    string filename = parsedCmd.Args.ElementAt(1);
+                        if (_genesisAddress == null)
+                        {
+                            _screenManager.PrintError("Please connect-blockchain first!");
+                            return;
+                        }
+                        
+                        byte[] serializedParams = meth.SerializeParams(new List<string> {"1", hex } );
+            
+                        Transaction t = new Transaction();
+                        t.From = ByteArrayHelpers.FromHexString(parsedCmd.Args.ElementAt(2));
+                        t.To = ByteArrayHelpers.FromHexString(_genesisAddress);
+                        t.IncrementId = Convert.ToUInt64(parsedCmd.Args.ElementAt(1));
+                        t.MethodName = "DeploySmartContract";
+                        t.Params = serializedParams;
+                        
+                        MemoryStream ms = new MemoryStream();
+                        Serializer.Serialize(ms, t);
+            
+                        byte[] b = ms.ToArray();
+                        byte[] toSig = SHA256.Create().ComputeHash(b);
+            
+                        ECKeyPair kp = _accountManager.GetKeyPair(parsedCmd.Args.ElementAt(2));
+                        
+                        // Sign the hash
+                        ECSigner signer = new ECSigner();
+
+                        ECSignature signature;
+                        try
+                        {
+                            signature  = signer.Sign(kp, toSig);
+                        }
+                        catch (NullReferenceException e)
+                        {
+                            Console.WriteLine("Account locked! Please Use CMD: account unlock  <address>");
+                            return;
+                        }
+                        
                     
-                    // Read sc bytes
-                    SmartContractReader screader = new SmartContractReader();
-                    byte[] sc = screader.Read(filename);
-                    string hex = BitConverter.ToString(sc).Replace("-", string.Empty).ToLower();
+                        // Update the signature
+                        t.R = signature.R;
+                        t.S = signature.S;
+                    
+                        t.P = kp.PublicKey.Q.GetEncoded();
+                        
+                        var jObj = SignAndSendTransaction(t);
+                                
+                        string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
+                        _screenManager.PrintLine(toPrint);
+                        return;
 
-                    Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals("AElf.Kernel.Tests.TestContractZero"));
-
-                    if (m == null)
+                    }
+                    catch (Exception e)
                     {
-                        _screenManager.PrintError("Module not loaded !");
-                        return;
-                    }
-
-                    Method meth = m.Methods.FirstOrDefault(mt => mt.Name.Equals("DeploySmartContract"));
-                    
-                    if (meth == null)
-                    {
-                        _screenManager.PrintError("Method not found in module !");
-                        return;
+                        Console.WriteLine(e);
+                        //throw;
                     }
                     
-                    byte[] serializedParams = meth.SerializeParams(new List<string> { cat, hex } );
-
-                    Transaction t = new Transaction();
-                    t.From = ByteArrayHelpers.FromHexString(parsedCmd.Args.ElementAt(2));
-                    t.To = Convert.FromBase64String(parsedCmd.Args.ElementAt(3));
-                    t.MethodName = "DeploySmartContract";
-                    t.Params = serializedParams;
-                    
-                    MemoryStream ms = new MemoryStream();
-                    Serializer.Serialize(ms, t);
-    
-                    byte[] b = ms.ToArray();
-                    byte[] toSig = SHA256.Create().ComputeHash(b);
-
-                    ECKeyPair kp = _accountManager.GetKeyPair(parsedCmd.Args.ElementAt(2));
-                    
-                    // Sign the hash
-                    ECSigner signer = new ECSigner();
-                    ECSignature signature = signer.Sign(kp, toSig);
-                
-                    // Update the signature
-                    t.R = signature.R;
-                    t.S = signature.S;
-                
-                    t.P = kp.PublicKey.Q.GetEncoded();
-                    
-                    SignAndSendTransaction(t);
-
-                    return;
 
                 }
                 
@@ -248,6 +291,7 @@ namespace AElf.CLI
                                 Module m = null;
                                 if (!_loadedModules.TryGetValue(hex, out m))
                                 {
+                                    _screenManager.PrintError("Module not loaded !");
                                     return;
                                 }
                                 
@@ -255,13 +299,19 @@ namespace AElf.CLI
                                 Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(tr.MethodName));
 
                                 if (method == null)
+                                {
+                                    _screenManager.PrintError("Method not Found !");
                                     return;
-
+                                }
+                                    
                                 tr.Params = method.SerializeParams(p.ToObject<string[]>());
 
                                 _accountManager.SignTransaction(tr);
                                 
-                                SignAndSendTransaction(tr);
+                                var jObj = SignAndSendTransaction(tr);
+                                
+                                string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
+                                _screenManager.PrintLine(toPrint);
                             }
                             catch (Exception e)
                             {
@@ -293,25 +343,38 @@ namespace AElf.CLI
                 }
                 else
                 {
-                    // RPC
-                    HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
-                    string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
-
-                    if (resp == null)
+                    try
                     {
-                        _screenManager.PrintError(ServerConnError);
-                        return;
+                        // RPC
+                        HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
+                        string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
+
+                        if (resp == null)
+                        {
+                            _screenManager.PrintError(ServerConnError);
+                            return;
+                        }
+                    
+                        JObject jObj = JObject.Parse(resp);
+                        var j = jObj["result"];
+                        if (j["result"]["genesis-contract"] != null)
+                        {
+                            _genesisAddress = j["result"]["genesis-contract"].ToString();
+                        }
+                        string toPrint = def.GetPrintString(JObject.FromObject(j));
+                        
+                        _screenManager.PrintLine(toPrint);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
                     }
                     
-                    JObject jObj = JObject.Parse(resp);
-
-                    string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
-                    _screenManager.PrintLine(toPrint);
                 }
             }
         }
 
-        private void SignAndSendTransaction(Transaction tx)
+        private JObject SignAndSendTransaction(Transaction tx)
         {
             MemoryStream ms = new MemoryStream();
             Serializer.Serialize(ms, tx);
@@ -326,6 +389,9 @@ namespace AElf.CLI
             // todo send raw tx
             HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
             string resp = reqhttp.DoRequest(req.ToString());
+            JObject jObj = JObject.Parse(resp);
+
+            return jObj;
         }
 
         private CliCommandDefinition GetCommandDefinition(string commandName)
