@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AElf.Database.Config;
 using NServiceKit.Redis;
 
-
 namespace AElf.Database
 {
     public class SsdbDatabase : IKeyValueDatabase
@@ -18,13 +17,11 @@ namespace AElf.Database
 
         public async Task<byte[]> GetAsync(string key, Type type)
         {
-            key = BitConverter.ToString(Encoding.Default.GetBytes(key)).Replace("-", "");
             return await Task.FromResult(_client.GetCacheClient().Get<byte[]>(key));
         }
 
         public async Task SetAsync(string key, byte[] bytes)
         {
-            key = BitConverter.ToString(Encoding.Default.GetBytes(key)).Replace("-", "");
             await Task.FromResult(_client.GetCacheClient().Set(key, bytes));
         }
 

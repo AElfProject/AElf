@@ -61,8 +61,9 @@ namespace AElf.Launcher
             var isMiner = confParser.IsMiner;
             var isNewChain = confParser.NewChain;
             var initData = confParser.InitData;
+            nodeConfig.IsChainCreator = confParser.NewChain;
             
-            var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
+            var runner = new SmartContractRunner(confParser.RunnerConfig);
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
@@ -152,6 +153,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
             
             // Module registrations
+            builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new WorldStateDictatorModule());
             builder.RegisterModule(new LoggerModule());

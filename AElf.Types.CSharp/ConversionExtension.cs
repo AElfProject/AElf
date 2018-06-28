@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Kernel;
 
 namespace AElf.Types.CSharp
 {

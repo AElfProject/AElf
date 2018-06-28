@@ -27,13 +27,6 @@ namespace AElf.Kernel.Concurrency.Execution.Config
                         serialization-bindings {
                           ""System.Object"" = hyperion
                         }
-                        debug {  
-                          receive = on 
-                          autoreceive = on
-                          lifecycle = on
-                          event-stream = on
-                          unhandled = on
-                        }
                     }
                     remote {
                         log-sent-messages = on
@@ -45,11 +38,6 @@ namespace AElf.Kernel.Concurrency.Execution.Config
                     cluster {
                         seed-nodes = [""akka.tcp://AElfSystem@127.0.0.1:32551""]
                         roles = [""worker""]
-                        log-info = on
-                        debug {
-                              verbose-heartbeat-logging = on
-                              verbose-receive-gossip-logging = on
-                            }
                     }
                 }";
         }

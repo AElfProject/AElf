@@ -42,19 +42,16 @@ namespace AElf.Kernel.Concurrency.Execution
 
         public override Routee Select(object message, Routee[] routees)
         {
-            _lock.WriteLock(() =>
-            {
-                if (_runningRouteeIndexes.Count == 0 && _idleRouteeIndexes.Count == 0)
+            var task = _lock.WriteLock(() =>
                 {
-                    for (int i = 0; i < routees.Length; i++)
+                    if (_runningRouteeIndexes.Count == 0 && _idleRouteeIndexes.Count == 0)
                     {
-                        _idleRouteeIndexes.Add(i);
+                        for (int i = 0; i < routees.Length; i++)
+                        {
+                            _idleRouteeIndexes.Add(i);
+                        }
                     }
-                }
-            });
 
-            var task = _lock.ReadLock(() =>
-                {
                     if (message is JobExecutionStatus status)
                     {
                         if (status.Status == JobExecutionStatus.RequestStatus.Completed)

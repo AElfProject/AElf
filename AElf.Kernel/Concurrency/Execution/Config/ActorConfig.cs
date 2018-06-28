@@ -17,20 +17,20 @@ namespace AElf.Kernel.Concurrency.Execution.Config
             IsCluster = true;
             HostName = "127.0.0.1";
             Port = 0;
-            HoconContent = @"
-                akka {
-                    actor {
-                        deployment {
-                            /router {
-                                router = tracked-group
-                                routees.paths = [""/user/worker"",""/user/worker1"",""/user/worker2"",""/user/worker3""]
-                            }                
-                        }
-                        router.type-mapping {
-                           tracked-group = ""AElf.Kernel.Concurrency.Execution.TrackedGroup, AElf.Kernel""
-                        }
-                    }
-                }";
+//            HoconContent = @"
+//                akka {
+//                    actor {
+//                        deployment {
+//                            /router {
+//                                router = tracked-group
+//                                routees.paths = [""/user/worker"",""/user/worker1"",""/user/worker2"",""/user/worker3""]
+//                            }                
+//                        }
+//                        router.type-mapping {
+//                           tracked-group = ""AElf.Kernel.Concurrency.Execution.TrackedGroup, AElf.Kernel""
+//                        }
+//                    }
+//                }";
             HoconContent = @"
                 akka {
                     actor {
@@ -57,16 +57,8 @@ namespace AElf.Kernel.Concurrency.Execution.Config
                         serialization-bindings {
                           ""System.Object"" = hyperion
                         }
-                        debug {  
-                          receive = on 
-                          autoreceive = on
-                          lifecycle = on
-                          event-stream = on
-                          unhandled = on
-                        }
                     }
                     remote {
-                        log-sent-messages = on
                         dot-netty.tcp {
                             hostname = ""127.0.0.1""
                             port = 0
@@ -75,11 +67,6 @@ namespace AElf.Kernel.Concurrency.Execution.Config
                     cluster {
                         seed-nodes = [""akka.tcp://AElfSystem@127.0.0.1:32551""]
                         roles = [""manager""]
-                        log-info = on
-                        debug {
-                              verbose-heartbeat-logging = on
-                              verbose-receive-gossip-logging = on
-                            }
                     }
                 }";
         }

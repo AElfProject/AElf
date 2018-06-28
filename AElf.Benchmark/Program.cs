@@ -22,12 +22,6 @@ namespace AElf.Benchmark
             builder.RegisterModule(new MainModule());
             builder.RegisterModule(new MetadataModule());
 
-            var dataConfig = new DatabaseConfig
-            {
-                Type = DatabaseType.Redis,
-                Host = "127.0.0.1",
-                Port = 6379
-            };
             DatabaseConfig.Instance.Type = DatabaseType.Ssdb;
             builder.RegisterModule(new WorldStateDictatorModule());
             builder.RegisterModule(new DatabaseModule());
@@ -65,16 +59,15 @@ namespace AElf.Benchmark
                 
                 var benchmarkTps = scope.Resolve<Benchmarks>();
                 var resDict = new Dictionary<string, double>();
-                int groupCount = 4;
+                int groupCount = 2;
                 for (int i = 1; i <= groupCount; i++)
                 {
-                    var res = await benchmarkTps.MultipleGroupBenchmark(8, i);
+                    var res = await benchmarkTps.MultipleGroupBenchmark(4, i);
                     resDict.Add(res.Key, res.Value);
                 }
 
                 resDict.ForEach((info, time) => Console.WriteLine(info + ": " + time));
-                
-                Console.ReadLine();
+                Console.ReadKey();
             }
         }
         
