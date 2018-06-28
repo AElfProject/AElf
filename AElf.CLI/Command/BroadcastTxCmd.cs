@@ -34,15 +34,19 @@ namespace AElf.CLI.Command
         public override JObject BuildRequest(CmdParseResult parsedCmd)
         {
             var reqParams = new JObject { ["address"] = parsedCmd.Args.ElementAt(0) };
-            var req = JsonRpcHelpers.CreateRequest(reqParams, "get_increment", 1);
+            var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);
 
             return req;
         }
         
         public override string GetPrintString(JObject resp)
         {
-            string increment = resp["increment"].ToString();
-            return increment;
+            string hash = resp["hash"].ToString();
+            var jobj = new JObject
+            {
+                ["txId"] = hash
+            };
+            return jobj.ToString();
         }
     }
 }

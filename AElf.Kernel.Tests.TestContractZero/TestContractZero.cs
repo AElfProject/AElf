@@ -37,8 +37,8 @@ namespace AElf.Kernel.Tests
             var account = Path.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
             
             await Api.DeployContractAsync(account, registration);
-            Console.WriteLine("Deployment success, {0}", account.Value.ToBase64());
-            return account.Value;
+            Console.WriteLine("Deployment success, {0}", account.Value.ToByteArray().ToHex());
+            return account.Value.ToByteArray();
         }
 
         public void Print(string name)

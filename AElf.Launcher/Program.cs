@@ -136,9 +136,6 @@ namespace AElf.Launcher
                 {
                     code = file.ReadFully();
                 }
-                /*ABI.CSharp.Module module = Generator.GetABIModule(code);
-                string actual = new JsonFormatter(new JsonFormatter.Settings(true)).Format(module);
-                Console.WriteLine(actual);*/
                 return code;
             }
         }
