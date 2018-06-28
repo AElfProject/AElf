@@ -24,7 +24,7 @@ namespace AElf.Kernel.Tests.TxMemPool
     [UseAutofacTestFramework]
     public class IntegrationTest
     {
-        private readonly IAccountContextService _accountContextService;
+        private IAccountContextService _accountContextService;
         private readonly ILogger _logger;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
@@ -32,18 +32,20 @@ namespace AElf.Kernel.Tests.TxMemPool
         private IBlockManager _blockManager;
         private IWorldStateDictator _worldStateDictator;
 
-        public IntegrationTest(IAccountContextService accountContextService, ILogger logger,
+        public IntegrationTest(ILogger logger,
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
             IChainCreationService chainCreationService, IBlockManager blockManager, 
             IWorldStateDictator worldStateDictator)
         {
-            _accountContextService = accountContextService;
             _logger = logger;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             _worldStateDictator = worldStateDictator;
+            
+            _accountContextService = new AccountContextService(worldStateDictator);
+
         }
         
         private TxPool GetPool(Hash chainId = null)
@@ -188,6 +190,8 @@ namespace AElf.Kernel.Tests.TxMemPool
         [Fact]
         public async Task StartMultiThread()
         {
+            _worldStateDictator.SetChainId(Hash.Generate());
+            _accountContextService = new AccountContextService(_worldStateDictator);
 
             //var chainId = Hash.Generate();
             //var chain = CreateChain(chainId);

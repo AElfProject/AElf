@@ -714,7 +714,7 @@ namespace AElf.Kernel.Tests
         
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().Value.ToBase64();
+            return accountHash.ToAccount().Value.ToByteArray().ToHex();
         }
 
         private Hash Base64StringToHash(string accountAddress)
