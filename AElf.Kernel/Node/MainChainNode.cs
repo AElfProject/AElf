@@ -60,7 +60,7 @@ namespace AElf.Kernel.Node
         private bool amIChainCreater;
 
         public Hash ContractAccountHash =>
-            new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
+            _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
 
         public IExecutive Executive =>
             _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
@@ -79,7 +79,12 @@ namespace AElf.Kernel.Node
                 return blockProducers;
             }
         }
-        
+
+        public Hash ChainId
+        {
+            get => _nodeConfig.ChainId;
+        }
+
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer,
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner,
@@ -139,10 +144,10 @@ namespace AElf.Kernel.Node
                     };
                     var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg)
                         .Result;
+                    
                     _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.Value.ToBase64());
                     _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToBase64());
-                    var contractAddress = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__"))
-                        .ToAccount();
+                    var contractAddress = GetGenesisContractHash();
                     _logger.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
                         BitConverter.ToString(contractAddress.ToAccount().Value.ToByteArray()).Replace("-",""));
                     
@@ -459,7 +464,7 @@ namespace AElf.Kernel.Node
             var txDep = new Transaction
             {
                 From = keyPair.GetAddress(),
-                To = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount(),
+                To = GetGenesisContractHash(),
                 IncrementId = (ulong)currentIncr++,
             };
             
@@ -518,7 +523,7 @@ namespace AElf.Kernel.Node
             var txDep = new Transaction
             {
                 From = keyPair.GetAddress(),
-                To = new Hash(_nodeConfig.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount(),
+                To = GetGenesisContractHash(),
                 IncrementId = 0,
                 MethodName = "DeploySmartContract",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code)),
@@ -773,6 +778,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
+                _logger.Error(e);
             }
 
             _logger.Trace("Broadcasted block " + Convert.ToBase64String(block.GetHash().Value.ToByteArray()) + " to " + count + " peers.");
@@ -961,6 +967,11 @@ namespace AElf.Kernel.Node
 
             // ReSharper disable once InconsistentNaming
             return BoolValue.Parser.ParseFrom(tcAbleToProduceEB.Trace.RetVal).Value;
+        }
+
+        public Hash GetGenesisContractHash()
+        {
+            return _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
         }
     }
 }
