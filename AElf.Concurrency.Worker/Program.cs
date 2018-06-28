@@ -82,6 +82,7 @@ namespace AElf.Concurrency.Worker
             builder.RegisterModule(new RpcServerModule());
             builder.RegisterModule(new MinerModule(null));
             builder.RegisterModule(new MetadataModule());
+            builder.RegisterModule(new WorldStateDictatorModule());
             
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             SmartContractRunnerFactory smartContractRunnerFactory = new SmartContractRunnerFactory();

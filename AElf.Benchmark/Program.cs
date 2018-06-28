@@ -67,7 +67,7 @@ namespace AElf.Benchmark
                 var benchmarkTps = scope.Resolve<Benchmarks>();
 
                 
-                var multiGroupRes = await benchmarkTps.MultipleGroupBenchmark(10, 4);
+                var multiGroupRes = await benchmarkTps.MultipleGroupBenchmark(2, 1);
                 foreach (var kv in multiGroupRes)
                 {
                     Console.WriteLine(kv.Key + ": " + kv.Value);

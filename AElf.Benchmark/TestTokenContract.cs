@@ -68,8 +68,11 @@ namespace AElf.Benchmark
                 await Balances.SetValueAsync(to, newToBal);
                 //Console.WriteLine("set to pass");
 
-                Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
-                + to.Value.ToBase64() + "(" + newToBal + ")");
+                var checkFrom = await Balances.GetValueAsync(from);
+                var checkTo = await Balances.GetValueAsync(to);
+
+                Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + checkFrom +") to- " 
+                + to.Value.ToBase64() + "(" + checkTo + ")");
                 return true;
             }
             else

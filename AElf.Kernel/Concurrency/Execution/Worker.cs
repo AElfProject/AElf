@@ -95,6 +95,7 @@ namespace AElf.Kernel.Concurrency.Execution
             _state = State.Running;
 
             IChainContext chainContext = null;
+            _servicePack.WorldStateDictator.SetChainId(request.ChainId);
             try
             {
                 chainContext = await _servicePack.ChainContextService.GetChainContextAsync(request.ChainId);

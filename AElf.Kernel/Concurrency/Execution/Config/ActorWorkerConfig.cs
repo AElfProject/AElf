@@ -27,6 +27,13 @@ namespace AElf.Kernel.Concurrency.Execution.Config
                         serialization-bindings {
                           ""System.Object"" = hyperion
                         }
+                        debug {  
+                          receive = on 
+                          autoreceive = on
+                          lifecycle = on
+                          event-stream = on
+                          unhandled = on
+                        }
                     }
                     remote {
                         dot-netty.tcp {
