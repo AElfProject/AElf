@@ -64,7 +64,7 @@ namespace AElf.Kernel.Node
         public IExecutive Executive =>
             _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
         
-        private const int CheckTime = 5000;
+        private const int CheckTime = 3000;
 
         public BlockProducer BlockProducers
         {
@@ -711,7 +711,7 @@ namespace AElf.Kernel.Node
                                 // out = hash(in)
                                 Hash outValue = inValue.CalculateHash();
 
-                                await BroadcastTxsForNormalBlock(roundsCount, outValue, signature);
+                                await BroadcastTxsForNormalBlock(roundsCount, outValue, signature, await GetIncrementId(_nodeKeyPair.GetAddress()));
 
                                 var block = await _miner.Mine();
                                 
@@ -788,19 +788,35 @@ namespace AElf.Kernel.Node
 
                         if (latestTriedToHelpProducingExtraBlockRoundsCount != roundsCount && await CheckAbleToHelpMiningExtraBlock())
                         {
+                            latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
+
                             var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
 
                             var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId + 1);
 
                             await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
                                 extraBlockResult.Item2, extraBlockResult.Item3);
-
+                            
                             var extraBlock = await _miner.Mine(); //Which is an extra block
-                            
-                            latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
-                            
+
                             await BroadcastBlock(extraBlock);
+
+
+                            #region Broadcast his out value and signature after helping mining extra block
+
+                            var signature = Hash.Default;
+                            if (roundsCount > 1)
+                            {
+                                signature = await CalculateSignature(inValue);
+                            }
+
+                            // out = hash(in)
+                            Hash outValue = inValue.CalculateHash();
                             
+                            await BroadcastTxsForNormalBlock(roundsCount, outValue, signature, incrementId + 2);
+
+                            #endregion
+
                             _logger.Log(LogLevel.Debug,
                                 "Help to genereate extra block: {0}, with {1} transactions, able to mine in {2}",
                                 extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
@@ -853,10 +869,10 @@ namespace AElf.Kernel.Node
             await BroadcastTransaction(txToSyncFirstExtraBlock);
         }
 
-        private async Task BroadcastTxsForNormalBlock(ulong roundsCount, Hash outValue, Hash signature)
+        private async Task BroadcastTxsForNormalBlock(ulong roundsCount, Hash outValue, Hash signature, ulong incrementId)
         {
             var txForNormalBlock = _dPoS.GetTxsForNormalBlock(
-                await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash, roundsCount,
+                incrementId, ContractAccountHash, roundsCount,
                 outValue, signature);
             foreach (var tx in txForNormalBlock)
             {

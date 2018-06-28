@@ -51,11 +51,11 @@ namespace AElf.Kernel.Tests
 
         #region DPoS
 
-        private const int MiningTime = 16000;
+        private const int MiningTime = 8000;
 
-        private const int WaitFirstRoundTime = 30000;
+        private const int WaitFirstRoundTime = 3000;
 
-        private const int CheckTime = 5000;
+        private const int CheckTime = 3000;
 
         private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");
         
@@ -204,7 +204,7 @@ namespace AElf.Kernel.Tests
             await _eBPMap.SetValueAsync(secondRound, new StringValue {Value = eBPOfRound2.Key});
 
             await _timeForProducingExtraBlock.SetAsync(
-                GetTimestamp(dPoSInfo.RoundInfo[0].Info.Last().Value.TimeSlot, MiningTime+ CheckTime));
+                GetTimestamp(dPoSInfo.RoundInfo[0].Info.Last().Value.TimeSlot, MiningTime));
         }
         
         #endregion
@@ -345,20 +345,40 @@ namespace AElf.Kernel.Tests
 
         public async Task<BoolValue> ReadyForHelpingProducingExtraBlock()
         {
-            var assignedExtraBlockProducingTime = await _timeForProducingExtraBlock.GetAsync();
-            var assigendExtraBlockProducingTimeEnd =
-                GetTimestamp(assignedExtraBlockProducingTime, CheckTime + MiningTime);
-            var now = DateTime.Now.ToTimestamp();
+            var me = Api.GetTransaction().From;
+            var meOrder = (await GetBlockProducerInfoOfCurrentRound(AddressHashToString(me))).Order;
             // ReSharper disable once InconsistentNaming
             var currentEBP = await _eBPMap.GetValueAsync(RoundsCount);
             // ReSharper disable once InconsistentNaming
             var currentEBPOrder = (await GetBlockProducerInfoOfCurrentRound(currentEBP.Value)).Order;
-            var offset = MiningTime * (currentEBPOrder + 1) % (await GetBlockProducers()).Nodes.Count;
+            var blockProducerCount = (await GetBlockProducers()).Nodes.Count;
+            var orderDiff = meOrder - currentEBPOrder;
+            if (orderDiff < 0)
+            {
+                orderDiff = blockProducerCount + orderDiff;
+            }
+
+            var assignedExtraBlockProducingTime = await _timeForProducingExtraBlock.GetAsync();
+            var assigendExtraBlockProducingTimeEnd =
+                GetTimestamp(assignedExtraBlockProducingTime, CheckTime + MiningTime);
+
+            var now = GetTimestamp();
+
+            var offset = MiningTime * orderDiff - MiningTime;
             var assigendExtraBlockProducingTimeEndWithOffset = GetTimestamp(assigendExtraBlockProducingTimeEnd, offset);
+
+            if (orderDiff == blockProducerCount - 1)
+            {
+                return new BoolValue
+                {
+                    Value = CompareTimestamp(now, assigendExtraBlockProducingTimeEndWithOffset)
+                };
+            }
+            
             return new BoolValue
             {
-                Value = CompareTimestamp(now, assigendExtraBlockProducingTimeEnd)
-                        && CompareTimestamp(assigendExtraBlockProducingTimeEndWithOffset, now)
+                Value = CompareTimestamp(now, assigendExtraBlockProducingTimeEndWithOffset)
+                        && CompareTimestamp(GetTimestamp(assigendExtraBlockProducingTimeEndWithOffset, MiningTime), now)
             };
         }
 
