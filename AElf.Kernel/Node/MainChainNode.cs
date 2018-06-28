@@ -667,7 +667,7 @@ namespace AElf.Kernel.Node
 
                             var dpoSInfo = await ExecuteTxsForFirstExtraBlock();
 
-                            BroadcastSyncTxForFirstExtraBlock(dpoSInfo).Wait();
+                            await BroadcastSyncTxForFirstExtraBlock(dpoSInfo);
                             
                             var firstBlock = await _miner.Mine(); //Which is an extra block
 

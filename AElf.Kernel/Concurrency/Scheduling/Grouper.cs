@@ -38,6 +38,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
             {
                 UnionFindNode first = null;
                 var resources = _resourceUsageDetectionService.GetResources(chainId, tx);
+                //_logger.Info(string.Format("tx {0} have resource [{1}]", tx.From, string.Join(" ||| ", resources)));
                 foreach (var resource in resources)
                 {
                     if (!resourceUnionSet.TryGetValue(resource, out var node))
@@ -165,7 +166,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
             
             _logger?.Info(string.Format(
                 "Grouper on chainId [{0}] merge {1} groups into {2} groups with sizes [{3}]", chainId,
-                transactions.Count, res.Count, string.Join(", ", res.Select(a=>a.Count))));
+                sortedUnmergedGroups.Count, res.Count, string.Join(", ", res.Select(a=>a.Count))));
             return res;
         }
     }
