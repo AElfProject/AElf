@@ -41,6 +41,9 @@ namespace AElf.Kernel.BlockValidationFilters
             // can be added to chain
             if (currentChainHeight == index && currentPreviousBlockHash.Equals(previousBlockHash))
                 return ValidationError.Success;
+
+            if (index < currentChainHeight)
+                return ValidationError.AlreadyExecuted;
             
             // can not be added to chain with wrong prvious hash or wrong index
             /*if (currentChainHeight != index ^ currentPreviousBlockHash.Equals(previousBlockHash))

@@ -17,6 +17,8 @@ namespace AElf.Kernel.Consensus
     {
         private readonly ECKeyPair _keyPair;
 
+        public Hash TransferContractAddress { get; set; }
+
         public Hash AccountHash => _keyPair.GetAddress();
 
         public DPoS(ECKeyPair keyPair)
@@ -74,6 +76,28 @@ namespace AElf.Kernel.Consensus
                 MethodName = "SyncStateOfFirstTwoRounds",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(dPoSInfo, blockProducer))
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
+        }
+
+        public Transaction GetReadyForHelpingProducingExtraBlockTx(ulong incrementId, Hash contractAccountHash)
+        {
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "ReadyForHelpingProducingExtraBlock",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
             };
             
             var signer = new ECSigner();
@@ -187,7 +211,7 @@ namespace AElf.Kernel.Consensus
                     From = AccountHash,
                     To = contractAccountHash,
                     IncrementId = incrementId++,
-                    MethodName = "GenerateNextRoundOrder",
+                    MethodName = "SupplyPreviousRoundInfo",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom(ParamsPacker.Pack())
                 },
@@ -196,7 +220,7 @@ namespace AElf.Kernel.Consensus
                     From = AccountHash,
                     To = contractAccountHash,
                     IncrementId = incrementId++,
-                    MethodName = "SetNextExtraBlockProducer",
+                    MethodName = "GenerateNextRoundOrder",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom(ParamsPacker.Pack())
                 },
@@ -205,7 +229,7 @@ namespace AElf.Kernel.Consensus
                     From = AccountHash,
                     To = contractAccountHash,
                     IncrementId = incrementId,
-                    MethodName = "SupplyPreviousRoundInfo",
+                    MethodName = "SetNextExtraBlockProducer",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom(ParamsPacker.Pack())
                 }
@@ -259,7 +283,8 @@ namespace AElf.Kernel.Consensus
                     IncrementId = incrementId,
                     MethodName = "PublishOutValueAndSignature",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack(outValue, sig, roundsCount))
+                    Params = ByteString.CopyFrom(
+                        ParamsPacker.Pack(outValue, sig, new UInt64Value {Value = roundsCount}))
                 }
             };
 

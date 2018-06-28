@@ -1,5 +1,6 @@
 ﻿﻿using System.Collections.Generic;
-using AElf.Configuration;
+ using System.Threading.Tasks;
+ using AElf.Configuration;
 using Newtonsoft.Json;
 
 namespace AElf.Kernel.Node.Config
@@ -19,7 +20,7 @@ namespace AElf.Kernel.Node.Config
                         {"coinbase", "GdsgFf\\="},
                         {"pubkey", "BJHHuAdKY0pAu8ww2QtypFBr"}
                     }
-                }/*,
+                },
                 {
                     "2", new Dictionary<string, string>
                     {
@@ -33,7 +34,7 @@ namespace AElf.Kernel.Node.Config
                         {"coinbase", "FfEpvVG!="},
                         {"pubkey", "BFSux7m1cg8yZv2griHLT0J0"}
                     }
-                }*/
+                }
             };
         }
     }

@@ -1,43 +1,43 @@
-﻿using System;
+﻿﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using Google.Protobuf;
 using Path = System.IO.Path;
 using AElf.ABI.CSharp;
-using AElf.Kernel;
-using AElf.Kernel.Types;
+using Mono.Cecil;
 using Module = AElf.ABI.CSharp.Module;
 
 namespace AElf.Runtime.CSharp
 {
-    public class InvalidCodeException : Exception
-    {
-        public InvalidCodeException(string message) : base(message)
-        {
-        }
-    }
-
     public class SmartContractRunner : ISmartContractRunner
     {
-        private readonly string _apiDllDirectory;
+        private readonly string _sdkDir;
+        private readonly AssemblyChecker _assemblyChecker;
 
-        public SmartContractRunner(string apiDllDirectory)
+        public SmartContractRunner(IRunnerConfig runnerConfig) : this(runnerConfig.SdkDir, runnerConfig.BlackList, runnerConfig.WhiteList)
         {
-            _apiDllDirectory = Path.GetFullPath(apiDllDirectory);
+        }
+
+        public SmartContractRunner(string sdkDir, IEnumerable<string> blackList=null, IEnumerable<string> whiteList=null)
+        {
+            _sdkDir = Path.GetFullPath(sdkDir);
+            _assemblyChecker = new AssemblyChecker(blackList, whiteList);
         }
 
         /// <summary>
         /// Creates an isolated context for the smart contract residing with an Api singleton.
         /// </summary>
         /// <returns></returns>
-        private CSharpAssemblyLoadContext GetLoadContext()
+        private ContractCodeLoadContext GetLoadContext()
         {
             // To make sure each smart contract resides in an isolated context with an Api singleton
-            return new CSharpAssemblyLoadContext(_apiDllDirectory, AppDomain.CurrentDomain.GetAssemblies());
+            return new ContractCodeLoadContext(_sdkDir);
         }
 
         public async Task<IExecutive> RunAsync(SmartContractRegistration reg)
@@ -80,7 +80,7 @@ namespace AElf.Runtime.CSharp
 
             return await Task.FromResult(executive);
         }
-        
+
         private Module GetAbiModule(SmartContractRegistration reg)
         {
             var code = reg.ContractBytes.ToByteArray();
@@ -121,6 +121,27 @@ namespace AElf.Runtime.CSharp
             }
 
             return type;
+        }
+
+        /// <summary>
+        /// Performs code checks.
+        /// </summary>
+        /// <param name="code">The code to be checked.</param>
+        /// <param name="isPrivileged">Is the contract deployed by system user.</param>
+        /// <exception cref="InvalidCodeException">Thrown when issues are found in the code.</exception>
+        public void CodeCheck(byte[] code, bool isPrivileged)
+        {
+            var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
+            var forbiddenTypeRefs = _assemblyChecker.GetBlackListedTypeReferences(modDef);
+            if (isPrivileged)
+            {
+                // Allow system user to use multi-thread
+                forbiddenTypeRefs = forbiddenTypeRefs.Where(x => !x.FullName.StartsWith("System.Threading")).ToList();
+            }
+            if (forbiddenTypeRefs.Count > 0)
+            {
+                throw new InvalidCodeException($"\nForbidden type references detected:\n{string.Join("\n  ", forbiddenTypeRefs.Select(x=>x.FullName))}");
+            }
         }
     }
 }

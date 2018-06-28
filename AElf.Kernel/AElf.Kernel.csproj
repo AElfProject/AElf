@@ -42,15 +42,20 @@
     <Compile Remove="Merkle\BinaryMerkleNode.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Google.Protobuf, Version=3.5.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604">
+      <HintPath>..\..\..\..\.nuget\packages\google.protobuf\3.5.1\lib\netstandard1.0\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Text, Version=5.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\..\..\..\.nuget\packages\servicestack.text\5.1.0\lib\netstandard2.0\ServiceStack.Text.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
     <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
     <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
     <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
     <ProjectReference Include="..\AElf.Kernel.SmartContracts.CSharpSmartContract\AElf.Kernel.SmartContracts.CSharpSmartContract.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj">
-      <Project>{DAEEB200-1D20-4A56-8C21-CA2ADE976AD5}</Project>
-      <Name>AElf.Kernel.Types</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
     <ProjectReference Include="..\AElf.Network\AElf.Network.csproj">
       <Project>{5FEFB079-F6EB-48AF-97C7-6C582B9BDB8A}</Project>
       <Name>AElf.Network</Name>

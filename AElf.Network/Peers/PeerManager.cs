@@ -18,6 +18,7 @@ namespace AElf.Network.Peers
         public const int TargetPeerCount = 8; 
         
         public event EventHandler MessageReceived;
+        public event EventHandler PeerListEmpty;
         
         private readonly IAElfNetworkConfig _networkConfig;
         private readonly INodeDialer _nodeDialer;
@@ -44,6 +45,8 @@ namespace AElf.Network.Peers
         private Timer _maintenanceTimer = null;
         private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(5);
         private readonly TimeSpan _maintenancePeriod = TimeSpan.FromMinutes(1);
+        
+        public bool NoPeers { get; set; } = true;
 
         public PeerManager(IAElfServer server, IAElfNetworkConfig config, 
             INodeDialer nodeDialer, ILogger logger)
@@ -94,7 +97,7 @@ namespace AElf.Network.Peers
         public void Start()
         {
             Task.Run(() => _server.StartAsync());
-            Setup();
+            Setup().GetAwaiter().GetResult();
             
             _server.ClientConnected += HandleConnection;
         }
@@ -130,7 +133,17 @@ namespace AElf.Network.Peers
             await AddBootnodes();
 
             if (_peers.Count < 1)
-                throw new NoPeersConnectedException("Could not connect to any of the bootnodes");
+            {
+                //throw new NoPeersConnectedException("Could not connect to any of the bootnodes");
+                
+                // Either a network problem or this node is the first to come online.
+                NoPeers = true;
+                PeerListEmpty?.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                NoPeers = false;
+            }
 
             _maintenanceTimer = new Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
         }
@@ -199,6 +212,18 @@ namespace AElf.Network.Peers
             }
 
             UndergoingPm = false;
+            
+            if (_peers.Count < 1)
+            {
+                // Connection to all peers have been lost
+                NoPeers = true;
+                PeerListEmpty?.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                NoPeers = false;
+            }
+
         }
 
         /// <summary>
@@ -343,6 +368,11 @@ namespace AElf.Network.Peers
                 return;
             _peers.Remove(peer);
             _logger?.Trace("Peer removed : " + peer);
+        }
+
+        public List<IPeer> GetPeers()
+        {
+            return _peers.Union(_bootnodePeers).ToList();
         }
 
         /// <summary>
@@ -492,46 +522,50 @@ namespace AElf.Network.Peers
         /// <param name="payload"></param>
         /// <param name="messageId"></param>
         /// <returns></returns>
-        public async Task<bool> BroadcastMessage(MessageTypes messageType, byte[] payload, int messageId)
+        public async Task<int> BroadcastMessage(MessageTypes messageType, byte[] payload, int messageId)
         {
             if (_peers == null || !_peers.Any())
-                return false;
+                return 0;
 
             try
             {
                 AElfPacketData packet = NetRequestFactory.CreateRequest(messageType, payload, messageId);
-                bool success = await BroadcastMessage(packet);
-                
-                return success;
+                return await BroadcastMessage(packet);
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error while sending a message to the peers");
-                return false;
+                _logger?.Error(e, "Error while sending a message to the peers.");
+                return 0;
             }
         }
 
-        public async Task<bool> BroadcastMessage(AElfPacketData packet)
+        public async Task<int> BroadcastMessage(AElfPacketData packet)
         {
             if (_peers == null || !_peers.Any())
-                return false;
+                return 0;
 
+            int count = 0;
+            
             try
             {
                 byte[] data = packet.ToByteArray();
 
                 foreach (var peer in _peers)
                 {
-                    await peer.SendAsync(data);
+                    try
+                    {
+                        await peer.SendAsync(data);
+                        count++;
+                    }
+                    catch (Exception e) { }
                 }
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error while sending a message to the peers");
-                throw;
+                _logger?.Error(e, "Error while sending a message to the peers.");
             }
 
-            return true;
+            return count;
         }
 
         public void Dispose()
