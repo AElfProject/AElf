@@ -28,13 +28,6 @@ namespace AElf.Sdk.CSharp.Tests
         [SmartContractFieldData("${this}._account", DataAccessMode.ReadWriteAccountSharing)]
         private UserTypeField<Account> _account = new UserTypeField<Account>("_account");
 
-        public override async Task InvokeAsync()
-        {
-            // this is not needed anymore, put here as placeholder
-            // before we remove this from interface
-            await Task.CompletedTask;
-        }
-
         [SmartContractFunction("${this}.GetTotalSupply", new string[]{}, new string[]{})]
         public uint GetTotalSupply()
         {

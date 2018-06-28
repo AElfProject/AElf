@@ -24,21 +24,6 @@ namespace AElf.Benchmark
             return true;
         }
         
-        public override async Task InvokeAsync()
-        {
-            //not needed anymore
-            return;
-            var tx = Api.GetTransaction();
-
-            var methodname = tx.MethodName;
-            var type = GetType();
-            var member = type.GetMethod(methodname);
-            // params array
-            var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
-            // invoke
-            await (Task<object>) member.Invoke(this, parameters);
-        }
-        
         public async Task<bool> InitBalance(Hash addr)
         {
             //Console.WriteLine("InitBalance " + addr);

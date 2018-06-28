@@ -29,15 +29,6 @@ namespace AElf.Kernel.CSharp.Tests
             await Balances.SetValueAsync(account, qty);
             return true;
         }
-        
-        
-        public override async Task InvokeAsync()
-        {
-
-            // Not needed anymore. Keep here to comply with interface.
-
-            await Task.CompletedTask;
-        }
 
         public void SleepMilliseconds(int milliSeconds)
         {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,10 +19,6 @@ namespace AElf.Kernel.Tests
     {
         [SmartContractFieldData("${this}._lock", DataAccessMode.ReadWriteAccountSharing)]
         private object _lock;
-        public override async Task InvokeAsync()
-        {
-            await Task.CompletedTask;
-        }
 
         [SmartContractFunction("${this}.DeploySmartContract", new string[]{}, new string[]{"${this}._lock"})]
         public async Task<Hash> DeploySmartContract(int category, byte[] contract)

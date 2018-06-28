@@ -75,20 +75,20 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
             await CasinoToken.SetValueAsync("1".CalculateHash(), 100);
         }
 
-        public override async Task InvokeAsync()
-        {
-            var tx = Api.GetTransaction();
-            
-
-            var methodname = tx.MethodName;
-            var type = GetType();
-            var member = type.GetMethod(methodname);
-            // params array
-            var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
-            
-            // invoke
-            await (Task<object>) member.Invoke(this, parameters);
-        }
+//        public override async Task InvokeAsync()
+//        {
+//            var tx = Api.GetTransaction();
+//            
+//
+//            var methodname = tx.MethodName;
+//            var type = GetType();
+//            var member = type.GetMethod(methodname);
+//            // params array
+//            var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
+//            
+//            // invoke
+//            await (Task<object>) member.Invoke(this, parameters);
+//        }
         
         public Casino(TestTokenContract tokenContractA, TestTokenContract tokenContractB)
         {

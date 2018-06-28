@@ -565,18 +565,6 @@ namespace AElf.Contracts.DPoS
                    && AddressHashToString(accountHash) == eBP.Value;
         }
 
-        public override async Task InvokeAsync()
-        {
-            var tx = Api.GetTransaction();
-
-            var methodname = tx.MethodName;
-            var type = GetType();
-            var member = type.GetMethod(methodname);
-            var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
-
-            if (member != null) await (Task<object>) member.Invoke(this, parameters);
-        }
-
         #region Private Methods
 
         /// <summary>

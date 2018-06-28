@@ -33,14 +33,6 @@ namespace AElf.Runtime.CSharp.Tests
             return true;
         }
 
-        public override async Task InvokeAsync()
-        {
-
-            // Not needed anymore. Keep here to comply with interface.
-
-            await Task.CompletedTask;
-        }
-
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances", "${this}.TransactionStartTimes", "${this}.TransactionEndTimes"})]
         public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
         {

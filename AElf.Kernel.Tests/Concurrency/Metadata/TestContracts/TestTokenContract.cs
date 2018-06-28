@@ -22,20 +22,6 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
             await Balances.SetValueAsync("1".CalculateHash(), 100);
             return null;
         }
-        
-        public override async Task InvokeAsync()
-        {
-            var tx = Api.GetTransaction();
-
-            var methodname = tx.MethodName;
-            var type = GetType();
-            var member = type.GetMethod(methodname);
-            // params array
-            var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
-            
-            // invoke
-            await (Task<object>) member.Invoke(this, parameters);
-        }
 
         public TestTokenContract(string tokenContractName)
         {

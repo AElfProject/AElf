@@ -29,14 +29,6 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
             return true;
         }
 
-        public override async Task InvokeAsync()
-        {
-
-            // Not needed anymore. Keep here to comply with interface.
-
-            await Task.CompletedTask;
-        }
-
         public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
         {
             // This is for testing batched transaction sequence
