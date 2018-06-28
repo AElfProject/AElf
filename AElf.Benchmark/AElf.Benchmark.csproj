@@ -12,10 +12,7 @@
       <Project>{C7B2F451-DF68-4FBB-AEA1-020F17BB6598}</Project>
       <Name>AElf.Kernel.Modules.AutofacModule</Name>
     </ProjectReference>
-    <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj">
-      <Project>{43CE2CD7-AE6C-4086-8594-7BC82FC83B74}</Project>
-      <Name>AElf.Kernel.Tests</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\AElf.Kernel.Tests.TestContractZero\AElf.Kernel.Tests.TestContractZero.csproj" />
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj">
       <Project>{01FDA9AA-9328-449A-91CA-93424049F57D}</Project>

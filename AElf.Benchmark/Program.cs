@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Managers;
 using AElf.Kernel.Modules.AutofacModule;
-using AElf.Kernel.Node;
-using AElf.Kernel.Services;
 using AElf.Runtime.CSharp;
 using Autofac;
-using Autofac.Core;
 
 namespace AElf.Benchmark
 {
@@ -79,6 +74,11 @@ namespace AElf.Benchmark
         {
             var db = container.Resolve<IKeyValueDatabase>();
             return db.IsConnected();
+        }
+
+        private static void PrintHelperAndExit()
+        {
+            Console.WriteLine("Please input valid arguments, example: [ -scExec -${path-to-contract-dll} -evenGroup 4000 1 4");
         }
     }
 }
