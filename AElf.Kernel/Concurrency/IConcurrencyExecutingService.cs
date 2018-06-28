@@ -9,5 +9,7 @@ namespace AElf.Kernel.Concurrency
         Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId, IGrouper grouper);
 
         void InitWorkActorSystem();
+
+        void InitActorSystem();
     }
 }

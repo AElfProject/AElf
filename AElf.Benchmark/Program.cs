@@ -60,6 +60,9 @@ namespace AElf.Benchmark
             
             using(var scope = container.BeginLifetimeScope())
             {
+                var concurrencySercice = scope.Resolve<IConcurrencyExecutingService>();
+                concurrencySercice.InitActorSystem();
+                
                 var benchmarkTps = scope.Resolve<Benchmarks>();
                 var resDict = new Dictionary<string, double>();
                 int groupCount = 4;

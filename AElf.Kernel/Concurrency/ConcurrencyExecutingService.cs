@@ -44,7 +44,6 @@ namespace AElf.Kernel.Concurrency
             if (!_isInit)
             {
                 InitActorSystem();
-                _isInit = true;
             }
 
             _requestor = _actorSystem.ActorOf(Requestor.Props(_router));
@@ -68,7 +67,7 @@ namespace AElf.Kernel.Concurrency
             worker.Tell(new LocalSerivcePack(_servicePack));
         }
 
-        private void InitActorSystem()
+        public void InitActorSystem()
         {
             var config = ConfigurationFactory.ParseString(ActorConfig.Instance.HoconContent);
             if (ActorConfig.Instance.IsCluster)
@@ -92,6 +91,7 @@ namespace AElf.Kernel.Concurrency
                 }
             }
             _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");
+            _isInit = true;
         }
     }
 }

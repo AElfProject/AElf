@@ -35,15 +35,11 @@ namespace AElf.Concurrency.Worker
             if (!parsed)
                 return;
             
-            var txPoolConf = confParser.TxPoolConfig;
             var netConf = confParser.NetConfig;
-            var minerConfig = confParser.MinerConfig;
-            var nodeConfig = confParser.NodeConfig;
             var isMiner = confParser.IsMiner;
-            var isNewChain = confParser.NewChain;
             
             // Setup ioc 
-            IContainer container = SetupIocContainer(isMiner, isNewChain, netConf, txPoolConf, minerConfig, nodeConfig);
+            IContainer container = SetupIocContainer(isMiner, netConf);
 
             if (container == null)
             {
@@ -57,18 +53,16 @@ namespace AElf.Concurrency.Worker
                 return;
             }
 
-            // todo : quick fix, to be refactored
-
             using(var scope = container.BeginLifetimeScope())
             {
-                var service = container.Resolve<IConcurrencyExecutingService>();
+                var service = scope.Resolve<IConcurrencyExecutingService>();
                 service.InitWorkActorSystem();
                 Console.ReadLine();
             }
             
         }
 
-        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, IAElfNetworkConfig netConf, ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig)
+        private static IContainer SetupIocContainer(bool isMiner, IAElfNetworkConfig netConf)
         {
             var builder = new ContainerBuilder();
             

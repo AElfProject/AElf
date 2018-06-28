@@ -10,6 +10,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Modules.AutofacModule;
@@ -105,6 +106,9 @@ namespace AElf.Launcher
 
             using(var scope = container.BeginLifetimeScope())
             {
+                var concurrencySercice = scope.Resolve<IConcurrencyExecutingService>();
+                concurrencySercice.InitActorSystem();
+                
                 IAElfNode node = scope.Resolve<IAElfNode>();
                
                 // Start the system
@@ -113,7 +117,6 @@ namespace AElf.Launcher
                 //Mine(node);
                 Console.ReadLine();
             }
-            
         }
         
         
