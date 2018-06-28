@@ -10,7 +10,6 @@ using AElf.Kernel.Storages;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
-using AElf.Kernel.SmartContracts.CSharpSmartContract;
 using AElf.Kernel.Tests;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -102,8 +101,8 @@ namespace AElf.Runtime.CSharp.Tests
                 ContractHash = new Hash(ContractCode)
             };
 
-            await SmartContractService.DeployContractAsync(ChainId1, ContractAddress1, reg);
-            await SmartContractService.DeployContractAsync(ChainId2, ContractAddress2, reg);
+            await SmartContractService.DeployContractAsync(ChainId1, ContractAddress1, reg, false);
+            await SmartContractService.DeployContractAsync(ChainId2, ContractAddress2, reg, false);
         }
 
         public string SdkDir

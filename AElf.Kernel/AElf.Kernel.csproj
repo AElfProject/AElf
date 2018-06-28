@@ -48,7 +48,6 @@
     <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
     <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
     <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.SmartContracts.CSharpSmartContract\AElf.Kernel.SmartContracts.CSharpSmartContract.csproj" />
     <ProjectReference Include="..\AElf.Network\AElf.Network.csproj">
       <Project>{5FEFB079-F6EB-48AF-97C7-6C582B9BDB8A}</Project>
       <Name>AElf.Network</Name>

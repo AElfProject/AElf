@@ -17,7 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.SmartContracts.CSharpSmartContract\AElf.Kernel.SmartContracts.CSharpSmartContract.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Tests.TestContractZero\AElf.Kernel.Tests.TestContractZero.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Tests.TestContract\AElf.Kernel.Tests.TestContract.csproj" />
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />

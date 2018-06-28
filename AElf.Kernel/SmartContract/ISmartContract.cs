@@ -5,6 +5,5 @@ namespace AElf.Kernel
 {
     public interface ISmartContract 
     {
-        Task InvokeAsync();
     }
 }

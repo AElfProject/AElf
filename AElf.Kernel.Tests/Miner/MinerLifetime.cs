@@ -14,7 +14,6 @@ using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
-using AElf.Kernel.SmartContracts.CSharpSmartContract;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Execution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
