@@ -102,8 +102,8 @@ namespace AElf.Runtime.CSharp.Tests
                 ContractHash = new Hash(ContractCode)
             };
 
-            await SmartContractService.DeployContractAsync(ChainId1, ContractAddress1, reg);
-            await SmartContractService.DeployContractAsync(ChainId2, ContractAddress2, reg);
+            await SmartContractService.DeployContractAsync(ChainId1, ContractAddress1, reg, false);
+            await SmartContractService.DeployContractAsync(ChainId2, ContractAddress2, reg, false);
         }
 
         public string SdkDir

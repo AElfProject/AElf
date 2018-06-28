@@ -106,7 +106,7 @@ namespace AElf.Sdk.CSharp.Tests
                 ContractHash = new Hash(code)
             };
 
-            await SmartContractService.DeployContractAsync(ChainId1, address, reg);
+            await SmartContractService.DeployContractAsync(ChainId1, address, reg, false);
         }
 
         public async Task<IExecutive> GetExecutiveAsync(Hash address)

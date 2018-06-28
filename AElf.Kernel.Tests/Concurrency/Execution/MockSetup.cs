@@ -140,8 +140,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 ContractHash = new Hash(ExampleContractCode)
             };
 
-            await SmartContractService.DeployContractAsync(ChainId1, SampleContractAddress1, reg);
-            await SmartContractService.DeployContractAsync(ChainId2, SampleContractAddress2, reg);
+            await SmartContractService.DeployContractAsync(ChainId1, SampleContractAddress1, reg, false);
+            await SmartContractService.DeployContractAsync(ChainId2, SampleContractAddress2, reg, false);
             Executive1 = await SmartContractService.GetExecutiveAsync(SampleContractAddress1, ChainId1);
             Executive2 = await SmartContractService.GetExecutiveAsync(SampleContractAddress2, ChainId2);
         }

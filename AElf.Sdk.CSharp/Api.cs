@@ -40,7 +40,7 @@ namespace AElf.Sdk.CSharp
         #region Privileged API
         public static async Task DeployContractAsync(Hash address, SmartContractRegistration registration)
         {
-            await _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration);
+            await _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration, false);
         }
 
         #endregion Privileged API
