@@ -12,6 +12,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using Akka.Actor;
+using Akka.Routing;
 using Akka.Util;
 using Google.Protobuf;
 using NLog;
@@ -24,7 +25,7 @@ namespace AElf.Kernel.Tests.TxMemPool
     [UseAutofacTestFramework]
     public class IntegrationTest
     {
-        private readonly IAccountContextService _accountContextService;
+        private IAccountContextService _accountContextService;
         private readonly ILogger _logger;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
@@ -32,18 +33,20 @@ namespace AElf.Kernel.Tests.TxMemPool
         private IBlockManager _blockManager;
         private IWorldStateDictator _worldStateDictator;
 
-        public IntegrationTest(IAccountContextService accountContextService, ILogger logger,
+        public IntegrationTest(ILogger logger,
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
             IChainCreationService chainCreationService, IBlockManager blockManager, 
             IWorldStateDictator worldStateDictator)
         {
-            _accountContextService = accountContextService;
             _logger = logger;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             _worldStateDictator = worldStateDictator;
+            
+            _accountContextService = new AccountContextService(worldStateDictator);
+
         }
         
         private TxPool GetPool(Hash chainId = null)
@@ -185,13 +188,15 @@ namespace AElf.Kernel.Tests.TxMemPool
             return chain;
         }
         
-        [Fact]
+        [Fact(Skip = "todo")]
         public async Task StartMultiThread()
         {
-
             //var chainId = Hash.Generate();
             //var chain = CreateChain(chainId);
             var pool = GetPool();
+
+            _worldStateDictator.SetChainId(TxPoolConfig.Default.ChainId);
+            _accountContextService = new AccountContextService(_worldStateDictator);
 
             var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
                 _transactionResultManager);
