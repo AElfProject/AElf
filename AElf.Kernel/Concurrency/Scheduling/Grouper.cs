@@ -81,7 +81,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
             }
             result.AddRange(grouped.Values);
 
-            _logger?.Info(string.Format(
+            _logger.Info(string.Format(
                 "Grouper on chainId [{0}] group {1} transactions into {2} groups with sizes [{3}]", chainId,
                 transactions.Count, result.Count, string.Join(", ", result.Select(a=>a.Count))));
             
