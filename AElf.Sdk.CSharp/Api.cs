@@ -38,6 +38,12 @@ namespace AElf.Sdk.CSharp
         #region Getters used by contract
 
         #region Privileged API
+        public static void DeployContract(Hash address, SmartContractRegistration registration)
+        {
+            var task = _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration, false);
+            task.Wait();
+        }
+        
         public static async Task DeployContractAsync(Hash address, SmartContractRegistration registration)
         {
             await _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration, false);
