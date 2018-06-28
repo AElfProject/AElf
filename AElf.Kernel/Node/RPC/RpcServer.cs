@@ -252,7 +252,7 @@ namespace AElf.Kernel.Node.RPC
             JObject j = new JObject
             {
                 ["txresult"] = jsonResponse,
-                ["retval"] = h.Value.ToByteArray().ToHex()
+                ["retval"] = h.Value.ToBase64()
             };
             
             return JObject.FromObject(j);

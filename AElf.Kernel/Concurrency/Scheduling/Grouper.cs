@@ -37,7 +37,8 @@ namespace AElf.Kernel.Concurrency.Scheduling
             foreach (var tx in transactions)
             {
                 UnionFindNode first = null;
-                foreach (var resource in _resourceUsageDetectionService.GetResources(chainId, tx))
+                var resources = _resourceUsageDetectionService.GetResources(chainId, tx);
+                foreach (var resource in resources)
                 {
                     if (!resourceUnionSet.TryGetValue(resource, out var node))
                     {

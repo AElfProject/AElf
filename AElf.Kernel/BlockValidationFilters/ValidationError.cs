@@ -4,6 +4,7 @@
     {
         Success = 1,
         OrphanBlock = 2,
-        InvalidBlock = 3
+        InvalidBlock = 3,
+        AlreadyExecuted = 4
     }
 }

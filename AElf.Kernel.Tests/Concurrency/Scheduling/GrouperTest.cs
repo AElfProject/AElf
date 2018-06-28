@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Scheduling;
 using Xunit;
 
@@ -59,7 +59,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         }
 
         [Fact]
-        public void MergeByAccountTest()
+        public async Task MergeByAccountTest()
         {
             var txDic = GetTestData();
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
@@ -82,7 +82,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         }
 
         [Fact]
-        public void MergeByAccountTestFullTxList()
+        public async Task MergeByAccountTestFullTxList()
         {
             var txList = _dataUtil.GetFullTxList();
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
@@ -96,7 +96,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         }
 
         [Fact]
-        public void TestReblancedGrouping()
+        public async Task TestReblancedGrouping()
         {
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
 

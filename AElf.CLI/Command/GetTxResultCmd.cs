@@ -39,7 +39,9 @@ namespace AElf.CLI.Command
 
         public override string GetPrintString(JObject resp)
         {
-            return resp["txresult"] + " :: retval - " + resp["retval"];
+            string str = resp["txresult"].ToString();
+            str += resp["retval"].Count() != 0  ? " return value - " + resp["retval"] : "";
+            return str;
         }
     }
 }

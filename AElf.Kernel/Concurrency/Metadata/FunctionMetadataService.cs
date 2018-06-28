@@ -7,6 +7,7 @@ using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
 using NLog;
 using Org.BouncyCastle.Security;
+using ServiceStack;
 
 namespace AElf.Kernel.Concurrency.Metadata
 {
@@ -30,6 +31,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             //TODO: find a way to mark these transaction as a same group (maybe by using "r/w account sharing data"?)
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
+                _logger?.Info("Add metadataMap for chain with Id: " + chainId.Value.ToBase64());
                 chainFuncMetadata = _metadatas.GetOrAdd(chainId,
                     new ChainFunctionMetadata(new ChainFunctionMetadataTemplate(_dataStore, chainId, _logger), _dataStore, _logger));
             }
@@ -42,13 +44,14 @@ namespace AElf.Kernel.Concurrency.Metadata
             //2.how to implement the action's that call other contracts and
             //3.as the contract reference can be changed, need to set up the contract update accordingly, which is the functions that are not yet implemented
             await chainFuncMetadata.DeployNewContract(contractType.Name, address, contractReferences);
+            _logger?.Info("Contract " + contractType.FullName + " depolyed");
         }
 
-        public async Task<FunctionMetadata> GetFunctionMetadata(Hash chainId, string addrFunctionName)
+        public FunctionMetadata GetFunctionMetadata(Hash chainId, string addrFunctionName)
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
-                throw new InvalidParameterException("No chainFunctionMetadata with chainId: " + chainId.Value);
+                throw new InvalidParameterException("No chainFunctionMetadata with chainId: " + chainId.Value.ToBase64());
             }
 
             return chainFuncMetadata.GetFunctionMetadata(addrFunctionName);
