@@ -23,7 +23,6 @@ namespace AElf.Kernel.Tests.TxMemPool
         private readonly ILogger _logger;
         private readonly IWorldStateDictator _worldStateDictator;
 
-
         public TxPoolTest(IAccountContextService accountContextService, ILogger logger, IWorldStateDictator worldStateDictator)
         {
             _accountContextService = accountContextService;
@@ -147,7 +146,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             // Add a valid transaction
             var tx = BuildTransaction();
             var tmp = new HashSet<ITransaction> {tx};
-            var ctx =  await _accountContextService.GetAccountDataContext(tx.From, TxPoolConfig.Default.ChainId);
+            var ctx =  await _accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
             pool.Nonces[tx.From] = ctx.IncrementId;
             pool.EnQueueTxs(tmp);
             

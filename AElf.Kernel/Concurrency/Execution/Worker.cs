@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Text;
 using System.Collections.Generic;
 using System.IO;
@@ -52,11 +52,12 @@ namespace AElf.Kernel.Concurrency.Execution
                     {
                         _cancellationTokenSource?.Dispose();
                         _cancellationTokenSource = new CancellationTokenSource();
+                        var sender = Sender;
                         Task.Run(() =>
                             RunJob(req).ContinueWith(
                                 task => task.Result,
                                 TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
-                            ).PipeTo(Self)
+                            ).PipeTo(sender)
                         );
                         Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Running));
                     }
@@ -95,6 +96,7 @@ namespace AElf.Kernel.Concurrency.Execution
             _state = State.Running;
 
             IChainContext chainContext = null;
+            _servicePack.WorldStateDictator.SetChainId(request.ChainId);
             try
             {
                 chainContext = await _servicePack.ChainContextService.GetChainContextAsync(request.ChainId);

@@ -183,7 +183,7 @@ namespace AElf.Network.Peers
             {
                 // Deserialize
                 packet = AElfPacketData.Parser.ParseFrom(bytes, 0, bytesRead);
-                Console.WriteLine("Packet received: " + ((MessageTypes)packet.MsgType) + ", bytes read: " + bytesRead);
+                //Console.WriteLine("Packet received: " + ((MessageTypes)packet.MsgType) + ", bytes read: " + bytesRead);
             }
             else
             {

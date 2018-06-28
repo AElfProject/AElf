@@ -1,54 +1,38 @@
 ﻿using System;
+using System.Text;
 using System.Threading.Tasks;
 using AElf.Database.Config;
-using AElf.Database.SsdbClient;
+using NServiceKit.Redis;
 
 namespace AElf.Database
 {
     public class SsdbDatabase : IKeyValueDatabase
     {
-        private readonly Client _client;
+        private readonly PooledRedisClientManager _client;
 
-        public SsdbDatabase() : this(new DatabaseConfig())
+        public SsdbDatabase()
         {
-        }
-
-        public SsdbDatabase(IDatabaseConfig config)
-        {
-            _client = new Client(config.Host, config.Port);
-            _client.Connect();
+            _client = new PooledRedisClientManager($"{DatabaseConfig.Instance.Host}:{DatabaseConfig.Instance.Port}");
         }
 
         public async Task<byte[]> GetAsync(string key, Type type)
         {
-            return await Task.FromResult(Get(key));
+            return await Task.FromResult(_client.GetCacheClient().Get<byte[]>(key));
         }
 
         public async Task SetAsync(string key, byte[] bytes)
         {
-            await Task.FromResult(Set(key, bytes));
-        }
-
-        private byte[] Get(string key)
-        {
-            var ret = _client.Get(key, out byte[] result);
-            return ret ? result : null;
-        }
-
-        private bool Set(string key, byte[] bytes)
-        {
-            _client.Set(key, bytes);
-            return true;
+            await Task.FromResult(_client.GetCacheClient().Set(key, bytes));
         }
 
         public bool IsConnected()
         {
             try
             {
-                _client.Set("test", "test");
+                _client.GetCacheClient().Set<byte[]>("ping", null);
                 return true;
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
                 return false;
             }

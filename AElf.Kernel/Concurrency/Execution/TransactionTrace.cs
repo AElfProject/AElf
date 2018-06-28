@@ -2,22 +2,40 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
-using Google.Protobuf.Collections;
+using Akka.Routing;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    public partial class TransactionTrace
+    public partial class TransactionTrace: IConsistentHashable
     {
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
+        
+        public Hash TransactionId { get; set; }
+        public ByteString RetVal { get; set; }
+        public string StdOut { get; set; }
+        public string StdErr { get; set; }
+        public List<LogEvent> Logs { get; set; }
+        public List<TransactionTrace> InlineTraces { get; set; }
+        public List<StateValueChange> ValueChanges { get; set; }
+        public long Elapsed { get; set; }
+
 
         private bool _alreadyCommited;
 
-        public RepeatedField<LogEvent> FlattenedLogs
+        public TransactionTrace()
+        {
+            Logs = new List<LogEvent>();
+            InlineTraces=new List<TransactionTrace>();
+            ValueChanges=new List<StateValueChange>();
+        }
+
+        public List<LogEvent> FlattenedLogs
         {
             get
             {
-                var o = Logs.Clone();
+                var o = Logs;
                 foreach (var t in InlineTraces)
                 {
                     o.AddRange(t.FlattenedLogs);
@@ -59,5 +77,7 @@ namespace AElf.Kernel
 
             _alreadyCommited = true;
         }
+
+        public object ConsistentHashKey { get; }
     }
 }

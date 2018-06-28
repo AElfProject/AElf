@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.Types;
@@ -16,6 +17,8 @@ namespace AElf.Kernel.BlockValidationFilters
 
         public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context)
         {
+            return ValidationError.Success;
+
             /*
                 1' block height
                 2' previous block hash
@@ -27,7 +30,7 @@ namespace AElf.Kernel.BlockValidationFilters
             // return success if genesis block
             if (index == 0 && previousBlockHash.Equals(Hash.Zero))
                 return ValidationError.Success;
-            
+
             var currentChainHeight = context.BlockHeight;
             var currentPreviousBlockHash = context.BlockHash;
 

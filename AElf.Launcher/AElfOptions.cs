@@ -86,5 +86,33 @@ namespace AElf.Launcher
         public int? DBPort { get; set; }
         
         #endregion
+        
+        #region Actor
+        [Option("actor.iscluster", HelpText = "Actor is cluster or not.")]
+        public bool? ActorIsCluster { get; set; }
+        
+        [Option("actor.host", HelpText = "The hostname of actor.")]
+        public string ActorHostName { get; set; }
+        
+        [Option("actor.port", HelpText = "The port of actor.")]
+        public int? ActorPort { get; set; }
+        
+        [Option("actor.isseed", HelpText = "The worker is seed node or not.")]
+        public bool? ActorIsSeed { get; set; }
+        
+        [Option("actor.workerhost", HelpText = "The hostname of worker")]
+        public string ActorWorkerHostName { get; set; }
+        
+        [Option("actor.workerport", HelpText = "The port of worker")]
+        public int? ActorWorkerPort { get; set; }
+
+        #endregion
+
+        #region Runner
+
+        [Option("runner.config", HelpText = "The path to the runner config in json format.")]
+        public string RunnerConfig { get; set; }
+
+        #endregion
     }
 }

@@ -7,32 +7,28 @@ namespace AElf.Database
 {
     public class RedisDatabase : IKeyValueDatabase
     {
-        private readonly RedisClient _client;
+        private readonly PooledRedisClientManager _client;
 
-        public RedisDatabase() : this(new DatabaseConfig())
+        public RedisDatabase()
         {
-        }
-
-        public RedisDatabase(DatabaseConfig config)
-        {
-            _client = new RedisClient($"{config.Host}:{config.Port}");
+            _client = new PooledRedisClientManager($"{DatabaseConfig.Instance.Host}:{DatabaseConfig.Instance.Port}");
         }
 
         public async Task<byte[]> GetAsync(string key, Type type)
         {
-            return await Task.FromResult(_client.Get<byte[]>(key));
+            return await Task.FromResult(_client.GetCacheClient().Get<byte[]>(key));
         }
 
         public async Task SetAsync(string key, byte[] bytes)
         {
-            await Task.FromResult(_client.Set(key, bytes));
+            await Task.FromResult(_client.GetCacheClient().Set(key, bytes));
         }
 
         public bool IsConnected()
         {
             try
             {
-                _client.Set<byte[]>("test", null);
+                _client.GetCacheClient().Set<byte[]>("ping", null);
                 return true;
             }
             catch (Exception ex)

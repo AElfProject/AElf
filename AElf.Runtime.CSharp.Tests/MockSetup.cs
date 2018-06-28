@@ -106,12 +106,17 @@ namespace AElf.Runtime.CSharp.Tests
             await SmartContractService.DeployContractAsync(ChainId2, ContractAddress2, reg);
         }
 
+        public string SdkDir
+        {
+            get => "../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0";
+        }
+        
         public byte[] ContractCode
         {
             get
             {
                 byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/AElf.Runtime.CSharp.Tests.TestContract.dll")))
+                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath($"{SdkDir}/AElf.Runtime.CSharp.Tests.TestContract.dll")))
                 {
                     code = file.ReadFully();
                 }

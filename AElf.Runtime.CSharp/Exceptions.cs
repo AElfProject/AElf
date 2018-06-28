@@ -23,4 +23,15 @@ namespace AElf.Runtime.CSharp
         {
         }
     }
+    
+    public class InvalidCodeException : Exception
+    {
+        public InvalidCodeException() : base()
+        {
+        }
+
+        public InvalidCodeException(string message) : base(message)
+        {
+        }
+    }
 }
