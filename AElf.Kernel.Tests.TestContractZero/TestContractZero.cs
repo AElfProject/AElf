@@ -433,7 +433,7 @@ namespace AElf.Kernel.Tests
             var roundInfo = await _dPoSInfoMap.GetValueAsync(roundsCount);
             roundInfo.Info[accountAddress] = info;
 
-            await _dPoSInfoMap.SetValueAsync(RoundsCount, roundInfo);
+            await _dPoSInfoMap.SetValueAsync(roundsCount, roundInfo);
 
             return inValue;
         }
