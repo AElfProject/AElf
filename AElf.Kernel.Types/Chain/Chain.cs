@@ -12,7 +12,7 @@ namespace AElf.Kernel
             Id = chainId;
             GenesisBlockHash = genesisBlockHash;
         }
-
+        
         public byte[] Serialize()
         {
             return this.ToByteArray();
