@@ -7,7 +7,7 @@ namespace AElf.CLI.Command
 {
     public class GetTxResultCmd : CliCommandDefinition
     {
-        public const string Name = "get-tx-result";
+        public const string Name = "get_tx_result";
         
         public GetTxResultCmd() : base(Name)
         {
@@ -16,7 +16,7 @@ namespace AElf.CLI.Command
 
         public override string GetUsage()
         {
-            return "get-tx-result <txhash>";
+            return "get_tx_result <txhash>";
         }
 
         public override string Validate(CmdParseResult parsedCmd)
@@ -39,8 +39,8 @@ namespace AElf.CLI.Command
 
         public override string GetPrintString(JObject resp)
         {
-            string str = resp["txresult"].ToString();
-            str += resp["retval"].Count() != 0  ? " return value - " + resp["retval"] : "";
+            string str = resp["result"]["txresult"].ToString();
+            //str += resp["result"]["txresult"].Count() != 0  ? " return value - " + resp["retval"] : "";
             return str;
         }
     }
