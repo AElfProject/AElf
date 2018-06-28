@@ -1,5 +1,6 @@
 ﻿﻿using System.Collections.Generic;
-using AElf.Configuration;
+ using System.Threading.Tasks;
+ using AElf.Configuration;
 using Newtonsoft.Json;
 
 namespace AElf.Kernel.Node.Config

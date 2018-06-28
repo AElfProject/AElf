@@ -7,6 +7,7 @@ using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Org.BouncyCastle.Crypto.Engines;
 using SharpRepository.Repository.Configuration;
 using Api = AElf.Sdk.CSharp.Api;
 using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
@@ -50,9 +51,9 @@ namespace AElf.Kernel.Tests
 
         #region DPoS
 
-        private const int MiningTime = 12000;
+        private const int MiningTime = 16000;
 
-        private const int WaitFirstRoundTime = 20000;
+        private const int WaitFirstRoundTime = 30000;
 
         private const int CheckTime = 5000;
 
@@ -342,6 +343,25 @@ namespace AElf.Kernel.Tests
 
         #endregion
 
+        public async Task<BoolValue> ReadyForHelpingProducingExtraBlock()
+        {
+            var assignedExtraBlockProducingTime = await _timeForProducingExtraBlock.GetAsync();
+            var assigendExtraBlockProducingTimeEnd =
+                GetTimestamp(assignedExtraBlockProducingTime, CheckTime + MiningTime);
+            var now = DateTime.Now.ToTimestamp();
+            // ReSharper disable once InconsistentNaming
+            var currentEBP = await _eBPMap.GetValueAsync(RoundsCount);
+            // ReSharper disable once InconsistentNaming
+            var currentEBPOrder = (await GetBlockProducerInfoOfCurrentRound(currentEBP.Value)).Order;
+            var offset = MiningTime * (currentEBPOrder + 1) % (await GetBlockProducers()).Nodes.Count;
+            var assigendExtraBlockProducingTimeEndWithOffset = GetTimestamp(assigendExtraBlockProducingTimeEnd, offset);
+            return new BoolValue
+            {
+                Value = CompareTimestamp(now, assigendExtraBlockProducingTimeEnd)
+                        && CompareTimestamp(assigendExtraBlockProducingTimeEndWithOffset, now)
+            };
+        }
+
         #region BP Methods
 
         public async Task<BPInfo> PublishOutValueAndSignature(Hash outValue, Hash signature, UInt64Value roundsCount)
@@ -431,7 +451,7 @@ namespace AElf.Kernel.Tests
 
             return roundInfo;
         }
-
+        
         #endregion
         
         

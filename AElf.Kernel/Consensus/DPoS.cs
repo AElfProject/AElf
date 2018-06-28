@@ -88,6 +88,28 @@ namespace AElf.Kernel.Consensus
             return tx;
         }
 
+        public Transaction GetReadyForHelpingProducingExtraBlockTx(ulong incrementId, Hash contractAccountHash)
+        {
+            var tx = new Transaction
+            {
+                From = AccountHash,
+                To = contractAccountHash,
+                IncrementId = incrementId,
+                MethodName = "ReadyForHelpingProducingExtraBlock",
+                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+            };
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
+        }
+
         public Transaction GetAbleToMineTx(ulong incrementId, Hash contractAccountHash)
         {
             var tx = new Transaction

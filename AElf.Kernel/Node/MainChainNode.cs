@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
@@ -553,7 +554,8 @@ namespace AElf.Kernel.Node
             {
             }
 
-            _logger.Trace("Broadcasted block " + Convert.ToBase64String(block.GetHash().Value.ToByteArray()) + " to " + count + " peers.");
+            _logger.Trace("Broadcasted block " + Convert.ToBase64String(block.GetHash().Value.ToByteArray()) + " to " +
+                          count + $" peers. Current block height:{block.Header.Index}");
 
             return true;
         }
@@ -636,7 +638,9 @@ namespace AElf.Kernel.Node
                 ulong latestMinedNormalBlockRoundsCount = 0;
                 //Use this value to make sure every EBP produce one block in one timeslot
                 ulong latestMinedExtraBlockRoundsCount = 0;
-
+                //Use this value to make sure every BP try once in one timeslot
+                ulong latestTriedToHelpProducingExtraBlockRoundsCount = 0;
+                
                 var dPoSInfo = "";
                 
                 var intervalSequnce = GetIntervalObservable();
@@ -778,6 +782,32 @@ namespace AElf.Kernel.Node
                             }
                         }
                         
+                        #endregion
+
+                        #region Try to help mining extra block
+
+                        if (latestTriedToHelpProducingExtraBlockRoundsCount != roundsCount && await CheckAbleToHelpMiningExtraBlock())
+                        {
+                            var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
+
+                            var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId + 1);
+
+                            await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
+                                extraBlockResult.Item2, extraBlockResult.Item3);
+
+                            var extraBlock = await _miner.Mine(); //Which is an extra block
+                            
+                            latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
+                            
+                            await BroadcastBlock(extraBlock);
+                            
+                            _logger.Log(LogLevel.Debug,
+                                "Help to genereate extra block: {0}, with {1} transactions, able to mine in {2}",
+                                extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
+                                DateTime.UtcNow.ToString("u"));
+                            return;
+                        }
+
                         #endregion
 
                         if (doLogsAboutConsensus)
@@ -939,6 +969,18 @@ namespace AElf.Kernel.Node
             Executive.SetTransactionContext(tcAbleToMine).Apply(true).Wait();
                             
             return BoolValue.Parser.ParseFrom(tcAbleToMine.Trace.RetVal).Value;
+        }
+
+        private async Task<bool> CheckAbleToHelpMiningExtraBlock()
+        {
+            var tcAbleToHelp = new TransactionContext
+            {
+                Transaction = _dPoS.GetReadyForHelpingProducingExtraBlockTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
+                    ContractAccountHash)
+            };
+            Executive.SetTransactionContext(tcAbleToHelp).Apply(true).Wait();
+                            
+            return BoolValue.Parser.ParseFrom(tcAbleToHelp.Trace.RetVal).Value;
         }
 
         private async Task<bool> CheckIsTimeToMineExtraBlock()
