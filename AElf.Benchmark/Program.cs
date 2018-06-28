@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
@@ -21,16 +22,12 @@ namespace AElf.Benchmark
             builder.RegisterModule(new MainModule());
             builder.RegisterModule(new MetadataModule());
 
-            var dataConfig = new DatabaseConfig
-            {
-                Type = DatabaseType.Redis,
-                Host = "127.0.0.1",
-                Port = 6379
-            };
+            DatabaseConfig.Instance.Type = DatabaseType.Ssdb;
             builder.RegisterModule(new WorldStateDictatorModule());
-            builder.RegisterModule(new DatabaseModule(dataConfig));
+            builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 3000);
+            builder.RegisterType(typeof(ConcurrencyExecutingService)).As<IConcurrencyExecutingService>().SingleInstance();
+            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 20);
             #if DEBUG
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             #else
@@ -57,16 +54,20 @@ namespace AElf.Benchmark
             
             using(var scope = container.BeginLifetimeScope())
             {
+                var concurrencySercice = scope.Resolve<IConcurrencyExecutingService>();
+                concurrencySercice.InitActorSystem();
+                
                 var benchmarkTps = scope.Resolve<Benchmarks>();
                 var resDict = new Dictionary<string, double>();
-                int groupCount = 8;
+                int groupCount = 2;
                 for (int i = 1; i <= groupCount; i++)
                 {
-                    var res = await benchmarkTps.MultipleGroupBenchmark(2400, i);
+                    var res = await benchmarkTps.MultipleGroupBenchmark(4, i);
                     resDict.Add(res.Key, res.Value);
                 }
 
                 resDict.ForEach((info, time) => Console.WriteLine(info + ": " + time));
+                Console.ReadKey();
             }
         }
         
