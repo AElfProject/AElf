@@ -17,56 +17,41 @@ namespace AElf.Benchmark
         [SmartContractFieldData("${this}.TokenContractName", DataAccessMode.ReadOnlyAccountSharing)]
         public StringField TokenContractName;
         
-        public async Task<bool> InitializeAsync(string tokenContractName, Hash owner)
+        public bool Initialize(string tokenContractName, Hash owner)
         {
-            Console.WriteLine("InitializeAsync " + tokenContractName + " " + owner.Value.ToBase64());
-            await TokenContractName.SetAsync(tokenContractName);
+            Console.WriteLine("Initialize " + tokenContractName + " " + owner.Value.ToBase64());
+            TokenContractName.SetValue(tokenContractName);
             return true;
         }
         
-        public override async Task InvokeAsync()
-        {
-            //not needed anymore
-            return;
-            var tx = Api.GetTransaction();
-
-            var methodname = tx.MethodName;
-            var type = GetType();
-            var member = type.GetMethod(methodname);
-            // params array
-            var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
-            // invoke
-            await (Task<object>) member.Invoke(this, parameters);
-        }
-        
         [SmartContractFunction("${this}.InitBalance", new string[]{}, new []{"${this}.Balances"})]
-        public async Task<bool> InitBalance(Hash addr)
+        public bool InitBalance(Hash addr)
         {
             //Console.WriteLine("InitBalance " + addr);
             ulong initBalance = 10000;
-            await Balances.SetValueAsync(addr, initBalance);
-            var fromBal = await Balances.GetValueAsync(addr);
+            Balances.SetValue(addr, initBalance);
+            var fromBal = Balances.GetValue(addr);
             //Console.WriteLine("Read from db of account " + addr + " with balance " + fromBal);
             return true;
         }
         
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances"})]
-        public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
+        public bool Transfer(Hash from, Hash to, ulong qty)
         {
             //Console.WriteLine("Transfer " + from.Value.ToBase64() + " , " + to.Value.ToBase64());
             
-            var fromBal = await Balances.GetValueAsync(from);
+            var fromBal = Balances.GetValue(from);
             //Console.WriteLine("from pass");
-            var toBal = await Balances.GetValueAsync(to);
+            var toBal = Balances.GetValue(to);
             //Console.WriteLine("to pass");
             var newFromBal = fromBal - qty;
-            if (newFromBal >= 0)
+            if (fromBal >= qty)
             {
                 var newToBal = toBal + qty;
                 
-                await Balances.SetValueAsync(from, newFromBal);
+                Balances.SetValue(from, newFromBal);
                 //Console.WriteLine("set from pass");
-                await Balances.SetValueAsync(to, newToBal);
+                Balances.SetValue(to, newToBal);
                 //Console.WriteLine("set to pass");
 
                 Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
@@ -81,9 +66,9 @@ namespace AElf.Benchmark
         }
 
         [SmartContractFunction("${this}.GetBalance", new string[]{}, new []{"${this}.Balances"})]
-        public async Task<ulong> GetBalance(Hash account)
+        public ulong GetBalance(Hash account)
         {
-            return await Balances.GetValueAsync(account);
+            return Balances.GetValue(account);
         }
     }
 }
