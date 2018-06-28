@@ -1,9 +1,7 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.TxMemPool;
 using AElf.Types.CSharp;
 using Akka.Util.Internal.Collections;
 using Google.Protobuf;

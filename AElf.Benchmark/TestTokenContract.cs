@@ -24,37 +24,38 @@ namespace AElf.Benchmark
             return true;
         }
         
-        public async Task<bool> InitBalance(Hash addr)
+        [SmartContractFunction("${this}.InitBalance", new string[]{}, new []{"${this}.Balances"})]
+        public bool InitBalance(Hash addr)
         {
             //Console.WriteLine("InitBalance " + addr);
-            ulong initBalance = 1000;
-            await Balances.SetValueAsync(addr, initBalance);
-            var fromBal = await Balances.GetValueAsync(addr);
+            ulong initBalance = 10000;
+            Balances.SetValue(addr, initBalance);
+            var fromBal = Balances.GetValue(addr);
             //Console.WriteLine("Read from db of account " + addr + " with balance " + fromBal);
             return true;
         }
         
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances"})]
-        public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
+        public bool Transfer(Hash from, Hash to, ulong qty)
         {
             //Console.WriteLine("Transfer " + from.Value.ToBase64() + " , " + to.Value.ToBase64());
             
-            var fromBal = await Balances.GetValueAsync(from);
+            var fromBal = Balances.GetValue(from);
             //Console.WriteLine("from pass");
-            var toBal = await Balances.GetValueAsync(to);
+            var toBal = Balances.GetValue(to);
             //Console.WriteLine("to pass");
             var newFromBal = fromBal - qty;
-            if (newFromBal >= 0)
+            if (fromBal >= qty)
             {
                 var newToBal = toBal + qty;
                 
-                await Balances.SetValueAsync(from, newFromBal);
+                Balances.SetValue(from, newFromBal);
                 //Console.WriteLine("set from pass");
-                await Balances.SetValueAsync(to, newToBal);
+                Balances.SetValue(to, newToBal);
                 //Console.WriteLine("set to pass");
 
-                Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
-                + to.Value.ToBase64() + "(" + newToBal + ")");
+                //Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
+                //+ to.Value.ToBase64() + "(" + newToBal + ")");
                 return true;
             }
             else
@@ -65,9 +66,9 @@ namespace AElf.Benchmark
         }
 
         [SmartContractFunction("${this}.GetBalance", new string[]{}, new []{"${this}.Balances"})]
-        public async Task<ulong> GetBalance(Hash account)
+        public ulong GetBalance(Hash account)
         {
-            return await Balances.GetValueAsync(account);
+            return Balances.GetValue(account);
         }
     }
 }

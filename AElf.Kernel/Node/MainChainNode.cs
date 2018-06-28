@@ -10,6 +10,7 @@ using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
+using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
@@ -53,6 +54,7 @@ namespace AElf.Kernel.Node
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly ISmartContractService _smartContractService;
         private readonly ITransactionResultService _transactionResultService;
+        private readonly IFunctionMetadataService _functionMetadataService;
 
         private readonly IBlockExecutor _blockExecutor;
 
@@ -64,7 +66,7 @@ namespace AElf.Kernel.Node
         public IExecutive Executive =>
             _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
         
-        private const int CheckTime = 3000;
+        private const int CheckTime = 5000;
 
         public BlockProducer BlockProducers
         {
@@ -88,7 +90,7 @@ namespace AElf.Kernel.Node
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
             IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator, 
             IChainManager chainManager, ISmartContractService smartContractService,
-            ITransactionResultService transactionResultService, IBlockManager blockManager)
+            ITransactionResultService transactionResultService, IBlockManager blockManager, IFunctionMetadataService functionMetadataService)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
@@ -96,6 +98,7 @@ namespace AElf.Kernel.Node
             _smartContractService = smartContractService;
             _transactionResultService = transactionResultService;
             _blockManager = blockManager;
+            _functionMetadataService = functionMetadataService;
             _poolService = poolService;
             _protocolDirector = protocolDirector;
             _transactionManager = txManager;
@@ -201,7 +204,7 @@ namespace AElf.Kernel.Node
             {
                 ChainContextService = _chainContextService,
                 SmartContractService = _smartContractService,
-                ResourceDetectionService = new MockResourceUsageDetectionService(),
+                ResourceDetectionService = new ResourceUsageDetectionService(_functionMetadataService),
                 WorldStateDictator = _worldStateDictator
             };
             worker1.Tell(new LocalSerivcePack(servicePack));
@@ -210,7 +213,7 @@ namespace AElf.Kernel.Node
        
             
             var parallelTransactionExecutingService = new ParallelTransactionExecutingService(requestor,
-                new Grouper(servicePack.ResourceDetectionService));
+                new Grouper(servicePack.ResourceDetectionService, _logger));
             
             _blockExecutor.Start(parallelTransactionExecutingService);
             
@@ -546,13 +549,7 @@ namespace AElf.Kernel.Node
         public async Task<bool> BroadcastBlock(IBlock block)
         {
             int count = 0;
-            try
-            {
-                count = await _protocolDirector.BroadcastBlock(block as Block);
-            }
-            catch (Exception e)
-            {
-            }
+            count = await _protocolDirector.BroadcastBlock(block as Block);
 
             _logger.Trace("Broadcasted block " + Convert.ToBase64String(block.GetHash().Value.ToByteArray()) + " to " +
                           count + $" peers. Current block height:{block.Header.Index}");
@@ -667,7 +664,7 @@ namespace AElf.Kernel.Node
 
                             var dpoSInfo = await ExecuteTxsForFirstExtraBlock();
 
-                            BroadcastSyncTxForFirstExtraBlock(dpoSInfo).Wait();
+                            await BroadcastSyncTxForFirstExtraBlock(dpoSInfo);
                             
                             var firstBlock = await _miner.Mine(); //Which is an extra block
 
