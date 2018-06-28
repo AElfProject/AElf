@@ -81,14 +81,14 @@ namespace AElf.Runtime.CSharp.Tests
             }
         }
 
-        public bool InitializeAsync(Hash account, ulong qty)
+        public bool Initialize(Hash account, ulong qty)
         {
             var tx = new Transaction
             {
                 From = Hash.Zero,
                 To = ContractAddress,
                 IncrementId = _mock.NewIncrementId(),
-                MethodName = "InitializeAsync",
+                MethodName = "Initialize",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(account, qty))
             };
             var tc = new TransactionContext()

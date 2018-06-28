@@ -23,45 +23,45 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
         public MapToString<Hash> TransactionStartTimes = new MapToString<Hash>("TransactionStartTimes");
         public MapToString<Hash> TransactionEndTimes = new MapToString<Hash>("TransactionEndTimes");
 
-        public async Task<bool> InitializeAsync(Hash account, ulong qty)
+        public bool Initialize(Hash account, ulong qty)
         {
-            await Balances.SetValueAsync(account, qty);
+            Balances.SetValue(account, qty);
             return true;
         }
 
-        public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
+        public bool Transfer(Hash from, Hash to, ulong qty)
         {
             // This is for testing batched transaction sequence
-            await TransactionStartTimes.SetValueAsync(Api.GetTransaction().GetHash(), Now());
+            TransactionStartTimes.SetValue(Api.GetTransaction().GetHash(), Now());
 
-            var fromBal = await Balances.GetValueAsync(from);
+            var fromBal = Balances.GetValue(from);
 
-            var toBal = await Balances.GetValueAsync(to);
+            var toBal = Balances.GetValue(to);
 
             var newFromBal = fromBal - qty;
             var newToBal = toBal + qty;
-            await Balances.SetValueAsync(from, newFromBal);
-            await Balances.SetValueAsync(to, newToBal);
+            Balances.SetValue(from, newFromBal);
+            Balances.SetValue(to, newToBal);
 
             // This is for testing batched transaction sequence
-            await TransactionEndTimes.SetValueAsync(Api.GetTransaction().GetHash(), Now());
+            TransactionEndTimes.SetValue(Api.GetTransaction().GetHash(), Now());
             return true;
         }
 
-        public async Task<ulong> GetBalance(Hash account)
+        public ulong GetBalance(Hash account)
         {
-            return await Balances.GetValueAsync(account);
+            return Balances.GetValue(account);
         }
 
-        public async Task<string> GetTransactionStartTime(Hash transactionHash)
+        public string GetTransactionStartTime(Hash transactionHash)
         {
-            var startTime = await TransactionStartTimes.GetValueAsync(transactionHash);
+            var startTime = TransactionStartTimes.GetValue(transactionHash);
             return startTime;
         }
 
-        public async Task<string> GetTransactionEndTime(Hash transactionHash)
+        public string GetTransactionEndTime(Hash transactionHash)
         {
-            var endTime = await TransactionEndTimes.GetValueAsync(transactionHash);
+            var endTime = TransactionEndTimes.GetValue(transactionHash);
             return endTime;
         }
 

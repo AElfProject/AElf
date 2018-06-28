@@ -322,7 +322,7 @@ namespace AElf.Benchmark
                 From = Hash.Zero.ToAccount(),
                 To = contractAddr,
                 IncrementId = NewIncrementId(),
-                MethodName = "InitializeAsync",
+                MethodName = "Initialize",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(name, Hash.Zero.ToAccount()))
             };
             

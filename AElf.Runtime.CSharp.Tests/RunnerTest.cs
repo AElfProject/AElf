@@ -25,10 +25,10 @@ namespace AElf.Runtime.CSharp.Tests
             Hash account1 = Hash.Generate();
 
             // Initialize
-            _contract1.InitializeAsync(account0, 200);
-            _contract1.InitializeAsync(account1, 100);
-            _contract2.InitializeAsync(account0, 200);
-            _contract2.InitializeAsync(account1, 100);
+            _contract1.Initialize(account0, 200);
+            _contract1.Initialize(account1, 100);
+            _contract2.Initialize(account0, 200);
+            _contract2.Initialize(account1, 100);
 
             // Transfer
             _contract1.Transfer(account0, account1, 10);

@@ -35,7 +35,7 @@ namespace AElf.Sdk.CSharp.Tests
         }
 
         [SmartContractFunction("${this}.SetAccount", new string[]{}, new []{"${this}._account"})]
-        public async Task<bool> SetAccount(string name, Hash address)
+        public bool SetAccount(string name, Hash address)
         {
             var account = new Account()
             {
@@ -43,15 +43,15 @@ namespace AElf.Sdk.CSharp.Tests
                 Address = address
             };
             // this is used for testing UserTypeField
-            await _account.SetAsync(account);
+            _account.SetValue(account);
             return true;
         }
 
         
         [SmartContractFunction("${this}.GetAccountName", new string[]{}, new []{"${this}._account"})]
-        public async Task<string> GetAccountName()
+        public string GetAccountName()
         {
-            var account = await _account.GetAsync();
+            var account = _account.GetValue();
             new AccountName()
             {
                 Name = account.Name

@@ -17,10 +17,10 @@ namespace AElf.Benchmark
         [SmartContractFieldData("${this}.TokenContractName", DataAccessMode.ReadOnlyAccountSharing)]
         public StringField TokenContractName;
         
-        public async Task<bool> InitializeAsync(string tokenContractName, Hash owner)
+        public bool Initialize(string tokenContractName, Hash owner)
         {
-            Console.WriteLine("InitializeAsync " + tokenContractName + " " + owner.Value.ToBase64());
-            await TokenContractName.SetAsync(tokenContractName);
+            Console.WriteLine("Initialize " + tokenContractName + " " + owner.Value.ToBase64());
+            TokenContractName.SetValue(tokenContractName);
             return true;
         }
         
