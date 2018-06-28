@@ -84,9 +84,14 @@ namespace AElf.Concurrency.Worker
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new WorldStateDictatorModule());
             
+#if DEBUG
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
+#else
+            var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Release/netstandard2.0/");
+            #endif
             SmartContractRunnerFactory smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
+            smartContractRunnerFactory.AddRunner(1, runner);
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
             
             IContainer container = null;

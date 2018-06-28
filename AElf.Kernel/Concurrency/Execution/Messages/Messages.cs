@@ -158,17 +158,18 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 //
 //        public TransactionResult TransactionResult { get; }
 //    }
-    
-    public sealed class TransactionTraceMessage:IConsistentHashable
+
+    public sealed class TransactionTraceMessage : IConsistentHashable
     {
         public TransactionTraceMessage(long requestId, TransactionTrace transactionTrace)
         {
             RequestId = requestId;
             TransactionTrace = transactionTrace;
+            ConsistentHashKey = GetHashCode();
         }
 
-        public long RequestId { get; }
-        public TransactionTrace TransactionTrace { get; }
+        public long RequestId { get; set; }
+        public TransactionTrace TransactionTrace { get; set; }
         public object ConsistentHashKey { get; }
     }
 

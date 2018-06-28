@@ -36,6 +36,7 @@ namespace AElf.Kernel.Concurrency.Execution.Config
                         }
                     }
                     remote {
+                        log-sent-messages = on
                         dot-netty.tcp {
                             hostname = ""127.0.0.1""
                             port = 32551
@@ -44,6 +45,11 @@ namespace AElf.Kernel.Concurrency.Execution.Config
                     cluster {
                         seed-nodes = [""akka.tcp://AElfSystem@127.0.0.1:32551""]
                         roles = [""worker""]
+                        log-info = on
+                        debug {
+                              verbose-heartbeat-logging = on
+                              verbose-receive-gossip-logging = on
+                            }
                     }
                 }";
         }

@@ -52,11 +52,12 @@ namespace AElf.Kernel.Concurrency.Execution
                     {
                         _cancellationTokenSource?.Dispose();
                         _cancellationTokenSource = new CancellationTokenSource();
+                        var sender = Sender;
                         Task.Run(() =>
                             RunJob(req).ContinueWith(
                                 task => task.Result,
                                 TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
-                            ).PipeTo(Self)
+                            ).PipeTo(sender)
                         );
                         Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Running));
                     }

@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Execution;
@@ -14,17 +11,10 @@ using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Services;
-using AElf.Kernel.Storages;
-using AElf.Kernel.Tests;
-using AElf.Runtime.CSharp;
-using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 using Akka.Actor;
-using Akka.Dispatch.SysMsg;
 using Akka.Util.Internal;
-using Autofac;
 using Google.Protobuf;
 using NLog;
 using ServiceStack;
@@ -36,12 +26,11 @@ namespace AElf.Benchmark
         private readonly IChainCreationService _chainCreationService;
         private readonly IBlockManager _blockManager;
         private readonly ISmartContractService _smartContractService;
-        private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
+        //private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
         private readonly IConcurrencyExecutingService _concurrencyExecutingService;
-
         
 //        public ActorSystem Sys { get; } = ActorSystem.Create("benchmark");
 //        public IActorRef Router { get;  }
@@ -53,8 +42,8 @@ namespace AElf.Benchmark
         private readonly TransactionDataGenerator _dataGenerater;
         private readonly Hash _contractHash;
 
-        public Benchmarks(IChainCreationService chainCreationService, IBlockManager blockManager, IChainContextService chainContextService, int maxTxNum
-            , ISmartContractService smartContractService, ILogger logger, IFunctionMetadataService functionMetadataService, IAccountContextService accountContextService, ILogger logger1, IWorldStateDictator worldStateDictator,IConcurrencyExecutingService concurrencyExecutingService)
+        public Benchmarks(IChainCreationService chainCreationService, IBlockManager blockManager, IChainContextService chainContextService, int maxTxNum, ISmartContractService smartContractService, ILogger logger
+            , IFunctionMetadataService functionMetadataService, IAccountContextService accountContextService, ILogger logger1, IWorldStateDictator worldStateDictator,IConcurrencyExecutingService concurrencyExecutingService)
         {
             ChainId = Hash.Generate();
             
@@ -66,6 +55,7 @@ namespace AElf.Benchmark
             _smartContractService = smartContractService;
             _accountContextService = accountContextService;
             _logger = logger1;
+            _concurrencyExecutingService = concurrencyExecutingService;
 
 
             _servicePack = new ServicePack()
@@ -76,30 +66,32 @@ namespace AElf.Benchmark
                 WorldStateDictator = _worldStateDictator,
                 AccountContextService = _accountContextService,
             };
-            _concurrencyExecutingService = concurrencyExecutingService;
 
 //            var workers = new[]
 //            {
 //                  "/user/worker1", "/user/worker2", 
 //                  "/user/worker3", "/user/worker4",
-////                  "/user/worker5", "/user/worker6",
-////                  "/user/worker7", "/user/worker8",
-////                  "/user/worker9", "/user/worker10",
+//                  "/user/worker5", "/user/worker6",
+//                  "/user/worker7", "/user/worker8",
+//                  "/user/worker9", "/user/worker10",
 ////                  "/user/worker11", "/user/worker12"
 //            };
 //            Workers = new []
 //            {
 //                Sys.ActorOf(Props.Create<Worker>(), "worker1"), Sys.ActorOf(Props.Create<Worker>(), "worker2"),
 //                Sys.ActorOf(Props.Create<Worker>(), "worker3"), Sys.ActorOf(Props.Create<Worker>(), "worker4"),
-////                Sys.ActorOf(Props.Create<Worker>(), "worker5"), Sys.ActorOf(Props.Create<Worker>(), "worker6"),
-////                Sys.ActorOf(Props.Create<Worker>(), "worker7"), Sys.ActorOf(Props.Create<Worker>(), "worker8"),
-////                Sys.ActorOf(Props.Create<Worker>(), "worker9"), Sys.ActorOf(Props.Create<Worker>(), "worker10"),
+//                Sys.ActorOf(Props.Create<Worker>(), "worker5"), Sys.ActorOf(Props.Create<Worker>(), "worker6"),
+//                Sys.ActorOf(Props.Create<Worker>(), "worker7"), Sys.ActorOf(Props.Create<Worker>(), "worker8"),
+//                Sys.ActorOf(Props.Create<Worker>(), "worker9"), Sys.ActorOf(Props.Create<Worker>(), "worker10"),
 ////                Sys.ActorOf(Props.Create<Worker>(), "worker11"), Sys.ActorOf(Props.Create<Worker>(), "worker12")
 //            };
 //            Router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
 //            Workers.ForEach(worker => worker.Tell(new LocalSerivcePack(_servicePack)));
 //            Requestor = Sys.ActorOf(AElf.Kernel.Concurrency.Execution.Requestor.Props(Router));
 //            _parallelTransactionExecutingService = new ParallelTransactionExecutingService(Requestor, new Grouper(_servicePack.ResourceDetectionService, logger));
+//            
+//            //set time to maxvalue to run large truck of tx list
+//            _parallelTransactionExecutingService.TimeoutMilliSeconds = int.MaxValue;
             
             _dataGenerater = new TransactionDataGenerator(maxTxNum);
             byte[] code = null;
@@ -152,73 +144,9 @@ namespace AElf.Benchmark
             }
         }
 
-        public async Task<Dictionary<string, double>> SingleGroupBenchmark(int txNumber, double conflictRate)
+
+        public async Task<KeyValuePair<string, double>> MultipleGroupBenchmark(int txNumber, int groupCount)
         {
-            var txList = _dataGenerater.GetTxsWithOneConflictGroup(_contractHash, txNumber, conflictRate);
-            //Console.WriteLine("start to check signature");
-            Stopwatch swVerifer = new Stopwatch();
-            swVerifer.Start();
-
-            foreach (var tx in txList)
-            {
-                ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(tx.P.ToByteArray());
-                ECVerifier verifier = new ECVerifier(recipientKeyPair);
-                if(!verifier.Verify(tx.GetSignature(), tx.GetHash().GetHashBytes()))
-                {
-                    throw new Exception("Signature failed");
-                }
-            }
-            
-            swVerifer.Stop();
-            
-            Console.WriteLine("-------------------------------------");
-            Console.WriteLine("Benchmark with single conflict group");
-            Console.WriteLine("-------------------------------------");
-            //Execution
-            Stopwatch swExec = new Stopwatch();
-            swExec.Start();
-
-            
-            var txResult = Task.Factory.StartNew(async () =>
-            {
-                return await _concurrencyExecutingService.ExecuteAsync(txList, ChainId,new Grouper(_servicePack.ResourceDetectionService, _logger));
-            }).Unwrap().Result;
-            
-            swExec.Stop();
-            /*
-            var dataProvider = (await _worldStateManager.OfChain(ChainId)).GetAccountDataProvider(_contractHash).GetDataProvider();
-            _smartContractContext.ChainId = ChainId;
-            _smartContractContext.DataProvider = dataProvider;
-            Api.SetSmartContractContext(_smartContractContext);
-            Api.SetTransactionContext(_transactionContext);
-            
-            TestTokenContract contract = new TestTokenContract();
-            await contract.InitializeAsync("token1", Hash.Zero.ToAccount());
-            
-            Stopwatch swNoReflaction = new Stopwatch();
-            swNoReflaction.Start();
-            
-            foreach (var tx in txList)
-            {
-                var parameters = AElf.Kernel.Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
-                await contract.Transfer(tx.From, (Hash)parameters[1], 50);
-            }
-            
-            swNoReflaction.Stop();
-            */
-            Dictionary<string, double> res = new Dictionary<string, double>();
-
-            var verifyPerSec = txNumber / (swVerifer.ElapsedMilliseconds / 1000.0);
-            res.Add("verifyTPS", verifyPerSec);
-
-            var executeTPS = txNumber / (swExec.ElapsedMilliseconds / 1000.0);
-            res.Add("executeTPS", executeTPS);
-            return res;
-        }
-
-        public async Task<Dictionary<string, double>> MultipleGroupBenchmark(int txNumber, int groupCount)
-        {
-            var res = new Dictionary<string, double>();
             //prepare data
             Console.WriteLine("-------------------------------------");
             Console.WriteLine("Benchmark with multiple conflict group");
@@ -239,7 +167,7 @@ namespace AElf.Benchmark
 
                 var txResult = await Task.Factory.StartNew(async () =>
                 {
-                    return await _concurrencyExecutingService.ExecuteAsync(txList, ChainId,new Grouper(_servicePack.ResourceDetectionService, _logger));
+                    return await _concurrencyExecutingService.ExecuteAsync(txList, ChainId,new Grouper(_servicePack.ResourceDetectionService, _logger) );
                 }).Unwrap();
         
                 swExec.Stop();
@@ -249,11 +177,11 @@ namespace AElf.Benchmark
                 {
                     if (!result.StdErr.IsNullOrEmpty())
                     {
-                        Console.WriteLine(result.StdErr);
+                        _logger.Error("Error from contract: \n" + result.StdErr);
                     }
                 } );
-                string timeStr = string.Join(", ", txResult.Select(a => a.Elapsed.ToString()));
-                _logger.Info("Elapsed of every contract: " + timeStr);
+                //string timeStr = string.Join(", ", txResult.Select(a => a.Elapsed.ToString()));
+                //_logger.Info("Elapsed of every contract: " + timeStr);
                 txResult.ForEach(trace =>
                 {
                     if (!trace.StdErr.IsNullOrEmpty())
@@ -265,10 +193,8 @@ namespace AElf.Benchmark
             
             var time = txNumber / (timeused / 1000.0 / (double)repeatTime);
             var str = groupCount + " groups with " + txList.Count + " tx in total";
-            res.Add(str, time);
-            Console.WriteLine(str + ": " + time);
 
-            return res;
+            return new KeyValuePair<string,double>(str, time);
         }
         
         public ulong NewIncrementId()
@@ -338,14 +264,9 @@ namespace AElf.Benchmark
             await executiveUser.SetTransactionContext(txnInitCtxt).Apply(true);
             
             //init contract
-            int current = 0;
+            var initTxList = new List<ITransaction>();
             foreach (var addr in addrBook)
             {
-                current++;
-                if (addrBook.Count() > 100 && current % (addrBook.Count() / 10) == 0)
-                {
-                    Console.WriteLine("Contract Init: " + (double)(current * 100) / (double)addrBook.Count() + "%");
-                }
                 var txnBalInit = new Transaction
                 {
                     From = Hash.Zero.ToAccount(),
@@ -354,14 +275,12 @@ namespace AElf.Benchmark
                     MethodName = "InitBalance",
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(addr))
                 };
-            
-                var txnBalInitCtx = new TransactionContext()
-                {
-                    Transaction = txnBalInit
-                };
-                var executiveBalInitUser = await _smartContractService.GetExecutiveAsync(contractAddr, ChainId);
-                await executiveBalInitUser.SetTransactionContext(txnBalInitCtx).Apply(true);
+                
+                initTxList.Add(txnBalInit);
             }
+
+            var txTrace = await _concurrencyExecutingService.ExecuteAsync(initTxList, ChainId,new Grouper(_servicePack.ResourceDetectionService, _logger));
+            ;
         }
 
         public double BenchmarkGrouping(int txNumber, List<ITransaction> txList)

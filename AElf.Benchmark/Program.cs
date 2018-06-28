@@ -1,18 +1,14 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Managers;
 using AElf.Kernel.Modules.AutofacModule;
-using AElf.Kernel.Node;
-using AElf.Kernel.Services;
 using AElf.Runtime.CSharp;
 using Autofac;
-using Autofac.Core;
 
 namespace AElf.Benchmark
 {
@@ -28,8 +24,8 @@ namespace AElf.Benchmark
 
             var dataConfig = new DatabaseConfig
             {
-                Type = DatabaseType.KeyValue,
-                Host = "192.168.9.9",
+                Type = DatabaseType.Redis,
+                Host = "127.0.0.1",
                 Port = 6379
             };
             DatabaseConfig.Instance.Type = DatabaseType.Ssdb;
@@ -37,7 +33,7 @@ namespace AElf.Benchmark
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterType(typeof(ConcurrencyExecutingService)).As<IConcurrencyExecutingService>().SingleInstance();
-            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 30);
+            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 20);
             #if DEBUG
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             #else
@@ -65,13 +61,17 @@ namespace AElf.Benchmark
             using(var scope = container.BeginLifetimeScope())
             {
                 var benchmarkTps = scope.Resolve<Benchmarks>();
-
-                
-                var multiGroupRes = await benchmarkTps.MultipleGroupBenchmark(2, 1);
-                foreach (var kv in multiGroupRes)
+                var resDict = new Dictionary<string, double>();
+                int groupCount = 4;
+                for (int i = 1; i <= groupCount; i++)
                 {
-                    Console.WriteLine(kv.Key + ": " + kv.Value);
+                    var res = await benchmarkTps.MultipleGroupBenchmark(8, i);
+                    resDict.Add(res.Key, res.Value);
                 }
+
+                resDict.ForEach((info, time) => Console.WriteLine(info + ": " + time));
+                
+                Console.ReadLine();
             }
         }
         
@@ -79,6 +79,11 @@ namespace AElf.Benchmark
         {
             var db = container.Resolve<IKeyValueDatabase>();
             return db.IsConnected();
+        }
+
+        private static void PrintHelperAndExit()
+        {
+            Console.WriteLine("Please input valid arguments, example: [ -scExec -${path-to-contract-dll} -evenGroup 4000 1 4");
         }
     }
 }
