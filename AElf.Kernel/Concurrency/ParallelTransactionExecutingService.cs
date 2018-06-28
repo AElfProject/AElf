@@ -13,6 +13,9 @@ namespace AElf.Kernel.Concurrency
     {
         private readonly IGrouper _grouper;
         private readonly IActorRef _requestor;
+        
+        // TODO: Move it to config
+        public int TimeoutMilliSeconds { get; set; } = int.MaxValue;
 
         public ParallelTransactionExecutingService(IActorRef requestor, IGrouper grouper)
         {
@@ -22,15 +25,13 @@ namespace AElf.Kernel.Concurrency
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId)
         {
-            // TODO: Move it to config
-            int timeoutMilliSeconds = 200000;
-
+            
             var cts = new CancellationTokenSource();
 
-            cts.CancelAfter(timeoutMilliSeconds);
+            cts.CancelAfter(TimeoutMilliSeconds);
 
             using (new Timer(
-                CancelExecutions, cts, TimeSpan.FromMilliseconds(timeoutMilliSeconds),
+                CancelExecutions, cts, TimeSpan.FromMilliseconds(TimeoutMilliSeconds),
                 TimeSpan.FromMilliseconds(-1)
             ))
             {

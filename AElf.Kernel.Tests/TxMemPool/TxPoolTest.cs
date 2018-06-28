@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Node.RPC.DTO;
@@ -21,10 +22,12 @@ namespace AElf.Kernel.Tests.TxMemPool
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
 
-        public TxPoolTest(IAccountContextService accountContextService, ILogger logger)
+        public TxPoolTest(IWorldStateDictator worldStateDictator, ILogger logger)
         {
-            _accountContextService = accountContextService;
             _logger = logger;
+            
+            worldStateDictator.SetChainId(Hash.Generate());
+            _accountContextService = new AccountContextService(worldStateDictator);
         }
 
         private TxPool GetPool()

@@ -39,10 +39,11 @@ namespace AElf.Benchmark
             await (Task<object>) member.Invoke(this, parameters);
         }
         
+        [SmartContractFunction("${this}.InitBalance", new string[]{}, new []{"${this}.Balances"})]
         public async Task<bool> InitBalance(Hash addr)
         {
             //Console.WriteLine("InitBalance " + addr);
-            ulong initBalance = 1000;
+            ulong initBalance = 10000;
             await Balances.SetValueAsync(addr, initBalance);
             var fromBal = await Balances.GetValueAsync(addr);
             //Console.WriteLine("Read from db of account " + addr + " with balance " + fromBal);
@@ -68,8 +69,8 @@ namespace AElf.Benchmark
                 await Balances.SetValueAsync(to, newToBal);
                 //Console.WriteLine("set to pass");
 
-                Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
-                + to.Value.ToBase64() + "(" + newToBal + ")");
+                //Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
+                //+ to.Value.ToBase64() + "(" + newToBal + ")");
                 return true;
             }
             else

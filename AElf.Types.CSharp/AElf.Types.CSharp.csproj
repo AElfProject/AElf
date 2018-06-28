@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Class1.cs" />
@@ -16,10 +17,5 @@
   <ItemGroup>
     <None Remove="gen_script" />
     <None Remove="ParamsHolder.proto" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>..\..\..\..\..\usr\local\share\dotnet\sdk\NuGetFallbackFolder\microsoft.csharp\4.4.0\ref\netstandard2.0\Microsoft.CSharp.dll</HintPath>
-    </Reference>
   </ItemGroup>
 </Project>
