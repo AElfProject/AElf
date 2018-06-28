@@ -23,14 +23,14 @@ namespace AElf.Benchmark
 
             var dataConfig = new DatabaseConfig
             {
-                Type = DatabaseType.KeyValue,
+                Type = DatabaseType.Redis,
                 Host = "127.0.0.1",
-                Port = 8888
+                Port = 6379
             };
             builder.RegisterModule(new WorldStateDictatorModule());
             builder.RegisterModule(new DatabaseModule(dataConfig));
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 50);
+            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 3000);
             #if DEBUG
             var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             #else
@@ -62,7 +62,7 @@ namespace AElf.Benchmark
                 int groupCount = 8;
                 for (int i = 1; i <= groupCount; i++)
                 {
-                    var res = await benchmarkTps.MultipleGroupBenchmark(16, i);
+                    var res = await benchmarkTps.MultipleGroupBenchmark(2400, i);
                     resDict.Add(res.Key, res.Value);
                 }
 

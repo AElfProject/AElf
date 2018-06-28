@@ -53,11 +53,11 @@ namespace AElf.Kernel.Tests
 
         #region DPoS
 
-        private const int MiningTime = 8000;
+        private const int MiningTime = 16000;
 
-        private const int WaitFirstRoundTime = 3000;
+        private const int WaitFirstRoundTime = 16000;
 
-        private const int CheckTime = 3000;
+        private const int CheckTime = 5000;
 
         [SmartContractFieldData("${this}._roundsCount", DataAccessMode.ReadWriteAccountSharing)]
         private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");
@@ -190,7 +190,7 @@ namespace AElf.Kernel.Tests
             return dPoSInfo;
         }
 
-        [SmartContractFunction("${this}.SyncStateOfFirstTwoRounds", new string[]{"${this}.CompareTimestamp"}, new string[]{"${this}._blockProducer", "${this}._roundsCount", "${this}._firstPlaceMap", "${this}._dPoSInfoMap", "${this}._eBPMap", "${this}._timeForProducingExtraBlock"})]
+        [SmartContractFunction("${this}.SyncStateOfFirstTwoRounds", new string[]{"${this}.GetTimestamp", "${this}.CompareTimestamp"}, new string[]{"${this}._blockProducer", "${this}._roundsCount", "${this}._firstPlaceMap", "${this}._dPoSInfoMap", "${this}._eBPMap", "${this}._timeForProducingExtraBlock"})]
         public async Task SyncStateOfFirstTwoRounds(DPoSInfo dPoSInfo, BlockProducer blockProducer)
         {
             await _blockProducer.SetAsync(blockProducer);
@@ -223,7 +223,7 @@ namespace AElf.Kernel.Tests
 
         #region EBP Methods
 
-        [SmartContractFunction("${this}.GenerateNextRoundOrder", new string[]{"${this}.GetBlockProducerInfoOfCurrentRound", "${this}.RoundsCountAddOne", "${this}.CompareTimestamp", "${this}.GetBlockProducers"}, new string[]{"${this}._dPoSInfoMap", "${this}._roundsCount"})]
+        [SmartContractFunction("${this}.GenerateNextRoundOrder", new string[]{"${this}.GetBlockProducerInfoOfCurrentRound", "${this}.RoundsCountAddOne","${this}.GetTimestamp",  "${this}.CompareTimestamp", "${this}.GetBlockProducers"}, new string[]{"${this}._dPoSInfoMap", "${this}._roundsCount"})]
         public async Task<RoundInfo> GenerateNextRoundOrder()
         {
             if (RoundsCount.Value == 1)
@@ -323,7 +323,7 @@ namespace AElf.Kernel.Tests
         }
 
         // ReSharper disable once InconsistentNaming
-        [SmartContractFunction("${this}.SyncStateOfNextRound", new string[]{"${this}.RoundsCountAddOne", "${this}.CompareTimestamp"}, new string[]{"${this}._roundsCount", "${this}._eBPMap", "${this}._dPoSInfoMap", "${this}._firstPlaceMap",   "${this}._timeForProducingExtraBlock" })]
+        [SmartContractFunction("${this}.SyncStateOfNextRound", new string[]{"${this}.GetTimestamp", "${this}.RoundsCountAddOne", "${this}.CompareTimestamp"}, new string[]{"${this}._roundsCount", "${this}._eBPMap", "${this}._dPoSInfoMap", "${this}._firstPlaceMap",   "${this}._timeForProducingExtraBlock" })]
         public async Task SyncStateOfNextRound(RoundInfo suppliedPreviousRoundInfo, RoundInfo nextRoundInfo, StringValue nextEBP)
         {
             if (RoundsCount.Value != 1)
@@ -360,7 +360,7 @@ namespace AElf.Kernel.Tests
 
         #endregion
 
-        [SmartContractFunction("${this}.ReadyForHelpingProducingExtraBlock", new string[]{"${this}.GetBlockProducerInfoOfCurrentRound", "${this}.CompareTimestamp", "${this}.CompareTimestamp", "${this}.GetTimestampOfUtcNow", "${this}.GetBlockProducers"}, new string[]{"${this}._roundsCount", "${this}._timeForProducingExtraBlock" })]
+        [SmartContractFunction("${this}.ReadyForHelpingProducingExtraBlock", new string[]{"${this}.GetBlockProducerInfoOfCurrentRound","${this}.GetTimestamp",  "${this}.CompareTimestamp", "${this}.GetTimestampOfUtcNow", "${this}.GetBlockProducers"}, new string[]{"${this}._roundsCount", "${this}._timeForProducingExtraBlock" })]
         public async Task<BoolValue> ReadyForHelpingProducingExtraBlock()
         {
             var me = Api.GetTransaction().From;
@@ -527,7 +527,7 @@ namespace AElf.Kernel.Tests
             return sig;
         }
         
-        [SmartContractFunction("${this}.AbleToMine", new string[]{"${this}.CompareTimestamp", "${this}.CompareTimestamp", "${this}.GetTimestampOfUtcNow", "${this}.IsBP", "${this}.GetTimeSlot"}, new string[]{})]
+        [SmartContractFunction("${this}.AbleToMine", new string[]{"${this}.GetTimestamp", "${this}.CompareTimestamp", "${this}.GetTimestampOfUtcNow", "${this}.IsBP", "${this}.GetTimeSlot"}, new string[]{})]
         public async Task<bool> AbleToMine()
         {
             var accountHash = Api.GetTransaction().From;
@@ -575,7 +575,7 @@ namespace AElf.Kernel.Tests
             return info.IsEBP;
         }
         
-        [SmartContractFunction("${this}.IsTimeToProduceExtraBlock", new string[]{"${this}.CompareTimestamp", "${this}.CompareTimestamp", "${this}.GetTimestampOfUtcNow"}, new string[]{"${this}._timeForProducingExtraBlock"})]
+        [SmartContractFunction("${this}.IsTimeToProduceExtraBlock", new string[]{"${this}.GetTimestamp", "${this}.CompareTimestamp", "${this}.GetTimestampOfUtcNow"}, new string[]{"${this}._timeForProducingExtraBlock"})]
         public async Task<bool> IsTimeToProduceExtraBlock()
         {
             var expectedTime = await _timeForProducingExtraBlock.GetAsync();
@@ -662,7 +662,7 @@ namespace AElf.Kernel.Tests
             return Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
         }
 
-        [SmartContractFunction("${this}.CompareTimestamp", new string[]{}, new string[]{})]
+        [SmartContractFunction("${this}.GetTimestamp", new string[]{}, new string[]{})]
         private Timestamp GetTimestamp(Timestamp origin, int offset)
         {
             return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
