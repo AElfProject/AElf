@@ -351,31 +351,32 @@ namespace AElf.Kernel.Node.Protocol
                     if (bte == null || bte.Count <= 0)
                     {
                         _logger.Trace("No blocks to execute !");
-                        continue;
                     }
-                
-                    var str2 = bte.Select(bb => bb.ToString()).Aggregate((i, jf) => i + " || " + jf);
-                    _logger?.Trace("Chosen for execution: " + str2);
-                
-                    if (string.IsNullOrEmpty(str2))
-                        _logger?.Trace("Nobody chosen for execution.");
-
-                    if (bte != null && bte.Count > 0)
+                    else
                     {
-                        // Execute and log
-                        List<PendingBlock> br = TryExecuteBlocks(bte).Result;
+                        var str2 = bte.Select(bb => bb.ToString()).Aggregate((i, jf) => i + " || " + jf);
+                        _logger?.Trace("Chosen for execution: " + str2);
+                
+                        if (string.IsNullOrEmpty(str2))
+                            _logger?.Trace("Nobody chosen for execution.");
 
-                        if (br != null && br.Count > 0)
+                        if (bte != null && bte.Count > 0)
                         {
-                            StringBuilder brString = new StringBuilder();
-                            brString.Append(br.ElementAt(0).Block.Header.Index);
-                        
-                            for (int i = 1; i < br.Count; i++)
+                            // Execute and log
+                            List<PendingBlock> br = TryExecuteBlocks(bte).Result;
+
+                            if (br != null && br.Count > 0)
                             {
-                                brString.Append(" - " + br.ElementAt(i).Block.Header.Index);
-                            }
+                                StringBuilder brString = new StringBuilder();
+                                brString.Append(br.ElementAt(0).Block.Header.Index);
                         
-                            _logger?.Trace("Executed the blocks with the following index(es) : " + brString);
+                                for (int i = 1; i < br.Count; i++)
+                                {
+                                    brString.Append(" - " + br.ElementAt(i).Block.Header.Index);
+                                }
+                        
+                                _logger?.Trace("Executed the blocks with the following index(es) : " + brString);
+                            }
                         }
                     }
 
