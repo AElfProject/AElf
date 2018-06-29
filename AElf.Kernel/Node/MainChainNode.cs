@@ -55,7 +55,6 @@ namespace AElf.Kernel.Node
         private readonly ISmartContractService _smartContractService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly IFunctionMetadataService _functionMetadataService;
-        private readonly IConcurrencyExecutingService _concurrencyExecutingService;
 
         private readonly IBlockExecutor _blockExecutor;
 
@@ -68,6 +67,8 @@ namespace AElf.Kernel.Node
             _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
         
         private const int CheckTime = 5000;
+
+        private bool _flag = false;
 
         public BlockProducer BlockProducers
         {
@@ -97,7 +98,7 @@ namespace AElf.Kernel.Node
             IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator, 
             IChainManager chainManager, ISmartContractService smartContractService,
             ITransactionResultService transactionResultService, IBlockManager blockManager, 
-            IFunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService)
+            IFunctionMetadataService functionMetadataService)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
@@ -106,7 +107,6 @@ namespace AElf.Kernel.Node
             _transactionResultService = transactionResultService;
             _blockManager = blockManager;
             _functionMetadataService = functionMetadataService;
-            _concurrencyExecutingService = concurrencyExecutingService;
             _poolService = poolService;
             _protocolDirector = protocolDirector;
             _transactionManager = txManager;
@@ -212,7 +212,7 @@ namespace AElf.Kernel.Node
                 _miner.Start(nodeKeyPair, grouper);
                 
                 Mine();
-                _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
+                _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToByteArray().ToHex());
             }
             
             _logger?.Log(LogLevel.Debug, "AElf node started.");
