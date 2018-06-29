@@ -51,8 +51,8 @@ namespace AElf.Benchmark.TestContract
             Balances.SetValue(to, newToBal);
             //Console.WriteLine("set to pass");
 
-            //Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
-            //+ to.Value.ToBase64() + "(" + newToBal + ")");
+            Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
+            + to.Value.ToBase64() + "(" + newToBal + ")");
             return true;
         }
 

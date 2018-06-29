@@ -6,6 +6,7 @@ using System.Threading;
 using Akka.Actor;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Scheduling;
+using ServiceStack.Text;
 
 namespace AElf.Kernel.Concurrency
 {
@@ -33,13 +34,24 @@ namespace AElf.Kernel.Concurrency
             {
                 cts.CancelAfter(TimeoutMilliSeconds);
                 //TODO: the core count should in the configure file
-                var tasks = _grouper.Process(chainId, transactions).Select(
+                var tasks = _grouper.Process(chainId, transactions, out var failedTxs).Select(
                     txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, cts.Token), cts.Token)
                 ).ToArray();
 
-                var results = await Task.WhenAll(tasks);
+                var results = (await Task.WhenAll(tasks)).SelectMany(x => x).ToList();
 
-                return results.SelectMany(x => x).ToList();
+                foreach (var failed in failedTxs)
+                {
+                    var failedTrace = new TransactionTrace
+                    {
+                        StdErr = "Transaction with ID/hash " + failed.Key.GetHash().Value.ToBase64() +
+                                 " failed, detail message: \n" + failed.Value.Dump(),
+                        TransactionId = failed.Key.GetHash()
+                    };
+                    results.Add(failedTrace);
+                }
+
+                return results;
             }
         }
 
