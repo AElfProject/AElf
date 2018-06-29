@@ -31,7 +31,7 @@ namespace AElf.Kernel.Node.Config
                     "3", new Dictionary<string, string>
                     {
                         {"coinbase", "FfEpvVG!="},
-                        {"pubkey", "0454aec7b9b5720f3266fda0ae21cb4f4274"}
+                        {"pubkey", "047ed3ac820d8e8709979c1d7cbd75514f13"}
                     }
                 }
             };
