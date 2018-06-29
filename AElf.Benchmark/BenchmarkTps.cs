@@ -28,6 +28,7 @@ using Autofac;
 using Google.Protobuf;
 using NLog;
 using ServiceStack;
+using ServiceStack.Text;
 
 namespace AElf.Benchmark
 {
@@ -36,24 +37,38 @@ namespace AElf.Benchmark
         private readonly IChainCreationService _chainCreationService;
         private readonly IBlockManager _blockManager;
         private readonly ISmartContractService _smartContractService;
-        //private readonly IParallelTransactionExecutingService _parallelTransactionExecutingService;
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
+        private readonly BenchmarkOptions _options;
         private readonly IConcurrencyExecutingService _concurrencyExecutingService;
-        
-//        public ActorSystem Sys { get; } = ActorSystem.Create("benchmark");
-//        public IActorRef Router { get;  }
-//        public IActorRef[] Workers { get; }
-//        public IActorRef Requestor { get; }
+
 
         private readonly ServicePack _servicePack;
 
         private readonly TransactionDataGenerator _dataGenerater;
         private readonly Hash _contractHash;
+        
+        private Hash ChainId { get; }
+        private int _incrementId = 0;
+        
+        public byte[] SmartContractZeroCode
+        {
+            get
+            {
+                byte[] code = null;
+                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(System.IO.Path.Combine(_options.DllDir, _options.ZeroContractDll))))
+                {
+                    code = file.ReadFully();
+                }
+                return code;
+            }
+        }
 
-        public Benchmarks(IChainCreationService chainCreationService, IBlockManager blockManager, IChainContextService chainContextService, int maxTxNum, ISmartContractService smartContractService, ILogger logger, IFunctionMetadataService functionMetadataService
-            , IAccountContextService accountContextService, ILogger logger1, IWorldStateDictator worldStateDictator,IConcurrencyExecutingService concurrencyExecutingService)
+        public Benchmarks(IChainCreationService chainCreationService, IBlockManager blockManager,
+            IChainContextService chainContextService, ISmartContractService smartContractService,
+            ILogger logger, IFunctionMetadataService functionMetadataService,
+            IAccountContextService accountContextService, IWorldStateDictator worldStateDictator, BenchmarkOptions options, IConcurrencyExecutingService concurrencyExecutingService)
         {
             ChainId = Hash.Generate();
             
@@ -64,7 +79,8 @@ namespace AElf.Benchmark
             _blockManager = blockManager;
             _smartContractService = smartContractService;
             _accountContextService = accountContextService;
-            _logger = logger1;
+            _logger = logger;
+            _options = options;
             _concurrencyExecutingService = concurrencyExecutingService;
 
 
@@ -77,92 +93,42 @@ namespace AElf.Benchmark
                 AccountContextService = _accountContextService,
             };
 
-//            var workers = new[]
-//            {
-//                  "/user/worker1", "/user/worker2", 
-//                  "/user/worker3", "/user/worker4",
-//                  "/user/worker5", "/user/worker6",
-//                  "/user/worker7", "/user/worker8",
-//                  "/user/worker9", "/user/worker10",
-////                  "/user/worker11", "/user/worker12"
-//            };
-//            Workers = new []
-//            {
-//                Sys.ActorOf(Props.Create<Worker>(), "worker1"), Sys.ActorOf(Props.Create<Worker>(), "worker2"),
-//                Sys.ActorOf(Props.Create<Worker>(), "worker3"), Sys.ActorOf(Props.Create<Worker>(), "worker4"),
-//                Sys.ActorOf(Props.Create<Worker>(), "worker5"), Sys.ActorOf(Props.Create<Worker>(), "worker6"),
-//                Sys.ActorOf(Props.Create<Worker>(), "worker7"), Sys.ActorOf(Props.Create<Worker>(), "worker8"),
-//                Sys.ActorOf(Props.Create<Worker>(), "worker9"), Sys.ActorOf(Props.Create<Worker>(), "worker10"),
-////                Sys.ActorOf(Props.Create<Worker>(), "worker11"), Sys.ActorOf(Props.Create<Worker>(), "worker12")
-//            };
-//            Router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
-//            Workers.ForEach(worker => worker.Tell(new LocalSerivcePack(_servicePack)));
-//            Requestor = Sys.ActorOf(AElf.Kernel.Concurrency.Execution.Requestor.Props(Router));
-//            _parallelTransactionExecutingService = new ParallelTransactionExecutingService(Requestor, new Grouper(_servicePack.ResourceDetectionService, logger));
-//            
-//            //set time to maxvalue to run large truck of tx list
-//            _parallelTransactionExecutingService.TimeoutMilliSeconds = int.MaxValue;
+            //TODO: set timeout to int.max in order to run the large trunk of tx list
             
-            _dataGenerater = new TransactionDataGenerator(maxTxNum);
+            _dataGenerater = new TransactionDataGenerator(options.TxNumber);
             byte[] code = null;
-            #if DEBUG
-            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("./bin/Debug/netcoreapp2.0/AElf.Benchmark.TestContract.dll")))
+            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(options.DllDir + "/" + options.ContractDll)))
             {
                 code = file.ReadFully();
             }
-            #else
-            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("./bin/Release/netcoreapp2.0/AElf.Benchmark.TestContract.dll")))
-            {
-                code = file.ReadFully();
-            }
-            #endif
             _contractHash = Prepare(code).Result;
             
             InitContract(_contractHash, _dataGenerater.KeyDict.Keys).GetResult();
             
         }
 
-        private Hash ChainId { get; }
-        private int _incrementId = 0;
         
 
-        public static readonly string TestContractZeroName = "AElf.Kernel.Tests.TestContractZero";
-        
-        public static string TestContractZeroFolder
+        public async Task BenchmarkEvenGroup()
         {
-            get
+            var resDict = new Dictionary<string, double>();
+            for (int currentGroupCount = _options.GroupRange.ElementAt(0); currentGroupCount <= _options.GroupRange.ElementAt(1); currentGroupCount++)
             {
-#if DEBUG
-                return $"../{TestContractZeroName}/bin/Debug/netstandard2.0";
-    #else
-                return $"../{TestContractZeroName}/bin/Release/netstandard2.0";
-#endif
-                
+                var res = await MultipleGroupBenchmark(_options.TxNumber, currentGroupCount);
+                resDict.Add(res.Key, res.Value);
             }
-        }
-        
-        public byte[] SmartContractZeroCode
-        {
-            get
-            {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath($"{TestContractZeroFolder}/{TestContractZeroName}.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
-            }
+
+            _logger.Info("Benchmark report \n \t Configuration: \n" + 
+                         string.Join("\n", _options.ToStringDictionary().Select(option => string.Format("\t {0} - {1}", option.Key, option.Value))) + 
+                         "\n\n\n\t Benchmark result:\n" + string.Join("\n", resDict.Select(kv=> "\t" + kv.Key + ": " + kv.Value)));
+
+            // + string.Join("\n", resDict.Select(kv=> "\t" + kv.Key + ": " + kv.Value)))
         }
 
 
         public async Task<KeyValuePair<string, double>> MultipleGroupBenchmark(int txNumber, int groupCount)
         {
-            //prepare data
-            Console.WriteLine("-------------------------------------");
-            Console.WriteLine("Benchmark with multiple conflict group");
-            Console.WriteLine("-------------------------------------");
-
-            int repeatTime = 20;
+            int repeatTime = _options.RepeatTime;
         
             var txList = _dataGenerater.GetMultipleGroupTx(txNumber, groupCount, _contractHash);
             long timeused = 0;
@@ -182,16 +148,6 @@ namespace AElf.Benchmark
         
                 swExec.Stop();
                 timeused += swExec.ElapsedMilliseconds;
-                long total = 0;
-                txResult.ForEach(result =>
-                {
-                    if (!result.StdErr.IsNullOrEmpty())
-                    {
-                        Console.WriteLine(result.StdErr);
-                    }
-                } );
-                string timeStr = string.Join(", ", txResult.Select(a => a.Elapsed.ToString()));
-                _logger.Info("Elapsed of every contract: " + timeStr);
                 txResult.ForEach(trace =>
                 {
                     if (!trace.StdErr.IsNullOrEmpty())
@@ -289,28 +245,6 @@ namespace AElf.Benchmark
                 initTxList.Add(txnBalInit);
             }
             var txTrace = await _concurrencyExecutingService.ExecuteAsync(initTxList, ChainId,new Grouper(_servicePack.ResourceDetectionService, _logger));
-            ;
-        }
-
-        public double BenchmarkGrouping(int txNumber, List<ITransaction> txList)
-        {
-            byte[] code = null;
-            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../AElf.Benchmark.TestContract/bin/Debug/netcoreapp2.0/AElf.Benchmark.TestContract.dll")))
-            {
-                code = file.ReadFully();
-            }
-
-            var contractHash = Prepare(code).Result;
-            
-            Grouper grouper = new Grouper(_servicePack.ResourceDetectionService);
-            
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-
-            grouper.Process(ChainId, txList);
-            
-            sw.Stop();
-            return txNumber / (sw.ElapsedMilliseconds / 1000.0);
         }
         
     }

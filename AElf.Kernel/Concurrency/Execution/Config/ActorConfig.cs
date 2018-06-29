@@ -23,7 +23,7 @@ namespace AElf.Kernel.Concurrency.Execution.Config
                         deployment {
                             /router {
                                 router = tracked-group
-                                routees.paths = [""/user/worker"",""/user/worker1"",""/user/worker2"",""/user/worker3""]
+                                routees.paths = [""/user/worker0"",""/user/worker1"",""/user/worker2"",""/user/worker3"",""/user/worker4"",""/user/worker5"",""/user/worker6"",""/user/worker7""]
                             }                
                         }
                         router.type-mapping {
