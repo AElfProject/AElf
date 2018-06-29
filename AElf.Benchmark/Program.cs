@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Database;
 using AElf.Database.Config;
@@ -7,35 +9,65 @@ using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
+using Akka.Util.Internal;
 using Autofac;
+using CommandLine;
 
 namespace AElf.Benchmark
 {
     public class Program
     {
-        
-        public static async Task Main()
+        public static async Task Main(string[] args)
         {
-            Hash chainId = Hash.Generate();
+            BenchmarkOptions opts = null;
+            Parser.Default.ParseArguments<BenchmarkOptions>(args)
+                .WithParsed(o =>
+                {
+                    opts = o;
+                })
+                .WithNotParsed(errs =>
+                {
+                    //Success = false;
+                    //error
+                });
+
+            if (opts == null)
+            {
+                return;
+            }
+
+            if (!Directory.Exists(System.IO.Path.GetFullPath(opts.SdkDir)))
+            {
+                Console.WriteLine("directory " + System.IO.Path.GetFullPath(opts.SdkDir) + " not exist");
+                return;
+            }
+            if (!File.Exists(System.IO.Path.GetFullPath(System.IO.Path.Combine(opts.DllDir, opts.ContractDll))))
+            {
+                Console.WriteLine(System.IO.Path.GetFullPath(System.IO.Path.Combine(opts.DllDir, opts.ContractDll) + " not exist"));
+                return;
+            }
+            
+            if (!File.Exists(System.IO.Path.GetFullPath(System.IO.Path.Combine(opts.DllDir, opts.ZeroContractDll))))
+            {
+                Console.WriteLine(System.IO.Path.GetFullPath(System.IO.Path.Combine(opts.DllDir, opts.ZeroContractDll) + " not exist"));
+                return;
+            }
+            
+            if (opts.GroupRange.Count() != 2 || opts.GroupRange.ElementAt(0) > opts.GroupRange.ElementAt(1))
+            {
+                Console.WriteLine(
+                    "please input 2 number to indicate the lower and upper bounds, where lower bound is lower than upper bound");
+                return;
+            }
+            
             var builder = new ContainerBuilder();
             builder.RegisterModule(new MainModule());
             builder.RegisterModule(new MetadataModule());
-
-            var dataConfig = new DatabaseConfig
-            {
-                Type = DatabaseType.Redis,
-                Host = "127.0.0.1",
-                Port = 6379
-            };
             builder.RegisterModule(new WorldStateDictatorModule());
-            builder.RegisterModule(new DatabaseModule(dataConfig));
+            builder.RegisterModule(new DatabaseModule(opts.DatabaseConfig));
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterType<Benchmarks>().WithParameter("chainId", chainId).WithParameter("maxTxNum", 3000);
-            #if DEBUG
-            var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
-            #else
-            var runner = new SmartContractRunner("../AElf.SDK.CSharp/bin/Release/netstandard2.0/");
-            #endif
+            builder.RegisterType<Benchmarks>().WithParameter("options", opts);
+            var runner = new SmartContractRunner(opts.SdkDir);
             SmartContractRunnerFactory smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
@@ -58,15 +90,10 @@ namespace AElf.Benchmark
             using(var scope = container.BeginLifetimeScope())
             {
                 var benchmarkTps = scope.Resolve<Benchmarks>();
-                var resDict = new Dictionary<string, double>();
-                int groupCount = 8;
-                for (int i = 1; i <= groupCount; i++)
+                if (opts.SupportedBenchmark == "evenGroup")
                 {
-                    var res = await benchmarkTps.MultipleGroupBenchmark(2400, i);
-                    resDict.Add(res.Key, res.Value);
+                    await benchmarkTps.BenchmarkEvenGroup();
                 }
-
-                resDict.ForEach((info, time) => Console.WriteLine(info + ": " + time));
             }
         }
         
@@ -74,11 +101,6 @@ namespace AElf.Benchmark
         {
             var db = container.Resolve<IKeyValueDatabase>();
             return db.IsConnected();
-        }
-
-        private static void PrintHelperAndExit()
-        {
-            Console.WriteLine("Please input valid arguments, example: [ -scExec -${path-to-contract-dll} -evenGroup 4000 1 4");
         }
     }
 }
