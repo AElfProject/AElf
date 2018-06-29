@@ -1,6 +1,16 @@
 #!/bin/bash
-set -ev
 
 dotnet restore -s "https://nuget.cdn.azure.cn/v3/index.json" -s "https://api.nuget.org/v3/index.json" "AElf.sln"
-dotnet test "AElf.Kernel.Tests/AElf.Kernel.Tests.csproj"
-dotnet build "AElf.Kernel/AElf.Kernel.csproj"
+dotnet build
+
+for i in *Tests ; do
+  limit=$((${#i}+20))
+
+  echo ""
+  echo "Executing Tests for $i"
+  printf '=%.0s' $(seq 1 $limit)
+  echo ""
+
+  dotnet test "$i" --verbosity quiet --no-build
+  echo ""
+done

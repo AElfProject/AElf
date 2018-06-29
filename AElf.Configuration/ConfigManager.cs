@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using AElf.Common.Application;
 
 [assembly: InternalsVisibleTo("AElf.Configuration.Tests")]
 
@@ -8,7 +9,7 @@ namespace AElf.Configuration
 {
     internal class ConfigManager
     {
-        internal static string ConfigFilePath = "/etc/aelfconfig/";
+        internal static string ConfigFilePath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config");
         private static Dictionary<string, ConfigInfo> ConfigInfos = new Dictionary<string, ConfigInfo>();
         private static readonly object _configLock = new object();
 
@@ -17,7 +18,7 @@ namespace AElf.Configuration
             var configName = GetConfigName<T>();
             return GetConfigInstance<T>(configName);
         }
-        
+
         private static string GetConfigName<T>()
         {
             var t = typeof(T);
@@ -64,13 +65,13 @@ namespace AElf.Configuration
 
         private static string GetFromLocalFile(string name)
         {
-            var filePath = ConfigFilePath + name;
+            var filePath = Path.Combine(ConfigFilePath, name);
             if (!File.Exists(filePath))
             {
                 return null;
             }
 
-            var text = File.ReadAllText(ConfigFilePath + name);
+            var text = File.ReadAllText(filePath);
             return text;
         }
     }

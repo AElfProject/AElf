@@ -197,7 +197,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 From = Hash.Zero,
                 To = address,
                 IncrementId = NewIncrementId(),
-                MethodName = "InitializeAsync",
+                MethodName = "Initialize",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(account, (ulong)101))
             };
             var txnInitCtxt = new TransactionContext()

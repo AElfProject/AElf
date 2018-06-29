@@ -10,6 +10,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Modules.AutofacModule;
@@ -55,7 +56,6 @@ namespace AElf.Launcher
             
             var txPoolConf = confParser.TxPoolConfig;
             var netConf = confParser.NetConfig;
-            var databaseConf = confParser.DatabaseConfig;
             var minerConfig = confParser.MinerConfig;
             var nodeConfig = confParser.NodeConfig;
             var isMiner = confParser.IsMiner;
@@ -70,7 +70,7 @@ namespace AElf.Launcher
 
             
             // Setup ioc 
-            IContainer container = SetupIocContainer(isMiner, isNewChain, netConf, databaseConf, txPoolConf, 
+            IContainer container = SetupIocContainer(isMiner, isNewChain, netConf, txPoolConf, 
                 minerConfig, nodeConfig, smartContractRunnerFactory);
 
             if (container == null)
@@ -107,6 +107,9 @@ namespace AElf.Launcher
 
             using(var scope = container.BeginLifetimeScope())
             {
+                var concurrencySercice = scope.Resolve<IConcurrencyExecutingService>();
+                concurrencySercice.InitActorSystem();
+                
                 IAElfNode node = scope.Resolve<IAElfNode>();
                
                 // Start the system
@@ -115,7 +118,6 @@ namespace AElf.Launcher
                 //Mine(node);
                 Console.ReadLine();
             }
-            
         }
         
         
@@ -127,23 +129,19 @@ namespace AElf.Launcher
                 
                 //var contractZeroDllPath = $"{dir}/{ContractZeroName}.dll";
                 
-                var contractZeroDllPath = $"../{ContractZeroName}/bin/Debug/netstandard2.0/{ContractZeroName}.dll";
+                var contractZeroDllPath = $"{ContractZeroName}.dll";
                 
                 byte[] code = null;
                 using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(contractZeroDllPath)))
                 {
                     code = file.ReadFully();
                 }
-                /*ABI.CSharp.Module module = Generator.GetABIModule(code);
-                string actual = new JsonFormatter(new JsonFormatter.Settings(true)).Format(module);
-                Console.WriteLine(actual);*/
                 return code;
             }
         }
         
         
-        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, IAElfNetworkConfig netConf,
-            IDatabaseConfig databaseConf, ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig,
+        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, IAElfNetworkConfig netConf, ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig,
             SmartContractRunnerFactory smartContractRunnerFactory)
         {
             var builder = new ContainerBuilder();
@@ -156,7 +154,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new WorldStateDictatorModule());
             builder.RegisterModule(new LoggerModule());
-            builder.RegisterModule(new DatabaseModule(databaseConf));
+            builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new NetworkModule(netConf, isMiner));
             builder.RegisterModule(new RpcServerModule());
 

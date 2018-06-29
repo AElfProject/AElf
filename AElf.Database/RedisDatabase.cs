@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using System.Threading.Tasks;
 using AElf.Database.Config;
 using NServiceKit.Redis;
@@ -10,13 +9,9 @@ namespace AElf.Database
     {
         private readonly PooledRedisClientManager _client;
 
-        public RedisDatabase() : this(new DatabaseConfig())
+        public RedisDatabase()
         {
-        }
-
-        public RedisDatabase(DatabaseConfig config)
-        {
-            _client = new PooledRedisClientManager($"{config.Host}:{config.Port}");
+            _client = new PooledRedisClientManager($"{DatabaseConfig.Instance.Host}:{DatabaseConfig.Instance.Port}");
         }
 
         public async Task<byte[]> GetAsync(string key, Type type)

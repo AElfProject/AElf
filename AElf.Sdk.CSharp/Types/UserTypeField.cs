@@ -13,7 +13,20 @@ namespace AElf.Sdk.CSharp.Types
         {
             _name = name;
         }
+ 
+        public void SetValue(T value)
+        {
+            var task = SetAsync(value);
+            task.Wait();
+        }
 
+        public T GetValue()
+        {
+            var task = GetAsync();
+            task.Wait();
+            return task.Result;
+        }
+        
         public async Task SetAsync(T value)
         {
             if (value != null)

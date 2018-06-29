@@ -47,7 +47,7 @@ namespace AElf.CLI.Command
             
             try
             {
-                var comms = resp["commands"].ToList();
+                var comms = resp["result"]["commands"].ToList();
 
                 foreach (var c in comms)
                 {

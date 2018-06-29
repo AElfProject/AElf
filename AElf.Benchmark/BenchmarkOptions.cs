@@ -11,13 +11,13 @@ namespace AElf.Benchmark
 {
     public class BenchmarkOptions
     {
-        [Option(HelpText = "The directory where store the sdk dll file (usually named AElf.Sdk.CSharp).")]
+        [Option(HelpText = "The directory where store the sdk dll file (usually named AElf.Sdk.CSharp.dll).")]
         public string SdkDir { get; set; }
         
         [Option(HelpText = "The directory where store all the related dll file.")]
         public string DllDir { get; set; }
         
-        [Option(Default = "AElf.Benchmark.dll", HelpText = "The dll file name that contains the token transfer contract.")]
+        [Option(Default = "AElf.Benchmark.TestContract.dll", HelpText = "The dll file name that contains the token transfer contract.")]
         public string ContractDll { get; set; }
         
         [Option(Default = "AElf.Kernel.Tests.TestContractZero.dll", HelpText = "The dll file name that contains the contract zero.")]

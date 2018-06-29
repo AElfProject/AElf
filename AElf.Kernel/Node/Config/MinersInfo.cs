@@ -1,6 +1,5 @@
-﻿﻿using System.Collections.Generic;
- using System.Threading.Tasks;
- using AElf.Configuration;
+﻿using System.Collections.Generic;
+using AElf.Configuration;
 using Newtonsoft.Json;
 
 namespace AElf.Kernel.Node.Config
@@ -17,22 +16,19 @@ namespace AElf.Kernel.Node.Config
                 {
                     "1", new Dictionary<string, string>
                     {
-                        {"coinbase", "GdsgFf\\="},
-                        {"pubkey", "BJHHuAdKY0pAu8ww2QtypFBr"}
+                        {"address", "0491c7b8074a634a40bbcc30d90b72a4506b"}
                     }
                 },
                 {
                     "2", new Dictionary<string, string>
                     {
-                        {"coinbase", "KAOFepo=="},
-                        {"pubkey", "BDlxj44jQtS9Qmt+iOCVod4Y"}
+                        {"address", "040e80d9ea7fd2cfcd07d25d67ecf2568a73"}
                     }
                 },
                 {
                     "3", new Dictionary<string, string>
                     {
-                        {"coinbase", "FfEpvVG!="},
-                        {"pubkey", "BFSux7m1cg8yZv2griHLT0J0"}
+                        {"address", "047ed3ac820d8e8709979c1d7cbd75514f13"}
                     }
                 }
             };

@@ -4,12 +4,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Concurrency;
+using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Kernel.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using ServiceStack;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
 namespace AElf.Kernel.Miner
@@ -23,6 +26,7 @@ namespace AElf.Kernel.Miner
         private readonly IBlockManager _blockManager;
         private readonly IWorldStateDictator _worldStateDictator;
         private ISmartContractService _smartContractService;
+        private IConcurrencyExecutingService _concurrencyExecutingService;
 
 
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
@@ -35,7 +39,7 @@ namespace AElf.Kernel.Miner
         public CancellationTokenSource Cts { get; private set; }
 
 
-        private IParallelTransactionExecutingService _parallelTransactionExecutingService;
+        private IGrouper _grouper;
 
         
         /// <summary>
@@ -49,7 +53,7 @@ namespace AElf.Kernel.Miner
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, 
                 IChainManager chainManager, IBlockManager blockManager, IWorldStateDictator worldStateDictator, 
-            ISmartContractService smartContractService)
+            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -57,11 +61,13 @@ namespace AElf.Kernel.Miner
             _blockManager = blockManager;
             _worldStateDictator = worldStateDictator;
             _smartContractService = smartContractService;
+            _concurrencyExecutingService = concurrencyExecutingService;
         }
 
         
         public async Task<IBlock> Mine()
         {
+
             try
             {
                 if (Cts == null || Cts.IsCancellationRequested)
@@ -77,7 +83,7 @@ namespace AElf.Kernel.Miner
                 {  
                     traces = ready.Count == 0
                     ? new List<TransactionTrace>()
-                    : await _parallelTransactionExecutingService.ExecuteAsync(ready, Config.ChainId);
+                    : await _concurrencyExecutingService.ExecuteAsync(ready, Config.ChainId, _grouper);
                 }
                 else
                 {
@@ -218,11 +224,11 @@ namespace AElf.Kernel.Miner
         /// <summary>
         /// start mining  
         /// </summary>
-        public void Start(ECKeyPair nodeKeyPair, IParallelTransactionExecutingService parallelTransactionExecutingService)
+        public void Start(ECKeyPair nodeKeyPair, IGrouper grouper)
         {
             Cts = new CancellationTokenSource();
             _keyPair = nodeKeyPair;
-            _parallelTransactionExecutingService = parallelTransactionExecutingService;
+            _grouper = grouper;
             //MiningResetEvent = new AutoResetEvent(false);
         }
 

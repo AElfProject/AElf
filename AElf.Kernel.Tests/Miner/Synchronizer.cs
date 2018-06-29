@@ -40,12 +40,13 @@ namespace AElf.Kernel.Tests.Miner
         private IWorldStateDictator _worldStateDictator;
         private ISmartContractManager _smartContractManager;
         private IFunctionMetadataService _functionMetadataService;
+        private IConcurrencyExecutingService _concurrencyExecutingService;
 
         private ServicePack _servicePack;
         private IActorRef _requestor;
 
         public Synchronizer(IWorldStateDictator worldStateDictator, ISmartContractStore smartContractStore,
-            IChainCreationService chainCreationService, IChainContextService chainContextService, IChainManager chainManager, IBlockManager blockManager, ILogger logger, ITransactionResultManager transactionResultManager, ITransactionManager transactionManager, IAccountContextService accountContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory) : base(new XunitAssertions())
+            IChainCreationService chainCreationService, IChainContextService chainContextService, IChainManager chainManager, IBlockManager blockManager, ILogger logger, ITransactionResultManager transactionResultManager, ITransactionManager transactionManager, IAccountContextService accountContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory, IConcurrencyExecutingService concurrencyExecutingService) : base(new XunitAssertions())
         {
             _chainCreationService = chainCreationService;
             _chainContextService = chainContextService;
@@ -57,6 +58,7 @@ namespace AElf.Kernel.Tests.Miner
             _accountContextService = accountContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
+            _concurrencyExecutingService = concurrencyExecutingService;
 
             _worldStateDictator = worldStateDictator;
             _smartContractManager = new SmartContractManager(smartContractStore);
@@ -219,12 +221,12 @@ namespace AElf.Kernel.Tests.Miner
             block.Body.BlockHeader = block.Header.GetHash();
 
 
-            IParallelTransactionExecutingService parallelTransactionExecutingService =
+            /*IParallelTransactionExecutingService parallelTransactionExecutingService =
                 new ParallelTransactionExecutingService(_requestor,
-                    new Grouper(_servicePack.ResourceDetectionService));
+                    new Grouper(_servicePack.ResourceDetectionService));*/
             var synchronizer = new Kernel.Miner.BlockExecutor(poolService,
-                _chainManager, _blockManager);
-            synchronizer.Start(parallelTransactionExecutingService);
+                _chainManager, _blockManager, _worldStateDictator, _concurrencyExecutingService);
+            synchronizer.Start(new Grouper(_servicePack.ResourceDetectionService));
             var res = await synchronizer.ExecuteBlock(block);
             Assert.True(res);
             Assert.Equal((ulong)2, await _chainManager.GetChainCurrentHeight(chain.Id));

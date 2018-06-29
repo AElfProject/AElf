@@ -51,7 +51,10 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Assert.Equal(JobExecutionStatus.RequestStatus.Completed, js2.Status);
 
             Assert.Equal(tx1.GetHash(), trace.TransactionId);
-            Assert.True(string.IsNullOrEmpty(trace.StdErr));
+            if (!string.IsNullOrEmpty(trace.StdErr))
+            {
+                Assert.Null(trace.StdErr);
+            }
 
             Assert.Equal((ulong) 90, _mock.GetBalance1(from));
             Assert.Equal((ulong) 10, _mock.GetBalance1(to));
@@ -104,10 +107,16 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             Assert.Equal(tx1.GetHash(), trace1.TransactionId);
             Assert.Equal(tx2.GetHash(), trace2.TransactionId);
-            Assert.True(string.IsNullOrEmpty(trace1.StdErr));
+            if (!string.IsNullOrEmpty(trace1.StdErr))
+            {
+                Assert.Null(trace1.StdErr);
+            }
             Assert.Equal((ulong) 90, _mock.GetBalance1(address1));
             Assert.Equal((ulong) 10, _mock.GetBalance1(address2));
-            Assert.True(string.IsNullOrEmpty(trace2.StdErr));
+            if (!string.IsNullOrEmpty(trace2.StdErr))
+            {
+                Assert.Null(trace2.StdErr);
+            }
             Assert.Equal((ulong) 190, _mock.GetBalance1(address3));
             Assert.Equal((ulong) 10, _mock.GetBalance1(address4));
 

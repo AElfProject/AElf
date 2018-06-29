@@ -6,6 +6,7 @@ using AElf.Common.Application;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency.Execution.Config;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Config;
 using AElf.Kernel.TxMemPool;
@@ -25,7 +26,6 @@ namespace AElf.Launcher
     {
         public IAElfNetworkConfig NetConfig { get; private set; }
         public ITxPoolConfig TxPoolConfig { get; private set; }
-        public IDatabaseConfig DatabaseConfig { get; private set; }
         public IMinerConfig MinerConfig { get; private set; }
         public INodeConfig NodeConfig { get; private set; }
         public IRunnerConfig RunnerConfig { get; private set; }
@@ -113,23 +113,18 @@ namespace AElf.Launcher
 
 
             // Database
-            var databaseConfig = new DatabaseConfig();
-
-            databaseConfig.Type = DatabaseTypeHelper.GetType(opts.DBType);
-
+            DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
+            
             if (!string.IsNullOrWhiteSpace(opts.DBHost))
             {
-                databaseConfig.Host = opts.DBHost;
+                DatabaseConfig.Instance.Host = opts.DBHost;
             }
 
             if (opts.DBPort.HasValue)
             {
-                databaseConfig.Port = opts.DBPort.Value;
-            }
-
-            DatabaseConfig = databaseConfig;
-
-
+                DatabaseConfig.Instance.Port = opts.DBPort.Value;
+            }           
+            
             // to be miner
             IsMiner = opts.IsMiner;
 
@@ -146,22 +141,22 @@ namespace AElf.Launcher
                 {
                     throw new Exception("coinbase is needed");
                 }
-
+                
                 Coinbase = ByteString.CopyFromUtf8(opts.CoinBase);
             }
-
+            
             MinerConfig = new MinerConfig
             {
                 CoinBase = Coinbase,
                 TxCount = opts.TxCountLimit
             };
-
-
+            
+            
             // tx pool config
             TxPoolConfig = Kernel.TxMemPool.TxPoolConfig.Default;
             TxPoolConfig.FeeThreshold = opts.MinimalFee;
             TxPoolConfig.PoolLimitSize = opts.PoolCapacity;
-
+            
             // node config
             NodeConfig = new NodeConfig
             {
@@ -169,6 +164,20 @@ namespace AElf.Launcher
                 FullNode = true,
                 Coinbase = Coinbase
             };
+                        
+            // Actor
+            if (opts.ActorIsCluster.HasValue)
+                ActorConfig.Instance.IsCluster = opts.ActorIsCluster.Value;
+            if (!string.IsNullOrWhiteSpace(opts.ActorHostName))
+                ActorConfig.Instance.HostName = opts.ActorHostName;
+            if (opts.ActorPort.HasValue)
+                ActorConfig.Instance.Port = opts.ActorPort.Value;
+            if (opts.ActorIsSeed.HasValue)
+                ActorWorkerConfig.Instance.IsSeedNode = opts.ActorIsSeed.Value;
+            if (!string.IsNullOrWhiteSpace(opts.ActorWorkerHostName))
+                ActorWorkerConfig.Instance.HostName = opts.ActorWorkerHostName;
+            if (opts.ActorWorkerPort.HasValue)
+                ActorWorkerConfig.Instance.Port = opts.ActorWorkerPort.Value;
 
             NodeConfig.DataDir = string.IsNullOrEmpty(opts.DataDir)
                 ? ApplicationHelpers.GetDefaultDataDir()

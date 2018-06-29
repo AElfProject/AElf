@@ -58,7 +58,7 @@ namespace AElf.Kernel.Services
 
             // get account dataprovider
             var dataProvider =
-                new CachedDataProvider((await _worldStateDictator.GetAccountDataProvider(account)).GetDataProvider());
+                new CachedDataProvider((await _worldStateDictator.SetChainId(chainId).GetAccountDataProvider(account)).GetDataProvider());
 
             // run smartcontract executive info and return executive
 
@@ -94,8 +94,13 @@ namespace AElf.Kernel.Services
             return runner.GetContractType(registration);
         }
         
-        public async Task DeployContractAsync(Hash chainId, Hash account, SmartContractRegistration registration)
+        /// <inheritdoc/>
+        public async Task DeployContractAsync(Hash chainId, Hash account, SmartContractRegistration registration, bool isPrivileged)
         {
+            // get runnner
+            var runner = _smartContractRunnerFactory.GetRunner(registration.Category);
+            runner.CodeCheck(registration.ContractBytes.ToByteArray(), isPrivileged);
+
             var contractType = GetContractType(registration);
             //TODO: due to (1) unclear with how to get the contract reference info and (2) function metadata service don't have update logic, we pass empty reference map as parameter and don't support contract call each other for now 
             await _functionMetadataService.DeployContract(chainId, contractType, account, new Dictionary<string, Hash>());

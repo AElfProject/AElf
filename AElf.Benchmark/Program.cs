@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
@@ -63,9 +64,14 @@ namespace AElf.Benchmark
             var builder = new ContainerBuilder();
             builder.RegisterModule(new MainModule());
             builder.RegisterModule(new MetadataModule());
+
+            DatabaseConfig.Instance.Type = opts.DatabaseConfig.Type;
+            DatabaseConfig.Instance.Host = opts.DatabaseConfig.Host;
+            DatabaseConfig.Instance.Port = opts.DatabaseConfig.Port;
             builder.RegisterModule(new WorldStateDictatorModule());
-            builder.RegisterModule(new DatabaseModule(opts.DatabaseConfig));
+            builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new LoggerModule());
+            builder.RegisterType(typeof(ConcurrencyExecutingService)).As<IConcurrencyExecutingService>().SingleInstance();
             builder.RegisterType<Benchmarks>().WithParameter("options", opts);
             var runner = new SmartContractRunner(opts.SdkDir);
             SmartContractRunnerFactory smartContractRunnerFactory = new SmartContractRunnerFactory();
@@ -89,11 +95,15 @@ namespace AElf.Benchmark
             
             using(var scope = container.BeginLifetimeScope())
             {
+                var concurrencySercice = scope.Resolve<IConcurrencyExecutingService>();
+                concurrencySercice.InitActorSystem();
+                
                 var benchmarkTps = scope.Resolve<Benchmarks>();
                 if (opts.SupportedBenchmark == "evenGroup")
                 {
                     await benchmarkTps.BenchmarkEvenGroup();
                 }
+                Console.ReadKey();
             }
         }
         

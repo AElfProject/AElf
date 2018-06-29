@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Types;
+using AElf.Types.CSharp.MetadataAttribute;
 using Akka.Util.Internal;
 using Google.Protobuf;
 using NLog;

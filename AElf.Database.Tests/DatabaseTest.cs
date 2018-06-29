@@ -3,13 +3,13 @@ using Xunit;
 
 namespace AElf.Database.Tests
 {
-    public class SsdbDatabaseTest
+    public class DatabaseTest
     {
         private readonly IKeyValueDatabase _database;
 
-        public SsdbDatabaseTest()
+        public DatabaseTest()
         {
-            _database = new SsdbDatabase();
+            _database = new KeyValueDatabase();
         }
 
         [Fact]
@@ -25,7 +25,7 @@ namespace AElf.Database.Tests
             var key = "settest";
             var value = Guid.NewGuid().ToString();
 
-            _database.SetAsync(key, Helper.StringToBytes((value)));
+            _database.SetAsync(key, Helper.StringToBytes(value));
         }
 
         [Fact]

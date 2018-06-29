@@ -9,7 +9,6 @@ using AElf.Kernel.Storages;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
-using AElf.Kernel.SmartContracts.CSharpSmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;

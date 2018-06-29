@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Concurrency;
+using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Managers;
 using AElf.Kernel.TxMemPool;
 using AElf.Kernel.Types;
@@ -13,18 +15,23 @@ namespace AElf.Kernel.Miner
     public class BlockExecutor : IBlockExecutor
     {
         private readonly ITxPoolService _txPoolService;
-        private IParallelTransactionExecutingService _parallelTransactionExecutingService;
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
+        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IConcurrencyExecutingService _concurrencyExecutingService;
+        private IGrouper _grouper;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainManager chainManager, 
-            IBlockManager blockManager)
+            IBlockManager blockManager, IWorldStateDictator worldStateDictator, 
+            IConcurrencyExecutingService concurrencyExecutingService)
         {
             _txPoolService = txPoolService;
             _chainManager = chainManager;
             _blockManager = blockManager;
+            _worldStateDictator = worldStateDictator;
+            _concurrencyExecutingService = concurrencyExecutingService;
         }
-        
+
         /// <summary>
         /// Signals to a CancellationToken that mining should be canceled
         /// </summary>
@@ -79,10 +86,17 @@ namespace AElf.Kernel.Miner
                 
                 var traces = ready.Count == 0
                     ? new List<TransactionTrace>()
-                    : await _parallelTransactionExecutingService.ExecuteAsync(ready, block.Header.ChainId);
+                    : await _concurrencyExecutingService.ExecuteAsync(ready, block.Header.ChainId, _grouper);
                 
                 // TODO: commit tx results
         
+                await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
+                var ws = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
+
+                if (ws == null || await ws.GetWorldStateMerkleTreeRootAsync() !=
+                    block.Header.MerkleTreeRootOfWorldState)
+                    return false;
+                
                 await _chainManager.AppendBlockToChainAsync(block);
                 await _blockManager.AddBlockAsync(block);
                 
@@ -96,10 +110,10 @@ namespace AElf.Kernel.Miner
             return true;
         }
 
-        public void Start(IParallelTransactionExecutingService parallelTransactionExecutingService)
+        public void Start(IGrouper grouper)
         {
             Cts = new CancellationTokenSource();
-            _parallelTransactionExecutingService = parallelTransactionExecutingService;
+            _grouper = grouper;
         }
     }
 }
