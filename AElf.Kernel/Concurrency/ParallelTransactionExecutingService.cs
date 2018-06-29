@@ -25,16 +25,13 @@ namespace AElf.Kernel.Concurrency
 
         public async Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId)
         {
-            
-            var cts = new CancellationTokenSource();
-
-            cts.CancelAfter(TimeoutMilliSeconds);
-
+            using (var cts = new CancellationTokenSource())
             using (new Timer(
                 CancelExecutions, cts, TimeSpan.FromMilliseconds(TimeoutMilliSeconds),
                 TimeSpan.FromMilliseconds(-1)
             ))
             {
+                cts.CancelAfter(TimeoutMilliSeconds);
                 //TODO: the core count should in the configure file
                 var tasks = _grouper.ProcessWithCoreCount(8, chainId, transactions).Select(
                     txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, cts.Token), cts.Token)

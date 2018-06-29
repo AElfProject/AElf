@@ -52,12 +52,12 @@ namespace AElf.Kernel.Concurrency.Execution
                     {
                         _cancellationTokenSource?.Dispose();
                         _cancellationTokenSource = new CancellationTokenSource();
-                        var sender = Sender;
+                        var receiver = Self;
                         Task.Run(() =>
                             RunJob(req).ContinueWith(
                                 task => task.Result,
                                 TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
-                            ).PipeTo(sender)
+                            ).PipeTo(receiver)
                         );
                         Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Running));
                     }
@@ -96,20 +96,31 @@ namespace AElf.Kernel.Concurrency.Execution
             _state = State.Running;
 
             IChainContext chainContext = null;
-            _servicePack.WorldStateDictator.SetChainId(request.ChainId);
+
+            Exception chainContextException = null;
+            
             try
             {
                 chainContext = await _servicePack.ChainContextService.GetChainContextAsync(request.ChainId);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                chainContextException = e;
             }
 
             foreach (var tx in request.Transactions)
             {
                 TransactionTrace trace;
 
-                if (_cancellationTokenSource.IsCancellationRequested)
+                if (chainContextException != null)
+                {
+                    trace = new TransactionTrace()
+                    {
+                        TransactionId = tx.GetHash(),
+                        StdErr = chainContextException + "\n"
+                    };
+                }
+                else if (_cancellationTokenSource.IsCancellationRequested)
                 {
                     trace = new TransactionTrace()
                     {
