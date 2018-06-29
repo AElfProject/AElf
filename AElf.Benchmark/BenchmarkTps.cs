@@ -295,7 +295,7 @@ namespace AElf.Benchmark
         public double BenchmarkGrouping(int txNumber, List<ITransaction> txList)
         {
             byte[] code = null;
-            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("./bin/Debug/netcoreapp2.0/AElf.Benchmark.dll")))
+            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../AElf.Benchmark.TestContract/bin/Debug/netcoreapp2.0/AElf.Benchmark.TestContract.dll")))
             {
                 code = file.ReadFully();
             }
