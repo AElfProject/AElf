@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Merkle;
 using AElf.Kernel.Services;
@@ -18,19 +17,19 @@ namespace AElf.Kernel.Tests.Miner
     public class BlockGeneration
     {
         private readonly IBlockManager _blockManager;
-        private readonly IWorldStateManager _worldStateManager;
+        private readonly IWorldStateDictator _worldStateDictator;
 
-        public BlockGeneration(IBlockManager blockManager, IWorldStateManager worldStateManager)
+        public BlockGeneration(IBlockManager blockManager, IWorldStateDictator worldStateDictator)
         {
             _blockManager = blockManager;
-            _worldStateManager = worldStateManager;
+            _worldStateDictator = worldStateDictator;
         }
 
 
         public async Task SetWorldState()
         {
             var address = Hash.Generate();
-            var accountDataProvider = _worldStateManager.GetAccountDataProvider(address);
+            var accountDataProvider = await _worldStateDictator.GetAccountDataProvider(address);
             var dataProvider = accountDataProvider.GetDataProvider();
             var data1 = Hash.Generate().Value.ToArray();
             var key = new Hash("testkey".CalculateHash());
@@ -75,10 +74,10 @@ namespace AElf.Kernel.Tests.Miner
             return Task.FromResult(dict);
         }
 
-        public async Task<Mock<IWorldStateManager>> GetWorldStateManager(Hash lastBlockHash, Hash txId1, Hash txId2, Hash h1, Hash h2, Hash chainId)
+        public async Task<Mock<IWorldStateDictator>> GetWorldStateManager(Hash lastBlockHash, Hash txId1, Hash txId2, Hash h1, Hash h2, Hash chainId)
         {
             var dic = new Dictionary<string, byte[]>();
-            var mock = new Mock<IWorldStateManager>();
+            var mock = new Mock<IWorldStateDictator>();
             mock.Setup(ws => ws.GetChangesDictionaryAsync()).Returns(() => GetChangesDictionaryAsync(lastBlockHash, txId1, txId2, h1, h2));
 
             var changes = await GetChangesDictionaryAsync(lastBlockHash, txId1, txId2, h1, h2);
@@ -135,41 +134,5 @@ namespace AElf.Kernel.Tests.Miner
         }
 
         
-        [Fact]
-        public async Task GenerateBlock()
-        {
-            var lastBlockHash = Hash.Generate();
-            var t1 = Hash.Generate();
-            var t2 = Hash.Generate();
-            var chainId = Hash.Generate();
-            var h1 = Hash.Generate();
-            var h2 = Hash.Generate();
-
-            var wsmanager = await GetWorldStateManager(lastBlockHash, t1, t2, h1, h2, chainId);
-
-            var blockGenerationService = new BlockGenerationService(wsmanager.Object,
-                GetChainManager(lastBlockHash).Object, _blockManager);
-
-            var txResults = new List<TransactionResult>
-            {
-                new TransactionResult
-                {
-                    TransactionId = t1
-                },
-                new TransactionResult
-                {
-                    TransactionId = t2
-                }
-            };
-            var block = await blockGenerationService.GenerateBlockAsync(chainId, txResults);
-            
-            Assert.Equal(block.Header.PreviousBlockHash, lastBlockHash);
-            Assert.Contains(t1, block.Body.Transactions);
-            Assert.Contains(t2, block.Body.Transactions);
-            Assert.NotNull(block.Header.MerkleTreeRootOfWorldState);
-            Assert.NotNull(block.Header.MerkleTreeRootOfTransactions);
-            Assert.NotNull(await _blockManager.GetBlockAsync(block.GetHash()));
-
-        }
     }
 }

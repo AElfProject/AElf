@@ -1,4 +1,5 @@
 ﻿using AElf.Kernel.Miner;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.TxMemPool
 {
@@ -7,7 +8,7 @@ namespace AElf.Kernel.TxMemPool
         public static readonly TxPoolConfig Default = new TxPoolConfig
         {
             PoolLimitSize = 1024 * 1024,
-            TxLimitSize = 1024 * 1,
+            TxLimitSize = 1024 * 20,
             ChainId = Hash.Generate(),
             FeeThreshold = 0
         };

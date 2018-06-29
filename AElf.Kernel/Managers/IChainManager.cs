@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Managers
 {
@@ -9,15 +10,16 @@ namespace AElf.Kernel.Managers
         /// </summary>
         /// <param name="block"></param>
         /// <returns></returns>
-        Task AppendBlockToChainAsync(IBlock block);
+        Task<bool> AppendBlockToChainAsync(IBlock block);
 
         /// <summary>
         /// append given header to one chain
         /// </summary>
         /// <param name="header"></param>
         /// <returns></returns>
-        Task AppednBlockHeaderAsync(BlockHeader header);
-        
+        Task AppendBlockHeaderAsync(BlockHeader header);
+
+        Task<bool> Exists(Hash chainId);
         Task<IChain> GetChainAsync(Hash id);
         Task<IChain> AddChainAsync(Hash chainId, Hash genesisBlockHash);
         

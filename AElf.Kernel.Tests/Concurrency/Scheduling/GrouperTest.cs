@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Scheduling;
 using Xunit;
 
@@ -59,11 +59,11 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         }
 
         [Fact]
-        public void MergeByAccountTest()
+        public async Task MergeByAccountTest()
         {
             var txDic = GetTestData();
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
-            var grouped = grouper.Process(txDic.Values.SelectMany(x => x).ToList());
+            var grouped = grouper.Process(Hash.Generate(), txDic.Values.SelectMany(x => x).ToList());
             var s = grouped.Select(
                 x =>
                 String.Join(" ", x.OrderBy(y => _accountList.IndexOf(y.From)).ThenBy(z => _accountList.IndexOf(z.To)).Select(
@@ -82,17 +82,84 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         }
 
         [Fact]
-        public void MergeByAccountTestFullTxList()
+        public async Task MergeByAccountTestFullTxList()
         {
             var txList = _dataUtil.GetFullTxList();
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
-            var grouped = grouper.Process(txList.Select(x => x).ToList());
+            var grouped = grouper.Process(Hash.Generate(), txList.Select(x => x).ToList());
             var s = grouped.Select(
                 x => _dataUtil.StringRepresentation(x)
             ).ToList();
 
             Assert.Equal(_dataUtil.StringRepresentation(_dataUtil.GetFirstGroupTxList().Select(x => x).ToList()), s[0]);
             Assert.Equal(_dataUtil.StringRepresentation(_dataUtil.GetSecondGroupTxList().Select(x => x).ToList()), s[1]);
+        }
+
+        [Fact]
+        public async Task TestReblancedGrouping()
+        {
+            Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
+
+            var testCasesCount = 4;
+            var coreCountList = new int[] {7, 10, 1, 5, 100, 1000, 5, 3};
+            var testCaseSizesList = new List<List<int>>(new []
+            {
+                new List<int>(){100, 20, 30, 1, 2, 4, 5, 1, 50, 70, 90}, //normal cases
+                new List<int>(){1000}, // test a single giant group with multiple cores
+                new List<int>(){1,1,1,1,1,100,12,13,1}, //test one core
+                new List<int>(){10, 10, 10, 10, 10, 10, 9, 11, 20}, //normal cases
+                new List<int>(), //test empty tx list
+                new List<int>(){10, 20, 10, 4, 5, 12, 51, 25, 31}, //test when core is far bigger
+                new List<int>(){20, 20, 20, 20, 20}, //test when nothing changes needed
+                
+                new List<int>(){499, 2, 497, 2, 496, 3, 496, 6}, //test worst case
+                
+            });
+            var expectedSizesList = new List<List<int>>(new []
+            {
+                new List<int>(){100, 90, 70, 52, 41, 20}, 
+                new List<int>(){1000},
+                new List<int>(){131},
+                new List<int>(){20, 20, 20, 20, 20}, 
+                new List<int>(), 
+                new List<int>(){10, 20, 10, 4, 5, 12, 51, 25, 31}, 
+                new List<int>(){20, 20, 20, 20, 20},
+                new List<int>(){1002, 499, 499}, 
+            });
+            
+
+            for (int i = 0; i < testCasesCount; i++)
+            {
+                var unmergedGroup = ProduceFakeTxGroup(testCaseSizesList[i]);
+                var txList = new List<ITransaction>();
+                unmergedGroup.ForEach(a => txList.AddRange(a));
+                var actualRes = grouper.ProcessWithCoreCount(coreCountList[i], Hash.Zero, txList);
+                var acutalSizes = actualRes.Select(a => a.Count).ToList();
+                Assert.Equal(expectedSizesList[i].OrderBy(a=>a), acutalSizes.OrderBy(a=>a));
+            }
+            
+        }
+
+        public List<List<ITransaction>> ProduceFakeTxGroup(List<int> groupSizes)
+        {
+            int userId = 0;
+            var res = new List<List<ITransaction>>();
+            foreach (var size in groupSizes)
+            {
+                var txGroup = new List<ITransaction>();
+                for (int i = 0; i < size; i++)
+                {
+                    txGroup.Add(new Transaction()
+                    {
+                        From = userId++.ToString().CalculateHash(),
+                        To = userId.ToString().CalculateHash()
+                    });
+                }
+                res.Add(txGroup);
+                userId++;
+            }
+
+            return res;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.TxMemPool
 {
@@ -99,5 +100,20 @@ namespace AElf.Kernel.TxMemPool
         Task Stop();
 
         ulong GetIncrementId(Hash addr);
+        
+        /// <summary>
+        /// promote txs from some addresses
+        /// </summary>
+        /// <param name="addresses"></param>
+        /// <returns></returns>
+        Task PromoteAsync(List<Hash> addresses);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        Task<List<ITransaction>> GetReadyTxsAsync(Hash addr, ulong start, ulong ids);
     }
 }

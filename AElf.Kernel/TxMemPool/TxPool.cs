@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common.Attributes;
+using AElf.Kernel.Types;
 using NLog;
 
 namespace AElf.Kernel.TxMemPool
@@ -241,7 +242,7 @@ namespace AElf.Kernel.TxMemPool
             var alreadyExecutable = _executable.TryGetValue(addr, out var executableList) && executableList.Count != 0
                                     && tx.IncrementId >= nonce && (int) (tx.IncrementId - nonce) < executableList.Count;*/
             
-            // disgard it if cannot replace the tx with sam id already in waiting list
+            // disgard it if cannot replace the tx with same id already in waiting list
             if (waitingList.TryGetValue(tx.IncrementId, out var oldTx))
                 return ReplaceTx(tx, oldTx);
             
@@ -516,7 +517,10 @@ namespace AElf.Kernel.TxMemPool
         {
             if (_waiting.TryGetValue(addr, out var dict))
             {
-                return dict.Keys.Max();
+                if (dict.Keys.Count != 0)
+                {
+                    return dict.Keys.Max();
+                }
             }
 
             if (_executable.TryGetValue(addr, out var txs) && txs.Count > 0)
@@ -525,6 +529,28 @@ namespace AElf.Kernel.TxMemPool
             }
 
             return 0;
+        }
+
+        /// <inheritdoc/>
+        public List<ITransaction> ReadyTxs(Hash addr, ulong start, ulong count)
+        {
+            var res = new List<ITransaction>();
+            if (!_executable.TryGetValue(addr, out var list) || (ulong)list.Count < count || list[0].IncrementId != start)
+            {
+                return null;
+            }
+            
+            for (var i =0; i < (int)count; i++)
+            {
+                res.Add(list[i]);
+            }
+
+            // update incrementId in account data context
+            AddNonce(addr, count);
+            //remove txs from executable list  
+            list.RemoveRange(0, (int)count);
+            
+            return res;
         }
     }
     

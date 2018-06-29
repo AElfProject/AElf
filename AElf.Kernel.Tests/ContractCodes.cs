@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Google.Protobuf;
 using ServiceStack;
 
 namespace AElf.Kernel.Tests
@@ -36,6 +37,7 @@ namespace AElf.Kernel.Tests
                 {
                     code = file.ReadFully();
                 }
+                //System.Diagnostics.Debug.WriteLine(ByteString.CopyFrom(code).ToBase64());
                 return code;
             }
         }

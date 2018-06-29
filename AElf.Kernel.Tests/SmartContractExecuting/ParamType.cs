@@ -60,5 +60,12 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             Assert.Equal(param.Value().GetType(), data.GetType());
             Assert.Equal(param.Value(), data);
         }
+
+        [Fact]
+        public void Print()
+        {
+            System.Diagnostics.Debug.WriteLine(ByteString.CopyFromUtf8("AElf").ToBase64());
+            System.Diagnostics.Debug.WriteLine(Hash.Zero.Value.ToBase64());
+        }
     }
 }

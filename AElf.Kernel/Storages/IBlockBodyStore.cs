@@ -1,10 +1,11 @@
 ﻿using System.Threading.Tasks;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Storages
 {
     public interface IBlockBodyStore
     {
-        Task InsertAsync(Hash txsMerkleTreeRoot, IBlockBody body);
-        Task<BlockBody> GetAsync(Hash blockHash);
+        Task InsertAsync(Hash bodyHash, IBlockBody body);
+        Task<BlockBody> GetAsync(Hash bodyHash);
     }
 }

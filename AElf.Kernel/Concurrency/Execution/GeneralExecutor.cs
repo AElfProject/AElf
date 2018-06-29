@@ -4,6 +4,7 @@ using Akka.Actor;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Services;
 using AElf.Kernel.Concurrency.Execution.Messages;
+using AElf.Kernel.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Concurrency.Execution

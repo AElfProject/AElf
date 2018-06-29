@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using AElf.Kernel.Managers;
+using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
@@ -7,11 +8,11 @@ namespace AElf.Kernel.Modules.AutofacModule
         protected override void Load(ContainerBuilder builder)
         {
             //TODO : REVIEW - probably not a good idea
-            
-            var assembly = typeof(IAccount).Assembly;
-            
+
+            var assembly = typeof(IWorldStateDictator).Assembly;
+
             builder.RegisterInstance<IHash>(new Hash()).As<Hash>();
-            
+
             builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
 
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));

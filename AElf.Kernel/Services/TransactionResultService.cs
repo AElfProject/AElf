@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.TxMemPool;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Services
 {
@@ -21,14 +22,15 @@ namespace AElf.Kernel.Services
         /// <inheritdoc/>
         public async Task<TransactionResult> GetResultAsync(Hash txId)
         {
-            // found in cache
+            /*// found in cache
             if (_cacheResults.TryGetValue(txId, out var res))
             {
                 return res;
-            }
+            }*/
 
+            
             // in storage
-            res = await _transactionResultManager.GetTransactionResultAsync(txId);
+            var res = await _transactionResultManager.GetTransactionResultAsync(txId);
             if (res != null)
             {
                 _cacheResults[txId] = res;

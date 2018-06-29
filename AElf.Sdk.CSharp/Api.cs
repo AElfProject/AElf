@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
@@ -24,10 +25,8 @@ namespace AElf.Sdk.CSharp
         public static void SetSmartContractContext(ISmartContractContext contractContext)
         {
             _smartContractContext = contractContext;
-            _dataProviders = new Dictionary<string, IDataProvider>()
-            {
-                {"", _smartContractContext.DataProvider}
-            };
+            _dataProviders = new Dictionary<string, IDataProvider>();
+            _dataProviders.Add("", _smartContractContext.DataProvider);
         }
 
         public static void SetTransactionContext(ITransactionContext transactionContext)
@@ -40,9 +39,15 @@ namespace AElf.Sdk.CSharp
         #region Getters used by contract
 
         #region Privileged API
+        public static void DeployContract(Hash address, SmartContractRegistration registration)
+        {
+            var task = _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration, false);
+            task.Wait();
+        }
+        
         public static async Task DeployContractAsync(Hash address, SmartContractRegistration registration)
         {
-            await _smartContractContext.SmartContractService.DeployContractAsync(address, registration);
+            await _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration, false);
         }
 
         #endregion Privileged API
@@ -100,7 +105,8 @@ namespace AElf.Sdk.CSharp
             Task.Factory.StartNew(async () =>
             {
                 var executive = await _smartContractContext.SmartContractService.GetExecutiveAsync(contractAddress, _smartContractContext.ChainId);
-                await executive.SetTransactionContext(_lastInlineCallContext).Apply();
+                // Inline calls are not auto-committed.
+                await executive.SetTransactionContext(_lastInlineCallContext).Apply(false);
             }).Unwrap().Wait();
 
             _transactionContext.Trace.Logs.AddRange(_lastInlineCallContext.Trace.Logs);
@@ -120,43 +126,8 @@ namespace AElf.Sdk.CSharp
             }
             return new byte[] { };
         }
-
-        public static void Return(IMessage retVal)
-        {
-            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToByteArray());
-        }
-
-        public static void Return(bool retVal)
-        {
-            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
-        }
-
-        public static void Return(uint retVal)
-        {
-            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
-        }
-
-        public static void Return(int retVal)
-        {
-            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
-        }
-
-        public static void Return(ulong retVal)
-        {
-            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
-        }
-
-        public static void Return(long retVal)
-        {
-            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
-        }
-
-        public static void Return(byte[] retVal)
-        {
-            _transactionContext.Trace.RetVal = ByteString.CopyFrom(retVal.ToPbMessage().ToByteArray());
-        }
-
         #endregion Transaction API
+        
         #region Utility API
         public static void Assert(bool asserted, string message = "Assertion failed!")
         {
@@ -170,5 +141,11 @@ namespace AElf.Sdk.CSharp
             _transactionContext.Trace.Logs.Add(logEvent);
         }
         #endregion Utility API
+        #region Diagonstics API
+        public static void Sleep(int milliSedonds)
+        {
+            Thread.Sleep(milliSedonds);
+        }
+        #endregion Diagonstics API
     }
 }

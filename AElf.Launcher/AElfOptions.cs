@@ -22,6 +22,12 @@ namespace AElf.Launcher
         [Option("coinbase", HelpText = "Miner coinbase when a new chain created")]
         public string CoinBase { get; set; }
         
+        [Option("debug.initfile", HelpText = "Debug: initial chain to load")]
+        public string InitData { get; set; }
+        
+        [Option("tcl", Default = (ulong) 1024, HelpText  = "Transaction count limit in one block")]
+        public ulong TxCountLimit { get; set; }
+        
         /*[Option("ts", Default = (uint)1024, HelpText = "Transaction size limit")]
         public uint TxSizeLimit { get; set; }*/
         
@@ -57,8 +63,11 @@ namespace AElf.Launcher
         [Option(HelpText = "The port this node is listening on.")]
         public int? Port { get; set; }
         
-        [Option(Default = false, HelpText = "Starts the node without exposing the RPC interface")]
+        [Option(Default = false, HelpText = "Starts the node without exposing the RPC interface.")]
         public bool NoRpc { get; set; }
+        
+        [Option("rpc.port", Default = 5000, HelpText = "The port that the RPC server.")]
+        public int RpcPort { get; set; }
         
         [Option(HelpText = "The absolute path where to store the peer database.")]
         public string PeersDbPath { get; set; }
@@ -76,6 +85,34 @@ namespace AElf.Launcher
         [Option('p', HelpText = "The port of database.")]
         public int? DBPort { get; set; }
         
+        #endregion
+        
+        #region Actor
+        [Option("actor.iscluster", HelpText = "Actor is cluster or not.")]
+        public bool? ActorIsCluster { get; set; }
+        
+        [Option("actor.host", HelpText = "The hostname of actor.")]
+        public string ActorHostName { get; set; }
+        
+        [Option("actor.port", HelpText = "The port of actor.")]
+        public int? ActorPort { get; set; }
+        
+        [Option("actor.isseed", HelpText = "The worker is seed node or not.")]
+        public bool? ActorIsSeed { get; set; }
+        
+        [Option("actor.workerhost", HelpText = "The hostname of worker")]
+        public string ActorWorkerHostName { get; set; }
+        
+        [Option("actor.workerport", HelpText = "The port of worker")]
+        public int? ActorWorkerPort { get; set; }
+
+        #endregion
+
+        #region Runner
+
+        [Option("runner.config", HelpText = "The path to the runner config in json format.")]
+        public string RunnerConfig { get; set; }
+
         #endregion
     }
 }

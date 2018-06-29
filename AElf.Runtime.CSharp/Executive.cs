@@ -4,50 +4,56 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
+using AElf.Types.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Type = System.Type;
 using Module = AElf.ABI.CSharp.Module;
 using Method = AElf.ABI.CSharp.Method;
-using AElf.Sdk.CSharp.Types;
-using AElf.Types.CSharp;
-//using Any = Google.Protobuf.WellKnownTypes.Any;
-//using StringValue = Google.Protobuf.WellKnownTypes.StringValue;
-//using BoolValue = Google.Protobuf.WellKnownTypes.BoolValue;
+
 
 namespace AElf.Runtime.CSharp
 {
     public class Executive : IExecutive
     {
-        private readonly Dictionary<string, Func<MethodInfo, object, object[], Task<IMessage>>> _asyncApplyHanders = new Dictionary<string, Func<MethodInfo, object, object[], Task<IMessage>>>()
-        {
-            {"void", InvokeAsyncHandlers.ForVoidReturnType},
-            {"bool", InvokeAsyncHandlers.ForBoolReturnType},
-            {"int", InvokeAsyncHandlers.ForInt32ReturnType},
-            {"uint", InvokeAsyncHandlers.ForUInt32ReturnType},
-            {"long", InvokeAsyncHandlers.ForInt64ReturnType},
-            {"ulong", InvokeAsyncHandlers.ForUInt64ReturnType},
-            {"string", InvokeAsyncHandlers.ForStringReturnType},
-            {"byte[]", InvokeAsyncHandlers.ForBytesReturnType}
-        };
-        private readonly Dictionary<string, Func<MethodInfo, object, object[], IMessage>> _applyHanders = new Dictionary<string, Func<MethodInfo, object, object[], IMessage>>()
-        {
-            {"void", InvokeHandlers.ForVoidReturnType},
-            {"bool", InvokeHandlers.ForBoolReturnType},
-            {"int", InvokeHandlers.ForInt32ReturnType},
-            {"uint", InvokeHandlers.ForUInt32ReturnType},
-            {"long", InvokeHandlers.ForInt64ReturnType},
-            {"ulong", InvokeHandlers.ForUInt64ReturnType},
-            {"string", InvokeHandlers.ForStringReturnType},
-            {"byte[]", InvokeHandlers.ForBytesReturnType}
-        };
+        private readonly Dictionary<string, Func<MethodInfo, object, object[], Task<IMessage>>> _asyncApplyHanders =
+            new Dictionary<string, Func<MethodInfo, object, object[], Task<IMessage>>>()
+            {
+                {"void", InvokeAsyncHandlers.ForVoidReturnType},
+                {"bool", InvokeAsyncHandlers.ForBoolReturnType},
+                {"int", InvokeAsyncHandlers.ForInt32ReturnType},
+                {"uint", InvokeAsyncHandlers.ForUInt32ReturnType},
+                {"long", InvokeAsyncHandlers.ForInt64ReturnType},
+                {"ulong", InvokeAsyncHandlers.ForUInt64ReturnType},
+                {"string", InvokeAsyncHandlers.ForStringReturnType},
+                {"byte[]", InvokeAsyncHandlers.ForBytesReturnType}
+            };
+
+        private readonly Dictionary<string, Func<MethodInfo, object, object[], IMessage>> _applyHanders =
+            new Dictionary<string, Func<MethodInfo, object, object[], IMessage>>()
+            {
+                {"void", InvokeHandlers.ForVoidReturnType},
+                {"bool", InvokeHandlers.ForBoolReturnType},
+                {"int", InvokeHandlers.ForInt32ReturnType},
+                {"uint", InvokeHandlers.ForUInt32ReturnType},
+                {"long", InvokeHandlers.ForInt64ReturnType},
+                {"ulong", InvokeHandlers.ForUInt64ReturnType},
+                {"string", InvokeHandlers.ForStringReturnType},
+                {"byte[]", InvokeHandlers.ForBytesReturnType}
+            };
+
         private readonly Dictionary<string, Method> _methodMap = new Dictionary<string, Method>();
+
         private delegate void SetSmartContractContextHandler(ISmartContractContext contractContext);
+
         private delegate void SetTransactionContextHandler(ITransactionContext transactionContext);
+
         private SetSmartContractContextHandler _setSmartContractContextHandler;
         private SetTransactionContextHandler _setTransactionContextHandler;
         private ISmartContract _smartContract;
         private ITransactionContext _currentTransactionContext;
+        private ISmartContractContext _currentSmartContractContext;
+        private IWorldStateDictator _worldStateDictator;
 
         public Executive(Module abiModule)
         {
@@ -55,6 +61,12 @@ namespace AElf.Runtime.CSharp
             {
                 _methodMap.Add(m.Name, m);
             }
+        }
+
+        public IExecutive SetWorldStateManager(IWorldStateDictator worldStateDictator)
+        {
+            _worldStateDictator = worldStateDictator;
+            return this;
         }
 
         public Executive SetApi(Type ApiType)
@@ -69,8 +81,8 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidOperationException("Input is not a valid Api type");
             }
 
-            _setSmartContractContextHandler = (SetSmartContractContextHandler)scch;
-            _setTransactionContextHandler = (SetTransactionContextHandler)stch;
+            _setSmartContractContextHandler = (SetSmartContractContextHandler) scch;
+            _setTransactionContextHandler = (SetTransactionContextHandler) stch;
 
             return this;
         }
@@ -78,6 +90,8 @@ namespace AElf.Runtime.CSharp
         public Executive SetSmartContract(ISmartContract smartContract)
         {
             _smartContract = smartContract;
+            _asyncHandlersCache.Clear();
+            _handlersCache.Clear();
             return this;
         }
 
@@ -87,7 +101,9 @@ namespace AElf.Runtime.CSharp
             {
                 throw new InvalidOperationException("Api type is not set yet.");
             }
+
             _setSmartContractContextHandler(smartContractContext);
+            _currentSmartContractContext = smartContractContext;
             return this;
         }
 
@@ -97,86 +113,75 @@ namespace AElf.Runtime.CSharp
             {
                 throw new InvalidOperationException("Api type is not set yet.");
             }
+
             _setTransactionContextHandler(transactionContext);
             _currentTransactionContext = transactionContext;
             return this;
         }
 
-        public async Task Apply()
+        public async Task Apply(bool autoCommit)
         {
             var s = _currentTransactionContext.Trace.StartTime = DateTime.UtcNow;
+            var methodName = _currentTransactionContext.Transaction.MethodName;
+
             try
             {
-                var methodName = _currentTransactionContext.Transaction.MethodName;
-                if (_methodMap.TryGetValue(methodName, out var methodAbi))
+                if (!_methodMap.TryGetValue(methodName, out var methodAbi))
                 {
-                    var methodInfo = _smartContract.GetType().GetMethod(methodName);
-                    var tx = _currentTransactionContext.Transaction;
-                    //var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
-                    var parameters = ParamsPacker.Unpack(tx.Params.ToByteArray(), methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
-                    if (methodAbi.IsAsync)
-                    {
-                        if (!_asyncApplyHanders.TryGetValue(methodAbi.ReturnType, out var handler))
-                        {
-                            if (methodInfo.ReturnType.GenericTypeArguments[0].IsPbMessageType())
-                            {
-                                handler = InvokeAsyncHandlers.ForPbMessageReturnType;
+                    throw new InvalidMethodNameException($"Method name {methodName} not found.");
+                }
 
-                            }
-                            else if (methodInfo.ReturnType.GenericTypeArguments[0].IsUserType())
-                            {
-                                handler = InvokeAsyncHandlers.ForUserTypeReturnType;
-                            }
-                        }
-                        if (handler != null)
-                        {
-                            try
-                            {
-                                var retMsg = await handler(methodInfo, _smartContract, parameters);
-                                _currentTransactionContext.Trace.RetVal = ByteString.CopyFrom(retMsg.ToByteArray());
-                            }
-                            catch (Exception ex)
-                            {
-                                _currentTransactionContext.Trace.StdErr += "\n" + ex;
-                            }
-                        }
-                        else
-                        {
-                            throw new Exception($"Method has an invalid return type {methodInfo.ReturnType}.");
-                        }
-                    }
-                    else
-                    {
-                        if (_applyHanders.TryGetValue(methodAbi.ReturnType, out var handler))
-                        {
-                            if (methodInfo.ReturnType.IsPbMessageType())
-                            {
-                                handler = InvokeHandlers.ForPbMessageReturnType;
-                            }
-                            else if (methodInfo.ReturnType.IsUserType())
-                            {
-                                handler = InvokeHandlers.ForUserTypeReturnType;
-                            }
-                        }
-                        if (handler != null)
-                        {
-                            try
-                            {
-                                var retMsg = handler(methodInfo, _smartContract, parameters);
-                                _currentTransactionContext.Trace.RetVal = ByteString.CopyFrom(retMsg.ToByteArray());
-                            }
-                            catch (Exception ex)
-                            {
-                                _currentTransactionContext.Trace.StdErr += "\n" + ex;
-                            }
+                var tx = _currentTransactionContext.Transaction;
+                if (methodAbi.IsAsync)
+                {
+                    var handler = GetAsyncHandler(methodAbi);
 
-                        }
-                        else
-                        {
-                            throw new Exception($"Method has an invalid return type {methodInfo.ReturnType}.");
-                        }
+                    if (handler == null)
+                    {
+                        throw new RuntimeException($"Failed to find handler for {methodName}.");
                     }
 
+                    try
+                    {
+                        _currentSmartContractContext.DataProvider.ClearCache();
+                        var retMsg = await handler(tx.Params.ToByteArray());
+                        _currentTransactionContext.Trace.RetVal = ByteString.CopyFrom(retMsg.ToByteArray());
+                    }
+                    catch (Exception ex)
+                    {
+                        _currentTransactionContext.Trace.StdErr += "\n" + ex;
+                    }
+                }
+                else
+                {
+                    var handler = GetHandler(methodAbi);
+
+                    if (handler == null)
+                    {
+                        throw new RuntimeException($"Failed to find handler for {methodName}.");
+                    }
+
+                    try
+                    {
+                        _currentSmartContractContext.DataProvider.ClearCache();
+                        var retMsg = handler(tx.Params.ToByteArray());
+                        _currentTransactionContext.Trace.RetVal = ByteString.CopyFrom(retMsg.ToByteArray());
+                    }
+                    catch (Exception ex)
+                    {
+                        _currentTransactionContext.Trace.StdErr += "\n" + ex;
+                    }
+                }
+
+                if (_currentTransactionContext.Trace.IsSuccessful())
+                {
+                    _currentTransactionContext.Trace.ValueChanges.AddRange(_currentSmartContractContext.DataProvider
+                        .GetValueChanges());
+                    if (autoCommit)
+                    {
+                        await _currentTransactionContext.Trace.CommitChangesAsync(_worldStateDictator,
+                            _currentSmartContractContext.ChainId);
+                    }
                 }
             }
             catch (Exception ex)
@@ -187,5 +192,98 @@ namespace AElf.Runtime.CSharp
             var e = _currentTransactionContext.Trace.EndTime = DateTime.UtcNow;
             _currentTransactionContext.Trace.Elapsed = (e - s).Ticks;
         }
+
+        #region Cached handlers for this contract
+
+        private readonly Dictionary<Method, Func<byte[], Task<IMessage>>> _asyncHandlersCache =
+            new Dictionary<Method, Func<byte[], Task<IMessage>>>();
+
+        private readonly Dictionary<Method, Func<byte[], IMessage>> _handlersCache =
+            new Dictionary<Method, Func<byte[], IMessage>>();
+
+        /// <summary>
+        /// Get async handler from cache or by reflection.
+        /// </summary>
+        /// <param name="methodAbi">The abi definition of the method.</param>
+        /// <returns>An async handler that takes serialized parameters and returns a IMessage.</returns>
+        private Func<byte[], Task<IMessage>> GetAsyncHandler(Method methodAbi)
+        {
+            if (_asyncHandlersCache.TryGetValue(methodAbi, out var handler))
+            {
+                return handler;
+            }
+
+            var methodInfo = _smartContract.GetType().GetMethod(methodAbi.Name);
+            if (!_asyncApplyHanders.TryGetValue(methodAbi.ReturnType, out var applyHandler))
+            {
+                if (methodInfo.ReturnType.GenericTypeArguments[0].IsPbMessageType())
+                {
+                    applyHandler = InvokeAsyncHandlers.ForPbMessageReturnType;
+                }
+                else if (methodInfo.ReturnType.GenericTypeArguments[0].IsUserType())
+                {
+                    applyHandler = InvokeAsyncHandlers.ForUserTypeReturnType;
+                }
+            }
+
+            if (applyHandler == null)
+            {
+                return null;
+            }
+
+            var contract = _smartContract;
+            handler = async (paramsBytes) =>
+            {
+                var parameters = ParamsPacker.Unpack(paramsBytes,
+                    methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
+                return await applyHandler(methodInfo, contract, parameters);
+            };
+
+            return handler;
+        }
+
+        /// <summary>
+        /// Get handler from cache or by reflection.
+        /// </summary>
+        /// <param name="methodAbi">The name of the method.</param>
+        /// <returns>A handler that takes serialized parameters and returns a IMessage.</returns>
+        private Func<byte[], IMessage> GetHandler(Method methodAbi)
+        {
+            if (_handlersCache.TryGetValue(methodAbi, out var handler))
+            {
+                return handler;
+            }
+
+            var methodInfo = _smartContract.GetType().GetMethod(methodAbi.Name);
+            if (_applyHanders.TryGetValue(methodAbi.ReturnType, out var applyHandler))
+            {
+                if (methodInfo.ReturnType.IsPbMessageType())
+                {
+                    applyHandler = InvokeHandlers.ForPbMessageReturnType;
+                }
+                else if (methodInfo.ReturnType.IsUserType())
+                {
+                    applyHandler = InvokeHandlers.ForUserTypeReturnType;
+                }
+            }
+
+
+            if (applyHandler == null)
+            {
+                return null;
+            }
+
+            var contract = _smartContract;
+            handler = (paramsBytes) =>
+            {
+                var parameters = ParamsPacker.Unpack(paramsBytes,
+                    methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
+                return applyHandler(methodInfo, contract, parameters);
+            };
+
+            return handler;
+        }
+
+        #endregion
     }
 }

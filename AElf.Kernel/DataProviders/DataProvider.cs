@@ -1,18 +1,21 @@
 using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
+
 using AElf.Kernel.Managers;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public class DataProvider : IDataProvider
     {
         private readonly IAccountDataContext _accountDataContext;
-        private readonly IWorldStateManager _worldStateManager;
+        private readonly IWorldStateDictator _worldStateDictator;
+
         /// <summary>
         /// To dictinct DataProviders of same account and same level.
         /// Using a string value is just a choise, actually we can use any type of value.
         /// </summary>
         private readonly string _dataProviderKey;
+
         private readonly Path _path;
 
         /// <summary>
@@ -20,10 +23,10 @@ namespace AElf.Kernel
         /// </summary>
         private Hash PreBlockHash { get; set; }
 
-        public DataProvider(IAccountDataContext accountDataContext, IWorldStateManager worldStateManager, 
+        public DataProvider(IAccountDataContext accountDataContext, IWorldStateDictator worldStateDictator,
             string dataProviderKey = "")
         {
-            _worldStateManager = worldStateManager;
+            _worldStateDictator = worldStateDictator;
             _accountDataContext = accountDataContext;
             _dataProviderKey = dataProviderKey;
 
@@ -38,7 +41,7 @@ namespace AElf.Kernel
             // Use AccountDataContext instance + _dataProviderKey to calculate DataProvider's hash.
             return _accountDataContext.GetHash().CalculateHashWith(_dataProviderKey);
         }
-        
+
         /// <summary>
         /// Get a sub-level DataProvider.
         /// </summary>
@@ -46,7 +49,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public IDataProvider GetDataProvider(string dataProviderKey)
         {
-            return new DataProvider(_accountDataContext, _worldStateManager, dataProviderKey);
+            return new DataProvider(_accountDataContext, _worldStateDictator, dataProviderKey);
         }
 
         /// <summary>
@@ -58,13 +61,13 @@ namespace AElf.Kernel
         public async Task<byte[]> GetAsync(Hash keyHash, Hash preBlockHash)
         {
             //Get correspoding WorldState instance
-            var worldState = await _worldStateManager.GetWorldStateAsync(preBlockHash);
+            var worldState = await _worldStateDictator.GetWorldStateAsync(preBlockHash);
             //Get corresponding path hash
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
             //Using path hash to get Change from WorldState
             var change = await worldState.GetChangeAsync(pathHash);
-            
-            return await _worldStateManager.GetDataAsync(change.After);
+
+            return await _worldStateDictator.GetDataAsync(change.After);
         }
 
         /// <summary>
@@ -75,8 +78,8 @@ namespace AElf.Kernel
         public async Task<byte[]> GetAsync(Hash keyHash)
         {
             var foo = _path.SetDataKey(keyHash).GetPathHash();
-            var pointerHash = await _worldStateManager.GetPointerAsync(foo);
-            return await _worldStateManager.GetDataAsync(pointerHash);
+            var pointerHash = await _worldStateDictator.GetPointerAsync(foo);
+            return await _worldStateDictator.GetDataAsync(pointerHash);
         }
 
         /// <summary>
@@ -89,22 +92,22 @@ namespace AElf.Kernel
         {
             //Clean the path.
             _path.SetBlockHashToNull();
-            
+
             //Generate the path hash.
             var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
 
             //Generate the new pointer hash (using previous block hash)
-            var pointerHashAfter = _worldStateManager.CalculatePointerHashOfCurrentHeight(_path);
+            var pointerHashAfter =await _worldStateDictator.CalculatePointerHashOfCurrentHeight(_path);
 
             var preBlockHash = PreBlockHash;
             if (preBlockHash == null)
             {
-                PreBlockHash = await _worldStateManager.GetDataAsync(
+                PreBlockHash = await _worldStateDictator.GetDataAsync(
                     Path.CalculatePointerForLastBlockHash(_accountDataContext.ChainId));
                 preBlockHash = PreBlockHash;
             }
-            
-            var change = await _worldStateManager.GetChangeAsync(pathHash);
+
+            var change = await _worldStateDictator.GetChangeAsync(pathHash);
             if (change == null)
             {
                 change = new Change
@@ -116,20 +119,27 @@ namespace AElf.Kernel
             {
                 //See whether the latest changes of this Change happened in this height,
                 //If not, clear the change, because this Change is too old to support rollback.
-                if (preBlockHash != change.LatestChangedBlockHash)
+                if (_worldStateDictator.DeleteChangeBeforesImmidiately || preBlockHash != change.LatestChangedBlockHash)
                 {
                     change.ClearChangeBefores();
                 }
                 
                 change.UpdateHashAfter(pointerHashAfter);
             }
-            
+
             change.LatestChangedBlockHash = preBlockHash;
-            
-            await _worldStateManager.InsertChangeAsync(pathHash, change);
-            await _worldStateManager.SetDataAsync(pointerHashAfter, obj);
-            
+
+            await _worldStateDictator.InsertChangeAsync(pathHash, change);
+            await _worldStateDictator.SetDataAsync(pointerHashAfter, obj);
+
             return change;
+        }
+
+        public Hash GetPathFor(Hash keyHash)
+        {
+            var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
+
+            return pathHash;
         }
     }
 }

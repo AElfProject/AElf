@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Types;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp;
@@ -12,11 +13,6 @@ namespace AElf.ABI.CSharp.Tests
     {
         private UInt32Field _totalSupply = new UInt32Field("_totalSupply");
         private MapToUInt32<Hash> _balances = new MapToUInt32<Hash>("_balances");
-
-        public override async Task InvokeAsync()
-        {
-            await Task.CompletedTask;
-        }
 
         public uint GetTotalSupply()
         {

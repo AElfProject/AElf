@@ -14,5 +14,7 @@ namespace AElf.Network.Config
 
         string Host { get; }
         int Port { get; }
+        
+        int MaxPeers { get; }
     }
 }

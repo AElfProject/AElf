@@ -1,31 +1,35 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.BlockValidationFilters;
+using AElf.Kernel.Managers;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Services
 {
     public class BlockVaildationService: IBlockVaildationService
     {
-        readonly IEnumerable<IBlockValidationFilter> _filters;
+        private readonly IEnumerable<IBlockValidationFilter> _filters;
+        private readonly IBlockManager _blockManager;
 
-        public BlockVaildationService(IEnumerable<IBlockValidationFilter> filters)
+        public BlockVaildationService(IEnumerable<IBlockValidationFilter> filters, IBlockManager blockManager)
         {
             _filters = filters;
+            _blockManager = blockManager;
         }
 
         public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context)
         {
+            int error = (int) ValidationError.Success; 
             foreach (var filter in _filters)
             {
-                var error = await filter.ValidateBlockAsync(block, context);
-                if (error != ValidationError.Success)
-                    return error;
+                error = Math.Max((int)await filter.ValidateBlockAsync(block, context), error);
+                if (error == 3)
+                    return ValidationError.InvalidBlock;
             }
-
-            return ValidationError.Success;
+            
+            return (ValidationError) error;
         }
-        
-
     }
 
     public interface IBlockValidationFilter

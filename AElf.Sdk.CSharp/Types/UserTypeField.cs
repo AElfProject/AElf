@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
+using AElf.Kernel;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;
 
 namespace AElf.Sdk.CSharp.Types
@@ -14,7 +13,20 @@ namespace AElf.Sdk.CSharp.Types
         {
             _name = name;
         }
+ 
+        public void SetValue(T value)
+        {
+            var task = SetAsync(value);
+            task.Wait();
+        }
 
+        public T GetValue()
+        {
+            var task = GetAsync();
+            task.Wait();
+            return task.Result;
+        }
+        
         public async Task SetAsync(T value)
         {
             if (value != null)

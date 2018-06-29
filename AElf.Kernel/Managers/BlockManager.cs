@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
+using AElf.Kernel.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Managers
@@ -12,18 +12,18 @@ namespace AElf.Kernel.Managers
 
         private readonly IBlockBodyStore _blockBodyStore;
 
-        private readonly IWorldStateManager _worldStateManager;
+        private readonly IWorldStateDictator _worldStateDictator;
 
         private IDataProvider _heightOfBlock;
 
-        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore, IWorldStateManager worldStateManager)
+        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore, IWorldStateDictator worldStateDictator)
         {
             _blockHeaderStore = blockHeaderStore;
             _blockBodyStore = blockBodyStore;
-            _worldStateManager = worldStateManager;
+            _worldStateDictator = worldStateDictator;
         }
 
-        public async Task<Block> AddBlockAsync(Block block)
+        public async Task<IBlock> AddBlockAsync(IBlock block)
         {
             if (!Validation(block))
             {
@@ -31,7 +31,7 @@ namespace AElf.Kernel.Managers
             }
 
             await _blockHeaderStore.InsertAsync(block.Header);
-            await _blockBodyStore.InsertAsync(block.Header.MerkleTreeRootOfTransactions, block.Body);
+            await _blockBodyStore.InsertAsync(block.Body.GetHash(), block.Body);
 
             return block;
         }
@@ -50,7 +50,7 @@ namespace AElf.Kernel.Managers
         public async Task<Block> GetBlockAsync(Hash blockHash)
         {
             var header = await _blockHeaderStore.GetAsync(blockHash);
-            var body = await _blockBodyStore.GetAsync(header.MerkleTreeRootOfTransactions);
+            var body = await _blockBodyStore.GetAsync(header.GetHash().CalculateHashWith(header.MerkleTreeRootOfTransactions));
             return new Block
             {
                 Header = header,
@@ -74,7 +74,7 @@ namespace AElf.Kernel.Managers
             var key = Hash.Parser.ParseFrom(await _heightOfBlock.GetAsync(new UInt64Value {Value = height}.CalculateHash()));
 
             var blockHeader = await _blockHeaderStore.GetAsync(key);
-            var blockBody = await _blockBodyStore.GetAsync(blockHeader.MerkleTreeRootOfTransactions);
+            var blockBody = await _blockBodyStore.GetAsync(blockHeader.GetHash().CalculateHashWith(blockHeader.MerkleTreeRootOfTransactions));
             return new Block
             {
                 Header = blockHeader,
@@ -97,8 +97,8 @@ namespace AElf.Kernel.Managers
 
         private async Task InitialHeightOfBlock(Hash chainId)
         {
-            await _worldStateManager.OfChain(chainId);
-            _heightOfBlock = _worldStateManager.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId))
+            _worldStateDictator.SetChainId(chainId);
+            _heightOfBlock = (await _worldStateDictator.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId)))
                 .GetDataProvider().GetDataProvider("HeightOfBlock");
         }
     }

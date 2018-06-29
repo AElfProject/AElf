@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -10,9 +11,10 @@ namespace AElf.Kernel.Tests
     {
         private readonly AccountContextService _accountContextService;
 
-        public AccountContextTest(AccountContextService accountContextService)
+        public AccountContextTest(IWorldStateDictator worldStateDictator)
         {
-            _accountContextService = accountContextService;
+            worldStateDictator.SetChainId(Hash.Generate());
+            _accountContextService = new AccountContextService(worldStateDictator);
         }
 
         [Fact]

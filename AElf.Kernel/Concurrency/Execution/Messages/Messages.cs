@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Types;
 using Akka.Actor;
+using Akka.Cluster;
+using Akka.Routing;
 
 namespace AElf.Kernel.Concurrency.Execution.Messages
 {
@@ -16,15 +19,13 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
         public long RequestId { get; }
     }
 
-    public sealed class RespondLocalSerivcePack
+    public sealed class LocalSerivcePack
     {
-        public RespondLocalSerivcePack(long requestId, ServicePack servicePack)
+        public LocalSerivcePack(ServicePack servicePack)
         {
-            RequestId = requestId;
             ServicePack = servicePack;
         }
 
-        public long RequestId { get; }
         public ServicePack ServicePack { get; }
     }
     #endregion LocalServices
@@ -49,16 +50,16 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
             Rejected,
             Executed
         }
-        public RespondExecuteTransactions(long requestId, RequestStatus status, List<TransactionResult> transactionResults)
+        public RespondExecuteTransactions(long requestId, RequestStatus status, List<TransactionTrace> transactionTraces)
         {
             RequestId = requestId;
             Status = status;
-            TransactionResults = transactionResults;
+            TransactionTraces = transactionTraces;
         }
 
         public long RequestId { get; }
         public RequestStatus Status { get; }
-        public List<TransactionResult> TransactionResults { get; }
+        public List<TransactionTrace> TransactionTraces { get; }
     }
     #endregion ExecuteTransactions
 
@@ -133,9 +134,9 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
     /// <summary>
     /// Message sent to local requestor for transaction execution.
     /// </summary>
-    public sealed class LocalExecuteTransactionsMessage
+    public sealed class LocalExecuteTransactionsMessage:IConsistentHashable
     {
-        public LocalExecuteTransactionsMessage(Hash chainId, List<ITransaction> transactions, TaskCompletionSource<List<TransactionResult>> taskCompletionSource)
+        public LocalExecuteTransactionsMessage(Hash chainId, List<ITransaction> transactions, TaskCompletionSource<List<TransactionTrace>> taskCompletionSource)
         {
             ChainId = chainId;
             Transactions = transactions;
@@ -144,17 +145,32 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 
         public Hash ChainId { get; }
         public List<ITransaction> Transactions { get; }
-        public TaskCompletionSource<List<TransactionResult>> TaskCompletionSource { get; }
+        public TaskCompletionSource<List<TransactionTrace>> TaskCompletionSource { get; }
+        public object ConsistentHashKey { get; }
     }
 
-    public sealed class TransactionResultMessage
+//    public sealed class TransactionResultMessage
+//    {
+//        public TransactionResultMessage(TransactionResult transactionResult)
+//        {
+//            TransactionResult = transactionResult;
+//        }
+//
+//        public TransactionResult TransactionResult { get; }
+//    }
+
+    public sealed class TransactionTraceMessage : IConsistentHashable
     {
-        public TransactionResultMessage(TransactionResult transactionResult)
+        public TransactionTraceMessage(long requestId, TransactionTrace transactionTrace)
         {
-            TransactionResult = transactionResult;
+            RequestId = requestId;
+            TransactionTrace = transactionTrace;
+            ConsistentHashKey = GetHashCode();
         }
 
-        public TransactionResult TransactionResult { get; }
+        public long RequestId { get; set; }
+        public TransactionTrace TransactionTrace { get; set; }
+        public object ConsistentHashKey { get; }
     }
 
     #region Singleton Messages
@@ -215,4 +231,112 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
         }
     }
     #endregion Singleton Messages
+
+    #region Routed workers
+
+//    public sealed class RoutedJobExecutionRequest
+//    {
+//        public RoutedJobExecutionRequest(JobExecutionRequest request, IActorRef router)
+//        {
+//            Request = request;
+//            Router = router;
+//        }
+//
+//        public JobExecutionRequest Request { get; }
+//        public IActorRef Router { get; }
+//    }
+
+    public class JobExecutionRequest:IConsistentHashable
+    {
+        public JobExecutionRequest(long requestId, Hash chainId, List<ITransaction> transactions, IActorRef resultCollector, IActorRef router)
+        {
+            RequestId = requestId;
+            ChainId = chainId;
+            Transactions = transactions;
+            ResultCollector = resultCollector;
+            Router = router;
+            ConsistentHashKey = GetHashCode();
+        }
+
+        public long RequestId { get; set; }
+        public Hash ChainId { get; set; }
+        public List<ITransaction> Transactions { get; set; }
+        public IActorRef ResultCollector { get; set; }
+        public IActorRef Router { get; set; }
+
+        public object ConsistentHashKey { get; }
+    }
+
+    public sealed class JobExecutionCancelMessage:IConsistentHashable
+    {
+        private JobExecutionCancelMessage() { }
+
+        /// <summary>
+        /// The singleton instance of JobExecutionCancelMessage.
+        /// </summary>
+        public static JobExecutionCancelMessage Instance { get; } = new JobExecutionCancelMessage();
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return "<JobExecutionCancelMessage>";
+        }
+
+        public object ConsistentHashKey { get; }
+    }
+
+    public sealed class JobExecutionCancelAckMessage:IConsistentHashable
+    {
+        private JobExecutionCancelAckMessage() { }
+
+        /// <summary>
+        /// The singleton instance of JobExecutionCancelMessage.
+        /// </summary>
+        public static JobExecutionCancelAckMessage Instance { get; } = new JobExecutionCancelAckMessage();
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return "<JobExecutionCancelAckMessage>";
+        }
+
+        public object ConsistentHashKey { get; }
+    }
+    
+    public sealed class JobExecutionStatusQuery:IConsistentHashable
+    {
+        public JobExecutionStatusQuery(long requestId)
+        {
+            RequestId = requestId;
+        }
+
+        public long RequestId { get; }
+        public object ConsistentHashKey { get; }
+    }
+    
+    public sealed class JobExecutionStatus:IConsistentHashable
+    {
+        public enum RequestStatus
+        {
+            FailedDueToNoAvailableWorker,
+            FailedDueToWorkerNotReady,
+            Running,
+            Completed,
+            Rejected,
+            InvalidRequestId
+        }
+        
+        public JobExecutionStatus(long requestId, RequestStatus status)
+        {
+            RequestId = requestId;
+            Status = status;
+        }
+
+        public long RequestId { get; }
+        public RequestStatus Status { get; }
+        public object ConsistentHashKey { get; }
+    }
+
+    #endregion Routed workers
+
 }

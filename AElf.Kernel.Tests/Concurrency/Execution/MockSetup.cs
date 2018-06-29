@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Linq;
@@ -7,21 +8,22 @@ using System.Threading.Tasks;
 using System.Reflection;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
-using AElf.Kernel.SmartContracts.CSharpSmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using ServiceStack;
 using Xunit;
 using AElf.Runtime.CSharp;
 using AElf.Kernel.Concurrency.Execution;
+using AElf.Kernel.Concurrency.Execution.Messages;
+using AElf.Kernel.Concurrency.Metadata;
 using Xunit.Frameworks.Autofac;
 using Path = AElf.Kernel.Path;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Types.CSharp;
+using Akka.Actor;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
@@ -30,11 +32,18 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
         private static int _incrementId = 0;
+
         public ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
-            return (ulong)n;
+            return (ulong) n;
         }
+
+        public ActorSystem Sys { get; } = ActorSystem.Create("test");
+        public IActorRef Router { get;  }
+        public IActorRef Worker1 { get; }
+        public IActorRef Worker2 { get; }
+        public IActorRef Requestor { get; }
 
         public Hash ChainId1 { get; } = Hash.Generate();
         public Hash ChainId2 { get; } = Hash.Generate();
@@ -54,36 +63,50 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public ServicePack ServicePack;
 
-        private IWorldStateManager _worldStateManager;
+        private IWorldStateDictator _worldStateDictator;
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
+        private IFunctionMetadataService _functionMetadataService;
 
-        private ISmartContractRunnerFactory _smartContractRunnerFactory = new SmartContractRunnerFactory();
+        private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateManager worldStateManager, IChainCreationService chainCreationService, IBlockManager blockManager, SmartContractStore smartContractStore, IChainContextService chainContextService)
+        public MockSetup(IWorldStateStore worldStateStore, IChangesStore changesStore, IDataStore dataStore, IChainCreationService chainCreationService,
+            IBlockManager blockManager, SmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            _worldStateManager = worldStateManager;
+            _worldStateDictator = new WorldStateDictator( worldStateStore, changesStore,  dataStore);
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             ChainContextService = chainContextService;
+            _functionMetadataService = functionMetadataService;
+            _smartContractRunnerFactory = smartContractRunnerFactory;
             SmartContractManager = new SmartContractManager(smartContractStore);
-            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
-            _smartContractRunnerFactory.AddRunner(0, runner);
-            Task.Factory.StartNew(async () =>
-            {
-                await Init();
-            }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateManager);
-            Task.Factory.StartNew(async () =>
-            {
-                await DeploySampleContracts();
-            }).Unwrap().Wait();
+            Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
+            SmartContractService =
+                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator, functionMetadataService);
+            Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
-                ResourceDetectionService = new NewMockResourceUsageDetectionService()
+                ResourceDetectionService = new NewMockResourceUsageDetectionService(),
+                WorldStateDictator = _worldStateDictator
             };
+            
+            var workers = new[] {"/user/worker1", "/user/worker2"};
+            Worker1 = Sys.ActorOf(Props.Create<Worker>(), "worker1");
+            Worker2 = Sys.ActorOf(Props.Create<Worker>(), "worker2");
+            Router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
+            Worker1.Tell(new LocalSerivcePack(ServicePack));
+            Worker2.Tell(new LocalSerivcePack(ServicePack));
+            Requestor = Sys.ActorOf(AElf.Kernel.Concurrency.Execution.Requestor.Props(Router));
+        }
+        
+        public byte[] SmartContractZeroCode
+        {
+            get
+            {
+                return ContractCodes.TestContractZeroCode;
+            }
         }
 
         private async Task Init()
@@ -91,16 +114,20 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var reg = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFrom(new byte[] { }),
+                ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.Zero
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
-            DataProvider1 = (await _worldStateManager.OfChain(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
+            DataProvider1 =
+                await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(
+                    Path.CalculatePointerForAccountZero(ChainId1));
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, reg);
             var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
-            DataProvider2 = (await _worldStateManager.OfChain(ChainId2)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId2));
+            DataProvider2 =
+                await (_worldStateDictator.SetChainId(ChainId2)).GetAccountDataProvider(
+                    Path.CalculatePointerForAccountZero(ChainId2));
         }
 
         private async Task DeploySampleContracts()
@@ -112,28 +139,27 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 ContractHash = new Hash(ExampleContractCode)
             };
 
-            await SmartContractService.DeployContractAsync(SampleContractAddress1, reg);
-            await SmartContractService.DeployContractAsync(SampleContractAddress2, reg);
+            await SmartContractService.DeployContractAsync(ChainId1, SampleContractAddress1, reg, true);
+            await SmartContractService.DeployContractAsync(ChainId2, SampleContractAddress2, reg, true);
             Executive1 = await SmartContractService.GetExecutiveAsync(SampleContractAddress1, ChainId1);
             Executive2 = await SmartContractService.GetExecutiveAsync(SampleContractAddress2, ChainId2);
         }
 
         public byte[] ExampleContractCode
         {
-            get
-            {
-                return ContractCodes.TestContractCode;
-            }
+            get { return ContractCodes.TestContractCode; }
         }
 
         public void Initialize1(Hash account, ulong qty)
         {
-            Executive1.SetTransactionContext(GetInitializeTxnCtxt(SampleContractAddress1, account, qty)).Apply().Wait();
+            Executive1.SetTransactionContext(GetInitializeTxnCtxt(SampleContractAddress1, account, qty)).Apply(true)
+                .Wait();
         }
 
         public void Initialize2(Hash account, ulong qty)
         {
-            Executive2.SetTransactionContext(GetInitializeTxnCtxt(SampleContractAddress2, account, qty)).Apply().Wait();
+            Executive2.SetTransactionContext(GetInitializeTxnCtxt(SampleContractAddress2, account, qty)).Apply(true)
+                .Wait();
         }
 
         private TransactionContext GetInitializeTxnCtxt(Hash contractAddress, Hash account, ulong qty)
@@ -143,7 +169,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 From = Hash.Zero,
                 To = contractAddress,
                 IncrementId = NewIncrementId(),
-                MethodName = "InitializeAsync",
+                MethodName = "Initialize",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(account, qty))
             };
             return new TransactionContext()
@@ -161,6 +187,41 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         {
             return GetTransferTxn(SampleContractAddress2, from, to, qty);
         }
+
+        public Transaction GetSleepTxn1(int milliSeconds)
+        {
+            return GetSleepTxn(SampleContractAddress1, milliSeconds);
+        }
+
+        private Transaction GetSleepTxn(Hash contractAddress, int milliSeconds)
+        {
+            return new Transaction
+            {
+                From = Hash.Zero,
+                To = contractAddress,
+                IncrementId = NewIncrementId(),
+                MethodName = "SleepMilliseconds",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(milliSeconds))
+            };
+        }
+
+        public Transaction GetNoActionTxn1()
+        {
+            return GetNoActionTxn(SampleContractAddress1);
+        }
+
+        private Transaction GetNoActionTxn(Hash contractAddress)
+        {
+            return new Transaction
+            {
+                From = Hash.Zero,
+                To = contractAddress,
+                IncrementId = NewIncrementId(),
+                MethodName = "NoAction",
+                Params = ByteString.Empty
+            };
+        }
+
 
         private Transaction GetTransferTxn(Hash contractAddress, Hash from, Hash to, ulong qty)
         {
@@ -194,7 +255,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 Transaction = txn
             };
 
-            Executive1.SetTransactionContext(txnCtxt).Apply().Wait();
+            Executive1.SetTransactionContext(txnCtxt).Apply(true).Wait();
 
             return txnCtxt.Trace.RetVal.DeserializeToUInt64();
         }
@@ -207,7 +268,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 Transaction = txn
             };
-            Executive2.SetTransactionContext(txnCtxt).Apply().Wait();
+            Executive2.SetTransactionContext(txnCtxt).Apply(true).Wait();
 
             return txnCtxt.Trace.RetVal.DeserializeToUInt64();
         }
@@ -242,7 +303,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 Transaction = txn
             };
 
-            Executive1.SetTransactionContext(txnCtxt).Apply().Wait();
+            Executive1.SetTransactionContext(txnCtxt).Apply(true).Wait();
 
             var dtStr = txnCtxt.Trace.RetVal.DeserializeToString();
             //var dtStr = BitConverter.ToString(txnCtxt.Trace.RetVal.Unpack<BytesValue>().Value.ToByteArray()).Replace("-", "");
@@ -258,7 +319,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 Transaction = txn
             };
 
-            Executive1.SetTransactionContext(txnCtxt).Apply().Wait();
+            Executive1.SetTransactionContext(txnCtxt).Apply(true).Wait();
 
             var dtStr = txnCtxt.Trace.RetVal.DeserializeToString();
 

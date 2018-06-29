@@ -16,7 +16,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
     public class NewMockResourceUsageDetectionService : IResourceUsageDetectionService
     {
-        public IEnumerable<Hash> GetResources(ITransaction transaction)
+        public IEnumerable<string> GetResources(Hash chainId, ITransaction transaction)
         {
             //var hashes = Parameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
             List<Hash> hashes = new List<Hash>();
@@ -33,10 +33,12 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                             break;
                         case WireFormat.WireType.LengthDelimited:
                             var bytes = input.ReadBytes();
-                            if (bytes.Length == 34)
+                            // Address used to be 32 bytes long and was reduced to 18
+                            // accept both so that we don't have to fix tests
+                            if (bytes.Length == 34 || bytes.Length == 20)
                             {
                                 var h = new Hash();
-                                h.MergeFrom(bytes);
+                                ((IMessage)h).MergeFrom(bytes);
                                 hashes.Add(h);
                             }
 
@@ -47,7 +49,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 
             hashes.Add(transaction.From);
 
-            return hashes;
+            return hashes.Select(a => a.Value.ToBase64());
         }
     }
 }

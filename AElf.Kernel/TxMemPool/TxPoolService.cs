@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
+using AElf.Kernel.Types;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
 namespace AElf.Kernel.TxMemPool
@@ -66,7 +67,7 @@ namespace AElf.Kernel.TxMemPool
                 }
                 
             }
-
+            
             return false;
             /*return await (Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
             {
@@ -159,12 +160,33 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
+        public Task<List<ITransaction>> GetReadyTxsAsync(Hash addr, ulong start, ulong ids)
+        {
+            lock (this)
+            {
+                return Task.FromResult(_txPool.ReadyTxs(addr, start, ids));
+            }
+        }
+        
+        /// <inheritdoc/>
         public Task<bool> PromoteAsync()
         {
             //return Lock.WriteLock(() =>
             lock (this)
             {
                 _txPool.Promote();
+                return Task.FromResult(true);
+            }
+        }
+
+        
+        /// <inheritdoc/>
+        public Task PromoteAsync(List<Hash> addresses)
+        {
+            //return Lock.WriteLock(() =>
+            lock (this)
+            {
+                _txPool.Promote(addresses);
                 return Task.FromResult(true);
             }
         }
@@ -293,6 +315,7 @@ namespace AElf.Kernel.TxMemPool
             }
         }
 
+        /// <inheritdoc/>
         public ulong GetIncrementId(Hash addr)
         {
             lock (this)

@@ -1,4 +1,5 @@
-﻿using AElf.CLI.Parsing;
+﻿using System.Collections.Generic;
+using AElf.CLI.Parsing;
 
 namespace AElf.CLI.Command.Account
 {
@@ -17,7 +18,7 @@ namespace AElf.CLI.Command.Account
             return "usage";
         }
 
-        public override string Validate(CmdParseResult parsedCommand)
+        public override string Validate(CmdParseResult parsedCmd)
         {
             return null;
         }

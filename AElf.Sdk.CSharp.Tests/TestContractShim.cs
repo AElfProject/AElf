@@ -64,7 +64,7 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToUInt32();
         }
 
@@ -82,7 +82,7 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToBool();
         }
 
@@ -100,7 +100,7 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 Transaction = tx
             };
-            Executive.SetTransactionContext(tc).Apply().Wait();
+            Executive.SetTransactionContext(tc).Apply(true).Wait();
             return tc.Trace.RetVal.DeserializeToString();
         }
     }

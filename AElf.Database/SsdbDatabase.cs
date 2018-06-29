@@ -1,59 +1,38 @@
 ﻿using System;
+using System.Text;
 using System.Threading.Tasks;
 using AElf.Database.Config;
-using StackExchange.Redis;
+using NServiceKit.Redis;
 
 namespace AElf.Database
 {
     public class SsdbDatabase : IKeyValueDatabase
     {
-        private readonly ConfigurationOptions _options;
+        private readonly PooledRedisClientManager _client;
 
         public SsdbDatabase()
-            : this(new DatabaseConfig())
         {
-        }
-
-        public SsdbDatabase(IDatabaseConfig config)
-        {
-            _options = new ConfigurationOptions
-            {
-                EndPoints = {{config.Host, config.Port}},
-                CommandMap = CommandMap.SSDB
-            };
+            _client = new PooledRedisClientManager($"{DatabaseConfig.Instance.Host}:{DatabaseConfig.Instance.Port}");
         }
 
         public async Task<byte[]> GetAsync(string key, Type type)
         {
-            using (var conn = ConnectionMultiplexer.Connect(_options))
-            {
-                var db = conn.GetDatabase(0);
-                return await db.StringGetAsync(key);
-            }
+            return await Task.FromResult(_client.GetCacheClient().Get<byte[]>(key));
         }
 
         public async Task SetAsync(string key, byte[] bytes)
         {
-            using (var conn = ConnectionMultiplexer.Connect(_options))
-            {
-                var db = conn.GetDatabase(0);
-                await db.StringSetAsync(key, bytes);
-            }
+            await Task.FromResult(_client.GetCacheClient().Set(key, bytes));
         }
 
         public bool IsConnected()
         {
             try
             {
-                using (var conn = ConnectionMultiplexer.Connect(_options))
-                {
-                    var db = conn.GetDatabase(0);
-                    db.Ping();
-                }
-
+                _client.GetCacheClient().Set<byte[]>("ping", null);
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
                 return false;
             }

@@ -12,18 +12,26 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
     <PackageReference Include="xunit.runner.console" Version="2.3.1" />
     <PackageReference Include="ZeroFormatter" Version="1.6.4" />
-    <PackageReference Include="Akka.TestKit.Xunit" Version="1.3.6" />
+    <PackageReference Include="Akka.TestKit.Xunit" Version="1.3.8" />
     <PackageReference Include="ServiceStack" Version="5.1.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.SmartContracts.CSharpSmartContract\AElf.Kernel.SmartContracts.CSharpSmartContract.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Tests.TestContractZero\AElf.Kernel.Tests.TestContractZero.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Tests.TestContract\AElf.Kernel.Tests.TestContract.csproj" />
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
     <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="TransactionTests.cs" />
+    <Compile Remove="Concurrency\Execution\ChainExecutorTest.cs" />
+    <Compile Remove="Concurrency\Execution\ChainRequestorTest.cs" />
+    <Compile Remove="Concurrency\Execution\GeneralExecutorTest.cs" />
+    <Compile Remove="Concurrency\Execution\GeneralRequestorTest.cs" />
+    <Compile Remove="Concurrency\Execution\JobExecutorTest.cs" />
+    <Compile Remove="Concurrency\Execution\GroupExecutorTest.cs" />
+    <Compile Remove="Concurrency\Execution\BatchExecutorTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Concurrency\" />
@@ -37,5 +45,8 @@
     <Reference Include="Google.Protobuf">
       <HintPath>..\..\..\..\.nuget\packages\google.protobuf\3.5.1\lib\netstandard1.0\Google.Protobuf.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Concurrency\ResourceUsageDetectionServiceTest.cs" />
   </ItemGroup>
 </Project>

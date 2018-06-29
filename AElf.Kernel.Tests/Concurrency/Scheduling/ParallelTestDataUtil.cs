@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.Extensions;
 using ServiceStack.Redis;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling
@@ -317,11 +316,17 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return string.Join(
                 " ",
                 map.OrderBy(a => a.Key)
-                    .Select(item => String.Format("[{0},({1}),({2}),({3})]", 
+                    .Select(item => String.Format("[<{0},{1}>]", 
                         item.Key,
-                        CallingSetToString(item.Value.CallingSet), 
-                        PathSetToString(item.Value.FullResourceSet),
-                        PathSetToString(item.Value.LocalResourceSet))));
+                        FunctionMetadataToString(item.Value))));
+        }
+        
+        public string FunctionMetadataToString(FunctionMetadata functionMetadata)
+        {
+            return String.Format("[({0}),({1}),({2})]", 
+                CallingSetToString(functionMetadata.CallingSet), 
+                PathSetToString(functionMetadata.LocalResourceSet),
+                PathSetToString(functionMetadata.FullResourceSet));
         }
         
         public string FunctionMetadataTemplateMapToString(Dictionary<string, FunctionMetadataTemplate> map)

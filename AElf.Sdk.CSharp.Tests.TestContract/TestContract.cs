@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Sdk.CSharp.Types;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency.Metadata;
 using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 
@@ -21,22 +22,20 @@ namespace AElf.Sdk.CSharp.Tests
 
     public class TestContract : CSharpSmartContract
     {
+        [SmartContractFieldData("${this}._stopped", DataAccessMode.ReadWriteAccountSharing)]
         private BoolField _stopped = new BoolField("_stopped");
+        
+        [SmartContractFieldData("${this}._account", DataAccessMode.ReadWriteAccountSharing)]
         private UserTypeField<Account> _account = new UserTypeField<Account>("_account");
 
-        public override async Task InvokeAsync()
-        {
-            // this is not needed anymore, put here as placeholder
-            // before we remove this from interface
-            await Task.CompletedTask;
-        }
-
+        [SmartContractFunction("${this}.GetTotalSupply", new string[]{}, new string[]{})]
         public uint GetTotalSupply()
         {
             return 100;
         }
 
-        public async Task<bool> SetAccount(string name, Hash address)
+        [SmartContractFunction("${this}.SetAccount", new string[]{}, new []{"${this}._account"})]
+        public bool SetAccount(string name, Hash address)
         {
             var account = new Account()
             {
@@ -44,13 +43,15 @@ namespace AElf.Sdk.CSharp.Tests
                 Address = address
             };
             // this is used for testing UserTypeField
-            await _account.SetAsync(account);
+            _account.SetValue(account);
             return true;
         }
 
-        public async Task<string> GetAccountName()
+        
+        [SmartContractFunction("${this}.GetAccountName", new string[]{}, new []{"${this}._account"})]
+        public string GetAccountName()
         {
-            var account = await _account.GetAsync();
+            var account = _account.GetValue();
             new AccountName()
             {
                 Name = account.Name

@@ -19,7 +19,7 @@ namespace AElf.Database
         static DatabaseTypeHelper()
         {
             _typeDic.Add("keyvalue", DatabaseType.KeyValue);
-            //_typeDic.Add("redis", DatabaseType.Redis);
+            _typeDic.Add("redis", DatabaseType.Redis);
             _typeDic.Add("ssdb", DatabaseType.Ssdb);
         }
 

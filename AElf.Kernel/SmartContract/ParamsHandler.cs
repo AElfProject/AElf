@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Kernel.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 

@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.Extensions;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
@@ -17,25 +16,10 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
 
         [SmartContractFieldData("${this}.TokenContractName", DataAccessMode.ReadOnlyAccountSharing)]
         public string TokenContractName;
-        public async Task<object> InitializeAsync()
+        public void Initialize()
         {
-            await Balances.SetValueAsync("0".CalculateHash(), 200);
-            await Balances.SetValueAsync("1".CalculateHash(), 100);
-            return null;
-        }
-        
-        public override async Task InvokeAsync()
-        {
-            var tx = Api.GetTransaction();
-
-            var methodname = tx.MethodName;
-            var type = GetType();
-            var member = type.GetMethod(methodname);
-            // params array
-            var parameters = Parameters.Parser.ParseFrom(tx.Params).Params.Select(p => p.Value()).ToArray();
-            
-            // invoke
-            await (Task<object>) member.Invoke(this, parameters);
+            Balances.SetValue("0".CalculateHash(), 200);
+            Balances.SetValue("1".CalculateHash(), 100);
         }
 
         public TestTokenContract(string tokenContractName)
@@ -44,16 +28,16 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
         }
         
         [SmartContractFunction("${this}.Transfer(AElf.Kernel.Hash, AElf.Kernel.Hash, UInt64)", new string[]{}, new []{"${this}.Balances"})]
-        public async Task<bool> Transfer(Hash from, Hash to, ulong qty)
+        public bool Transfer(Hash from, Hash to, ulong qty)
         {
-            var fromBal = await Balances.GetValueAsync(from);
-            var toBal = await Balances.GetValueAsync(to);
+            var fromBal = Balances.GetValue(from);
+            var toBal = Balances.GetValue(to);
             var newFromBal = fromBal - qty;
             if (newFromBal > 0)
             {
                 var newToBal = toBal + qty;
-                await Balances.SetValueAsync(from, newFromBal);
-                await Balances.SetValueAsync(to, newToBal);
+                Balances.SetValue(from, newFromBal);
+                Balances.SetValue(to, newToBal);
                 return true;
             }
             else
@@ -63,10 +47,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
         }
 
         [SmartContractFunction("${this}.GetBalance(AElf.Kernel.Hash)", new string[]{}, new []{"${this}.Balances"})]
-        public async Task<object> GetBalance(Hash account)
+        public ulong GetBalance(Hash account)
         {
-            var bal= await Balances.GetValueAsync(account.CalculateHash());
-            Api.Return(new UInt64Value() { Value = bal});
+            var bal= Balances.GetValue(account.CalculateHash());
             return bal;
         }
     }

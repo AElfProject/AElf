@@ -1,5 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using AElf.Kernel.Managers;
 
 namespace AElf.Kernel
 {
@@ -7,6 +7,7 @@ namespace AElf.Kernel
     {
         IExecutive SetSmartContractContext(ISmartContractContext contractContext);
         IExecutive SetTransactionContext(ITransactionContext transactionContext);
-        Task Apply();
+        IExecutive SetWorldStateManager(IWorldStateDictator worldStateDictator);
+        Task Apply(bool autoCommit);
     }
 }

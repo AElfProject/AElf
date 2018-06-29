@@ -1,5 +1,6 @@
 ﻿using System;
 using AElf.Kernel.Services;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel
 {
@@ -7,7 +8,7 @@ namespace AElf.Kernel
     {
         Hash ChainId { get; set; }
         Hash ContractAddress { get; set; }
-        IDataProvider DataProvider { get; set; }
+        ICachedDataProvider DataProvider { get; set; }
         ISmartContractService SmartContractService { get; set; }
     }
 }
