@@ -733,7 +733,7 @@ namespace AElf.Kernel.Tests
             var res = new StringValue
             {
                 Value
-                    = result + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime():u}\n"
+                    = result + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
                              + "Current Round : " + RoundsCount?.Value
             };
             
@@ -756,7 +756,7 @@ namespace AElf.Kernel.Tests
                 result += bpInfo.Key + ":\n";
                 result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";
                 result += "Order:\t\t" + bpInfo.Value.Order + "\n";
-                result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToString("u") + "\n";
+                result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
                 result += "Signature:\t" + bpInfo.Value.Signature + "\n";
                 result += "Out Value:\t" + bpInfo.Value.OutValue + "\n";
                 result += "In Value:\t" + bpInfo.Value.InValue + "\n";

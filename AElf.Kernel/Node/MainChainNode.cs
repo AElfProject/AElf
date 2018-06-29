@@ -852,7 +852,7 @@ namespace AElf.Kernel.Node
                         if (doLogsAboutConsensus)
                         {
                             // If this node doesn't produce any block this interval.
-                            _logger.Log(LogLevel.Debug, "Find myself unable to mine in {0}", DateTime.UtcNow.ToString("u"));
+                            _logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
                         }
                     }
                 );
