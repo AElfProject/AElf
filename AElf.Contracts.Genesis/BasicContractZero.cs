@@ -72,12 +72,13 @@ namespace AElf.Contracts.Genesis
 
                 return _value;
             }
+            private set { _value = value; }
         }
 
         public SerialNumber Increment()
         {
-            _value++;
-            SetValue(_value);
+            this.Value = this.Value + 1;
+            SetValue(this.Value);
             return this;
         }
     }
