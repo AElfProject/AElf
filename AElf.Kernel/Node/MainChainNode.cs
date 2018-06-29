@@ -194,21 +194,7 @@ namespace AElf.Kernel.Node
             _protocolDirector.SetCommandContext(this, true); // If not miner do sync
             
             // akka env 
-            /*IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack
-            {
-                ChainContextService = _chainContextService,
-                SmartContractService = _smartContractService,
-                ResourceDetectionService = new MockResourceUsageDetectionService()
-            }));
-            IActorRef generalExecutor = _sys.ActorOf(GeneralExecutor.Props(_sys, serviceRouter), "exec");
-            generalExecutor.Tell(new RequestAddChainExecutor(_nodeConfig.ChainId));*/
             
-            
-            /*var sys = ActorSystem.Create("AElf");
-            var workers = new[] {"/user/worker1", "/user/worker2"};
-            IActorRef worker1 = sys.ActorOf(Props.Create<Worker>(), "worker1");
-            IActorRef worker2 = sys.ActorOf(Props.Create<Worker>(), "worker2");
-            IActorRef router = sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");*/
 
             var servicePack = new ServicePack
             {
@@ -217,13 +203,6 @@ namespace AElf.Kernel.Node
                 ResourceDetectionService = new ResourceUsageDetectionService(_functionMetadataService),
                 WorldStateDictator = _worldStateDictator
             };
-            /*worker1.Tell(new LocalSerivcePack(servicePack));
-            worker2.Tell(new LocalSerivcePack(servicePack));
-            IActorRef requestor = sys.ActorOf(AElf.Kernel.Concurrency.Execution.Requestor.Props(router));*/
-       
-            /*
-            var parallelTransactionExecutingService = new ParallelTransactionExecutingService(requestor,
-                );*/
             
             var grouper = new Grouper(servicePack.ResourceDetectionService, _logger);
             _blockExecutor.Start(grouper);
