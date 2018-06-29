@@ -55,6 +55,7 @@ namespace AElf.Kernel.Node
         private readonly ISmartContractService _smartContractService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly IFunctionMetadataService _functionMetadataService;
+        private readonly IConcurrencyExecutingService _concurrencyExecutingService;
 
         private readonly IBlockExecutor _blockExecutor;
 
@@ -76,7 +77,7 @@ namespace AElf.Kernel.Node
                 var blockProducers = new BlockProducer();
                 foreach (var bp in dict.Values)
                 {
-                    blockProducers.Nodes.Add(bp["pubkey"]);
+                    blockProducers.Nodes.Add(bp["address"]);
                 }
 
                 return blockProducers;
@@ -95,7 +96,8 @@ namespace AElf.Kernel.Node
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
             IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator, 
             IChainManager chainManager, ISmartContractService smartContractService,
-            ITransactionResultService transactionResultService, IBlockManager blockManager, IFunctionMetadataService functionMetadataService)
+            ITransactionResultService transactionResultService, IBlockManager blockManager, 
+            IFunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
@@ -104,6 +106,7 @@ namespace AElf.Kernel.Node
             _transactionResultService = transactionResultService;
             _blockManager = blockManager;
             _functionMetadataService = functionMetadataService;
+            _concurrencyExecutingService = concurrencyExecutingService;
             _poolService = poolService;
             _protocolDirector = protocolDirector;
             _transactionManager = txManager;
@@ -191,21 +194,7 @@ namespace AElf.Kernel.Node
             _protocolDirector.SetCommandContext(this, true); // If not miner do sync
             
             // akka env 
-            /*IActorRef serviceRouter = _sys.ActorOf(LocalServicesProvider.Props(new ServicePack
-            {
-                ChainContextService = _chainContextService,
-                SmartContractService = _smartContractService,
-                ResourceDetectionService = new MockResourceUsageDetectionService()
-            }));
-            IActorRef generalExecutor = _sys.ActorOf(GeneralExecutor.Props(_sys, serviceRouter), "exec");
-            generalExecutor.Tell(new RequestAddChainExecutor(_nodeConfig.ChainId));*/
             
-            
-            var sys = ActorSystem.Create("AElf");
-            var workers = new[] {"/user/worker1", "/user/worker2"};
-            IActorRef worker1 = sys.ActorOf(Props.Create<Worker>(), "worker1");
-            IActorRef worker2 = sys.ActorOf(Props.Create<Worker>(), "worker2");
-            IActorRef router = sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
 
             var servicePack = new ServicePack
             {
@@ -214,19 +203,13 @@ namespace AElf.Kernel.Node
                 ResourceDetectionService = new ResourceUsageDetectionService(_functionMetadataService),
                 WorldStateDictator = _worldStateDictator
             };
-            worker1.Tell(new LocalSerivcePack(servicePack));
-            worker2.Tell(new LocalSerivcePack(servicePack));
-            IActorRef requestor = sys.ActorOf(AElf.Kernel.Concurrency.Execution.Requestor.Props(router));
-       
             
-            var parallelTransactionExecutingService = new ParallelTransactionExecutingService(requestor,
-                new Grouper(servicePack.ResourceDetectionService, _logger));
-            
-            _blockExecutor.Start(parallelTransactionExecutingService);
+            var grouper = new Grouper(servicePack.ResourceDetectionService, _logger);
+            _blockExecutor.Start(grouper);
             
             if (_nodeConfig.IsMiner)
             {
-                _miner.Start(nodeKeyPair, parallelTransactionExecutingService);
+                _miner.Start(nodeKeyPair, grouper);
                 
                 Mine();
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
@@ -992,7 +975,7 @@ namespace AElf.Kernel.Node
             };
             Executive.SetTransactionContext(tcGetDPoSInfo).Apply(true).Wait();
 
-            if (tcGetDPoSInfo.Trace.StdErr.IsNullOrEmpty())
+            if (!tcGetDPoSInfo.Trace.StdErr.IsNullOrEmpty())
             {
                 return "";
             }
