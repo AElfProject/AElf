@@ -139,6 +139,9 @@ namespace AElf.CLI
                             }
                             parsedCmd.Args.Add(_genesisAddress);
                         }
+
+                        var addr = parsedCmd.Args.ElementAt(0);
+                        
                         
                         string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
         
@@ -356,7 +359,14 @@ namespace AElf.CLI
                         }
                     
                         JObject jObj = JObject.Parse(resp);
+                        
                         var j = jObj["result"];
+                        if (j["error"] != null)
+                        {
+                            _screenManager.PrintLine(j["error"].ToString());
+                            return;
+                        }
+                        
                         if (j["result"]["genesis-contract"] != null)
                         {
                             _genesisAddress = j["result"]["genesis-contract"].ToString();
