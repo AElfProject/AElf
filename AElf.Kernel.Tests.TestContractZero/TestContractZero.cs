@@ -532,11 +532,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.GetTimeSlot", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfCurrentRound"}, new string[]{ })]
         public async Task<Timestamp> GetTimeSlot(string accountAddress)
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             return (await GetBlockProducerInfoOfCurrentRound(accountAddress)).TimeSlot;
         }
 
@@ -717,6 +712,7 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.GetDPoSInfoToString", new string[]{"${this}.Authentication", "${this}.GetRoundInfoToString"}, new string[]{"${this}._timeForProducingExtraBlock", "${this}._roundsCount"})]
         public async Task<StringValue> GetDPoSInfoToString()
         {
+            Console.WriteLine("dpos info");
             if (!await Authentication())
             {
                 return null;
@@ -774,6 +770,25 @@ namespace AElf.Kernel.Tests
             }
 
             return result + "\n";
+        }
+
+        [SmartContractFunction("${this}.BlockProducerVerification", new string[]{"${this}.IsBP", "${this}.GetTimestampOfUtcNow", "${this}.GetTimeSlot", "${this}.CompareTimestamp"}, new string[]{"${this}._timeForProducingExtraBlock"})]
+        public async Task<BoolValue> BlockProducerVerification(StringValue accountAddress)
+        {
+            if (!await IsBP(accountAddress.Value))
+            {
+                return new BoolValue {Value = false};
+            }
+            
+            var now = GetTimestampOfUtcNow();
+            var timeslotOfBlockProducer = await GetTimeSlot(accountAddress.Value);
+            // ReSharper disable once InconsistentNaming
+            var timeslotOfEBP = await _timeForProducingExtraBlock.GetAsync();
+            
+            return new BoolValue
+            {
+                Value = CompareTimestamp(now, timeslotOfBlockProducer) || CompareTimestamp(now, timeslotOfEBP)
+            };
         }
 
         #region Private Methods

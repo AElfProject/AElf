@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Node.Config;
@@ -45,7 +46,7 @@ namespace AElf.Kernel.BlockValidationFilters
             
             var contractAccountHash = new Hash(context.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
             var executive = await _smartContractService.GetExecutiveAsync(contractAccountHash, context.ChainId);
-            var tx = GetTxToVerifyBlockProducer(contractAccountHash, keyPair);
+            var tx = GetTxToVerifyBlockProducer(contractAccountHash, keyPair, recipientKeyPair.GetAddress().ToHex());
             var tc = new TransactionContext
             {
                 Transaction = tx
@@ -55,20 +56,22 @@ namespace AElf.Kernel.BlockValidationFilters
             {
                 return ValidationError.InvalidBlock;
             }
+
+            Console.WriteLine("verified");
             
             return ValidationError.Success;
         }
 
-        private ITransaction GetTxToVerifyBlockProducer(Hash contractAccountHash, ECKeyPair keyPair)
+        private ITransaction GetTxToVerifyBlockProducer(Hash contractAccountHash, ECKeyPair keyPair, string recepientAddress)
         {
             var tx = new Transaction
             {
                 From = keyPair.GetAddress(),
                 To = contractAccountHash,
                 IncrementId = 0,
-                MethodName = "IsBP",
+                MethodName = "BlockProducerVerification",
                 P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(new StringValue {Value = recepientAddress}))
             };
             
             var signer = new ECSigner();
