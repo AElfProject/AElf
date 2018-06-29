@@ -22,7 +22,7 @@ namespace AElf.Kernel.Node.Config
                 {
                     "2", new Dictionary<string, string>
                     {
-                        {"address", "0439718f8e2342d4bd426b7e88e095a1de18"}
+                        {"address", "040e80d9ea7fd2cfcd07d25d67ecf2568a73"}
                     }
                 },
                 {
