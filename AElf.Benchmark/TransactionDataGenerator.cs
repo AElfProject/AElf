@@ -18,7 +18,7 @@ namespace AElf.Benchmark
         {
             _totalNumber = maxNumber;
             KeyDict = new Dictionary<Hash, ECKeyPair>();
-            for (int i = 0; i < maxNumber + 5; i++)
+            for (int i = 0; i < maxNumber + 90; i++)
             {
                 if (maxNumber > 100 && i % (maxNumber / 10) == 0)
                 {
