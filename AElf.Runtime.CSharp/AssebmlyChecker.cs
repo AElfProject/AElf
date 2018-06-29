@@ -10,7 +10,16 @@ namespace AElf.Runtime.CSharp
     {
         private readonly IEnumerable<Regex> _blackList;
         private readonly IEnumerable<Regex> _whiteList;
-        private readonly string[] _systemWhiteList = new string[]
+
+        private readonly string[] _systemBlackList =
+        {
+            @"System\.Reflection.*",
+            @"System\.IO.*",
+            @"System\.Net.*",
+            @"System\.Threading.*",
+        };
+
+        private readonly string[] _systemWhiteList =
         {
             "System.Reflection.AssemblyCompanyAttribute".Replace(".", "\\."),
             "System.Reflection.AssemblyConfigurationAttribute".Replace(".", "\\."),
@@ -23,7 +32,7 @@ namespace AElf.Runtime.CSharp
         
         public AssemblyChecker(IEnumerable<string> blackList, IEnumerable<string> whiteList)
         {
-            _blackList = (blackList ?? new string[0]).Select(x => new Regex(x)).ToList();
+            _blackList = (blackList ?? new string[0]).Concat(_systemBlackList).Select(x => new Regex(x)).ToList();
             _whiteList = (whiteList ?? new string[0]).Concat(_systemWhiteList).Select(x => new Regex(x)).ToList();
         }
 

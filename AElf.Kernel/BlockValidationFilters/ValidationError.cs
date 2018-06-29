@@ -1,10 +1,10 @@
 ﻿namespace AElf.Kernel.BlockValidationFilters
 {
-    public enum ValidationError
+    public enum ValidationError :int
     {
-        Success,
-        InvalidBlock,
-        OrphanBlock,
-        AlreadyExecuted
+        Success = 1,
+        OrphanBlock = 2,
+        InvalidBlock = 3,
+        AlreadyExecuted = 4
     }
 }

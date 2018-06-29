@@ -31,6 +31,7 @@ namespace AElf.Kernel.Node.RPC
         private const string GetTxResultMethodName = "get_tx_result";
         private const string GetCommandsMethodName = "get_commands";
         private const string GetContractAbi = "get_contract_abi";
+        private const string GetGenesisiAddress = "connect_chain";
 
         /// <summary>
         /// The names of the exposed RPC methods and also the
@@ -46,7 +47,8 @@ namespace AElf.Kernel.Node.RPC
             GetIncrementIdMethodName,
             BroadcastBlockMethodName,
             GetContractAbi,
-            GetTxResultMethodName
+            GetTxResultMethodName,
+            GetGenesisiAddress
         };
 
         /// <summary>
@@ -216,6 +218,9 @@ namespace AElf.Kernel.Node.RPC
                     case GetTxResultMethodName:
                         responseData = await ProcGetTxResult(reqParams);
                         break;
+                    case GetGenesisiAddress:
+                        responseData = await ProGetGenesisAddress(reqParams);
+                        break;
                     default:
                         Console.WriteLine("Method name not found"); // todo log
                         break;
@@ -236,6 +241,22 @@ namespace AElf.Kernel.Node.RPC
             }
         }
 
+        private Task<JObject> ProGetGenesisAddress(JObject reqParams)
+        {
+            var genesisHash = _node.GetGenesisContractHash();
+            Hash chainId = _node.ChainId;  
+            JObject j = new JObject
+            {
+                ["result"] = new JObject
+                {
+                    ["genesis-contract"] = genesisHash.Value.ToByteArray().ToHex(),
+                    ["chain-id"] = chainId.Value.ToBase64()
+                }
+            };
+            
+            return Task.FromResult(JObject.FromObject(j));
+        }
+
         private async Task<JObject> ProcGetTxResult(JObject reqParams)
         {
             string adr = reqParams["txhash"].ToString();
@@ -251,8 +272,10 @@ namespace AElf.Kernel.Node.RPC
             string jsonResponse = JsonFormatter.Default.Format(txResult);
             JObject j = new JObject
             {
-                ["txresult"] = jsonResponse,
-                ["retval"] = h.Value.ToBase64()
+                ["result"] = new JObject
+                {
+                    ["txresult"] = jsonResponse
+                }
             };
             
             return JObject.FromObject(j);
@@ -263,14 +286,22 @@ namespace AElf.Kernel.Node.RPC
             string adr = reqParams["address"].ToString();
             ulong current = await _node.GetIncrementId(new Hash(ByteArrayHelpers.FromHexString(adr)));
 
-            JObject j = new JObject {["increment"] = current};
+            JObject j = new JObject
+            {
+                ["result"] = new JObject
+                {
+                    ["increment"] = current
+                }
+            };
 
             return JObject.FromObject(j);
         }
 
         private async Task<JObject> ProcessGetContractAbi(JObject reqParams)
         {
-            string addr = reqParams["address"].ToString();
+            string addr = reqParams["address"] == null
+                ? _node.GetGenesisContractHash().Value.ToByteArray().ToHex()
+                : reqParams["address"].ToString();
             Hash addrHash = new Hash()
             {
                 Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(addr))
@@ -396,7 +427,10 @@ namespace AElf.Kernel.Node.RPC
 
             JObject j = new JObject()
             {
-                ["commands"] = arrCommands
+                ["result"] = new JObject
+                    {
+                        ["commands"] = arrCommands
+                    }
             };
 
             return JObject.FromObject(j);

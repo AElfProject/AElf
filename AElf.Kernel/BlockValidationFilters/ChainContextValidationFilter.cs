@@ -6,11 +6,11 @@ using AElf.Kernel.Types;
 
 namespace AElf.Kernel.BlockValidationFilters
 {
-    public class ChainBlockValidationFilter : IBlockValidationFilter
+    public class ChainContextValidationFilter : IBlockValidationFilter
     {
         private readonly IBlockManager _blockManager;
 
-        public ChainBlockValidationFilter(IBlockManager blockManager)
+        public ChainContextValidationFilter(IBlockManager blockManager)
         {
             _blockManager = blockManager;
         }

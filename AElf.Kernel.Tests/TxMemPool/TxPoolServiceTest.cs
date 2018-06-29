@@ -20,20 +20,22 @@ namespace AElf.Kernel.Tests.TxMemPool
         private readonly ILogger _logger;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        public TxPoolServiceTest(IWorldStateDictator worldStateDictator, ILogger logger,
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
+        private readonly IWorldStateDictator _worldStateDictator;
+        public TxPoolServiceTest(IAccountContextService accountContextService, ILogger logger,
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, IWorldStateDictator worldStateDictator)
         {
+            _accountContextService = accountContextService;
             _logger = logger;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
-
-            worldStateDictator.SetChainId(Hash.Generate());
-            _accountContextService = new AccountContextService(worldStateDictator);
+            _worldStateDictator = worldStateDictator;
         }
 
         private TxPool GetPool()
         {
-            return new TxPool(TxPoolConfig.Default, _logger);
+            var config = TxPoolConfig.Default;
+            _worldStateDictator.SetChainId(config.ChainId);
+            return new TxPool(config, _logger);
         }
 
         [Fact]

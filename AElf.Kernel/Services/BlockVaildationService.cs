@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Managers;
@@ -19,19 +20,15 @@ namespace AElf.Kernel.Services
 
         public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context)
         {
+            int error = (int) ValidationError.Success; 
             foreach (var filter in _filters)
             {
-                var error = await filter.ValidateBlockAsync(block, context);
-                if (error == ValidationError.Success) continue;
-                if (error == ValidationError.OrphanBlock)
-                {
-                    await _blockManager.AddBlockAsync((Block)block);
-                }
-                return error;
-
+                error = Math.Max((int)await filter.ValidateBlockAsync(block, context), error);
+                if (error == 3)
+                    return ValidationError.InvalidBlock;
             }
             
-            return ValidationError.Success;
+            return (ValidationError) error;
         }
     }
 

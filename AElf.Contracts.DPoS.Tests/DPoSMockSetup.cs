@@ -78,7 +78,7 @@ namespace AElf.Contracts.DPoS.Tests
                 ContractHash = new Hash(code)
             };
 
-            await SmartContractService.DeployContractAsync(ChainId1, address, reg);
+            await SmartContractService.DeployContractAsync(ChainId1, address, reg, true);
         }
 
         public async Task<IExecutive> GetExecutiveAsync(Hash address)

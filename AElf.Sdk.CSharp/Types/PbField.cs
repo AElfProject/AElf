@@ -15,6 +15,19 @@ namespace AElf.Sdk.CSharp.Types
             _name = name;
         }
 
+        public void SetValue(T value)
+        {
+            var task = SetAsync(value);
+            task.Wait();
+        }
+
+        public T GetValue()
+        {
+            var task = GetAsync();
+            task.Wait();
+            return task.Result;
+        }
+        
         public async Task SetAsync(T value)
         {
             if (value != null)
@@ -37,6 +50,20 @@ namespace AElf.Sdk.CSharp.Types
         {
             _inner = new PbField<BoolValue>(name);
         }
+        
+        public void SetValue(bool value)
+        {
+            var task = SetAsync(value);
+            task.Wait();
+        }
+
+        public bool GetValue()
+        {
+            var task = GetAsync();
+            task.Wait();
+            return task.Result;
+        }
+        
         public async Task SetAsync(bool value)
         {
             await _inner.SetAsync(new BoolValue() { Value = value });
@@ -54,6 +81,20 @@ namespace AElf.Sdk.CSharp.Types
         {
             _inner = new PbField<UInt32Value>(name);
         }
+        
+        public void SetValue(uint value)
+        {
+            var task = SetAsync(value);
+            task.Wait();
+        }
+
+        public uint GetValue()
+        {
+            var task = GetAsync();
+            task.Wait();
+            return task.Result;
+        }
+        
         public async Task SetAsync(uint value)
         {
             await _inner.SetAsync(new UInt32Value() { Value = value });
@@ -71,6 +112,20 @@ namespace AElf.Sdk.CSharp.Types
         {
             _inner = new PbField<SInt32Value>(name);
         }
+        
+        public void SetValue(int value)
+        {
+            var task = SetAsync(value);
+            task.Wait();
+        }
+
+        public int GetValue()
+        {
+            var task = GetAsync();
+            task.Wait();
+            return task.Result;
+        }
+        
         public async Task SetAsync(int value)
         {
             await _inner.SetAsync(new SInt32Value() { Value = value });
@@ -88,6 +143,20 @@ namespace AElf.Sdk.CSharp.Types
         {
             _inner = new PbField<UInt64Value>(name);
         }
+        
+        public void SetValue(ulong value)
+        {
+            var task = SetAsync(value);
+            task.Wait();
+        }
+
+        public ulong GetValue()
+        {
+            var task = GetAsync();
+            task.Wait();
+            return task.Result;
+        }
+        
         public async Task SetAsync(ulong value)
         {
             await _inner.SetAsync(new UInt64Value { Value = value });
@@ -105,6 +174,20 @@ namespace AElf.Sdk.CSharp.Types
         {
             _inner = new PbField<SInt64Value>(name);
         }
+        
+        public void SetValue(long value)
+        {
+            var task = SetAsync(value);
+            task.Wait();
+        }
+
+        public long GetValue()
+        {
+            var task = GetAsync();
+            task.Wait();
+            return task.Result;
+        }
+        
         public async Task SetAsync(long value)
         {
             await _inner.SetAsync(new SInt64Value() { Value = value });
@@ -122,6 +205,20 @@ namespace AElf.Sdk.CSharp.Types
         {
             _inner = new PbField<StringValue>(name);
         }
+        
+        public void SetValue(string value)
+        {
+            var task = SetAsync(value);
+            task.Wait();
+        }
+
+        public string GetValue()
+        {
+            var task = GetAsync();
+            task.Wait();
+            return task.Result;
+        }
+        
         public async Task SetAsync(string value)
         {
             await _inner.SetAsync(new StringValue() { Value = value });
@@ -139,6 +236,20 @@ namespace AElf.Sdk.CSharp.Types
         {
             _inner = new PbField<BytesValue>(name);
         }
+        
+        public void SetValue(byte[] value)
+        {
+            var task = SetAsync(value);
+            task.Wait();
+        }
+
+        public byte[] GetValue()
+        {
+            var task = GetAsync();
+            task.Wait();
+            return task.Result;
+        }
+        
         public async Task SetAsync(byte[] value)
         {
             await _inner.SetAsync(new BytesValue() { Value = ByteString.CopyFrom(value) });

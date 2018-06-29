@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,14 +17,9 @@ namespace AElf.Kernel.Tests
 {
     public class TestContractZero : CSharpSmartContract, ISmartContractZero
     {
+
         [SmartContractFieldData("${this}._deployLock", DataAccessMode.ReadWriteAccountSharing)]
         private object _deployLock;        
-        
-        
-        public override async Task InvokeAsync()
-        {
-            await Task.CompletedTask;
-        }
 
         [SmartContractFunction("${this}.DeploySmartContract", new string[]{}, new string[]{"${this}._deployLock"})]
         public async Task<Hash> DeploySmartContract(int category, byte[] contract)
@@ -42,8 +37,8 @@ namespace AElf.Kernel.Tests
             var account = Path.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
             
             await Api.DeployContractAsync(account, registration);
-            Console.WriteLine("Deployment success, {0}", account.Value.ToBase64());
-            return account.Value;
+            Console.WriteLine("Deployment success, {0}", account.Value.ToByteArray().ToHex());
+            return account.Value.ToByteArray();
         }
 
         public void Print(string name)
@@ -53,10 +48,13 @@ namespace AElf.Kernel.Tests
 
         #region DPoS
 
+        // The length of one timeslot for a miner to produce block
         private const int MiningTime = 16000;
 
+        // After the chain creator start a chain, wait for other mimers join
         private const int WaitFirstRoundTime = 16000;
 
+        // Block producers check interval
         private const int CheckTime = 5000;
 
         [SmartContractFieldData("${this}._roundsCount", DataAccessMode.ReadWriteAccountSharing)]
@@ -74,7 +72,10 @@ namespace AElf.Kernel.Tests
         
         [SmartContractFieldData("${this}._timeForProducingExtraBlock", DataAccessMode.ReadWriteAccountSharing)]
         private readonly PbField<Timestamp> _timeForProducingExtraBlock  = new PbField<Timestamp>("EBTime");
-        
+
+        [SmartContractFieldData("${this}._chainCreator", DataAccessMode.ReadWriteAccountSharing)]
+        private readonly PbField<Hash> _chainCreator = new PbField<Hash>("ChainCreator");
+
         [SmartContractFieldData("${this}._firstPlaceMap", DataAccessMode.ReadWriteAccountSharing)]
         private readonly Map<UInt64Value, StringValue> _firstPlaceMap
             = new Map<UInt64Value, StringValue>("FirstPlaceOfEachRound");
@@ -97,9 +98,14 @@ namespace AElf.Kernel.Tests
             return blockProducer;
         }
 
-        [SmartContractFunction("${this}.SetBlockProducers", new string[]{}, new []{"${this}._blockProducer"})]
+        [SmartContractFunction("${this}.SetBlockProducers", new string[]{}, new []{"${this}._blockProducer", "${this}._chainCreator"})]
         public async Task<BlockProducer> SetBlockProducers(BlockProducer blockProducers)
         {
+            if (await _chainCreator.GetAsync() != null)
+            {
+                return null;
+            }
+            
             await _blockProducer.SetAsync(blockProducers);
 
             return blockProducers;
@@ -190,7 +196,7 @@ namespace AElf.Kernel.Tests
             return dPoSInfo;
         }
 
-        [SmartContractFunction("${this}.SyncStateOfFirstTwoRounds", new string[]{"${this}.GetTimestamp", "${this}.CompareTimestamp"}, new string[]{"${this}._blockProducer", "${this}._roundsCount", "${this}._firstPlaceMap", "${this}._dPoSInfoMap", "${this}._eBPMap", "${this}._timeForProducingExtraBlock"})]
+        [SmartContractFunction("${this}.SyncStateOfFirstTwoRounds", new string[]{"${this}.Authentication", "${this}.GetTimestamp", "${this}.CompareTimestamp"}, new string[]{"${this}._blockProducer", "${this}._roundsCount", "${this}._firstPlaceMap", "${this}._dPoSInfoMap", "${this}._eBPMap", "${this}._timeForProducingExtraBlock", "${this}._chainCreator"})]
         public async Task SyncStateOfFirstTwoRounds(DPoSInfo dPoSInfo, BlockProducer blockProducer)
         {
             await _blockProducer.SetAsync(blockProducer);
@@ -217,15 +223,22 @@ namespace AElf.Kernel.Tests
 
             await _timeForProducingExtraBlock.SetAsync(
                 GetTimestamp(dPoSInfo.RoundInfo[0].Info.Last().Value.TimeSlot, MiningTime));
+
+            await _chainCreator.SetAsync(Api.GetTransaction().From);
         }
         
         #endregion
 
         #region EBP Methods
 
-        [SmartContractFunction("${this}.GenerateNextRoundOrder", new string[]{"${this}.GetBlockProducerInfoOfCurrentRound", "${this}.RoundsCountAddOne","${this}.GetTimestamp",  "${this}.CompareTimestamp", "${this}.GetBlockProducers"}, new string[]{"${this}._dPoSInfoMap", "${this}._roundsCount"})]
+        [SmartContractFunction("${this}.GenerateNextRoundOrder", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfCurrentRound", "${this}.RoundsCountAddOne","${this}.GetTimestamp",  "${this}.CompareTimestamp", "${this}.GetBlockProducers"}, new string[]{"${this}._dPoSInfoMap", "${this}._roundsCount"})]
         public async Task<RoundInfo> GenerateNextRoundOrder()
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             if (RoundsCount.Value == 1)
             {
                 return await _dPoSInfoMap.GetValueAsync(RoundsCountAddOne(RoundsCount));
@@ -280,9 +293,14 @@ namespace AElf.Kernel.Tests
             return infosOfNextRound;
         }
         
-        [SmartContractFunction("${this}.SetNextExtraBlockProducer", new string[]{"${this}.GetBlockProducerInfoOfCurrentRound", "${this}.RoundsCountAddOne", "${this}.GetBlockProducers"}, new string[]{"${this}._firstPlaceMap", "${this}._roundsCount"})]
+        [SmartContractFunction("${this}.SetNextExtraBlockProducer", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfCurrentRound", "${this}.RoundsCountAddOne", "${this}.GetBlockProducers"}, new string[]{"${this}._firstPlaceMap", "${this}._roundsCount"})]
         public async Task<StringValue> SetNextExtraBlockProducer()
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             var firstPlace = await _firstPlaceMap.GetValueAsync(RoundsCount);
             var firstPlaceInfo = await GetBlockProducerInfoOfCurrentRound(firstPlace.Value);
             var sig = firstPlaceInfo.Signature;
@@ -310,22 +328,37 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.SetRoundsCount", new string[]{"${this}.RoundsCountAddOne"}, new string[]{"${this}._roundsCount"})]
         public async Task<UInt64Value> SetRoundsCount()
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             var newRoundsCount = RoundsCountAddOne(RoundsCount);
             await _roundsCount.SetAsync(newRoundsCount.Value);
 
             return newRoundsCount;
         }
         
-        [SmartContractFunction("${this}.GetRoundsCount", new string[]{}, new string[]{"${this}._roundsCount"})]
+        [SmartContractFunction("${this}.GetRoundsCount", new string[]{"${this}.Authentication"}, new string[]{"${this}._roundsCount"})]
         public async Task<UInt64Value> GetRoundsCount()
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             return new UInt64Value {Value = await _roundsCount.GetAsync()};
         }
 
         // ReSharper disable once InconsistentNaming
-        [SmartContractFunction("${this}.SyncStateOfNextRound", new string[]{"${this}.GetTimestamp", "${this}.RoundsCountAddOne", "${this}.CompareTimestamp"}, new string[]{"${this}._roundsCount", "${this}._eBPMap", "${this}._dPoSInfoMap", "${this}._firstPlaceMap",   "${this}._timeForProducingExtraBlock" })]
+        [SmartContractFunction("${this}.SyncStateOfNextRound", new string[]{"${this}.Authentication", "${this}.GetTimestamp", "${this}.RoundsCountAddOne", "${this}.CompareTimestamp"}, new string[]{"${this}._roundsCount", "${this}._eBPMap", "${this}._dPoSInfoMap", "${this}._firstPlaceMap",   "${this}._timeForProducingExtraBlock" })]
         public async Task SyncStateOfNextRound(RoundInfo suppliedPreviousRoundInfo, RoundInfo nextRoundInfo, StringValue nextEBP)
         {
+            if (!await Authentication())
+            {
+                return;
+            }
+            
             if (RoundsCount.Value != 1)
             {
                 await _eBPMap.SetValueAsync(RoundsCountAddOne(RoundsCount), nextEBP);
@@ -360,9 +393,14 @@ namespace AElf.Kernel.Tests
 
         #endregion
 
-        [SmartContractFunction("${this}.ReadyForHelpingProducingExtraBlock", new string[]{"${this}.GetBlockProducerInfoOfCurrentRound","${this}.GetTimestamp",  "${this}.CompareTimestamp", "${this}.GetTimestampOfUtcNow", "${this}.GetBlockProducers"}, new string[]{"${this}._roundsCount", "${this}._timeForProducingExtraBlock" })]
+        [SmartContractFunction("${this}.ReadyForHelpingProducingExtraBlock", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfCurrentRound","${this}.GetTimestamp",  "${this}.CompareTimestamp", "${this}.GetTimestampOfUtcNow", "${this}.GetBlockProducers"}, new string[]{"${this}._roundsCount", "${this}._timeForProducingExtraBlock" })]
         public async Task<BoolValue> ReadyForHelpingProducingExtraBlock()
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             var me = Api.GetTransaction().From;
             var meOrder = (await GetBlockProducerInfoOfCurrentRound(AddressHashToString(me))).Order;
             // ReSharper disable once InconsistentNaming
@@ -402,9 +440,14 @@ namespace AElf.Kernel.Tests
 
         #region BP Methods
 
-        [SmartContractFunction("${this}.PublishOutValueAndSignature", new string[]{"${this}.GetBlockProducerInfoOfSpecificRound"}, new string[]{"${this}._dPoSInfoMap" })]
+        [SmartContractFunction("${this}.PublishOutValueAndSignature", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfSpecificRound"}, new string[]{"${this}._dPoSInfoMap" })]
         public async Task<BPInfo> PublishOutValueAndSignature(Hash outValue, Hash signature, UInt64Value roundsCount)
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
             
             Console.WriteLine("For round:" + roundsCount.Value + " of " + accountAddress);
@@ -423,9 +466,14 @@ namespace AElf.Kernel.Tests
             return info;
         }
 
-        [SmartContractFunction("${this}.TryToPublishInValue", new string[]{"${this}.GetBlockProducerInfoOfSpecificRound"}, new string[]{"${this}._dPoSInfoMap" })]
+        [SmartContractFunction("${this}.TryToPublishInValue", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfSpecificRound"}, new string[]{"${this}._dPoSInfoMap" })]
         public async Task<Hash> TryToPublishInValue(Hash inValue, UInt64Value roundsCount)
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
             
             var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, roundsCount);
@@ -443,9 +491,14 @@ namespace AElf.Kernel.Tests
         /// Supplement of Round info.
         /// </summary>
         /// <returns></returns>
-        [SmartContractFunction("${this}.SupplyPreviousRoundInfo", new string[]{"${this}.CalculateSignature"}, new string[]{"${this}._dPoSInfoMap", "${this}._roundsCount" })]
+        [SmartContractFunction("${this}.SupplyPreviousRoundInfo", new string[]{"${this}.Authentication", "${this}.CalculateSignature"}, new string[]{"${this}._dPoSInfoMap", "${this}._roundsCount" })]
         public async Task<RoundInfo> SupplyPreviousRoundInfo()
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             var roundInfo = await _dPoSInfoMap.GetValueAsync(RoundsCount);
 
             foreach (var info in roundInfo.Info)
@@ -476,44 +529,74 @@ namespace AElf.Kernel.Tests
         
         #endregion
         
-        [SmartContractFunction("${this}.GetTimeSlot", new string[]{"${this}.GetBlockProducerInfoOfCurrentRound"}, new string[]{ })]
+        [SmartContractFunction("${this}.GetTimeSlot", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfCurrentRound"}, new string[]{ })]
         public async Task<Timestamp> GetTimeSlot(string accountAddress)
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             return (await GetBlockProducerInfoOfCurrentRound(accountAddress)).TimeSlot;
         }
 
-        [SmartContractFunction("${this}.GetInValueOf", new string[]{"${this}.GetBlockProducerInfoOfSpecificRound"}, new string[]{ "${this}._roundsCount" })]
+        [SmartContractFunction("${this}.GetInValueOf", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfSpecificRound"}, new string[]{ "${this}._roundsCount" })]
         public async Task<Hash> GetInValueOf(string accountAddress, ulong roundsCount)
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             roundsCount = roundsCount == 0 ? RoundsCount.Value : roundsCount;
             return (await GetBlockProducerInfoOfSpecificRound(accountAddress,
                 new UInt64Value {Value = roundsCount}))?.InValue;
         }
         
-        [SmartContractFunction("${this}.GetOutValueOf", new string[]{"${this}.GetBlockProducerInfoOfSpecificRound"}, new string[]{ "${this}._roundsCount" })]
+        [SmartContractFunction("${this}.GetOutValueOf", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfSpecificRound"}, new string[]{ "${this}._roundsCount" })]
         public async Task<Hash> GetOutValueOf(string accountAddress, ulong roundsCount)
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             var count = roundsCount == 0 ? RoundsCount : new UInt64Value {Value = roundsCount};
             return (await GetBlockProducerInfoOfSpecificRound(accountAddress, count))?.OutValue;
         }
         
-        [SmartContractFunction("${this}.GetSignatureOf", new string[]{"${this}.GetBlockProducerInfoOfSpecificRound"}, new string[]{ "${this}._roundsCount" })]
+        [SmartContractFunction("${this}.GetSignatureOf", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfSpecificRound"}, new string[]{ "${this}._roundsCount" })]
         public async Task<Hash> GetSignatureOf(string accountAddress, ulong roundsCount)
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             var count = roundsCount == 0 ? RoundsCount : new UInt64Value {Value = roundsCount};
             return (await GetBlockProducerInfoOfSpecificRound(accountAddress, count))?.Signature;
         }
         
-        [SmartContractFunction("${this}.GetOrderOf", new string[]{"${this}.GetBlockProducerInfoOfSpecificRound"}, new string[]{ "${this}._roundsCount" })]
+        [SmartContractFunction("${this}.GetOrderOf", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfSpecificRound"}, new string[]{ "${this}._roundsCount" })]
         public async Task<int?> GetOrderOf(string accountAddress, ulong roundsCount)
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             var count = roundsCount == 0 ? RoundsCount : new UInt64Value {Value = roundsCount};
             return (await GetBlockProducerInfoOfSpecificRound(accountAddress, count))?.Order;
         }
         
-        [SmartContractFunction("${this}.CalculateSignature", new string[]{"${this}.GetBlockProducerInfoOfSpecificRound", "${this}.RoundsCountMinusOne", "${this}.GetBlockProducers"}, new string[]{ "${this}._roundsCount" })]
+        [SmartContractFunction("${this}.CalculateSignature", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfSpecificRound", "${this}.RoundsCountMinusOne", "${this}.GetBlockProducers"}, new string[]{ "${this}._roundsCount" })]
         public async Task<Hash> CalculateSignature(Hash inValue)
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             var add = Hash.Default;
             var blockProducer = await GetBlockProducers();
             foreach (var node in blockProducer.Nodes)
@@ -527,9 +610,14 @@ namespace AElf.Kernel.Tests
             return sig;
         }
         
-        [SmartContractFunction("${this}.AbleToMine", new string[]{"${this}.GetTimestamp", "${this}.CompareTimestamp", "${this}.GetTimestampOfUtcNow", "${this}.IsBP", "${this}.GetTimeSlot"}, new string[]{})]
+        [SmartContractFunction("${this}.AbleToMine", new string[]{"${this}.Authentication", "${this}.GetTimestamp", "${this}.CompareTimestamp", "${this}.GetTimestampOfUtcNow", "${this}.IsBP", "${this}.GetTimeSlot"}, new string[]{})]
         public async Task<bool> AbleToMine()
         {
+            if (!await Authentication())
+            {
+                return false;
+            }
+            
             var accountHash = Api.GetTransaction().From;
             var accountAddress = AddressHashToString(accountHash);
             var now = GetTimestampOfUtcNow();
@@ -546,47 +634,77 @@ namespace AElf.Kernel.Tests
         }
 
         // ReSharper disable once InconsistentNaming
-        [SmartContractFunction("${this}.GetEBPOf", new string[]{}, new string[]{"${this}._eBPMap"})]
+        [SmartContractFunction("${this}.GetEBPOf", new string[]{"${this}.Authentication"}, new string[]{"${this}._eBPMap"})]
         public async Task<StringValue> GetEBPOf(UInt64Value roundsCount)
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             return await _eBPMap.GetValueAsync(roundsCount);
         }
         
         // ReSharper disable once InconsistentNaming
-        [SmartContractFunction("${this}.GetCurrentEBP", new string[]{}, new string[]{"${this}._eBPMap", "${this}._roundsCount"})]
+        [SmartContractFunction("${this}.GetCurrentEBP", new string[]{"${this}.Authentication"}, new string[]{"${this}._eBPMap", "${this}._roundsCount"})]
         public async Task<StringValue> GetCurrentEBP()
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             return await _eBPMap.GetValueAsync(RoundsCount);
         }
         
         // ReSharper disable once InconsistentNaming
-        [SmartContractFunction("${this}.IsBP", new string[]{"${this}.GetBlockProducers"}, new string[]{})]
+        [SmartContractFunction("${this}.IsBP", new string[]{"${this}.Authentication", "${this}.GetBlockProducers"}, new string[]{})]
         private async Task<bool> IsBP(string accountAddress)
         {
+            if (!await Authentication())
+            {
+                return false;
+            }
+            
             var blockProducer = await GetBlockProducers();
             return blockProducer.Nodes.Contains(accountAddress);
         }
         
         // ReSharper disable once InconsistentNaming
-        [SmartContractFunction("${this}.IsEBP", new string[]{"${this}.GetBlockProducerInfoOfCurrentRound"}, new string[]{})]
+        [SmartContractFunction("${this}.IsEBP", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfCurrentRound"}, new string[]{})]
         private async Task<bool> IsEBP(string accountAddress)
         {
+            if (!await Authentication())
+            {
+                return false;
+            }
+            
             var info = await GetBlockProducerInfoOfCurrentRound(accountAddress);
             return info.IsEBP;
         }
         
-        [SmartContractFunction("${this}.IsTimeToProduceExtraBlock", new string[]{"${this}.GetTimestamp", "${this}.CompareTimestamp", "${this}.GetTimestampOfUtcNow"}, new string[]{"${this}._timeForProducingExtraBlock"})]
+        [SmartContractFunction("${this}.IsTimeToProduceExtraBlock", new string[]{"${this}.Authentication", "${this}.GetTimestamp", "${this}.CompareTimestamp", "${this}.GetTimestampOfUtcNow"}, new string[]{"${this}._timeForProducingExtraBlock"})]
         public async Task<bool> IsTimeToProduceExtraBlock()
         {
+            if (!await Authentication())
+            {
+                return false;
+            }
+            
             var expectedTime = await _timeForProducingExtraBlock.GetAsync();
             var now = GetTimestampOfUtcNow();
             return CompareTimestamp(now, expectedTime)
                    && CompareTimestamp(GetTimestamp(expectedTime, MiningTime), now);
         }
         
-        [SmartContractFunction("${this}.AbleToProduceExtraBlock", new string[]{}, new string[]{"${this}._eBPMap", "${this}._roundsCount"})]
+        [SmartContractFunction("${this}.AbleToProduceExtraBlock", new string[]{"${this}.Authentication"}, new string[]{"${this}._eBPMap", "${this}._roundsCount"})]
         public async Task<bool> AbleToProduceExtraBlock()
         {
+            if (!await Authentication())
+            {
+                return false;
+            }
+            
             var accountHash = Api.GetTransaction().From;
             
             // ReSharper disable once InconsistentNaming
@@ -596,9 +714,14 @@ namespace AElf.Kernel.Tests
         }
 
         // ReSharper disable once InconsistentNaming
-        [SmartContractFunction("${this}.GetDPoSInfoToString", new string[]{"${this}.GetRoundInfoToString"}, new string[]{"${this}._timeForProducingExtraBlock", "${this}._roundsCount"})]
+        [SmartContractFunction("${this}.GetDPoSInfoToString", new string[]{"${this}.Authentication", "${this}.GetRoundInfoToString"}, new string[]{"${this}._timeForProducingExtraBlock", "${this}._roundsCount"})]
         public async Task<StringValue> GetDPoSInfoToString()
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+            
             ulong count = 1;
 
             if (RoundsCount != null)
@@ -628,9 +751,14 @@ namespace AElf.Kernel.Tests
             return res;
         }
 
-        [SmartContractFunction("${this}.GetRoundInfoToString", new string[]{}, new string[]{"${this}._dPoSInfoMap"})]
+        [SmartContractFunction("${this}.GetRoundInfoToString", new string[]{"${this}.Authentication"}, new string[]{"${this}._dPoSInfoMap"})]
         public async Task<string> GetRoundInfoToString(UInt64Value roundsCount)
         {
+            if (!await Authentication())
+            {
+                return null;
+            }
+
             var info = await _dPoSInfoMap.GetValueAsync(roundsCount);
             var result = "";
 
@@ -738,6 +866,13 @@ namespace AElf.Kernel.Tests
             }
 
             return m;
+        }
+
+        [SmartContractFunction("${this}.Authentication", new string[]{"${this}.GetBlockProducers"}, new string[]{})]
+        private async Task<bool> Authentication()
+        {
+            var fromAccount = Api.GetTransaction().From.Value.ToByteArray().ToHex();
+            return (await GetBlockProducers()).Nodes.Contains(fromAccount);
         }
 
         #endregion

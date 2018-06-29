@@ -59,9 +59,9 @@ namespace AElf.ABI.CSharp
                 {
                     var length = s.Length;
                     length -= IsHex(s) ? 2 : 0;
-                    if (length != 64)
+                    if (length != 36)
                     {
-                        throw new Exception("Hash has to be a byte array of length 64.");
+                        throw new Exception("Hash has to be a byte array of fixed length.");
                     }
 
                     // Note: Hash has the same structure as BytesValue, hence using BytesValue for serialization.

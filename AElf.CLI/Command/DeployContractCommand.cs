@@ -7,7 +7,7 @@ namespace AElf.CLI.Command
 {
     public class DeployContractCommand : CliCommandDefinition
     {
-        private const string Name = "deploy-contract";
+        private const string Name = "deploy_contract";
         
         public DeployContractCommand() : base(Name)
         {
@@ -15,7 +15,7 @@ namespace AElf.CLI.Command
 
         public override string GetUsage()
         {
-            return "deploy-contract <category> <filename>";
+            return "deploy_contract <category> <filename>";
         }
 
         public override string Validate(CmdParseResult parsedCmd)
@@ -34,6 +34,16 @@ namespace AElf.CLI.Command
             var req = JsonRpcHelpers.CreateRequest(reqParams, "get_increment", 1);*/
 
             return null;
+        }
+        
+        public override string GetPrintString(JObject resp)
+        {
+            string hash = resp["hash"].ToString();
+            var jobj = new JObject
+            {
+                ["txId"] = hash
+            };
+            return jobj.ToString();
         }
     }
 }

@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.Kernel.SmartContracts.CSharpSmartContract;
 using Google.Protobuf;
 using AElf.Kernel.Types;
 using Google.Protobuf.WellKnownTypes;

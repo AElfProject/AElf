@@ -16,15 +16,17 @@ namespace AElf.Kernel.Miner
         private IParallelTransactionExecutingService _parallelTransactionExecutingService;
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
+        private readonly IWorldStateDictator _worldStateDictator;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainManager chainManager, 
-            IBlockManager blockManager)
+            IBlockManager blockManager, IWorldStateDictator worldStateDictator)
         {
             _txPoolService = txPoolService;
             _chainManager = chainManager;
             _blockManager = blockManager;
+            _worldStateDictator = worldStateDictator;
         }
-        
+
         /// <summary>
         /// Signals to a CancellationToken that mining should be canceled
         /// </summary>
@@ -83,6 +85,13 @@ namespace AElf.Kernel.Miner
                 
                 // TODO: commit tx results
         
+                await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
+                var ws = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
+
+                if (ws == null || await ws.GetWorldStateMerkleTreeRootAsync() !=
+                    block.Header.MerkleTreeRootOfWorldState)
+                    return false;
+                
                 await _chainManager.AppendBlockToChainAsync(block);
                 await _blockManager.AddBlockAsync(block);
                 
