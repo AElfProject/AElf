@@ -57,6 +57,11 @@ namespace AElf.Sdk.CSharp
             return _smartContractContext.ChainId;
         }
 
+        public static Hash GetPreviousBlockHash()
+        {
+            return _transactionContext.PreviousBlockHash;
+        }
+        
         public static Hash GetContractAddress()
         {
             return _smartContractContext.ContractAddress;
