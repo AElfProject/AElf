@@ -992,6 +992,11 @@ namespace AElf.Kernel.Node
             };
             Executive.SetTransactionContext(tcGetDPoSInfo).Apply(true).Wait();
 
+            if (tcGetDPoSInfo.Trace.StdErr.IsNullOrEmpty())
+            {
+                return "";
+            }
+            
             return StringValue.Parser.ParseFrom(tcGetDPoSInfo.Trace.RetVal.ToByteArray()).Value;
         }
         
