@@ -77,7 +77,7 @@ namespace AElf.Kernel.Node
                 var blockProducers = new BlockProducer();
                 foreach (var bp in dict.Values)
                 {
-                    blockProducers.Nodes.Add(bp["pubkey"]);
+                    blockProducers.Nodes.Add(bp["address"]);
                 }
 
                 return blockProducers;
