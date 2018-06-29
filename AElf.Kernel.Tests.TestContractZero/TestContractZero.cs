@@ -432,8 +432,9 @@ namespace AElf.Kernel.Tests
             
             return new BoolValue
             {
-                Value = CompareTimestamp(now, assigendExtraBlockProducingTimeEndWithOffset)
-                        && CompareTimestamp(GetTimestamp(assigendExtraBlockProducingTimeEndWithOffset, MiningTime), now)
+                Value = (CompareTimestamp(now, assigendExtraBlockProducingTimeEndWithOffset)
+                         && CompareTimestamp(GetTimestamp(assigendExtraBlockProducingTimeEndWithOffset, MiningTime), now)) ||
+                        CompareTimestamp(now, GetTimestamp(assigendExtraBlockProducingTimeEnd, MiningTime * blockProducerCount))
             };
         }
 
