@@ -61,7 +61,7 @@ namespace AElf.Types.CSharp
             {
                 var t = (Task)m.Invoke(obj, parameters);
                 await t.ConfigureAwait(false);
-                IMessage res = await (Task<IMessage>)((dynamic)t).Result;
+                IMessage res = (IMessage)((dynamic)t).Result;
                 return res.ToPbMessage();
             };
         public static Func<MethodInfo, object, object[], Task<IMessage>> ForUserTypeReturnType =
@@ -69,7 +69,7 @@ namespace AElf.Types.CSharp
             {
                 var t = (Task)m.Invoke(obj, parameters);
                 await t.ConfigureAwait(false);
-                UserType res = await (Task<UserType>)((dynamic)t).Result;
+                UserType res = (UserType)((dynamic)t).Result;
                 return res.ToPbMessage();
             };
     }
