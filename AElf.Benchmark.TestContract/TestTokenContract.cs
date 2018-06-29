@@ -1,19 +1,16 @@
 ﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Concurrency.Metadata;
-using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
+using AElf.Types.CSharp.MetadataAttribute;
+using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 using Api = AElf.Sdk.CSharp.Api;
 
-namespace AElf.Benchmark
+namespace AElf.Benchmark.TestContract
 {
     public class TestTokenContract : CSharpSmartContract
     {
         [SmartContractFieldData("${this}.Balances", DataAccessMode.AccountSpecific)]
         public readonly MapToUInt64<Hash> Balances = new MapToUInt64<Hash>("Balances");
-
         [SmartContractFieldData("${this}.TokenContractName", DataAccessMode.ReadOnlyAccountSharing)]
         public StringField TokenContractName;
         
@@ -45,24 +42,18 @@ namespace AElf.Benchmark
             var toBal = Balances.GetValue(to);
             //Console.WriteLine("to pass");
             var newFromBal = fromBal - qty;
-            if (fromBal >= qty)
-            {
-                var newToBal = toBal + qty;
-                
-                Balances.SetValue(from, newFromBal);
-                //Console.WriteLine("set from pass");
-                Balances.SetValue(to, newToBal);
-                //Console.WriteLine("set to pass");
+            Api.Assert(fromBal > qty);
+            
+            var newToBal = toBal + qty;
+            
+            Balances.SetValue(from, newFromBal);
+            //Console.WriteLine("set from pass");
+            Balances.SetValue(to, newToBal);
+            //Console.WriteLine("set to pass");
 
-                Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
-                + to.Value.ToBase64() + "(" + newToBal + ")");
-                return true;
-            }
-            else
-            {
-                //Console.WriteLine("Not enough balance newFromBal " + newFromBal + " < 0");
-                return false;
-            }
+            Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
+            + to.Value.ToBase64() + "(" + newToBal + ")");
+            return true;
         }
 
         [SmartContractFunction("${this}.GetBalance", new string[]{}, new []{"${this}.Balances"})]

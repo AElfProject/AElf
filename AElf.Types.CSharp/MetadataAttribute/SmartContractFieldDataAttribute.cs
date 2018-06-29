@@ -1,7 +1,7 @@
 ﻿using System;
-using AElf.Kernel.Types;
+using AElf.Kernel;
 
-namespace AElf.Kernel.Concurrency.Metadata
+namespace AElf.Types.CSharp.MetadataAttribute
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class SmartContractFieldDataAttribute : Attribute

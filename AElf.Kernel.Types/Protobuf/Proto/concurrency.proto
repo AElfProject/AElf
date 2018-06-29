@@ -40,12 +40,6 @@ enum Status {
 }
 
 
-enum DataAccessMode {
-    ReadOnlyAccountSharing = 0;
-    ReadWriteAccountSharing = 1;
-    AccountSpecific = 2;
-}
-
 message SerializeContractMetadataTemplateMap {
     map<string, SerializeFunctionMetadataTemplateMap> MetadataTemplateMapForContract = 2;
 }
