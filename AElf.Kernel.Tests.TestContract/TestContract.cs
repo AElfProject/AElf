@@ -1,10 +1,10 @@
 ﻿using System;
-using AElf.Kernel.Concurrency.Metadata;
 using AElf.Sdk.CSharp.Types;
+using AElf.Types.CSharp.MetadataAttribute;
 using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 using Api = AElf.Sdk.CSharp.Api;
 
-namespace AElf.Kernel.CSharp.Tests
+namespace AElf.Kernel.Tests.TestContract
 {
     public class TestContract : CSharpSmartContract
     {

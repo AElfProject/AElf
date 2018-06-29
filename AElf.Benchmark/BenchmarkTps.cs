@@ -103,18 +103,15 @@ namespace AElf.Benchmark
 //            //set time to maxvalue to run large truck of tx list
 //            _parallelTransactionExecutingService.TimeoutMilliSeconds = int.MaxValue;
             
-            //set time to maxvalue to run large truck of tx list
-            //_parallelTransactionExecutingService.TimeoutMilliSeconds = int.MaxValue;
-            
             _dataGenerater = new TransactionDataGenerator(maxTxNum);
             byte[] code = null;
             #if DEBUG
-            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("./bin/Debug/netcoreapp2.0/AElf.Benchmark.dll")))
+            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("./bin/Debug/netcoreapp2.0/AElf.Benchmark.TestContract.dll")))
             {
                 code = file.ReadFully();
             }
             #else
-            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("./bin/Release/netcoreapp2.0/AElf.Benchmark.dll")))
+            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("./bin/Release/netcoreapp2.0/AElf.Benchmark.TestContract.dll")))
             {
                 code = file.ReadFully();
             }

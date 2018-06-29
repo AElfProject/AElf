@@ -127,3 +127,9 @@ message RoundInfo {
 message DPoSInfo {
     repeated RoundInfo RoundInfo = 1;
 }
+
+enum DataAccessMode {
+    ReadOnlyAccountSharing = 0;
+    ReadWriteAccountSharing = 1;
+    AccountSpecific = 2;
+}

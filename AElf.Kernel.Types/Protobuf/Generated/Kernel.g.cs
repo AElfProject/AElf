@@ -67,11 +67,13 @@ namespace AElf.Kernel {
             "CzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiZQoJUm91bmRJbmZvEiIK",
             "BEluZm8YASADKAsyFC5Sb3VuZEluZm8uSW5mb0VudHJ5GjQKCUluZm9FbnRy",
             "eRILCgNrZXkYASABKAkSFgoFdmFsdWUYAiABKAsyBy5CUEluZm86AjgBIikK",
-            "CERQb1NJbmZvEh0KCVJvdW5kSW5mbxgBIAMoCzIKLlJvdW5kSW5mb0IOqgIL",
-            "QUVsZi5LZXJuZWxiBnByb3RvMw=="));
+            "CERQb1NJbmZvEh0KCVJvdW5kSW5mbxgBIAMoCzIKLlJvdW5kSW5mbypeCg5E",
+            "YXRhQWNjZXNzTW9kZRIaChZSZWFkT25seUFjY291bnRTaGFyaW5nEAASGwoX",
+            "UmVhZFdyaXRlQWNjb3VudFNoYXJpbmcQARITCg9BY2NvdW50U3BlY2lmaWMQ",
+            "AkIOqgILQUVsZi5LZXJuZWxiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.DataAccessMode), }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params", "Fee", "R", "S", "P" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Hash), global::AElf.Kernel.Hash.Parser, new[]{ "Value" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PreviousBlockHash", "MerkleTreeRootOfTransactions", "MerkleTreeRootOfWorldState", "Index", "R", "S", "P", "Time", "ChainId" }, null, null, null),
@@ -95,6 +97,15 @@ namespace AElf.Kernel {
     #endregion
 
   }
+  #region Enums
+  public enum DataAccessMode {
+    [pbr::OriginalName("ReadOnlyAccountSharing")] ReadOnlyAccountSharing = 0,
+    [pbr::OriginalName("ReadWriteAccountSharing")] ReadWriteAccountSharing = 1,
+    [pbr::OriginalName("AccountSpecific")] AccountSpecific = 2,
+  }
+
+  #endregion
+
   #region Messages
   public sealed partial class Transaction : pb::IMessage<Transaction> {
     private static readonly pb::MessageParser<Transaction> _parser = new pb::MessageParser<Transaction>(() => new Transaction());
