@@ -10,6 +10,7 @@ using AElf.Kernel.TxMemPool;
 using AElf.Kernel.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using ServiceStack;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
 namespace AElf.Kernel.Miner
@@ -62,6 +63,7 @@ namespace AElf.Kernel.Miner
         
         public async Task<IBlock> Mine()
         {
+
             try
             {
                 if (Cts == null || Cts.IsCancellationRequested)

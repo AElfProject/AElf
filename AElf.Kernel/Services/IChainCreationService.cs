@@ -10,5 +10,6 @@ namespace AElf.Kernel.Services
     public interface IChainCreationService
     {
         Task<IChain> CreateNewChainAsync(Hash chainId, SmartContractRegistration smartContractZero);
+        Hash GenesisContractHash(Hash chainId);
     }
 }

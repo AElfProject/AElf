@@ -39,7 +39,7 @@ namespace AElf.CLI.Command
         
         public override string GetPrintString(JObject resp)
         {
-            string increment = resp["increment"].ToString();
+            string increment = resp["result"]["increment"].ToString();
             return increment;
         }
     }

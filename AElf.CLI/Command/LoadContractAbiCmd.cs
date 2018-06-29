@@ -15,7 +15,7 @@ namespace AElf.CLI.Command
 {
     public class LoadContractAbiCmd : CliCommandDefinition
     {
-        public const string Name = "load-contract-abi";
+        public const string Name = "load_contract_abi";
         
         public LoadContractAbiCmd() : base(Name)
         {
@@ -24,12 +24,12 @@ namespace AElf.CLI.Command
 
         public override string GetUsage()
         {
-            return "load-contract-abi <contractAddress>";
+            return "load_contract_abi <contractAddress>";
         }
 
         public override string Validate(CmdParseResult parsedCmd)
         {
-            if (parsedCmd.Args == null || parsedCmd.Args.Count != 1)
+            if (parsedCmd.Args.Count > 1)
             {
                 return "Invalid number of arguments.";
             }

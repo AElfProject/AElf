@@ -228,7 +228,7 @@ namespace AElf.Benchmark
             
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
             var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
-            var contractAddressZero = new Hash(ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
+            var contractAddressZero = _chainCreationService.GenesisContractHash(ChainId);
             
             
             //deploy token contract
