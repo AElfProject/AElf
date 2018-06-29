@@ -389,7 +389,7 @@ namespace AElf.Kernel.Node
             try
             {
                 var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
-                var error = await _blockVaildationService.ValidateBlockAsync(block, context);
+                var error = await _blockVaildationService.ValidateBlockAsync(block, context, _nodeKeyPair);
                 Console.WriteLine("try execute block");
                 if (error != ValidationError.Success)
                 {

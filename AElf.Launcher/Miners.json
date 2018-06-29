@@ -1,16 +1,13 @@
 {
   "producers":{
-    "GdsgFf\\=": {
-      "coinbase": "GdsgFf\\=",
-      "pubkey": "BMdbNxD7u7Hd9lkYGOC5nFTl"
+    "1": {
+      "address": "BMdbNxD7u7Hd9lkYGOC5nFTl"
     },
-    "KAOFepo==": {
-      "coinbase": "KAOFepo==",
-      "pubkey": "SrF!ve=="
+    "2": {
+      "address": "SrF!ve=="
     },
-    "FfEpvVG!=": {
-      "coinbase": "FfEpvVG!=",
-      "pubkey": "NTY3OA=="
+    "3": {
+      "address": "NTY3OA=="
     }
   }
 }

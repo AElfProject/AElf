@@ -17,8 +17,6 @@ namespace AElf.Kernel.Consensus
     {
         private readonly ECKeyPair _keyPair;
 
-        public Hash TransferContractAddress { get; set; }
-
         public Hash AccountHash => _keyPair.GetAddress();
 
         public DPoS(ECKeyPair keyPair)
