@@ -775,32 +775,16 @@ namespace AElf.Kernel.Node
                                 var block = await _miner.Mine();
                                 
                                 await BroadcastBlock(block);
-
-                                #region Do the log for mining normal block
-
-                                var tcGetOut = new TransactionContext
-                                {
-                                    Transaction =
-                                        _dPoS.GetOutValueOfMeTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
-                                            ContractAccountHash, roundsCount)
-                                };
-                                Executive.SetTransactionContext(tcGetOut).Apply(true).Wait();
-                                
-                                var tcGetSignature = new TransactionContext
-                                {
-                                    Transaction =
-                                        _dPoS.GetSignatureValueOfMeTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
-                                            ContractAccountHash, roundsCount)
-                                };
-                                Executive.SetTransactionContext(tcGetSignature).Apply(true).Wait();
                                 
                                 latestMinedNormalBlockRoundsCount = roundsCount;
+
+                                #region Do the log for mining normal block
                                 
                                 _logger.Log(LogLevel.Debug,
                                     "Genereate block: {0}, with {1} transactions, able to mine in {2}\n Published out value: {3}\n signature: {4}",
                                     block.GetHash(), block.Body.Transactions.Count, DateTime.UtcNow.ToString("u"),
-                                    Hash.Parser.ParseFrom(tcGetOut.Trace.RetVal), 
-                                    Hash.Parser.ParseFrom(tcGetSignature.Trace.RetVal));
+                                    outValue.Value.ToBase64(), 
+                                    signature.Value.ToBase64());
                                 
                                 return;
 
@@ -1012,6 +996,11 @@ namespace AElf.Kernel.Node
             };
             Executive.SetTransactionContext(tcGetDPoSInfo).Apply(true).Wait();
 
+            if (!tcGetDPoSInfo.Trace.StdErr.IsNullOrEmpty())
+            {
+                return "";
+            }
+            
             return StringValue.Parser.ParseFrom(tcGetDPoSInfo.Trace.RetVal.ToByteArray()).Value;
         }
         
