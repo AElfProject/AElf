@@ -35,7 +35,7 @@ namespace AElf.Kernel.BlockValidationFilters
 
             // other block needed before this one
             if (index > currentChainHeight)
-                return ValidationError.TooHigh;
+                return ValidationError.Pending;
             
             // can be added to chain
             if (currentChainHeight == index)

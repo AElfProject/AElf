@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
@@ -68,7 +69,7 @@ namespace AElf.Kernel.Node
         
         private const int CheckTime = 5000;
 
-        private bool _flag = false;
+        private int _flag = 0;
 
         public BlockProducer BlockProducers
         {
@@ -211,7 +212,7 @@ namespace AElf.Kernel.Node
             {
                 _miner.Start(nodeKeyPair, grouper);
                 
-                Mine();
+                DoDPos();
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToByteArray().ToHex());
             }
             
@@ -380,8 +381,12 @@ namespace AElf.Kernel.Node
                     return new BlockExecutionResult(false, error);
                 }
 
+                int res = Interlocked.CompareExchange(ref _flag, 1, 0);
+                if (res == 1)
+                    return new BlockExecutionResult(false, ValidationError.Pending);
                 bool executed = await _blockExecutor.ExecuteBlock(block);
-
+                Interlocked.CompareExchange(ref _flag, 0, 1);
+                
                 return new BlockExecutionResult(executed, error);
                 //return new BlockExecutionResult(true, error);
             }
@@ -536,55 +541,21 @@ namespace AElf.Kernel.Node
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
-        public async Task Mine()
+        public async Task DoDPos()
         {
             await DoDPoSMining();
-            /*var txDev = DeployTxDemo(_nodeKeyPair);
-            var b1 = await _miner.Mine();
-            _logger.Log(LogLevel.Debug,
-                "Generated block: {0}, with {1} txs and index {2}, previous block hash: {3}",
-                b1.Header.GetHash().Value.ToBase64(), b1.Body.Transactions.Count, b1.Header.Index,
-                b1.Header.PreviousBlockHash.Value.ToBase64());
-            await Task.Delay(20000);
-            
-            var devRes = await _transactionResultService.GetResultAsync(txDev.GetHash());
-            Hash addr = devRes.RetVal.DeserializeToPbMessage<Hash>();
-
-            var acc1 = Hash.Generate().ToAccount();
-            var txInv1 = InvokTxDemo(_nodeKeyPair, addr, "InitializeAsync", ParamsPacker.Pack(acc1, (ulong)101), 1);
-
-            var acc2 = Hash.Generate().ToAccount();
-            var txInv2 = InvokTxDemo(_nodeKeyPair, addr, "InitializeAsync", ParamsPacker.Pack(acc2, (ulong)101), 2);
-            
-            
-            var acc3 = Hash.Generate().ToAccount();
-            var txInv3 = InvokTxDemo(_nodeKeyPair, addr, "InitializeAsync", ParamsPacker.Pack(acc3, (ulong)101), 3);
-
-            var acc4 = Hash.Generate().ToAccount();
-            var txInv4 = InvokTxDemo(_nodeKeyPair, addr, "InitializeAsync", ParamsPacker.Pack(acc4, (ulong)101), 4);
-            
-            var b2 = await _miner.Mine();
-            
-            _logger.Log(LogLevel.Debug,
-                "Generated block: {0}, with {1} txs and index {2}, previous block hash: {3}",
-                b2.Header.GetHash().Value.ToBase64(), b2.Body.Transactions.Count, b2.Header.Index,
-                b2.Header.PreviousBlockHash.Value.ToBase64());
-            await Task.Delay(20000);
-            
-            var txInv5 = InvokTxDemo(_nodeKeyPair, addr, "GetBalance", ParamsPacker.Pack(acc1), 5);
-            var txInv6 = InvokTxDemo(_nodeKeyPair, addr, "GetBalance", ParamsPacker.Pack(acc2), 6);
-
-            var b3 = await _miner.Mine();
-            _logger.Log(LogLevel.Debug,
-                "Generated block: {0}, with {1} txs and index {2}, previous block hash: {3}",
-                b3.Header.GetHash().Value.ToBase64(), b3.Body.Transactions.Count, b3.Header.Index,
-                b3.Header.PreviousBlockHash.Value.ToBase64());
-            
-            var inv3Res = await _transactionResultService.GetResultAsync(txInv5.GetHash());
-            var inv4Res = await _transactionResultService.GetResultAsync(txInv6.GetHash());*/
         }
 
-            
+        public async Task<IBlock> Mine()
+        {
+            int res = Interlocked.CompareExchange(ref _flag, 1, 0);
+            if (res == 1)
+                return null;
+            var block =  await _miner.Mine();
+            Interlocked.CompareExchange(ref _flag, 0, 1);
+            return block;
+
+        }
 
 
         public async Task<bool> BroadcastBlock(IBlock block)

@@ -260,7 +260,16 @@ namespace AElf.Kernel.Node.RPC
         private async Task<JObject> ProcGetTxResult(JObject reqParams)
         {
             string adr = reqParams["txhash"].ToString();
-            Hash txHash = Convert.FromBase64String(adr);
+            try
+            {
+                Hash txHash = Convert.FromBase64String(adr);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("");
+                throw;
+            }
+            
             
             TransactionResult txResult = await _node.GetTransactionResult(txHash);
 

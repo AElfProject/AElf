@@ -6,6 +6,6 @@
         OrphanBlock = 2,
         InvalidBlock = 3,
         AlreadyExecuted = 4,
-        TooHigh = 5
+        Pending = 5,
     }
 }
