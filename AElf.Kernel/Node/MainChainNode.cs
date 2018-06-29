@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -536,9 +537,9 @@ namespace AElf.Kernel.Node
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
-        public async Task Mine()
+        public void Mine()
         {
-            await DoDPoSMining();
+            DoDPoSMining();
             /*var txDev = DeployTxDemo(_nodeKeyPair);
             var b1 = await _miner.Mine();
             _logger.Log(LogLevel.Debug,
@@ -660,9 +661,9 @@ namespace AElf.Kernel.Node
         #region Private Methods for DPoS
 
         // ReSharper disable once InconsistentNaming
-        private async Task DoDPoSMining(bool doLogsAboutConsensus = true)
+        private void DoDPoSMining(bool doLogsAboutConsensus = true)
         {
-            await Task.Run(() =>
+            new EventLoopScheduler().Schedule(() =>
             {
                 _dPoS = new DPoS(_nodeKeyPair);
                     

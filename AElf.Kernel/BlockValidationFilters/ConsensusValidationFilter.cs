@@ -8,6 +8,7 @@ using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using ServiceStack;
 
 namespace AElf.Kernel.BlockValidationFilters
 {
@@ -22,28 +23,13 @@ namespace AElf.Kernel.BlockValidationFilters
 
         public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
         {
-            // block signature
-            var pubkey = block.Header.P.ToBase64();
-            if (!MinersInfo.Instance.Producers.TryGetValue(pubkey, out var dict))
+            if (block.Header.Index < 2)
             {
-                return ValidationError.InvalidBlock;
+                return ValidationError.Success;
             }
             
-            byte[] uncompressedPrivKey = block.Header.P.ToByteArray();
-            Hash addr = uncompressedPrivKey.CalculateHash().Take(ECKeyPair.AddressLength).ToArray();
-
-            if (!addr.Equals(new Hash(ByteString.FromBase64(dict["coinbase"]))))
-                return ValidationError.InvalidBlock;
-
-            
-            ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
-            ECVerifier verifier = new ECVerifier(recipientKeyPair);
-            if (!verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().GetHashBytes()))
-            {
-                // verification failed
-                return ValidationError.InvalidBlock;
-            }
-            
+            var uncompressedPrivKey = block.Header.P.ToByteArray();
+            var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             var contractAccountHash = new Hash(context.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
             var executive = await _smartContractService.GetExecutiveAsync(contractAccountHash, context.ChainId);
             var tx = GetTxToVerifyBlockProducer(contractAccountHash, keyPair, recipientKeyPair.GetAddress().ToHex());
@@ -52,14 +38,16 @@ namespace AElf.Kernel.BlockValidationFilters
                 Transaction = tx
             };
             executive.SetTransactionContext(tc).Apply(true).Wait();
-            if (!BoolValue.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray()).Value)
+            
+            var trace = tc.Trace;
+            if (!trace.StdErr.IsNullOrEmpty())
             {
                 return ValidationError.InvalidBlock;
             }
 
-            Console.WriteLine("verified");
-            
-            return ValidationError.Success;
+            return BoolValue.Parser.ParseFrom(trace.RetVal.ToByteArray()).Value
+                ? ValidationError.Success
+                : ValidationError.InvalidBlock;
         }
 
         private ITransaction GetTxToVerifyBlockProducer(Hash contractAccountHash, ECKeyPair keyPair, string recepientAddress)

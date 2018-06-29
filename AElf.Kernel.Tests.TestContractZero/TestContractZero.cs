@@ -529,7 +529,7 @@ namespace AElf.Kernel.Tests
         
         #endregion
         
-        [SmartContractFunction("${this}.GetTimeSlot", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfCurrentRound"}, new string[]{ })]
+        [SmartContractFunction("${this}.GetTimeSlot", new string[]{"${this}.GetBlockProducerInfoOfCurrentRound"}, new string[]{ })]
         public async Task<Timestamp> GetTimeSlot(string accountAddress)
         {
             return (await GetBlockProducerInfoOfCurrentRound(accountAddress)).TimeSlot;
@@ -653,14 +653,9 @@ namespace AElf.Kernel.Tests
         }
         
         // ReSharper disable once InconsistentNaming
-        [SmartContractFunction("${this}.IsBP", new string[]{"${this}.Authentication", "${this}.GetBlockProducers"}, new string[]{})]
+        [SmartContractFunction("${this}.IsBP", new string[]{"${this}.GetBlockProducers"}, new string[]{})]
         private async Task<bool> IsBP(string accountAddress)
         {
-            if (!await Authentication())
-            {
-                return false;
-            }
-            
             var blockProducer = await GetBlockProducers();
             return blockProducer.Nodes.Contains(accountAddress);
         }
@@ -712,7 +707,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.GetDPoSInfoToString", new string[]{"${this}.Authentication", "${this}.GetRoundInfoToString"}, new string[]{"${this}._timeForProducingExtraBlock", "${this}._roundsCount"})]
         public async Task<StringValue> GetDPoSInfoToString()
         {
-            Console.WriteLine("dpos info");
             if (!await Authentication())
             {
                 return null;
@@ -779,15 +773,16 @@ namespace AElf.Kernel.Tests
             {
                 return new BoolValue {Value = false};
             }
-            
+
             var now = GetTimestampOfUtcNow();
             var timeslotOfBlockProducer = await GetTimeSlot(accountAddress.Value);
+            var endOfTimeslotOfBlockProducer = GetTimestamp(timeslotOfBlockProducer, MiningTime);
             // ReSharper disable once InconsistentNaming
             var timeslotOfEBP = await _timeForProducingExtraBlock.GetAsync();
-            
             return new BoolValue
             {
-                Value = CompareTimestamp(now, timeslotOfBlockProducer) || CompareTimestamp(now, timeslotOfEBP)
+                Value = (CompareTimestamp(now, timeslotOfBlockProducer) && CompareTimestamp(endOfTimeslotOfBlockProducer, now))
+                        || CompareTimestamp(now, timeslotOfEBP)
             };
         }
 
