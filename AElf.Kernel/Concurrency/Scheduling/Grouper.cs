@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Types;
 using NLog;
 using Org.BouncyCastle.Security;
@@ -23,9 +24,10 @@ namespace AElf.Kernel.Concurrency.Scheduling
         }
 
         //TODO: for testnet we only have a single chain, thus grouper only take care of txList in one chain (hence Process has chainId as parameter)
-        public List<List<ITransaction>> Process(Hash chainId, List<ITransaction> transactions)
+        public List<List<ITransaction>> Process(Hash chainId, List<ITransaction> transactions, out Dictionary<ITransaction, Exception> failedTxs)
         {
             var txResourceHandle = new Dictionary<ITransaction, string>();
+            failedTxs = new Dictionary<ITransaction, Exception>();
             if (transactions.Count == 0)
             {
                 return new List<List<ITransaction>>();
@@ -37,8 +39,18 @@ namespace AElf.Kernel.Concurrency.Scheduling
             foreach (var tx in transactions)
             {
                 UnionFindNode first = null;
-                var resources = _resourceUsageDetectionService.GetResources(chainId, tx);
-                //_logger.Info(string.Format("tx {0} have resource [{1}]", tx.From, string.Join(" ||| ", resources)));
+                List<string> resources;
+                try
+                {
+                    resources = _resourceUsageDetectionService.GetResources(chainId, tx).ToList();
+                }
+                catch (Exception e)
+                {
+                    failedTxs.Add(tx, e);
+                    continue;
+                }
+                
+                //_logger.Debug(string.Format("tx {0} have resource [{1}]", tx.From, string.Join(" ||| ", resources)));
                 foreach (var resource in resources)
                 {
                     if (!resourceUnionSet.TryGetValue(resource, out var node))
@@ -75,8 +87,11 @@ namespace AElf.Kernel.Concurrency.Scheduling
                 }
                 else
                 {
-                    //each "resource-free" transaction have its own group
-                    result.Add(new List<ITransaction>(){tx});
+                    if (!failedTxs.ContainsKey(tx))
+                    {
+                        //each "resource-free" transaction have its own group
+                        result.Add(new List<ITransaction>(){tx});
+                    }
                 }
             }
             result.AddRange(grouped.Values);
@@ -88,9 +103,9 @@ namespace AElf.Kernel.Concurrency.Scheduling
             return result;
         }
 
-        public List<List<ITransaction>> ProcessWithCoreCount(int totalCores, Hash chainId, List<ITransaction> transactions)
+        public List<List<ITransaction>> ProcessWithCoreCount(int totalCores, Hash chainId, List<ITransaction> transactions, out Dictionary<ITransaction, Exception> failedTxs)
         {
-            return SimpleProcessWithCoreCount(totalCores, chainId, transactions);
+            return SimpleProcessWithCoreCount(totalCores, chainId, transactions, out failedTxs);
         }
         
         /// <summary>
@@ -106,8 +121,9 @@ namespace AElf.Kernel.Concurrency.Scheduling
         /// <param name="transactions"></param>
         /// <returns></returns>
         /// <exception cref="InvalidParameterException"></exception>
-        public List<List<ITransaction>> SimpleProcessWithCoreCount(int totalCores, Hash chainId, List<ITransaction> transactions)
+        public List<List<ITransaction>> SimpleProcessWithCoreCount(int totalCores, Hash chainId, List<ITransaction> transactions, out Dictionary<ITransaction, Exception> failedTxs)
         {
+            failedTxs = new Dictionary<ITransaction, Exception>();
             if (transactions.Count == 0)
             {
                 return new List<List<ITransaction>>();
@@ -119,7 +135,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
             }
             
             
-            var sortedUnmergedGroups = Process(chainId, transactions).OrderByDescending( a=> a.Count).ToList();
+            var sortedUnmergedGroups = Process(chainId, transactions, out failedTxs).OrderByDescending( a=> a.Count).ToList();
 
             //TODO: group's count can be a little bit more that core count, for now it's 0, this value can latter make adjustable to deal with special uses
             int resGroupCount = totalCores + 0;
