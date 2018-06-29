@@ -15,7 +15,8 @@ namespace AElf.ABI.CSharp
             var module = new Module();
             var monoModule = ModuleDefinition.ReadModule(new MemoryStream(code));
 
-            Container container = new Container("AElf.Sdk.CSharp.CSharpSmartContract", "AElf.Sdk.CSharp.Event", typeof(UserType).FullName);
+            Container container = new Container("AElf.Sdk.CSharp.CSharpSmartContract", "AElf.Sdk.CSharp.Event",
+                typeof(UserType).FullName);
             foreach (var t in monoModule.GetTypes())
             {
                 container.AddType(t);
@@ -37,6 +38,7 @@ namespace AElf.ABI.CSharp
             {
                 methods.AddRange(GetMethodsFromType(sc));
             }
+
             return methods;
         }
 
@@ -61,12 +63,16 @@ namespace AElf.ABI.CSharp
                         Type = p.ParameterType.FullName.ToShorterName()
                     });
                 }
+
                 var rt = m.ReturnType.FullName;
                 method.IsAsync = rt.StartsWith("System.Threading.Tasks.Task");
-                method.ReturnType = rt == "System.Threading.Tasks.Task" ? "void" : rt.Replace("System.Threading.Tasks.Task`1<", "").Replace(">", "");
+                method.ReturnType = rt == "System.Threading.Tasks.Task"
+                    ? "void"
+                    : rt.Replace("System.Threading.Tasks.Task`1<", "").Replace(">", "");
                 method.ReturnType = method.ReturnType.ToShorterName();
                 methods.Add(method);
             }
+
             return methods;
         }
 
@@ -81,15 +87,24 @@ namespace AElf.ABI.CSharp
                 };
                 foreach (var f in e.Fields)
                 {
-                    // TODO: Check indexed
-                    event_.NonIndexed.Add(new Field()
+                    var field = new Field()
                     {
                         Name = f.Name.Replace("<", "").Replace(">k__BackingField", ""),
                         Type = f.FieldType.FullName.ToShorterName()
-                    });
+                    };
+                    if (f.CustomAttributes.Any(x => x.AttributeType.Name == "IndexedAttribute"))
+                    {
+                        event_.Indexed.Add(field);
+                    }
+                    else
+                    {
+                        event_.NonIndexed.Add(field);
+                    }
                 }
+
                 events.Add(event_);
             }
+
             return events;
         }
 
@@ -110,8 +125,10 @@ namespace AElf.ABI.CSharp
                         Type = f.FieldType.FullName.ToShorterName()
                     });
                 }
+
                 types.Add(type_);
             }
+
             return types;
         }
     }
