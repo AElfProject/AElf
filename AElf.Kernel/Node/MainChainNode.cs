@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -373,7 +374,7 @@ namespace AElf.Kernel.Node
             try
             {
                 var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
-                var error = await _blockVaildationService.ValidateBlockAsync(block, context);
+                var error = await _blockVaildationService.ValidateBlockAsync(block, context, _nodeKeyPair);
                 Console.WriteLine("try execute block");
                 if (error != ValidationError.Success)
                 {
@@ -541,9 +542,9 @@ namespace AElf.Kernel.Node
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
-        public async Task DoDPos()
+        public void DoDPos()
         {
-            await DoDPoSMining();
+            DoDPoSMining();
         }
 
         public async Task<IBlock> Mine()
@@ -631,9 +632,9 @@ namespace AElf.Kernel.Node
         #region Private Methods for DPoS
 
         // ReSharper disable once InconsistentNaming
-        private async Task DoDPoSMining(bool doLogsAboutConsensus = true)
+        private void DoDPoSMining(bool doLogsAboutConsensus = true)
         {
-            await Task.Run(() =>
+            new EventLoopScheduler().Schedule(() =>
             {
                 _dPoS = new DPoS(_nodeKeyPair);
                     
@@ -678,7 +679,7 @@ namespace AElf.Kernel.Node
 
                             await BroadcastSyncTxForFirstExtraBlock(dpoSInfo);
                             
-                            var firstBlock = await _miner.Mine(); //Which is an extra block
+                            var firstBlock = await Mine(); //Which is an extra block
 
                             await BroadcastBlock(firstBlock);
                             
@@ -722,7 +723,7 @@ namespace AElf.Kernel.Node
 
                                 await BroadcastTxsForNormalBlock(roundsCount, outValue, signature, await GetIncrementId(_nodeKeyPair.GetAddress()));
 
-                                var block = await _miner.Mine();
+                                var block = await Mine();
                                 
                                 await BroadcastBlock(block);
                                 
@@ -763,7 +764,7 @@ namespace AElf.Kernel.Node
                                 await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
                                     extraBlockResult.Item2, extraBlockResult.Item3);
 
-                                var extraBlock = await _miner.Mine(); //Which is an extra block
+                                var extraBlock = await Mine(); //Which is an extra block
 
                                 await BroadcastBlock(extraBlock);
                                 
@@ -790,7 +791,7 @@ namespace AElf.Kernel.Node
                             await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
                                 extraBlockResult.Item2, extraBlockResult.Item3);
                             
-                            var extraBlock = await _miner.Mine(); //Which is an extra block
+                            var extraBlock = await Mine(); //Which is an extra block
 
                             await BroadcastBlock(extraBlock);
 
@@ -822,7 +823,7 @@ namespace AElf.Kernel.Node
                         if (doLogsAboutConsensus)
                         {
                             // If this node doesn't produce any block this interval.
-                            _logger.Log(LogLevel.Debug, "Find myself unable to mine in {0}", DateTime.UtcNow.ToString("u"));
+                            _logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
                         }
                     }
                 );

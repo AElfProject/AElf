@@ -65,13 +65,13 @@ namespace AElf.Configuration
 
         private static string GetFromLocalFile(string name)
         {
-            var filePath = ConfigFilePath + name;
+            var filePath = Path.Combine(ConfigFilePath, name);
             if (!File.Exists(filePath))
             {
                 return null;
             }
 
-            var text = File.ReadAllText(ConfigFilePath + name);
+            var text = File.ReadAllText(filePath);
             return text;
         }
     }

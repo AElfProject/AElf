@@ -16,7 +16,10 @@ namespace AElf.ABI.CSharp.Tests
 
     public class AccountName : AElf.Sdk.CSharp.Event
     {
+        [Indexed]
         public string Name;
+
+        public string Dummy;
     }
 
     public class UserContract : UserBaseContract

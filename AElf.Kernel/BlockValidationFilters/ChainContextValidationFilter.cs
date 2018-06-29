@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.Types;
@@ -15,9 +16,8 @@ namespace AElf.Kernel.BlockValidationFilters
             _blockManager = blockManager;
         }
 
-        public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context)
+        public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
         {
-            
             /*
                 1' block height
                 2' previous block hash

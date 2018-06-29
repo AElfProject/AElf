@@ -1,19 +1,11 @@
 ﻿using System;
-using System.Text;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Concurrency.Metadata;
-using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
+using AElf.Types.CSharp.MetadataAttribute;
 using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 using Api = AElf.Sdk.CSharp.Api;
 
-namespace AElf.Runtime.CSharp.Tests
+namespace AElf.Runtime.CSharp.Tests.TestContract
 {
     public class TestContract : CSharpSmartContract
     {

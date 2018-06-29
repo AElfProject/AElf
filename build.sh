@@ -6,6 +6,7 @@ dotnet build
 for i in *Tests ; do
   limit=$((${#i}+20))
 
+  echo ""
   echo "Executing Tests for $i"
   printf '=%.0s' $(seq 1 $limit)
   echo ""

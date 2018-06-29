@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp.Types;
+using AElf.Types.CSharp.MetadataAttribute;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Crypto.Engines;
 using SharpRepository.Repository.Configuration;
 using Api = AElf.Sdk.CSharp.Api;
 using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
@@ -529,14 +528,9 @@ namespace AElf.Kernel.Tests
         
         #endregion
         
-        [SmartContractFunction("${this}.GetTimeSlot", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfCurrentRound"}, new string[]{ })]
+        [SmartContractFunction("${this}.GetTimeSlot", new string[]{"${this}.GetBlockProducerInfoOfCurrentRound"}, new string[]{ })]
         public async Task<Timestamp> GetTimeSlot(string accountAddress)
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             return (await GetBlockProducerInfoOfCurrentRound(accountAddress)).TimeSlot;
         }
 
@@ -658,14 +652,9 @@ namespace AElf.Kernel.Tests
         }
         
         // ReSharper disable once InconsistentNaming
-        [SmartContractFunction("${this}.IsBP", new string[]{"${this}.Authentication", "${this}.GetBlockProducers"}, new string[]{})]
+        [SmartContractFunction("${this}.IsBP", new string[]{"${this}.GetBlockProducers"}, new string[]{})]
         private async Task<bool> IsBP(string accountAddress)
         {
-            if (!await Authentication())
-            {
-                return false;
-            }
-            
             var blockProducer = await GetBlockProducers();
             return blockProducer.Nodes.Contains(accountAddress);
         }
@@ -744,7 +733,7 @@ namespace AElf.Kernel.Tests
             var res = new StringValue
             {
                 Value
-                    = result + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime():u}\n"
+                    = result + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
                              + "Current Round : " + RoundsCount?.Value
             };
             
@@ -767,13 +756,33 @@ namespace AElf.Kernel.Tests
                 result += bpInfo.Key + ":\n";
                 result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";
                 result += "Order:\t\t" + bpInfo.Value.Order + "\n";
-                result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToString("u") + "\n";
+                result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
                 result += "Signature:\t" + bpInfo.Value.Signature + "\n";
                 result += "Out Value:\t" + bpInfo.Value.OutValue + "\n";
                 result += "In Value:\t" + bpInfo.Value.InValue + "\n";
             }
 
             return result + "\n";
+        }
+
+        [SmartContractFunction("${this}.BlockProducerVerification", new string[]{"${this}.IsBP", "${this}.GetTimestampOfUtcNow", "${this}.GetTimeSlot", "${this}.CompareTimestamp"}, new string[]{"${this}._timeForProducingExtraBlock"})]
+        public async Task<BoolValue> BlockProducerVerification(StringValue accountAddress)
+        {
+            if (!await IsBP(accountAddress.Value))
+            {
+                return new BoolValue {Value = false};
+            }
+
+            var now = GetTimestampOfUtcNow();
+            var timeslotOfBlockProducer = await GetTimeSlot(accountAddress.Value);
+            var endOfTimeslotOfBlockProducer = GetTimestamp(timeslotOfBlockProducer, MiningTime);
+            // ReSharper disable once InconsistentNaming
+            var timeslotOfEBP = await _timeForProducingExtraBlock.GetAsync();
+            return new BoolValue
+            {
+                Value = (CompareTimestamp(now, timeslotOfBlockProducer) && CompareTimestamp(endOfTimeslotOfBlockProducer, now))
+                        || CompareTimestamp(now, timeslotOfEBP)
+            };
         }
 
         #region Private Methods
