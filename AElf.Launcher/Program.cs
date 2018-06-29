@@ -129,7 +129,7 @@ namespace AElf.Launcher
                 
                 //var contractZeroDllPath = $"{dir}/{ContractZeroName}.dll";
                 
-                var contractZeroDllPath = $"../{ContractZeroName}/bin/Debug/netstandard2.0/{ContractZeroName}.dll";
+                var contractZeroDllPath = $"{ContractZeroName}.dll";
                 
                 byte[] code = null;
                 using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(contractZeroDllPath)))
