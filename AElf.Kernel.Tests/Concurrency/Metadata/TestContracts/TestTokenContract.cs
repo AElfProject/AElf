@@ -1,7 +1,9 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Metadata;
+using AElf.Kernel.Types;
 using AElf.Sdk.CSharp.Types;
+using AElf.Types.CSharp.MetadataAttribute;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;

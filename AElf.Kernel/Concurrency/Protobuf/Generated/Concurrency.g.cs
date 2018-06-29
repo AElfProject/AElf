@@ -57,13 +57,11 @@ namespace AElf.Kernel {
             "YWRhdGE6AjgBIi4KEUNhbGxpbmdHcmFwaEVkZ2VzEhkKBUVkZ2VzGAEgAygL",
             "MgouR3JhcGhFZGdlIisKCUdyYXBoRWRnZRIOCgZTb3VyY2UYASABKAkSDgoG",
             "VGFyZ2V0GAIgASgJKjwKBlN0YXR1cxIOCgpOb3RFeGlzdGVkEAASCwoHUGVu",
-            "ZGluZxABEgoKBkZhaWxlZBACEgkKBU1pbmVkEAMqXgoORGF0YUFjY2Vzc01v",
-            "ZGUSGgoWUmVhZE9ubHlBY2NvdW50U2hhcmluZxAAEhsKF1JlYWRXcml0ZUFj",
-            "Y291bnRTaGFyaW5nEAESEwoPQWNjb3VudFNwZWNpZmljEAJCDqoCC0FFbGYu",
-            "S2VybmVsYgZwcm90bzM="));
+            "ZGluZxABEgoKBkZhaWxlZBACEgkKBU1pbmVkEANCDqoCC0FFbGYuS2VybmVs",
+            "YgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::AElf.Kernel.KernelReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.AnyReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), typeof(global::AElf.Kernel.DataAccessMode), }, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.StateValueChange), global::AElf.Kernel.StateValueChange.Parser, new[]{ "Path", "BeforeValue", "AfterValue" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.EventField), global::AElf.Kernel.EventField.Parser, new[]{ "Name", "Value" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.LogEvent), global::AElf.Kernel.LogEvent.Parser, new[]{ "Address", "Topic", "Details" }, null, null, null),
@@ -87,12 +85,6 @@ namespace AElf.Kernel {
     [pbr::OriginalName("Pending")] Pending = 1,
     [pbr::OriginalName("Failed")] Failed = 2,
     [pbr::OriginalName("Mined")] Mined = 3,
-  }
-
-  public enum DataAccessMode {
-    [pbr::OriginalName("ReadOnlyAccountSharing")] ReadOnlyAccountSharing = 0,
-    [pbr::OriginalName("ReadWriteAccountSharing")] ReadWriteAccountSharing = 1,
-    [pbr::OriginalName("AccountSpecific")] AccountSpecific = 2,
   }
 
   #endregion

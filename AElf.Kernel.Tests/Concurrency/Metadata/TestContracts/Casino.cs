@@ -1,8 +1,10 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Metadata;
+using AElf.Kernel.Types;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
+using AElf.Types.CSharp.MetadataAttribute;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
 {
