@@ -97,19 +97,30 @@ namespace AElf.Kernel.Concurrency.Execution
 
             IChainContext chainContext = null;
 
+            Exception chainContextException = null;
+            
             try
             {
                 chainContext = await _servicePack.ChainContextService.GetChainContextAsync(request.ChainId);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                chainContextException = e;
             }
 
             foreach (var tx in request.Transactions)
             {
                 TransactionTrace trace;
 
-                if (_cancellationTokenSource.IsCancellationRequested)
+                if (chainContextException != null)
+                {
+                    trace = new TransactionTrace()
+                    {
+                        TransactionId = tx.GetHash(),
+                        StdErr = chainContextException + "\n"
+                    };
+                }
+                else if (_cancellationTokenSource.IsCancellationRequested)
                 {
                     trace = new TransactionTrace()
                     {
