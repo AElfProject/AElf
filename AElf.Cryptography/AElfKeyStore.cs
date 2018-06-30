@@ -29,7 +29,7 @@ namespace AElf.Cryptography
 
         private readonly List<OpenAccount> _openAccounts;
         
-        private TimeSpan _defaultAccountTimeout = TimeSpan.FromMinutes(2);
+        private TimeSpan _defaultAccountTimeout = TimeSpan.FromMinutes(10);
 
         public enum Errors
         {
