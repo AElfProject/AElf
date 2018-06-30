@@ -230,13 +230,8 @@ namespace AElf.Contracts.Genesis
             {
                 var sigNum = BitConverter.ToUInt64(
                     BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
-                var order = GetModulus(sigNum, blockProducerCount);
-
-                if (order < 0)
-                {
-                    order = -order;
-                }
- 
+                var order = Math.Abs(GetModulus(sigNum, blockProducerCount));
+                
                 if (orderDict.ContainsKey(order))
                 {
                     for (var i = 0; i < blockProducerCount; i++)
@@ -341,7 +336,7 @@ namespace AElf.Contracts.Genesis
 
             foreach (var infoPair in currentRoundInfo.Info)
             {
-                if (infoPair.Value.InValue != null || RoundsCount.Value == 1) 
+                if (infoPair.Value.InValue != null) 
                     continue;
                 
                 var supplyValue = suppliedPreviousRoundInfo.Info.First(info => info.Key == infoPair.Key)
@@ -405,6 +400,12 @@ namespace AElf.Contracts.Genesis
             var offset = MiningTime * orderDiff - MiningTime;
             var assigendExtraBlockProducingTimeEndWithOffset = GetTimestamp(assigendExtraBlockProducingTimeEnd, offset);
 
+            //todo: if more than two nodes wake up suddenly after next round's timeslot, this will cause problem
+            if (CompareTimestamp(now, GetTimestamp(assigendExtraBlockProducingTimeEnd, MiningTime * blockProducerCount)))
+            {
+                return new BoolValue {Value = true};
+            }
+            
             if (orderDiff == blockProducerCount - 1)
             {
                 return new BoolValue
@@ -415,10 +416,9 @@ namespace AElf.Contracts.Genesis
             
             return new BoolValue
             {
-                Value = (CompareTimestamp(now, assigendExtraBlockProducingTimeEndWithOffset)
-                         && CompareTimestamp(GetTimestamp(assigendExtraBlockProducingTimeEndWithOffset, MiningTime), now)) ||
-                        //todo: if more than two nodes wake up suddenly after next round's timeslot, this will cause problem
-                        CompareTimestamp(now, GetTimestamp(assigendExtraBlockProducingTimeEnd, MiningTime * blockProducerCount))
+                Value = CompareTimestamp(now, assigendExtraBlockProducingTimeEndWithOffset)
+                         && CompareTimestamp(GetTimestamp(assigendExtraBlockProducingTimeEndWithOffset, MiningTime), now)
+                        
             };
         }
 
@@ -491,7 +491,7 @@ namespace AElf.Contracts.Genesis
                     info.Value.InValue = inValue;
                     
                     //For the first round, the sig value is auto generated
-                    if (info.Value.Signature == null || info.Value.Signature.Value.Length == 0)
+                    if (info.Value.Signature == null && RoundsCount.Value != 1)
                     {
                         var signature = await CalculateSignature(inValue);
                         info.Value.Signature = signature;
@@ -501,7 +501,7 @@ namespace AElf.Contracts.Genesis
                 }
             }
 
-            //await _dPoSInfoMap.SetValueAsync(RoundsCount, roundInfo);
+            await _dPoSInfoMap.SetValueAsync(RoundsCount, roundInfo);
 
             return roundInfo;
         }
