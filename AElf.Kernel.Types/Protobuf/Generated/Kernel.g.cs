@@ -24,11 +24,15 @@ namespace AElf.Kernel {
     static KernelReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "CgxrZXJuZWwucHJvdG8aH2dvb2dsZS9wcm90b2J1Zi90aW1lc3RhbXAucHJv",
-            "dG8aCmhhc2gucHJvdG8inAEKC1RyYW5zYWN0aW9uEhMKBEZyb20YASABKAsy",
-            "BS5IYXNoEhEKAlRvGAIgASgLMgUuSGFzaBITCgtJbmNyZW1lbnRJZBgDIAEo",
-            "BBISCgpNZXRob2ROYW1lGAQgASgJEg4KBlBhcmFtcxgFIAEoDBILCgNGZWUY",
-            "BiABKAQSCQoBUhgHIAEoDBIJCgFTGAggASgMEgkKAVAYCSABKAwiigIKC0Js",
+            "CgxrZXJuZWwucHJvdG8aGWdvb2dsZS9wcm90b2J1Zi9hbnkucHJvdG8aH2dv",
+            "b2dsZS9wcm90b2J1Zi90aW1lc3RhbXAucHJvdG8aCmhhc2gucHJvdG8inAEK",
+            "C1RyYW5zYWN0aW9uEhMKBEZyb20YASABKAsyBS5IYXNoEhEKAlRvGAIgASgL",
+            "MgUuSGFzaBITCgtJbmNyZW1lbnRJZBgDIAEoBBISCgpNZXRob2ROYW1lGAQg",
+            "ASgJEg4KBlBhcmFtcxgFIAEoDBILCgNGZWUYBiABKAQSCQoBUhgHIAEoDBIJ",
+            "CgFTGAggASgMEgkKAVAYCSABKAwiPwoKRXZlbnRGaWVsZBIMCgROYW1lGAEg",
+            "ASgJEiMKBVZhbHVlGAIgASgLMhQuZ29vZ2xlLnByb3RvYnVmLkFueSJWCghM",
+            "b2dFdmVudBIWCgdBZGRyZXNzGAEgASgLMgUuSGFzaBIUCgVUb3BpYxgCIAEo",
+            "CzIFLkhhc2gSHAoHRGV0YWlscxgDIAMoCzILLkV2ZW50RmllbGQiigIKC0Js",
             "b2NrSGVhZGVyEg8KB1ZlcnNpb24YASABKAUSIAoRUHJldmlvdXNCbG9ja0hh",
             "c2gYAiABKAsyBS5IYXNoEisKHE1lcmtsZVRyZWVSb290T2ZUcmFuc2FjdGlv",
             "bnMYAyABKAsyBS5IYXNoEikKGk1lcmtsZVRyZWVSb290T2ZXb3JsZFN0YXRl",
@@ -72,9 +76,11 @@ namespace AElf.Kernel {
             "Y291bnRTaGFyaW5nEAESEwoPQWNjb3VudFNwZWNpZmljEAJCDqoCC0FFbGYu",
             "S2VybmVsYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::AElf.Kernel.HashReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.AnyReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.TimestampReflection.Descriptor, global::AElf.Kernel.HashReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.DataAccessMode), }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Transaction), global::AElf.Kernel.Transaction.Parser, new[]{ "From", "To", "IncrementId", "MethodName", "Params", "Fee", "R", "S", "P" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.EventField), global::AElf.Kernel.EventField.Parser, new[]{ "Name", "Value" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.LogEvent), global::AElf.Kernel.LogEvent.Parser, new[]{ "Address", "Topic", "Details" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockHeader), global::AElf.Kernel.BlockHeader.Parser, new[]{ "Version", "PreviousBlockHash", "MerkleTreeRootOfTransactions", "MerkleTreeRootOfWorldState", "Index", "R", "S", "P", "Time", "ChainId" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.BlockBody), global::AElf.Kernel.BlockBody.Parser, new[]{ "BlockHeader", "Transactions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Block), global::AElf.Kernel.Block.Parser, new[]{ "Header", "Body", "FullTransactions" }, null, null, null),
@@ -471,6 +477,358 @@ namespace AElf.Kernel {
 
   }
 
+  public sealed partial class EventField : pb::IMessage<EventField> {
+    private static readonly pb::MessageParser<EventField> _parser = new pb::MessageParser<EventField>(() => new EventField());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<EventField> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[1]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public EventField() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public EventField(EventField other) : this() {
+      name_ = other.name_;
+      Value = other.value_ != null ? other.Value.Clone() : null;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public EventField Clone() {
+      return new EventField(this);
+    }
+
+    /// <summary>Field number for the "Name" field.</summary>
+    public const int NameFieldNumber = 1;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Value" field.</summary>
+    public const int ValueFieldNumber = 2;
+    private global::Google.Protobuf.WellKnownTypes.Any value_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Google.Protobuf.WellKnownTypes.Any Value {
+      get { return value_; }
+      set {
+        value_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as EventField);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(EventField other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Name != other.Name) return false;
+      if (!object.Equals(Value, other.Value)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (value_ != null) hash ^= Value.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      if (value_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Value);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (value_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Value);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(EventField other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.value_ != null) {
+        if (value_ == null) {
+          value_ = new global::Google.Protobuf.WellKnownTypes.Any();
+        }
+        Value.MergeFrom(other.Value);
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 18: {
+            if (value_ == null) {
+              value_ = new global::Google.Protobuf.WellKnownTypes.Any();
+            }
+            input.ReadMessage(value_);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  public sealed partial class LogEvent : pb::IMessage<LogEvent> {
+    private static readonly pb::MessageParser<LogEvent> _parser = new pb::MessageParser<LogEvent>(() => new LogEvent());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<LogEvent> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[2]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public LogEvent() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public LogEvent(LogEvent other) : this() {
+      Address = other.address_ != null ? other.Address.Clone() : null;
+      Topic = other.topic_ != null ? other.Topic.Clone() : null;
+      details_ = other.details_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public LogEvent Clone() {
+      return new LogEvent(this);
+    }
+
+    /// <summary>Field number for the "Address" field.</summary>
+    public const int AddressFieldNumber = 1;
+    private global::AElf.Kernel.Hash address_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash Address {
+      get { return address_; }
+      set {
+        address_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Topic" field.</summary>
+    public const int TopicFieldNumber = 2;
+    private global::AElf.Kernel.Hash topic_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::AElf.Kernel.Hash Topic {
+      get { return topic_; }
+      set {
+        topic_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Details" field.</summary>
+    public const int DetailsFieldNumber = 3;
+    private static readonly pb::FieldCodec<global::AElf.Kernel.EventField> _repeated_details_codec
+        = pb::FieldCodec.ForMessage(26, global::AElf.Kernel.EventField.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Kernel.EventField> details_ = new pbc::RepeatedField<global::AElf.Kernel.EventField>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::AElf.Kernel.EventField> Details {
+      get { return details_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as LogEvent);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(LogEvent other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (!object.Equals(Address, other.Address)) return false;
+      if (!object.Equals(Topic, other.Topic)) return false;
+      if(!details_.Equals(other.details_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (address_ != null) hash ^= Address.GetHashCode();
+      if (topic_ != null) hash ^= Topic.GetHashCode();
+      hash ^= details_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (address_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Address);
+      }
+      if (topic_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Topic);
+      }
+      details_.WriteTo(output, _repeated_details_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (address_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Address);
+      }
+      if (topic_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Topic);
+      }
+      size += details_.CalculateSize(_repeated_details_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(LogEvent other) {
+      if (other == null) {
+        return;
+      }
+      if (other.address_ != null) {
+        if (address_ == null) {
+          address_ = new global::AElf.Kernel.Hash();
+        }
+        Address.MergeFrom(other.Address);
+      }
+      if (other.topic_ != null) {
+        if (topic_ == null) {
+          topic_ = new global::AElf.Kernel.Hash();
+        }
+        Topic.MergeFrom(other.Topic);
+      }
+      details_.Add(other.details_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            if (address_ == null) {
+              address_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(address_);
+            break;
+          }
+          case 18: {
+            if (topic_ == null) {
+              topic_ = new global::AElf.Kernel.Hash();
+            }
+            input.ReadMessage(topic_);
+            break;
+          }
+          case 26: {
+            details_.AddEntriesFrom(input, _repeated_details_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
   public sealed partial class BlockHeader : pb::IMessage<BlockHeader> {
     private static readonly pb::MessageParser<BlockHeader> _parser = new pb::MessageParser<BlockHeader>(() => new BlockHeader());
     private pb::UnknownFieldSet _unknownFields;
@@ -479,7 +837,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[1]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -890,7 +1248,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[2]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[4]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1045,7 +1403,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[3]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1234,7 +1592,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[4]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1425,7 +1783,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[5]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[7]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1650,7 +2008,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[6]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[8]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1771,7 +2129,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[7]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[9]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2265,7 +2623,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[8]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2484,7 +2842,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[9]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[11]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2707,7 +3065,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[10]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[12]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2876,7 +3234,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[11]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[13]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2997,7 +3355,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[12]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[14]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3166,7 +3524,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[13]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[15]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3287,7 +3645,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[14]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[16]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3583,7 +3941,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[15]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[17]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3704,7 +4062,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[16]; }
+      get { return global::AElf.Kernel.KernelReflection.Descriptor.MessageTypes[18]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

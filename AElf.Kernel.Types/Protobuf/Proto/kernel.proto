@@ -2,6 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.Kernel";
 
+import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 import "hash.proto";
 
@@ -16,6 +17,19 @@ message Transaction
     bytes R = 7;
     bytes S = 8;
     bytes P = 9;
+}
+
+message EventField
+{
+    string Name = 1;
+    google.protobuf.Any Value = 2;
+}
+
+message LogEvent
+{
+    Hash Address = 1;
+    Hash Topic = 2;
+    repeated EventField Details = 3;
 }
 
 message BlockHeader{
