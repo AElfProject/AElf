@@ -59,13 +59,18 @@ namespace AElf.Kernel.Concurrency.Execution.Config
 //                        }
 //                    }
 //                    remote {
+//                        maximum-payload-bytes = 30000000 bytes
 //                        dot-netty.tcp {
 //                            hostname = ""127.0.0.1""
 //                            port = 0
+//                            message-frame-size =  30000000b
+//                            send-buffer-size =  30000000b
+//                            receive-buffer-size =  30000000b
+//                            maximum-frame-size = 30000000b
 //                        }
 //                    }
 //                    cluster {
-//                        seed-nodes = [""akka.tcp://AElfSystem@127.0.0.1:32551""]
+//                        seed-nodes = [""akka.tcp://AElfSystem@192.168.197.20:32551""]
 //                        roles = [""manager""]
 //                    }
 //                }";

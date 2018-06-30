@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
+using AElf.Sdk.CSharp;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -214,6 +215,93 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             {
                 Assert.Equal(util.FunctionMetadataToString(kv.Value), util.FunctionMetadataToString(_functionMetadataService.GetFunctionMetadata(chainId, kv.Key)));
             }
+        }
+        
+        [Fact]
+        public async Task TestEmptyContract()
+        {
+            ParallelTestDataUtil util = new ParallelTestDataUtil();
+            var chainId = Hash.Generate();
+            var contract1Addr = new Hash("contract1".CalculateHash()).ToAccount();
+            var contract2Addr = new Hash("contract2".CalculateHash()).ToAccount();
+            await _functionMetadataService.DeployContract(chainId, typeof(TestNonAttrContract1), contract1Addr,
+                new Dictionary<string, Hash>());
+            
+            await _functionMetadataService.DeployContract(chainId, typeof(TestNonAttrContract2), contract2Addr,
+                new Dictionary<string, Hash>());
+
+            
+            var groundTruthMap = new Dictionary<string, FunctionMetadata>();
+            
+            groundTruthMap.Add(
+                contract1Addr.Value.ToBase64() + ".Func1", 
+                new FunctionMetadata(
+                    new HashSet<string>(),
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(contract1Addr.Value.ToBase64() + "._lock", DataAccessMode.ReadWriteAccountSharing)
+                    }), 
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(contract1Addr.Value.ToBase64() + "._lock", DataAccessMode.ReadWriteAccountSharing)
+                    })));
+            
+            groundTruthMap.Add(
+                contract2Addr.Value.ToBase64() + ".Func1", 
+                new FunctionMetadata(
+                    new HashSet<string>(),
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(contract2Addr.Value.ToBase64() + "._lock", DataAccessMode.ReadWriteAccountSharing)
+                    }), 
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(contract2Addr.Value.ToBase64() + "._lock", DataAccessMode.ReadWriteAccountSharing)
+                    })));
+            
+            groundTruthMap.Add(
+                contract2Addr.Value.ToBase64() + ".Func2", 
+                new FunctionMetadata(
+                    new HashSet<string>(),
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(contract2Addr.Value.ToBase64() + "._lock", DataAccessMode.ReadWriteAccountSharing)
+                    }), 
+                    new HashSet<Resource>(new []
+                    {
+                        new Resource(contract2Addr.Value.ToBase64() + "._lock", DataAccessMode.ReadWriteAccountSharing)
+                    })));
+
+            foreach (var kv in groundTruthMap)
+            {
+                Assert.Equal(util.FunctionMetadataToString(kv.Value), util.FunctionMetadataToString(_functionMetadataService.GetFunctionMetadata(chainId, kv.Key)));
+            }
+        }
+    }
+    
+    public class TestNonAttrContract1 : CSharpSmartContract
+    {
+        public void Func1()
+        {
+            
+        }
+        
+        public void Func2()
+        {
+            
+        }
+    }
+    
+    public class TestNonAttrContract2 : CSharpSmartContract
+    {
+        public void Func1()
+        {
+            
+        }
+        
+        public void Func2()
+        {
+            
         }
     }
 }

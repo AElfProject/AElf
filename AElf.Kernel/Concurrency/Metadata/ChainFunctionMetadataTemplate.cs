@@ -74,6 +74,13 @@ namespace AElf.Kernel.Concurrency.Metadata
                 ExtractRawMetadataFromType(contractType, out var smartContractReferenceMap,
                     out var localFunctionMetadataTemplateMap);
                 
+                //TODO: we group tx that send to the contract that contains no attributes into the same group
+                if (localFunctionMetadataTemplateMap.Count == 0 || localFunctionMetadataTemplateMap.First().Value.TemplateContainsMetadata == false)
+                {
+                    ContractMetadataTemplateMap.Add(contractType.Name, localFunctionMetadataTemplateMap);
+                    return true;
+                }
+                
                 UpdateTemplate(contractType, smartContractReferenceMap, ref localFunctionMetadataTemplateMap);
                 
                 //merge the function metadata template map
@@ -166,6 +173,15 @@ namespace AElf.Kernel.Concurrency.Metadata
 
             if (localFunctionMetadataTemplateMap.Count == 0)
             {
+                var blackLists = new[] {"ToString", "Equals", "GetHashCode", "GetType"};
+                foreach (var methodInfo in contractType.GetMethods())
+                {
+                    if (!blackLists.Contains(methodInfo.Name))
+                    {
+                        localFunctionMetadataTemplateMap.Add("${this}." + methodInfo.Name, new FunctionMetadataTemplate(false));
+                    }
+                }
+                return;
                 throw new FunctionMetadataException("ChainId [" + ChainId.Value + " no function marked in the target contract " + contractType.Name);
             }
             
