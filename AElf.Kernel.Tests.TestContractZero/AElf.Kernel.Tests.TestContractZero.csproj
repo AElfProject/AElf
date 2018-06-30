@@ -5,15 +5,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
-    <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
-    <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Runtime.Loader, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>..\..\..\..\usr\local\share\dotnet\sdk\NuGetFallbackFolder\microsoft.netcore.app\2.0.0\ref\netcoreapp2.0\System.Runtime.Loader.dll</HintPath>
-    </Reference>
   </ItemGroup>
 </Project>
