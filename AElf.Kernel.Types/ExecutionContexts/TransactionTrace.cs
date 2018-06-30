@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
-using Akka.Routing;
 using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    public partial class TransactionTrace: IConsistentHashable
+    public partial class TransactionTrace
     {
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
@@ -77,7 +76,5 @@ namespace AElf.Kernel
 
             _alreadyCommited = true;
         }
-
-        public object ConsistentHashKey { get; }
     }
 }

@@ -5,12 +5,6 @@ option csharp_namespace = "AElf.Kernel";
 import "hash.proto";
 import "kernel.proto";
 
-message StateValueChange{
-    Hash Path = 1;
-    bytes BeforeValue = 2;
-    bytes AfterValue = 3;
-}
-
 message TransactionResult{
     Hash TransactionId = 1;
     Status status = 2;

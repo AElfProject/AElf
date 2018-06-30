@@ -1,11 +1,6 @@
-﻿using System;
-using System.ComponentModel.Design;
-using AElf.Kernel;
+﻿using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using Google.Protobuf.WellKnownTypes;
-using NLog.Conditions;
-using NServiceKit.Common.Extensions;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Token

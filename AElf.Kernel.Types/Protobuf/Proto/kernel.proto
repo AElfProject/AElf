@@ -19,6 +19,12 @@ message Transaction
     bytes P = 9;
 }
 
+message StateValueChange{
+    Hash Path = 1;
+    bytes BeforeValue = 2;
+    bytes AfterValue = 3;
+}
+
 message EventField
 {
     string Name = 1;
