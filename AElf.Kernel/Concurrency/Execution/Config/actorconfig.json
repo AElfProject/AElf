@@ -1,0 +1,8 @@
+﻿{
+  "IsCluster": false,
+  "HostName": "127.0.0.1",
+  "Port": 0,
+  "SeedHostName": "127.0.0.1",
+  "SeedPort": 32551,
+  "WorkerCount": 8
+}

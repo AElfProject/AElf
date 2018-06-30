@@ -53,14 +53,10 @@ namespace AElf.Kernel.Concurrency
 
         public void InitWorkActorSystem()
         {
-            var config = ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.hostname=" + ActorWorkerConfig.Instance.HostName)
-                .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.port=" + ActorWorkerConfig.Instance.Port))
-                .WithFallback(ActorWorkerConfig.Instance.HoconContent);
-            if (ActorWorkerConfig.Instance.IsSeedNode)
-            {
-                config = ConfigurationFactory.ParseString("akka.cluster.seed-nodes = [\"akka.tcp://" + SystemName + "@" + ActorWorkerConfig.Instance.HostName + ":" + ActorWorkerConfig.Instance.Port + "\"]")
-                    .WithFallback(config);
-            }
+            var config = ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.hostname=" + ActorConfig.Instance.HostName)
+                .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.port=" + ActorConfig.Instance.Port))
+                .WithFallback(ConfigurationFactory.ParseString("akka.cluster.seed-nodes = [\"akka.tcp://" + SystemName + "@" + ActorConfig.Instance.HostName + ":" + ActorConfig.Instance.Port + "\"]"))
+                .WithFallback(ActorHocon.ActorWorkerHocon);
 
             _actorSystem = ActorSystem.Create(SystemName, config);
             var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker");
@@ -69,28 +65,33 @@ namespace AElf.Kernel.Concurrency
 
         public void InitActorSystem()
         {
-            var config = ConfigurationFactory.ParseString(ActorConfig.Instance.HoconContent);
             if (ActorConfig.Instance.IsCluster)
             {
-                config = ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.hostname=" + ActorConfig.Instance.HostName)
+                var config = ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.hostname=" + ActorConfig.Instance.HostName)
                     .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.port=" + ActorConfig.Instance.Port))
-                    .WithFallback(config);
-            }
-            _actorSystem = ActorSystem.Create(SystemName, config);
-            if (ActorConfig.Instance.IsCluster)
-            {
+                    .WithFallback(ConfigurationFactory.ParseString("akka.cluster.seed-nodes = [\"akka.tcp://" + SystemName + "@" + ActorConfig.Instance.HostName + ":" + ActorConfig.Instance.Port + "\"]"))
+                    .WithFallback(ActorHocon.ActorClusterHocon);
+                _actorSystem = ActorSystem.Create(SystemName, config);
                 //Todo waiting for join cluster. we should get the status here.
                 Thread.Sleep(2000);
+                _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");
             }
             else
             {
-                foreach (var name in config.GetStringList("akka.actor.deployment./router.routees.paths"))
+                var workers = new List<string>();
+                for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
                 {
-                    var worker = _actorSystem.ActorOf(Props.Create<Worker>(), name.Split('/').Last());
+                    workers.Add("/user/worker" + i);
+                }
+
+                _router = _actorSystem.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
+                for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
+                {
+                    var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker" + i);
                     worker.Tell(new LocalSerivcePack(_servicePack));
                 }
             }
-            _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");
+
             _isInit = true;
         }
     }
