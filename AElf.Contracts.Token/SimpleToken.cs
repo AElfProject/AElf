@@ -31,7 +31,7 @@ namespace AElf.Contracts.Token
 
     #endregion Events
 
-    public class SimpleToken
+    public class SimpleToken : CSharpSmartContract
     {
         private readonly BoolField _initialized = new BoolField("_Initialized_");
         private readonly StringField _symbol = new StringField("_Symbol_");
