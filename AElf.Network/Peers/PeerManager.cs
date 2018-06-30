@@ -316,6 +316,11 @@ namespace AElf.Network.Peers
             if (GetPeer(peer) != null)
                 return false;
             
+            peer.DistantNodeData.IsBootnode = _bootnodes?.Any(p => p.Equals(peer.DistantNodeData)) ?? false;
+            
+            if (peer.DistantNodeData.IsBootnode)
+                _bootnodePeers.Add(peer);
+            
             _peers.Add(peer);
             
             peer.MessageReceived += ProcessPeerMessage;
@@ -458,11 +463,8 @@ namespace AElf.Network.Peers
                 
                 peer.MessageReceived -= ProcessPeerMessage;
                 peer.PeerDisconnected -= ProcessClientDisconnection;
-
-                if (peer.IsBootnode)
-                {
-                    _bootnodePeers.Remove(peer);
-                }
+                
+                _bootnodePeers.Remove(peer);
                 
                 RemovePeer(args.Peer);
             }

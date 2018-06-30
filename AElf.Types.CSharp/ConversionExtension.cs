@@ -195,7 +195,7 @@ namespace AElf.Types.CSharp
         public static T DeserializeToPbMessage<T>(this byte[] bytes) where T : IMessage, new()
         {
             var obj = new T();
-            obj.MergeFrom(bytes);
+            ((IMessage)obj).MergeFrom(bytes);
             return obj;
         }
         
