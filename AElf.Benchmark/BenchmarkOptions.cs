@@ -11,10 +11,10 @@ namespace AElf.Benchmark
 {
     public class BenchmarkOptions
     {
-        [Option(HelpText = "The directory where store the sdk dll file (usually named AElf.Sdk.CSharp.dll).")]
+        [Option(Required = true, HelpText = "The directory where store the sdk dll file (usually named AElf.Sdk.CSharp.dll).")]
         public string SdkDir { get; set; }
         
-        [Option(HelpText = "The directory where store all the related dll file.")]
+        [Option(Required = true, HelpText = "The directory where store all the related dll file.")]
         public string DllDir { get; set; }
         
         [Option(Default = "AElf.Benchmark.TestContract.dll", HelpText = "The dll file name that contains the token transfer contract.")]
@@ -26,22 +26,22 @@ namespace AElf.Benchmark
         [Option('f', "SupportedBenchmark", Default = "evenGroup", HelpText = "The benchmark you want to run. Choose one of the following options [evenGroup] (more benchmark method is under development)")]
         public string SupportedBenchmark { get; set; }
         
-        [Option('n', "TxNumber", Default = 2400, HelpText = "Transaction number in the benchmark, default is 2400")]
+        [Option('n', "TxNumber", Default = 2400, HelpText = "Transaction number in the benchmark")]
         public int TxNumber { get; set; }
         
-        [Option(Default = new []{1, 8}, HelpText = "lower bound and upper bound of the testing group in evenGroup benchmarking, default is [1,8]")]
+        [Option(Default = new []{1, 8}, HelpText = "lower bound and upper bound of the testing group in evenGroup benchmarking")]
         public IEnumerable<int> GroupRange { get; set; }
         
-        [Option(Default = 10, HelpText = "how many time to repeat the benchmark to get more stable result, default is 10")]
+        [Option(Default = 10, HelpText = "how many time to repeat the benchmark to get more stable result")]
         public int RepeatTime { get; set; }
         
-        [Option(Default = "in-memory", HelpText = "which database to choose [in-memory, redis, ssdb], default is in-memory")]
+        [Option(Default = "in-memory", HelpText = "which database to choose [in-memory, redis, ssdb]")]
         public string Database { get; set; }
 
-        [Option(Default = "127.0.0.1", HelpText = "host of the database, default is 127.0.0.1")]
+        [Option(Default = "127.0.0.1", HelpText = "host of the database")]
         public string DbHost { get; set; }
         
-        [Option(HelpText = "port of the database, default is 8888")]
+        [Option(HelpText = "port of the database")]
         public int DbPort { get; set; }
         
         public DatabaseConfig DatabaseConfig
