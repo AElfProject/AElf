@@ -1,7 +1,11 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Kernel";
+option csharp_namespace = "AElf.Contracts.Token";
 
-message Hash{
-    bytes Value = 1;
+import "hash.proto";
+
+message HashPair
+{
+    Hash First = 1;
+    Hash Second = 2;
 }
