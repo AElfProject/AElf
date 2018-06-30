@@ -49,6 +49,9 @@ namespace AElf.Contracts.Genesis
         [SmartContractFieldData("${this}._firstPlaceMap", DataAccessMode.ReadWriteAccountSharing)]
         private readonly Map<UInt64Value, StringValue> _firstPlaceMap
             = new Map<UInt64Value, StringValue>("FirstPlaceOfEachRound");
+        
+        [SmartContractFieldData("${this}._lock", DataAccessMode.ReadWriteAccountSharing)]
+        private readonly object _lock;
  
         private UInt64Value RoundsCount => new UInt64Value {Value = _roundsCount.GetAsync().Result};
         

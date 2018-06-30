@@ -1,6 +1,7 @@
 ﻿using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
+using AElf.Types.CSharp.MetadataAttribute;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Token
@@ -39,36 +40,45 @@ namespace AElf.Contracts.Token
         private readonly UInt64Field _totalSupply = new UInt64Field("_TotalSupply_");
         private readonly UInt32Field _decimals = new UInt32Field("_Decimals_");
         private readonly MapToUInt64<Hash> _balances = new MapToUInt64<Hash>("_Balances_");
+        
+        [SmartContractFieldData("${this}._lock", DataAccessMode.ReadWriteAccountSharing)]
+        private readonly object _lock;
 
         #region ABI (Public) Methods
 
         #region View Only Methods
 
+        [SmartContractFunction("${this}.Symbol", new string[]{}, new []{"${this}._lock"})]
         public string Symbol()
         {
             return _symbol.GetValue();
         }
 
+        [SmartContractFunction("${this}.TokenName", new string[]{}, new []{"${this}._lock"})]
         public string TokenName()
         {
             return _tokenName.GetValue();
         }
 
+        [SmartContractFunction("${this}.TotalSupply", new string[]{}, new []{"${this}._lock"})]
         public ulong TotalSupply()
         {
             return _totalSupply.GetValue();
         }
 
+        [SmartContractFunction("${this}.Decimals", new string[]{}, new []{"${this}._lock"})]
         public uint Decimals()
         {
             return _decimals.GetValue();
         }
 
+        [SmartContractFunction("${this}.BalanceOf", new string[]{}, new []{"${this}._lock"})]
         public ulong BalanceOf(Hash owner)
         {
             return _balances[owner];
         }
 
+        [SmartContractFunction("${this}.Allowance", new string[]{}, new []{"${this}._lock"})]
         public ulong Allowance(Hash owner, Hash spender)
         {
             return Allowances.GetAllowance(owner, spender);
@@ -79,6 +89,7 @@ namespace AElf.Contracts.Token
 
         #region Actions
 
+        [SmartContractFunction("${this}.Allowance", new string[]{}, new []{"${this}._lock"})]
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
         {
             Api.Assert(!_initialized.GetValue(), "Already initialized.");
@@ -92,12 +103,14 @@ namespace AElf.Contracts.Token
             _initialized.SetValue(true);
         }
 
+        [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}._lock"})]
         public void Transfer(Hash to, ulong amount)
         {
             var from = Api.GetTransaction().From;
             DoTransfer(from, to, amount);
         }
 
+        [SmartContractFunction("${this}.TransferFrom", new string[]{}, new []{"${this}._lock"})]
         public void TransferFrom(Hash from, Hash to, ulong amount)
         {
             var allowance = Allowances.GetAllowance(from, Api.GetTransaction().From);
@@ -107,6 +120,7 @@ namespace AElf.Contracts.Token
             Allowances.Reduce(from, amount);
         }
 
+        [SmartContractFunction("${this}.Approve", new string[]{}, new []{"${this}._lock"})]
         public void Approve(Hash spender, ulong amount)
         {
             Allowances.Approve(spender, amount);
@@ -118,6 +132,7 @@ namespace AElf.Contracts.Token
             }.Fire();
         }
 
+        [SmartContractFunction("${this}.UnApprove", new string[]{}, new []{"${this}._lock"})]
         public void UnApprove(Hash spender, ulong amount)
         {
             Allowances.Reduce(spender, amount);

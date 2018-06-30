@@ -37,7 +37,8 @@ namespace AElf.Launcher
         private static string AssemblyDir { get; } = System.IO.Path.GetDirectoryName(typeof(Program).Assembly.Location);
         
         private const string filepath = @"ChainInfo.json";
-        private const string dir = @"Contracts";
+        private static string dir;
+        
         
         static void Main(string[] args)
         {
@@ -68,6 +69,7 @@ namespace AElf.Launcher
             nodeConfig.IsChainCreator = confParser.NewChain;
             
             var runner = new SmartContractRunner(confParser.RunnerConfig);
+            dir = confParser.RunnerConfig.SdkDir;
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
@@ -129,6 +131,12 @@ namespace AElf.Launcher
         {
             get
             {
+                var ContractZeroName = "AElf.Kernel.Tests.TestContractZero";
+                
+                //var contractZeroDllPath = $"{dir}/{ContractZeroName}.dll";
+                
+                //var contractZeroDllPath = $"{dir}/{ContractZeroName}.dll";
+                
                 var contractZeroDllPath = Path.Combine(AssemblyDir, $"{Globals.GenesisSmartContractZeroAssemblyName}.dll");
 
                 byte[] code = null;

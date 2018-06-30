@@ -29,7 +29,7 @@ namespace AElf.Cryptography
 
         private readonly List<OpenAccount> _openAccounts;
         
-        private TimeSpan _defaultAccountTimeout = TimeSpan.FromMinutes(2);
+        private TimeSpan _defaultAccountTimeout = TimeSpan.FromMinutes(10);
 
         public enum Errors
         {
@@ -143,7 +143,8 @@ namespace AElf.Cryptography
             }
             catch (PemException pemEx)
             {
-                Console.WriteLine("Invalid password.");
+                //Console.WriteLine("Invalid password.");
+                throw new InvalidPasswordException("Invalid password", pemEx);
             }
             catch (Exception e)
             {

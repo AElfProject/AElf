@@ -16,11 +16,13 @@ using AElf.CLI.Wallet;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Asn1.Misc;
 using ProtoBuf;
 using ServiceStack;
+using Transaction = AElf.CLI.Data.Protobuf.Transaction;
 
 namespace AElf.CLI
 {
@@ -141,29 +143,30 @@ namespace AElf.CLI
                         }
 
                         var addr = parsedCmd.Args.ElementAt(0);
-                        
-                        
-                        string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
+                        Module m = null;
+                        if (!_loadedModules.TryGetValue(addr, out m))
+                        {
+                            string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
         
-                        if (resp == null)
-                        { 
-                            _screenManager.PrintError(ServerConnError);
-                            return;
+                            if (resp == null)
+                            { 
+                                _screenManager.PrintError(ServerConnError);
+                                return;
+                            }
+                        
+                            JObject jObj = JObject.Parse(resp);
+                            var res = JObject.FromObject(jObj["result"]);
+                        
+                            JToken ss = res["abi"];
+                            byte[] aa = Convert.FromBase64String(ss.ToString());
+                        
+                            MemoryStream ms = new MemoryStream(aa);
+                            m = Serializer.Deserialize<Module>(ms);
+                            _loadedModules.Add(addr, m);
                         }
                         
-                        JObject jObj = JObject.Parse(resp);
-                        var res = JObject.FromObject(jObj["result"]);
-                        
-                        JToken ss = res["abi"];
-                        byte[] aa = Convert.FromBase64String(ss.ToString());
-                        
-                        MemoryStream ms = new MemoryStream(aa);
-                        Module m = Serializer.Deserialize<Module>(ms);
-
                         var obj = JObject.FromObject(m);
                         _screenManager.PrintLine(obj.ToString());
-                        
-                        _loadedModules.Add(res["address"].ToString(), m);
                         
                     }
                     catch (Exception e)
@@ -191,8 +194,10 @@ namespace AElf.CLI
                         SmartContractReader screader = new SmartContractReader();
                         byte[] sc = screader.Read(filename);
                         string hex = BitConverter.ToString(sc).Replace("-", string.Empty).ToLower();
-            
-                        Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals("AElf.Kernel.Tests.TestContractZero"));
+
+                        var name = Globals.GenesisSmartContractZeroAssemblyName + Globals.GenesisSmartContractLastName;
+                        //var name = "AElf.Kernel.Tests.TestContractZero";
+                        Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals(name));
             
                         if (m == null)
                         {
@@ -286,9 +291,9 @@ namespace AElf.CLI
                                 tr.To = ByteArrayHelpers.FromHexString(j["to"].ToString());
                                 tr.IncrementId = j["incr"].ToObject<ulong>();
                                 tr.MethodName = j["method"].ToObject<string>();
-                                
+
                                 JArray p = JArray.Parse(j["params"].ToString());
-                                
+
                                 string hex = BitConverter.ToString(tr.To.Value).Replace("-", string.Empty).ToLower();
 
                                 Module m = null;
@@ -297,7 +302,7 @@ namespace AElf.CLI
                                     _screenManager.PrintError("Module not loaded !");
                                     return;
                                 }
-                                
+
                                 //Module m = _loadedModules?.FirstOrDefault(ld => ld.Key.Equals(hex));
                                 Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(tr.MethodName));
 
@@ -306,15 +311,20 @@ namespace AElf.CLI
                                     _screenManager.PrintError("Method not Found !");
                                     return;
                                 }
-                                    
+
                                 tr.Params = method.SerializeParams(p.ToObject<string[]>());
 
                                 _accountManager.SignTransaction(tr);
-                                
+
                                 var jObj = SignAndSendTransaction(tr);
-                                
+
                                 string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
                                 _screenManager.PrintLine(toPrint);
+                            }
+                            catch (AccountLockedException e)
+                            {
+                                Console.WriteLine("Please unlock account!");
+                                return;
                             }
                             catch (Exception e)
                             {

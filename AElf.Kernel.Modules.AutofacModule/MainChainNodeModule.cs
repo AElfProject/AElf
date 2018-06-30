@@ -21,8 +21,6 @@ namespace AElf.Kernel.Modules.AutofacModule
             }
             builder.RegisterType<MainChainNode>().As<IAElfNode>();
             
-            builder.RegisterType<AccountContextService>().As<IAccountContextService>().SingleInstance();
-
         }
     }
 }

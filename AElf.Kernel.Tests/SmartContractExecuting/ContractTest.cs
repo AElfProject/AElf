@@ -134,7 +134,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             
             Assert.Null(txnCtxt.Trace.StdErr);
             
-            var address = txnCtxt.Trace.RetVal.DeserializeToPbMessage<Hash>();
+            var address = txnCtxt.Trace.RetVal.ToByteArray().DeserializeToBytes();
 
             var regExample = new SmartContractRegistration
             {
@@ -190,7 +190,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             await executive.SetTransactionContext(txnCtxt).Apply(true);
 
             var bs = txnCtxt.Trace.RetVal;
-            var address = bs.DeserializeToPbMessage<Hash>();
+            var address = bs.DeserializeToBytes();
 
             #region initialize account balance
             var account = Hash.Generate();
