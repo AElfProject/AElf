@@ -21,7 +21,7 @@ namespace AElf.Kernel.Tests
         private object _deployLock;        
 
         [SmartContractFunction("${this}.DeploySmartContract", new string[]{}, new string[]{"${this}._deployLock"})]
-        public async Task<Hash> DeploySmartContract(int category, byte[] contract)
+        public async Task<byte[]> DeploySmartContract(int category, byte[] contract)
         {
             SmartContractRegistration registration = new SmartContractRegistration
             {

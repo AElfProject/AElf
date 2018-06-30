@@ -115,6 +115,7 @@ namespace AElf.Kernel.Miner
                     else
                     {
                         res.Status = Status.Failed;
+                        res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
                     }
                     results.Add(res);
                 }
