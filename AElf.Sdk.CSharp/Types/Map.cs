@@ -118,6 +118,12 @@ namespace AElf.Sdk.CSharp.Types
         {
         }
 
+        public new bool this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, bool value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -156,6 +162,12 @@ namespace AElf.Sdk.CSharp.Types
         {
         }
 
+        public new uint this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, uint value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -194,6 +206,12 @@ namespace AElf.Sdk.CSharp.Types
         {
         }
 
+        public new int this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, int value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -232,6 +250,12 @@ namespace AElf.Sdk.CSharp.Types
         {
         }
 
+        public new ulong this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, ulong value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -270,6 +294,12 @@ namespace AElf.Sdk.CSharp.Types
         {
         }
 
+        public new long this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, long value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -308,6 +338,12 @@ namespace AElf.Sdk.CSharp.Types
         {
         }
 
+        public new byte[] this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, byte[] value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -346,6 +382,12 @@ namespace AElf.Sdk.CSharp.Types
         {
         }
 
+        public new string this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, string value)
         {
             var task = SetValueAsync(keyHash, value);
@@ -384,6 +426,12 @@ namespace AElf.Sdk.CSharp.Types
         {
         }
 
+        public TValue this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, TValue value)
         {
             var task = SetValueAsync(keyHash, value);
