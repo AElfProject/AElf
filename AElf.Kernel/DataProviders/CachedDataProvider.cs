@@ -4,7 +4,6 @@ using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using AElf.Database;
-
 using AElf.Kernel.Managers;
 using AElf.Kernel;
 using AElf.Kernel.Types;
@@ -87,7 +86,7 @@ namespace AElf.Kernel
 
         public async Task<byte[]> GetAsync(Hash keyHash)
         {
-            return (await GetStateAsync(keyHash)).CurrentValue;
+            return (await GetStateAsync(keyHash)).CurrentValue ?? new byte[0];
         }
 
         public async Task<byte[]> GetAsync(Hash keyHash, Hash preBlockHash)
@@ -121,8 +120,8 @@ namespace AElf.Kernel
                     changes.Add(new StateValueChange()
                     {
                         Path = GetPathFor(keyState.Key),
-                        BeforeValue = ByteString.CopyFrom(keyState.Value.InitialValue??new byte[0]),
-                        AfterValue = ByteString.CopyFrom(keyState.Value.CurrentValue??new byte[0])
+                        BeforeValue = ByteString.CopyFrom(keyState.Value.InitialValue ?? new byte[0]),
+                        AfterValue = ByteString.CopyFrom(keyState.Value.CurrentValue ?? new byte[0])
                     });
                 }
             }
