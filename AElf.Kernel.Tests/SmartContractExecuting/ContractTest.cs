@@ -132,7 +132,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply(true);
 
-            var address = txnCtxt.Trace.RetVal.DeserializeToPbMessage<Hash>();
+            var address = txnCtxt.Trace.RetVal.ToByteArray().DeserializeToBytes();
 
             var regExample = new SmartContractRegistration
             {
@@ -188,7 +188,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             await executive.SetTransactionContext(txnCtxt).Apply(true);
 
             var bs = txnCtxt.Trace.RetVal;
-            var address = bs.DeserializeToPbMessage<Hash>();
+            var address = bs.DeserializeToBytes();
 
             #region initialize account balance
             var account = Hash.Generate();
