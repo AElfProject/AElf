@@ -19,9 +19,9 @@ namespace AElf.Kernel.Concurrency.Execution.Config
 
         public ActorConfig()
         {
-            IsCluster = false;
+            IsCluster = true;
             HostName = "127.0.0.1";
-            Port = 0;
+            Port = 32550;
             WorkerCount = 8;
         }
     }

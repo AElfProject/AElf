@@ -92,6 +92,11 @@ namespace AElf.Kernel.Concurrency
 
         private Config InitActorConfig(string content)
         {
+            if (ActorConfig.Instance.Seeds == null || ActorConfig.Instance.Seeds.Count == 0)
+            {
+                ActorConfig.Instance.Seeds = new List<SeedNode> {new SeedNode {HostName = ActorConfig.Instance.HostName, Port = ActorConfig.Instance.Port}};
+            }
+
             var seedNodes = new StringBuilder();
             seedNodes.Append("akka.cluster.seed-nodes = [");
             foreach (var seed in ActorConfig.Instance.Seeds)
