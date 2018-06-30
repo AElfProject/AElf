@@ -80,7 +80,7 @@
                                                                 }
                                                             }
                                                             cluster {
-                                                                seed-nodes = [""akka.tcp://AElfSystem@127.0.0.1:32551""]
+                                                                seed-nodes = [""akka.tcp://AElfSystem@127.0.0.1:32551"",""akka.tcp://AElfSystem@127.0.0.1:32552""]
                                                                 roles = [""worker""]
                                                             }
                                                         }";

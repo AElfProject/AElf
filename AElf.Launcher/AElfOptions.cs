@@ -97,12 +97,6 @@ namespace AElf.Launcher
         [Option("actor.port", HelpText = "The port of actor.")]
         public int? ActorPort { get; set; }
 
-        [Option("actor.seedhostname", HelpText = "The hostname of seed node")]
-        public string SeedHostName { get; set; }
-
-        [Option("actor.seedport", HelpText = "The port of seed node")]
-        public int? SeedPort { get; set; }
-
         #endregion
 
         #region Runner

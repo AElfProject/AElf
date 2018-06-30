@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Execution;
@@ -53,10 +54,7 @@ namespace AElf.Kernel.Concurrency
 
         public void InitWorkActorSystem()
         {
-            var config = ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.hostname=" + ActorConfig.Instance.HostName)
-                .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.port=" + ActorConfig.Instance.Port))
-                .WithFallback(ConfigurationFactory.ParseString("akka.cluster.seed-nodes = [\"akka.tcp://" + SystemName + "@" + ActorConfig.Instance.HostName + ":" + ActorConfig.Instance.Port + "\"]"))
-                .WithFallback(ActorHocon.ActorWorkerHocon);
+            var config = InitActorConfig(ActorHocon.ActorWorkerHocon);
 
             _actorSystem = ActorSystem.Create(SystemName, config);
             var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker");
@@ -67,10 +65,7 @@ namespace AElf.Kernel.Concurrency
         {
             if (ActorConfig.Instance.IsCluster)
             {
-                var config = ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.hostname=" + ActorConfig.Instance.HostName)
-                    .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.port=" + ActorConfig.Instance.Port))
-                    .WithFallback(ConfigurationFactory.ParseString("akka.cluster.seed-nodes = [\"akka.tcp://" + SystemName + "@" + ActorConfig.Instance.HostName + ":" + ActorConfig.Instance.Port + "\"]"))
-                    .WithFallback(ActorHocon.ActorClusterHocon);
+                var config = InitActorConfig(ActorHocon.ActorClusterHocon);
                 _actorSystem = ActorSystem.Create(SystemName, config);
                 //Todo waiting for join cluster. we should get the status here.
                 Thread.Sleep(2000);
@@ -93,6 +88,26 @@ namespace AElf.Kernel.Concurrency
             }
 
             _isInit = true;
+        }
+
+        private Config InitActorConfig(string content)
+        {
+            var seedNodes = new StringBuilder();
+            seedNodes.Append("akka.cluster.seed-nodes = [");
+            foreach (var seed in ActorConfig.Instance.Seeds)
+            {
+                seedNodes.Append("\"akka.tcp://").Append(SystemName).Append("@").Append(seed.HostName).Append(":").Append(seed.Port).Append("\",");
+            }
+            seedNodes.Remove(seedNodes.Length - 1, 1);
+            seedNodes.Append("]");
+            
+            
+            var config = ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.hostname=" + ActorConfig.Instance.HostName)
+                .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.port=" + ActorConfig.Instance.Port))
+                .WithFallback(ConfigurationFactory.ParseString(seedNodes.ToString()))
+                .WithFallback(content);
+
+            return config;
         }
     }
 }
