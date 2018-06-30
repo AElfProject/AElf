@@ -291,9 +291,9 @@ namespace AElf.CLI
                                 tr.To = ByteArrayHelpers.FromHexString(j["to"].ToString());
                                 tr.IncrementId = j["incr"].ToObject<ulong>();
                                 tr.MethodName = j["method"].ToObject<string>();
-                                
+
                                 JArray p = JArray.Parse(j["params"].ToString());
-                                
+
                                 string hex = BitConverter.ToString(tr.To.Value).Replace("-", string.Empty).ToLower();
 
                                 Module m = null;
@@ -302,7 +302,7 @@ namespace AElf.CLI
                                     _screenManager.PrintError("Module not loaded !");
                                     return;
                                 }
-                                
+
                                 //Module m = _loadedModules?.FirstOrDefault(ld => ld.Key.Equals(hex));
                                 Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(tr.MethodName));
 
@@ -311,15 +311,20 @@ namespace AElf.CLI
                                     _screenManager.PrintError("Method not Found !");
                                     return;
                                 }
-                                    
+
                                 tr.Params = method.SerializeParams(p.ToObject<string[]>());
 
                                 _accountManager.SignTransaction(tr);
-                                
+
                                 var jObj = SignAndSendTransaction(tr);
-                                
+
                                 string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
                                 _screenManager.PrintLine(toPrint);
+                            }
+                            catch (AccountLockedException e)
+                            {
+                                Console.WriteLine("Please unlock account!");
+                                return;
                             }
                             catch (Exception e)
                             {
