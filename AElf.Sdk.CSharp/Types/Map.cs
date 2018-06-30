@@ -22,6 +22,7 @@ namespace AElf.Sdk.CSharp.Types
                 {
                     _dataProvider = Api.GetDataProvider(_name);
                 }
+
                 return _dataProvider;
             }
         }
@@ -42,14 +43,14 @@ namespace AElf.Sdk.CSharp.Types
             var task = SetValueAsync(keyHash, value);
             task.Wait();
         }
-        
+
         public byte[] GetValue(Hash keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
             return task.Result;
         }
-        
+
         public async Task SetValueAsync(Hash keyHash, byte[] value)
         {
             await Api.GetDataProvider(_name).SetAsync(keyHash, value);
@@ -76,19 +77,25 @@ namespace AElf.Sdk.CSharp.Types
         {
         }
 
+        public TValue this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+
         public void SetValue(TKey keyHash, TValue value)
         {
             var task = SetValueAsync(keyHash, value);
             task.Wait();
         }
-        
+
         public TValue GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
             return task.Result;
         }
-        
+
         public async Task SetValueAsync(TKey key, TValue value)
         {
             await DataProvider.SetAsync(key.CalculateHash(), value.ToByteArray());
@@ -105,26 +112,31 @@ namespace AElf.Sdk.CSharp.Types
     {
         public MapToBool(string name) : base(name)
         {
-
         }
 
         internal MapToBool(IDataProvider dataProvider) : base(dataProvider)
         {
         }
 
+        public new bool this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, bool value)
         {
             var task = SetValueAsync(keyHash, value);
             task.Wait();
         }
-        
+
         public bool GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
             return task.Result;
         }
-        
+
         public async Task SetValueAsync(TKey key, bool value)
         {
             await base.SetValueAsync(key, new BoolValue()
@@ -144,26 +156,31 @@ namespace AElf.Sdk.CSharp.Types
     {
         public MapToUInt32(string name) : base(name)
         {
-
         }
 
         internal MapToUInt32(IDataProvider dataProvider) : base(dataProvider)
         {
         }
 
+        public new uint this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, uint value)
         {
             var task = SetValueAsync(keyHash, value);
             task.Wait();
         }
-        
+
         public uint GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
             return task.Result;
         }
-        
+
         public async Task SetValueAsync(TKey key, uint value)
         {
             await base.SetValueAsync(key, new UInt32Value()
@@ -183,19 +200,24 @@ namespace AElf.Sdk.CSharp.Types
     {
         public MapToInt32(string name) : base(name)
         {
-
         }
 
         internal MapToInt32(IDataProvider dataProvider) : base(dataProvider)
         {
         }
 
+        public new int this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, int value)
         {
             var task = SetValueAsync(keyHash, value);
             task.Wait();
         }
-        
+
         public int GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
@@ -222,26 +244,31 @@ namespace AElf.Sdk.CSharp.Types
     {
         public MapToUInt64(string name) : base(name)
         {
-
         }
 
         internal MapToUInt64(IDataProvider dataProvider) : base(dataProvider)
         {
         }
 
+        public new ulong this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, ulong value)
         {
             var task = SetValueAsync(keyHash, value);
             task.Wait();
         }
-        
+
         public ulong GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
             return task.Result;
         }
-        
+
         public async Task SetValueAsync(TKey key, ulong value)
         {
             await base.SetValueAsync(key, new UInt64Value()
@@ -261,26 +288,31 @@ namespace AElf.Sdk.CSharp.Types
     {
         public MapToInt64(string name) : base(name)
         {
-
         }
 
         internal MapToInt64(IDataProvider dataProvider) : base(dataProvider)
         {
         }
 
+        public new long this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, long value)
         {
             var task = SetValueAsync(keyHash, value);
             task.Wait();
         }
-        
+
         public long GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
             return task.Result;
         }
-        
+
         public async Task SetValueAsync(TKey key, long value)
         {
             await base.SetValueAsync(key, new Int64Value()
@@ -300,26 +332,31 @@ namespace AElf.Sdk.CSharp.Types
     {
         public MapToBytes(string name) : base(name)
         {
-
         }
 
         internal MapToBytes(IDataProvider dataProvider) : base(dataProvider)
         {
         }
 
+        public new byte[] this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, byte[] value)
         {
             var task = SetValueAsync(keyHash, value);
             task.Wait();
         }
-        
+
         public byte[] GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
             return task.Result;
         }
-        
+
         public async Task SetValueAsync(TKey key, byte[] value)
         {
             await base.SetValueAsync(key, new BytesValue()
@@ -339,26 +376,31 @@ namespace AElf.Sdk.CSharp.Types
     {
         public MapToString(string name) : base(name)
         {
-
         }
 
         internal MapToString(IDataProvider dataProvider) : base(dataProvider)
         {
         }
 
+        public new string this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, string value)
         {
             var task = SetValueAsync(keyHash, value);
             task.Wait();
         }
-        
+
         public string GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
             return task.Result;
         }
-        
+
         public async Task SetValueAsync(TKey key, string value)
         {
             await base.SetValueAsync(key, new StringValue()
@@ -378,26 +420,31 @@ namespace AElf.Sdk.CSharp.Types
     {
         public MapToUserType(string name) : base(name)
         {
-
         }
 
         internal MapToUserType(IDataProvider dataProvider) : base(dataProvider)
         {
         }
 
+        public TValue this[TKey key]
+        {
+            get => GetValue(key);
+            set => SetValue(key, value);
+        }
+        
         public void SetValue(TKey keyHash, TValue value)
         {
             var task = SetValueAsync(keyHash, value);
             task.Wait();
         }
-        
+
         public TValue GetValue(TKey keyHash)
         {
             var task = GetValueAsync(keyHash);
             task.Wait();
             return task.Result;
         }
-        
+
         public async Task SetValueAsync(TKey key, TValue value)
         {
             await DataProvider.SetAsync(key.CalculateHash(), value.ToPbMessage().ToByteArray());
@@ -405,13 +452,13 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task<TValue> GetValueAsync(TKey key)
         {
-            var obj = (TValue)Activator.CreateInstance(typeof(TValue));
+            var obj = (TValue) Activator.CreateInstance(typeof(TValue));
             var bytes = await DataProvider.GetAsync(key.CalculateHash());
             var userTypeHolder = Api.Serializer.Deserialize<UserTypeHolder>(bytes);
             obj.Unpack(userTypeHolder);
             return obj;
         }
-        
+
         public IDataProvider GetSubDataProvider(string dataProviderKey)
         {
             return Api.GetDataProvider(_name).GetDataProvider(dataProviderKey);

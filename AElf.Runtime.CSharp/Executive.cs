@@ -255,7 +255,7 @@ namespace AElf.Runtime.CSharp
             }
 
             var methodInfo = _smartContract.GetType().GetMethod(methodAbi.Name);
-            if (_applyHanders.TryGetValue(methodAbi.ReturnType, out var applyHandler))
+            if (!_applyHanders.TryGetValue(methodAbi.ReturnType, out var applyHandler))
             {
                 if (methodInfo.ReturnType.IsPbMessageType())
                 {

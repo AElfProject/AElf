@@ -1,50 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.KernelAccount;
+using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using SharpRepository.Repository.Configuration;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using NServiceKit.Logging;
 using Api = AElf.Sdk.CSharp.Api;
-using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 
-// ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Tests
+namespace AElf.Contracts.Genesis
 {
-    public class TestContractZero : CSharpSmartContract, ISmartContractZero
+    public class ContractZeroWithDPoS : BasicContractZero
     {
-
-        [SmartContractFieldData("${this}._deployLock", DataAccessMode.ReadWriteAccountSharing)]
-        private object _deployLock;        
-
-        [SmartContractFunction("${this}.DeploySmartContract", new string[]{}, new string[]{"${this}._deployLock"})]
-        public async Task<Hash> DeploySmartContract(int category, byte[] contract)
-        {
-            SmartContractRegistration registration = new SmartContractRegistration
-            {
-                Category = category,
-                ContractBytes = ByteString.CopyFrom(contract),
-                ContractHash = contract.CalculateHash() // maybe no usage  
-            };
-            
-            var tx = Api.GetTransaction();
-            
-            // calculate new account address
-            var account = Path.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
-            
-            await Api.DeployContractAsync(account, registration);
-            Console.WriteLine("Deployment success, {0}", account.Value.ToByteArray().ToHex());
-            return account;
-        }
-
-        public void Print(string name)
-        {
-            Console.WriteLine("Hello, " + name);
-        }
-
         #region DPoS
 
         // The length of one timeslot for a miner to produce block
@@ -115,7 +86,7 @@ namespace AElf.Kernel.Tests
         #region Genesis block methods
         
         [SmartContractFunction("${this}.GenerateInfoForFirstTwoRounds", new string[]{"${this}.GetTimestampOfUtcNow"}, new string[]{})]
-        public async Task<DPoSInfo> GenerateInfoForFirstTwoRounds(BlockProducer blockProducers)
+        public DPoSInfo GenerateInfoForFirstTwoRounds(BlockProducer blockProducers)
         {
             var dict = new Dictionary<string, int>();
 
@@ -191,7 +162,7 @@ namespace AElf.Kernel.Tests
             {
                 RoundInfo = {infosOfRound1, infosOfRound2}
             };
-            
+            LogManager.GetLogger("DPOS").Debug(dPoSInfo);
             return dPoSInfo;
         }
 

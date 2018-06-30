@@ -57,7 +57,7 @@ namespace AElf.Kernel.Services
 
         public Hash GenesisContractHash(Hash chainId)
         {
-            return new Hash(chainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
+            return new Hash(chainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
         }
     }
 }

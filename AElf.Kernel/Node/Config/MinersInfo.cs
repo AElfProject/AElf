@@ -30,6 +30,12 @@ namespace AElf.Kernel.Node.Config
                     {
                         {"address", "047ed3ac820d8e8709979c1d7cbd75514f13"}
                     }
+                },
+                {
+                    "4", new Dictionary<string, string>
+                    {
+                        {"address", "04d64740c44965a5ddd0def56d9addd54e00"}
+                    }
                 }
             };
         }
