@@ -16,11 +16,13 @@ using AElf.CLI.Wallet;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Asn1.Misc;
 using ProtoBuf;
 using ServiceStack;
+using Transaction = AElf.CLI.Data.Protobuf.Transaction;
 
 namespace AElf.CLI
 {
@@ -193,7 +195,7 @@ namespace AElf.CLI
                         byte[] sc = screader.Read(filename);
                         string hex = BitConverter.ToString(sc).Replace("-", string.Empty).ToLower();
             
-                        Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals("AElf.Kernel.Tests.TestContractZero"));
+                        Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals(Globals.GenesisSmartContractZeroAssemblyName));
             
                         if (m == null)
                         {
