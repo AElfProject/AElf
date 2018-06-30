@@ -32,6 +32,7 @@ namespace AElf.Kernel.Node.RPC
         private const string GetCommandsMethodName = "get_commands";
         private const string GetContractAbi = "get_contract_abi";
         private const string GetGenesisiAddress = "connect_chain";
+        private const string GetDeserializedData = "get_deserialized_result";
 
         /// <summary>
         /// The names of the exposed RPC methods and also the
@@ -48,7 +49,8 @@ namespace AElf.Kernel.Node.RPC
             BroadcastBlockMethodName,
             GetContractAbi,
             GetTxResultMethodName,
-            GetGenesisiAddress
+            GetGenesisiAddress,
+            GetDeserializedData
         };
 
         /// <summary>
