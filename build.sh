@@ -12,5 +12,7 @@ for i in *Tests ; do
   echo ""
 
   dotnet test "$i" --verbosity quiet --no-build
-  echo ""
+  if [ $? -ne 0 ] ; then
+    exit 1
+  fi
 done
