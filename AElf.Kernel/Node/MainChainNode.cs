@@ -559,6 +559,11 @@ namespace AElf.Kernel.Node
 
         public async Task<bool> BroadcastBlock(IBlock block)
         {
+            if (block == null)
+            {
+                return false;
+            }
+            
             int count = 0;
             count = await _protocolDirector.BroadcastBlock(block as Block);
 
@@ -799,7 +804,7 @@ namespace AElf.Kernel.Node
                                 extraBlockResult.Item2, extraBlockResult.Item3);
                             
                             var extraBlock = await Mine(); //Which is an extra block
-
+                            
                             await BroadcastBlock(extraBlock);
 
                             #region Broadcast his out value and signature after helping mining extra block
