@@ -9,4 +9,8 @@ namespace AElf.Sdk.CSharp
     {
         public AssertionError(string message) : base(message) { }
     }
+    public class InternalError : BaseAElfException
+    {
+        public InternalError(string message) : base(message) { }
+    }
 }
