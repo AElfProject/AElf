@@ -3,7 +3,6 @@ syntax = "proto3";
 option csharp_namespace = "AElf.Kernel";
 
 import "google/protobuf/timestamp.proto";
-import "hash.proto";
 
 message Transaction
 {
@@ -16,6 +15,10 @@ message Transaction
     bytes R = 7;
     bytes S = 8;
     bytes P = 9;
+}
+
+message Hash{
+    bytes Value = 1;
 }
 
 message BlockHeader{
