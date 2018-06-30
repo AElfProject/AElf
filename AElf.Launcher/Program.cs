@@ -27,11 +27,15 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using IContainer = Autofac.IContainer;
 using ServiceStack;
+using Globals = AElf.Kernel.Globals;
+using Path = System.IO.Path;
 
 namespace AElf.Launcher
 {
     class Program
     {
+        private static string AssemblyDir { get; } = System.IO.Path.GetDirectoryName(typeof(Program).Assembly.Location);
+        
         private const string filepath = @"ChainInfo.json";
         private const string dir = @"Contracts";
         
@@ -125,12 +129,8 @@ namespace AElf.Launcher
         {
             get
             {
-                var ContractZeroName = "AElf.Kernel.Tests.TestContractZero";
-                
-                //var contractZeroDllPath = $"{dir}/{ContractZeroName}.dll";
-                
-                var contractZeroDllPath = $"{ContractZeroName}.dll";
-                
+                var contractZeroDllPath = Path.Combine(AssemblyDir, $"{Globals.GenesisSmartContractZeroAssemblyName}.dll");
+
                 byte[] code = null;
                 using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(contractZeroDllPath)))
                 {

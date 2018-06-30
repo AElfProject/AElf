@@ -39,15 +39,20 @@ namespace AElf.Sdk.CSharp
         #region Getters used by contract
 
         #region Privileged API
+
         public static void DeployContract(Hash address, SmartContractRegistration registration)
         {
-            var task = _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration, false);
+            Assert(_smartContractContext.ContractAddress.Equals(GetContractZeroAddress()));
+            var task = _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address,
+                registration, false);
             task.Wait();
         }
-        
+
         public static async Task DeployContractAsync(Hash address, SmartContractRegistration registration)
         {
-            await _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration, false);
+            Assert(_smartContractContext.ContractAddress.Equals(GetContractZeroAddress()));
+            await _smartContractContext.SmartContractService.DeployContractAsync(GetChainId(), address, registration,
+                false);
         }
 
         #endregion Privileged API
@@ -57,9 +62,29 @@ namespace AElf.Sdk.CSharp
             return _smartContractContext.ChainId;
         }
 
+        public static Hash GetContractZeroAddress()
+        {
+            return _smartContractContext.ChainId.CalculateHashWith(Globals.SmartContractZeroIdString);
+        }
+
+        public static Hash GetPreviousBlockHash()
+        {
+            return _transactionContext.PreviousBlockHash;
+        }
+
         public static Hash GetContractAddress()
         {
             return _smartContractContext.ContractAddress;
+        }
+
+        public static Hash GetContractOwner()
+        {
+            if (Call(GetContractZeroAddress(), "GetContractOwner",
+                ParamsPacker.Pack(_smartContractContext.ContractAddress)))
+            {
+                return (Hash) ParamsPacker.Unpack(GetCallResult(), new[] {typeof(Hash)})[0];
+            }
+            throw new InternalError("Failed to get owner of contract.");
         }
 
         public static IDataProvider GetDataProvider(string name)
@@ -87,6 +112,41 @@ namespace AElf.Sdk.CSharp
         #endregion Getters used by contract
 
         #region Transaction API
+
+        public static bool TryCall(Hash contractAddress, string methodName, byte[] args)
+        {
+            _lastInlineCallContext = new TransactionContext()
+            {
+                Transaction = new Transaction()
+                {
+                    From = _smartContractContext.ContractAddress,
+                    To = contractAddress,
+                    // TODO: Get increment id from AccountDataContext
+                    IncrementId = ulong.MinValue,
+                    MethodName = methodName,
+                    Params = ByteString.CopyFrom(args)
+                }
+            };
+
+            Task.Factory.StartNew(async () =>
+            {
+                var executive =
+                    await _smartContractContext.SmartContractService.GetExecutiveAsync(contractAddress,
+                        _smartContractContext.ChainId);
+                // Inline calls are not auto-committed.
+                await executive.SetTransactionContext(_lastInlineCallContext).Apply(false);
+            }).Unwrap().Wait();
+
+            if (_lastInlineCallContext.Trace.IsSuccessful())
+            {
+                _transactionContext.Trace.Logs.AddRange(_lastInlineCallContext.Trace.Logs);
+            }
+
+            // True: success
+            // False: error
+            return _lastInlineCallContext.Trace.IsSuccessful();
+        }
+
         public static bool Call(Hash contractAddress, string methodName, byte[] args)
         {
             _lastInlineCallContext = new TransactionContext()
@@ -104,7 +164,9 @@ namespace AElf.Sdk.CSharp
 
             Task.Factory.StartNew(async () =>
             {
-                var executive = await _smartContractContext.SmartContractService.GetExecutiveAsync(contractAddress, _smartContractContext.ChainId);
+                var executive =
+                    await _smartContractContext.SmartContractService.GetExecutiveAsync(contractAddress,
+                        _smartContractContext.ChainId);
                 // Inline calls are not auto-committed.
                 await executive.SetTransactionContext(_lastInlineCallContext).Apply(false);
             }).Unwrap().Wait();
@@ -115,20 +177,23 @@ namespace AElf.Sdk.CSharp
 
             // True: success
             // False: error
-            return string.IsNullOrEmpty(_lastInlineCallContext.Trace.StdErr);
+            return _lastInlineCallContext.Trace.IsSuccessful();
         }
 
         public static byte[] GetCallResult()
         {
-            if (_lastInlineCallContext == null)
+            if (_lastInlineCallContext != null)
             {
                 return _lastInlineCallContext.Trace.RetVal.ToByteArray();
             }
+
             return new byte[] { };
         }
+
         #endregion Transaction API
-        
+
         #region Utility API
+
         public static void Assert(bool asserted, string message = "Assertion failed!")
         {
             if (!asserted)
@@ -136,16 +201,21 @@ namespace AElf.Sdk.CSharp
                 throw new AssertionError(message);
             }
         }
+
         internal static void FireEvent(LogEvent logEvent)
         {
             _transactionContext.Trace.Logs.Add(logEvent);
         }
+
         #endregion Utility API
+
         #region Diagonstics API
+
         public static void Sleep(int milliSedonds)
         {
             Thread.Sleep(milliSedonds);
         }
+
         #endregion Diagonstics API
     }
 }
