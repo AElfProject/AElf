@@ -116,7 +116,7 @@ namespace AElf.Benchmark
                     await benchmarkTps.BenchmarkEvenGroup();
                 }
 
-                Console.WriteLine("Press any key to continue ");
+                Console.WriteLine("\n\nPress any key to continue ");
                 Console.ReadKey();
             }
         }
