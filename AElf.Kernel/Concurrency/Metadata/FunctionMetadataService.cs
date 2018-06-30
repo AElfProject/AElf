@@ -44,7 +44,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             //1.figure out where to have this "contractReferences" and
             //2.how to implement the action's that call other contracts and
             //3.as the contract reference can be changed, need to set up the contract update accordingly, which is the functions that are not yet implemented
-            await chainFuncMetadata.DeployNewContract(contractType.Name, address, contractReferences);
+            await chainFuncMetadata.DeployNewContract(contractType.FullName, address, contractReferences);
             _logger?.Info("Metadata of contract " + contractType.FullName + " are extracted successfully");
         }
 
