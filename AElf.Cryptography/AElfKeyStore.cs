@@ -101,9 +101,8 @@ namespace AElf.Cryptography
         public ECKeyPair Create(string password)
         {
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
-            WriteKeyPair(keyPair, password);
-
-            return keyPair;
+            bool res = WriteKeyPair(keyPair, password);
+            return !res ? null : keyPair;
         }
 
         public List<string> ListAccounts()
@@ -144,7 +143,7 @@ namespace AElf.Cryptography
             }
             catch (PemException pemEx)
             {
-                throw new InvalidPasswordException("Invalid password.", pemEx);
+                Console.WriteLine("Invalid password.");
             }
             catch (Exception e)
             {
@@ -154,13 +153,17 @@ namespace AElf.Cryptography
             return null;
         }
 
-        public void WriteKeyPair(ECKeyPair keyPair, string password)
+        public bool WriteKeyPair(ECKeyPair keyPair, string password)
         {
             if (keyPair == null || keyPair.PrivateKey == null || keyPair.PublicKey == null)
                 throw new InvalidKeyPairException("Invalid keypair (null reference).", null);
-            
+
             if (string.IsNullOrEmpty(password))
-                throw new InvalidPasswordException("Invalid password.", null);
+            {
+                Console.WriteLine("Invalid password.", null);
+                return false;
+            }
+                
             
             // Ensure path exists
             GetOrCreateKeystoreDir();
@@ -173,7 +176,8 @@ namespace AElf.Cryptography
             }
             catch (Exception e)
             {
-                throw new InvalidKeyPairException("Could not calculate the address from the keypair.", e);
+                Console.WriteLine("Could not calculate the address from the keypair.", e);
+                return false;
             }
             
             var akp = new AsymmetricCipherKeyPair(keyPair.PublicKey, keyPair.PrivateKey);
@@ -185,6 +189,8 @@ namespace AElf.Cryptography
                 pw.WriteObject(akp, _algo, password.ToCharArray(), _random);
                 pw.Writer.Close();
             }
+
+            return true;
         }
         
         /// <summary>

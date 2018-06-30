@@ -16,7 +16,7 @@ namespace AElf.Benchmark.TestContract
         
         public bool Initialize(string tokenContractName, Hash owner)
         {
-            Console.WriteLine("Initialize " + tokenContractName + " " + owner.Value.ToBase64());
+            //Console.WriteLine("Initialize " + tokenContractName + " " + owner.Value.ToBase64());
             TokenContractName.SetValue(tokenContractName);
             return true;
         }
@@ -51,8 +51,8 @@ namespace AElf.Benchmark.TestContract
             Balances.SetValue(to, newToBal);
             //Console.WriteLine("set to pass");
 
-            Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
-            + to.Value.ToBase64() + "(" + newToBal + ")");
+            //Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
+            //+ to.Value.ToBase64() + "(" + newToBal + ")");
             return true;
         }
 

@@ -115,7 +115,7 @@ namespace AElf.Launcher
                 // Start the system
                 node.Start(nodeKey, confParser.Rpc, confParser.RpcPort, initData, SmartContractZeroCode);
 
-                //Mine(node);
+                //DoDPos(node);
                 Console.ReadLine();
             }
         }

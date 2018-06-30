@@ -4,6 +4,7 @@ using System.IO;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
@@ -56,7 +57,6 @@ namespace AElf.Kernel.Node
         private readonly ISmartContractService _smartContractService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly IFunctionMetadataService _functionMetadataService;
-        private readonly IConcurrencyExecutingService _concurrencyExecutingService;
 
         private readonly IBlockExecutor _blockExecutor;
 
@@ -69,6 +69,8 @@ namespace AElf.Kernel.Node
             _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
         
         private const int CheckTime = 5000;
+
+        private int _flag = 0;
 
         public BlockProducer BlockProducers
         {
@@ -98,7 +100,7 @@ namespace AElf.Kernel.Node
             IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator, 
             IChainManager chainManager, ISmartContractService smartContractService,
             ITransactionResultService transactionResultService, IBlockManager blockManager, 
-            IFunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService)
+            IFunctionMetadataService functionMetadataService)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
@@ -107,7 +109,6 @@ namespace AElf.Kernel.Node
             _transactionResultService = transactionResultService;
             _blockManager = blockManager;
             _functionMetadataService = functionMetadataService;
-            _concurrencyExecutingService = concurrencyExecutingService;
             _poolService = poolService;
             _protocolDirector = protocolDirector;
             _transactionManager = txManager;
@@ -212,8 +213,8 @@ namespace AElf.Kernel.Node
             {
                 _miner.Start(nodeKeyPair, grouper);
                 
-                Mine();
-                _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToStringUtf8());
+                DoDPos();
+                _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToByteArray().ToHex());
             }
             
             _logger?.Log(LogLevel.Debug, "AElf node started.");
@@ -381,8 +382,12 @@ namespace AElf.Kernel.Node
                     return new BlockExecutionResult(false, error);
                 }
 
+                int res = Interlocked.CompareExchange(ref _flag, 1, 0);
+                if (res == 1)
+                    return new BlockExecutionResult(false, ValidationError.Pending);
                 bool executed = await _blockExecutor.ExecuteBlock(block);
-
+                Interlocked.CompareExchange(ref _flag, 0, 1);
+                
                 return new BlockExecutionResult(executed, error);
                 //return new BlockExecutionResult(true, error);
             }
@@ -537,55 +542,21 @@ namespace AElf.Kernel.Node
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
-        public void Mine()
+        public void DoDPos()
         {
             DoDPoSMining();
-            /*var txDev = DeployTxDemo(_nodeKeyPair);
-            var b1 = await _miner.Mine();
-            _logger.Log(LogLevel.Debug,
-                "Generated block: {0}, with {1} txs and index {2}, previous block hash: {3}",
-                b1.Header.GetHash().Value.ToBase64(), b1.Body.Transactions.Count, b1.Header.Index,
-                b1.Header.PreviousBlockHash.Value.ToBase64());
-            await Task.Delay(20000);
-            
-            var devRes = await _transactionResultService.GetResultAsync(txDev.GetHash());
-            Hash addr = devRes.RetVal.DeserializeToPbMessage<Hash>();
-
-            var acc1 = Hash.Generate().ToAccount();
-            var txInv1 = InvokTxDemo(_nodeKeyPair, addr, "InitializeAsync", ParamsPacker.Pack(acc1, (ulong)101), 1);
-
-            var acc2 = Hash.Generate().ToAccount();
-            var txInv2 = InvokTxDemo(_nodeKeyPair, addr, "InitializeAsync", ParamsPacker.Pack(acc2, (ulong)101), 2);
-            
-            
-            var acc3 = Hash.Generate().ToAccount();
-            var txInv3 = InvokTxDemo(_nodeKeyPair, addr, "InitializeAsync", ParamsPacker.Pack(acc3, (ulong)101), 3);
-
-            var acc4 = Hash.Generate().ToAccount();
-            var txInv4 = InvokTxDemo(_nodeKeyPair, addr, "InitializeAsync", ParamsPacker.Pack(acc4, (ulong)101), 4);
-            
-            var b2 = await _miner.Mine();
-            
-            _logger.Log(LogLevel.Debug,
-                "Generated block: {0}, with {1} txs and index {2}, previous block hash: {3}",
-                b2.Header.GetHash().Value.ToBase64(), b2.Body.Transactions.Count, b2.Header.Index,
-                b2.Header.PreviousBlockHash.Value.ToBase64());
-            await Task.Delay(20000);
-            
-            var txInv5 = InvokTxDemo(_nodeKeyPair, addr, "GetBalance", ParamsPacker.Pack(acc1), 5);
-            var txInv6 = InvokTxDemo(_nodeKeyPair, addr, "GetBalance", ParamsPacker.Pack(acc2), 6);
-
-            var b3 = await _miner.Mine();
-            _logger.Log(LogLevel.Debug,
-                "Generated block: {0}, with {1} txs and index {2}, previous block hash: {3}",
-                b3.Header.GetHash().Value.ToBase64(), b3.Body.Transactions.Count, b3.Header.Index,
-                b3.Header.PreviousBlockHash.Value.ToBase64());
-            
-            var inv3Res = await _transactionResultService.GetResultAsync(txInv5.GetHash());
-            var inv4Res = await _transactionResultService.GetResultAsync(txInv6.GetHash());*/
         }
 
-            
+        public async Task<IBlock> Mine()
+        {
+            int res = Interlocked.CompareExchange(ref _flag, 1, 0);
+            if (res == 1)
+                return null;
+            var block =  await _miner.Mine();
+            Interlocked.CompareExchange(ref _flag, 0, 1);
+            return block;
+
+        }
 
 
         public async Task<bool> BroadcastBlock(IBlock block)
@@ -708,7 +679,7 @@ namespace AElf.Kernel.Node
 
                             await BroadcastSyncTxForFirstExtraBlock(dpoSInfo);
                             
-                            var firstBlock = await _miner.Mine(); //Which is an extra block
+                            var firstBlock = await Mine(); //Which is an extra block
 
                             await BroadcastBlock(firstBlock);
                             
@@ -752,7 +723,7 @@ namespace AElf.Kernel.Node
 
                                 await BroadcastTxsForNormalBlock(roundsCount, outValue, signature, await GetIncrementId(_nodeKeyPair.GetAddress()));
 
-                                var block = await _miner.Mine();
+                                var block = await Mine();
                                 
                                 await BroadcastBlock(block);
                                 
@@ -793,7 +764,7 @@ namespace AElf.Kernel.Node
                                 await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
                                     extraBlockResult.Item2, extraBlockResult.Item3);
 
-                                var extraBlock = await _miner.Mine(); //Which is an extra block
+                                var extraBlock = await Mine(); //Which is an extra block
 
                                 await BroadcastBlock(extraBlock);
                                 
@@ -820,7 +791,7 @@ namespace AElf.Kernel.Node
                             await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
                                 extraBlockResult.Item2, extraBlockResult.Item3);
                             
-                            var extraBlock = await _miner.Mine(); //Which is an extra block
+                            var extraBlock = await Mine(); //Which is an extra block
 
                             await BroadcastBlock(extraBlock);
 

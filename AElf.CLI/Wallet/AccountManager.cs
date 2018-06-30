@@ -123,8 +123,9 @@ namespace AElf.CLI.Wallet
         private void CreateNewAccount()
         {
             var password = _screenManager.AskInvisible("password: ");
-            _keyStore.Create(password);
-            _screenManager.PrintLine("account successfully created!");
+            var keypair = _keyStore.Create(password);
+            if(keypair!=null)
+                _screenManager.PrintLine("account successfully created!");
         }
 
         private void ListAccounts()

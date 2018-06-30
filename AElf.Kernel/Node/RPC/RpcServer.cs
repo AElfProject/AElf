@@ -23,7 +23,7 @@ namespace AElf.Kernel.Node.RPC
     public class RpcServer : IRpcServer
     {
         private const string GetTxMethodName = "get_tx";
-        private const string InsertTxMethodName = "insert_tx";
+        //private const string InsertTxMethodName = "insert_tx";
         private const string BroadcastTxMethodName = "broadcast_tx";
         private const string GetPeersMethodName = "get_peers";
         private const string GetIncrementIdMethodName = "get_increment";
@@ -40,7 +40,7 @@ namespace AElf.Kernel.Node.RPC
         private readonly List<string> _rpcCommands = new List<string>()
         {
             GetTxMethodName,
-            InsertTxMethodName,
+            //InsertTxMethodName,
             BroadcastTxMethodName,
             GetPeersMethodName,
             GetCommandsMethodName,
@@ -194,9 +194,9 @@ namespace AElf.Kernel.Node.RPC
                     case GetTxMethodName:
                         responseData = await ProcessGetTx(reqParams);
                         break;
-                    case InsertTxMethodName:
+                    /*case InsertTxMethodName:
                         responseData = await ProcessInsertTx(reqParams);
-                        break;
+                        break;*/
                     case BroadcastTxMethodName:
                         responseData = await ProcessBroadcastTx(reqParams);
                         break;
@@ -260,7 +260,19 @@ namespace AElf.Kernel.Node.RPC
         private async Task<JObject> ProcGetTxResult(JObject reqParams)
         {
             string adr = reqParams["txhash"].ToString();
-            Hash txHash = Convert.FromBase64String(adr);
+            Hash txHash;
+            try
+            {
+                txHash = Convert.FromBase64String(adr);
+            }
+            catch (Exception e)
+            {
+                return JObject.FromObject(new JObject
+                {
+                    ["error"] = "Error: Invalid Input Format"
+                });
+            }
+            
             
             TransactionResult txResult = await _node.GetTransactionResult(txHash);
 
@@ -284,7 +296,21 @@ namespace AElf.Kernel.Node.RPC
         private async Task<JObject> ProcessGetIncrementId(JObject reqParams)
         {
             string adr = reqParams["address"].ToString();
-            ulong current = await _node.GetIncrementId(new Hash(ByteArrayHelpers.FromHexString(adr)));
+            
+            Hash addr;
+            try
+            {
+                addr = new Hash(ByteArrayHelpers.FromHexString(adr));
+            }
+            catch (Exception e)
+            {
+                return JObject.FromObject(new JObject
+                {
+                    ["error"] = "Error: Invalid Input Format"
+                });
+            }
+            
+            ulong current = await _node.GetIncrementId(addr);
 
             JObject j = new JObject
             {
@@ -363,7 +389,7 @@ namespace AElf.Kernel.Node.RPC
             return txInfo;
         }
 
-        private async Task<JObject> ProcessInsertTx(JObject reqParams)
+        /*private async Task<JObject> ProcessInsertTx(JObject reqParams)
         {
             var raw = reqParams["tx"].First;
             var tx = raw.ToTransaction();
@@ -376,7 +402,7 @@ namespace AElf.Kernel.Node.RPC
             };
 
             return JObject.FromObject(j);
-        }
+        }*/
 
         private async Task<JObject> ProcessGetPeers(JObject reqParams)
         {

@@ -27,40 +27,30 @@ namespace AElf.Kernel.BlockValidationFilters
             var previousBlockHash = block.Header.PreviousBlockHash;
 
             // return success if genesis block
-            if (index == 0 && previousBlockHash.Equals(Hash.Zero))
-                return ValidationError.Success;
+            /*if (index == 0 && previousBlockHash.Equals(Hash.Zero))
+                return ValidationError.Success;*/
 
             var currentChainHeight = context.BlockHeight;
             var currentPreviousBlockHash = context.BlockHash;
 
             // other block needed before this one
             if (index > currentChainHeight)
-                return ValidationError.OrphanBlock;
+                return ValidationError.Pending;
             
             // can be added to chain
-            if (currentChainHeight == index && currentPreviousBlockHash.Equals(previousBlockHash))
-                return ValidationError.Success;
-
-            if (index < currentChainHeight)
-                return ValidationError.AlreadyExecuted;
-            
-            // can not be added to chain with wrong prvious hash or wrong index
-            /*if (currentChainHeight != index ^ currentPreviousBlockHash.Equals(previousBlockHash))
-                return ValidationError.InvalidBlcok;*/
-            
-            // todo : manage orphan blocks
-            // orphan block
-            /*var pb = await _blockManager.GetBlockAsync(previousBlockHash);
-
-            // 
-            if (pb == null)
-                return ValidationError.OrphanBlock;
-            
-            var pbHeight = pb.Header.Index;
-            if (pbHeight + 1 != index)
+            if (currentChainHeight == index)
             {
-                return ValidationError.InvalidBlcok;
-            }*/
+                return currentPreviousBlockHash.Equals(previousBlockHash)
+                    ? ValidationError.Success
+                    : ValidationError.OrphanBlock;
+            }
+            if (index < currentChainHeight)
+            {
+                var b = await _blockManager.GetBlockByHeight(block.Header.ChainId, index);
+                return b.Header.GetHash().Equals(block.Header.GetHash())
+                    ? ValidationError.AlreadyExecuted
+                    : ValidationError.OrphanBlock;
+            }
             
             return ValidationError.OrphanBlock;
         }
