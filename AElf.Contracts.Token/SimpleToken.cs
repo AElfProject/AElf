@@ -146,8 +146,8 @@ namespace AElf.Contracts.Token
             var balSender = _balances[from];
             Api.Assert(balSender > amount, "Insufficient balance.");
             var balReceiver = _balances[to];
-            balSender -= amount;
-            balReceiver += amount;
+            balSender = balSender.Sub(amount);
+            balReceiver = balReceiver.Add(amount);
             _balances[from] = balSender;
             _balances[to] = balReceiver;
             new Transfered()
@@ -175,13 +175,13 @@ namespace AElf.Contracts.Token
         public static void Approve(Hash spender, ulong amount)
         {
             var pair = new HashPair() {First = Api.GetTransaction().From, Second = spender};
-            _allowances[pair] = _allowances[pair] + amount;
+            _allowances[pair] = _allowances[pair].Add(amount);
         }
 
         public static void Reduce(Hash owner, ulong amount)
         {
             var pair = new HashPair() {First = owner, Second = Api.GetTransaction().From};
-            _allowances[pair] = _allowances[pair] - amount;
+            _allowances[pair] = _allowances[pair].Sub(amount);
         }
     }
 
