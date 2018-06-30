@@ -158,7 +158,7 @@ namespace AElf.CLI
                             var res = JObject.FromObject(jObj["result"]);
                         
                             JToken ss = res["abi"];
-                            byte[] aa = Convert.FromBase64String(ss.ToString());
+                            byte[] aa = ByteArrayHelpers.FromHexString(ss.ToString());
                         
                             MemoryStream ms = new MemoryStream(aa);
                             m = Serializer.Deserialize<Module>(ms);
@@ -401,7 +401,7 @@ namespace AElf.CLI
                         
             byte[] b = ms.ToArray();
 
-            string payload = Convert.ToBase64String(b);
+            string payload = b.ToHex();
                         
             var reqParams = new JObject { ["rawtx"] = payload };
             var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);

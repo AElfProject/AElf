@@ -250,7 +250,7 @@ namespace AElf.Kernel.Node.RPC
                 ["result"] = new JObject
                 {
                     ["genesis-contract"] = genesisHash.Value.ToByteArray().ToHex(),
-                    ["chain-id"] = chainId.Value.ToBase64()
+                    ["chain-id"] = chainId.Value.ToByteArray().ToHex()
                 }
             };
             
@@ -264,7 +264,7 @@ namespace AElf.Kernel.Node.RPC
             
             try
             {
-                txHash = Convert.FromBase64String(adr);
+                txHash = ByteArrayHelpers.FromHexString(adr);
             }
             catch (Exception e)
             {
@@ -277,7 +277,7 @@ namespace AElf.Kernel.Node.RPC
             TransactionResult txResult = await _node.GetTransactionResult(txHash);
             var jobj = new JObject
             {
-                ["tx_id"] = txResult.TransactionId.Value.ToBase64(),
+                ["tx_id"] = txResult.TransactionId.Value.ToByteArray().ToHex(),
                 ["tx_status"] = txResult.Status.ToString()
             };
 
@@ -290,7 +290,7 @@ namespace AElf.Kernel.Node.RPC
 
             if (txResult.Status == Status.Mined)
             {
-                jobj["return"] = txResult.RetVal.ToBase64();
+                jobj["return"] = txResult.RetVal.ToByteArray().ToHex();
             }
             // Todo: it should be deserialized to obj ion cli, 
             
@@ -352,7 +352,7 @@ namespace AElf.Kernel.Node.RPC
                 j = new JObject
                 {
                     ["address"] = addr,
-                    ["abi"] = Convert.ToBase64String(abi.ToByteArray()),
+                    ["abi"] = abi.ToByteArray().ToHex(),
                     ["error"] = ""
                 };
             }
@@ -373,13 +373,13 @@ namespace AElf.Kernel.Node.RPC
         {
             string raw64 = reqParams["rawtx"].ToString();
 
-            byte[] b = Convert.FromBase64String(raw64);
+            byte[] b = ByteArrayHelpers.FromHexString(raw64);
             Transaction t = Transaction.Parser.ParseFrom(b);
 
             var res = await _node.BroadcastTransaction(t);
 
             byte[] hash = t.GetHash().Value.ToByteArray();
-            JObject j = new JObject { ["hash"] = t.GetHash().Value.ToBase64() };
+            JObject j = new JObject { ["hash"] = t.GetHash().Value.ToByteArray().ToHex() };
             
             return JObject.FromObject(j);
         }
@@ -400,20 +400,7 @@ namespace AElf.Kernel.Node.RPC
             return txInfo;
         }
 
-        /*private async Task<JObject> ProcessInsertTx(JObject reqParams)
-        {
-            var raw = reqParams["tx"].First;
-            var tx = raw.ToTransaction();
-
-            IHash txHash = await _node.InsertTransaction(tx);
-
-            JObject j = new JObject
-            {
-                ["hash"] = txHash.Value.ToBase64()
-            };
-
-            return JObject.FromObject(j);
-        }*/
+        
 
         private async Task<JObject> ProcessGetPeers(JObject reqParams)
         {

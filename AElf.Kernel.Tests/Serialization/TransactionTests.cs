@@ -16,7 +16,7 @@ namespace AElf.Kernel.Tests.Serialization
 
             byte[] b = t.ToByteArray();
 
-            string bstr = Convert.ToBase64String(b);
+            string bstr = b.ToHex();
             ;
             // bstr = CgQKAgECEgQKAgME
         }

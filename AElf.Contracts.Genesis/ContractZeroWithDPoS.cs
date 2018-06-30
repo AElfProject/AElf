@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
@@ -799,9 +800,9 @@ namespace AElf.Contracts.Genesis
             return accountHash.ToAccount().Value.ToByteArray().ToHex();
         }
 
-        private Hash Base64StringToHash(string accountAddress)
+        private Hash HexStringToHash(string accountAddress)
         {
-            return Convert.FromBase64String(accountAddress);
+            return ByteArrayHelpers.FromHexString(accountAddress);
         }
 
         /// <summary>
