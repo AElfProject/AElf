@@ -17,7 +17,6 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Tests;
 using AElf.Runtime.CSharp;
 using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
