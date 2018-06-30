@@ -73,6 +73,7 @@ namespace AElf.Kernel.Concurrency
             }
             else
             {
+                _actorSystem = ActorSystem.Create(SystemName);
                 var workers = new List<string>();
                 for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
                 {
