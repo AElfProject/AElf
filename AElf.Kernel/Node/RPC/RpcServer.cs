@@ -261,6 +261,7 @@ namespace AElf.Kernel.Node.RPC
         {
             string adr = reqParams["txhash"].ToString();
             Hash txHash;
+            
             try
             {
                 txHash = Convert.FromBase64String(adr);
@@ -273,21 +274,31 @@ namespace AElf.Kernel.Node.RPC
                 });
             }
             
-            
             TransactionResult txResult = await _node.GetTransactionResult(txHash);
+            var jobj = new JObject
+            {
+                ["tx_id"] = txResult.TransactionId.Value.ToBase64(),
+                ["tx_status"] = txResult.Status.ToString()
+            };
 
             // for the case that return type is Hash
-            Hash h = Hash.Parser.ParseFrom(txResult.RetVal);
-            txResult.RetVal = h.Value;
+            
+            if (txResult.Status == Status.Failed)
+            {
+                jobj["tx_error"] = txResult.RetVal.ToStringUtf8().Substring(1, 300).ToString();
+            }
+
+            if (txResult.Status == Status.Mined)
+            {
+                jobj["return"] = txResult.RetVal.ToBase64();
+            }
             // Todo: it should be deserialized to obj ion cli, 
             
-            string jsonResponse = JsonFormatter.Default.Format(txResult);
+            
+            
             JObject j = new JObject
             {
-                ["result"] = new JObject
-                {
-                    ["txresult"] = jsonResponse
-                }
+                ["result"] = jobj
             };
             
             return JObject.FromObject(j);
