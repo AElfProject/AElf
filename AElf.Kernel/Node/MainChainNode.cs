@@ -683,7 +683,7 @@ namespace AElf.Kernel.Node
 
                             await BroadcastBlock(firstBlock);
                             
-                            _logger.Log(LogLevel.Debug, "Genereate first extra block: {0}, with {1} transactions, able to mine in {2}", firstBlock.GetHash(),
+                            _logger.Log(LogLevel.Debug, "Generate first extra block: {0}, with {1} transactions, able to mine in {2}", firstBlock.GetHash(),
                                 firstBlock.Body.Transactions.Count, DateTime.UtcNow.ToString("u"));
 
                             return;
@@ -732,7 +732,7 @@ namespace AElf.Kernel.Node
                                 #region Do the log for mining normal block
                                 
                                 _logger.Log(LogLevel.Debug,
-                                    "Genereate block: {0}, with {1} transactions, able to mine in {2}\n Published out value: {3}\n signature: {4}",
+                                    "Generate block: {0}, with {1} transactions, able to mine in {2}\n Published out value: {3}\n signature: {4}",
                                     block.GetHash(), block.Body.Transactions.Count, DateTime.UtcNow.ToString("u"),
                                     outValue.Value.ToBase64(), 
                                     signature.Value.ToBase64());
@@ -769,7 +769,7 @@ namespace AElf.Kernel.Node
                                 await BroadcastBlock(extraBlock);
                                 
                                 _logger.Log(LogLevel.Debug,
-                                    "Genereate extra block: {0}, with {1} transactions, able to mine in {2}",
+                                    "Generate extra block: {0}, with {1} transactions, able to mine in {2}",
                                     extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
                                     DateTime.UtcNow.ToString("u"));
                                 return;
@@ -812,7 +812,7 @@ namespace AElf.Kernel.Node
                             #endregion
 
                             _logger.Log(LogLevel.Debug,
-                                "Help to genereate extra block: {0}, with {1} transactions, able to mine in {2}",
+                                "Help to generate extra block: {0}, with {1} transactions, able to mine in {2}",
                                 extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
                                 DateTime.UtcNow.ToString("u"));
                             return;
@@ -823,7 +823,7 @@ namespace AElf.Kernel.Node
                         if (doLogsAboutConsensus)
                         {
                             // If this node doesn't produce any block this interval.
-                            _logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
+                            //_logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
                         }
                     }
                 );
