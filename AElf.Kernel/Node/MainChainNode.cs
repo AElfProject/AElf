@@ -373,6 +373,10 @@ namespace AElf.Kernel.Node
         {
             try
             {
+                int res = Interlocked.CompareExchange(ref _flag, 1, 0);
+                if (res == 1)
+                    return new BlockExecutionResult(false, ValidationError.Pending);
+                
                 var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
                 var error = await _blockVaildationService.ValidateBlockAsync(block, context, _nodeKeyPair);
                 Console.WriteLine("try execute block");
@@ -382,9 +386,6 @@ namespace AElf.Kernel.Node
                     return new BlockExecutionResult(false, error);
                 }
 
-                int res = Interlocked.CompareExchange(ref _flag, 1, 0);
-                if (res == 1)
-                    return new BlockExecutionResult(false, ValidationError.Pending);
                 bool executed = await _blockExecutor.ExecuteBlock(block);
                 Interlocked.CompareExchange(ref _flag, 0, 1);
                 
