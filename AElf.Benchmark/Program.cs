@@ -37,6 +37,18 @@ namespace AElf.Benchmark
                 return;
             }
 
+            if (opts.SdkDir == null)
+            {
+                opts.SdkDir = Directory.GetCurrentDirectory();
+                Console.WriteLine("No Sdk directory in arg, choose current directory: " + opts.SdkDir);
+            }
+            
+            if (opts.DllDir == null)
+            {
+                opts.DllDir = Directory.GetCurrentDirectory();
+                Console.WriteLine("No dll directory in arg, choose current directory: " + opts.DllDir);
+            }
+
             if (!Directory.Exists(System.IO.Path.GetFullPath(opts.SdkDir)))
             {
                 Console.WriteLine("directory " + System.IO.Path.GetFullPath(opts.SdkDir) + " not exist");
@@ -103,6 +115,8 @@ namespace AElf.Benchmark
                 {
                     await benchmarkTps.BenchmarkEvenGroup();
                 }
+
+                Console.WriteLine("Press any key to continue ");
                 Console.ReadKey();
             }
         }
