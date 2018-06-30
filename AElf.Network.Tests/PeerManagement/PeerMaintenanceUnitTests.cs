@@ -91,6 +91,7 @@ namespace AElf.Network.Tests.PeerManagement
         {
             PeerManager peerManager = new PeerManager(null, null, null, null);
             IPeer peer = CreateMockPeer();
+
             peerManager.AddPeer(peer);
 
             Assert.False(peerManager.AddPeer(peer));

@@ -131,7 +131,9 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply(true);
-
+            
+            Assert.Null(txnCtxt.Trace.StdErr);
+            
             var address = txnCtxt.Trace.RetVal.DeserializeToPbMessage<Hash>();
 
             var regExample = new SmartContractRegistration

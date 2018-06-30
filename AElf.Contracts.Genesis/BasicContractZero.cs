@@ -2,27 +2,10 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
-using AElf.Kernel.TxMemPool;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using Funq;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using ServiceStack.FluentValidation.Internal;
 using Api = AElf.Sdk.CSharp.Api;
-
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AElf.Kernel;
-using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.Types;
-using AElf.Types.CSharp.MetadataAttribute;
-using SharpRepository.Repository.Configuration;
-using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Logging;
-using NServiceKit.Logging;
 
 
 namespace AElf.Contracts.Genesis
