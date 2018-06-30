@@ -461,7 +461,7 @@ namespace AElf.Contracts.Genesis
             var roundInfo = await _dPoSInfoMap.GetValueAsync(roundsCount);
             roundInfo.Info[accountAddress] = info;
 
-            //await _dPoSInfoMap.SetValueAsync(roundsCount, roundInfo);
+            await _dPoSInfoMap.SetValueAsync(roundsCount, roundInfo);
 
             return inValue;
         }
