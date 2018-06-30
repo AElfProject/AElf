@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Genesis;
 using AElf.Kernel.KernelAccount;
+using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
 using Google.Protobuf;
@@ -17,6 +19,67 @@ namespace AElf.Kernel.Tests
     public class TestContractZero : CSharpSmartContract, ISmartContractZero
     {
 
+        #region Events
+
+        public class ContractHasBeenDeployed : Event
+        {
+            [Indexed] public Hash Creator;
+
+            [Indexed] public Hash Address;
+        }
+
+        public class OwnerHasBeenChanged : Event
+        {
+            [Indexed] public Hash Address;
+            [Indexed] public Hash OldOwner;
+            [Indexed] public Hash NewOwner;
+        }
+    
+        #endregion Events
+
+        #region Customized Field Types
+
+        internal class SerialNumber : UInt64Field
+        {
+            internal static SerialNumber Instance { get; } = new SerialNumber();
+
+            private SerialNumber() : this("__SerialNumber__")
+            {
+            }
+
+            private SerialNumber(string name) : base(name)
+            {
+            }
+
+            private ulong _value;
+
+            public ulong Value
+            {
+                get
+                {
+                    if (_value == 0)
+                    {
+                        _value = GetValue();
+                    }
+
+                    return _value;
+                }
+                private set { _value = value; }
+            }
+
+            public SerialNumber Increment()
+            {
+                this.Value = this.Value + 1;
+                SetValue(this.Value);
+                return this;
+            }
+        }
+
+        #endregion Customized Field Types
+        
+        private readonly SerialNumber _serialNumber = SerialNumber.Instance;
+        private readonly Map<Hash, ContractInfo> _contractInfos = new Map<Hash, ContractInfo>("__contractInfos__");
+        
         [SmartContractFieldData("${this}._deployLock", DataAccessMode.ReadWriteAccountSharing)]
         private object _deployLock;        
 
@@ -32,6 +95,17 @@ namespace AElf.Kernel.Tests
             
             var tx = Api.GetTransaction();
             
+            ulong serialNumber = _serialNumber.Increment().Value;
+
+            Hash creator = Api.GetTransaction().From;
+
+            var info = new ContractInfo()
+            {
+                Owner = creator,
+                SerialNumer = serialNumber
+            };
+
+            var address = info.Address;
             // calculate new account address
             var account = Path.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
             

@@ -285,7 +285,7 @@ namespace AElf.Kernel.Node.RPC
             
             if (txResult.Status == Status.Failed)
             {
-                jobj["tx_error"] = txResult.RetVal.ToStringUtf8().Substring(1, 300).ToString();
+                jobj["tx_error"] = txResult.RetVal.ToStringUtf8().Substring(1, 500).ToString();
             }
 
             if (txResult.Status == Status.Mined)

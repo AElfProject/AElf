@@ -194,8 +194,10 @@ namespace AElf.CLI
                         SmartContractReader screader = new SmartContractReader();
                         byte[] sc = screader.Read(filename);
                         string hex = BitConverter.ToString(sc).Replace("-", string.Empty).ToLower();
-            
-                        Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals(Globals.GenesisSmartContractZeroAssemblyName));
+
+                        var name = Globals.GenesisSmartContractZeroAssemblyName + Globals.GenesisSmartContractLastName;
+                        //var name = "AElf.Kernel.Tests.TestContractZero";
+                        Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals(name));
             
                         if (m == null)
                         {

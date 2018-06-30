@@ -131,11 +131,11 @@ namespace AElf.Launcher
         {
             get
             {
-                /*var ContractZeroName = "AElf.Kernel.Tests.TestContractZero";
+                var ContractZeroName = "AElf.Kernel.Tests.TestContractZero";
                 
                 //var contractZeroDllPath = $"{dir}/{ContractZeroName}.dll";
                 
-                var contractZeroDllPath = $"{dir}/{ContractZeroName}.dll";*/
+                //var contractZeroDllPath = $"{dir}/{ContractZeroName}.dll";
                 
                 var contractZeroDllPath = Path.Combine(AssemblyDir, $"{Globals.GenesisSmartContractZeroAssemblyName}.dll");
 
