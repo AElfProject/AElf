@@ -51,7 +51,7 @@ namespace AElf.Kernel.Node.Protocol
                 _blockSynchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
 
                 //if (!_blockSynchronizer.IsInitialSync)
-                    //_node.Mine();
+                    //_node.DoDPos();
                 
                 Task.Run(() => _blockSynchronizer.Start());
             }
@@ -59,7 +59,7 @@ namespace AElf.Kernel.Node.Protocol
 
         private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
         {
-            //_node.Mine();
+            //_node.DoDPos();
         }
 
         public void AddTransaction(Transaction tx)

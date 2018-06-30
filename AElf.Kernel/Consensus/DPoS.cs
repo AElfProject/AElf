@@ -17,8 +17,6 @@ namespace AElf.Kernel.Consensus
     {
         private readonly ECKeyPair _keyPair;
 
-        public Hash TransferContractAddress { get; set; }
-
         public Hash AccountHash => _keyPair.GetAddress();
 
         public DPoS(ECKeyPair keyPair)
@@ -363,29 +361,6 @@ namespace AElf.Kernel.Consensus
             tx.R = ByteString.CopyFrom(signature.R);
             tx.S = ByteString.CopyFrom(signature.S);
 
-            return tx;
-        }
-
-        public Transaction TryToGetTxForPublishInValue(ulong incrementId, Hash contractAccountHash,
-            Hash inValue, UInt64Value roundsCount)
-        {
-            var tx =  new Transaction
-            {
-                From = AccountHash,
-                To = contractAccountHash,
-                IncrementId = incrementId,
-                MethodName = "TryToPublishInValue",
-                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(inValue, roundsCount))
-            };
-            
-            var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
-
-            // Update the signature
-            tx.R = ByteString.CopyFrom(signature.R);
-            tx.S = ByteString.CopyFrom(signature.S);
-            
             return tx;
         }
 

@@ -199,7 +199,6 @@ namespace AElf.Kernel.Tests
         public async Task SyncStateOfFirstTwoRounds(DPoSInfo dPoSInfo, BlockProducer blockProducer)
         {
             await _blockProducer.SetAsync(blockProducer);
-
             var firstRound = new UInt64Value {Value = 1};
             var secondRound = new UInt64Value {Value = 2};
 
@@ -432,8 +431,9 @@ namespace AElf.Kernel.Tests
             
             return new BoolValue
             {
-                Value = CompareTimestamp(now, assigendExtraBlockProducingTimeEndWithOffset)
-                        && CompareTimestamp(GetTimestamp(assigendExtraBlockProducingTimeEndWithOffset, MiningTime), now)
+                Value = (CompareTimestamp(now, assigendExtraBlockProducingTimeEndWithOffset)
+                         && CompareTimestamp(GetTimestamp(assigendExtraBlockProducingTimeEndWithOffset, MiningTime), now)) ||
+                        CompareTimestamp(now, GetTimestamp(assigendExtraBlockProducingTimeEnd, MiningTime * blockProducerCount))
             };
         }
 
@@ -528,14 +528,9 @@ namespace AElf.Kernel.Tests
         
         #endregion
         
-        [SmartContractFunction("${this}.GetTimeSlot", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfCurrentRound"}, new string[]{ })]
+        [SmartContractFunction("${this}.GetTimeSlot", new string[]{"${this}.GetBlockProducerInfoOfCurrentRound"}, new string[]{ })]
         public async Task<Timestamp> GetTimeSlot(string accountAddress)
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             return (await GetBlockProducerInfoOfCurrentRound(accountAddress)).TimeSlot;
         }
 
@@ -636,11 +631,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.GetEBPOf", new string[]{"${this}.Authentication"}, new string[]{"${this}._eBPMap"})]
         public async Task<StringValue> GetEBPOf(UInt64Value roundsCount)
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             return await _eBPMap.GetValueAsync(roundsCount);
         }
         
@@ -648,23 +638,13 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.GetCurrentEBP", new string[]{"${this}.Authentication"}, new string[]{"${this}._eBPMap", "${this}._roundsCount"})]
         public async Task<StringValue> GetCurrentEBP()
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             return await _eBPMap.GetValueAsync(RoundsCount);
         }
         
         // ReSharper disable once InconsistentNaming
-        [SmartContractFunction("${this}.IsBP", new string[]{"${this}.Authentication", "${this}.GetBlockProducers"}, new string[]{})]
+        [SmartContractFunction("${this}.IsBP", new string[]{"${this}.GetBlockProducers"}, new string[]{})]
         private async Task<bool> IsBP(string accountAddress)
         {
-            if (!await Authentication())
-            {
-                return false;
-            }
-            
             var blockProducer = await GetBlockProducers();
             return blockProducer.Nodes.Contains(accountAddress);
         }
@@ -673,11 +653,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.IsEBP", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfCurrentRound"}, new string[]{})]
         private async Task<bool> IsEBP(string accountAddress)
         {
-            if (!await Authentication())
-            {
-                return false;
-            }
-            
             var info = await GetBlockProducerInfoOfCurrentRound(accountAddress);
             return info.IsEBP;
         }
@@ -685,11 +660,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.IsTimeToProduceExtraBlock", new string[]{"${this}.Authentication", "${this}.GetTimestamp", "${this}.CompareTimestamp", "${this}.GetTimestampOfUtcNow"}, new string[]{"${this}._timeForProducingExtraBlock"})]
         public async Task<bool> IsTimeToProduceExtraBlock()
         {
-            if (!await Authentication())
-            {
-                return false;
-            }
-            
             var expectedTime = await _timeForProducingExtraBlock.GetAsync();
             var now = GetTimestampOfUtcNow();
             return CompareTimestamp(now, expectedTime)
@@ -699,11 +669,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.AbleToProduceExtraBlock", new string[]{"${this}.Authentication"}, new string[]{"${this}._eBPMap", "${this}._roundsCount"})]
         public async Task<bool> AbleToProduceExtraBlock()
         {
-            if (!await Authentication())
-            {
-                return false;
-            }
-            
             var accountHash = Api.GetTransaction().From;
             
             // ReSharper disable once InconsistentNaming
@@ -716,11 +681,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.GetDPoSInfoToString", new string[]{"${this}.Authentication", "${this}.GetRoundInfoToString"}, new string[]{"${this}._timeForProducingExtraBlock", "${this}._roundsCount"})]
         public async Task<StringValue> GetDPoSInfoToString()
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             ulong count = 1;
 
             if (RoundsCount != null)
@@ -743,7 +703,7 @@ namespace AElf.Kernel.Tests
             var res = new StringValue
             {
                 Value
-                    = result + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime():u}\n"
+                    = result + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
                              + "Current Round : " + RoundsCount?.Value
             };
             
@@ -753,11 +713,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.GetRoundInfoToString", new string[]{"${this}.Authentication"}, new string[]{"${this}._dPoSInfoMap"})]
         public async Task<string> GetRoundInfoToString(UInt64Value roundsCount)
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-
             var info = await _dPoSInfoMap.GetValueAsync(roundsCount);
             var result = "";
 
@@ -766,13 +721,33 @@ namespace AElf.Kernel.Tests
                 result += bpInfo.Key + ":\n";
                 result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";
                 result += "Order:\t\t" + bpInfo.Value.Order + "\n";
-                result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToString("u") + "\n";
+                result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
                 result += "Signature:\t" + bpInfo.Value.Signature + "\n";
                 result += "Out Value:\t" + bpInfo.Value.OutValue + "\n";
                 result += "In Value:\t" + bpInfo.Value.InValue + "\n";
             }
 
             return result + "\n";
+        }
+
+        [SmartContractFunction("${this}.BlockProducerVerification", new string[]{"${this}.IsBP", "${this}.GetTimestampOfUtcNow", "${this}.GetTimeSlot", "${this}.CompareTimestamp"}, new string[]{"${this}._timeForProducingExtraBlock"})]
+        public async Task<BoolValue> BlockProducerVerification(StringValue accountAddress)
+        {
+            if (!await IsBP(accountAddress.Value))
+            {
+                return new BoolValue {Value = false};
+            }
+
+            var now = GetTimestampOfUtcNow();
+            var timeslotOfBlockProducer = await GetTimeSlot(accountAddress.Value);
+            var endOfTimeslotOfBlockProducer = GetTimestamp(timeslotOfBlockProducer, MiningTime);
+            // ReSharper disable once InconsistentNaming
+            var timeslotOfEBP = await _timeForProducingExtraBlock.GetAsync();
+            return new BoolValue
+            {
+                Value = (CompareTimestamp(now, timeslotOfBlockProducer) && CompareTimestamp(endOfTimeslotOfBlockProducer, now))
+                        || CompareTimestamp(now, timeslotOfEBP)
+            };
         }
 
         #region Private Methods
@@ -859,12 +834,8 @@ namespace AElf.Kernel.Tests
         private int GetModulus(ulong uLongVal, int intVal)
         {
             var m = (int) uLongVal % intVal;
-            if (m < 0)
-            {
-                m = -m;
-            }
 
-            return m;
+            return Math.Abs(m);
         }
 
         [SmartContractFunction("${this}.Authentication", new string[]{"${this}.GetBlockProducers"}, new string[]{})]

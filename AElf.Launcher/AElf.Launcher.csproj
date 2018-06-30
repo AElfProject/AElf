@@ -24,4 +24,13 @@
     <PackageReference Include="NLog" Version="4.5.6" />
     <PackageReference Include="ServiceStack" Version="5.1.0" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="netstandard2.0\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="netstandard2.0\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="netstandard2.0\**" />
+  </ItemGroup>
 </Project>

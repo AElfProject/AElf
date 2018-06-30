@@ -137,12 +137,12 @@ namespace AElf.Launcher
 
             if (IsMiner)
             {
-                if (string.IsNullOrEmpty(opts.CoinBase))
+                if (string.IsNullOrEmpty(opts.NodeAccount))
                 {
-                    throw new Exception("coinbase is needed");
+                    throw new Exception("NodeAccount is needed");
                 }
                 
-                Coinbase = ByteString.CopyFromUtf8(opts.CoinBase);
+                Coinbase = ByteString.CopyFrom(NodeAccount.HexToBytes());
             }
             
             MinerConfig = new MinerConfig
