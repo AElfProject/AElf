@@ -24,11 +24,11 @@ namespace AElf.Contracts.Genesis {
     static MessagesReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Cg5tZXNzYWdlcy5wcm90bxoMa2VybmVsLnByb3RvIjkKDENvbnRyYWN0SW5m",
-            "bxIUCgVPd25lchgBIAEoCzIFLkhhc2gSEwoLU2VyaWFsTnVtZXIYAiABKARC",
-            "GaoCFkFFbGYuQ29udHJhY3RzLkdlbmVzaXNiBnByb3RvMw=="));
+            "Cg5tZXNzYWdlcy5wcm90bxoKaGFzaC5wcm90byI5CgxDb250cmFjdEluZm8S",
+            "FAoFT3duZXIYASABKAsyBS5IYXNoEhMKC1NlcmlhbE51bWVyGAIgASgEQhmq",
+            "AhZBRWxmLkNvbnRyYWN0cy5HZW5lc2lzYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::AElf.Kernel.KernelReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::AElf.Kernel.HashReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Contracts.Genesis.ContractInfo), global::AElf.Contracts.Genesis.ContractInfo.Parser, new[]{ "Owner", "SerialNumer" }, null, null, null)
           }));

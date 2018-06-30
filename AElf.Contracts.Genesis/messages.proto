@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.Contracts.Genesis";
 
-import "kernel.proto";
+import "hash.proto";
 
 message ContractInfo
 {
