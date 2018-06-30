@@ -141,29 +141,30 @@ namespace AElf.CLI
                         }
 
                         var addr = parsedCmd.Args.ElementAt(0);
-                        
-                        
-                        string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
+                        Module m = null;
+                        if (!_loadedModules.TryGetValue(addr, out m))
+                        {
+                            string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
         
-                        if (resp == null)
-                        { 
-                            _screenManager.PrintError(ServerConnError);
-                            return;
+                            if (resp == null)
+                            { 
+                                _screenManager.PrintError(ServerConnError);
+                                return;
+                            }
+                        
+                            JObject jObj = JObject.Parse(resp);
+                            var res = JObject.FromObject(jObj["result"]);
+                        
+                            JToken ss = res["abi"];
+                            byte[] aa = Convert.FromBase64String(ss.ToString());
+                        
+                            MemoryStream ms = new MemoryStream(aa);
+                            m = Serializer.Deserialize<Module>(ms);
+                            _loadedModules.Add(addr, m);
                         }
                         
-                        JObject jObj = JObject.Parse(resp);
-                        var res = JObject.FromObject(jObj["result"]);
-                        
-                        JToken ss = res["abi"];
-                        byte[] aa = Convert.FromBase64String(ss.ToString());
-                        
-                        MemoryStream ms = new MemoryStream(aa);
-                        Module m = Serializer.Deserialize<Module>(ms);
-
                         var obj = JObject.FromObject(m);
                         _screenManager.PrintLine(obj.ToString());
-                        
-                        _loadedModules.Add(res["address"].ToString(), m);
                         
                     }
                     catch (Exception e)

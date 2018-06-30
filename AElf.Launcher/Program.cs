@@ -33,7 +33,8 @@ namespace AElf.Launcher
     class Program
     {
         private const string filepath = @"ChainInfo.json";
-        private const string dir = @"Contracts";
+        private static string dir;
+        
         
         static void Main(string[] args)
         {
@@ -64,6 +65,7 @@ namespace AElf.Launcher
             nodeConfig.IsChainCreator = confParser.NewChain;
             
             var runner = new SmartContractRunner(confParser.RunnerConfig);
+            dir = confParser.RunnerConfig.SdkDir;
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
@@ -129,7 +131,7 @@ namespace AElf.Launcher
                 
                 //var contractZeroDllPath = $"{dir}/{ContractZeroName}.dll";
                 
-                var contractZeroDllPath = $"{ContractZeroName}.dll";
+                var contractZeroDllPath = $"{dir}/{ContractZeroName}.dll";
                 
                 byte[] code = null;
                 using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(contractZeroDllPath)))

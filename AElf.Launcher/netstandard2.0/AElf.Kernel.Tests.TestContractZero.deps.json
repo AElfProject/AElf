@@ -9,9 +9,7 @@
     ".NETStandard,Version=v2.0/": {
       "AElf.Kernel.Tests.TestContractZero/1.0.0": {
         "dependencies": {
-          "AElf.Kernel": "1.0.0",
           "AElf.Sdk.CSharp": "1.0.0",
-          "AElf.Types.CSharp": "1.0.0",
           "Google.Protobuf": "3.6.0",
           "NETStandard.Library": "2.0.0"
         },
