@@ -37,7 +37,7 @@ namespace AElf.Kernel.Tests
             
             await Api.DeployContractAsync(account, registration);
             Console.WriteLine("Deployment success, {0}", account.Value.ToByteArray().ToHex());
-            return account.Value.ToByteArray();
+            return account;
         }
 
         public void Print(string name)
