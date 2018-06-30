@@ -25,11 +25,11 @@ namespace AElf.Kernel.Tests.Serialization
         [Fact]
         public void Deserialize()
         {
-            string sdata = "CGU=";
+            string sdata = "ChLPnCOtRWU2gV8WUoO8ujAbchc=";
             var data = ByteString.FromBase64(sdata);
-            //System.Diagnostics.Debug.WriteLine(BytesValue.Parser.ParseFrom(data.ToByteArray()).Value.ToByteArray().ToHex());
+            System.Diagnostics.Debug.WriteLine(BytesValue.Parser.ParseFrom(data.ToByteArray()).Value.ToByteArray().ToHex());
             //System.Diagnostics.Debug.WriteLine(BoolValue.Parser.ParseFrom(data.ToByteArray()).Value);
-            System.Diagnostics.Debug.WriteLine(UInt64Value.Parser.ParseFrom(data.ToByteArray()).Value);
+            //System.Diagnostics.Debug.WriteLine(UInt64Value.Parser.ParseFrom(data.ToByteArray()).Value);
 
         }
     }
