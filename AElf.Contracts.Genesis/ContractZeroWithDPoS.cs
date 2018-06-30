@@ -338,7 +338,7 @@ namespace AElf.Contracts.Genesis
 
             foreach (var infoPair in currentRoundInfo.Info)
             {
-                if (infoPair.Value.InValue != null) 
+                if (infoPair.Value.InValue != null || RoundsCount.Value == 1) 
                     continue;
                 
                 var supplyValue = suppliedPreviousRoundInfo.Info.First(info => info.Key == infoPair.Key)
@@ -358,6 +358,8 @@ namespace AElf.Contracts.Genesis
 
             //Update the rounds count at last
             await _roundsCount.SetAsync(RoundsCountAddOne(RoundsCount).Value);
+
+            Console.WriteLine($"Sync dpos info of round {RoundsCountAddOne(RoundsCount).Value} succeed");
         }
 
         #endregion
@@ -369,11 +371,19 @@ namespace AElf.Contracts.Genesis
             {
                 return null;
             }
-            
+
             var me = Api.GetTransaction().From;
-            var meOrder = (await GetBlockProducerInfoOfCurrentRound(AddressHashToString(me))).Order;
+            var meAddress = AddressHashToString(me);
+            
             // ReSharper disable once InconsistentNaming
             var currentEBP = await _eBPMap.GetValueAsync(RoundsCount);
+
+            if (meAddress == currentEBP.Value)
+            {
+                return new BoolValue {Value = false};
+            }
+            
+            var meOrder = (await GetBlockProducerInfoOfCurrentRound(meAddress)).Order;
             // ReSharper disable once InconsistentNaming
             var currentEBPOrder = (await GetBlockProducerInfoOfCurrentRound(currentEBP.Value)).Order;
             var blockProducerCount = (await GetBlockProducers()).Nodes.Count;
@@ -404,6 +414,7 @@ namespace AElf.Contracts.Genesis
             {
                 Value = (CompareTimestamp(now, assigendExtraBlockProducingTimeEndWithOffset)
                          && CompareTimestamp(GetTimestamp(assigendExtraBlockProducingTimeEndWithOffset, MiningTime), now)) ||
+                        //todo: if more than two nodes wake up suddenly after next round's timeslot, this will cause problem
                         CompareTimestamp(now, GetTimestamp(assigendExtraBlockProducingTimeEnd, MiningTime * blockProducerCount))
             };
         }
@@ -439,11 +450,6 @@ namespace AElf.Contracts.Genesis
         [SmartContractFunction("${this}.TryToPublishInValue", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfSpecificRound"}, new string[]{"${this}._dPoSInfoMap" })]
         public async Task<Hash> TryToPublishInValue(Hash inValue, UInt64Value roundsCount)
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
             
             var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, roundsCount);
@@ -473,7 +479,7 @@ namespace AElf.Contracts.Genesis
 
             foreach (var info in roundInfo.Info)
             {
-                if (info.Value.InValue == null)
+                if (info.Value.InValue == null || info.Value.OutValue == null)
                 {
                     var inValue = Hash.Generate();
                     var outValue = inValue.CalculateHash();
@@ -492,7 +498,7 @@ namespace AElf.Contracts.Genesis
                 }
             }
 
-            await _dPoSInfoMap.SetValueAsync(RoundsCount, roundInfo);
+            //await _dPoSInfoMap.SetValueAsync(RoundsCount, roundInfo);
 
             return roundInfo;
         }

@@ -650,7 +650,8 @@ namespace AElf.Kernel.Node
                 ulong latestMinedExtraBlockRoundsCount = 0;
                 //Use this value to make sure every BP try once in one timeslot
                 ulong latestTriedToHelpProducingExtraBlockRoundsCount = 0;
-                
+                ulong lastTryToPublishInValueRoundsCount = 0;
+
                 var dPoSInfo = "";
                 
                 var intervalSequnce = GetIntervalObservable();
@@ -747,19 +748,24 @@ namespace AElf.Kernel.Node
 
                         #region Try to mine extra block
 
-                        if (latestMinedExtraBlockRoundsCount != roundsCount && await CheckIsTimeToMineExtraBlock())
+                        if (await CheckIsTimeToMineExtraBlock())
                         {
-                            var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
-
-                            //Try to publish in value (every BP can do this)
-                            await BroadcastTransaction(_dPoS.GetTxToPublishInValueTx(
-                                incrementId, ContractAccountHash, inValue, new UInt64Value {Value = roundsCount}));
-
-                            latestMinedExtraBlockRoundsCount = roundsCount;
-
-                            if (await CheckAbleToMineExtraBlock())
+                            if (lastTryToPublishInValueRoundsCount != roundsCount)
                             {
-                                var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId + 1);
+                                //Try to publish in value (every BP can do this)
+                                await BroadcastTransaction(_dPoS.GetTxToPublishInValueTx(
+                                    await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash, inValue, new UInt64Value {Value = roundsCount}));
+
+                                lastTryToPublishInValueRoundsCount = roundsCount;
+
+                                return;
+                            }
+
+                            if (latestMinedExtraBlockRoundsCount != roundsCount && await CheckAbleToMineExtraBlock())
+                            {
+                                var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
+                                
+                                var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId);
 
                                 await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
                                     extraBlockResult.Item2, extraBlockResult.Item3);
@@ -768,14 +774,17 @@ namespace AElf.Kernel.Node
 
                                 await BroadcastBlock(extraBlock);
                                 
+                                latestMinedExtraBlockRoundsCount = roundsCount;
+                                
                                 _logger.Log(LogLevel.Debug,
                                     "Generate extra block: {0}, with {1} transactions, able to mine in {2}",
                                     extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
                                     DateTime.UtcNow.ToString("u"));
+                                
                                 return;
                             }
                         }
-                        
+
                         #endregion
 
                         #region Try to help mining extra block
@@ -788,7 +797,7 @@ namespace AElf.Kernel.Node
 
                             var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId + 1);
 
-                            await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
+                            await BroadcastTxsToSyncExtraBlock(incrementId, extraBlockResult.Item1, 
                                 extraBlockResult.Item2, extraBlockResult.Item3);
                             
                             var extraBlock = await Mine(); //Which is an extra block
@@ -815,6 +824,7 @@ namespace AElf.Kernel.Node
                                 "Help to generate extra block: {0}, with {1} transactions, able to mine in {2}",
                                 extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
                                 DateTime.UtcNow.ToString("u"));
+                            
                             return;
                         }
 
