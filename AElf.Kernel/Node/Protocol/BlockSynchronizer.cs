@@ -546,10 +546,11 @@ namespace AElf.Kernel.Node.Protocol
                 else
                 {
                     // The block wasn't executed
-                    if (res.ValidationError == ValidationError.OrphanBlock)
+                    if (res.ValidationError == ValidationError.Pending)
                     {
                         // We ensure that the property is coherent
                         pendingBlock.IsWaitingForPrevious = true;
+                        _logger?.Trace("-- Pending block at height " + pendingBlock.Block.Header.Index);
                     }
                     else if (res.ValidationError == ValidationError.AlreadyExecuted)
                     {
@@ -558,6 +559,8 @@ namespace AElf.Kernel.Node.Protocol
                     }
                     else
                     {
+                        toRemove.Add(pendingBlock);
+                        _logger?.Trace("-- Other situationat height " + pendingBlock.Block.Header.Index);
                         // todo deal with blocks that we're not executed
                     }
                 }

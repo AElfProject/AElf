@@ -373,6 +373,10 @@ namespace AElf.Kernel.Node
         {
             try
             {
+                int res = Interlocked.CompareExchange(ref _flag, 1, 0);
+                if (res == 1)
+                    return new BlockExecutionResult(false, ValidationError.Pending);
+                
                 var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
                 var error = await _blockVaildationService.ValidateBlockAsync(block, context, _nodeKeyPair);
                 Console.WriteLine("try execute block");
@@ -382,9 +386,6 @@ namespace AElf.Kernel.Node
                     return new BlockExecutionResult(false, error);
                 }
 
-                int res = Interlocked.CompareExchange(ref _flag, 1, 0);
-                if (res == 1)
-                    return new BlockExecutionResult(false, ValidationError.Pending);
                 bool executed = await _blockExecutor.ExecuteBlock(block);
                 Interlocked.CompareExchange(ref _flag, 0, 1);
                 
@@ -544,7 +545,7 @@ namespace AElf.Kernel.Node
         /// </summary>
         public void DoDPos()
         {
-            DoDPoSMining();
+            DoDPoSMining(_nodeConfig.IsMiner);
         }
 
         public async Task<IBlock> Mine()
@@ -561,6 +562,11 @@ namespace AElf.Kernel.Node
 
         public async Task<bool> BroadcastBlock(IBlock block)
         {
+            if (block == null)
+            {
+                return false;
+            }
+            
             int count = 0;
             count = await _protocolDirector.BroadcastBlock(block as Block);
 
@@ -797,13 +803,12 @@ namespace AElf.Kernel.Node
 
                             var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId + 1);
 
-                            await BroadcastTxsToSyncExtraBlock(incrementId, extraBlockResult.Item1, 
+                            await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
                                 extraBlockResult.Item2, extraBlockResult.Item3);
                             
                             var extraBlock = await Mine(); //Which is an extra block
-
+                            
                             await BroadcastBlock(extraBlock);
-
 
                             #region Broadcast his out value and signature after helping mining extra block
 
@@ -907,6 +912,11 @@ namespace AElf.Kernel.Node
                 };
                 Executive.SetTransactionContext(tc).Apply(true).Wait();
 
+                if (!tc.Trace.StdErr.IsNullOrEmpty())
+                {
+                    continue;
+                }
+                
                 if (tx.MethodName.StartsWith("Supply"))
                 {
                     currentRoundInfo = RoundInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
