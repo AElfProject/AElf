@@ -61,8 +61,7 @@ namespace AElf.Contracts.Genesis.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
-            Assert.Null(TransactionContext.Trace.StdErr);
-            return TransactionContext.Trace.RetVal.DeserializeToBytes();
+            return TransactionContext.Trace.RetVal?.DeserializeToBytes();
         }
 
         public void ChangeContractOwner(Hash contractAddress, Hash newOwner)
@@ -99,7 +98,7 @@ namespace AElf.Contracts.Genesis.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
-            return TransactionContext.Trace.RetVal.DeserializeToPbMessage<Hash>();
+            return TransactionContext.Trace.RetVal?.DeserializeToPbMessage<Hash>();
         }
     }
 }
