@@ -848,6 +848,11 @@ namespace AElf.Kernel.Node
                 
                 if (tx.MethodName.StartsWith("Generate"))
                 {
+                    if (!tc.Trace.IsSuccessful())
+                    {
+                        _logger?.Debug(tc.Trace.StdErr);
+                    }
+
                     dPoSInfo = DPoSInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
                 }
             }

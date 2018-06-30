@@ -143,7 +143,8 @@ namespace AElf.Cryptography
             }
             catch (PemException pemEx)
             {
-                Console.WriteLine("Invalid password.");
+                //Console.WriteLine("Invalid password.");
+                throw new InvalidPasswordException("Invalid password", pemEx);
             }
             catch (Exception e)
             {
