@@ -14,15 +14,16 @@ using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Genesis
 {
+    // ReSharper disable once InconsistentNaming
     public class ContractZeroWithDPoS : BasicContractZero
     {
         #region DPoS
 
         // The length of one timeslot for a miner to produce block
-        private const int MiningTime = 16000;
+        private const int MiningTime = 30000;
 
         // After the chain creator start a chain, wait for other mimers join
-        private const int WaitFirstRoundTime = 16000;
+        private const int WaitFirstRoundTime = 30000;
 
         // Block producers check interval
         private const int CheckTime = 5000;
