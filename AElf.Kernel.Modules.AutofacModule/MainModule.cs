@@ -9,11 +9,14 @@ namespace AElf.Kernel.Modules.AutofacModule
         {
             //TODO : REVIEW - probably not a good idea
 
-            var assembly = typeof(IWorldStateDictator).Assembly;
+            var assembly1 = typeof(IWorldStateDictator).Assembly;
 
             builder.RegisterInstance<IHash>(new Hash()).As<Hash>();
 
-            builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
+            builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();
+            
+            var assembly2 = typeof(ISerializer<>).Assembly;
+            builder.RegisterAssemblyTypes(assembly2).AsImplementedInterfaces();
 
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));
 

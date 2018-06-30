@@ -36,6 +36,7 @@ using Autofac;
              NodeData nd = NodeData.FromString(NetConfig.Host + ":" + NetConfig.Port);
              NodeDialer dialer = new NodeDialer(nd);
              builder.RegisterInstance(dialer).As<INodeDialer>();
+
          }
      }
  }

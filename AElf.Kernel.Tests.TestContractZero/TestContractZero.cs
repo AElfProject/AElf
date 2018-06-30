@@ -273,7 +273,6 @@ namespace AElf.Kernel.Tests
         public async Task SyncStateOfFirstTwoRounds(DPoSInfo dPoSInfo, BlockProducer blockProducer)
         {
             await _blockProducer.SetAsync(blockProducer);
-
             var firstRound = new UInt64Value {Value = 1};
             var secondRound = new UInt64Value {Value = 2};
 
@@ -506,8 +505,9 @@ namespace AElf.Kernel.Tests
             
             return new BoolValue
             {
-                Value = CompareTimestamp(now, assigendExtraBlockProducingTimeEndWithOffset)
-                        && CompareTimestamp(GetTimestamp(assigendExtraBlockProducingTimeEndWithOffset, MiningTime), now)
+                Value = (CompareTimestamp(now, assigendExtraBlockProducingTimeEndWithOffset)
+                         && CompareTimestamp(GetTimestamp(assigendExtraBlockProducingTimeEndWithOffset, MiningTime), now)) ||
+                        CompareTimestamp(now, GetTimestamp(assigendExtraBlockProducingTimeEnd, MiningTime * blockProducerCount))
             };
         }
 
@@ -705,11 +705,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.GetEBPOf", new string[]{"${this}.Authentication"}, new string[]{"${this}._eBPMap"})]
         public async Task<StringValue> GetEBPOf(UInt64Value roundsCount)
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             return await _eBPMap.GetValueAsync(roundsCount);
         }
         
@@ -717,11 +712,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.GetCurrentEBP", new string[]{"${this}.Authentication"}, new string[]{"${this}._eBPMap", "${this}._roundsCount"})]
         public async Task<StringValue> GetCurrentEBP()
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             return await _eBPMap.GetValueAsync(RoundsCount);
         }
         
@@ -737,11 +727,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.IsEBP", new string[]{"${this}.Authentication", "${this}.GetBlockProducerInfoOfCurrentRound"}, new string[]{})]
         private async Task<bool> IsEBP(string accountAddress)
         {
-            if (!await Authentication())
-            {
-                return false;
-            }
-            
             var info = await GetBlockProducerInfoOfCurrentRound(accountAddress);
             return info.IsEBP;
         }
@@ -749,11 +734,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.IsTimeToProduceExtraBlock", new string[]{"${this}.Authentication", "${this}.GetTimestamp", "${this}.CompareTimestamp", "${this}.GetTimestampOfUtcNow"}, new string[]{"${this}._timeForProducingExtraBlock"})]
         public async Task<bool> IsTimeToProduceExtraBlock()
         {
-            if (!await Authentication())
-            {
-                return false;
-            }
-            
             var expectedTime = await _timeForProducingExtraBlock.GetAsync();
             var now = GetTimestampOfUtcNow();
             return CompareTimestamp(now, expectedTime)
@@ -763,11 +743,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.AbleToProduceExtraBlock", new string[]{"${this}.Authentication"}, new string[]{"${this}._eBPMap", "${this}._roundsCount"})]
         public async Task<bool> AbleToProduceExtraBlock()
         {
-            if (!await Authentication())
-            {
-                return false;
-            }
-            
             var accountHash = Api.GetTransaction().From;
             
             // ReSharper disable once InconsistentNaming
@@ -780,11 +755,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.GetDPoSInfoToString", new string[]{"${this}.Authentication", "${this}.GetRoundInfoToString"}, new string[]{"${this}._timeForProducingExtraBlock", "${this}._roundsCount"})]
         public async Task<StringValue> GetDPoSInfoToString()
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             ulong count = 1;
 
             if (RoundsCount != null)
@@ -817,11 +787,6 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.GetRoundInfoToString", new string[]{"${this}.Authentication"}, new string[]{"${this}._dPoSInfoMap"})]
         public async Task<string> GetRoundInfoToString(UInt64Value roundsCount)
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-
             var info = await _dPoSInfoMap.GetValueAsync(roundsCount);
             var result = "";
 
@@ -943,12 +908,8 @@ namespace AElf.Kernel.Tests
         private int GetModulus(ulong uLongVal, int intVal)
         {
             var m = (int) uLongVal % intVal;
-            if (m < 0)
-            {
-                m = -m;
-            }
 
-            return m;
+            return Math.Abs(m);
         }
 
         [SmartContractFunction("${this}.Authentication", new string[]{"${this}.GetBlockProducers"}, new string[]{})]

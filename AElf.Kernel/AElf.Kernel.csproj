@@ -15,6 +15,8 @@
     <Compile Remove="Concurrency\Execution\JobExecutor.cs" />
     <Compile Remove="Concurrency\Execution\LocalServicesProvider.cs" />
     <Compile Remove="Concurrency\Execution\BatchExecutor.cs" />
+    <Compile Remove="Concurrency\Scheduling\Batcher.cs" />
+    <Compile Remove="Concurrency\Scheduling\IBatcher.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Akka.Cluster" Version="1.3.8" />

@@ -1,4 +1,3 @@
-cli.sh
 #!/bin/bash
 
 echo "1. Check port parameter"

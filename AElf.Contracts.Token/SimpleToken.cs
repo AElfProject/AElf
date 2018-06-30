@@ -1,12 +1,7 @@
-﻿using System;
-using System.ComponentModel.Design;
-using AElf.Kernel;
+﻿using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
-using Google.Protobuf.WellKnownTypes;
-using NLog.Conditions;
-using NServiceKit.Common.Extensions;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Token
@@ -37,7 +32,7 @@ namespace AElf.Contracts.Token
 
     #endregion Events
 
-    public class SimpleToken
+    public class SimpleToken : CSharpSmartContract
     {
         private readonly BoolField _initialized = new BoolField("_Initialized_");
         private readonly StringField _symbol = new StringField("_Symbol_");

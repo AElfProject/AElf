@@ -7,8 +7,8 @@ using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
 using Google.Protobuf;
+using Google.Protobuf;
 using Api = AElf.Sdk.CSharp.Api;
-
 namespace AElf.Contracts.Genesis
 {
     #region Events

@@ -650,7 +650,8 @@ namespace AElf.Kernel.Node
                 ulong latestMinedExtraBlockRoundsCount = 0;
                 //Use this value to make sure every BP try once in one timeslot
                 ulong latestTriedToHelpProducingExtraBlockRoundsCount = 0;
-                
+                ulong lastTryToPublishInValueRoundsCount = 0;
+
                 var dPoSInfo = "";
                 
                 var intervalSequnce = GetIntervalObservable();
@@ -683,7 +684,7 @@ namespace AElf.Kernel.Node
 
                             await BroadcastBlock(firstBlock);
                             
-                            _logger.Log(LogLevel.Debug, "Genereate first extra block: {0}, with {1} transactions, able to mine in {2}", firstBlock.GetHash(),
+                            _logger.Log(LogLevel.Debug, "Generate first extra block: {0}, with {1} transactions, able to mine in {2}", firstBlock.GetHash(),
                                 firstBlock.Body.Transactions.Count, DateTime.UtcNow.ToString("u"));
 
                             return;
@@ -732,7 +733,7 @@ namespace AElf.Kernel.Node
                                 #region Do the log for mining normal block
                                 
                                 _logger.Log(LogLevel.Debug,
-                                    "Genereate block: {0}, with {1} transactions, able to mine in {2}\n Published out value: {3}\n signature: {4}",
+                                    "Generate block: {0}, with {1} transactions, able to mine in {2}\n Published out value: {3}\n signature: {4}",
                                     block.GetHash(), block.Body.Transactions.Count, DateTime.UtcNow.ToString("u"),
                                     outValue.Value.ToBase64(), 
                                     signature.Value.ToBase64());
@@ -747,19 +748,24 @@ namespace AElf.Kernel.Node
 
                         #region Try to mine extra block
 
-                        if (latestMinedExtraBlockRoundsCount != roundsCount && await CheckIsTimeToMineExtraBlock())
+                        if (await CheckIsTimeToMineExtraBlock())
                         {
-                            var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
-
-                            //Try to publish in value (every BP can do this)
-                            await BroadcastTransaction(_dPoS.GetTxToPublishInValueTx(
-                                incrementId, ContractAccountHash, inValue, new UInt64Value {Value = roundsCount}));
-
-                            latestMinedExtraBlockRoundsCount = roundsCount;
-
-                            if (await CheckAbleToMineExtraBlock())
+                            if (lastTryToPublishInValueRoundsCount != roundsCount)
                             {
-                                var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId + 1);
+                                //Try to publish in value (every BP can do this)
+                                await BroadcastTransaction(_dPoS.GetTxToPublishInValueTx(
+                                    await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash, inValue, new UInt64Value {Value = roundsCount}));
+
+                                lastTryToPublishInValueRoundsCount = roundsCount;
+
+                                return;
+                            }
+
+                            if (latestMinedExtraBlockRoundsCount != roundsCount && await CheckAbleToMineExtraBlock())
+                            {
+                                var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
+                                
+                                var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId);
 
                                 await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
                                     extraBlockResult.Item2, extraBlockResult.Item3);
@@ -768,14 +774,17 @@ namespace AElf.Kernel.Node
 
                                 await BroadcastBlock(extraBlock);
                                 
+                                latestMinedExtraBlockRoundsCount = roundsCount;
+                                
                                 _logger.Log(LogLevel.Debug,
-                                    "Genereate extra block: {0}, with {1} transactions, able to mine in {2}",
+                                    "Generate extra block: {0}, with {1} transactions, able to mine in {2}",
                                     extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
                                     DateTime.UtcNow.ToString("u"));
+                                
                                 return;
                             }
                         }
-                        
+
                         #endregion
 
                         #region Try to help mining extra block
@@ -788,7 +797,7 @@ namespace AElf.Kernel.Node
 
                             var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId + 1);
 
-                            await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
+                            await BroadcastTxsToSyncExtraBlock(incrementId, extraBlockResult.Item1, 
                                 extraBlockResult.Item2, extraBlockResult.Item3);
                             
                             var extraBlock = await Mine(); //Which is an extra block
@@ -812,9 +821,10 @@ namespace AElf.Kernel.Node
                             #endregion
 
                             _logger.Log(LogLevel.Debug,
-                                "Help to genereate extra block: {0}, with {1} transactions, able to mine in {2}",
+                                "Help to generate extra block: {0}, with {1} transactions, able to mine in {2}",
                                 extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
                                 DateTime.UtcNow.ToString("u"));
+                            
                             return;
                         }
 
@@ -823,7 +833,7 @@ namespace AElf.Kernel.Node
                         if (doLogsAboutConsensus)
                         {
                             // If this node doesn't produce any block this interval.
-                            _logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
+                            //_logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
                         }
                     }
                 );
