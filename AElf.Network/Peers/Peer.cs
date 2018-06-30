@@ -147,10 +147,6 @@ namespace AElf.Network.Peers
                     {
                         Console.WriteLine("Received an invalid message", invalidProtocol);
                     }
-                    catch (Exception e)
-                    {
-                        ;
-                    }
                 }
             }
             catch (Exception e)
