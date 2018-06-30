@@ -544,7 +544,7 @@ namespace AElf.Kernel.Node
         /// </summary>
         public void DoDPos()
         {
-            DoDPoSMining();
+            DoDPoSMining(_nodeConfig.IsMiner);
         }
 
         public async Task<IBlock> Mine()
@@ -797,13 +797,12 @@ namespace AElf.Kernel.Node
 
                             var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId + 1);
 
-                            await BroadcastTxsToSyncExtraBlock(incrementId, extraBlockResult.Item1, 
+                            await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
                                 extraBlockResult.Item2, extraBlockResult.Item3);
                             
                             var extraBlock = await Mine(); //Which is an extra block
 
                             await BroadcastBlock(extraBlock);
-
 
                             #region Broadcast his out value and signature after helping mining extra block
 
@@ -907,6 +906,11 @@ namespace AElf.Kernel.Node
                 };
                 Executive.SetTransactionContext(tc).Apply(true).Wait();
 
+                if (!tc.Trace.StdErr.IsNullOrEmpty())
+                {
+                    continue;
+                }
+                
                 if (tx.MethodName.StartsWith("Supply"))
                 {
                     currentRoundInfo = RoundInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
