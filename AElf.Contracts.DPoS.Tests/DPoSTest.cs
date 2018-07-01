@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -27,7 +28,7 @@ namespace AElf.Contracts.DPoS.Tests
 
             _blockProducer = new BlockProducer();
             _blockProducer.Nodes.AddRange(Enumerable.Range(0, 17)
-                .Select(i => Convert.ToBase64String(Hash.Generate().ToAccount().Value.ToArray())));
+                .Select(i => (Hash.Generate().ToAccount().Value.ToByteArray().ToHex())));
         }
         
         [Fact]
@@ -338,12 +339,12 @@ namespace AElf.Contracts.DPoS.Tests
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().Value.ToBase64();
+            return accountHash.ToAccount().Value.ToByteArray().ToHex();
         }
 
         private Hash AddressStringToHash(string accountAddress)
         {
-            return Convert.FromBase64String(accountAddress);
+            return ByteArrayHelpers.FromHexString(accountAddress);
         }
     }
 }

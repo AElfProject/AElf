@@ -101,7 +101,7 @@ namespace AElf.Kernel.Tests.Miner
             mock.Setup(ws => ws.SetWorldStateAsync(It.IsAny<Hash>())).Returns( () =>
             {
                 Hash wsKey = chainId.CalculateHashWith(lastBlockHash);
-                dic[wsKey.Value.ToBase64()] = changeDict.ToByteArray();
+                dic[wsKey.Value.ToByteArray().ToHex()] = changeDict.ToByteArray();
 
                 //Refresh _preBlockHash after setting WorldState.
                 //_preBlockHash = preBlockHash;

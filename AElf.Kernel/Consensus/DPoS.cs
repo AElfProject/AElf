@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Node;
 using AElf.Types.CSharp;
@@ -522,12 +523,12 @@ namespace AElf.Kernel.Consensus
         
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().Value.ToBase64();
+            return accountHash.ToAccount().Value.ToByteArray().ToHex();
         }
 
         private Hash AddressStringToHash(string accountAddress)
         {
-            return Convert.FromBase64String(accountAddress);
+            return ByteArrayHelpers.FromHexString(accountAddress);
         }
     }
 }
