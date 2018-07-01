@@ -25,9 +25,9 @@ namespace AElf.Kernel.Node.RPC
         private const string GetTxMethodName = "get_tx";
         //private const string InsertTxMethodName = "insert_tx";
         private const string BroadcastTxMethodName = "broadcast_tx";
-        private const string GetPeersMethodName = "get_peers";
+        //private const string GetPeersMethodName = "get_peers";
         private const string GetIncrementIdMethodName = "get_increment";
-        private const string BroadcastBlockMethodName = "broadcast_block";
+        //private const string BroadcastBlockMethodName = "broadcast_block";
         private const string GetTxResultMethodName = "get_tx_result";
         private const string GetCommandsMethodName = "get_commands";
         private const string GetContractAbi = "get_contract_abi";
@@ -43,10 +43,10 @@ namespace AElf.Kernel.Node.RPC
             GetTxMethodName,
             //InsertTxMethodName,
             BroadcastTxMethodName,
-            GetPeersMethodName,
+            //GetPeersMethodName,
             GetCommandsMethodName,
             GetIncrementIdMethodName,
-            BroadcastBlockMethodName,
+            //BroadcastBlockMethodName,
             GetContractAbi,
             GetTxResultMethodName,
             GetGenesisiAddress,
@@ -202,18 +202,18 @@ namespace AElf.Kernel.Node.RPC
                     case BroadcastTxMethodName:
                         responseData = await ProcessBroadcastTx(reqParams);
                         break;
-                    case GetPeersMethodName:
+                    /*case GetPeersMethodName:
                         responseData = await ProcessGetPeers(reqParams);
-                        break;
+                        break;*/
                     case GetCommandsMethodName:
                         responseData = ProcessGetCommands();
                         break;
                     case GetIncrementIdMethodName:
                         responseData = await ProcessGetIncrementId(reqParams);
                         break;
-                    case BroadcastBlockMethodName:
+                    /*case BroadcastBlockMethodName:
                         responseData = await ProcessBroadcastBlock(reqParams);
-                        break;
+                        break;*/
                     case GetContractAbi:
                         responseData = await ProcessGetContractAbi(reqParams);
                         break;
@@ -400,44 +400,6 @@ namespace AElf.Kernel.Node.RPC
             var txInfo = tx == null ? new JObject {["tx"] = "Not Found"} : tx.GetTransactionInfo();
 
             return txInfo;
-        }
-
-        
-
-        private async Task<JObject> ProcessGetPeers(JObject reqParams)
-        {
-            string numPeersS = reqParams["numPeers"].ToString();
-            ushort? numPeers = null;
-            try
-            {
-                numPeers = Convert.ToUInt16(numPeersS);
-            }
-            catch
-            {
-                ;
-            }
-
-            if (numPeers.HasValue && numPeers.Value == 0)
-                return null;
-
-            List<NodeData> peers = await _node.GetPeers(numPeers);
-            List<NodeDataDto> peersDto = new List<NodeDataDto>();
-
-            foreach (var peer in peers)
-            {
-                NodeDataDto pDto = peer.ToNodeDataDto();
-                peersDto.Add(pDto);
-            }
-
-            var json = JsonConvert.SerializeObject(peersDto);
-            JArray arrPeersDto = JArray.Parse(json);
-
-            JObject j = new JObject()
-            {
-                ["data"] = arrPeersDto
-            };
-
-            return JObject.FromObject(j);
         }
 
         /// <summary>

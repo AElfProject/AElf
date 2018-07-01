@@ -158,7 +158,7 @@ namespace AElf.Kernel.Node
                     _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToByteArray().ToHex());
                     var contractAddress = GetGenesisContractHash();
                     _logger.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
-                        BitConverter.ToString(contractAddress.ToAccount().Value.ToByteArray()).Replace("-",""));
+                        contractAddress.ToAccount().Value.ToByteArray().ToHex());
                     
                 }
             }
@@ -567,8 +567,9 @@ namespace AElf.Kernel.Node
             int count = 0;
             count = await _protocolDirector.BroadcastBlock(block as Block);
 
-            _logger.Trace("Broadcasted block " + block.GetHash().Value.ToByteArray().ToHex() + " to " +
-                          count + $" peers. Current block height:{block.Header.Index}");
+            var bh = block.GetHash().Value.ToByteArray().ToHex();
+            _logger.Trace($"Broadcasted block \"{bh}\"  to [" +
+                          count + $"] peers. Block height: [{block.Header.Index}]");
 
             return true;
         }
@@ -687,7 +688,7 @@ namespace AElf.Kernel.Node
 
                             await BroadcastBlock(firstBlock);
                             
-                            _logger.Log(LogLevel.Debug, "Generate first extra block: {0}, with {1} transactions, able to mine in {2}", firstBlock.GetHash(),
+                            _logger.Log(LogLevel.Debug, "Generate first extra block: \"{0}\", with [{1}] transactions, able to mine in [{2}]", firstBlock.GetHash().Value.ToByteArray().ToHex(),
                                 firstBlock.Body.Transactions.Count, DateTime.UtcNow.ToString("u"));
 
                             return;
@@ -736,8 +737,8 @@ namespace AElf.Kernel.Node
                                 #region Do the log for mining normal block
                                 
                                 _logger.Log(LogLevel.Debug,
-                                    "Generate block: {0}, with {1} transactions, able to mine in {2}\n Published out value: {3}\n signature: {4}",
-                                    block.GetHash(), block.Body.Transactions.Count, DateTime.UtcNow.ToString("u"),
+                                    "Generate block: \"{0}\", with [{1}] transactions, able to mine in [{2}]\n Published out value: {3}\n signature: \"{4}\"",
+                                    block.GetHash().Value.ToByteArray().ToHex(), block.Body.Transactions.Count, DateTime.UtcNow.ToString("u"),
                                     outValue.Value.ToByteArray().ToHex(), 
                                     signature.Value.ToByteArray().ToHex());
                                 
