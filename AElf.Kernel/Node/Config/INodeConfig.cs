@@ -9,5 +9,6 @@ namespace AElf.Kernel.Node.Config
         Hash ChainId { get; set; }
         string DataDir { get; set; }
         bool IsChainCreator { get; set; }
+        bool ConsensusInfoGenerater { get; set; }
     }
 }
