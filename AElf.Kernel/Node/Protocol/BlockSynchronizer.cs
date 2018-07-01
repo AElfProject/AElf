@@ -34,6 +34,7 @@ namespace AElf.Kernel.Node.Protocol
     {
         public bool IsSend { get; set; }
         public Block Block { get; set; }
+        public Transaction Transaction { get; set; }
     }
 
     public class SyncPeer
@@ -326,15 +327,24 @@ namespace AElf.Kernel.Node.Protocol
 
                 try
                 {
-                    _logger?.Trace("Dequed block : " + j.Block.GetHash().Value.ToBase64());
-                
-                    bool b = AddBlockToSync(j.Block).Result;
-               
-                    /* print candidates */
-
-                    if (!b)
+                    if (j.Transaction != null)
                     {
-                        _logger.Trace("Could not add block to sync");
+                        SetTransaction(j.Transaction.GetHash().Value.ToByteArray());
+                    }
+                    else
+                    {
+                        // Process transaction
+                        
+                        _logger?.Trace("Dequed block : " + j.Block.GetHash().Value.ToBase64());
+                        
+                        bool b = AddBlockToSync(j.Block).Result;
+               
+                        /* print candidates */
+
+                        if (!b)
+                        {
+                            _logger.Trace("Could not add block to sync");
+                        }
                     }
 
                     if (PendingBlocks == null || PendingBlocks.Count <= 0)
@@ -379,13 +389,13 @@ namespace AElf.Kernel.Node.Protocol
                             }
                         }
                     }
-
+                    
                     bool success = RequestMissingTxs().Result;
 
                 }
                 catch (Exception e)
                 {
-                    _logger?.Trace("ERROR...");
+                    _logger?.Trace("Error while dequeuing and processing job.");
                 }
             }
         }
@@ -518,6 +528,7 @@ namespace AElf.Kernel.Node.Protocol
         internal async Task<List<PendingBlock>> TryExecuteBlocks(List<PendingBlock> pendingBlocks)
         {
             List<PendingBlock> toRemove = new List<PendingBlock>();
+            List<PendingBlock> executed = new List<PendingBlock>();
 
             var blcks = pendingBlocks.ToList();
             foreach (var pendingBlock in blcks)
@@ -538,6 +549,7 @@ namespace AElf.Kernel.Node.Protocol
                     {
                         // We can remove the pending block
                         toRemove.Add(pendingBlock);
+                        executed.Add(pendingBlock);
                         CurrentExecHeight++;
                         
                         if (CurrentExecHeight == SyncTargetHeight)
@@ -581,7 +593,7 @@ namespace AElf.Kernel.Node.Protocol
                 }
             }
 
-            return toRemove;
+            return executed;
         }
 
         /// <summary>
@@ -591,7 +603,7 @@ namespace AElf.Kernel.Node.Protocol
         /// It removes the transaction from the corresponding missing block.
         /// </summary>
         /// <param name="txHash"></param>
-        public bool SetTransaction(byte[] txHash)
+        private bool SetTransaction(byte[] txHash)
         {
             PendingBlock b = RemoveTxFromBlock(txHash);
 
