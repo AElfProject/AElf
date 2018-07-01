@@ -20,13 +20,13 @@ namespace AElf.Contracts.Genesis
         #region DPoS
 
         // The length of one timeslot for a miner to produce block
-        private const int MiningTime = 30000;
+        private const int MiningTime = 8000;
 
         // After the chain creator start a chain, wait for other mimers join
-        private const int WaitFirstRoundTime = 30000;
+        private const int WaitFirstRoundTime = 8000;
 
         // Block producers check interval
-        private const int CheckTime = 5000;
+        private const int CheckTime = 3000;
 
         [SmartContractFieldData("${this}._roundsCount", DataAccessMode.ReadWriteAccountSharing)]
         private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");

@@ -20,7 +20,7 @@ namespace AElf.Benchmark
         [Option(Default = "AElf.Benchmark.TestContract.dll", HelpText = "The dll file name that contains the token transfer contract.")]
         public string ContractDll { get; set; }
         
-        [Option(Default = "AElf.Kernel.Tests.TestContractZero.dll", HelpText = "The dll file name that contains the contract zero.")]
+        [Option(Default = "AElf.Contracts.Genesis.dll", HelpText = "The dll file name that contains the contract zero.")]
         public string ZeroContractDll { get; set; }
         
         [Option('f', "SupportedBenchmark", Default = "evenGroup", HelpText = "The benchmark you want to run. Choose one of the following options [evenGroup] (more benchmark method is under development)")]
@@ -41,7 +41,7 @@ namespace AElf.Benchmark
         [Option(Default = "127.0.0.1", HelpText = "host of the database, default is 127.0.0.1")]
         public string DbHost { get; set; }
         
-        [Option(HelpText = "port of the database, default is 8888")]
+        [Option(Default = 8888, HelpText = "port of the database, default is 8888")]
         public int DbPort { get; set; }
         
         public DatabaseConfig DatabaseConfig
