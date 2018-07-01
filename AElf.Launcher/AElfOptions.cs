@@ -27,7 +27,10 @@ namespace AElf.Launcher
         
         [Option("tcl", Default = (ulong) 1024, HelpText  = "Transaction count limit in one block")]
         public ulong TxCountLimit { get; set; }
-        
+
+        [Option('g', Default = false, HelpText = "Is the one who will generate DPoS information")]
+        public bool IsConsensusInfoGenerator { get; set; }
+
         /*[Option("ts", Default = (uint)1024, HelpText = "Transaction size limit")]
         public uint TxSizeLimit { get; set; }*/
         

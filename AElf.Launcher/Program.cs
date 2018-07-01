@@ -67,6 +67,7 @@ namespace AElf.Launcher
             var isNewChain = confParser.NewChain;
             var initData = confParser.InitData;
             nodeConfig.IsChainCreator = confParser.NewChain;
+            nodeConfig.ConsensusInfoGenerater = confParser.IsConsensusInfoGenerater;
             
             var runner = new SmartContractRunner(confParser.RunnerConfig);
             dir = confParser.RunnerConfig.SdkDir;

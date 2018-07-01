@@ -10,5 +10,6 @@ namespace AElf.Kernel.Node.Config
         public Hash Coinbase { get; set; }
         public string DataDir { get; set; }
         public bool IsChainCreator { get; set; }
+        public bool ConsensusInfoGenerater { get; set; }
     }
 }

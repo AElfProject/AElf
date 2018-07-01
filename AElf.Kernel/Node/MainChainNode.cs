@@ -690,7 +690,7 @@ namespace AElf.Kernel.Node
 
                         if (x == 0)
                         {
-                            if (!_nodeConfig.IsChainCreator) 
+                            if (!_nodeConfig.ConsensusInfoGenerater) 
                                 return;
 
                             var dpoSInfo = await ExecuteTxsForFirstExtraBlock();
