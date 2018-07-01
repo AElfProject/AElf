@@ -51,10 +51,18 @@ namespace AElf.Contracts.Token.Tests
             _contractZero.GetContractOwner(_contract.Address);
             
             // Initialize
-            _contract.Initialize("ELF", "AElf Token", 1000000000, 1);
+            _contract.Initialize("ELF", "AElf Token", 1000000000, 2);
+            Assert.True(_contract.TransactionContext.Trace.IsSuccessful());
             
-            Assert.Null(_contract.TransactionContext.Trace.StdErr);
-            Assert.Equal((ulong)0, _contract.TotalSupply());
+            // Basic info query
+            Assert.Equal("ELF", _contract.Symbol());
+            Assert.Equal("AElf Token", _contract.TokenName());
+            Assert.Equal((ulong)1000000000, _contract.TotalSupply());
+            Assert.Equal((uint)2, _contract.Decimals());
+            
+            // Cannot Initialize more than one time
+            _contract.Initialize("ELF", "AElf Token", 1000000000, 2);
+            Assert.False(_contract.TransactionContext.Trace.IsSuccessful());
         }
     }
 }
