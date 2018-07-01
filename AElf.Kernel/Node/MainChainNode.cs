@@ -666,6 +666,7 @@ namespace AElf.Kernel.Node
                 ulong latestMinedExtraBlockRoundsCount = 0;
                 //Use this value to make sure every BP try once in one timeslot
                 ulong latestTriedToHelpProducingExtraBlockRoundsCount = 0;
+                //Use this value to make sure every BP try to publish its in value onece in one timeslot
                 ulong lastTryToPublishInValueRoundsCount = 0;
 
                 var dPoSInfo = "";
@@ -689,14 +690,14 @@ namespace AElf.Kernel.Node
 
                         if (x == 0)
                         {
-                            if (!_nodeConfig.IsChainCreator) 
+                            if (!_nodeConfig.ConsensusInfoGenerater) 
                                 return;
 
                             var dpoSInfo = await ExecuteTxsForFirstExtraBlock();
 
                             await BroadcastSyncTxForFirstExtraBlock(dpoSInfo);
                             
-                            var firstBlock = await Mine(); //Which is an extra block
+                            var firstBlock = await Mine(); //Which is the first extra block (which can produce DPoS information)
 
                             await BroadcastBlock(firstBlock);
                             
@@ -851,7 +852,7 @@ namespace AElf.Kernel.Node
 
                         if (doLogsAboutConsensus)
                         {
-                            // If this node doesn't produce any block this interval.
+                            // If this node doesn't produce any block this timeslot.
                             //_logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
                         }
                     }
