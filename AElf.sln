@@ -79,8 +79,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Benchmark", "AElf.Benc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Genesis", "AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj", "{043F09E3-E58C-4274-95A2-0B6FF6B84A5D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "proto", "proto", "{D3022BED-1F10-4F1C-A2B8-75CE68553CBC}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Benchmark.TestContract", "AElf.Benchmark.TestContract\AElf.Benchmark.TestContract.csproj", "{F9D2366D-4579-48A6-A243-C0F9204F91B3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Token", "AElf.Contracts.Token\AElf.Contracts.Token.csproj", "{B57597B0-C237-4B06-A4AE-5C73E9883EBE}"
