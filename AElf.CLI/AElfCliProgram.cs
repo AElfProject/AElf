@@ -157,9 +157,17 @@ namespace AElf.CLI
                             _screenManager.PrintError("Wrong data formant.");
                             return;
                         }
-                        
 
-                        var dd = Deserializer.Deserialize(t, sd);
+                        object dd;
+                        try
+                        {
+                            dd = Deserializer.Deserialize(t, sd);
+                        }
+                        catch (Exception e)
+                        {
+                            _screenManager.PrintError("Invalid data format");
+                            return;
+                        }
                         if (dd == null)
                         {
                             _screenManager.PrintError("Not supported type.");
@@ -202,7 +210,12 @@ namespace AElf.CLI
                                 _screenManager.PrintError(ServerConnError);
                                 return;
                             }
-                        
+
+                            if (resp.IsEmpty())
+                            {
+                                _screenManager.PrintError("Address not Found or wrong format");
+                                return;
+                            }
                             JObject jObj = JObject.Parse(resp);
                             var res = JObject.FromObject(jObj["result"]);
                         

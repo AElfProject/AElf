@@ -380,8 +380,17 @@ namespace AElf.Kernel.Node.RPC
 
             var res = await _node.BroadcastTransaction(t);
 
-            byte[] hash = t.GetHash().Value.ToByteArray();
-            JObject j = new JObject { ["hash"] = t.GetHash().Value.ToByteArray().ToHex() };
+            JObject j;
+            if (!res)
+            {
+                j = new JObject
+                {
+                    ["error"] = "Invalid transaction"
+                };
+                return JObject.FromObject(j);
+            }
+
+            j = new JObject { ["hash"] = t.GetHash().Value.ToByteArray().ToHex() };
             
             return JObject.FromObject(j);
         }
