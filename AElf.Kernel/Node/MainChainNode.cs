@@ -73,6 +73,11 @@ namespace AElf.Kernel.Node
         private int _flag = 0;
         public bool IsMining { get; private set; } = false;
 
+        public int IsMiningInProcess
+        {
+            get { return _flag; }
+        }
+
         public BlockProducer BlockProducers
         {
             get
@@ -311,16 +316,18 @@ namespace AElf.Kernel.Node
             try
             {
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
-
-                //_logger.Trace("Received Transaction: " + Convert.ToBase64String(tx.GetHash().Value.ToByteArray()));
                 
                 bool success = await _poolService.AddTxAsync(tx);
 
                 if (!success)
+                {
+                    _logger.Trace("DID NOT add Transaction to pool: FROM, " + Convert.ToBase64String(tx.From.Value.ToByteArray()) + ", INCR : " + tx.IncrementId);
                     return;
+                }
 
                 if (isFromSend)
                 {
+                    _logger.Trace("Received Transaction: " + "FROM, " + Convert.ToBase64String(tx.From.Value.ToByteArray()) + ", INCR : " + tx.IncrementId);
                     _protocolDirector.AddTransaction(tx);
                 }
             }
@@ -823,6 +830,10 @@ namespace AElf.Kernel.Node
                             if (await BroadcastBlock(extraBlock))
                             {
                                 latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
+                            }
+                            else
+                            {
+                                return;
                             }
 
                             #region Broadcast his out value and signature after helping mining extra block

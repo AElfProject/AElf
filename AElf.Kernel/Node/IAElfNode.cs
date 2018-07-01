@@ -18,5 +18,7 @@ namespace AElf.Kernel.Node
         BlockProducer BlockProducers { get; }
         Hash ContractAccountHash { get; }
         IExecutive Executive { get; }
+        
+        int IsMiningInProcess { get; }
     }
 }

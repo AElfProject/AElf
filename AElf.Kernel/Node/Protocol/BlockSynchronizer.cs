@@ -486,7 +486,7 @@ namespace AElf.Kernel.Node.Protocol
             
             if (GetBlock(h) != null)
             {
-                //theEvent.WaitOne();
+                _logger?.Trace("Block already in pending list.");
                 return false;
             }
 
@@ -523,7 +523,13 @@ namespace AElf.Kernel.Node.Protocol
             foreach (var pendingBlock in blcks)
             {
                 Block block = pendingBlock.Block;
+                
+                if (_mainChainNode.IsMiningInProcess == 1)
+                    _logger?.Trace("----- MINING !!");
+                    
                 BlockExecutionResult res = await _mainChainNode.ExecuteAndAddBlock(block);
+                
+                _logger?.Trace($"Block execution result : {res.Executed}, {res.ValidationError} : { block.GetHash().Value.ToBase64() } - Index {block.Header.Index}");
 
                 if (res.Executed)
                 {
@@ -550,17 +556,17 @@ namespace AElf.Kernel.Node.Protocol
                     {
                         // We ensure that the property is coherent
                         pendingBlock.IsWaitingForPrevious = true;
-                        _logger?.Trace("-- Pending block at height " + pendingBlock.Block.Header.Index);
+                        //_logger?.Trace("-- Pending block at height " + pendingBlock.Block.Header.Index);
                     }
                     else if (res.ValidationError == ValidationError.AlreadyExecuted)
                     {
                         toRemove.Add(pendingBlock);
-                        _logger?.Trace("Block { " + Convert.ToBase64String(pendingBlock.BlockHash) + " } at height " + pendingBlock.Block.Header.Index + " was already executed.");
+                        //_logger?.Trace("Block { " + Convert.ToBase64String(pendingBlock.BlockHash) + " } at height " + pendingBlock.Block.Header.Index + " was already executed.");
                     }
                     else
                     {
                         toRemove.Add(pendingBlock);
-                        _logger?.Trace("-- Other situationat height " + pendingBlock.Block.Header.Index);
+                        //_logger?.Trace("-- Other situationat height " + pendingBlock.Block.Header.Index);
                         // todo deal with blocks that we're not executed
                     }
                 }
