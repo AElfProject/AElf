@@ -31,15 +31,15 @@ namespace AElf.Contracts.Token.Tests
             }
         }
         
-        public TokenContractTest(MockSetup mock, ContractZeroShim contractZero)
+        public TokenContractTest(MockSetup mock)
         {
             _mock = mock;
-            _contractZero = contractZero;
             Init();
         }
 
         private void Init()
         {
+            _contractZero = new ContractZeroShim(_mock);
             _contractZero.DeploySmartContract(0, Code);
             var address = new Hash(_contractZero.TransactionContext.Trace.RetVal.DeserializeToBytes());
             _contract = new TokenContractShim(_mock, address);
