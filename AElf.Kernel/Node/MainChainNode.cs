@@ -750,22 +750,18 @@ namespace AElf.Kernel.Node
 
                                 var block = await Mine();
 
-                                if (await BroadcastBlock(block))
-                                {
-                                    latestMinedNormalBlockRoundsCount = roundsCount;
-                                }
-
-                                #region Do the log for mining normal block
+                                if (!await BroadcastBlock(block)) 
+                                    return;
                                 
+                                latestMinedNormalBlockRoundsCount = roundsCount;
+                                    
                                 _logger.Log(LogLevel.Debug,
                                     "Generate block: {0}, with {1} transactions, able to mine in {2}\n Published out value: {3}\n signature: {4}",
                                     block.GetHash(), block.Body.Transactions.Count, DateTime.UtcNow.ToString("u"),
                                     outValue.Value.ToBase64(), 
                                     signature.Value.ToBase64());
-                                
-                                return;
 
-                                #endregion
+                                return;
                             }
                         }
 
@@ -797,16 +793,16 @@ namespace AElf.Kernel.Node
 
                                 var extraBlock = await Mine(); //Which is an extra block
 
-                                if (await BroadcastBlock(extraBlock))
-                                {
-                                    latestMinedExtraBlockRoundsCount = roundsCount;
-                                }
+                                if (!await BroadcastBlock(extraBlock)) 
+                                    return;
                                 
+                                latestMinedExtraBlockRoundsCount = roundsCount;
+                                    
                                 _logger.Log(LogLevel.Debug,
                                     "Generate extra block: {0}, with {1} transactions, able to mine in {2}",
                                     extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
                                     DateTime.UtcNow.ToString("u"));
-                                
+
                                 return;
                             }
                         }
@@ -830,6 +826,11 @@ namespace AElf.Kernel.Node
                             if (await BroadcastBlock(extraBlock))
                             {
                                 latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
+                                
+                                _logger.Log(LogLevel.Debug,
+                                    "Help to generate extra block: {0}, with {1} transactions, able to mine in {2}",
+                                    extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
+                                    DateTime.UtcNow.ToString("u"));
                             }
                             else
                             {
@@ -851,11 +852,7 @@ namespace AElf.Kernel.Node
 
                             #endregion
 
-                            _logger.Log(LogLevel.Debug,
-                                "Help to generate extra block: {0}, with {1} transactions, able to mine in {2}",
-                                extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
-                                DateTime.UtcNow.ToString("u"));
-                            
+
                             return;
                         }
 
