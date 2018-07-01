@@ -15,7 +15,6 @@ namespace AElf.Kernel.Concurrency
             _functionMetadataService = functionMetadataService;
         }
 
-#if PARALLEL
         public IEnumerable<string> GetResources(Hash chainId, ITransaction transaction)
         {
             
@@ -42,12 +41,6 @@ namespace AElf.Kernel.Concurrency
 
             return results;
         }
-#else
-        public IEnumerable<string> GetResources(Hash chainId, ITransaction transaction)
-        {
-            return new List<string>(){"__placeholder__"};
-        }
-#endif
 
         private string GetFunctionName(ITransaction tx)
         {
