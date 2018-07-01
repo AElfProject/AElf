@@ -72,6 +72,7 @@ namespace AElf.Kernel.Node
         private const int CheckTime = 5000;
 
         private int _flag = 0;
+        public bool IsMining { get; private set; } = false;
 
         public BlockProducer BlockProducers
         {
@@ -213,7 +214,7 @@ namespace AElf.Kernel.Node
             {
                 _miner.Start(nodeKeyPair, grouper);
                 
-                DoDPos();
+                //DoDPos();
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToByteArray().ToHex());
             }
             
@@ -223,6 +224,10 @@ namespace AElf.Kernel.Node
         }
 
 
+        public bool IsMiner()
+        {
+            return _nodeConfig.IsMiner;
+        }
         
         private async Task<bool> InitialDebugSync(string initFileName)
         {
@@ -380,7 +385,7 @@ namespace AElf.Kernel.Node
                 Console.WriteLine("try execute block");
                 if (error != ValidationError.Success)
                 {
-                    _logger.Trace("Invalid block received from network" + error.ToString());
+                    _logger.Trace("Invalid block received from network: " + error.ToString());
                     return new BlockExecutionResult(false, error);
                 }
 
@@ -542,6 +547,11 @@ namespace AElf.Kernel.Node
         /// </summary>
         public void DoDPos()
         {
+            if (IsMining)
+                return;
+
+            IsMining = true;
+            
             DoDPoSMining(_nodeConfig.IsMiner);
         }
 
@@ -650,7 +660,7 @@ namespace AElf.Kernel.Node
                 
                 //Use this value to make sure every BP produce one block in one timeslot
                 ulong latestMinedNormalBlockRoundsCount = 0;
-                //Use this value to make sure every EBP produce one block in one timeslot
+                //Use thisvalue to make sure every EBP produce one block in one timeslot
                 ulong latestMinedExtraBlockRoundsCount = 0;
                 //Use this value to make sure every BP try once in one timeslot
                 ulong latestTriedToHelpProducingExtraBlockRoundsCount = 0;
@@ -729,10 +739,11 @@ namespace AElf.Kernel.Node
                                 await BroadcastTxsForNormalBlock(roundsCount, outValue, signature, await GetIncrementId(_nodeKeyPair.GetAddress()));
 
                                 var block = await Mine();
-                                
-                                await BroadcastBlock(block);
-                                
-                                latestMinedNormalBlockRoundsCount = roundsCount;
+
+                                if (await BroadcastBlock(block))
+                                {
+                                    latestMinedNormalBlockRoundsCount = roundsCount;
+                                }
 
                                 #region Do the log for mining normal block
                                 
@@ -776,9 +787,10 @@ namespace AElf.Kernel.Node
 
                                 var extraBlock = await Mine(); //Which is an extra block
 
-                                await BroadcastBlock(extraBlock);
-                                
-                                latestMinedExtraBlockRoundsCount = roundsCount;
+                                if (await BroadcastBlock(extraBlock))
+                                {
+                                    latestMinedExtraBlockRoundsCount = roundsCount;
+                                }
                                 
                                 _logger.Log(LogLevel.Debug,
                                     "Generate extra block: {0}, with {1} transactions, able to mine in {2}",
@@ -795,7 +807,6 @@ namespace AElf.Kernel.Node
 
                         if (latestTriedToHelpProducingExtraBlockRoundsCount != roundsCount && await CheckAbleToHelpMiningExtraBlock())
                         {
-                            latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
 
                             var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
 
@@ -805,8 +816,11 @@ namespace AElf.Kernel.Node
                                 extraBlockResult.Item2, extraBlockResult.Item3);
                             
                             var extraBlock = await Mine(); //Which is an extra block
-                            
-                            await BroadcastBlock(extraBlock);
+
+                            if (await BroadcastBlock(extraBlock))
+                            {
+                                latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
+                            }
 
                             #region Broadcast his out value and signature after helping mining extra block
 
