@@ -71,6 +71,7 @@ namespace AElf.Kernel.Node
         private const int CheckTime = 5000;
 
         private int _flag = 0;
+        public bool IsMining { get; private set; } = false;
 
         public BlockProducer BlockProducers
         {
@@ -213,7 +214,7 @@ namespace AElf.Kernel.Node
             {
                 _miner.Start(nodeKeyPair, grouper);
                 
-                DoDPos();
+                //DoDPos();
                 _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToByteArray().ToHex());
             }
             
@@ -223,6 +224,10 @@ namespace AElf.Kernel.Node
         }
 
 
+        public bool IsMiner()
+        {
+            return _nodeConfig.IsMiner;
+        }
         
         private async Task<bool> InitialDebugSync(string initFileName)
         {
@@ -545,6 +550,11 @@ namespace AElf.Kernel.Node
         /// </summary>
         public void DoDPos()
         {
+            if (IsMining)
+                return;
+
+            IsMining = true;
+            
             DoDPoSMining(_nodeConfig.IsMiner);
         }
 
@@ -652,7 +662,7 @@ namespace AElf.Kernel.Node
                 
                 //Use this value to make sure every BP produce one block in one timeslot
                 ulong latestMinedNormalBlockRoundsCount = 0;
-                //Use this value to make sure every EBP produce one block in one timeslot
+                //Use thisvalue to make sure every EBP produce one block in one timeslot
                 ulong latestMinedExtraBlockRoundsCount = 0;
                 //Use this value to make sure every BP try once in one timeslot
                 ulong latestTriedToHelpProducingExtraBlockRoundsCount = 0;
