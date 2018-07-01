@@ -5,8 +5,6 @@ using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using AElf.Types.CSharp.MetadataAttribute;
-using Google.Protobuf;
 using Google.Protobuf;
 using Api = AElf.Sdk.CSharp.Api;
 namespace AElf.Contracts.Genesis
@@ -75,13 +73,9 @@ namespace AElf.Contracts.Genesis
 
         private readonly SerialNumber _serialNumber = SerialNumber.Instance;
         private readonly Map<Hash, ContractInfo> _contractInfos = new Map<Hash, ContractInfo>("__contractInfos__");
-        
-        [SmartContractFieldData("${this}._lock", DataAccessMode.ReadWriteAccountSharing)]
-        private readonly object _lock;
 
         #endregion Fields
 
-        [SmartContractFunction("${this}.DeploySmartContract", new string[]{}, new []{"${this}._lock"})]
         public async Task<byte[]> DeploySmartContract(int category, byte[] code)
         {
             ulong serialNumber = _serialNumber.Increment().Value;
@@ -117,7 +111,6 @@ namespace AElf.Contracts.Genesis
             return address.Value.ToByteArray();
         }
 
-        [SmartContractFunction("${this}.ChangeContractOwner", new string[]{}, new []{"${this}._lock"})]
         public void ChangeContractOwner(Hash contractAddress, Hash newOwner)
         {
             var info = _contractInfos[contractAddress];
@@ -133,7 +126,6 @@ namespace AElf.Contracts.Genesis
             }.Fire();
         }
         
-        [SmartContractFunction("${this}.GetContractOwner", new string[]{}, new []{"${this}._lock"})]
         public Hash GetContractOwner(Hash contractAddress)
         {
             var info = _contractInfos[contractAddress];
