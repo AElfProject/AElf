@@ -85,7 +85,8 @@ namespace AElf.Sdk.CSharp
             {
                 return (Hash) ParamsPacker.Unpack(GetCallResult(), new[] {typeof(Hash)})[0];
             }
-            throw new InternalError("Failed to get owner of contract.");
+
+            throw new InternalError("Failed to get owner of contract.\n" + _lastInlineCallContext.Trace.StdErr);
         }
 
         public static IDataProvider GetDataProvider(string name)
@@ -128,14 +129,14 @@ namespace AElf.Sdk.CSharp
                     Params = ByteString.CopyFrom(args)
                 }
             };
-
+            var svc = _smartContractContext.SmartContractService;
+            var ctxt = _lastInlineCallContext;
+            var chainId = _smartContractContext.ChainId;
             Task.Factory.StartNew(async () =>
             {
-                var executive =
-                    await _smartContractContext.SmartContractService.GetExecutiveAsync(contractAddress,
-                        _smartContractContext.ChainId);
+                var executive = await svc.GetExecutiveAsync(contractAddress, chainId);
                 // Inline calls are not auto-committed.
-                await executive.SetTransactionContext(_lastInlineCallContext).Apply(false);
+                await executive.SetTransactionContext(ctxt).Apply(false);
             }).Unwrap().Wait();
 
             if (_lastInlineCallContext.Trace.IsSuccessful())
@@ -163,13 +164,14 @@ namespace AElf.Sdk.CSharp
                 }
             };
 
+            var svc = _smartContractContext.SmartContractService;
+            var ctxt = _lastInlineCallContext;
+            var chainId = _smartContractContext.ChainId;
             Task.Factory.StartNew(async () =>
             {
-                var executive =
-                    await _smartContractContext.SmartContractService.GetExecutiveAsync(contractAddress,
-                        _smartContractContext.ChainId);
+                var executive = await svc.GetExecutiveAsync(contractAddress, chainId);
                 // Inline calls are not auto-committed.
-                await executive.SetTransactionContext(_lastInlineCallContext).Apply(false);
+                await executive.SetTransactionContext(ctxt).Apply(false);
             }).Unwrap().Wait();
 
             _transactionContext.Trace.Logs.AddRange(_lastInlineCallContext.Trace.Logs);
