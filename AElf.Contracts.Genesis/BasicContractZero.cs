@@ -137,10 +137,6 @@ namespace AElf.Contracts.Genesis
         public Hash GetContractOwner(Hash contractAddress)
         {
             var info = _contractInfos[contractAddress];
-            Console.Write("\r\ngetting owner for : "  + contractAddress);
-            Console.Write("\r\nchain id is: " + Api.GetChainId());
-            Console.Write("\r\ncaller is: " + Api.GetTransaction().From);
-            Console.Write("\r\nowner is: " + info.Owner);
             return info.Owner;
         }
     }
