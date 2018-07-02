@@ -177,12 +177,6 @@ namespace AElf.Launcher
                 ActorConfig.Instance.HostName = opts.ActorHostName;
             if (opts.ActorPort.HasValue)
                 ActorConfig.Instance.Port = opts.ActorPort.Value;
-            if (opts.ActorIsSeed.HasValue)
-                ActorWorkerConfig.Instance.IsSeedNode = opts.ActorIsSeed.Value;
-            if (!string.IsNullOrWhiteSpace(opts.ActorWorkerHostName))
-                ActorWorkerConfig.Instance.HostName = opts.ActorWorkerHostName;
-            if (opts.ActorWorkerPort.HasValue)
-                ActorWorkerConfig.Instance.Port = opts.ActorWorkerPort.Value;
 
             NodeConfig.DataDir = string.IsNullOrEmpty(opts.DataDir)
                 ? ApplicationHelpers.GetDefaultDataDir()

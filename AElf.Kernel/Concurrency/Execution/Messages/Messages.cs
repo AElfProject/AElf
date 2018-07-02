@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Types;
 using Akka.Actor;
-using Akka.Cluster;
-using Akka.Routing;
 
 namespace AElf.Kernel.Concurrency.Execution.Messages
 {
@@ -134,7 +130,7 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
     /// <summary>
     /// Message sent to local requestor for transaction execution.
     /// </summary>
-    public sealed class LocalExecuteTransactionsMessage:IConsistentHashable
+    public sealed class LocalExecuteTransactionsMessage
     {
         public LocalExecuteTransactionsMessage(Hash chainId, List<ITransaction> transactions, TaskCompletionSource<List<TransactionTrace>> taskCompletionSource)
         {
@@ -146,7 +142,6 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
         public Hash ChainId { get; }
         public List<ITransaction> Transactions { get; }
         public TaskCompletionSource<List<TransactionTrace>> TaskCompletionSource { get; }
-        public object ConsistentHashKey { get; }
     }
 
 //    public sealed class TransactionResultMessage
@@ -159,18 +154,16 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 //        public TransactionResult TransactionResult { get; }
 //    }
 
-    public sealed class TransactionTraceMessage : IConsistentHashable
+    public sealed class TransactionTraceMessage
     {
         public TransactionTraceMessage(long requestId, TransactionTrace transactionTrace)
         {
             RequestId = requestId;
             TransactionTrace = transactionTrace;
-            ConsistentHashKey = GetHashCode();
         }
 
         public long RequestId { get; set; }
         public TransactionTrace TransactionTrace { get; set; }
-        public object ConsistentHashKey { get; }
     }
 
     #region Singleton Messages
@@ -246,7 +239,7 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 //        public IActorRef Router { get; }
 //    }
 
-    public class JobExecutionRequest:IConsistentHashable
+    public class JobExecutionRequest
     {
         public JobExecutionRequest(long requestId, Hash chainId, List<ITransaction> transactions, IActorRef resultCollector, IActorRef router)
         {
@@ -255,7 +248,6 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
             Transactions = transactions;
             ResultCollector = resultCollector;
             Router = router;
-            ConsistentHashKey = GetHashCode();
         }
 
         public long RequestId { get; set; }
@@ -264,10 +256,9 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
         public IActorRef ResultCollector { get; set; }
         public IActorRef Router { get; set; }
 
-        public object ConsistentHashKey { get; }
     }
 
-    public sealed class JobExecutionCancelMessage:IConsistentHashable
+    public sealed class JobExecutionCancelMessage
     {
         private JobExecutionCancelMessage() { }
 
@@ -281,11 +272,9 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
         {
             return "<JobExecutionCancelMessage>";
         }
-
-        public object ConsistentHashKey { get; }
     }
 
-    public sealed class JobExecutionCancelAckMessage:IConsistentHashable
+    public sealed class JobExecutionCancelAckMessage
     {
         private JobExecutionCancelAckMessage() { }
 
@@ -299,11 +288,9 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
         {
             return "<JobExecutionCancelAckMessage>";
         }
-
-        public object ConsistentHashKey { get; }
     }
     
-    public sealed class JobExecutionStatusQuery:IConsistentHashable
+    public sealed class JobExecutionStatusQuery
     {
         public JobExecutionStatusQuery(long requestId)
         {
@@ -311,10 +298,9 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
         }
 
         public long RequestId { get; }
-        public object ConsistentHashKey { get; }
     }
     
-    public sealed class JobExecutionStatus:IConsistentHashable
+    public sealed class JobExecutionStatus
     {
         public enum RequestStatus
         {
@@ -334,7 +320,6 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 
         public long RequestId { get; }
         public RequestStatus Status { get; }
-        public object ConsistentHashKey { get; }
     }
 
     #endregion Routed workers
