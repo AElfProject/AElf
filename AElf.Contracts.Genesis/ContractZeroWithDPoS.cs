@@ -4,13 +4,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using AElf.Types.CSharp.MetadataAttribute;
 using SharpRepository.Repository.Configuration;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Logging;
-using NServiceKit.Logging;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Genesis
@@ -630,17 +626,17 @@ namespace AElf.Contracts.Genesis
         {
             ulong count = 1;
 
-            if (RoundsCount != null)
+            if (RoundsCount.Value != 0)
             {
                 count = RoundsCount.Value;
             }
-            var result = "";
+            var infoOfOneRound = "";
 
             ulong i = 1;
             while (i <= count)
             {
                 var roundInfoStr = await GetRoundInfoToString(new UInt64Value {Value = i});
-                result += $"\n[Round {i}]\n" + roundInfoStr;
+                infoOfOneRound += $"\n[Round {i}]\n" + roundInfoStr;
                 i++;
             }
 
@@ -650,11 +646,55 @@ namespace AElf.Contracts.Genesis
             var res = new StringValue
             {
                 Value
-                    = result + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
+                    = infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
                              + "Current Round : " + RoundsCount?.Value
             };
             
             return res;
+        }
+
+        // ReSharper disable once InconsistentNaming
+        public async Task<StringValue> GetDPoSInfoToStringOfLatestRounds(UInt64Value countOfRounds)
+        {
+            if (RoundsCount.Value == 0)
+            {
+                return new StringValue {Value = "No DPoS Information, maybe failed to sync blocks"};
+            }
+            
+            var currentRoundsCount = RoundsCount.Value;
+            ulong startRound;
+            if (countOfRounds.Value >= currentRoundsCount)
+            {
+                startRound = 1;
+            }
+            else
+            {
+                startRound = currentRoundsCount - countOfRounds.Value + 1;
+            }
+
+            var infoOfOneRound = "";
+            var i = startRound;
+            while (i <= currentRoundsCount)
+            {
+                if (i <= 0)
+                {
+                    continue;
+                }
+
+                var roundInfoStr = await GetRoundInfoToString(new UInt64Value {Value = i});
+                infoOfOneRound += $"\n[Round {i}]\n" + roundInfoStr;
+                i++;
+            }
+            
+            // ReSharper disable once InconsistentNaming
+            var eBPTimeslot = await _timeForProducingExtraBlock.GetAsync();
+
+            return new StringValue
+            {
+                Value
+                    = infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
+                                     + "Current Round : " + RoundsCount.Value
+            };
         }
 
         public async Task<string> GetRoundInfoToString(UInt64Value roundsCount)
@@ -785,6 +825,5 @@ namespace AElf.Contracts.Genesis
         #endregion
 
         #endregion
-        
     }
 }

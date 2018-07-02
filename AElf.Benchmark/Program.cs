@@ -73,9 +73,28 @@ namespace AElf.Benchmark
                 return;
             }
             
-            DatabaseConfig.Instance.Type = opts.BenchmarkDatabaseConfig.Type;
-            DatabaseConfig.Instance.Host = opts.BenchmarkDatabaseConfig.Host;
-            DatabaseConfig.Instance.Port = opts.BenchmarkDatabaseConfig.Port;
+            if (!string.IsNullOrWhiteSpace(opts.Database) || DatabaseConfig.Instance.Type == DatabaseType.KeyValue)
+            {
+                try
+                {
+                    DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.Database);
+                }
+                catch (ArgumentException)
+                {
+                    Console.WriteLine($"Database {opts.Database} not supported, use one of the following databases: [keyvalue, redis, ssdb]");
+                    return;
+                }
+            }
+            
+            if (!string.IsNullOrWhiteSpace(opts.DbHost))
+            {
+                DatabaseConfig.Instance.Host = opts.DbHost;
+            }
+
+            if (opts.DbPort.HasValue)
+            {
+                DatabaseConfig.Instance.Port = opts.DbPort.Value;
+            }  
             
             var builder = new ContainerBuilder();
             builder.RegisterModule(new MainModule());

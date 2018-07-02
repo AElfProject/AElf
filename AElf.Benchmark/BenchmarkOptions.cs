@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.IO;
-using System.Net;
+﻿using System.Collections.Generic;
 using AElf.Database;
-using AElf.Database.Config;
 using CommandLine;
-using CommandLine.Text;
 
 namespace AElf.Benchmark
 {
@@ -36,33 +30,15 @@ namespace AElf.Benchmark
         [Option(Default = 10, HelpText = "how many time to repeat the benchmark to get more stable result, default is 10")]
         public int RepeatTime { get; set; }
         
-        [Option(Default = "in-memory", HelpText = "which database to choose [in-memory, redis, ssdb], default is in-memory")]
+        [Option(HelpText = "which database to choose [keyvalue (in-memory), redis, ssdb], default is keyvalue")]
         public string Database { get; set; }
 
-        [Option(Default = "127.0.0.1", HelpText = "host of the database, default is 127.0.0.1")]
+        [Option(HelpText = "host of the database, default is 127.0.0.1")]
         public string DbHost { get; set; }
         
-        [Option(Default = 8888, HelpText = "port of the database, default is 8888")]
-        public int DbPort { get; set; }
+        [Option(HelpText = "port of the database, default is 8888")]
+        public int? DbPort { get; set; }
         
-        public DatabaseConfig BenchmarkDatabaseConfig
-        {
-            get
-            {
-                if (!dbTypes.TryGetValue(Database, out var dbType))
-                {
-                    Console.WriteLine("non-supported database " + Database + ", choose in-memory instead");
-                    dbType = DatabaseType.KeyValue;
-                }
-
-                return new DatabaseConfig()
-                {
-                    Type = dbType,
-                    Host = DbHost,
-                    Port = DbPort
-                };
-            }
-        }
         
         public static Dictionary<string, DatabaseType> dbTypes = new Dictionary<string, DatabaseType>()
         {
