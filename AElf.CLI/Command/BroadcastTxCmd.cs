@@ -41,10 +41,11 @@ namespace AElf.CLI.Command
         
         public override string GetPrintString(JObject resp)
         {
-            string hash = resp["hash"].ToString();
+            string hash = resp["hash"] == null ? resp["error"].ToString() :resp["hash"].ToString();
+            string res = resp["hash"] == null ? "error" : "txId";
             var jobj = new JObject
             {
-                ["txId"] = hash
+                [res] = hash
             };
             return jobj.ToString();
         }

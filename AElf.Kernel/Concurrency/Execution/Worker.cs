@@ -186,7 +186,7 @@ namespace AElf.Kernel.Concurrency.Execution
 
         private async Task<TransactionTrace> ExecuteTransaction(IChainContext chainContext, ITransaction transaction)
         {
-            //_servicePack.Logger.Info("tx id {0} start execute", transaction.GetHash().Value.ToBase64());
+            
             var trace = new TransactionTrace()
             {
                 TransactionId = transaction.GetHash()

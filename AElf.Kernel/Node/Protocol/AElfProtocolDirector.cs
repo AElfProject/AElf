@@ -232,7 +232,7 @@ namespace AElf.Kernel.Node.Protocol
             {
                 Block b = Block.Parser.ParseFrom(message.Payload);
                 
-                _logger?.Trace("Block received: " + Convert.ToBase64String(b.GetHash().Value.ToByteArray()));
+                _logger?.Trace("Block received: " + b.GetHash().Value.ToByteArray().ToHex());
                 _blockSynchronizer.EnqueueJob(new Job { Block = b });
 
                 /*if (types == MessageTypes.BroadcastBlock)

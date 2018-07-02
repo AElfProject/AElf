@@ -127,25 +127,6 @@ namespace AElf.Kernel.Tests
         }
 
 
-        [Fact]
-        public void Print()
-        {
-            var aelf = "AElf"; 
-            var @params = new Parameters
-            {
-                Params =
-                {
-                    new Param
-                    {
-                        StrVal = aelf
-                    }
-                }
-            };
-            var str = "CgY6BEFFbGY=";
-            var bytes = Convert.FromBase64String(str);
-            var p = Parameters.Parser.ParseFrom(ByteString.CopyFrom(bytes).ToByteArray());
-            Assert.Equal(aelf, p.Params[0].StrVal);
-        }
         
     }
 }

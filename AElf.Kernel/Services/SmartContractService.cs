@@ -102,9 +102,11 @@ namespace AElf.Kernel.Services
             runner.CodeCheck(registration.ContractBytes.ToByteArray(), isPrivileged);
 
             var contractType = GetContractType(registration);
+
+#if PARALLEL
             //TODO: due to (1) unclear with how to get the contract reference info and (2) function metadata service don't have update logic, we pass empty reference map as parameter and don't support contract call each other for now 
             await _functionMetadataService.DeployContract(chainId, contractType, account, new Dictionary<string, Hash>());
-
+#endif
             await _smartContractManager.InsertAsync(account, registration);
         }
 

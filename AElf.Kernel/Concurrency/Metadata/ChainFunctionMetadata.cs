@@ -60,7 +60,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 foreach (var localFuncName in topologicRes.Reverse())
                 {
                     var funcNameWithAddr =
-                        Replacement.ReplaceValueIntoReplacement(localFuncName, Replacement.This, contractAddr.Value.ToBase64());
+                        Replacement.ReplaceValueIntoReplacement(localFuncName, Replacement.This, contractAddr.Value.ToByteArray().ToHex());
                     var funcMetadata = GetMetadataForNewFunction(funcNameWithAddr, classTemplate[localFuncName], contractAddr, contractReferences, tempMap);
                 
                     tempMap.Add(funcNameWithAddr, funcMetadata);
@@ -96,7 +96,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         {
             var resourceSet = new HashSet<Resource>(functionTemplate.LocalResourceSet.Select(resource =>
                 {
-                    var resName = Replacement.ReplaceValueIntoReplacement(resource.Name, Replacement.This, contractAddr.Value.ToBase64());
+                    var resName = Replacement.ReplaceValueIntoReplacement(resource.Name, Replacement.This, contractAddr.Value.ToByteArray().ToHex());
                     return new Resource(resName, resource.DataAccessMode);
                 }));
             
@@ -117,7 +117,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 if (locationReplacement.Equals(Replacement.This))
                 {
                     var replacedCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, Replacement.This,
-                        contractAddr.Value.ToBase64());
+                        contractAddr.Value.ToByteArray().ToHex());
                     if (!localMetadataMap.TryGetValue(replacedCalledFunc, out var localCalledFuncMetadata))
                     {
                         throw new FunctionMetadataException("There are no local function " + replacedCalledFunc + " in the given local function map, consider wrong reference cause wrong topological order");
@@ -132,7 +132,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                         throw new FunctionMetadataException("There are no member reference " + Replacement.Value(locationReplacement) + " in the given contractReferences map");
                     }
                     var replacedCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, locationReplacement,
-                        referenceAddr.Value.ToBase64());
+                        referenceAddr.Value.ToByteArray().ToHex());
                     
                     var metadataOfCalledFunc = GetFunctionMetadata(replacedCalledFunc); //could throw exception
                     

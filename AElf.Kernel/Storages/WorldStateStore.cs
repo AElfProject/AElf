@@ -17,13 +17,13 @@ namespace AElf.Kernel.Storages
         public async Task InsertWorldStateAsync(Hash chainId, Hash blockHash, ChangesDict changes)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
-            await _keyValueDatabase.SetAsync(wsKey.Value.ToBase64(), changes.Serialize());
+            await _keyValueDatabase.SetAsync(wsKey.Value.ToByteArray().ToHex(), changes.Serialize());
         }
 
         public async Task<WorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
-            var changes = await _keyValueDatabase.GetAsync(wsKey.Value.ToBase64(), typeof(ChangesDict));
+            var changes = await _keyValueDatabase.GetAsync(wsKey.Value.ToByteArray().ToHex(), typeof(ChangesDict));
             var changesDict = changes == null ?  new ChangesDict() : ChangesDict.Parser.ParseFrom(changes);
             return new WorldState(changesDict);
         }

@@ -14,7 +14,7 @@ namespace AElf.Kernel.Concurrency
     {
         private readonly IGrouper _grouper;
         private readonly IActorRef _requestor;
-        
+
         // TODO: Move it to config
         public int TimeoutMilliSeconds { get; set; } = int.MaxValue;
 
@@ -33,18 +33,24 @@ namespace AElf.Kernel.Concurrency
             ))
             {
                 cts.CancelAfter(TimeoutMilliSeconds);
-                //TODO: the core count should in the configure file
-                var tasks = _grouper.Process(chainId, transactions, out var failedTxs).Select(
-                    txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, cts.Token), cts.Token)
-                ).ToArray();
+                var token = cts.Token;
 
+#if PARALLEL
+                var grouped = _grouper.Process(chainId, transactions, out var failedTxs);
+#else
+                var grouped = new List<List<ITransaction>>() {transactions};
+                Dictionary<ITransaction, Exception> failedTxs = new Dictionary<ITransaction, Exception>();
+#endif
+                var tasks = grouped.Select(
+                    txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token), token)
+                ).ToArray();
                 var results = (await Task.WhenAll(tasks)).SelectMany(x => x).ToList();
 
                 foreach (var failed in failedTxs)
                 {
                     var failedTrace = new TransactionTrace
                     {
-                        StdErr = "Transaction with ID/hash " + failed.Key.GetHash().Value.ToBase64() +
+                        StdErr = "Transaction with ID/hash " + failed.Key.GetHash().Value.ToByteArray().ToHex() +
                                  " failed, detail message: \n" + failed.Value.Dump(),
                         TransactionId = failed.Key.GetHash()
                     };
@@ -63,7 +69,7 @@ namespace AElf.Kernel.Concurrency
                 var tcs = new TaskCompletionSource<List<TransactionTrace>>();
                 _requestor.Tell(new LocalExecuteTransactionsMessage(chainId, transactions, tcs));
                 var traces = await tcs.Task;
-   
+
                 if (traces.Count > 0)
                 {
                     return traces;

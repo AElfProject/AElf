@@ -35,6 +35,7 @@ namespace AElf.CLI
             program.RegisterCommand(new DeployContractCommand());
             program.RegisterCommand(new GetTxResultCmd());
             program.RegisterCommand(new GetGenesisContractAddressCmd());
+            program.RegisterCommand(new GetDeserializedResultCmd());
             
             // Start the CLI
             program.StartRepl();

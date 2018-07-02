@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Parsing;
 using AElf.CLI.RPC;
+using AElf.Common.ByteArrayHelpers;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
@@ -48,7 +49,7 @@ namespace AElf.CLI.Command
         public override string GetPrintString(JObject resp)
         {
             JToken ss = resp["abi"];
-            byte[] aa = Convert.FromBase64String(ss.ToString());
+            byte[] aa = ByteArrayHelpers.FromHexString(ss.ToString());
             
             MemoryStream ms = new MemoryStream(aa);
             Module m = Serializer.Deserialize<Module>(ms);
