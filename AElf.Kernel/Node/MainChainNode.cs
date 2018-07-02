@@ -831,7 +831,8 @@ namespace AElf.Kernel.Node
 
                                 _logger.Log(LogLevel.Debug,
                                     "Generate extra block: {0}, with {1} transactions, able to mine in {2}",
-                                    extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
+                                    extraBlock.GetHash().Value.ToByteArray().ToHex(), 
+                                    extraBlock.Body.Transactions.Count,
                                     DateTime.UtcNow.ToString("u"));
 
                                 return;
@@ -861,7 +862,8 @@ namespace AElf.Kernel.Node
 
                                 _logger.Log(LogLevel.Debug,
                                     "Help to generate extra block: {0}, with {1} transactions, able to mine in {2}",
-                                    extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
+                                    extraBlock.GetHash().Value.ToByteArray().ToHex(),
+                                    extraBlock.Body.Transactions.Count,
                                     DateTime.UtcNow.ToString("u"));
                             }
                             else

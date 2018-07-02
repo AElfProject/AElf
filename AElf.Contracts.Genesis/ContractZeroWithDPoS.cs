@@ -747,9 +747,9 @@ namespace AElf.Contracts.Genesis
                 result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";
                 result += "Order:\t\t" + bpInfo.Value.Order + "\n";
                 result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
-                result += "Signature:\t" + bpInfo.Value.Signature + "\n";
-                result += "Out Value:\t" + bpInfo.Value.OutValue + "\n";
-                result += "In Value:\t" + bpInfo.Value.InValue + "\n";
+                result += "Signature:\t" + bpInfo.Value.Signature.Value.ToByteArray().ToHex() + "\n";
+                result += "Out Value:\t" + bpInfo.Value.OutValue.Value.ToByteArray().ToHex() + "\n";
+                result += "In Value:\t" + bpInfo.Value.InValue.Value.ToByteArray().ToHex() + "\n";
             }
 
             return result + "\n";
