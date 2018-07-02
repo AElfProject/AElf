@@ -39,19 +39,6 @@ namespace AElf.Kernel.Tests.TxMemPool
         }
 
         [Fact]
-        public async Task Serialize()
-        {
-            var tx = Transaction.Parser.ParseFrom(ByteString.FromBase64(
-                @"CiIKIKkqNVMSxCWn/TizqYJl0ymJrnrRqZN+W3incFJX3MRIEiIKIIFxBhlGhI1auR05KafXd/lFGU+apqX96q1YK6aiZLMhIgh0cmFuc2ZlcioJCgcSBWhlbGxvOiEAxfMt77nwSKl/WUg1TmJHfxYVQsygPj0wpZ/Pbv+ZK4pCICzGxsZBCBlASmlDdn0YIv6vRUodJl/9jWd8Q1z2ofFwSkEE+PDQtkHQxvw0txt8bmixMA8lL0VM5ScOYiEI82LX1A6oWUNiLIjwAI0Qh5fgO5g5PerkNebXLPDE2dTzVVyYYw=="));
-            var pool = GetPool();
-            var keypair = new KeyPairGenerator().Generate();
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager);
-            poolService.Start();
-            await poolService.AddTxAsync(tx);
-        }
-
-        [Fact]
         public async Task AddTxTest()
         {
             var pool = GetPool();

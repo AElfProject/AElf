@@ -9,7 +9,7 @@ namespace AElf.CLI.Parsing
             if (string.IsNullOrWhiteSpace(input))
                 return null;
 
-            string str = input.TrimEnd();
+            string str = input.TrimEnd().TrimStart();
             
             string[] tokens = str.Split();
 

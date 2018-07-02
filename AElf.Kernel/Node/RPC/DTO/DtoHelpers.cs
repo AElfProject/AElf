@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Network.Data;
 using AElf.Node.RPC.DTO;
 using Google.Protobuf;
@@ -13,9 +14,9 @@ namespace AElf.Kernel.Node.RPC.DTO
         {
             return new JObject {
                 ["tx"] = new JObject {
-                    {"TxId", tx.GetHash().Value.ToBase64()},
-                    {"From", tx.From.Value.ToBase64()},
-                    {"To", tx.To.Value.ToBase64()},
+                    {"TxId", tx.GetHash().Value.ToByteArray().ToHex()},
+                    {"From", tx.From.Value.ToByteArray().ToHex()},
+                    {"To", tx.To.Value.ToByteArray().ToHex()},
                     {"Method", tx.MethodName},
                     {"IncrementId", tx.IncrementId}
                 }
@@ -37,7 +38,7 @@ namespace AElf.Kernel.Node.RPC.DTO
         public static Transaction ToTransaction(this JToken raw)
         {
             var rawData = raw.First.ToString();
-            return Transaction.Parser.ParseFrom(ByteString.FromBase64(rawData));
+            return Transaction.Parser.ParseFrom(ByteString.CopyFrom(ByteArrayHelpers.FromHexString(rawData)));
         }
 
         public static NodeDataDto ToNodeDataDto(this NodeData nd)

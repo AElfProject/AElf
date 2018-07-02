@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Node;
 using AElf.Types.CSharp;
@@ -372,9 +373,9 @@ namespace AElf.Kernel.Consensus
                 From = AccountHash,
                 To = contractAccountHash,
                 IncrementId = incrementId,
-                MethodName = "GetDPoSInfoToString",
+                MethodName = "GetDPoSInfoToStringOfLatestRounds",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(new UInt64Value {Value = 3}))
             };
             
             var signer = new ECSigner();
@@ -522,12 +523,12 @@ namespace AElf.Kernel.Consensus
         
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().Value.ToBase64();
+            return accountHash.ToAccount().Value.ToByteArray().ToHex();
         }
 
         private Hash AddressStringToHash(string accountAddress)
         {
-            return Convert.FromBase64String(accountAddress);
+            return ByteArrayHelpers.FromHexString(accountAddress);
         }
     }
 }

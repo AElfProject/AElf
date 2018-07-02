@@ -16,22 +16,23 @@ namespace AElf.Kernel.Node.Config
                 {
                     "1", new Dictionary<string, string>
                     {
-                        {"address", "0491c7b8074a634a40bbcc30d90b72a4506b"}
+                        {"address", "04e7e7ffc0a295536399f44cc76c6c66d32c"}
                     }
                 },
                 {
                     "2", new Dictionary<string, string>
                     {
-                        {"address", "0439718f8e2342d4bd426b7e88e095a1de18"}
+                        {"address", "0445a92602e830f0499766472e76eade0a86"}
                     }
                 },
                 {
                     "3", new Dictionary<string, string>
                     {
-                        {"address", "0454aec7b9b5720f3266fda0ae21cb4f4274"}
+                        {"address", "04c5bc7b8f47db864c57d1c83fef82c2060d"}
                     }
                 }
             };
         }
     }
 }
+

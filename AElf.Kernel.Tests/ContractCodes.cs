@@ -37,7 +37,6 @@ namespace AElf.Kernel.Tests
                 {
                     code = file.ReadFully();
                 }
-                //System.Diagnostics.Debug.WriteLine(ByteString.CopyFrom(code).ToBase64());
                 return code;
             }
         }
