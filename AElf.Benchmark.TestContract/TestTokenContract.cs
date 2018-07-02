@@ -48,7 +48,7 @@ namespace AElf.Benchmark.TestContract
             //Console.WriteLine("set from pass");
             Balances.SetValue(to, newToBal);
             //Console.WriteLine("set to pass");
-
+            Console.WriteLine($"After transfer: {from.Value.ToByteArray().ToHex()} - {newFromBal} || {to.Value.ToByteArray().ToHex()} - {newToBal}");
             return true;
         }
 

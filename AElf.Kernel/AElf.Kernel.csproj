@@ -2,6 +2,10 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;DEBUG;NETSTANDARD2_0</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Remove="MerkleNode.cs" />
     <Compile Remove="MerkleTree.cs" />
