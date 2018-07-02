@@ -104,6 +104,7 @@ namespace AElf.Benchmark
             var resDict = new Dictionary<string, double>();
             for (int currentGroupCount = _options.GroupRange.ElementAt(0); currentGroupCount <= _options.GroupRange.ElementAt(1); currentGroupCount++)
             {
+                _logger.Info($"Start executing {currentGroupCount} groups where have {_options.TxNumber} transactions in total");
                 var res = await MultipleGroupBenchmark(_options.TxNumber, currentGroupCount);
                 resDict.Add(res.Key, res.Value);
             }
@@ -122,8 +123,10 @@ namespace AElf.Benchmark
         
             var txList = _dataGenerater.GetMultipleGroupTx(txNumber, groupCount, _contractHash);
             long timeused = 0;
+            
             for (int i = 0; i < repeatTime; i++)
             {
+                _logger.Info($"round {i+1} / {repeatTime} start");
                 foreach (var tx in txList)
                 {
                     tx.IncrementId += 1;
@@ -145,6 +148,8 @@ namespace AElf.Benchmark
                         _logger.Error("Execution error: " + trace.StdErr);
                     }
                 });
+                
+                _logger.Info($"round {i+1} / {repeatTime} ended, used time {swExec.ElapsedMilliseconds} ms");
             }
             
             var time = txNumber / (timeused / 1000.0 / (double)repeatTime);
