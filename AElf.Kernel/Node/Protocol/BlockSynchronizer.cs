@@ -137,7 +137,7 @@ namespace AElf.Kernel.Node.Protocol
         private void FinishSync()
         {
             IsInitialSync = false;
-            SyncFinished?.Invoke(this, EventArgs.Empty);
+            //SyncFinished?.Invoke(this, EventArgs.Empty);
         }
         
         private void OnPeerListEmpty(object sender, EventArgs eventArgs)

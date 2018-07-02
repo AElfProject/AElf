@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Runtime.CompilerServices;
+using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
@@ -12,7 +12,6 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Execution;
-using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Consensus;
@@ -448,6 +447,10 @@ namespace AElf.Kernel.Node
             return await _poolService.AddTxAsync(tx);
         }
 
+        public IObservable<string> GetInformationObservable()
+        {
+            return GetDPoSInfo().ToObservable();
+        }
 
         private static int currentIncr = 0;
         
@@ -650,6 +653,8 @@ namespace AElf.Kernel.Node
         {
             new EventLoopScheduler().Schedule(() =>
             {
+                Console.WriteLine("-- Start DPoS Mining!");
+                
                 _dPoS = new DPoS(_nodeKeyPair);
                     
                 //Record the rounds count in local memory
@@ -679,7 +684,7 @@ namespace AElf.Kernel.Node
                         {
                             //Update the rounds count
                             roundsCount = actualRoundsCount;
-                            
+
                             //Update the In Value
                             inValue = Hash.Generate();
                         }
@@ -688,18 +693,21 @@ namespace AElf.Kernel.Node
 
                         if (x == 0)
                         {
-                            if (!_nodeConfig.ConsensusInfoGenerater) 
+                            if (!_nodeConfig.ConsensusInfoGenerater)
                                 return;
 
                             var dpoSInfo = await ExecuteTxsForFirstExtraBlock();
 
                             await BroadcastSyncTxForFirstExtraBlock(dpoSInfo);
-                            
-                            var firstBlock = await Mine(); //Which is the first extra block (which can produce DPoS information)
+
+                            var firstBlock =
+                                await Mine(); //Which is the first extra block (which can produce DPoS information)
 
                             await BroadcastBlock(firstBlock);
-                            
-                            _logger.Log(LogLevel.Debug, "Generate first extra block: \"{0}\", with [{1}] transactions, able to mine in [{2}]", firstBlock.GetHash().Value.ToByteArray().ToHex(),
+
+                            _logger.Log(LogLevel.Debug,
+                                "Generate first extra block: \"{0}\", with [{1}] transactions, able to mine in [{2}]",
+                                firstBlock.GetHash().Value.ToByteArray().ToHex(),
                                 firstBlock.Body.Transactions.Count, DateTime.UtcNow.ToString("u"));
 
                             return;
@@ -721,7 +729,7 @@ namespace AElf.Kernel.Node
                         }
 
                         #endregion
-                        
+
                         #region Try to mine normal block
 
                         if (latestMinedNormalBlockRoundsCount != roundsCount)
@@ -737,19 +745,21 @@ namespace AElf.Kernel.Node
                                 // out = hash(in)
                                 Hash outValue = inValue.CalculateHash();
 
-                                await BroadcastTxsForNormalBlock(roundsCount, outValue, signature, await GetIncrementId(_nodeKeyPair.GetAddress()));
+                                await BroadcastTxsForNormalBlock(roundsCount, outValue, signature,
+                                    await GetIncrementId(_nodeKeyPair.GetAddress()));
 
                                 var block = await Mine();
 
-                                if (!await BroadcastBlock(block)) 
+                                if (!await BroadcastBlock(block))
                                     return;
-                                
+
                                 latestMinedNormalBlockRoundsCount = roundsCount;
-                                    
+
                                 _logger.Log(LogLevel.Debug,
                                     "Generate block: \"{0}\", with [{1}] transactions, able to mine in [{2}]\n Published out value: {3}\n signature: \"{4}\"",
-                                    block.GetHash().Value.ToByteArray().ToHex(), block.Body.Transactions.Count, DateTime.UtcNow.ToString("u"),
-                                    outValue.Value.ToByteArray().ToHex(), 
+                                    block.GetHash().Value.ToByteArray().ToHex(), block.Body.Transactions.Count,
+                                    DateTime.UtcNow.ToString("u"),
+                                    outValue.Value.ToByteArray().ToHex(),
                                     signature.Value.ToByteArray().ToHex());
                                 return;
                             }
@@ -765,7 +775,8 @@ namespace AElf.Kernel.Node
                             {
                                 //Try to publish in value (every BP can do this)
                                 await BroadcastTransaction(_dPoS.GetTxToPublishInValueTx(
-                                    await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash, inValue, new UInt64Value {Value = roundsCount}));
+                                    await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash, inValue,
+                                    new UInt64Value {Value = roundsCount}));
 
                                 lastTryToPublishInValueRoundsCount = roundsCount;
 
@@ -775,19 +786,19 @@ namespace AElf.Kernel.Node
                             if (latestMinedExtraBlockRoundsCount != roundsCount && await CheckAbleToMineExtraBlock())
                             {
                                 var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
-                                
+
                                 var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId);
 
-                                await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
+                                await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1,
                                     extraBlockResult.Item2, extraBlockResult.Item3);
 
                                 var extraBlock = await Mine(); //Which is an extra block
 
-                                if (!await BroadcastBlock(extraBlock)) 
+                                if (!await BroadcastBlock(extraBlock))
                                     return;
-                                
+
                                 latestMinedExtraBlockRoundsCount = roundsCount;
-                                    
+
                                 _logger.Log(LogLevel.Debug,
                                     "Generate extra block: {0}, with {1} transactions, able to mine in {2}",
                                     extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
@@ -801,22 +812,23 @@ namespace AElf.Kernel.Node
 
                         #region Try to help mining extra block
 
-                        if (latestTriedToHelpProducingExtraBlockRoundsCount != roundsCount && await CheckAbleToHelpMiningExtraBlock())
+                        if (latestTriedToHelpProducingExtraBlockRoundsCount != roundsCount &&
+                            await CheckAbleToHelpMiningExtraBlock())
                         {
 
                             var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
 
                             var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId + 1);
 
-                            await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1, 
+                            await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1,
                                 extraBlockResult.Item2, extraBlockResult.Item3);
-                            
+
                             var extraBlock = await Mine(); //Which is an extra block
 
                             if (await BroadcastBlock(extraBlock))
                             {
                                 latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
-                                
+
                                 _logger.Log(LogLevel.Debug,
                                     "Help to generate extra block: {0}, with {1} transactions, able to mine in {2}",
                                     extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
@@ -833,7 +845,7 @@ namespace AElf.Kernel.Node
 
                             // out = hash(in)
                             Hash outValue = inValue.CalculateHash();
-                            
+
                             await BroadcastTxsForNormalBlock(roundsCount, outValue, signature, incrementId + 2);
 
                             #endregion
@@ -849,8 +861,19 @@ namespace AElf.Kernel.Node
                             // If this node doesn't produce any block this timeslot.
                             //_logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
                         }
+                    },
+
+                    ex =>
+                    {
+                        Console.WriteLine("Error occurs to dpos part");
+                    },
+
+                    () =>
+                    {
+                        Console.WriteLine("Complete dpos");
                     }
                 );
+                
             });
         }
 
