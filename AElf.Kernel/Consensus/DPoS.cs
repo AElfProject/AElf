@@ -373,9 +373,9 @@ namespace AElf.Kernel.Consensus
                 From = AccountHash,
                 To = contractAccountHash,
                 IncrementId = incrementId,
-                MethodName = "GetDPoSInfoToString",
+                MethodName = "GetDPoSInfoToStringOfLatestRounds",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(new UInt64Value {Value = 3}))
             };
             
             var signer = new ECSigner();
