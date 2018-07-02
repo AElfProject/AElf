@@ -51,7 +51,6 @@ namespace AElf.Kernel.BlockValidationFilters
                     ? ValidationError.AlreadyExecuted
                     : ValidationError.OrphanBlock;
             }
-            
             return ValidationError.OrphanBlock;
         }
     }

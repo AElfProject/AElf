@@ -11,8 +11,8 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var list = new List<string>()
             {
-                transaction.From.Value.ToBase64(),
-                transaction.To.Value.ToBase64()
+                transaction.From.Value.ToByteArray().ToHex(),
+                transaction.To.Value.ToByteArray().ToHex()
             };
             return list.Select(a => a);
         }

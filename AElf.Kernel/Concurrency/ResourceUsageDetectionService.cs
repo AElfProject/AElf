@@ -17,8 +17,9 @@ namespace AElf.Kernel.Concurrency
 
         public IEnumerable<string> GetResources(Hash chainId, ITransaction transaction)
         {
-            
-            var addrs = GetRelatedAccount(transaction).ToImmutableHashSet().Select( addr => addr.Value.ToBase64()).ToList();
+
+            var addrs = GetRelatedAccount(transaction).ToImmutableHashSet()
+                .Select(addr => addr.Value.ToByteArray().ToHex()).ToList();
 
             var results = new List<string>();
             var functionMetadata = _functionMetadataService.GetFunctionMetadata(chainId, GetFunctionName(transaction));
@@ -44,7 +45,7 @@ namespace AElf.Kernel.Concurrency
 
         private string GetFunctionName(ITransaction tx)
         {
-            return tx.To.Value.ToBase64() + "." + tx.MethodName;
+            return tx.To.Value.ToByteArray().ToHex() + "." + tx.MethodName;
         }
 
         private List<Hash> GetRelatedAccount(ITransaction transaction)

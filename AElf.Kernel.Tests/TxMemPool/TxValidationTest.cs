@@ -101,9 +101,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             var tx = CreateAndSignTransaction(Hash.Generate(), Hash.Generate(), 0, 2);
             Assert.True(tx.VerifySignature());
-            //System.Diagnostics.Debug.WriteLine(tx.To.Value.ToBase64());
             tx.To = Hash.Generate();
-            //System.Diagnostics.Debug.WriteLine(tx.To.Value.ToBase64());
             Assert.False(tx.VerifySignature());
             
         }

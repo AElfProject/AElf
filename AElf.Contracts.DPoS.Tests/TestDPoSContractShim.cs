@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -253,12 +254,12 @@ namespace AElf.Contracts.DPoS.Tests
         
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().Value.ToBase64();
+            return accountHash.ToAccount().Value.ToByteArray().ToHex();
         }
 
         private Hash AddressStringToHash(string accountAddress)
         {
-            return Convert.FromBase64String(accountAddress);
+            return ByteArrayHelpers.FromHexString(accountAddress);
         }
     }
 }

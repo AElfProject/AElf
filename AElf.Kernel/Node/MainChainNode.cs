@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Concurrency;
@@ -159,19 +160,18 @@ namespace AElf.Kernel.Node
                     var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg)
                         .Result;
                     
-                    _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.Value.ToBase64());
-                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToBase64());
+                    _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.Value.ToByteArray().ToHex());
+                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToByteArray().ToHex());
                     var contractAddress = GetGenesisContractHash();
                     _logger.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
-                        BitConverter.ToString(contractAddress.ToAccount().Value.ToByteArray()).Replace("-",""));
+                        contractAddress.ToAccount().Value.ToByteArray().ToHex());
                     
-                    _logger.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"",
-                        contractAddress.ToAccount().Value.ToBase64());
                 }
             }
             catch (Exception e)
             {
-                _logger?.Log(LogLevel.Error, "Could not create the chain : " + _nodeConfig.ChainId.Value.ToBase64());
+                _logger?.Log(LogLevel.Error,
+                    "Could not create the chain : " + _nodeConfig.ChainId.Value.ToByteArray().ToHex());
             }
             
             
@@ -255,7 +255,7 @@ namespace AElf.Kernel.Node
                     
                     foreach (var kv in balances)
                     {
-                        var address = Convert.FromBase64String(kv.Key);
+                        var address = ByteArrayHelpers.FromHexString(kv.Key);
                         var balance = kv.Value.ToObject<ulong>();
                         
                         var accountDataProvider = await _worldStateDictator.GetAccountDataProvider(address);
@@ -523,7 +523,6 @@ namespace AElf.Kernel.Node
             {
                 code = file.ReadFully();
             }
-            //System.Diagnostics.Debug.WriteLine(ByteString.CopyFrom(code).ToBase64());
             
             ECSigner signer = new ECSigner();
             var txDep = new Transaction
@@ -597,8 +596,9 @@ namespace AElf.Kernel.Node
             int count = 0;
             count = await _protocolDirector.BroadcastBlock(block as Block);
 
-            _logger.Trace("Broadcasted block " + Convert.ToBase64String(block.GetHash().Value.ToByteArray()) + " to " +
-                          count + $" peers. Current block height:{block.Header.Index}");
+            var bh = block.GetHash().Value.ToByteArray().ToHex();
+            _logger.Trace($"Broadcasted block \"{bh}\"  to [" +
+                          count + $"] peers. Block height: [{block.Header.Index}]");
 
             return true;
         }
@@ -623,7 +623,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger.Trace("Pool insertion failed: " + tx.GetHash().Value.ToBase64());
+                _logger.Trace("Pool insertion failed: " + tx.GetHash().Value.ToByteArray().ToHex());
                 return false;
             }
 
@@ -642,7 +642,7 @@ namespace AElf.Kernel.Node
                 return true;
             }
 
-            _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToBase64() + " }");
+            _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToByteArray().ToHex() + " }");
             return false;
         }
 
@@ -718,7 +718,7 @@ namespace AElf.Kernel.Node
 
                             await BroadcastBlock(firstBlock);
                             
-                            _logger.Log(LogLevel.Debug, "Generate first extra block: {0}, with {1} transactions, able to mine in {2}", firstBlock.GetHash(),
+                            _logger.Log(LogLevel.Debug, "Generate first extra block: \"{0}\", with [{1}] transactions, able to mine in [{2}]", firstBlock.GetHash().Value.ToByteArray().ToHex(),
                                 firstBlock.Body.Transactions.Count, DateTime.UtcNow.ToString("u"));
 
                             return;
@@ -766,11 +766,10 @@ namespace AElf.Kernel.Node
                                 latestMinedNormalBlockRoundsCount = roundsCount;
                                     
                                 _logger.Log(LogLevel.Debug,
-                                    "Generate block: {0}, with {1} transactions, able to mine in {2}\n Published out value: {3}\n signature: {4}",
-                                    block.GetHash(), block.Body.Transactions.Count, DateTime.UtcNow.ToString("u"),
-                                    outValue.Value.ToBase64(), 
-                                    signature.Value.ToBase64());
-
+                                    "Generate block: \"{0}\", with [{1}] transactions, able to mine in [{2}]\n Published out value: {3}\n signature: \"{4}\"",
+                                    block.GetHash().Value.ToByteArray().ToHex(), block.Body.Transactions.Count, DateTime.UtcNow.ToString("u"),
+                                    outValue.Value.ToByteArray().ToHex(), 
+                                    signature.Value.ToByteArray().ToHex());
                                 return;
                             }
                         }

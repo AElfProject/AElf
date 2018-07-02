@@ -83,7 +83,7 @@ namespace AElf.Sdk.CSharp
             if (Call(GetContractZeroAddress(), "GetContractOwner",
                 ParamsPacker.Pack(_smartContractContext.ContractAddress)))
             {
-                return (Hash) ParamsPacker.Unpack(GetCallResult(), new[] {typeof(Hash)})[0];
+                return GetCallResult().DeserializeToPbMessage<Hash>();
             }
             throw new InternalError("Failed to get owner of contract.");
         }

@@ -239,7 +239,7 @@ namespace AElf.CLI.Screen
 
         public void PrintError(string error)
         {
-            Console.WriteLine(error);
+            Console.WriteLine("Error: " + error);
         }
 
         public void PrintLine(string str)

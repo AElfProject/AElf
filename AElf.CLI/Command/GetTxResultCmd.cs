@@ -40,7 +40,6 @@ namespace AElf.CLI.Command
         public override string GetPrintString(JObject resp)
         {
             var jobj = JObject.FromObject(resp["result"]);
-            //str += resp["result"]["txresult"].Count() != 0  ? " return value - " + resp["retval"] : "";
             return jobj.ToString();
         }
     }

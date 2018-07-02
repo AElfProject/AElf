@@ -5,8 +5,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using AElf.ABI.CSharp;
 using AElf.CLI.Command;
-using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Helpers;
 using AElf.CLI.Http;
 using AElf.CLI.Parsing;
@@ -22,7 +22,11 @@ using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Asn1.Misc;
 using ProtoBuf;
 using ServiceStack;
+using Globals = AElf.Kernel.Globals;
+using Method = AElf.CLI.Data.Protobuf.Method;
+using Module = AElf.CLI.Data.Protobuf.Module;
 using Transaction = AElf.CLI.Data.Protobuf.Transaction;
+using Type = System.Type;
 
 namespace AElf.CLI
 {
@@ -51,6 +55,8 @@ namespace AElf.CLI
         private string _genesisAddress;
             
         private static readonly RpcCalls Rpc = new RpcCalls();
+        
+        private static readonly Deserializer Deserializer = new Deserializer();
         
         private static List<CliCommandDefinition> _commands = new List<CliCommandDefinition>();
         
@@ -126,6 +132,57 @@ namespace AElf.CLI
             }
             else
             {
+                if (def is GetDeserializedResultCmd g)
+                {
+                    try
+                    {
+                        var str = g.Validate(parsedCmd);
+                        if (str != null)
+                        {
+                            _screenManager.PrintError(str);
+                            return;
+                        }
+                        
+                        // RPC
+                        var t = parsedCmd.Args.ElementAt(0);
+                        var data = parsedCmd.Args.ElementAt(1);
+
+                        byte[] sd;
+                        try
+                        {
+                            sd = ByteArrayHelpers.FromHexString(data);
+                        }
+                        catch (Exception e)
+                        {
+                            _screenManager.PrintError("Wrong data formant.");
+                            return;
+                        }
+
+                        object dd;
+                        try
+                        {
+                            dd = Deserializer.Deserialize(t, sd);
+                        }
+                        catch (Exception e)
+                        {
+                            _screenManager.PrintError("Invalid data format");
+                            return;
+                        }
+                        if (dd == null)
+                        {
+                            _screenManager.PrintError("Not supported type.");
+                            return;
+                        }
+                        _screenManager.PrintLine(dd.ToString());
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        return;
+                    }
+                }
+                
                 if (def is LoadContractAbiCmd l)
                 {
                     try
@@ -153,12 +210,17 @@ namespace AElf.CLI
                                 _screenManager.PrintError(ServerConnError);
                                 return;
                             }
-                        
+
+                            if (resp.IsEmpty())
+                            {
+                                _screenManager.PrintError("Address not Found or wrong format");
+                                return;
+                            }
                             JObject jObj = JObject.Parse(resp);
                             var res = JObject.FromObject(jObj["result"]);
                         
                             JToken ss = res["abi"];
-                            byte[] aa = Convert.FromBase64String(ss.ToString());
+                            byte[] aa = ByteArrayHelpers.FromHexString(ss.ToString());
                         
                             MemoryStream ms = new MemoryStream(aa);
                             m = Serializer.Deserialize<Module>(ms);
@@ -323,7 +385,12 @@ namespace AElf.CLI
                             }
                             catch (AccountLockedException e)
                             {
-                                Console.WriteLine("Please unlock account!");
+                                _screenManager.PrintError("Please unlock account!");
+                                return;
+                            }
+                            catch (InvalidInputException e)
+                            {
+                                _screenManager.PrintError("Invalid input!");
                                 return;
                             }
                             catch (Exception e)
@@ -401,7 +468,7 @@ namespace AElf.CLI
                         
             byte[] b = ms.ToArray();
 
-            string payload = Convert.ToBase64String(b);
+            string payload = b.ToHex();
                         
             var reqParams = new JObject { ["rawtx"] = payload };
             var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);

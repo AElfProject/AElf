@@ -200,7 +200,14 @@ namespace AElf.Network.Peers
             if (_stream == null)
                 return;
 
-            await _stream.WriteAsync(data, 0, data.Length);
+            try
+            {
+                await _stream.WriteAsync(data, 0, data.Length);
+            }
+            catch (Exception e)
+            {
+                // Peer as been close while writting
+            }
         }
 
         /// <summary>
@@ -243,8 +250,15 @@ namespace AElf.Network.Peers
         /// <returns></returns>
         public async Task<bool> WriteConnectInfoAsync()
         {
-            byte[] packet = _nodeData.ToByteArray();
-            await _stream.WriteAsync(packet, 0, packet.Length);
+            try
+            {
+                byte[] packet = _nodeData.ToByteArray();
+                await _stream.WriteAsync(packet, 0, packet.Length);
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
 
             return true;
         }
