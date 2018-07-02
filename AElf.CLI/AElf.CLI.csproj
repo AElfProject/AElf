@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
+      <HintPath>..\..\..\..\..\.nuget\packages\newtonsoft.json\10.0.3\lib\netstandard1.3\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="protobuf-net" Version="2.3.9" />
+    <PackageReference Include="ReadLine" Version="2.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.ABI.CSharp\AElf.ABI.CSharp.csproj">
+      <Project>{BBB26F2A-BFBE-4CD1-89C8-FEB5E49C4453}</Project>
+      <Name>AElf.ABI.CSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AElf.Common\AElf.Common.csproj">
+      <Project>{4EC22E9F-7019-470B-B990-B9E020DBBFB2}</Project>
+      <Name>AElf.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
+    <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+    <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj">
+      <Project>{A52F1E94-2805-4B6E-BFC5-CD0063A78ACC}</Project>
+      <Name>AElf.Types.CSharp</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

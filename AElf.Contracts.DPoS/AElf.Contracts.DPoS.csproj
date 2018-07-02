@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+    <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="MiningNodes.txt" />
+    <Content Include="MiningNodes.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ServiceStack" Version="5.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Election.cs" />
+  </ItemGroup>
+</Project>

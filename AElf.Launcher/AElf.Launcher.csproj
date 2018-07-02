@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.ABI.CSharp\AElf.ABI.CSharp.csproj" />
+    <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj">
+      <Project>{C7B2F451-DF68-4FBB-AEA1-020F17BB6598}</Project>
+      <Name>AElf.Kernel.Modules.AutofacModule</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AElf.Kernel.Tests.TestContractZero\AElf.Kernel.Tests.TestContractZero.csproj" />
+    <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+    <ProjectReference Include="..\AElf.Network\AElf.Network.csproj" />
+    <None Update="Dockerfile">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="4.8.0" />
+    <PackageReference Include="CommandLineParser" Version="2.2.1" />
+    <PackageReference Include="NLog" Version="4.5.6" />
+    <PackageReference Include="ServiceStack" Version="5.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="netstandard2.0\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="netstandard2.0\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="netstandard2.0\**" />
+  </ItemGroup>
+</Project>

@@ -1,15 +1,18 @@
 language: csharp
+sudo: required
 mono: none
 dotnet: 2.0.2
 dist: trusty
-branches:
-  only:
-  - master
 install:
- - dotnet restore -s "https://nuget.cdn.azure.cn/v3/index.json" -s "https://api.nuget.org/v3/index.json" "AElf.sln"
+  - export DOTNET_CLI_TELEMETRY_OPTOUT=1
 before_script:
- - dotnet test "AElf.Kernel.Tests/AElf.Kernel.Tests.csproj"
+  - chmod a+x ./build.sh
+  - chmod a+x ./deploy.sh
 script:
- - dotnet build "AElf.Kernel/AElf.Kernel.csproj"
- 
- 
+  - ./build.sh
+deploy:
+  - provider: script
+    script: ./deploy.sh $TRAVIS_TAG $DOCKER_USERNAME $DOCKER_PASSWORD
+    skip_cleanup: true
+    on:
+      tags: true

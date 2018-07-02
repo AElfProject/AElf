@@ -1,30 +1,88 @@
-﻿using System.Collections.Generic;
+using AElf.Kernel.Merkle;
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace AElf.Kernel.Tests
 {
+    /// <summary>
+    /// Use ITransaction to be the type of the merkle node.
+    /// </summary>
     public class MerkleTest
     {
+        /// <summary>
+        /// Add node(s) and compute root hash
+        /// </summary>
+        [Fact]
+        public void AddNodeTest()
+        {
+            var tree = new BinaryMerkleTree();
+            
+            tree.AddNode(CreateLeaf("a"));
 
-        //[Fact]
-        //public void ProofListTest()
-        //{
-        //    MerkleTree tree = new MerkleTree();
-        //    tree.AddLeaves(CreateLeaves(new string[] { "a", "e", "l", "f", "2", "0", "1", "8" }))
-        //        .Generate();
+            //See if the hash of merkle tree is equal to the element’s hash.
+            Assert.True(tree.ComputeRootHash().Equals(
+                        new Hash("a".CalculateHash())));
+            
+            tree.AddNode(CreateLeaf("e"));
 
-        //    Hash target = new Hash("e");
-        //    var prooflist = tree.GetProofList(target);
+            var hash_a = new Hash("a".CalculateHash());
+            var hash_e = new Hash("e".CalculateHash());
 
-        //    Assert.True(prooflist[0].Hash.ToString() == new Hash("a").ToString());
-        //    Assert.True(prooflist[prooflist.Count - 1].Hash.ToString() == tree.MerkleRoot.Hash.ToString());
-        //}
+            //See if the hash of merkle tree is equal to the elements' hash.
+            Assert.True(tree.ComputeRootHash().Equals(
+                        new Hash(hash_a.CalculateHashWith(hash_e))));
+        }
+        
+        /// <summary>
+        /// Add four nodes, record root hash, update one node,
+        /// then compare current root hash to before.
+        /// </summary>
+        [Fact]
+        public void UpdateNodeTest()
+        {
+            var tree = new BinaryMerkleTree();
+            
+            tree.AddNodes(CreateLeaves(new[] { "a", "e", "l", "f" }));
 
+            var hashBeforeUpdate = tree.ComputeRootHash();
+            
+            var hash_l = new Hash("l".CalculateHash());
+            var hash_1 = new Hash("1".CalculateHash());
+
+            tree.UpdateNode(hash_l, hash_1);
+
+            var hashAfterUpdate = tree.ComputeRootHash();
+            
+            Assert.True(!hashAfterUpdate.Equals(hashBeforeUpdate));
+        }
+
+        /// <summary>
+        /// Add four nodes, then find one of nodes added before.
+        /// </summary>
+        [Fact]
+        public void FindNodeTest()
+        {
+            var tree = new BinaryMerkleTree();
+            
+            tree.AddNodes(CreateLeaves(new[] { "a", "e", "l", "f" }));
+
+            var hash_l = new Hash("l".CalculateHash());
+            var hash_1 = new Hash("1".CalculateHash());
+            
+            Assert.True(tree.FindLeaf(hash_l) > -1);
+            Assert.True(tree.FindLeaf(hash_1) == -1);
+        }
+        
+        /// <summary>
+        /// Add four nodes, then create a proof list, verify the proof list.
+        /// </summary>
         [Fact]
         public void VerifyProofListTest()
         {
-            MerkleTree<ITransaction> tree = new MerkleTree<ITransaction>();
-            tree.AddNodes(CreateLeaves(new string[] { "a", "e", "l", "f" }));
+            var tree = new BinaryMerkleTree();
+            
+            tree.AddNodes(CreateLeaves(new[] { "a", "e", "l", "f" }));
 
             #region Create elements of Proof List
             /* Merkle Tree:
@@ -34,54 +92,36 @@ namespace AElf.Kernel.Tests
              *      a        e          l           f
              */
             //Proof List: { hash(a), hash(e), hash(hash(l), hash(f)) }
-            var hash_a = new Hash<ITransaction>("a".GetSHA256Hash());
+            var hash_a = new Hash("a".CalculateHash());
 
-            var hash_e = new Hash<ITransaction>("e".GetSHA256Hash());
+            var hash_e = new Hash("e".CalculateHash());
 
-            var hash_l = new Hash<ITransaction>("l".GetSHA256Hash());
-            var hash_f = new Hash<ITransaction>("f".GetSHA256Hash());
-            var hash_l_f = new Hash<ITransaction>((hash_l.ToString() + hash_f.ToString()).GetSHA256Hash());
+            var hash_l = new Hash("l".CalculateHash());
+            var hash_f = new Hash("f".CalculateHash());
+            var hash_l_f = new Hash(hash_l.CalculateHashWith(hash_f));
             #endregion
 
-            List<Hash<ITransaction>> prooflist = new List<Hash<ITransaction>>
+            //Construct a proof list.
+            var prooflist = new List<Hash>
             {
                 hash_a,
                 hash_e,
                 hash_l_f
             };
-
+            
+            //Do the proof list verification.
             Assert.True(tree.VerifyProofList(prooflist));
         }
 
-        #region Some methods
-
-        //private static MerkleNode CreateNode(string buffer1, string buffer2)
-        //{
-        //    MerkleNode left = new MerkleNode
-        //    {
-        //        Hash = new Hash<T>(buffer1)
-        //    };
-        //    MerkleNode right = new MerkleNode
-        //    {
-        //        Hash = new Hash<T>(buffer2)
-        //    };
-
-        //    MerkleNode parent = new MerkleNode();
-        //    parent.SetLeftNode(left);
-        //    parent.SetRightNode(right);
-
-        //    return parent;
-        //}
-
-        private static List<IHash<ITransaction>> CreateLeaves(string[] buffers)
+        #region Some useful methods
+        private List<Hash> CreateLeaves(IEnumerable<string> buffers)
         {
-            List<IHash<ITransaction>> leaves = new List<IHash<ITransaction>>();
-            foreach (var buffer in buffers)
-            {
-                IHash<ITransaction> hash = new Hash<ITransaction>(buffer.GetSHA256Hash());
-                leaves.Add(hash);
-            }
-            return leaves;
+            return buffers.Select(buffer => new Hash(buffer.CalculateHash())).Cast<Hash>().ToList();
+        }
+
+        private Hash CreateLeaf(string buffer)
+        {
+            return new Hash(buffer.CalculateHash());
         }
         #endregion
     }
