@@ -2,6 +2,7 @@
 
 namespace AElf.Database.Config
 {
+    [ConfigFile(FileName = "databaseconfig.json")]
     public class DatabaseConfig : ConfigBase<DatabaseConfig>
     {
         public DatabaseType Type { get; set; }
