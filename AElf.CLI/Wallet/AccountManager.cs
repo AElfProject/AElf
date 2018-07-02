@@ -87,7 +87,7 @@ namespace AElf.CLI.Wallet
                 }
                 else
                 {
-                    _screenManager.PrintError("error: wrong arguments.");
+                    _screenManager.PrintError("wrong arguments.");
                 }
             }
         }

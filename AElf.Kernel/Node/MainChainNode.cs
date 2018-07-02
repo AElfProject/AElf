@@ -604,7 +604,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger.Trace("Pool insertion failed: " + tx.GetHash().Value.ToByteArray().ToHex());
+                _logger.Trace("Transaction insertion failed: {0}, {1}" + tx.GetHash().Value.ToByteArray().ToHex(), e);
                 return false;
             }
 
@@ -616,14 +616,14 @@ namespace AElf.Kernel.Node
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    _logger.Trace("Broadcasting transaction failed:  " + e);
                 }
 
                 _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return true;
             }
 
-            _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToByteArray().ToHex() + " }");
+            _logger.Trace("Transaction insertion failed: " + tx.GetHash().Value.ToByteArray().ToHex());
             return false;
         }
 
