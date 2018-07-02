@@ -391,7 +391,7 @@ namespace AElf.Kernel.Node
                 
                 var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
                 var error = await _blockVaildationService.ValidateBlockAsync(block, context, _nodeKeyPair);
-                Console.WriteLine("try execute block");
+                
                 if (error != ValidationError.Success)
                 {
                     Interlocked.CompareExchange(ref _flag, 0, 1);

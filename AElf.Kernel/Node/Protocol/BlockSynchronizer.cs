@@ -138,7 +138,7 @@ namespace AElf.Kernel.Node.Protocol
         private void FinishSync()
         {
             IsInitialSync = false;
-            SyncFinished?.Invoke(this, EventArgs.Empty);
+            //SyncFinished?.Invoke(this, EventArgs.Empty);
         }
         
         private void OnPeerListEmpty(object sender, EventArgs eventArgs)
@@ -335,7 +335,7 @@ namespace AElf.Kernel.Node.Protocol
                     {
                         // Process transaction
                         
-                        _logger?.Trace("Dequed block : " + j.Block.GetHash().Value.ToBase64());
+                        _logger?.Trace("Dequed block : " + j.Block.GetHash().Value.ToByteArray().ToHex());
                         
                         bool b = AddBlockToSync(j.Block).Result;
                
@@ -540,7 +540,7 @@ namespace AElf.Kernel.Node.Protocol
                     
                 BlockExecutionResult res = await _mainChainNode.ExecuteAndAddBlock(block);
                 
-                _logger?.Trace($"Block execution result : {res.Executed}, {res.ValidationError} : { block.GetHash().Value.ToBase64() } - Index {block.Header.Index}");
+                _logger?.Trace($"Block execution result : {res.Executed}, {res.ValidationError} : { block.GetHash().Value.ToByteArray().ToHex() } - Index {block.Header.Index}");
 
                 if (res.Executed)
                 {
@@ -551,14 +551,6 @@ namespace AElf.Kernel.Node.Protocol
                         toRemove.Add(pendingBlock);
                         executed.Add(pendingBlock);
                         CurrentExecHeight++;
-                        
-                        if (CurrentExecHeight == SyncTargetHeight)
-                        {
-                            IsInitialSync = false;
-                            _logger?.Trace("-- Initial sync is finished at height: " + CurrentExecHeight);
-                            
-                            SyncFinished?.Invoke(this, EventArgs.Empty);
-                        }
                     }
                 }
                 else
@@ -591,6 +583,14 @@ namespace AElf.Kernel.Node.Protocol
                 {
                     PendingBlocks.Remove(pdBlock);
                 }
+            }
+            
+            if (IsInitialSync && CurrentExecHeight >= SyncTargetHeight)
+            {
+                IsInitialSync = false;
+                _logger?.Trace("-- Initial sync is finished at height: " + CurrentExecHeight);
+                            
+                SyncFinished?.Invoke(this, EventArgs.Empty);
             }
 
             return executed;
