@@ -700,8 +700,8 @@ namespace AElf.Kernel.Node
                         var currentHeightOfOtherNodes = _protocolDirector.GetLatestIndexOfOtherNode();
                         if (currentHeightOfThisNode < currentHeightOfOtherNodes && currentHeightOfOtherNodes != -1 && !flag)
                         {
-                            Console.WriteLine("Current height of me: " + currentHeightOfOtherNodes);
-                            Console.WriteLine("Current height of others: " + currentHeightOfThisNode);
+                            Console.WriteLine("Current height of me: " + currentHeightOfThisNode);
+                            Console.WriteLine("Current height of others: " + currentHeightOfOtherNodes);
                             Console.WriteLine("Having more blocks to sync, so the dpos mining won't start");
                             flag = true;
                             return;

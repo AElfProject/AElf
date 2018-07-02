@@ -36,8 +36,8 @@ namespace AElf.Kernel.BlockValidationFilters
             // other block needed before this one
             if (index > currentChainHeight)
             {
-                Console.WriteLine("index:" + index);
-                Console.WriteLine("current chain height:" + currentChainHeight);
+                Console.WriteLine("Received block index:" + index);
+                Console.WriteLine("Current chain height:" + currentChainHeight);
                 return ValidationError.Pending;
             }
             
