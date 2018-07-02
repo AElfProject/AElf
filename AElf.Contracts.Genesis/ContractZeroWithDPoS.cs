@@ -747,15 +747,15 @@ namespace AElf.Contracts.Genesis
                 result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";
                 result += "Order:\t\t" + bpInfo.Value.Order + "\n";
                 result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
-                result += "Signature:\t" + bpInfo.Value.Signature.Value.ToByteArray().ToHex() + "\n";
-                result += "Out Value:\t" + bpInfo.Value.OutValue.Value.ToByteArray().ToHex() + "\n";
-                result += "In Value:\t" + bpInfo.Value.InValue.Value.ToByteArray().ToHex() + "\n";
+                result += "Signature:\t" + bpInfo.Value.Signature?.Value.ToByteArray().ToHex() + "\n";
+                result += "Out Value:\t" + bpInfo.Value.OutValue?.Value.ToByteArray().ToHex() + "\n";
+                result += "In Value:\t" + bpInfo.Value.InValue?.Value.ToByteArray().ToHex() + "\n";
             }
 
             return result + "\n";
         }
 
-        [SmartContractFunction("${this}.BlockProducerVerification", new string[]{"${this}.IsBP", "${this}.GetTimestampOfUtcNow", "${this}.GetTimeSlot", "${this}.CompareTimestamp"}, new string[]{"${this}._timeForProducingExtraBlock"})]
+        [SmartContractFunction("${this}.BlockProducerVerification", new string[]{"${this}.IsBP", "${this}.GetTimestampOfUtcNow", "${this}.GetTimeSlot", "${this}.GetTimestamp", "${this}.CompareTimestamp", "${this}.GetBlockProducerInfoOfSpecificRound"}, new string[]{"${this}._timeForProducingExtraBlock"})]
         public async Task<BoolValue> BlockProducerVerification(StringValue accountAddress)
         {
             if (!await IsBP(accountAddress.Value))
@@ -768,11 +768,28 @@ namespace AElf.Contracts.Genesis
             var endOfTimeslotOfBlockProducer = GetTimestamp(timeslotOfBlockProducer, MiningTime);
             // ReSharper disable once InconsistentNaming
             var timeslotOfEBP = await _timeForProducingExtraBlock.GetAsync();
-            return new BoolValue
+            if (CompareTimestamp(now, timeslotOfBlockProducer) && CompareTimestamp(endOfTimeslotOfBlockProducer, now) ||
+                CompareTimestamp(now, timeslotOfEBP))
             {
-                Value = (CompareTimestamp(now, timeslotOfBlockProducer) && CompareTimestamp(endOfTimeslotOfBlockProducer, now))
-                        || CompareTimestamp(now, timeslotOfEBP)
-            };
+                return new BoolValue {Value = true};
+            }
+
+            Console.WriteLine("checking validation");
+            var start = RoundsCount.Value;
+            for (var i = start; i > 0; i--)
+            {
+                var blockProducerInfo =
+                    await GetBlockProducerInfoOfSpecificRound(accountAddress.Value, new UInt64Value {Value = i});
+                var timeslot = blockProducerInfo.TimeSlot;
+                var timeslotEnd = GetTimestamp(timeslot, MiningTime);
+                if (CompareTimestamp(now, timeslot) && CompareTimestamp(timeslotEnd, now))
+                {
+                    return new BoolValue {Value = true};
+                }
+            }
+
+            Console.WriteLine("still");
+            return new BoolValue {Value = false};
         }
 
         #region Private Methods
