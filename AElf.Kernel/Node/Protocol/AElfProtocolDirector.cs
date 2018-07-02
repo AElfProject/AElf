@@ -100,14 +100,14 @@ namespace AElf.Kernel.Node.Protocol
             return await _peerManager.BroadcastMessage(MessageTypes.BroadcastBlock, serializedBlock, 0);
         }
         
-        public ulong GetLatestIndexOfOtherNode()
+        public long GetLatestIndexOfOtherNode()
         {
             if (_blockSynchronizer.PendingBlocks.Count == 0)
             {
-                return 0;
+                return -1;
             }
-            
-            return (from pendingBlock in _blockSynchronizer.PendingBlocks
+
+            return (long) (from pendingBlock in _blockSynchronizer.PendingBlocks
                 orderby pendingBlock.Block.Header.Index descending
                 select pendingBlock.Block.Header.Index).First();
         }

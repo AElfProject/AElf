@@ -560,18 +560,8 @@ namespace AElf.Kernel.Node
             if (IsMining)
                 return;
 
-            if (!_nodeConfig.ConsensusInfoGenerater)
-            {
-                var currentHeightOfThisNode = _chainManager.GetChainCurrentHeight(ChainId).Result;
-                var currentHeightOfOtherNodes = _protocolDirector.GetLatestIndexOfOtherNode();
-                if (currentHeightOfThisNode < currentHeightOfOtherNodes)
-                {
-                    Console.WriteLine("Hummmmm I have more blocks to sync, so the dpos mining won't start");
-                    return;
-                }
-            }
-
             IsMining = true;
+            
             DoDPoSMining(_nodeConfig.IsMiner);
         }
 
@@ -678,7 +668,7 @@ namespace AElf.Kernel.Node
         {
             new EventLoopScheduler().Schedule(() =>
             {
-                Console.WriteLine("-- Start DPoS Mining!");
+                Console.WriteLine("-- DPoS Mining Has been fired!");
                 
                 _dPoS = new DPoS(_nodeKeyPair);
                     
@@ -698,12 +688,27 @@ namespace AElf.Kernel.Node
                 ulong lastTryToPublishInValueRoundsCount = 0;
 
                 var dPoSInfo = "";
+
+                var flag = false;
                 
                 var intervalSequnce = GetIntervalObservable();
                 intervalSequnce.Subscribe
                 (
                     async x =>
                     {
+                        var currentHeightOfThisNode = (long) await _chainManager.GetChainCurrentHeight(ChainId);
+                        var currentHeightOfOtherNodes = _protocolDirector.GetLatestIndexOfOtherNode();
+                        if (currentHeightOfThisNode < currentHeightOfOtherNodes && currentHeightOfOtherNodes != -1 && !flag)
+                        {
+                            Console.WriteLine("Current height of me: " + currentHeightOfOtherNodes);
+                            Console.WriteLine("Current height of others: " + currentHeightOfThisNode);
+                            Console.WriteLine("Having more blocks to sync, so the dpos mining won't start");
+                            flag = true;
+                            return;
+                        }
+
+                        flag = false;
+                        
                         var actualRoundsCount = await GetActualRoundsCount();
                         if (roundsCount != actualRoundsCount)
                         {
@@ -1041,7 +1046,8 @@ namespace AElf.Kernel.Node
                 return "";
             }
             
-            return StringValue.Parser.ParseFrom(tcGetDPoSInfo.Trace.RetVal.ToByteArray()).Value;
+            return StringValue.Parser.ParseFrom(tcGetDPoSInfo.Trace.RetVal.ToByteArray()).Value + 
+                   "\nCurrent Block Height:" + await _chainManager.GetChainCurrentHeight(ChainId);
         }
         
         // ReSharper disable once MemberCanBeMadeStatic.Local

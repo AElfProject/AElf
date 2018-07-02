@@ -17,6 +17,6 @@ namespace AElf.Kernel.Node.Protocol
         List<NodeData> GetPeers(ushort? numPeers);
         void AddTransaction(Transaction tx);
 
-        ulong GetLatestIndexOfOtherNode();
+        long GetLatestIndexOfOtherNode();
     }
 }
