@@ -179,6 +179,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                     if (!blackLists.Contains(methodInfo.Name))
                     {
                         localFunctionMetadataTemplateMap.Add("${this}." + methodInfo.Name, new FunctionMetadataTemplate(false));
+                        CallingGraph.AddVertex(contractType.Name + "." + methodInfo.Name);
                     }
                 }
                 return;
@@ -249,7 +250,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                             referenceType.Name);
                         if (!CallingGraph.ContainsVertex(globalCalledFunc))
                         {
-                            throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractType.Name + " into calling graph, consider the target function does not exist in the foreign contract");
+                            throw new FunctionMetadataException("ChainId [" + ChainId.Value.ToByteArray().ToHex() + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractType.Name + " into calling graph, consider the target function does not exist in the foreign contract");
                         }
                         outEdgesToAdd.Add(new Edge<string>(sourceFunc, globalCalledFunc));
                     }
