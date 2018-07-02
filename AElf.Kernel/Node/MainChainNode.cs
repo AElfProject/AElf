@@ -129,7 +129,7 @@ namespace AElf.Kernel.Node
             _blockExecutor = blockExecutor;
         }
 
-        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int confParserRpcPort, string initData, byte[] code)
+        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData, byte[] code)
         {
             if (_nodeConfig == null)
             {
@@ -191,7 +191,7 @@ namespace AElf.Kernel.Node
             
 
             if (startRpc)
-                _rpcServer.Start(confParserRpcPort);
+                _rpcServer.Start(rpcHost, rpcPort);
 
             _poolService.Start();
             _protocolDirector.Start();
@@ -316,9 +316,9 @@ namespace AElf.Kernel.Node
             {
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
                 
-                bool success = await _poolService.AddTxAsync(tx);
+                TxValidation.TxInsertionAndBroadcastingError success = await _poolService.AddTxAsync(tx);
 
-                if (!success)
+                if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
                     _logger.Trace("DID NOT add Transaction to pool: FROM, " + Convert.ToBase64String(tx.From.Value.ToByteArray()) + ", INCR : " + tx.IncrementId);
                     return;
@@ -454,7 +454,7 @@ namespace AElf.Kernel.Node
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        public async Task<bool> AddTransaction(ITransaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(ITransaction tx)
         {
             return await _poolService.AddTxAsync(tx);
         }
@@ -611,9 +611,9 @@ namespace AElf.Kernel.Node
         /// also places it in the transaction pool.
         /// </summary>
         /// <param name="tx">The tx to broadcast</param>
-        public async Task<bool> BroadcastTransaction(ITransaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> BroadcastTransaction(ITransaction tx)
         {
-            bool res;
+            TxValidation.TxInsertionAndBroadcastingError res;
 
             try
             {
@@ -621,11 +621,11 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger.Trace("Pool insertion failed: " + tx.GetHash().Value.ToByteArray().ToHex());
-                return false;
+                _logger.Trace("Transaction insertion failed: {0},\n{1}" + e.Message, tx.GetTransactionInfo());
+                return TxValidation.TxInsertionAndBroadcastingError.Failed;
             }
 
-            if (res)
+            if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
             {
                 try
                 {
@@ -633,16 +633,17 @@ namespace AElf.Kernel.Node
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    _logger.Trace("Broadcasting transaction failed: {0},\n{1}" + e.Message, tx.GetTransactionInfo());
+                    return TxValidation.TxInsertionAndBroadcastingError.BroadCastFailed;
                 }
 
                 _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
-                return true;
+                return TxValidation.TxInsertionAndBroadcastingError.Success;
             }
 
-            _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToByteArray().ToHex() + " }");
+            _logger.Trace("Transaction insertion failed:{0}, [{1}]" + res, tx.GetTransactionInfo());
             await _poolService.RemoveAsync(tx.GetHash());
-            return false;
+            return res;
         }
 
         public async Task<Block> GetBlockAtHeight(int height)

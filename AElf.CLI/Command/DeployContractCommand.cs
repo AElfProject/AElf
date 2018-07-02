@@ -20,10 +20,10 @@ namespace AElf.CLI.Command
 
         public override string Validate(CmdParseResult parsedCmd)
         {
-            /*if (parsedCmd.Args == null || parsedCmd.Args.Count != 2)
+            if (parsedCmd.Args == null || parsedCmd.Args.Count != 3)
             {
                 return "Wrong arguments";
-            }*/
+            }
 
             return null;
         }

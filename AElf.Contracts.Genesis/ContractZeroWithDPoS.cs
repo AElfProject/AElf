@@ -774,7 +774,6 @@ namespace AElf.Contracts.Genesis
                 return new BoolValue {Value = true};
             }
 
-            Console.WriteLine("checking validation");
             var start = RoundsCount.Value;
             for (var i = start; i > 0; i--)
             {
@@ -788,7 +787,6 @@ namespace AElf.Contracts.Genesis
                 }
             }
 
-            Console.WriteLine("still");
             return new BoolValue {Value = false};
         }
 
