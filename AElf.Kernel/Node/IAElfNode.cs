@@ -8,7 +8,7 @@ namespace AElf.Kernel.Node
 {
     public interface IAElfNode
     {
-        bool Start(ECKeyPair nodeKeyPair, bool startRpc, int confParserRpcPort, string initData, byte[] code);
+        bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData, byte[] code);
 
         List<Hash> GetMissingTransactions(IBlock block);
         Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block);

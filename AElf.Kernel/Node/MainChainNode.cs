@@ -129,7 +129,7 @@ namespace AElf.Kernel.Node
             _blockExecutor = blockExecutor;
         }
 
-        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int confParserRpcPort, string initData, byte[] code)
+        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData, byte[] code)
         {
             if (_nodeConfig == null)
             {
@@ -191,7 +191,7 @@ namespace AElf.Kernel.Node
             
 
             if (startRpc)
-                _rpcServer.Start(confParserRpcPort);
+                _rpcServer.Start(rpcHost, rpcPort);
 
             _poolService.Start();
             _protocolDirector.Start();
