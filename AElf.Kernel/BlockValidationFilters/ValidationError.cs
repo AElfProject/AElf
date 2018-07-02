@@ -7,5 +7,7 @@
         InvalidBlock = 3,
         AlreadyExecuted = 4,
         Pending = 5,
+        Mining = 6,
+        InvalidTimeslot = 7,
     }
 }

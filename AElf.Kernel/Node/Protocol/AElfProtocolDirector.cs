@@ -68,7 +68,8 @@ namespace AElf.Kernel.Node.Protocol
 
         public void AddTransaction(Transaction tx)
         {
-            _blockSynchronizer.SetTransaction(tx.GetHash().Value.ToByteArray());
+            //_blockSynchronizer.SetTransaction(tx.GetHash().Value.ToByteArray());
+            _blockSynchronizer.EnqueueJob(new Job { Transaction = tx });
         }
 
         public List<NodeData> GetPeers(ushort? numPeers)
@@ -97,6 +98,18 @@ namespace AElf.Kernel.Node.Protocol
         {
             byte[] serializedBlock = block.ToByteArray();
             return await _peerManager.BroadcastMessage(MessageTypes.BroadcastBlock, serializedBlock, 0);
+        }
+        
+        public long GetLatestIndexOfOtherNode()
+        {
+            if (_blockSynchronizer.PendingBlocks.Count == 0)
+            {
+                return -1;
+            }
+
+            return (long) (from pendingBlock in _blockSynchronizer.PendingBlocks
+                orderby pendingBlock.Block.Header.Index descending
+                select pendingBlock.Block.Header.Index).First();
         }
         
         #region Response handling

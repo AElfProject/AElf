@@ -437,8 +437,6 @@ namespace AElf.Contracts.Genesis
             
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
             
-            Console.WriteLine("For round:" + roundsCount.Value + " of " + accountAddress);
-
             var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, roundsCount);
             
             info.OutValue = outValue;
