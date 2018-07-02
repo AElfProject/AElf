@@ -25,13 +25,14 @@ namespace AElf.Kernel.Node.RPC
         private const string GetTxMethodName = "get_tx";
         //private const string InsertTxMethodName = "insert_tx";
         private const string BroadcastTxMethodName = "broadcast_tx";
-        private const string GetPeersMethodName = "get_peers";
+        //private const string GetPeersMethodName = "get_peers";
         private const string GetIncrementIdMethodName = "get_increment";
-        private const string BroadcastBlockMethodName = "broadcast_block";
+        //private const string BroadcastBlockMethodName = "broadcast_block";
         private const string GetTxResultMethodName = "get_tx_result";
         private const string GetCommandsMethodName = "get_commands";
         private const string GetContractAbi = "get_contract_abi";
         private const string GetGenesisiAddress = "connect_chain";
+        private const string GetDeserializedData = "get_deserialized_result";
 
         /// <summary>
         /// The names of the exposed RPC methods and also the
@@ -42,13 +43,14 @@ namespace AElf.Kernel.Node.RPC
             GetTxMethodName,
             //InsertTxMethodName,
             BroadcastTxMethodName,
-            GetPeersMethodName,
+            //GetPeersMethodName,
             GetCommandsMethodName,
             GetIncrementIdMethodName,
-            BroadcastBlockMethodName,
+            //BroadcastBlockMethodName,
             GetContractAbi,
             GetTxResultMethodName,
-            GetGenesisiAddress
+            GetGenesisiAddress,
+            GetDeserializedData
         };
 
         /// <summary>
@@ -200,18 +202,18 @@ namespace AElf.Kernel.Node.RPC
                     case BroadcastTxMethodName:
                         responseData = await ProcessBroadcastTx(reqParams);
                         break;
-                    case GetPeersMethodName:
+                    /*case GetPeersMethodName:
                         responseData = await ProcessGetPeers(reqParams);
-                        break;
+                        break;*/
                     case GetCommandsMethodName:
                         responseData = ProcessGetCommands();
                         break;
                     case GetIncrementIdMethodName:
                         responseData = await ProcessGetIncrementId(reqParams);
                         break;
-                    case BroadcastBlockMethodName:
+                    /*case BroadcastBlockMethodName:
                         responseData = await ProcessBroadcastBlock(reqParams);
-                        break;
+                        break;*/
                     case GetContractAbi:
                         responseData = await ProcessGetContractAbi(reqParams);
                         break;
@@ -250,7 +252,7 @@ namespace AElf.Kernel.Node.RPC
                 ["result"] = new JObject
                 {
                     ["genesis-contract"] = genesisHash.Value.ToByteArray().ToHex(),
-                    ["chain-id"] = chainId.Value.ToBase64()
+                    ["chain-id"] = chainId.Value.ToByteArray().ToHex()
                 }
             };
             
@@ -264,7 +266,7 @@ namespace AElf.Kernel.Node.RPC
             
             try
             {
-                txHash = Convert.FromBase64String(adr);
+                txHash = ByteArrayHelpers.FromHexString(adr);
             }
             catch (Exception e)
             {
@@ -277,7 +279,7 @@ namespace AElf.Kernel.Node.RPC
             TransactionResult txResult = await _node.GetTransactionResult(txHash);
             var jobj = new JObject
             {
-                ["tx_id"] = txResult.TransactionId.Value.ToBase64(),
+                ["tx_id"] = txResult.TransactionId.Value.ToByteArray().ToHex(),
                 ["tx_status"] = txResult.Status.ToString()
             };
 
@@ -285,12 +287,12 @@ namespace AElf.Kernel.Node.RPC
             
             if (txResult.Status == Status.Failed)
             {
-                jobj["tx_error"] = txResult.RetVal.ToStringUtf8().Substring(1, 500).ToString();
+                jobj["tx_error"] = txResult.RetVal.ToStringUtf8();
             }
 
             if (txResult.Status == Status.Mined)
             {
-                jobj["return"] = txResult.RetVal.ToBase64();
+                jobj["return"] = txResult.RetVal.ToByteArray().ToHex();
             }
             // Todo: it should be deserialized to obj ion cli, 
             
@@ -352,7 +354,7 @@ namespace AElf.Kernel.Node.RPC
                 j = new JObject
                 {
                     ["address"] = addr,
-                    ["abi"] = Convert.ToBase64String(abi.ToByteArray()),
+                    ["abi"] = abi.ToByteArray().ToHex(),
                     ["error"] = ""
                 };
             }
@@ -373,13 +375,22 @@ namespace AElf.Kernel.Node.RPC
         {
             string raw64 = reqParams["rawtx"].ToString();
 
-            byte[] b = Convert.FromBase64String(raw64);
+            byte[] b = ByteArrayHelpers.FromHexString(raw64);
             Transaction t = Transaction.Parser.ParseFrom(b);
 
             var res = await _node.BroadcastTransaction(t);
 
-            byte[] hash = t.GetHash().Value.ToByteArray();
-            JObject j = new JObject { ["hash"] = t.GetHash().Value.ToBase64() };
+            JObject j;
+            if (!res)
+            {
+                j = new JObject
+                {
+                    ["error"] = "Invalid transaction"
+                };
+                return JObject.FromObject(j);
+            }
+
+            j = new JObject { ["hash"] = t.GetHash().Value.ToByteArray().ToHex() };
             
             return JObject.FromObject(j);
         }
@@ -398,57 +409,6 @@ namespace AElf.Kernel.Node.RPC
             var txInfo = tx == null ? new JObject {["tx"] = "Not Found"} : tx.GetTransactionInfo();
 
             return txInfo;
-        }
-
-        /*private async Task<JObject> ProcessInsertTx(JObject reqParams)
-        {
-            var raw = reqParams["tx"].First;
-            var tx = raw.ToTransaction();
-
-            IHash txHash = await _node.InsertTransaction(tx);
-
-            JObject j = new JObject
-            {
-                ["hash"] = txHash.Value.ToBase64()
-            };
-
-            return JObject.FromObject(j);
-        }*/
-
-        private async Task<JObject> ProcessGetPeers(JObject reqParams)
-        {
-            string numPeersS = reqParams["numPeers"].ToString();
-            ushort? numPeers = null;
-            try
-            {
-                numPeers = Convert.ToUInt16(numPeersS);
-            }
-            catch
-            {
-                ;
-            }
-
-            if (numPeers.HasValue && numPeers.Value == 0)
-                return null;
-
-            List<NodeData> peers = await _node.GetPeers(numPeers);
-            List<NodeDataDto> peersDto = new List<NodeDataDto>();
-
-            foreach (var peer in peers)
-            {
-                NodeDataDto pDto = peer.ToNodeDataDto();
-                peersDto.Add(pDto);
-            }
-
-            var json = JsonConvert.SerializeObject(peersDto);
-            JArray arrPeersDto = JArray.Parse(json);
-
-            JObject j = new JObject()
-            {
-                ["data"] = arrPeersDto
-            };
-
-            return JObject.FromObject(j);
         }
 
         /// <summary>

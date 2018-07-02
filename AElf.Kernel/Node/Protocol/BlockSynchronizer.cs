@@ -302,7 +302,7 @@ namespace AElf.Kernel.Node.Protocol
             }
             catch (Exception e)
             {
-                _logger?.Trace("Error while adding " + job.Block.GetHash().Value.ToBase64());
+                _logger?.Trace("Error while adding " + job.Block.GetHash().Value.ToByteArray().ToHex());
             }
         }
 
@@ -320,13 +320,13 @@ namespace AElf.Kernel.Node.Protocol
                 }
                 catch (Exception e)
                 {
-                    _logger?.Trace("Error while dequeuing " + j?.Block.GetHash().Value.ToBase64());
+                    _logger?.Trace("Error while dequeuing " + j?.Block.GetHash().Value.ToByteArray().ToHex());
                     continue;
                 }
 
                 try
                 {
-                    _logger?.Trace("Dequed block : " + j.Block.GetHash().Value.ToBase64());
+                    _logger?.Trace("Dequed block : " + j.Block.GetHash().Value.ToByteArray().ToHex());
                 
                     bool b = AddBlockToSync(j.Block).Result;
                
@@ -422,7 +422,7 @@ namespace AElf.Kernel.Node.Protocol
                 
                 await peer.SendAsync(req.ToByteArray());
                 
-                _logger?.Trace("Request tx:" + Convert.ToBase64String(br.TxHash.ToByteArray()));
+                _logger?.Trace("Request tx:" + br.TxHash.ToByteArray().ToHex());
             }
 
             return true;
@@ -503,7 +503,7 @@ namespace AElf.Kernel.Node.Protocol
             PendingBlock newPendingBlock = new PendingBlock(h, block, missingTxs);
             PendingBlocks.Add(newPendingBlock);
             
-            _logger?.Trace("Added block to sync : " + Convert.ToBase64String(h));
+            _logger?.Trace("Added block to sync : " + h.ToHex());
             
             return true;
         }
@@ -555,7 +555,7 @@ namespace AElf.Kernel.Node.Protocol
                     else if (res.ValidationError == ValidationError.AlreadyExecuted)
                     {
                         toRemove.Add(pendingBlock);
-                        _logger?.Trace("Block { " + Convert.ToBase64String(pendingBlock.BlockHash) + " } at height " + pendingBlock.Block.Header.Index + " was already executed.");
+                        _logger?.Trace("Block { " + pendingBlock.BlockHash.ToHex() + " } at height " + pendingBlock.Block.Header.Index + " was already executed.");
                     }
                     else
                     {
@@ -592,7 +592,7 @@ namespace AElf.Kernel.Node.Protocol
             if (b == null)
                 return false;
             
-            _logger?.Trace("Transaction removed from sync: " + Convert.ToBase64String(txHash));
+            _logger?.Trace("Transaction removed from sync: " + txHash.ToHex());
             
             return true;
         }
@@ -650,7 +650,7 @@ namespace AElf.Kernel.Node.Protocol
 
         public override string ToString()
         {
-            return "{ " + Convert.ToBase64String(BlockHash) + ", " + IsSynced + ", " + Block?.Header?.Index + " }";
+            return "{ " + BlockHash.ToHex() + ", " + IsSynced + ", " + Block?.Header?.Index + " }";
         }
     }
 }

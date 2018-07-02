@@ -1,7 +1,6 @@
 ﻿using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using AElf.Types.CSharp.MetadataAttribute;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Token
@@ -40,7 +39,6 @@ namespace AElf.Contracts.Token
         private readonly UInt64Field _totalSupply = new UInt64Field("_TotalSupply_");
         private readonly UInt32Field _decimals = new UInt32Field("_Decimals_");
         private readonly MapToUInt64<Hash> _balances = new MapToUInt64<Hash>("_Balances_");
-        
 
         #region ABI (Public) Methods
 

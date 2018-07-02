@@ -15,20 +15,20 @@ namespace AElf.Kernel.Storages
     
         public async Task<IChain> GetAsync(Hash id)
         {
-            var chainBytes = await _keyValueDatabase.GetAsync(id.Value.ToBase64(), typeof(Chain));
+            var chainBytes = await _keyValueDatabase.GetAsync(id.Value.ToByteArray().ToHex(), typeof(Chain));
             return chainBytes == null ? null : Chain.Parser.ParseFrom(chainBytes);
         }
 
         public async Task<IChain> UpdateAsync(IChain chain)
         {
             var bytes = chain.Serialize();
-            await _keyValueDatabase.SetAsync(chain.Id.Value.ToBase64(), bytes);
+            await _keyValueDatabase.SetAsync(chain.Id.Value.ToByteArray().ToHex(), bytes);
             return chain;
         }
 
         public async Task<IChain> InsertAsync(IChain chain)
         {
-            await _keyValueDatabase.SetAsync(chain.Id.Value.ToBase64(), chain.Serialize());
+            await _keyValueDatabase.SetAsync(chain.Id.Value.ToByteArray().ToHex(), chain.Serialize());
             return chain;
         }
     }

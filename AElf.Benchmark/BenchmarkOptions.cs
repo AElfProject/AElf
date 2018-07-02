@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
 using System.Net;
 using AElf.Database;
@@ -41,10 +42,10 @@ namespace AElf.Benchmark
         [Option(Default = "127.0.0.1", HelpText = "host of the database, default is 127.0.0.1")]
         public string DbHost { get; set; }
         
-        [Option(HelpText = "port of the database, default is 8888")]
+        [Option(Default = 8888, HelpText = "port of the database, default is 8888")]
         public int DbPort { get; set; }
         
-        public DatabaseConfig DatabaseConfig
+        public DatabaseConfig BenchmarkDatabaseConfig
         {
             get
             {
@@ -52,11 +53,6 @@ namespace AElf.Benchmark
                 {
                     Console.WriteLine("non-supported database " + Database + ", choose in-memory instead");
                     dbType = DatabaseType.KeyValue;
-                }
-
-                if (!IPAddress.TryParse(DbHost, out var Ip))
-                {
-                    Console.WriteLine("Not valid ip address, choose 127.0.0.1 as host of database");
                 }
 
                 return new DatabaseConfig()

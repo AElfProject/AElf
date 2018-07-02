@@ -37,6 +37,18 @@ namespace AElf.Benchmark
                 return;
             }
 
+            if (opts.SdkDir == null)
+            {
+                opts.SdkDir = Directory.GetCurrentDirectory();
+                Console.WriteLine("No Sdk directory in arg, choose current directory: " + opts.SdkDir);
+            }
+            
+            if (opts.DllDir == null)
+            {
+                opts.DllDir = Directory.GetCurrentDirectory();
+                Console.WriteLine("No dll directory in arg, choose current directory: " + opts.DllDir);
+            }
+
             if (!Directory.Exists(System.IO.Path.GetFullPath(opts.SdkDir)))
             {
                 Console.WriteLine("directory " + System.IO.Path.GetFullPath(opts.SdkDir) + " not exist");
@@ -61,13 +73,13 @@ namespace AElf.Benchmark
                 return;
             }
             
+            DatabaseConfig.Instance.Type = opts.BenchmarkDatabaseConfig.Type;
+            DatabaseConfig.Instance.Host = opts.BenchmarkDatabaseConfig.Host;
+            DatabaseConfig.Instance.Port = opts.BenchmarkDatabaseConfig.Port;
+            
             var builder = new ContainerBuilder();
             builder.RegisterModule(new MainModule());
             builder.RegisterModule(new MetadataModule());
-
-            DatabaseConfig.Instance.Type = opts.DatabaseConfig.Type;
-            DatabaseConfig.Instance.Host = opts.DatabaseConfig.Host;
-            DatabaseConfig.Instance.Port = opts.DatabaseConfig.Port;
             builder.RegisterModule(new WorldStateDictatorModule());
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new LoggerModule());
@@ -103,6 +115,8 @@ namespace AElf.Benchmark
                 {
                     await benchmarkTps.BenchmarkEvenGroup();
                 }
+
+                Console.WriteLine("\n\nPress any key to continue ");
                 Console.ReadKey();
             }
         }

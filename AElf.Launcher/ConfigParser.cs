@@ -38,6 +38,7 @@ namespace AElf.Launcher
         public bool Success { get; private set; }
         public bool IsMiner { get; private set; }
         public Hash Coinbase { get; private set; }
+        public bool IsConsensusInfoGenerater { get; private set; }
 
         public string InitData { get; private set; }
 
@@ -128,6 +129,10 @@ namespace AElf.Launcher
             // to be miner
             IsMiner = opts.IsMiner;
 
+            if (opts.IsConsensusInfoGenerator)
+            {
+                IsConsensusInfoGenerater = true;
+            }
 
             if (opts.NewChain)
             {

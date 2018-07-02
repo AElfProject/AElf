@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using AElf.Network.Data;
 using AElf.Network.Peers;
 using Google.Protobuf;
@@ -50,8 +51,8 @@ namespace AElf.Kernel.Node.Protocol
                 _blockSynchronizer.SetNodeHeight((int)height);
                 _blockSynchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
 
-                //if (!_blockSynchronizer.IsInitialSync)
-                    //_node.DoDPos();
+                if (!_blockSynchronizer.IsInitialSync)
+                    BlockSynchronizerOnSyncFinished(this, EventArgs.Empty);
                 
                 Task.Run(() => _blockSynchronizer.Start());
             }
@@ -59,7 +60,10 @@ namespace AElf.Kernel.Node.Protocol
 
         private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
         {
-            //_node.DoDPos();
+            if (_node.IsMiner() && !_node.IsMining)
+            {
+                _node.DoDPos();
+            }
         }
 
         public void AddTransaction(Transaction tx)
@@ -228,7 +232,7 @@ namespace AElf.Kernel.Node.Protocol
             {
                 Block b = Block.Parser.ParseFrom(message.Payload);
                 
-                _logger?.Trace("Block received: " + Convert.ToBase64String(b.GetHash().Value.ToByteArray()));
+                _logger?.Trace("Block received: " + b.GetHash().Value.ToByteArray().ToHex());
                 _blockSynchronizer.EnqueueJob(new Job { Block = b });
 
                 /*if (types == MessageTypes.BroadcastBlock)

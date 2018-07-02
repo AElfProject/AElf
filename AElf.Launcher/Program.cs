@@ -5,6 +5,7 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Security;
 using System.Threading.Tasks;
 using AElf.ABI.CSharp;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Database;
@@ -67,6 +68,7 @@ namespace AElf.Launcher
             var isNewChain = confParser.NewChain;
             var initData = confParser.InitData;
             nodeConfig.IsChainCreator = confParser.NewChain;
+            nodeConfig.ConsensusInfoGenerater = confParser.IsConsensusInfoGenerater;
             
             var runner = new SmartContractRunner(confParser.RunnerConfig);
             dir = confParser.RunnerConfig.SdkDir;
@@ -177,7 +179,7 @@ namespace AElf.Launcher
             if (isNewChain)
             {
                 chainId = Hash.Generate();
-                JObject obj = new JObject(new JProperty("id", chainId.Value.ToBase64()));
+                JObject obj = new JObject(new JProperty("id", chainId.Value.ToByteArray().ToHex()));
 
                 // write JSON directly to a file
                 using (StreamWriter file = File.CreateText(filepath))
@@ -193,7 +195,7 @@ namespace AElf.Launcher
                 using (JsonTextReader reader = new JsonTextReader(file))
                 {
                     JObject chain = (JObject)JToken.ReadFrom(reader);
-                    chainId = new Hash(Convert.FromBase64String(chain.GetValue("id").ToString()));
+                    chainId = ByteArrayHelpers.FromHexString(chain.GetValue("id").ToString());
                 }
             }
 
