@@ -11,6 +11,7 @@ using SharpRepository.Repository.Configuration;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using NServiceKit.Logging;
+using ServiceStack;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Genesis
@@ -665,17 +666,17 @@ namespace AElf.Contracts.Genesis
         {
             ulong count = 1;
 
-            if (RoundsCount != null)
+            if (RoundsCount.Value != 0)
             {
                 count = RoundsCount.Value;
             }
-            var result = "";
+            var infoOfOneRound = "";
 
             ulong i = 1;
             while (i <= count)
             {
                 var roundInfoStr = await GetRoundInfoToString(new UInt64Value {Value = i});
-                result += $"\n[Round {i}]\n" + roundInfoStr;
+                infoOfOneRound += $"\n[Round {i}]\n" + roundInfoStr;
                 i++;
             }
 
@@ -685,11 +686,55 @@ namespace AElf.Contracts.Genesis
             var res = new StringValue
             {
                 Value
-                    = result + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
+                    = infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
                              + "Current Round : " + RoundsCount?.Value
             };
             
             return res;
+        }
+
+        // ReSharper disable once InconsistentNaming
+        public async Task<StringValue> GetDPoSInfoToStringOfLatestRounds(UInt64Value countOfRounds)
+        {
+            if (RoundsCount.Value == 0)
+            {
+                return new StringValue {Value = "No DPoS Information, maybe failed to sync blocks"};
+            }
+            
+            var currentRoundsCount = RoundsCount.Value;
+            ulong startRound;
+            if (countOfRounds.Value >= currentRoundsCount)
+            {
+                startRound = 1;
+            }
+            else
+            {
+                startRound = currentRoundsCount - countOfRounds.Value + 1;
+            }
+
+            var infoOfOneRound = "";
+            var i = startRound;
+            while (i <= currentRoundsCount)
+            {
+                if (i <= 0)
+                {
+                    continue;
+                }
+
+                var roundInfoStr = await GetRoundInfoToString(new UInt64Value {Value = i});
+                infoOfOneRound += $"\n[Round {i}]\n" + roundInfoStr;
+                i++;
+            }
+            
+            // ReSharper disable once InconsistentNaming
+            var eBPTimeslot = await _timeForProducingExtraBlock.GetAsync();
+
+            return new StringValue
+            {
+                Value
+                    = infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
+                                     + "Current Round : " + RoundsCount.Value
+            };
         }
 
         [SmartContractFunction("${this}.GetRoundInfoToString", new string[]{"${this}.Authentication"}, new string[]{"${this}._dPoSInfoMap"})]
@@ -704,9 +749,9 @@ namespace AElf.Contracts.Genesis
                 result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";
                 result += "Order:\t\t" + bpInfo.Value.Order + "\n";
                 result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
-                result += "Signature:\t" + bpInfo.Value.Signature + "\n";
-                result += "Out Value:\t" + bpInfo.Value.OutValue + "\n";
-                result += "In Value:\t" + bpInfo.Value.InValue + "\n";
+                result += "Signature:\t" + bpInfo.Value.Signature.Value.ToByteArray().ToHex() + "\n";
+                result += "Out Value:\t" + bpInfo.Value.OutValue.Value.ToByteArray().ToHex() + "\n";
+                result += "In Value:\t" + bpInfo.Value.InValue.Value.ToByteArray().ToHex() + "\n";
             }
 
             return result + "\n";
@@ -830,6 +875,5 @@ namespace AElf.Contracts.Genesis
         #endregion
 
         #endregion
-        
     }
 }

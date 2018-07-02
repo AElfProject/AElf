@@ -17,7 +17,7 @@ namespace AElf.Kernel.TxMemPool
         /// queue txs from tmp to waiting
         /// </summary>
         /// <param name="tx"></param>
-        bool EnQueueTx(ITransaction tx);
+        TxValidation.TxInsertionAndBroadcastingError EnQueueTx(ITransaction tx);
         
         /// <summary>
         /// remove a tx

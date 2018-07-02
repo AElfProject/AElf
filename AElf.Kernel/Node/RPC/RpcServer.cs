@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Node.RPC.DTO;
+using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
 using AElf.Node.RPC.DTO;
 using Google.Protobuf;
@@ -399,11 +400,11 @@ namespace AElf.Kernel.Node.RPC
             var res = await _node.BroadcastTransaction(t);
 
             JObject j;
-            if (!res)
+            if (res != TxValidation.TxInsertionAndBroadcastingError.Success)
             {
                 j = new JObject
                 {
-                    ["error"] = "Invalid transaction"
+                    ["error"] = res.ToString()
                 };
                 return JObject.FromObject(j);
             }

@@ -312,9 +312,9 @@ namespace AElf.Kernel.Node
             {
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
                 
-                bool success = await _poolService.AddTxAsync(tx);
+                TxValidation.TxInsertionAndBroadcastingError success = await _poolService.AddTxAsync(tx);
 
-                if (!success)
+                if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                     return;
 
                 if (isFromSend)
@@ -443,7 +443,7 @@ namespace AElf.Kernel.Node
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        public async Task<bool> AddTransaction(ITransaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(ITransaction tx)
         {
             return await _poolService.AddTxAsync(tx);
         }
@@ -594,9 +594,9 @@ namespace AElf.Kernel.Node
         /// also places it in the transaction pool.
         /// </summary>
         /// <param name="tx">The tx to broadcast</param>
-        public async Task<bool> BroadcastTransaction(ITransaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> BroadcastTransaction(ITransaction tx)
         {
-            bool res;
+            TxValidation.TxInsertionAndBroadcastingError res;
 
             try
             {
@@ -604,11 +604,11 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger.Trace("Transaction insertion failed: {0}, {1}" + tx.GetHash().Value.ToByteArray().ToHex(), e);
-                return false;
+                _logger.Trace("Transaction insertion failed: {0},\n{1}" + tx.GetTransactionInfo(), e);
+                return TxValidation.TxInsertionAndBroadcastingError.Failed;
             }
 
-            if (res)
+            if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
             {
                 try
                 {
@@ -616,15 +616,16 @@ namespace AElf.Kernel.Node
                 }
                 catch (Exception e)
                 {
-                    _logger.Trace("Broadcasting transaction failed:  " + e);
+                    _logger.Trace("Broadcasting transaction failed: {0},\n{1}" + tx.GetTransactionInfo(), e);
+                    return TxValidation.TxInsertionAndBroadcastingError.BroadCastFailed;
                 }
 
                 _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
-                return true;
+                return TxValidation.TxInsertionAndBroadcastingError.Success;
             }
 
-            _logger.Trace("Transaction insertion failed: " + tx.GetHash().Value.ToByteArray().ToHex());
-            return false;
+            _logger.Trace("Transaction insertion failed:{1}, [{0}]" + tx.GetTransactionInfo(), res);
+            return res;
         }
 
         public async Task<Block> GetBlockAtHeight(int height)

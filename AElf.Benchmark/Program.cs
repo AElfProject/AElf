@@ -28,7 +28,7 @@ namespace AElf.Benchmark
                 })
                 .WithNotParsed(errs =>
                 {
-                    //Success = false;
+                    //Valid = false;
                     //error
                 });
 
@@ -73,13 +73,24 @@ namespace AElf.Benchmark
                 return;
             }
             
+            if (!string.IsNullOrWhiteSpace(opts.Database) || DatabaseConfig.Instance.Type == DatabaseType.KeyValue)
+            {
+                DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.Database);
+            }
+            
+            if (!string.IsNullOrWhiteSpace(opts.DbHost))
+            {
+                DatabaseConfig.Instance.Host = opts.DbHost;
+            }
+
+            if (opts.DbPort.HasValue)
+            {
+                DatabaseConfig.Instance.Port = opts.DbPort.Value;
+            }  
+            
             var builder = new ContainerBuilder();
             builder.RegisterModule(new MainModule());
             builder.RegisterModule(new MetadataModule());
-
-            DatabaseConfig.Instance.Type = opts.DatabaseConfig.Type;
-            DatabaseConfig.Instance.Host = opts.DatabaseConfig.Host;
-            DatabaseConfig.Instance.Port = opts.DatabaseConfig.Port;
             builder.RegisterModule(new WorldStateDictatorModule());
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new LoggerModule());

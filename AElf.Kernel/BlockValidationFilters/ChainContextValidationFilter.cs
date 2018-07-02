@@ -28,7 +28,7 @@ namespace AElf.Kernel.BlockValidationFilters
 
             // return success if genesis block
             /*if (index == 0 && previousBlockHash.Equals(Hash.Zero))
-                return ValidationError.Success;*/
+                return TxInsertionAndBroadcastingError.Valid;*/
 
             var currentChainHeight = context.BlockHeight;
             var currentPreviousBlockHash = context.BlockHash;

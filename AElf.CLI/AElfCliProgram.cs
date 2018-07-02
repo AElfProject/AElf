@@ -69,7 +69,7 @@ namespace AElf.CLI
         private const string ConnectionNeeded = "Please connect_chain first.";
         private const string NoReplyContentError = "Failed. Pleas check input.";
         private const string DeploySmartContract = "DeploySmartContract";
-        private const string WrongCMDFormat = "Invalid CMD format.";
+        private const string WrongInputFormat = "Invalid input format.";
         
         private readonly ScreenManager _screenManager;
         private readonly CommandParser _cmdParser;
@@ -249,7 +249,7 @@ namespace AElf.CLI
                     {
                         if (e is JsonReaderException)
                         {
-                            _screenManager.PrintError(WrongCMDFormat);
+                            _screenManager.PrintError(WrongInputFormat);
                             return;
                         }
                         return;
@@ -355,7 +355,7 @@ namespace AElf.CLI
                         }
                         if (e is JsonReaderException)
                         {
-                            _screenManager.PrintError(WrongCMDFormat);
+                            _screenManager.PrintError(WrongInputFormat);
                             return;
                         }
 
@@ -421,9 +421,9 @@ namespace AElf.CLI
                             if (e is AccountLockedException || e is InvalidTransactionException ||
                                 e is InvalidInputException)
                                 _screenManager.PrintError(e.Message);
-                            if (e is JsonReaderException)
+                            if (e is JsonReaderException || e is FormatException)
                             {
-                                _screenManager.PrintError(WrongCMDFormat);
+                                _screenManager.PrintError(WrongInputFormat);
                                 return;
                             }
                         }
@@ -472,7 +472,7 @@ namespace AElf.CLI
                     {
                         if (e is JsonReaderException)
                         {
-                            _screenManager.PrintError(WrongCMDFormat);
+                            _screenManager.PrintError(WrongInputFormat);
                             return;
                         }
                     }
