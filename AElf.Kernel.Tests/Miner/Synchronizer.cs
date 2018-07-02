@@ -225,7 +225,7 @@ namespace AElf.Kernel.Tests.Miner
                 new ParallelTransactionExecutingService(_requestor,
                     new Grouper(_servicePack.ResourceDetectionService));*/
             var synchronizer = new Kernel.Miner.BlockExecutor(poolService,
-                _chainManager, _blockManager, _worldStateDictator, _concurrencyExecutingService);
+                _chainManager, _blockManager, _worldStateDictator, _concurrencyExecutingService, null);
             synchronizer.Start(new Grouper(_servicePack.ResourceDetectionService));
             var res = await synchronizer.ExecuteBlock(block);
             Assert.True(res);

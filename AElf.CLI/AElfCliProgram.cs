@@ -77,10 +77,9 @@ namespace AElf.CLI
 
         private readonly Dictionary<string, Module> _loadedModules;
         
-        public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager,
-            int port = 5000)
+        public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager, string host = "http://localhost:5000")
         {
-            _rpcAddress = "http://localhost:" + port;
+            _rpcAddress = host;
             
             _screenManager = screenManager;
             _cmdParser = cmdParser;

@@ -83,13 +83,14 @@ namespace AElf.Kernel.Node.RPC
         /// </summary>
         /// <param name="rpcPort"></param>
         /// <returns></returns>
-        public bool Start(int rpcPort)
+        public bool Start(string rpcHost, int rpcPort)
         {
             try
             {
+                string url = "http://" + rpcHost + ":" + rpcPort;
                 var host = new WebHostBuilder()
                     .UseKestrel()
-                    .UseUrls("http://localhost:" + rpcPort)
+                    .UseUrls(url)
                     .ConfigureLogging((hostingContext, logging) =>
                     {
                         //logging.ClearProviders(); 
