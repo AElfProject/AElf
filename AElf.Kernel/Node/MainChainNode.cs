@@ -68,7 +68,7 @@ namespace AElf.Kernel.Node
         public IExecutive Executive =>
             _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
         
-        private const int CheckTime = 5000;
+        private const int CheckTime = 3000;
 
         private int _flag = 0;
         public bool IsMining { get; private set; } = false;
@@ -458,12 +458,7 @@ namespace AElf.Kernel.Node
         {
             return await _poolService.AddTxAsync(tx);
         }
-
-        public IObservable<string> GetInformationObservable()
-        {
-            return GetDPoSInfo().ToObservable();
-        }
-
+        
         private static int currentIncr = 0;
         
         private Transaction GetFakeTx()
@@ -565,8 +560,18 @@ namespace AElf.Kernel.Node
             if (IsMining)
                 return;
 
+            if (!_nodeConfig.ConsensusInfoGenerater)
+            {
+                var currentHeightOfThisNode = _chainManager.GetChainCurrentHeight(ChainId).Result;
+                var currentHeightOfOtherNodes = _protocolDirector.GetLatestIndexOfOtherNode();
+                if (currentHeightOfThisNode < currentHeightOfOtherNodes)
+                {
+                    Console.WriteLine("Hummmmm I have more blocks to sync, so the dpos mining won't start");
+                    return;
+                }
+            }
+
             IsMining = true;
-            
             DoDPoSMining(_nodeConfig.IsMiner);
         }
 
@@ -646,6 +651,7 @@ namespace AElf.Kernel.Node
             }
 
             _logger.Trace("Broadcasting transaction failed: { txid: " + tx.GetHash().Value.ToByteArray().ToHex() + " }");
+            await _poolService.RemoveAsync(tx.GetHash());
             return false;
         }
 
@@ -714,7 +720,7 @@ namespace AElf.Kernel.Node
                         {
                             if (!_nodeConfig.ConsensusInfoGenerater)
                                 return;
-
+                            
                             var dpoSInfo = await ExecuteTxsForFirstExtraBlock();
 
                             await BroadcastSyncTxForFirstExtraBlock(dpoSInfo);
@@ -858,7 +864,7 @@ namespace AElf.Kernel.Node
                                 return;
                             }
 
-                            #region Broadcast his out value and signature after helping mining extra block
+                            #region Broadcast DPoS Information
 
                             var signature = Hash.Default;
                             if (roundsCount > 1)
@@ -899,6 +905,9 @@ namespace AElf.Kernel.Node
                 
             });
         }
+       
+
+
 
         private async Task<DPoSInfo> ExecuteTxsForFirstExtraBlock()
         {

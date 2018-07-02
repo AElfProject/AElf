@@ -64,7 +64,7 @@ namespace AElf.Kernel.Node.Protocol
         public IPeerManager _peerManager;
         private readonly ILogger _logger;
 
-        private List<PendingBlock> PendingBlocks { get; }
+        public List<PendingBlock> PendingBlocks { get; }
 
         public bool IsInitialSync { get; set; } = true;
 
@@ -138,7 +138,7 @@ namespace AElf.Kernel.Node.Protocol
         private void FinishSync()
         {
             IsInitialSync = false;
-            //SyncFinished?.Invoke(this, EventArgs.Empty);
+            SyncFinished?.Invoke(this, EventArgs.Empty);
         }
         
         private void OnPeerListEmpty(object sender, EventArgs eventArgs)
@@ -465,7 +465,7 @@ namespace AElf.Kernel.Node.Protocol
             
             return pending;
         }
-        
+
         /// <summary>
         /// When a block is received through the network it is placed here for sync
         /// purposes. In the case that the transaction was not received through the
