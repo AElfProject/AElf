@@ -68,7 +68,8 @@ namespace AElf.Kernel.Node.Protocol
 
         public void AddTransaction(Transaction tx)
         {
-            _blockSynchronizer.SetTransaction(tx.GetHash().Value.ToByteArray());
+            //_blockSynchronizer.SetTransaction(tx.GetHash().Value.ToByteArray());
+            _blockSynchronizer.EnqueueJob(new Job { Transaction = tx });
         }
 
         public List<NodeData> GetPeers(ushort? numPeers)

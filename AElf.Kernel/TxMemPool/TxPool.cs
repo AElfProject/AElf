@@ -1,6 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using AElf.Common.Attributes;
 using AElf.Kernel.Types;
 using NLog;
@@ -523,8 +525,17 @@ namespace AElf.Kernel.TxMemPool
         public List<ITransaction> ReadyTxs(Hash addr, ulong start, ulong count)
         {
             var res = new List<ITransaction>();
+
+            if (_executable != null && _executable.Count > 0)
+            {
+                var pairs = _executable.Select(x => string.Format("{0}{1}{2}", x.Key.Value.ToBase64(), ",", x.Value == null || x.Value.Count <= 0 ? "empty" : x.Value.Select(bb => bb.GetHash().Value.ToBase64()).Aggregate((i, j) => i + "," + j)));
+                string join = string.Join(" || ", pairs);
+                Console.WriteLine("Executable transactions: " + join);
+            }
+            
             if (!_executable.TryGetValue(addr, out var list) || (ulong)list.Count < count || list[0].IncrementId != start)
             {
+                Console.WriteLine();
                 return null;
             }
             

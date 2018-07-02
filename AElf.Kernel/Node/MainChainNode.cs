@@ -73,6 +73,11 @@ namespace AElf.Kernel.Node
         private int _flag = 0;
         public bool IsMining { get; private set; } = false;
 
+        public int IsMiningInProcess
+        {
+            get { return _flag; }
+        }
+
         public BlockProducer BlockProducers
         {
             get
@@ -314,10 +319,14 @@ namespace AElf.Kernel.Node
                 bool success = await _poolService.AddTxAsync(tx);
 
                 if (!success)
+                {
+                    _logger.Trace("DID NOT add Transaction to pool: FROM, " + Convert.ToBase64String(tx.From.Value.ToByteArray()) + ", INCR : " + tx.IncrementId);
                     return;
+                }
 
                 if (isFromSend)
                 {
+                    _logger.Trace("Received Transaction: " + "FROM, " + Convert.ToBase64String(tx.From.Value.ToByteArray()) + ", INCR : " + tx.IncrementId);
                     _protocolDirector.AddTransaction(tx);
                 }
             }
@@ -376,14 +385,16 @@ namespace AElf.Kernel.Node
             try
             {
                 int res = Interlocked.CompareExchange(ref _flag, 1, 0);
+                
                 if (res == 1)
-                    return new BlockExecutionResult(false, ValidationError.Pending);
+                    return new BlockExecutionResult(false, ValidationError.Mining);
                 
                 var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
                 var error = await _blockVaildationService.ValidateBlockAsync(block, context, _nodeKeyPair);
                 Console.WriteLine("try execute block");
                 if (error != ValidationError.Success)
                 {
+                    Interlocked.CompareExchange(ref _flag, 0, 1);
                     _logger.Trace("Invalid block received from network: " + error.ToString());
                     return new BlockExecutionResult(false, error);
                 }
@@ -397,6 +408,7 @@ namespace AElf.Kernel.Node
             catch (Exception e)
             {
                 _logger.Error(e, "Block synchronzing failed");
+                Interlocked.CompareExchange(ref _flag, 0, 1);
                 return new BlockExecutionResult(e);
             }
         }
@@ -561,14 +573,21 @@ namespace AElf.Kernel.Node
         public async Task<IBlock> Mine()
         {
             int res = Interlocked.CompareExchange(ref _flag, 1, 0);
+            
             if (res == 1)
                 return null;
+            
+            _logger?.Trace($"Mine - Entered mining {res}");
+            
             var block =  await _miner.Mine();
-            Interlocked.CompareExchange(ref _flag, 0, 1);
+            
+            int b = Interlocked.CompareExchange(ref _flag, 0, 1);
+            
+            _logger?.Trace($"Mine - Leaving mining {b}");
+            
             return block;
 
         }
-
 
         public async Task<bool> BroadcastBlock(IBlock block)
         {
@@ -833,6 +852,10 @@ namespace AElf.Kernel.Node
                                     "Help to generate extra block: {0}, with {1} transactions, able to mine in {2}",
                                     extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
                                     DateTime.UtcNow.ToString("u"));
+                            }
+                            else
+                            {
+                                return;
                             }
 
                             #region Broadcast his out value and signature after helping mining extra block
