@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Node.RPC.DTO;
+using AElf.Kernel.TxMemPool;
 using AElf.Network.Data;
 using AElf.Node.RPC.DTO;
 using Google.Protobuf;
@@ -33,7 +34,7 @@ namespace AElf.Kernel.Node.RPC
         private const string GetContractAbi = "get_contract_abi";
         private const string GetGenesisiAddress = "connect_chain";
         private const string GetDeserializedData = "get_deserialized_result";
-
+        private const string GetBlockHeight = "get_block_height";
         /// <summary>
         /// The names of the exposed RPC methods and also the
         /// names used in the JSON to perform a call.
@@ -50,7 +51,8 @@ namespace AElf.Kernel.Node.RPC
             GetContractAbi,
             GetTxResultMethodName,
             GetGenesisiAddress,
-            GetDeserializedData
+            GetDeserializedData,
+            GetBlockHeight
         };
 
         /// <summary>
@@ -224,6 +226,9 @@ namespace AElf.Kernel.Node.RPC
                     case GetGenesisiAddress:
                         responseData = await ProGetGenesisAddress(reqParams);
                         break;
+                    case GetBlockHeight:
+                        responseData = await ProGetBlockHeight(reqParams);
+                        break;
                     default:
                         Console.WriteLine("Method name not found"); // todo log
                         break;
@@ -244,6 +249,20 @@ namespace AElf.Kernel.Node.RPC
             }
         }
 
+        private async Task<JObject> ProGetBlockHeight(JObject reqParams)
+        {
+            var height = await _node.GetCurrentChainHeight();
+            JObject j = new JObject
+            {
+                ["result"] = new JObject
+                {
+                    ["block_height"] = height.ToString()
+                }
+            };
+            return JObject.FromObject(j);
+        }
+        
+
         private Task<JObject> ProGetGenesisAddress(JObject reqParams)
         {
             var genesisHash = _node.GetGenesisContractHash();
@@ -252,8 +271,8 @@ namespace AElf.Kernel.Node.RPC
             {
                 ["result"] = new JObject
                 {
-                    ["genesis-contract"] = genesisHash.Value.ToByteArray().ToHex(),
-                    ["chain-id"] = chainId.Value.ToByteArray().ToHex()
+                    ["genesis_contract"] = genesisHash.Value.ToByteArray().ToHex(),
+                    ["chain_id"] = chainId.Value.ToByteArray().ToHex()
                 }
             };
             
@@ -273,7 +292,7 @@ namespace AElf.Kernel.Node.RPC
             {
                 return JObject.FromObject(new JObject
                 {
-                    ["error"] = "Error: Invalid Input Format"
+                    ["error"] = "Invalid Address Format"
                 });
             }
             
@@ -320,7 +339,7 @@ namespace AElf.Kernel.Node.RPC
             {
                 return JObject.FromObject(new JObject
                 {
-                    ["error"] = "Error: Invalid Input Format"
+                    ["error"] = "Invalid Address Format"
                 });
             }
             
@@ -342,15 +361,15 @@ namespace AElf.Kernel.Node.RPC
             string addr = reqParams["address"] == null
                 ? _node.GetGenesisContractHash().Value.ToByteArray().ToHex()
                 : reqParams["address"].ToString();
-            Hash addrHash = new Hash()
-            {
-                Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(addr))
-            };
-
             JObject j = null;
 
             try
             {
+                Hash addrHash = new Hash()
+                {
+                    Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(addr))
+                };
+ 
                 var abi = await _node.GetContractAbi(addrHash);
                 j = new JObject
                 {
@@ -359,7 +378,7 @@ namespace AElf.Kernel.Node.RPC
                     ["error"] = ""
                 };
             }
-            catch (ArgumentNullException e)
+            catch (Exception e)
             {
                 j = new JObject
                 {
@@ -382,11 +401,11 @@ namespace AElf.Kernel.Node.RPC
             var res = await _node.BroadcastTransaction(t);
 
             JObject j;
-            if (!res)
+            if (res != TxValidation.TxInsertionAndBroadcastingError.Success)
             {
                 j = new JObject
                 {
-                    ["error"] = "Invalid transaction"
+                    ["error"] = res.ToString()
                 };
                 return JObject.FromObject(j);
             }

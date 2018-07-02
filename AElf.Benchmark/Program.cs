@@ -28,7 +28,7 @@ namespace AElf.Benchmark
                 })
                 .WithNotParsed(errs =>
                 {
-                    //Success = false;
+                    //Valid = false;
                     //error
                 });
 

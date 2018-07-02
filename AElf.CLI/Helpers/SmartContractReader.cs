@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using AElf.CLI.Wallet.Exceptions;
 using AElf.Common.Application;
 using AElf.Cryptography.ECDSA.Exceptions;
 using ServiceStack;
@@ -20,13 +21,21 @@ namespace AElf.CLI.Helpers
 
         public byte[] Read(string name)
         {
-            byte[] code = null;
-            using (FileStream file = File.OpenRead(GetKeyFileFullPath(name)))
+            try
             {
-                code = file.ReadFully();
-            }
+                byte[] code = null;
+                using (FileStream file = File.OpenRead(GetKeyFileFullPath(name)))
+                {
+                    code = file.ReadFully();
+                }
 
-            return code;
+                return code;
+            }
+            catch (Exception e)
+            {
+                throw new InvalidTransactionException();
+            }
+            
         }
         
         /// <summary>

@@ -141,21 +141,22 @@ namespace AElf.Kernel.TxMemPool
             }
         }
 
-        public bool EnQueueTx(ITransaction tx)
+        public TxValidation.TxInsertionAndBroadcastingError EnQueueTx(ITransaction tx)
         {
             var error = this.ValidateTx(tx);
-            if (error == TxValidation.ValidationError.Success)
+            if (error == TxValidation.TxInsertionAndBroadcastingError.Valid)
             {
                 var res = AddWaitingTx(tx);
                 if (res)
                 {
                     Promote(tx.From);
+                    return TxValidation.TxInsertionAndBroadcastingError.Success;
                 }
                 
-                return res;
+                return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
             }
             _logger.Error("InValid transaction: " +  error);
-            return false;
+            return error;
 
             //_pool[txHash] = tx;
         }

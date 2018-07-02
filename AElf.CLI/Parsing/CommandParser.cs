@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AElf.CLI.Parsing
 {
@@ -11,7 +12,7 @@ namespace AElf.CLI.Parsing
 
             string str = input.TrimEnd().TrimStart();
             
-            string[] tokens = str.Split();
+            string[] tokens = str.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
             if (tokens.Length < 1)
                 return null;
