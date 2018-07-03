@@ -78,7 +78,7 @@ namespace AElf.Kernel.Managers
                 //Block is not connected
             }
 
-            Console.WriteLine($"Previous block hash: {lastBlockHash.Value.ToByteArray().ToHex()}");
+            Console.WriteLine($"Previous block hash: {lastBlockHash.ToHex()}");
             
             await InitialHeightOfBlock(chainId);
             await _heightOfBlock.SetAsync(new UInt64Value {Value = header.Index}.CalculateHash(), 
@@ -125,7 +125,7 @@ namespace AElf.Kernel.Managers
         {
             var key = Path.CalculatePointerForLastBlockHash(chainId);
             _worldStateDictator.PreBlockHash = blockHash;
-            await _dataStore.SetDataAsync(key, blockHash.GetHashBytes());
+            await _dataStore.SetDataAsync(key, blockHash.GetBytes());
         }
         
         private async Task InitialHeightOfBlock(Hash chainId)

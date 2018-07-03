@@ -747,9 +747,9 @@ namespace AElf.Contracts.Genesis
                 result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";
                 result += "Order:\t\t" + bpInfo.Value.Order + "\n";
                 result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
-                result += "Signature:\t" + bpInfo.Value.Signature.Value.ToByteArray().ToHex() + "\n";
-                result += "Out Value:\t" + bpInfo.Value.OutValue.Value.ToByteArray().ToHex() + "\n";
-                result += "In Value:\t" + bpInfo.Value.InValue.Value.ToByteArray().ToHex() + "\n";
+                result += "Signature:\t" + bpInfo.Value.Signature.ToHex() + "\n";
+                result += "Out Value:\t" + bpInfo.Value.OutValue.ToHex() + "\n";
+                result += "In Value:\t" + bpInfo.Value.InValue.ToHex() + "\n";
             }
 
             return result + "\n";
@@ -841,7 +841,7 @@ namespace AElf.Contracts.Genesis
         
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().Value.ToByteArray().ToHex();
+            return accountHash.ToAccount().ToHex();
         }
 
         private Hash HexStringToHash(string accountAddress)
@@ -866,7 +866,7 @@ namespace AElf.Contracts.Genesis
         [SmartContractFunction("${this}.Authentication", new string[]{"${this}.GetBlockProducers"}, new string[]{})]
         private async Task<bool> Authentication()
         {
-            var fromAccount = Api.GetTransaction().From.Value.ToByteArray().ToHex();
+            var fromAccount = Api.GetTransaction().From.ToHex();
             return (await GetBlockProducers()).Nodes.Contains(fromAccount);
         }
 

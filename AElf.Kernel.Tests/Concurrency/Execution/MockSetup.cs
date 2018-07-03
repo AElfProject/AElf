@@ -306,7 +306,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Executive1.SetTransactionContext(txnCtxt).Apply(true).Wait();
 
             var dtStr = txnCtxt.Trace.RetVal.DeserializeToString();
-            //var dtStr = BitConverter.ToString(txnCtxt.Trace.RetVal.Unpack<BytesValue>().Value.ToByteArray()).Replace("-", "");
 
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
         }

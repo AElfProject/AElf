@@ -50,7 +50,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 
             hashes.Add(transaction.From);
 
-            return hashes.Select(a => a.Value.ToByteArray().ToHex());
+            return hashes.Select(a => a.ToHex());
         }
     }
 }

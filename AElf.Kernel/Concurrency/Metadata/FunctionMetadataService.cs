@@ -53,7 +53,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
-                throw new InvalidParameterException("No chainFunctionMetadata with chainId: " + chainId.Value.ToByteArray().ToHex());
+                throw new InvalidParameterException("No chainFunctionMetadata with chainId: " + chainId.ToHex());
             }
 
             return chainFuncMetadata.GetFunctionMetadata(addrFunctionName);

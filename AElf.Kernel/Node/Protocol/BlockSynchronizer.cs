@@ -303,7 +303,7 @@ namespace AElf.Kernel.Node.Protocol
             }
             catch (Exception e)
             {
-                _logger?.Trace("Error while adding " + job.Block.GetHash().Value.ToByteArray().ToHex());
+                _logger?.Trace("Error while adding " + job.Block.GetHash().ToHex());
             }
         }
 
@@ -321,7 +321,7 @@ namespace AElf.Kernel.Node.Protocol
                 }
                 catch (Exception e)
                 {
-                    _logger?.Trace("Error while dequeuing " + j?.Block.GetHash().Value.ToByteArray().ToHex());
+                    _logger?.Trace("Error while dequeuing " + j?.Block.GetHash().ToHex());
                     continue;
                 }
 
@@ -329,13 +329,13 @@ namespace AElf.Kernel.Node.Protocol
                 {
                     if (j.Transaction != null)
                     {
-                        SetTransaction(j.Transaction.GetHash().Value.ToByteArray());
+                        SetTransaction(j.Transaction.GetHash().GetBytes());
                     }
                     else
                     {
                         // Process transaction
                         
-                        _logger?.Trace("Dequed block : " + j.Block.GetHash().Value.ToByteArray().ToHex());
+                        _logger?.Trace("Dequed block : " + j.Block.GetHash().ToHex());
                         
                         bool b = AddBlockToSync(j.Block).Result;
                
@@ -486,7 +486,7 @@ namespace AElf.Kernel.Node.Protocol
             byte[] h = null;
             try
             {
-                h = block.GetHash().GetHashBytes();
+                h = block.GetHash().GetBytes();
             }
             catch (Exception e)
             {
@@ -540,7 +540,7 @@ namespace AElf.Kernel.Node.Protocol
                     
                 BlockExecutionResult res = await _mainChainNode.ExecuteAndAddBlock(block);
                 
-                _logger?.Trace($"Block execution result : {res.Executed}, {res.ValidationError} : { block.GetHash().Value.ToByteArray().ToHex() } - Index {block.Header.Index}");
+                _logger?.Trace($"Block execution result : {res.Executed}, {res.ValidationError} : { block.GetHash().ToHex() } - Index {block.Header.Index}");
 
                 if (res.Executed)
                 {
@@ -658,7 +658,7 @@ namespace AElf.Kernel.Node.Protocol
             Block = block;
             BlockHash = blockHash;
             
-            MissingTxs = missing == null ? new List<byte[]>() : missing.Select(m => m.Value.ToByteArray()).ToList();
+            MissingTxs = missing == null ? new List<byte[]>() : missing.Select(m => m.GetBytes()).ToList();
         }
         
         public void RemoveTransaction(byte[] txid)

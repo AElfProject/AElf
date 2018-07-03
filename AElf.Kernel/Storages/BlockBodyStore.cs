@@ -16,14 +16,14 @@ namespace AElf.Kernel.Storages
 
         public async Task InsertAsync(Hash bodyHash, IBlockBody body)
         {
-            await _keyValueDatabase.SetAsync(bodyHash.Value.ToByteArray().ToHex(), body.Serialize());
+            await _keyValueDatabase.SetAsync(bodyHash.ToHex(), body.Serialize());
         }
 
         public async Task<BlockBody> GetAsync(Hash bodyHash)
         {
             try
             {
-                var blockBody =  await _keyValueDatabase.GetAsync(bodyHash.Value.ToByteArray().ToHex(), typeof(BlockBody));
+                var blockBody =  await _keyValueDatabase.GetAsync(bodyHash.ToHex(), typeof(BlockBody));
                 return BlockBody.Parser.ParseFrom(blockBody);
             }
             catch (Exception e)

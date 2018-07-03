@@ -40,7 +40,7 @@ namespace AElf.Kernel.Concurrency
 
             hashes.Add(transaction.From);
 
-            return hashes.Select(a=>a.Value.ToByteArray().ToHex());
+            return hashes.Select(a=>a.ToHex());
         }
     }
 }

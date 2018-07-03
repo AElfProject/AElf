@@ -69,7 +69,6 @@ namespace AElf.Kernel.Node.Protocol
 
         public void AddTransaction(Transaction tx)
         {
-            //_blockSynchronizer.SetTransaction(tx.GetHash().Value.ToByteArray());
             _blockSynchronizer.EnqueueJob(new Job { Transaction = tx });
         }
 
@@ -173,7 +172,7 @@ namespace AElf.Kernel.Node.Protocol
                 var req = NetRequestFactory.CreateRequest(MessageTypes.Tx, t.ToByteArray(), 0);
                 await args.Peer.SendAsync(req.ToByteArray());
                 
-                _logger?.Trace("Send tx " + t.GetHash() + " to " + args.Peer + "(" + t.ToByteArray().Length + " bytes)");
+                _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + t.ToByteArray().Length + " bytes)");
             }
             catch (Exception e)
             {
@@ -191,7 +190,7 @@ namespace AElf.Kernel.Node.Protocol
                 var req = NetRequestFactory.CreateRequest(MessageTypes.Block, block.ToByteArray(), 0);
                 await args.Peer.SendAsync(req.ToByteArray());
                 
-                _logger?.Trace("Send block " + block.GetHash() + " to " + args.Peer);
+                _logger?.Trace("Send block " + block.GetHash().ToHex() + " to " + args.Peer);
             }
             catch (Exception e)
             {
@@ -246,7 +245,7 @@ namespace AElf.Kernel.Node.Protocol
             {
                 Block b = Block.Parser.ParseFrom(message.Payload);
                 
-                _logger?.Trace("Block received: " + b.GetHash().Value.ToByteArray().ToHex());
+                _logger?.Trace("Block received: " + b.GetHash().ToHex());
                 _blockSynchronizer.EnqueueJob(new Job { Block = b });
 
                 /*if (types == MessageTypes.BroadcastBlock)

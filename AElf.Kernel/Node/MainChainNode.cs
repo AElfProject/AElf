@@ -159,18 +159,18 @@ namespace AElf.Kernel.Node
                     var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg)
                         .Result;
                     
-                    _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.Value.ToByteArray().ToHex());
-                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToByteArray().ToHex());
+                    _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToHex());
+                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.ToHex());
                     var contractAddress = GetGenesisContractHash();
                     _logger.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
-                        contractAddress.ToAccount().Value.ToByteArray().ToHex());
+                        contractAddress.ToAccount().ToHex());
                     
                 }
             }
             catch (Exception e)
             {
                 _logger?.Log(LogLevel.Error,
-                    "Could not create the chain : " + _nodeConfig.ChainId.Value.ToByteArray().ToHex());
+                    "Could not create the chain : " + _nodeConfig.ChainId.ToHex());
             }
             
             
@@ -219,7 +219,7 @@ namespace AElf.Kernel.Node
                 _miner.Start(nodeKeyPair, grouper);
                 
                 //DoDPos();
-                _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToByteArray().ToHex());
+                _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.ToHex());
             }
             
             _logger?.Log(LogLevel.Debug, "AElf node started.");
@@ -320,13 +320,13 @@ namespace AElf.Kernel.Node
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger.Trace("DID NOT add Transaction to pool: FROM, " + Convert.ToBase64String(tx.From.Value.ToByteArray()) + ", INCR : " + tx.IncrementId);
+                    _logger.Trace("DID NOT add Transaction to pool: FROM, " + tx.From.ToHex() + ", INCR : " + tx.IncrementId);
                     return;
                 }
 
                 if (isFromSend)
                 {
-                    _logger.Trace("Received Transaction: " + "FROM, " + Convert.ToBase64String(tx.From.Value.ToByteArray()) + ", INCR : " + tx.IncrementId);
+                    _logger.Trace("Received Transaction: " + "FROM, " + tx.From.ToHex() + ", INCR : " + tx.IncrementId);
                     _protocolDirector.AddTransaction(tx);
                 }
             }
@@ -474,7 +474,7 @@ namespace AElf.Kernel.Node
             
             Hash hash = txDep.GetHash();
 
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.GetBytes());
             txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txDep.R = ByteString.CopyFrom(signature.R); 
             txDep.S = ByteString.CopyFrom(signature.S);
@@ -500,7 +500,7 @@ namespace AElf.Kernel.Node
             
             Hash txhash = txInv.GetHash();
 
-            ECSignature signature = signer.Sign(keyPair, txhash.GetHashBytes());
+            ECSignature signature = signer.Sign(keyPair, txhash.GetBytes());
             txInv.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txInv.R = ByteString.CopyFrom(signature.R); 
             txInv.S = ByteString.CopyFrom(signature.S);
@@ -536,7 +536,7 @@ namespace AElf.Kernel.Node
             
             Hash hash = txDep.GetHash();
 
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.GetBytes());
             txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txDep.R = ByteString.CopyFrom(signature.R); 
             txDep.S = ByteString.CopyFrom(signature.S);
@@ -594,7 +594,7 @@ namespace AElf.Kernel.Node
             int count = 0;
             count = await _protocolDirector.BroadcastBlock(block as Block);
 
-            var bh = block.GetHash().Value.ToByteArray().ToHex();
+            var bh = block.GetHash().ToHex();
             _logger.Trace($"Broadcasted block \"{bh}\"  to [" +
                           count + $"] peers. Block height: [{block.Header.Index}]");
 
@@ -738,7 +738,7 @@ namespace AElf.Kernel.Node
 
                             _logger.Log(LogLevel.Debug,
                                 "Generate first extra block: \"{0}\", with [{1}] transactions, able to mine in [{2}]",
-                                firstBlock.GetHash().Value.ToByteArray().ToHex(),
+                                firstBlock.GetHash().ToHex(),
                                 firstBlock.Body.Transactions.Count, DateTime.UtcNow.ToString("u"));
 
                             return;
@@ -788,10 +788,10 @@ namespace AElf.Kernel.Node
 
                                 _logger.Log(LogLevel.Debug,
                                     "Generate block: \"{0}\", with [{1}] transactions, able to mine in [{2}]\n Published out value: {3}\n signature: \"{4}\"",
-                                    block.GetHash().Value.ToByteArray().ToHex(), block.Body.Transactions.Count,
+                                    block.GetHash().ToHex(), block.Body.Transactions.Count,
                                     DateTime.UtcNow.ToString("u"),
-                                    outValue.Value.ToByteArray().ToHex(),
-                                    signature.Value.ToByteArray().ToHex());
+                                    outValue.ToHex(),
+                                    signature.ToHex());
                                 return;
                             }
                         }

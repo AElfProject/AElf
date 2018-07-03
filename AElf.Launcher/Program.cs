@@ -179,7 +179,7 @@ namespace AElf.Launcher
             if (isNewChain)
             {
                 chainId = Hash.Generate();
-                JObject obj = new JObject(new JProperty("id", chainId.Value.ToByteArray().ToHex()));
+                JObject obj = new JObject(new JProperty("id", chainId.ToHex()));
 
                 // write JSON directly to a file
                 using (StreamWriter file = File.CreateText(filepath))

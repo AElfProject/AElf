@@ -108,8 +108,8 @@ namespace AElf.Contracts.Genesis
                 Address = address
             }.Fire();
 
-            Console.WriteLine("Deployment success: " + address.Value.ToByteArray().ToHex());
-            return address.Value.ToByteArray();
+            Console.WriteLine("Deployment success: " + address.ToHex());
+            return address.GetBytes();
         }
 
         public void ChangeContractOwner(Hash contractAddress, Hash newOwner)

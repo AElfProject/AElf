@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography.ECDSA;
 
 using Google.Protobuf;
@@ -17,7 +18,7 @@ namespace AElf.Kernel
         
         public Hash ToAccount()
         {
-            return Value.ToByteArray().Take(ECKeyPair.AddressLength).ToArray();
+            return GetBytes().Take(ECKeyPair.AddressLength).ToArray();
         }
         
         public static readonly Hash Zero = new Hash("AElf".CalculateHash()).ToAccount();
@@ -35,7 +36,7 @@ namespace AElf.Kernel
             Value = value;
         }
 
-        public byte[] GetHashBytes() => Value.ToByteArray();
+        public byte[] GetBytes() => Value.ToByteArray();
 
         public bool Equals(IHash other)
         {
@@ -78,6 +79,11 @@ namespace AElf.Kernel
         public static implicit operator Hash(ByteString value)
         {
             return value == null ? Default : new Hash(value);
+        }
+
+        public string ToHex()
+        {
+            return GetBytes().ToHex();
         }
         
     }

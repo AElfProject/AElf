@@ -16,7 +16,7 @@ namespace AElf.Kernel.Storages
 
         public async Task SetDataAsync(Hash pointerHash, byte[] data)
         {
-            await _keyValueDatabase.SetAsync(pointerHash.Value.ToByteArray().ToHex(), data);
+            await _keyValueDatabase.SetAsync(pointerHash.ToHex(), data);
         }
 
         public async Task<byte[]> GetDataAsync(Hash pointerHash)
@@ -25,7 +25,7 @@ namespace AElf.Kernel.Storages
             {
                 return null;
             }
-            return await _keyValueDatabase.GetAsync(pointerHash.Value.ToByteArray().ToHex(), typeof(byte[]));
+            return await _keyValueDatabase.GetAsync(pointerHash.ToHex(), typeof(byte[]));
         }
     }
 }

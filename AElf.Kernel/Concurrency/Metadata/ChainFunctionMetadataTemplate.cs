@@ -152,7 +152,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 {
                     if (!templocalFieldMap.TryGetValue(resource, out var dataAccessMode))
                     {
-                        throw new FunctionMetadataException("ChainId [" + ChainId.Value.ToByteArray().ToHex() + "] Unknown reference local field " + resource +
+                        throw new FunctionMetadataException("ChainId [" + ChainId.ToHex() + "] Unknown reference local field " + resource +
                                                             " in function " + functionAttribute.FunctionSignature);
                     }
                     return new Resource(resource, dataAccessMode);

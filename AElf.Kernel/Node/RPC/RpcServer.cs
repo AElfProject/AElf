@@ -271,8 +271,8 @@ namespace AElf.Kernel.Node.RPC
             {
                 ["result"] = new JObject
                 {
-                    ["genesis_contract"] = genesisHash.Value.ToByteArray().ToHex(),
-                    ["chain_id"] = chainId.Value.ToByteArray().ToHex()
+                    ["genesis_contract"] = genesisHash.ToHex(),
+                    ["chain_id"] = chainId.ToHex()
                 }
             };
             
@@ -299,7 +299,7 @@ namespace AElf.Kernel.Node.RPC
             TransactionResult txResult = await _node.GetTransactionResult(txHash);
             var jobj = new JObject
             {
-                ["tx_id"] = txResult.TransactionId.Value.ToByteArray().ToHex(),
+                ["tx_id"] = txResult.TransactionId.ToHex(),
                 ["tx_status"] = txResult.Status.ToString()
             };
 
@@ -357,7 +357,7 @@ namespace AElf.Kernel.Node.RPC
         private async Task<JObject> ProcessGetContractAbi(JObject reqParams)
         {
             string addr = reqParams["address"] == null
-                ? _node.GetGenesisContractHash().Value.ToByteArray().ToHex()
+                ? _node.GetGenesisContractHash().ToHex()
                 : reqParams["address"].ToString();
             JObject j = null;
 
@@ -408,7 +408,7 @@ namespace AElf.Kernel.Node.RPC
                 return JObject.FromObject(j);
             }
 
-            j = new JObject { ["hash"] = t.GetHash().Value.ToByteArray().ToHex() };
+            j = new JObject { ["hash"] = t.GetHash().ToHex() };
             
             return JObject.FromObject(j);
         }
