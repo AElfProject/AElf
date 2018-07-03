@@ -163,6 +163,7 @@ namespace AElf.Kernel.TxMemPool
         public Task<List<ITransaction>> GetReadyTxsAsync(Hash addr, ulong start, ulong ids)
         {
             lock (this)
+            lock (this)
             {
                 return Task.FromResult(_txPool.ReadyTxs(addr, start, ids));
             }
