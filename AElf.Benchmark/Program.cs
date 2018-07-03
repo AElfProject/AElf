@@ -7,6 +7,7 @@ using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
 using AElf.Kernel.Concurrency;
+using AElf.Kernel.Concurrency.Config;
 using AElf.Kernel.Concurrency.Execution.Config;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Modules.AutofacModule;
@@ -101,6 +102,9 @@ namespace AElf.Benchmark
             {
                 ActorConfig.Instance.ConcurrencyLevel = opts.ConcurrencyLevel.Value;
             }
+
+            //enable parallel feature for benchmark
+            ParallelConfig.Instance.IsParallelEnable = true;
             
             var builder = new ContainerBuilder();
             builder.RegisterModule(new MainModule());
