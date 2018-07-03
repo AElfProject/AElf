@@ -701,8 +701,8 @@ namespace AElf.Kernel.Node
                         var currentHeightOfOtherNodes = _protocolDirector.GetLatestIndexOfOtherNode();
                         if (currentHeightOfThisNode < currentHeightOfOtherNodes && currentHeightOfOtherNodes != -1 && !flag)
                         {
-                            Console.WriteLine("Current height of me: " + currentHeightOfOtherNodes);
-                            Console.WriteLine("Current height of others: " + currentHeightOfThisNode);
+                            Console.WriteLine("Current height of me: " + currentHeightOfThisNode);
+                            Console.WriteLine("Current height of others: " + currentHeightOfOtherNodes);
                             Console.WriteLine("Having more blocks to sync, so the dpos mining won't start");
                             flag = true;
                             return;
@@ -832,7 +832,8 @@ namespace AElf.Kernel.Node
 
                                 _logger.Log(LogLevel.Debug,
                                     "Generate extra block: {0}, with {1} transactions, able to mine in {2}",
-                                    extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
+                                    extraBlock.GetHash().Value.ToByteArray().ToHex(), 
+                                    extraBlock.Body.Transactions.Count,
                                     DateTime.UtcNow.ToString("u"));
 
                                 return;
@@ -846,10 +847,9 @@ namespace AElf.Kernel.Node
                         if (latestTriedToHelpProducingExtraBlockRoundsCount != roundsCount &&
                             await CheckAbleToHelpMiningExtraBlock())
                         {
-
                             var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
 
-                            var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId + 1);
+                            var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId);
 
                             await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1,
                                 extraBlockResult.Item2, extraBlockResult.Item3);
@@ -860,32 +860,19 @@ namespace AElf.Kernel.Node
                             {
                                 latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
 
+                                Console.WriteLine("round:" + roundsCount);
+
                                 _logger.Log(LogLevel.Debug,
                                     "Help to generate extra block: {0}, with {1} transactions, able to mine in {2}",
-                                    extraBlock.GetHash(), extraBlock.Body.Transactions.Count,
+                                    extraBlock.GetHash().Value.ToByteArray().ToHex(),
+                                    extraBlock.Body.Transactions.Count,
                                     DateTime.UtcNow.ToString("u"));
                             }
                             else
                             {
                                 return;
                             }
-
-                            #region Broadcast DPoS Information
-
-                            var signature = Hash.Default;
-                            if (roundsCount > 1)
-                            {
-                                signature = await CalculateSignature(inValue);
-                            }
-
-                            // out = hash(in)
-                            Hash outValue = inValue.CalculateHash();
-
-                            await BroadcastTxsForNormalBlock(roundsCount, outValue, signature, incrementId + 2);
-
-                            #endregion
-
-
+                            
                             return;
                         }
 
@@ -894,7 +881,7 @@ namespace AElf.Kernel.Node
                         if (doLogsAboutConsensus)
                         {
                             // If this node doesn't produce any block this timeslot.
-                            //_logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
+                            _logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
                         }
                     },
 
