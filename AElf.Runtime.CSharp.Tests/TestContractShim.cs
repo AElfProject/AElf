@@ -121,7 +121,7 @@ namespace AElf.Runtime.CSharp.Tests
             
             Executive.SetTransactionContext(tc).Apply(true).Wait();
             
-            return tc.Trace.RetVal.DeserializeToBool();
+            return tc.Trace.RetVal.Data.DeserializeToBool();
         }
 
         public ulong GetBalance(Hash account)
@@ -139,7 +139,7 @@ namespace AElf.Runtime.CSharp.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToUInt64();
+            return tc.Trace.RetVal.Data.DeserializeToUInt64();
         }
 
         public string GetTransactionStartTime(Hash transactionHash)
@@ -157,7 +157,7 @@ namespace AElf.Runtime.CSharp.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToString();
+            return tc.Trace.RetVal.Data.DeserializeToString();
         }
 
         public string GetTransactionEndTime(Hash transactionHash)
@@ -175,7 +175,7 @@ namespace AElf.Runtime.CSharp.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToString();
+            return tc.Trace.RetVal.Data.DeserializeToString();
         }
     }
 }

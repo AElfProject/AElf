@@ -2,6 +2,7 @@
 using System.Reflection;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Kernel;
 using Xunit;
 
 namespace AElf.Types.CSharp.Tests

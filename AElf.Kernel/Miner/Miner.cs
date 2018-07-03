@@ -10,6 +10,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Kernel.Types;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using ServiceStack;
@@ -110,7 +111,7 @@ namespace AElf.Kernel.Miner
                     {
                         res.Logs.AddRange(trace.FlattenedLogs);
                         res.Status = Status.Mined;
-                        res.RetVal = trace.RetVal;
+                        res.RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes());
                     }
                     else
                     {

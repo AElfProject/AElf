@@ -1078,8 +1078,8 @@ namespace AElf.Kernel.Node
                     ContractAccountHash)
             };
             Executive.SetTransactionContext(tcAbleToMine).Apply(true).Wait();
-                            
-            return BoolValue.Parser.ParseFrom(tcAbleToMine.Trace.RetVal).Value;
+
+            return tcAbleToMine.Trace.RetVal.Data.DeserializeToBool();
         }
 
         private async Task<bool> CheckAbleToHelpMiningExtraBlock()
@@ -1091,7 +1091,7 @@ namespace AElf.Kernel.Node
             };
             Executive.SetTransactionContext(tcAbleToHelp).Apply(true).Wait();
                             
-            return BoolValue.Parser.ParseFrom(tcAbleToHelp.Trace.RetVal).Value;
+            return tcAbleToHelp.Trace.RetVal.Data.DeserializeToBool();
         }
 
         private async Task<bool> CheckIsTimeToMineExtraBlock()
@@ -1106,7 +1106,7 @@ namespace AElf.Kernel.Node
             Executive.SetTransactionContext(tcIsTimeToProduceEB).Apply(true).Wait();
 
             // ReSharper disable once InconsistentNaming
-            return BoolValue.Parser.ParseFrom(tcIsTimeToProduceEB.Trace.RetVal).Value;
+            return tcIsTimeToProduceEB.Trace.RetVal.Data.DeserializeToBool();
         }
 
         private async Task<bool> CheckAbleToMineExtraBlock()
@@ -1122,7 +1122,7 @@ namespace AElf.Kernel.Node
             Executive.SetTransactionContext(tcAbleToProduceEB).Apply(true).Wait();
 
             // ReSharper disable once InconsistentNaming
-            var res = BoolValue.Parser.ParseFrom(tcAbleToProduceEB.Trace.RetVal).Value;
+            var res = tcAbleToProduceEB.Trace.RetVal.Data.DeserializeToBool();
             return res;
         }
 
