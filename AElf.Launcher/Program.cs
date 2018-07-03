@@ -106,6 +106,10 @@ namespace AElf.Launcher
                     ks.OpenAsync(confParser.NodeAccount, pass, false);
 
                     nodeKey = ks.GetAccountKeyPair(confParser.NodeAccount);
+                    if (nodeKey == null)
+                    {
+                        Console.WriteLine("Load keystore failed");
+                    }
                 }
                 catch (Exception e)
                 {

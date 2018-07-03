@@ -188,8 +188,6 @@ namespace AElf.Kernel.Node
             
             _nodeKeyPair = nodeKeyPair;
             
-            
-
             if (startRpc)
                 _rpcServer.Start(rpcHost, rpcPort);
 
