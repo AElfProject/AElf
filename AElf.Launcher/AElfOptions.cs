@@ -99,6 +99,9 @@ namespace AElf.Launcher
         
         [Option("actor.port", HelpText = "The port of actor.")]
         public int? ActorPort { get; set; }
+        
+        [Option("actor.conlevel", Hidden = true, HelpText = "ConcurrencyLevel, used to limit the group count of the result of grouper")]
+        public int? ActorConcurrencyLevel { get; set; }
 
         #endregion
 

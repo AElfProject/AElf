@@ -7,6 +7,7 @@ using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
 using AElf.Kernel.Concurrency;
+using AElf.Kernel.Concurrency.Execution.Config;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
@@ -94,7 +95,12 @@ namespace AElf.Benchmark
             if (opts.DbPort.HasValue)
             {
                 DatabaseConfig.Instance.Port = opts.DbPort.Value;
-            }  
+            }
+
+            if (opts.ConcurrencyLevel.HasValue)
+            {
+                ActorConfig.Instance.ConcurrencyLevel = opts.ConcurrencyLevel.Value;
+            }
             
             var builder = new ContainerBuilder();
             builder.RegisterModule(new MainModule());

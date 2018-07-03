@@ -180,6 +180,10 @@ namespace AElf.Launcher
                 ActorConfig.Instance.HostName = opts.ActorHostName;
             if (opts.ActorPort.HasValue)
                 ActorConfig.Instance.Port = opts.ActorPort.Value;
+            if (opts.ActorConcurrencyLevel.HasValue)
+            {
+                ActorConfig.Instance.ConcurrencyLevel = opts.ActorConcurrencyLevel.Value;
+            }
 
             NodeConfig.DataDir = string.IsNullOrEmpty(opts.DataDir)
                 ? ApplicationHelpers.GetDefaultDataDir()

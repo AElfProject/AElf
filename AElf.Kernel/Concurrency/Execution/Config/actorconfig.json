@@ -3,6 +3,7 @@
   "HostName": "127.0.0.1",
   "Port": 0,
   "WorkerCount": 8,
+  "ConcurrencyLevel": 8,
   "Seeds": [
     {
       "HostName": "127.0.0.1",

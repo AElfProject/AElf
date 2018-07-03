@@ -38,8 +38,10 @@ namespace AElf.Benchmark
         
         [Option(HelpText = "port of the database, default is 8888")]
         public int? DbPort { get; set; }
-        
-        
+
+        [Option("conlevel", Hidden = true, HelpText = "ConcurrencyLevel, used to limit the group count of the result of grouper")]
+        public int? ConcurrencyLevel { get; set; }
+
         public static Dictionary<string, DatabaseType> dbTypes = new Dictionary<string, DatabaseType>()
         {
             ["in-memory"] = DatabaseType.KeyValue,
