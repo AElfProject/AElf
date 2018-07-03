@@ -881,7 +881,7 @@ namespace AElf.Kernel.Node
                         if (doLogsAboutConsensus)
                         {
                             // If this node doesn't produce any block this timeslot.
-                            _logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
+                            //_logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
                         }
                     },
 
@@ -984,6 +984,7 @@ namespace AElf.Kernel.Node
                 if (tx.MethodName.StartsWith("Set"))
                 {
                     nextEBP = StringValue.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                    Console.WriteLine("next EBP:" + nextEBP);
                 }
             }
 
@@ -1074,7 +1075,13 @@ namespace AElf.Kernel.Node
                     ContractAccountHash)
             };
             Executive.SetTransactionContext(tcAbleToHelp).Apply(true).Wait();
-                            
+
+            if (!tcAbleToHelp.Trace.IsSuccessful())
+            {
+                Console.WriteLine("Warning: failed to check the ability to help producing extra block.");
+                return false;
+            }
+            
             return BoolValue.Parser.ParseFrom(tcAbleToHelp.Trace.RetVal).Value;
         }
 

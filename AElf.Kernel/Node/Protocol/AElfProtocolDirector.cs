@@ -102,12 +102,13 @@ namespace AElf.Kernel.Node.Protocol
         
         public long GetLatestIndexOfOtherNode()
         {
-            if (_blockSynchronizer.PendingBlocks == null || _blockSynchronizer.PendingBlocks.Count <= 0)
+            var currentPendingBlocks = _blockSynchronizer.PendingBlocks;
+            if (currentPendingBlocks == null || currentPendingBlocks.Count <= 0)
             {
                 return -1;
             }
 
-            return (long) (from pendingBlock in _blockSynchronizer.PendingBlocks
+            return (long) (from pendingBlock in currentPendingBlocks
                 orderby pendingBlock.Block.Header.Index descending
                 select pendingBlock.Block.Header.Index).First();
         }
