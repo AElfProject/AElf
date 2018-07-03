@@ -894,8 +894,8 @@ namespace AElf.Contracts.Genesis
         [SmartContractFunction("${this}.Authentication", new string[]{"${this}.GetBlockProducers"}, new string[]{})]
         private async Task<bool> Authentication()
         {
-            var fromAccount = Api.GetTransaction().From.Value.ToByteArray();
-            return (await GetBlockProducers()).Nodes.Select(ByteArrayHelpers.FromHexString).Contains(fromAccount);
+            var fromAccount = Api.GetTransaction().From.Value.ToByteArray().ToHex();
+            return (await GetBlockProducers()).Nodes.Contains(fromAccount);
         }
 
         #endregion
