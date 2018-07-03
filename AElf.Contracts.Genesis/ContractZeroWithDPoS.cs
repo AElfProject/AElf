@@ -25,7 +25,7 @@ namespace AElf.Contracts.Genesis
         private const int MiningTime = 8000;
 
         // After the chain creator start a chain, wait for other mimers join
-        private const int WaitFirstRoundTime = 8000;
+        private const int WaitFirstRoundTime = 16000;
 
         // Block producers check interval
         private const int CheckTime = 3000;
@@ -214,11 +214,6 @@ namespace AElf.Contracts.Genesis
                 return null;
             }
             
-            if (RoundsCount.Value == 1)
-            {
-                return await _dPoSInfoMap.GetValueAsync(RoundsCountAddOne(RoundsCount));
-            }
-
             var infosOfNextRound = new RoundInfo();
             var signatureDict = new Dictionary<Hash, string>();
             var orderDict = new Dictionary<int, string>();
@@ -226,8 +221,15 @@ namespace AElf.Contracts.Genesis
             var blockProducer = await GetBlockProducers();
             var blockProducerCount = blockProducer.Nodes.Count;
 
-            foreach (var node in blockProducer.Nodes) 
-                signatureDict[(await GetBlockProducerInfoOfCurrentRound(node)).Signature] = node;
+            foreach (var node in blockProducer.Nodes)
+            {
+                var s = (await GetBlockProducerInfoOfCurrentRound(node)).Signature;
+                if (s == null)
+                {
+                    s = Hash.Generate();
+                }
+                signatureDict[s] = node;
+            }
 
             foreach (var sig in signatureDict.Keys)
             {
@@ -251,11 +253,11 @@ namespace AElf.Contracts.Genesis
 
             for (var i = 0; i < orderDict.Count; i++)
             {
-                var bpInfoNew = new BPInfo();
-
-                var timeForExtraBlockOfLastRound = await _timeForProducingExtraBlock.GetAsync();
-                bpInfoNew.TimeSlot = GetTimestamp(timeForExtraBlockOfLastRound, i * MiningTime + MiningTime);
-                bpInfoNew.Order = i + 1;
+                var bpInfoNew = new BPInfo
+                {
+                    TimeSlot = GetTimestampOfUtcNow(i * MiningTime + MiningTime),
+                    Order = i + 1
+                };
 
                 infosOfNextRound.Info[orderDict[i]] = bpInfoNew;
             }
@@ -274,6 +276,11 @@ namespace AElf.Contracts.Genesis
             var firstPlace = await _firstPlaceMap.GetValueAsync(RoundsCount);
             var firstPlaceInfo = await GetBlockProducerInfoOfCurrentRound(firstPlace.Value);
             var sig = firstPlaceInfo.Signature;
+            if (sig == null)
+            {
+                sig = Hash.Generate();
+            }
+            
             var sigNum = BitConverter.ToUInt64(
                 BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
             var blockProducer = await GetBlockProducers();
@@ -304,7 +311,7 @@ namespace AElf.Contracts.Genesis
             }
             
             var newRoundsCount = RoundsCountAddOne(RoundsCount);
-            await _roundsCount.SetAsync(newRoundsCount.Value);
+            //await _roundsCount.SetAsync(newRoundsCount.Value);
 
             return newRoundsCount;
         }
@@ -360,7 +367,7 @@ namespace AElf.Contracts.Genesis
             //Update the rounds count at last
             await _roundsCount.SetAsync(RoundsCountAddOne(RoundsCount).Value);
 
-            Console.WriteLine($"Sync dpos info of round {RoundsCountAddOne(RoundsCount).Value} succeed");
+            Console.WriteLine($"Sync dpos info of round {RoundsCount.Value} succeed");
         }
 
         #endregion
@@ -502,7 +509,7 @@ namespace AElf.Contracts.Genesis
                 }
             }
 
-            await _dPoSInfoMap.SetValueAsync(RoundsCount, roundInfo);
+            //await _dPoSInfoMap.SetValueAsync(RoundsCount, roundInfo);
 
             return roundInfo;
         }

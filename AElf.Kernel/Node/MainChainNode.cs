@@ -847,10 +847,9 @@ namespace AElf.Kernel.Node
                         if (latestTriedToHelpProducingExtraBlockRoundsCount != roundsCount &&
                             await CheckAbleToHelpMiningExtraBlock())
                         {
-
                             var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
 
-                            var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId + 1);
+                            var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId);
 
                             await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1,
                                 extraBlockResult.Item2, extraBlockResult.Item3);
@@ -860,6 +859,8 @@ namespace AElf.Kernel.Node
                             if (await BroadcastBlock(extraBlock))
                             {
                                 latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
+
+                                Console.WriteLine("round:" + roundsCount);
 
                                 _logger.Log(LogLevel.Debug,
                                     "Help to generate extra block: {0}, with {1} transactions, able to mine in {2}",
@@ -871,23 +872,7 @@ namespace AElf.Kernel.Node
                             {
                                 return;
                             }
-
-                            #region Broadcast DPoS Information
-
-                            var signature = Hash.Default;
-                            if (roundsCount > 1)
-                            {
-                                signature = await CalculateSignature(inValue);
-                            }
-
-                            // out = hash(in)
-                            Hash outValue = inValue.CalculateHash();
-
-                            await BroadcastTxsForNormalBlock(roundsCount, outValue, signature, incrementId + 2);
-
-                            #endregion
-
-
+                            
                             return;
                         }
 
@@ -896,7 +881,7 @@ namespace AElf.Kernel.Node
                         if (doLogsAboutConsensus)
                         {
                             // If this node doesn't produce any block this timeslot.
-                            //_logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
+                            _logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
                         }
                     },
 

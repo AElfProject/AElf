@@ -529,7 +529,7 @@ namespace AElf.Kernel.TxMemPool
 
             if (_executable != null && _executable.Count > 0)
             {
-                var pairs = _executable.Select(x => string.Format("{0}{1}{2}", x.Key.Value.ToBase64(), ",", x.Value == null || x.Value.Count <= 0 ? "empty" : x.Value.Select(bb => bb.GetHash().Value.ToBase64()).Aggregate((i, j) => i + "," + j)));
+                var pairs = _executable.Select(x => string.Format("{0}{1}{2}", x.Key.Value.ToByteArray().ToHex(), ",", x.Value == null || x.Value.Count <= 0 ? "empty" : x.Value.Select(bb => bb.GetHash().Value.ToByteArray().ToHex()).Aggregate((i, j) => i + "," + j)));
                 string join = string.Join(" || ", pairs);
                 Console.WriteLine("Executable transactions: " + join);
             }
