@@ -410,9 +410,13 @@ namespace AElf.Contracts.Genesis
             var offset = MiningTime * orderDiff - MiningTime;
             var assigendExtraBlockProducingTimeEndWithOffset = GetTimestamp(assigendExtraBlockProducingTimeEnd, offset);
 
-            //todo: if more than two nodes wake up suddenly after next round's timeslot, this will cause problem
-            if (CompareTimestamp(now, GetTimestamp(assigendExtraBlockProducingTimeEnd, MiningTime * blockProducerCount)))
+            var timeOfARound = MiningTime * blockProducerCount + CheckTime + MiningTime;
+            var timeDiff = (now - assigendExtraBlockProducingTimeEnd).Seconds * 1000;
+            var currentTimeslot = timeDiff % timeOfARound;
+            if (currentTimeslot > offset && currentTimeslot < offset + MiningTime)
             {
+                Console.WriteLine("currentTimeslot:" + currentTimeslot);
+                Console.WriteLine("offset:" + offset);
                 return new BoolValue {Value = true};
             }
             
@@ -793,6 +797,8 @@ namespace AElf.Contracts.Genesis
                     return new BoolValue {Value = true};
                 }
             }
+
+            Console.WriteLine("Invalid timeslot:" + timeslotOfBlockProducer.ToDateTime().ToString("u"));
 
             return new BoolValue {Value = false};
         }
