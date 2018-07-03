@@ -724,7 +724,7 @@ namespace AElf.Kernel.Node
 
                         if (x == 0)
                         {
-                            if (!_nodeConfig.ConsensusInfoGenerater)
+                            if (!_nodeConfig.ConsensusInfoGenerater || actualRoundsCount != 0)
                                 return;
                             
                             var dpoSInfo = await ExecuteTxsForFirstExtraBlock();
@@ -898,9 +898,6 @@ namespace AElf.Kernel.Node
                 
             });
         }
-       
-
-
 
         private async Task<DPoSInfo> ExecuteTxsForFirstExtraBlock()
         {

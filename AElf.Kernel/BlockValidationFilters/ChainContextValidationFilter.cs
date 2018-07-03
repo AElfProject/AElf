@@ -45,8 +45,11 @@ namespace AElf.Kernel.BlockValidationFilters
             if (currentChainHeight == index)
             {
                 Console.WriteLine("currentChainHeight == index");
-                Console.WriteLine("context.BlockHash:" + currentPreviousBlockHash.Value.ToByteArray().ToHex());
-                Console.WriteLine("block.Header.PreviousBlockHash:" + previousBlockHash.Value.ToByteArray().ToHex());
+                if (!currentPreviousBlockHash.Equals(previousBlockHash))
+                {
+                    Console.WriteLine("context.BlockHash:" + currentPreviousBlockHash.Value.ToByteArray().ToHex());
+                    Console.WriteLine("block.Header.PreviousBlockHash:" + previousBlockHash.Value.ToByteArray().ToHex());
+                }
                 return currentPreviousBlockHash.Equals(previousBlockHash)
                     ? ValidationError.Success
                     : ValidationError.OrphanBlock;

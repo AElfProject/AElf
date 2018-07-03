@@ -102,7 +102,7 @@ namespace AElf.Kernel.Node.Protocol
         
         public long GetLatestIndexOfOtherNode()
         {
-            if (_blockSynchronizer.PendingBlocks.Count == 0)
+            if (_blockSynchronizer.PendingBlocks == null || _blockSynchronizer.PendingBlocks.Count <= 0)
             {
                 return -1;
             }
