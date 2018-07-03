@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Storages;
 using AElf.Types.CSharp.MetadataAttribute;
 using Akka.Util.Internal;

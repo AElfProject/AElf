@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using Xunit;

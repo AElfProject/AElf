@@ -8,6 +8,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Concurrency;
 using AElf.Types.CSharp;
 using AElf.ABI.CSharp;
+using AElf.Common.ByteArrayHelpers;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;

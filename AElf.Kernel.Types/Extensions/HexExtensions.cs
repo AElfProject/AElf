@@ -2,27 +2,11 @@
 {
     public static class HexExtensions
     {
-        public static string ToHex(this byte[] bytes)
-        {
-            char[] c = new char[bytes.Length * 2];
-
-            byte b;
-
-            for(int bx = 0, cx = 0; bx < bytes.Length; ++bx, ++cx) 
-            {
-                b = ((byte)(bytes[bx] >> 4));
-                c[cx] = (char)(b > 9 ? b + 0x37 + 0x20 : b + 0x30);
-
-                b = ((byte)(bytes[bx] & 0x0F));
-                c[++cx]=(char)(b > 9 ? b + 0x37 + 0x20 : b + 0x30);
-            }
-
-            return new string(c);
-        }
+        
 
         public static byte[] HexToBytes(this string str)
         {
-            if (str.Length == 0 || str.Length % 2 != 0)
+            if (str.Length == 2 || (str.Length-2) % 2 != 0)
                 return new byte[0];
 
             byte[] buffer = new byte[str.Length / 2];

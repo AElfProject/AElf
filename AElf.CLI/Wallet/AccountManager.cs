@@ -4,15 +4,15 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using AElf.CLI.Command;
-using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using Newtonsoft.Json.Linq;
+using AElf.Kernel;
 using ProtoBuf;
+using Transaction = AElf.CLI.Data.Protobuf.Transaction;
 
 namespace AElf.CLI.Wallet
 {
@@ -31,7 +31,7 @@ namespace AElf.CLI.Wallet
             _keyStore = keyStore;
         }
 
-        public readonly List<string> SubCommands = new List<string>()
+        public readonly List<string> SubCommands = new List<string>
         {
             NewCmdName,
             ListAccountsCmdName,
@@ -125,7 +125,7 @@ namespace AElf.CLI.Wallet
             var password = _screenManager.AskInvisible("password: ");
             var keypair = _keyStore.Create(password);
             if(keypair!=null)
-                _screenManager.PrintLine("account successfully created!");
+                _screenManager.PrintLine("Account address: " + keypair.GetAddressHex());
         }
 
         private void ListAccounts()
@@ -174,7 +174,7 @@ namespace AElf.CLI.Wallet
 
         public Transaction SignTransaction(Transaction tx)
         {
-            string addr = BitConverter.ToString(tx.From.Value).Replace("-", string.Empty).ToLower();
+            string addr = tx.From.Value.ToHex();
             
             ECKeyPair kp = _keyStore.GetAccountKeyPair(addr);
 

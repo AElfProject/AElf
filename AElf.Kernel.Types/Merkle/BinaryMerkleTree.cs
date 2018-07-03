@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AElf.Common.ByteArrayHelpers;
 
 
 namespace AElf.Kernel.Types.Merkle

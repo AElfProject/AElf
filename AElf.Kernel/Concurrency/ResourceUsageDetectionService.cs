@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Concurrency.Metadata;
 using Google.Protobuf;
 

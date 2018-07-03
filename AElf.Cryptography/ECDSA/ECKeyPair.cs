@@ -43,7 +43,7 @@ namespace AElf.Cryptography.ECDSA
 
         public string GetAddressHex()
         {
-            return BitConverter.ToString(GetAddress()).Replace("-", string.Empty).ToLower();
+            return "0x" + BitConverter.ToString(GetAddress()).Replace("-", string.Empty).ToLower();
         }
     }
 }

@@ -2,9 +2,10 @@
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Merkle;
 using AElf.Kernel.Services;
+using AElf.Kernel.Types.Merkle;
 using Akka.IO;
 using Google.Protobuf;
 using Moq;

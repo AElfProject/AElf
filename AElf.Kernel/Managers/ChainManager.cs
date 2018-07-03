@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using AElf.Kernel.Storages;
+ using AElf.Common.ByteArrayHelpers;
+ using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

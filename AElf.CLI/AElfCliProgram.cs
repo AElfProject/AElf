@@ -376,7 +376,7 @@ namespace AElf.CLI
                             Transaction tr ;
 
                             tr = ConvertFromJson(j);
-                            string hex = BitConverter.ToString(tr.To.Value).Replace("-", string.Empty).ToLower();
+                            string hex = tr.To.Value.ToHex();
 
                             Module m = null;
                             if (!_loadedModules.TryGetValue(hex, out m))

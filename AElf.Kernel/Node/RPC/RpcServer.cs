@@ -303,7 +303,6 @@ namespace AElf.Kernel.Node.RPC
                 ["tx_status"] = txResult.Status.ToString()
             };
 
-            // for the case that return type is Hash
             
             if (txResult.Status == Status.Failed)
             {
@@ -315,7 +314,6 @@ namespace AElf.Kernel.Node.RPC
                 jobj["return"] = txResult.RetVal.ToByteArray().ToHex();
             }
             // Todo: it should be deserialized to obj ion cli, 
-            
             
             
             JObject j = new JObject

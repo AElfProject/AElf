@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Network.Data;
 using AElf.Network.Peers;
 using Google.Protobuf;
