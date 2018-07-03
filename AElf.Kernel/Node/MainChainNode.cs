@@ -925,7 +925,7 @@ namespace AElf.Kernel.Node
                         _logger?.Debug(tc.Trace.StdErr);
                     }
 
-                    dPoSInfo = DPoSInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                    dPoSInfo = tc.Trace.RetVal.Data.DeserializeToPbMessage<DPoSInfo>();
                 }
             }
 
@@ -976,17 +976,17 @@ namespace AElf.Kernel.Node
                 
                 if (tx.MethodName.StartsWith("Supply"))
                 {
-                    currentRoundInfo = RoundInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                    currentRoundInfo = tc.Trace.RetVal.Data.DeserializeToPbMessage<RoundInfo>();
                 }
                 
                 if (tx.MethodName.StartsWith("Generate"))
                 {
-                    nextRoundInfo = RoundInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                    nextRoundInfo =tc.Trace.RetVal.Data.DeserializeToPbMessage<RoundInfo>();
                 }
 
                 if (tx.MethodName.StartsWith("Set"))
                 {
-                    nextEBP = StringValue.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                    nextEBP = tc.Trace.RetVal.Data.DeserializeToPbMessage<StringValue>();
                 }
             }
 
@@ -1013,7 +1013,7 @@ namespace AElf.Kernel.Node
             
             if (tcGetRoundsCountTx.Trace.StdErr.IsNullOrEmpty())
             {
-                return UInt64Value.Parser.ParseFrom(tcGetRoundsCountTx.Trace.RetVal.ToByteArray()).Value;
+                return tcGetRoundsCountTx.Trace.RetVal.Data.DeserializeToUInt64();
             }
 
             return 0;
@@ -1034,7 +1034,7 @@ namespace AElf.Kernel.Node
                 return "";
             }
             
-            return StringValue.Parser.ParseFrom(tcGetDPoSInfo.Trace.RetVal.ToByteArray()).Value + 
+            return tcGetDPoSInfo.Trace.RetVal.Data.DeserializeToString() + 
                    "\nCurrent Block Height:" + await _chainManager.GetChainCurrentHeight(ChainId);
         }
         
@@ -1054,7 +1054,7 @@ namespace AElf.Kernel.Node
                         inValue)
             };
             Executive.SetTransactionContext(tcCalculateSignature).Apply(true).Wait();
-            return Hash.Parser.ParseFrom(tcCalculateSignature.Trace.RetVal.ToByteArray());
+            return tcCalculateSignature.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
         }
 
         private async Task<bool> CheckAbleToMineNormalBlock()
