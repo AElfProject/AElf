@@ -621,7 +621,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger.Trace("Transaction insertion failed: {0},\n{1}" + e.Message, tx.GetTransactionInfo());
+                _logger.Trace("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
                 return TxValidation.TxInsertionAndBroadcastingError.Failed;
             }
 
@@ -633,7 +633,7 @@ namespace AElf.Kernel.Node
                 }
                 catch (Exception e)
                 {
-                    _logger.Trace("Broadcasting transaction failed: {0},\n{1}" + e.Message, tx.GetTransactionInfo());
+                    _logger.Trace("Broadcasting transaction failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
                     return TxValidation.TxInsertionAndBroadcastingError.BroadCastFailed;
                 }
 
@@ -641,8 +641,8 @@ namespace AElf.Kernel.Node
                 return TxValidation.TxInsertionAndBroadcastingError.Success;
             }
 
-            _logger.Trace("Transaction insertion failed:{0}, [{1}]" + res, tx.GetTransactionInfo());
-            await _poolService.RemoveAsync(tx.GetHash());
+            _logger.Trace("Transaction insertion failed:{0}, [{1}]", res, tx.GetTransactionInfo());
+            //await _poolService.RemoveAsync(tx.GetHash());
             return res;
         }
 
