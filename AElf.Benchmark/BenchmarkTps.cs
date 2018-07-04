@@ -200,7 +200,7 @@ namespace AElf.Benchmark
             await executive.SetTransactionContext(txnCtxt).Apply(true);
 
             
-            var contractAddr = txnCtxt.Trace.RetVal.DeserializeToPbMessage<Hash>();
+            var contractAddr = txnCtxt.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
             return contractAddr;
         }
 

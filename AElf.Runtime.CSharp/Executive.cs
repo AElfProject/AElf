@@ -41,6 +41,19 @@ namespace AElf.Runtime.CSharp
                 {"string", InvokeHandlers.ForStringReturnType},
                 {"byte[]", InvokeHandlers.ForBytesReturnType}
             };
+        
+        private readonly Dictionary<string, RetVal.Types.RetType> _retTypes =
+            new Dictionary<string, RetVal.Types.RetType>()
+            {
+                {"void", RetVal.Types.RetType.Void},
+                {"bool", RetVal.Types.RetType.Bool},
+                {"int", RetVal.Types.RetType.Int32},
+                {"uint", RetVal.Types.RetType.Uint32},
+                {"long", RetVal.Types.RetType.Int64},
+                {"ulong", RetVal.Types.RetType.Uint64},
+                {"string", RetVal.Types.RetType.String},
+                {"byte[]", RetVal.Types.RetType.Bytes}
+            };
 
         private readonly Dictionary<string, Method> _methodMap = new Dictionary<string, Method>();
 
@@ -144,8 +157,8 @@ namespace AElf.Runtime.CSharp
                     try
                     {
                         _currentSmartContractContext.DataProvider.ClearCache();
-                        var retMsg = await handler(tx.Params.ToByteArray());
-                        _currentTransactionContext.Trace.RetVal = ByteString.CopyFrom(retMsg.ToByteArray());
+                        var retVal = await handler(tx.Params.ToByteArray());
+                        _currentTransactionContext.Trace.RetVal = retVal;
                     }
                     catch (Exception ex)
                     {
@@ -164,8 +177,8 @@ namespace AElf.Runtime.CSharp
                     try
                     {
                         _currentSmartContractContext.DataProvider.ClearCache();
-                        var retMsg = handler(tx.Params.ToByteArray());
-                        _currentTransactionContext.Trace.RetVal = ByteString.CopyFrom(retMsg.ToByteArray());
+                        var retVal = handler(tx.Params.ToByteArray());
+                        _currentTransactionContext.Trace.RetVal = retVal;
                     }
                     catch (Exception ex)
                     {
@@ -195,18 +208,18 @@ namespace AElf.Runtime.CSharp
 
         #region Cached handlers for this contract
 
-        private readonly Dictionary<Method, Func<byte[], Task<IMessage>>> _asyncHandlersCache =
-            new Dictionary<Method, Func<byte[], Task<IMessage>>>();
+        private readonly Dictionary<Method, Func<byte[], Task<RetVal>>> _asyncHandlersCache =
+            new Dictionary<Method, Func<byte[], Task<RetVal>>>();
 
-        private readonly Dictionary<Method, Func<byte[], IMessage>> _handlersCache =
-            new Dictionary<Method, Func<byte[], IMessage>>();
-
+        private readonly Dictionary<Method, Func<byte[], RetVal>> _handlersCache =
+            new Dictionary<Method, Func<byte[], RetVal>>();
+        
         /// <summary>
         /// Get async handler from cache or by reflection.
         /// </summary>
         /// <param name="methodAbi">The abi definition of the method.</param>
         /// <returns>An async handler that takes serialized parameters and returns a IMessage.</returns>
-        private Func<byte[], Task<IMessage>> GetAsyncHandler(Method methodAbi)
+        private Func<byte[], Task<RetVal>> GetAsyncHandler(Method methodAbi)
         {
             if (_asyncHandlersCache.TryGetValue(methodAbi, out var handler))
             {
@@ -214,15 +227,20 @@ namespace AElf.Runtime.CSharp
             }
 
             var methodInfo = _smartContract.GetType().GetMethod(methodAbi.Name);
+
+            _retTypes.TryGetValue(methodAbi.ReturnType, out var retType);
+            
             if (!_asyncApplyHanders.TryGetValue(methodAbi.ReturnType, out var applyHandler))
             {
                 if (methodInfo.ReturnType.GenericTypeArguments[0].IsPbMessageType())
                 {
                     applyHandler = InvokeAsyncHandlers.ForPbMessageReturnType;
+                    retType = RetVal.Types.RetType.PbMessage;
                 }
                 else if (methodInfo.ReturnType.GenericTypeArguments[0].IsUserType())
                 {
                     applyHandler = InvokeAsyncHandlers.ForUserTypeReturnType;
+                    retType = RetVal.Types.RetType.UserType;
                 }
             }
 
@@ -236,7 +254,12 @@ namespace AElf.Runtime.CSharp
             {
                 var parameters = ParamsPacker.Unpack(paramsBytes,
                     methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
-                return await applyHandler(methodInfo, contract, parameters);
+                var msg = await applyHandler(methodInfo, contract, parameters);
+                return new RetVal()
+                {
+                    Type = retType,
+                    Data = msg.ToByteString()
+                };
             };
 
             return handler;
@@ -247,23 +270,27 @@ namespace AElf.Runtime.CSharp
         /// </summary>
         /// <param name="methodAbi">The name of the method.</param>
         /// <returns>A handler that takes serialized parameters and returns a IMessage.</returns>
-        private Func<byte[], IMessage> GetHandler(Method methodAbi)
+        private Func<byte[], RetVal> GetHandler(Method methodAbi)
         {
             if (_handlersCache.TryGetValue(methodAbi, out var handler))
             {
                 return handler;
             }
 
+            _retTypes.TryGetValue(methodAbi.ReturnType, out var retType);
+            
             var methodInfo = _smartContract.GetType().GetMethod(methodAbi.Name);
             if (!_applyHanders.TryGetValue(methodAbi.ReturnType, out var applyHandler))
             {
                 if (methodInfo.ReturnType.IsPbMessageType())
                 {
                     applyHandler = InvokeHandlers.ForPbMessageReturnType;
+                    retType = RetVal.Types.RetType.PbMessage;
                 }
                 else if (methodInfo.ReturnType.IsUserType())
                 {
                     applyHandler = InvokeHandlers.ForUserTypeReturnType;
+                    retType = RetVal.Types.RetType.UserType;
                 }
             }
 
@@ -278,12 +305,17 @@ namespace AElf.Runtime.CSharp
             {
                 var parameters = ParamsPacker.Unpack(paramsBytes,
                     methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
-                return applyHandler(methodInfo, contract, parameters);
+                var msg = applyHandler(methodInfo, contract, parameters);
+                return new RetVal()
+                {
+                    Type = retType,
+                    Data = msg.ToByteString()
+                };
             };
 
             return handler;
         }
-
+        
         #endregion
     }
 }

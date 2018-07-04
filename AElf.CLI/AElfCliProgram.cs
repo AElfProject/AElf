@@ -279,7 +279,7 @@ namespace AElf.CLI
                         // Read sc bytes
                         SmartContractReader screader = new SmartContractReader();
                         byte[] sc = screader.Read(filename);
-                        string hex = BitConverter.ToString(sc).Replace("-", string.Empty).ToLower();
+                        string hex = sc.ToHex();
 
                         var name = Globals.GenesisSmartContractZeroAssemblyName + Globals.GenesisSmartContractLastName;
                         Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals(name));
@@ -376,13 +376,16 @@ namespace AElf.CLI
                             Transaction tr ;
 
                             tr = ConvertFromJson(j);
-                            string hex = BitConverter.ToString(tr.To.Value).Replace("-", string.Empty).ToLower();
+                            string hex = tr.To.Value.ToHex();
 
                             Module m = null;
-                            if (!_loadedModules.TryGetValue(hex, out m))
+                            if (!_loadedModules.TryGetValue(hex.Replace("0x", ""), out m))
                             {
-                                _screenManager.PrintError(AbiNotLoaded);
-                                return;
+                                if (!_loadedModules.TryGetValue("0x"+hex.Replace("0x", ""), out m))
+                                {
+                                    _screenManager.PrintError(AbiNotLoaded);
+                                    return;
+                                }
                             }
 
                             Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(tr.MethodName));

@@ -38,6 +38,23 @@ message LogEvent
     repeated EventField Details = 3;
 }
 
+message RetVal {
+    RetType Type = 1;
+    bytes Data = 2;
+    enum RetType {
+        Void = 0;
+        Bool = 1;
+        Int32 = 2;
+        UInt32 = 3;
+        Int64 = 4;
+        UInt64 = 5;
+        String = 6;
+        Bytes = 7;
+        PbMessage = 8;
+        UserType = 9;
+    }
+}
+
 message BlockHeader{
     int32 Version = 1;
     Hash PreviousBlockHash = 2;
