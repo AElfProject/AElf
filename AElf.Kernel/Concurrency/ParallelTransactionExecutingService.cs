@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 using AElf.Kernel.Concurrency.Config;
-using AElf.Kernel.Concurrency.Execution.Config;
 using Akka.Actor;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Scheduling;

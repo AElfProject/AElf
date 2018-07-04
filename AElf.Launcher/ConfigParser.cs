@@ -7,7 +7,6 @@ using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
 using AElf.Kernel.Concurrency.Config;
-using AElf.Kernel.Concurrency.Execution.Config;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Config;
 using AElf.Kernel.TxMemPool;

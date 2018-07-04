@@ -6,7 +6,6 @@ using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Config;
-using AElf.Kernel.Concurrency.Execution.Config;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;

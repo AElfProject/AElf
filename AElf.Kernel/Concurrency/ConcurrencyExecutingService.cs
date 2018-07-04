@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Concurrency.Config;
 using AElf.Kernel.Concurrency.Execution;
-using AElf.Kernel.Concurrency.Execution.Config;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Concurrency.Scheduling;
@@ -54,8 +54,11 @@ namespace AElf.Kernel.Concurrency
             var config = InitActorConfig(ActorHocon.ActorWorkerHocon);
 
             _actorSystem = ActorSystem.Create(SystemName, config);
-            var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker");
-            worker.Tell(new LocalSerivcePack(_servicePack));
+            for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
+            {
+                var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker" + i);
+                worker.Tell(new LocalSerivcePack(_servicePack));
+            }
         }
 
         public void InitActorSystem()

@@ -1,4 +1,4 @@
-﻿namespace AElf.Kernel.Concurrency.Execution.Config
+﻿namespace AElf.Kernel.Concurrency.Config
 {
     public class ActorHocon
     {

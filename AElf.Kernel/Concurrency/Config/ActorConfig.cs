@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using AElf.Configuration;
 
-namespace AElf.Kernel.Concurrency.Execution.Config
+namespace AElf.Kernel.Concurrency.Config
 {
     [ConfigFile(FileName = "actorconfig.json")]
     public class ActorConfig : ConfigBase<ActorConfig>
