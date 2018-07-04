@@ -354,6 +354,7 @@ namespace AElf.Kernel.Managers
         public async Task<Hash> CalculatePointerHashOfCurrentHeight(Path path)
         {
             await Check();
+            
             return path.SetBlockHash(PreBlockHash).GetPointerHash();
         }
 
