@@ -98,11 +98,11 @@ namespace AElf.Contracts.Genesis
 
             await _blockProducer.SetAsync(blockProducers);
 
+            Console.WriteLine(blockProducers.Nodes.Count);
             // First round
             foreach (var node in blockProducers.Nodes)
             {
                 dict.Add(node, node[0]);
-                Console.WriteLine(node);
             }
 
             var sortedMiningNodes =
@@ -289,16 +289,7 @@ namespace AElf.Contracts.Genesis
             var blockProducer = await GetBlockProducers();
             var blockProducerCount = blockProducer.Nodes.Count;
             var order = GetModulus(sigNum, blockProducerCount);
-            
-//            if (RoundsCount.Value == 1)
-//            {
-//                var round = await _dPoSInfoMap.GetValueAsync(RoundsCountAddOne(RoundsCount));
-//                // ReSharper disable once InconsistentNaming
-//                var eBPOfRound2 = round.Info.FirstOrDefault(i => i.Value.IsEBP).Key;
-//                //Set extra block timeslot for next round
-//                return new StringValue { Value = eBPOfRound2};
-//            }
-            
+
             // ReSharper disable once InconsistentNaming
             var nextEBP = blockProducer.Nodes[order];
             
@@ -314,7 +305,6 @@ namespace AElf.Contracts.Genesis
             }
             
             var newRoundsCount = RoundsCountAddOne(RoundsCount);
-            //await _roundsCount.SetAsync(newRoundsCount.Value);
 
             return newRoundsCount;
         }
@@ -386,11 +376,6 @@ namespace AElf.Contracts.Genesis
             // ReSharper disable once InconsistentNaming
             var currentEBP = await _eBPMap.GetValueAsync(RoundsCount);
 
-//            if (meAddress == currentEBP.Value)
-//            {
-//                return new BoolValue {Value = false};
-//            }
-            
             var meOrder = (await GetBlockProducerInfoOfCurrentRound(meAddress)).Order;
             // ReSharper disable once InconsistentNaming
             var currentEBPOrder = (await GetBlockProducerInfoOfCurrentRound(currentEBP.Value)).Order;
@@ -418,6 +403,7 @@ namespace AElf.Contracts.Genesis
             
             if (meAddress == (await _eBPMap.GetValueAsync(RoundsCount)).Value)
             {
+                Console.WriteLine($"[{GetTimestampOfUtcNow().ToDateTime().ToLocalTime():T} - DPoS]: I am the EBP of this round - RoundCount:" + RoundsCount);
                 afterTime = (assignedExtraBlockProducingTime - now).Seconds;
             }
             
@@ -426,8 +412,13 @@ namespace AElf.Contracts.Genesis
                 afterTime = 0;
             }
             
-            Console.WriteLine("Will produce extra block after " + afterTime + "s");
+            Console.WriteLine($"[{GetTimestampOfUtcNow().ToDateTime().ToLocalTime():T} - DPoS]: Will produce extra block after {afterTime}s");
 
+            if (afterTime > 0)
+            {
+                return new BoolValue {Value = false};
+            }
+            
             if (currentTimeslot > offset && currentTimeslot < offset + MiningTime)
             {
                 Console.WriteLine("currentTimeslot:" + currentTimeslot);

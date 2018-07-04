@@ -9,5 +9,6 @@
         Pending = 5,
         Mining = 6,
         InvalidTimeslot = 7,
+        FailedToCheckConsensusInvalidation = 8
     }
 }
