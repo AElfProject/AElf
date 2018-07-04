@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using AElf.Kernel.Concurrency.Config;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Managers;
 using AElf.Kernel.KernelAccount;
@@ -101,12 +102,13 @@ namespace AElf.Kernel.Services
             var runner = _smartContractRunnerFactory.GetRunner(registration.Category);
             runner.CodeCheck(registration.ContractBytes.ToByteArray(), isPrivileged);
 
-            var contractType = GetContractType(registration);
-
-#if PARALLEL
-            //TODO: due to (1) unclear with how to get the contract reference info and (2) function metadata service don't have update logic, we pass empty reference map as parameter and don't support contract call each other for now 
-            await _functionMetadataService.DeployContract(chainId, contractType, account, new Dictionary<string, Hash>());
-#endif
+            if (ParallelConfig.Instance.IsParallelEnable)
+            {
+                var contractType = GetContractType(registration);
+                //TODO: due to (1) unclear with how to get the contract reference info and (2) function metadata service don't have update logic, we pass empty reference map as parameter and don't support contract call each other for now 
+                await _functionMetadataService.DeployContract(chainId, contractType, account, new Dictionary<string, Hash>());
+            }
+            
             await _smartContractManager.InsertAsync(account, registration);
         }
 

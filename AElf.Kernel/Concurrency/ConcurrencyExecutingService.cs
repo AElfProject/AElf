@@ -1,6 +1,4 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +12,6 @@ using AElf.Kernel.Services;
 using Akka.Actor;
 using Akka.Configuration;
 using Akka.Routing;
-using NLog;
 
 namespace AElf.Kernel.Concurrency
 {
@@ -91,7 +88,7 @@ namespace AElf.Kernel.Concurrency
             _isInit = true;
         }
 
-        private Config InitActorConfig(string content)
+        private Akka.Configuration.Config InitActorConfig(string content)
         {
             if (ActorConfig.Instance.Seeds == null || ActorConfig.Instance.Seeds.Count == 0)
             {

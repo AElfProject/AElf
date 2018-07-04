@@ -14,9 +14,19 @@ namespace AElf.Kernel
     {
         public FunctionMetadata(HashSet<string> callingSet, HashSet<Resource> fullResourceSet, HashSet<Resource> localResourceSet)
         {
+            ContractContainsMetadata = true;
             SerializeCallingSet.AddRange(callingSet.AsEnumerable());
             SerializeFullResourceSet.AddRange(fullResourceSet.AsEnumerable());
             SerializeLocalResourceSet.AddRange(localResourceSet.AsEnumerable());
+        }
+        
+        /// <summary>
+        /// For contracts that contains no metadata
+        /// </summary>
+        /// <param name="nonMetadataContract">should always be false</param>
+        public FunctionMetadata(bool nonMetadataContract)
+        {
+            ContractContainsMetadata = nonMetadataContract;
         }
         
         /// <summary>
@@ -39,8 +49,18 @@ namespace AElf.Kernel
     {
         public FunctionMetadataTemplate(HashSet<string> callingSet, HashSet<Resource> localResourceSet)
         {
+            TemplateContainsMetadata = true;
             SerializeCallingSet.AddRange(callingSet.AsEnumerable());
             SerializeLocalResourceSet.Add(localResourceSet.AsEnumerable());
+        }
+        
+        /// <summary>
+        /// TODO: For the contracts that contains no metadata
+        /// </summary>
+        /// <param name="noMetadataTemplate"></param>
+        public FunctionMetadataTemplate(bool noMetadataTemplate)
+        {
+            TemplateContainsMetadata = noMetadataTemplate;
         }
 
         //TODO: do we need to cache this hashset? or just new one whenever this getter is called

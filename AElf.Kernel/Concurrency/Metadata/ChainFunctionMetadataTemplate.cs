@@ -46,7 +46,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                         SerializeContractMetadataTemplateMap.Parser.ParseFrom(mapCache));
                 if (graphCache == null)
                 {
-                    throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Cannot find calling graph in database");
+                    throw new FunctionMetadataException("ChainId [" + ChainId.Value.ToByteArray().ToHex() + "] Cannot find calling graph in database");
                 }
                 CallingGraph = RestoreCallingGraph(CallingGraphEdges.Parser.ParseFrom(graphCache));
             }
@@ -75,10 +75,17 @@ namespace AElf.Kernel.Concurrency.Metadata
                 ExtractRawMetadataFromType(contractType, out var smartContractReferenceMap,
                     out var localFunctionMetadataTemplateMap);
                 
+                //TODO: we group tx that send to the contract that contains no attributes into the same group
+                if (localFunctionMetadataTemplateMap.Count == 0 || localFunctionMetadataTemplateMap.First().Value.TemplateContainsMetadata == false)
+                {
+                    ContractMetadataTemplateMap.Add(contractType.FullName, localFunctionMetadataTemplateMap);
+                    return true;
+                }
+                
                 UpdateTemplate(contractType, smartContractReferenceMap, ref localFunctionMetadataTemplateMap);
                 
                 //merge the function metadata template map
-                ContractMetadataTemplateMap.Add(contractType.Name, localFunctionMetadataTemplateMap);
+                ContractMetadataTemplateMap.Add(contractType.FullName, localFunctionMetadataTemplateMap);
             }
             catch (FunctionMetadataException e)
             {
@@ -123,7 +130,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 if (fieldAttr == null) continue;
                 if (!templocalFieldMap.TryAdd(fieldAttr.FieldName, fieldAttr.DataAccessMode))
                 {
-                    throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Duplicate name of field attributes in contract " + contractType.Name);
+                    throw new FunctionMetadataException("ChainId [" + ChainId.Value.ToByteArray().ToHex() + "] Duplicate name of field attributes in contract " + contractType.FullName);
                 }
             }
             
@@ -134,7 +141,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                 if (smartContractRefAttr == null) continue;
                 if (!smartContractReferenceMap.TryAdd(smartContractRefAttr.FieldName, smartContractRefAttr.ContractType))
                 {
-                    throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Duplicate name of smart contract reference attributes in contract " + contractType.Name);
+                    throw new FunctionMetadataException("ChainId [" + ChainId.Value.ToByteArray().ToHex() + "] Duplicate name of smart contract reference attributes in contract " + contractType.FullName);
                 }
             }
             
@@ -161,13 +168,23 @@ namespace AElf.Kernel.Concurrency.Metadata
                 if (!localFunctionMetadataTemplateMap.TryAdd(functionAttribute.FunctionSignature, 
                     new FunctionMetadataTemplate(new HashSet<string>(functionAttribute.CallingSet), new HashSet<Resource>(resourceSet))))
                 {
-                    throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Duplicate name of function attribute" + functionAttribute.FunctionSignature + " in contract" + contractType.Name);
+                    throw new FunctionMetadataException("ChainId [" + ChainId.Value.ToByteArray().ToHex() + "] Duplicate name of function attribute" + functionAttribute.FunctionSignature + " in contract" + contractType.FullName);
                 }
             }
 
             if (localFunctionMetadataTemplateMap.Count == 0)
             {
-                throw new FunctionMetadataException("ChainId [" + ChainId.Value + " no function marked in the target contract " + contractType.Name);
+                var blackLists = new[] {"ToString", "Equals", "GetHashCode", "GetType"};
+                foreach (var methodInfo in contractType.GetMethods())
+                {
+                    if (!blackLists.Contains(methodInfo.Name))
+                    {
+                        localFunctionMetadataTemplateMap.Add("${this}." + methodInfo.Name, new FunctionMetadataTemplate(false));
+                        CallingGraph.AddVertex(contractType.FullName + "." + methodInfo.Name);
+                    }
+                }
+                return;
+                throw new FunctionMetadataException("ChainId [" + ChainId.Value.ToByteArray().ToHex() + " no function marked in the target contract " + contractType.FullName);
             }
             
             //check for validaty of the calling set (whether have unknow reference)
@@ -180,8 +197,8 @@ namespace AElf.Kernel.Concurrency.Metadata
                         if (!localFunctionMetadataTemplateMap.ContainsKey(calledFunc))
                         {
                             throw new FunctionMetadataException(
-                                "ChainId [" + ChainId.Value + "] calling set of function " + kvPair.Key + " when adding contract " +
-                                contractType.Name + " contains unknown reference to it's own function: " +
+                                "ChainId [" + ChainId.Value.ToByteArray().ToHex() + "] calling set of function " + kvPair.Key + " when adding contract " +
+                                contractType.FullName + " contains unknown reference to it's own function: " +
                                 calledFunc);
                         }
                     }
@@ -191,8 +208,8 @@ namespace AElf.Kernel.Concurrency.Metadata
                             !smartContractReferenceMap.ContainsKey(Replacement.Value(memberReplacement)))
                         {
                             throw new FunctionMetadataException(
-                                "ChainId [" + ChainId.Value + "] calling set of function " + kvPair.Key + " when adding contract " +
-                                contractType.Name + " contains unknown local member reference to other contract: " +
+                                "ChainId [" + ChainId.Value.ToByteArray().ToHex() + "] calling set of function " + kvPair.Key + " when adding contract " +
+                                contractType.FullName + " contains unknown local member reference to other contract: " +
                                 calledFunc);
                         }
                     }
@@ -214,7 +231,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             //check for DAG  (the updating calling graph is DAG iff local calling graph is DAG)
             if (!TryGetLocalCallingGraph(targetLocalFunctionMetadataTemplateMap, out var localCallGraph, out var localTopologicRes))
             {
-                throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Calling graph of " + contractType.Name + " is Non-DAG thus nothing take effect");
+                throw new FunctionMetadataException("ChainId [" + ChainId.Value.ToByteArray().ToHex() + "] Calling graph of " + contractType.FullName + " is Non-DAG thus nothing take effect");
             }
 
             
@@ -223,7 +240,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             //check for unknown reference
             foreach (var kvPair in targetLocalFunctionMetadataTemplateMap)
             {
-                var sourceFunc = Replacement.ReplaceValueIntoReplacement(kvPair.Key, Replacement.This, contractType.Name);
+                var sourceFunc = Replacement.ReplaceValueIntoReplacement(kvPair.Key, Replacement.This, contractType.FullName);
                 foreach (var calledFunc in kvPair.Value.CallingSet)
                 {
                     if (!calledFunc.Contains(Replacement.This))
@@ -231,10 +248,10 @@ namespace AElf.Kernel.Concurrency.Metadata
                         Replacement.TryGetReplacementWithIndex(calledFunc, 0, out var memberReplacement);
                         Type referenceType = smartContractReferenceMap[Replacement.Value(memberReplacement)];
                         var globalCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, memberReplacement,
-                            referenceType.Name);
+                            referenceType.FullName);
                         if (!CallingGraph.ContainsVertex(globalCalledFunc))
                         {
-                            throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractType.Name + " into calling graph, consider the target function does not exist in the foreign contract");
+                            throw new FunctionMetadataException("ChainId [" + ChainId.Value.ToByteArray().ToHex() + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractType.FullName + " into calling graph, consider the target function does not exist in the foreign contract");
                         }
                         outEdgesToAdd.Add(new Edge<string>(sourceFunc, globalCalledFunc));
                     }
@@ -244,11 +261,11 @@ namespace AElf.Kernel.Concurrency.Metadata
             //Merge local calling graph
             foreach (var localVertex in localCallGraph.Vertices)
             {
-                var globalVertex = Replacement.ReplaceValueIntoReplacement(localVertex, Replacement.This, contractType.Name);
+                var globalVertex = Replacement.ReplaceValueIntoReplacement(localVertex, Replacement.This, contractType.FullName);
                 CallingGraph.AddVertex(globalVertex);
                 foreach (var outEdge in localCallGraph.OutEdges(localVertex))
                 {
-                    var toVertex = Replacement.ReplaceValueIntoReplacement(outEdge.Target, Replacement.This, contractType.Name);
+                    var toVertex = Replacement.ReplaceValueIntoReplacement(outEdge.Target, Replacement.This, contractType.FullName);
                     CallingGraph.AddVerticesAndEdge(new Edge<string>(globalVertex, toVertex));
                 }
             }
@@ -341,7 +358,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             }
             catch (NonAcyclicGraphException)
             {
-                throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] The calling graph ISNOT DAG when restoring the calling graph according to the ContractMetadataTemplateMap from the database");
+                throw new FunctionMetadataException("ChainId [" + ChainId.Value.ToByteArray().ToHex() + "] The calling graph ISNOT DAG when restoring the calling graph according to the ContractMetadataTemplateMap from the database");
             }
             return graph;
         }
@@ -373,7 +390,7 @@ namespace AElf.Kernel.Concurrency.Metadata
 
         public static string ContractType(Type contractType)
         {
-            return "${" + contractType.Name + "}";
+            return "${" + contractType.FullName + "}";
         }
 
         public static string Value(string replacement)

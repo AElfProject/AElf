@@ -55,8 +55,24 @@ namespace AElf.Kernel.Concurrency.Metadata
                     throw new FunctionMetadataException("Cannot find contract named " + contractClassName + " in the template storage");
                 }
 
-                //local calling graph in template map of template must be topological, so ignore the callGraph
-                Template.TryGetLocalCallingGraph(classTemplate, out var callGraph, out var topologicRes);
+                if (classTemplate.Count == 0 || classTemplate.First().Value.TemplateContainsMetadata == false)
+                {
+                    foreach (var functionMetadataTemplate in classTemplate)
+                    {
+                        //TODO: this if is aim to support contracts that contains no metadata for now
+                        var funcNameWithAddr =
+                            Replacement.ReplaceValueIntoReplacement(functionMetadataTemplate.Key, Replacement.This, contractAddr.Value.ToByteArray().ToHex());
+
+                        var localResourceSet = new HashSet<Resource>(){new Resource(contractAddr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)};
+                        var fullResourceSet = new HashSet<Resource>(){new Resource(contractAddr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)};
+                        var metadata = new FunctionMetadata(new HashSet<string>(), fullResourceSet, localResourceSet);
+                        FunctionMetadataMap.Add(funcNameWithAddr, metadata);
+                    }
+                }
+                else
+                {
+                    //local calling graph in template map of template must be topological, so ignore the callGraph
+                    Template.TryGetLocalCallingGraph(classTemplate, out var callGraph, out var topologicRes);
 
                 foreach (var localFuncName in topologicRes.Reverse())
                 {
@@ -64,7 +80,8 @@ namespace AElf.Kernel.Concurrency.Metadata
                         Replacement.ReplaceValueIntoReplacement(localFuncName, Replacement.This, contractAddr.ToHex());
                     var funcMetadata = GetMetadataForNewFunction(funcNameWithAddr, classTemplate[localFuncName], contractAddr, contractReferences, tempMap);
                 
-                    tempMap.Add(funcNameWithAddr, funcMetadata);
+                        tempMap.Add(funcNameWithAddr, funcMetadata);
+                    }
                 }
             
                 //if no exception is thrown, merge the tempMap into FunctionMetadataMap

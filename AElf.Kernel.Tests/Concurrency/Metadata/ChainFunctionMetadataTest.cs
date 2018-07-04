@@ -53,7 +53,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             
             var groundTruthMap = new Dictionary<string, FunctionMetadata>();
 
-            cfms.DeployNewContract("TestContractC", addrC, referenceBookForC);
+            cfms.DeployNewContract("AElf.Kernel.Tests.Concurrency.Metadata.TestContractC", addrC, referenceBookForC);
             
             groundTruthMap.Add(
                 addrC.ToHex() + ".Func0", 
@@ -85,7 +85,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 
             
             referenceBookForB.Add("ContractC", addrC);
-            cfms.DeployNewContract("TestContractB", addrB, referenceBookForB);
+            cfms.DeployNewContract("AElf.Kernel.Tests.Concurrency.Metadata.TestContractB", addrB, referenceBookForB);
             
             groundTruthMap.Add(
                 addrB.ToHex() + ".Func0",
@@ -122,7 +122,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             
             referenceBookForA.Add("ContractC", addrC);
             referenceBookForA.Add("_contractB", addrB);
-            cfms.DeployNewContract("TestContractA", addrA, referenceBookForA);
+            cfms.DeployNewContract("AElf.Kernel.Tests.Concurrency.Metadata.TestContractA", addrA, referenceBookForA);
             
             groundTruthMap.Add(
                 addrA.ToHex() + ".Func0(int)",

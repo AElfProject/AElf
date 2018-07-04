@@ -1,29 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Execution;
-using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
 using AElf.Runtime.CSharp;
 using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
-using Akka.Actor;
-using Akka.Dispatch.SysMsg;
-using Akka.Util.Internal;
-using Autofac;
 using Google.Protobuf;
 using NLog;
 using ServiceStack;
@@ -113,6 +104,7 @@ namespace AElf.Benchmark
             var resDict = new Dictionary<string, double>();
             for (int currentGroupCount = _options.GroupRange.ElementAt(0); currentGroupCount <= _options.GroupRange.ElementAt(1); currentGroupCount++)
             {
+                _logger.Info($"Start executing {currentGroupCount} groups where have {_options.TxNumber} transactions in total");
                 var res = await MultipleGroupBenchmark(_options.TxNumber, currentGroupCount);
                 resDict.Add(res.Key, res.Value);
             }
@@ -131,8 +123,10 @@ namespace AElf.Benchmark
         
             var txList = _dataGenerater.GetMultipleGroupTx(txNumber, groupCount, _contractHash);
             long timeused = 0;
+            
             for (int i = 0; i < repeatTime; i++)
             {
+                _logger.Info($"round {i+1} / {repeatTime} start");
                 foreach (var tx in txList)
                 {
                     tx.IncrementId += 1;
@@ -154,6 +148,8 @@ namespace AElf.Benchmark
                         _logger.Error("Execution error: " + trace.StdErr);
                     }
                 });
+                
+                _logger.Info($"round {i+1} / {repeatTime} ended, used time {swExec.ElapsedMilliseconds} ms");
             }
             
             var time = txNumber / (timeused / 1000.0 / (double)repeatTime);

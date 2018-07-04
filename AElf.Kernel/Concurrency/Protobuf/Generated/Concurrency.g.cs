@@ -37,31 +37,33 @@ namespace AElf.Kernel {
             "TWV0YWRhdGFUZW1wbGF0ZU1hcBJLCgtUZW1wbGF0ZU1hcBgCIAMoCzI2LlNl",
             "cmlhbGl6ZUZ1bmN0aW9uTWV0YWRhdGFUZW1wbGF0ZU1hcC5UZW1wbGF0ZU1h",
             "cEVudHJ5Gk0KEFRlbXBsYXRlTWFwRW50cnkSCwoDa2V5GAEgASgJEigKBXZh",
-            "bHVlGAIgASgLMhkuRnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlOgI4ASJlChhG",
-            "dW5jdGlvbk1ldGFkYXRhVGVtcGxhdGUSGwoTU2VyaWFsaXplQ2FsbGluZ1Nl",
-            "dBgBIAMoCRIsChlTZXJpYWxpemVMb2NhbFJlc291cmNlU2V0GAIgAygLMgku",
-            "UmVzb3VyY2UiQQoIUmVzb3VyY2USDAoETmFtZRgBIAEoCRInCg5EYXRhQWNj",
-            "ZXNzTW9kZRgCIAEoDjIPLkRhdGFBY2Nlc3NNb2RlIooBChBGdW5jdGlvbk1l",
-            "dGFkYXRhEhsKE1NlcmlhbGl6ZUNhbGxpbmdTZXQYASADKAkSKwoYU2VyaWFs",
-            "aXplRnVsbFJlc291cmNlU2V0GAIgAygLMgkuUmVzb3VyY2USLAoZU2VyaWFs",
-            "aXplTG9jYWxSZXNvdXJjZVNldBgDIAMoCzIJLlJlc291cmNlIqoBChxTZXJp",
-            "YWxpemVGdW5jdGlvbk1ldGFkYXRhTWFwEkMKC01ldGFkYXRhTWFwGAEgAygL",
-            "Mi4uU2VyaWFsaXplRnVuY3Rpb25NZXRhZGF0YU1hcC5NZXRhZGF0YU1hcEVu",
-            "dHJ5GkUKEE1ldGFkYXRhTWFwRW50cnkSCwoDa2V5GAEgASgJEiAKBXZhbHVl",
-            "GAIgASgLMhEuRnVuY3Rpb25NZXRhZGF0YToCOAEiLgoRQ2FsbGluZ0dyYXBo",
-            "RWRnZXMSGQoFRWRnZXMYASADKAsyCi5HcmFwaEVkZ2UiKwoJR3JhcGhFZGdl",
-            "Eg4KBlNvdXJjZRgBIAEoCRIOCgZUYXJnZXQYAiABKAkqPAoGU3RhdHVzEg4K",
-            "Ck5vdEV4aXN0ZWQQABILCgdQZW5kaW5nEAESCgoGRmFpbGVkEAISCQoFTWlu",
-            "ZWQQA0IOqgILQUVsZi5LZXJuZWxiBnByb3RvMw=="));
+            "bHVlGAIgASgLMhkuRnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlOgI4ASKHAQoY",
+            "RnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlEhsKE1NlcmlhbGl6ZUNhbGxpbmdT",
+            "ZXQYASADKAkSLAoZU2VyaWFsaXplTG9jYWxSZXNvdXJjZVNldBgCIAMoCzIJ",
+            "LlJlc291cmNlEiAKGFRlbXBsYXRlQ29udGFpbnNNZXRhZGF0YRgDIAEoCCJB",
+            "CghSZXNvdXJjZRIMCgROYW1lGAEgASgJEicKDkRhdGFBY2Nlc3NNb2RlGAIg",
+            "ASgOMg8uRGF0YUFjY2Vzc01vZGUirAEKEEZ1bmN0aW9uTWV0YWRhdGESGwoT",
+            "U2VyaWFsaXplQ2FsbGluZ1NldBgBIAMoCRIrChhTZXJpYWxpemVGdWxsUmVz",
+            "b3VyY2VTZXQYAiADKAsyCS5SZXNvdXJjZRIsChlTZXJpYWxpemVMb2NhbFJl",
+            "c291cmNlU2V0GAMgAygLMgkuUmVzb3VyY2USIAoYQ29udHJhY3RDb250YWlu",
+            "c01ldGFkYXRhGAQgASgIIqoBChxTZXJpYWxpemVGdW5jdGlvbk1ldGFkYXRh",
+            "TWFwEkMKC01ldGFkYXRhTWFwGAEgAygLMi4uU2VyaWFsaXplRnVuY3Rpb25N",
+            "ZXRhZGF0YU1hcC5NZXRhZGF0YU1hcEVudHJ5GkUKEE1ldGFkYXRhTWFwRW50",
+            "cnkSCwoDa2V5GAEgASgJEiAKBXZhbHVlGAIgASgLMhEuRnVuY3Rpb25NZXRh",
+            "ZGF0YToCOAEiLgoRQ2FsbGluZ0dyYXBoRWRnZXMSGQoFRWRnZXMYASADKAsy",
+            "Ci5HcmFwaEVkZ2UiKwoJR3JhcGhFZGdlEg4KBlNvdXJjZRgBIAEoCRIOCgZU",
+            "YXJnZXQYAiABKAkqPAoGU3RhdHVzEg4KCk5vdEV4aXN0ZWQQABILCgdQZW5k",
+            "aW5nEAESCgoGRmFpbGVkEAISCQoFTWluZWQQA0IOqgILQUVsZi5LZXJuZWxi",
+            "BnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::AElf.Kernel.HashReflection.Descriptor, global::AElf.Kernel.KernelReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::AElf.Kernel.Status), }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.TransactionResult), global::AElf.Kernel.TransactionResult.Parser, new[]{ "TransactionId", "Status", "Logs", "RetVal" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SerializeContractMetadataTemplateMap), global::AElf.Kernel.SerializeContractMetadataTemplateMap.Parser, new[]{ "MetadataTemplateMapForContract" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SerializeFunctionMetadataTemplateMap), global::AElf.Kernel.SerializeFunctionMetadataTemplateMap.Parser, new[]{ "TemplateMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.FunctionMetadataTemplate), global::AElf.Kernel.FunctionMetadataTemplate.Parser, new[]{ "SerializeCallingSet", "SerializeLocalResourceSet" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.FunctionMetadataTemplate), global::AElf.Kernel.FunctionMetadataTemplate.Parser, new[]{ "SerializeCallingSet", "SerializeLocalResourceSet", "TemplateContainsMetadata" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.Resource), global::AElf.Kernel.Resource.Parser, new[]{ "Name", "DataAccessMode" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.FunctionMetadata), global::AElf.Kernel.FunctionMetadata.Parser, new[]{ "SerializeCallingSet", "SerializeFullResourceSet", "SerializeLocalResourceSet" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.FunctionMetadata), global::AElf.Kernel.FunctionMetadata.Parser, new[]{ "SerializeCallingSet", "SerializeFullResourceSet", "SerializeLocalResourceSet", "ContractContainsMetadata" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SerializeFunctionMetadataMap), global::AElf.Kernel.SerializeFunctionMetadataMap.Parser, new[]{ "MetadataMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.CallingGraphEdges), global::AElf.Kernel.CallingGraphEdges.Parser, new[]{ "Edges" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.GraphEdge), global::AElf.Kernel.GraphEdge.Parser, new[]{ "Source", "Target" }, null, null, null)
@@ -561,6 +563,7 @@ namespace AElf.Kernel {
     public FunctionMetadataTemplate(FunctionMetadataTemplate other) : this() {
       serializeCallingSet_ = other.serializeCallingSet_.Clone();
       serializeLocalResourceSet_ = other.serializeLocalResourceSet_.Clone();
+      templateContainsMetadata_ = other.templateContainsMetadata_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -589,6 +592,17 @@ namespace AElf.Kernel {
       get { return serializeLocalResourceSet_; }
     }
 
+    /// <summary>Field number for the "TemplateContainsMetadata" field.</summary>
+    public const int TemplateContainsMetadataFieldNumber = 3;
+    private bool templateContainsMetadata_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool TemplateContainsMetadata {
+      get { return templateContainsMetadata_; }
+      set {
+        templateContainsMetadata_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as FunctionMetadataTemplate);
@@ -604,6 +618,7 @@ namespace AElf.Kernel {
       }
       if(!serializeCallingSet_.Equals(other.serializeCallingSet_)) return false;
       if(!serializeLocalResourceSet_.Equals(other.serializeLocalResourceSet_)) return false;
+      if (TemplateContainsMetadata != other.TemplateContainsMetadata) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -612,6 +627,7 @@ namespace AElf.Kernel {
       int hash = 1;
       hash ^= serializeCallingSet_.GetHashCode();
       hash ^= serializeLocalResourceSet_.GetHashCode();
+      if (TemplateContainsMetadata != false) hash ^= TemplateContainsMetadata.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -627,6 +643,10 @@ namespace AElf.Kernel {
     public void WriteTo(pb::CodedOutputStream output) {
       serializeCallingSet_.WriteTo(output, _repeated_serializeCallingSet_codec);
       serializeLocalResourceSet_.WriteTo(output, _repeated_serializeLocalResourceSet_codec);
+      if (TemplateContainsMetadata != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(TemplateContainsMetadata);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -637,6 +657,9 @@ namespace AElf.Kernel {
       int size = 0;
       size += serializeCallingSet_.CalculateSize(_repeated_serializeCallingSet_codec);
       size += serializeLocalResourceSet_.CalculateSize(_repeated_serializeLocalResourceSet_codec);
+      if (TemplateContainsMetadata != false) {
+        size += 1 + 1;
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -650,6 +673,9 @@ namespace AElf.Kernel {
       }
       serializeCallingSet_.Add(other.serializeCallingSet_);
       serializeLocalResourceSet_.Add(other.serializeLocalResourceSet_);
+      if (other.TemplateContainsMetadata != false) {
+        TemplateContainsMetadata = other.TemplateContainsMetadata;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -667,6 +693,10 @@ namespace AElf.Kernel {
           }
           case 18: {
             serializeLocalResourceSet_.AddEntriesFrom(input, _repeated_serializeLocalResourceSet_codec);
+            break;
+          }
+          case 24: {
+            TemplateContainsMetadata = input.ReadBool();
             break;
           }
         }
@@ -860,6 +890,7 @@ namespace AElf.Kernel {
       serializeCallingSet_ = other.serializeCallingSet_.Clone();
       serializeFullResourceSet_ = other.serializeFullResourceSet_.Clone();
       serializeLocalResourceSet_ = other.serializeLocalResourceSet_.Clone();
+      contractContainsMetadata_ = other.contractContainsMetadata_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -898,6 +929,17 @@ namespace AElf.Kernel {
       get { return serializeLocalResourceSet_; }
     }
 
+    /// <summary>Field number for the "ContractContainsMetadata" field.</summary>
+    public const int ContractContainsMetadataFieldNumber = 4;
+    private bool contractContainsMetadata_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool ContractContainsMetadata {
+      get { return contractContainsMetadata_; }
+      set {
+        contractContainsMetadata_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as FunctionMetadata);
@@ -914,6 +956,7 @@ namespace AElf.Kernel {
       if(!serializeCallingSet_.Equals(other.serializeCallingSet_)) return false;
       if(!serializeFullResourceSet_.Equals(other.serializeFullResourceSet_)) return false;
       if(!serializeLocalResourceSet_.Equals(other.serializeLocalResourceSet_)) return false;
+      if (ContractContainsMetadata != other.ContractContainsMetadata) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -923,6 +966,7 @@ namespace AElf.Kernel {
       hash ^= serializeCallingSet_.GetHashCode();
       hash ^= serializeFullResourceSet_.GetHashCode();
       hash ^= serializeLocalResourceSet_.GetHashCode();
+      if (ContractContainsMetadata != false) hash ^= ContractContainsMetadata.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -939,6 +983,10 @@ namespace AElf.Kernel {
       serializeCallingSet_.WriteTo(output, _repeated_serializeCallingSet_codec);
       serializeFullResourceSet_.WriteTo(output, _repeated_serializeFullResourceSet_codec);
       serializeLocalResourceSet_.WriteTo(output, _repeated_serializeLocalResourceSet_codec);
+      if (ContractContainsMetadata != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(ContractContainsMetadata);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -950,6 +998,9 @@ namespace AElf.Kernel {
       size += serializeCallingSet_.CalculateSize(_repeated_serializeCallingSet_codec);
       size += serializeFullResourceSet_.CalculateSize(_repeated_serializeFullResourceSet_codec);
       size += serializeLocalResourceSet_.CalculateSize(_repeated_serializeLocalResourceSet_codec);
+      if (ContractContainsMetadata != false) {
+        size += 1 + 1;
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -964,6 +1015,9 @@ namespace AElf.Kernel {
       serializeCallingSet_.Add(other.serializeCallingSet_);
       serializeFullResourceSet_.Add(other.serializeFullResourceSet_);
       serializeLocalResourceSet_.Add(other.serializeLocalResourceSet_);
+      if (other.ContractContainsMetadata != false) {
+        ContractContainsMetadata = other.ContractContainsMetadata;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -985,6 +1039,10 @@ namespace AElf.Kernel {
           }
           case 26: {
             serializeLocalResourceSet_.AddEntriesFrom(input, _repeated_serializeLocalResourceSet_codec);
+            break;
+          }
+          case 32: {
+            ContractContainsMetadata = input.ReadBool();
             break;
           }
         }

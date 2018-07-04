@@ -63,7 +63,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var txDic = GetTestData();
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
-            var grouped = grouper.Process(Hash.Generate(), txDic.Values.SelectMany(x => x).ToList(), out var failedTxs);
+            var grouped = grouper.ProcessNaive(Hash.Generate(), txDic.Values.SelectMany(x => x).ToList(), out var failedTxs);
             var s = grouped.Select(
                 x =>
                 String.Join(" ", x.OrderBy(y => _accountList.IndexOf(y.From)).ThenBy(z => _accountList.IndexOf(z.To)).Select(
@@ -86,7 +86,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var txList = _dataUtil.GetFullTxList();
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
-            var grouped = grouper.Process(Hash.Generate(), txList.Select(x => x).ToList(), out var failedTxs);
+            var grouped = grouper.ProcessNaive(Hash.Generate(), txList.Select(x => x).ToList(), out var failedTxs);
             var s = grouped.Select(
                 x => _dataUtil.StringRepresentation(x)
             ).ToList();
@@ -96,7 +96,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         }
 
         [Fact]
-        public async Task TestReblancedGrouping()
+        public async Task TestReblancedGrouping_MaxAddMins()
         {
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
 
@@ -133,7 +133,61 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                 var unmergedGroup = ProduceFakeTxGroup(testCaseSizesList[i]);
                 var txList = new List<ITransaction>();
                 unmergedGroup.ForEach(a => txList.AddRange(a));
-                var actualRes = grouper.ProcessWithCoreCount(coreCountList[i], Hash.Zero, txList, out var failedTxs);
+                var actualRes = grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins, coreCountList[i], Hash.Zero, txList, out var failedTxs);
+                var acutalSizes = actualRes.Select(a => a.Count).ToList();
+                Assert.Equal(expectedSizesList[i].OrderBy(a=>a), acutalSizes.OrderBy(a=>a));
+            }
+            
+        }
+        
+        [Fact]
+        public async Task TestReblancedGrouping_MinsAddUp()
+        {
+            Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
+
+            var testCasesCount = 4;
+            var coreCountList = new int[] {7, 10, 1, 5, 100, 1000, 5, 3};
+            var testCaseSizesList = new List<List<int>>(new []
+            {
+                new List<int>(){100, 20, 30, 1, 2, 4, 5, 1, 50, 70, 90}, //normal cases
+                new List<int>(){1000}, // test a single giant group with multiple cores
+                new List<int>(){1,1,1,1,1,100,12,13,1}, //test one core
+                new List<int>(){10, 10, 10, 10, 10, 10, 9, 11, 20}, //normal cases
+                new List<int>(), //test empty tx list
+                new List<int>(){10, 20, 10, 4, 5, 12, 51, 25, 31}, //test when core is far bigger
+                new List<int>(){20, 20, 20, 20, 20}, //test when nothing changes needed
+                new List<int>(){499, 2, 497, 2, 496, 3, 496, 6}, //test worst case
+                
+                //test for sorted insert
+                new List<int>(){3, 5, 7, 9, 1, 1}, //insert at first
+                new List<int>(){3, 5, 7, 9, 2, 2}, //insert in middle
+                new List<int>(){3, 5, 7, 9, 3, 3}, //insert in middle
+                new List<int>(){5, 5, 7, 9, 5, 5}, //insert at last
+            });
+            var expectedSizesList = new List<List<int>>(new []
+            {
+                new List<int>(){100, 90, 70, 50, 30, 20, 13}, 
+                new List<int>(){1000},
+                new List<int>(){131},
+                new List<int>(){21, 20, 20, 20, 19}, 
+                new List<int>(), 
+                new List<int>(){10, 20, 10, 4, 5, 12, 51, 25, 31}, 
+                new List<int>(){20, 20, 20, 20, 20},
+                new List<int>(){993, 509, 499}, 
+                
+                new List<int>(){2, 3, 5, 7, 9}, //insert at first
+                new List<int>(){3, 4, 5, 7, 9}, //insert in middle
+                new List<int>(){3, 5, 6, 7, 9}, //insert in middle
+                new List<int>(){5, 5, 7, 9, 10}, //insert at last
+            });
+            
+
+            for (int i = 0; i < testCasesCount; i++)
+            {
+                var unmergedGroup = ProduceFakeTxGroup(testCaseSizesList[i]);
+                var txList = new List<ITransaction>();
+                unmergedGroup.ForEach(a => txList.AddRange(a));
+                var actualRes = grouper.ProcessWithCoreCount(GroupStrategy.Limited_MinsAddUp, coreCountList[i], Hash.Zero, txList, out var failedTxs);
                 var acutalSizes = actualRes.Select(a => a.Count).ToList();
                 Assert.Equal(expectedSizesList[i].OrderBy(a=>a), acutalSizes.OrderBy(a=>a));
             }
