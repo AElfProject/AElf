@@ -190,8 +190,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
     }
 
     #region Dummy Contract for test
-    
-    internal class TestContractC
+
+    public class TestContractC
     {
         [SmartContractFieldData("${this}.resource4", DataAccessMode.AccountSpecific)]
         public int resource4;

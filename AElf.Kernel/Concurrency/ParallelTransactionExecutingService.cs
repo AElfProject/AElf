@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
+using AElf.Kernel.Concurrency.Config;
+using AElf.Kernel.Concurrency.Execution.Config;
 using Akka.Actor;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Scheduling;
@@ -35,13 +37,22 @@ namespace AElf.Kernel.Concurrency
                 cts.CancelAfter(TimeoutMilliSeconds);
                 var token = cts.Token;
 
-#if PARALLEL
-                var grouped = _grouper.Process(chainId, transactions, out var failedTxs);
-#else
-                var grouped = new List<List<ITransaction>>() {transactions};
-                Dictionary<ITransaction, Exception> failedTxs = new Dictionary<ITransaction, Exception>();
-#endif
-                var tasks = grouped.Select(
+                List<List<ITransaction>> groups;
+                Dictionary<ITransaction, Exception> failedTxs;
+                
+                //disable parallel module by default because it doesn't finish yet (don't support contract call)
+                if (ParallelConfig.Instance.IsParallelEnable)
+                {
+                    groups = _grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins, ActorConfig.Instance.ConcurrencyLevel, chainId, transactions, out failedTxs);
+                }
+                else
+                {
+                    groups = new List<List<ITransaction>>() {transactions};
+                    failedTxs = new Dictionary<ITransaction, Exception>();
+                }
+                
+                
+                var tasks = groups.Select(
                     txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token), token)
                 ).ToArray();
                 var results = (await Task.WhenAll(tasks)).SelectMany(x => x).ToList();

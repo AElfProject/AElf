@@ -74,6 +74,13 @@ namespace AElf.Kernel.Concurrency.Metadata
                 ExtractRawMetadataFromType(contractType, out var smartContractReferenceMap,
                     out var localFunctionMetadataTemplateMap);
                 
+                //TODO: we group tx that send to the contract that contains no attributes into the same group
+                if (localFunctionMetadataTemplateMap.Count == 0 || localFunctionMetadataTemplateMap.First().Value.TemplateContainsMetadata == false)
+                {
+                    ContractMetadataTemplateMap.Add(contractType.FullName, localFunctionMetadataTemplateMap);
+                    return true;
+                }
+                
                 UpdateTemplate(contractType, smartContractReferenceMap, ref localFunctionMetadataTemplateMap);
                 
                 //merge the function metadata template map
@@ -166,6 +173,16 @@ namespace AElf.Kernel.Concurrency.Metadata
 
             if (localFunctionMetadataTemplateMap.Count == 0)
             {
+                var blackLists = new[] {"ToString", "Equals", "GetHashCode", "GetType"};
+                foreach (var methodInfo in contractType.GetMethods())
+                {
+                    if (!blackLists.Contains(methodInfo.Name))
+                    {
+                        localFunctionMetadataTemplateMap.Add("${this}." + methodInfo.Name, new FunctionMetadataTemplate(false));
+                        CallingGraph.AddVertex(contractType.FullName + "." + methodInfo.Name);
+                    }
+                }
+                return;
                 throw new FunctionMetadataException("ChainId [" + ChainId.Value + " no function marked in the target contract " + contractType.FullName);
             }
             
@@ -233,7 +250,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                             referenceType.FullName);
                         if (!CallingGraph.ContainsVertex(globalCalledFunc))
                         {
-                            throw new FunctionMetadataException("ChainId [" + ChainId.Value + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractType.FullName + " into calling graph, consider the target function does not exist in the foreign contract");
+                            throw new FunctionMetadataException("ChainId [" + ChainId.Value.ToByteArray().ToHex() + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractType.FullName + " into calling graph, consider the target function does not exist in the foreign contract");
                         }
                         outEdgesToAdd.Add(new Edge<string>(sourceFunc, globalCalledFunc));
                     }
