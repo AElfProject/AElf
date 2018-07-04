@@ -315,18 +315,20 @@ namespace AElf.Kernel.Node
             try
             {
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
+
+                _logger.Trace("Received transaction: " + tx.GetHash().Value.ToByteArray().ToHex() + ", INCR : " + tx.IncrementId);
                 
                 TxValidation.TxInsertionAndBroadcastingError success = await _poolService.AddTxAsync(tx);
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger.Trace("DID NOT add Transaction to pool: FROM, " + Convert.ToBase64String(tx.From.Value.ToByteArray()) + ", INCR : " + tx.IncrementId);
+                    _logger.Trace("DID NOT add Transaction to pool (" + success + ") : " + tx.GetHash().Value.ToByteArray().ToHex() + ", INCR : " + tx.IncrementId);
                     return;
                 }
 
                 if (isFromSend)
                 {
-                    _logger.Trace("Received Transaction: " + "FROM, " + Convert.ToBase64String(tx.From.Value.ToByteArray()) + ", INCR : " + tx.IncrementId);
+                    _logger.Trace("Received Transaction: " + tx.GetHash().Value.ToByteArray().ToHex() + ", INCR : " + tx.IncrementId);
                     _protocolDirector.AddTransaction(tx);
                 }
             }
@@ -395,7 +397,7 @@ namespace AElf.Kernel.Node
                 if (error != ValidationError.Success)
                 {
                     Interlocked.CompareExchange(ref _flag, 0, 1);
-                    _logger.Trace("Invalid block received from network: " + error.ToString());
+                    //_logger.Trace("Invalid block received from network: " + error.ToString());
                     return new BlockExecutionResult(false, error);
                 }
 
@@ -595,8 +597,9 @@ namespace AElf.Kernel.Node
             count = await _protocolDirector.BroadcastBlock(block as Block);
 
             var bh = block.GetHash().Value.ToByteArray().ToHex();
-            _logger.Trace($"Broadcasted block \"{bh}\"  to [" +
+            /*_logger.Trace($"Broadcasted block \"{bh}\"  to [" +
                           count + $"] peers. Block height: [{block.Header.Index}]");
+*/
 
             return true;
         }
@@ -746,7 +749,7 @@ namespace AElf.Kernel.Node
 
                         #endregion
 
-                        #region Log DPoS Info
+                        /*#region Log DPoS Info
 
                         if (doLogsAboutConsensus)
                         {
@@ -759,7 +762,7 @@ namespace AElf.Kernel.Node
                             }
                         }
 
-                        #endregion
+                        #endregion*/
 
                         #region Try to mine normal block
 
@@ -786,12 +789,12 @@ namespace AElf.Kernel.Node
 
                                 latestMinedNormalBlockRoundsCount = roundsCount;
 
-                                _logger.Log(LogLevel.Debug,
+                                /*_logger.Log(LogLevel.Debug,
                                     "Generate block: \"{0}\", with [{1}] transactions, able to mine in [{2}]\n Published out value: {3}\n signature: \"{4}\"",
                                     block.GetHash().Value.ToByteArray().ToHex(), block.Body.Transactions.Count,
                                     DateTime.UtcNow.ToString("u"),
                                     outValue.Value.ToByteArray().ToHex(),
-                                    signature.Value.ToByteArray().ToHex());
+                                    signature.Value.ToByteArray().ToHex());*/
                                 return;
                             }
                         }
@@ -881,7 +884,7 @@ namespace AElf.Kernel.Node
                         if (doLogsAboutConsensus)
                         {
                             // If this node doesn't produce any block this timeslot.
-                            _logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
+                            //_logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
                         }
                     },
 

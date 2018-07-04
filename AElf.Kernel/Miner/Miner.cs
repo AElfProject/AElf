@@ -137,7 +137,7 @@ namespace AElf.Kernel.Miner
                 // append block
                 await _blockManager.AddBlockAsync(block);
                 await _chainManager.AppendBlockToChainAsync(block);
-            
+                
                 return block;
             }
             catch (Exception e)

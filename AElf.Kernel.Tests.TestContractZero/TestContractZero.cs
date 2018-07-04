@@ -111,7 +111,7 @@ namespace AElf.Kernel.Tests
             var account = Path.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
             
             await Api.DeployContractAsync(account, registration);
-            Console.WriteLine("Deployment success, {0}", account.Value.ToByteArray().ToHex());
+            //Console.WriteLine("Deployment success, {0}", account.Value.ToByteArray().ToHex());
             return account.Value.ToByteArray();
         }
 
@@ -524,7 +524,7 @@ namespace AElf.Kernel.Tests
             
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
             
-            Console.WriteLine("For round:" + roundsCount.Value + " of " + accountAddress);
+            //Console.WriteLine("For round:" + roundsCount.Value + " of " + accountAddress);
 
             var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, roundsCount);
             

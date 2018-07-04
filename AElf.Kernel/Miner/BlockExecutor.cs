@@ -9,6 +9,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.TxMemPool;
 using AElf.Kernel.Types;
 using Akka.Configuration;
+using Google.Protobuf;
 using NLog;
 
 namespace AElf.Kernel.Miner
@@ -98,7 +99,7 @@ namespace AElf.Kernel.Miner
                     
                     // get ready txs from pool
                     var txList = await _txPoolService.GetReadyTxsAsync(addr, ids.Min(), (ulong)ids.Count);
-
+                    
                     if (txList == null)
                     {
                         _logger?.Trace($"ExecuteBlock - No transactions are ready.");
@@ -111,6 +112,30 @@ namespace AElf.Kernel.Miner
                 var traces = ready.Count == 0
                     ? new List<TransactionTrace>()
                     : await _concurrencyExecutingService.ExecuteAsync(ready, block.Header.ChainId, _grouper);
+
+                var results = new List<TransactionResult>();
+                foreach (var trace in traces)
+                {
+                    var res = new TransactionResult()
+                    {
+                        TransactionId = trace.TransactionId,
+                        
+                    };
+                    if (string.IsNullOrEmpty(trace.StdErr))
+                    {
+                        res.Logs.AddRange(trace.FlattenedLogs);
+                        res.Status = Status.Mined;
+                        res.RetVal = trace.RetVal;
+                    }
+                    else
+                    {
+                        res.Status = Status.Failed;
+                        res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
+                    }
+                    results.Add(res);
+                }
+                
+                await _txPoolService.ResetAndUpdate(results);
 
                 foreach (var trace in traces)
                 {
@@ -134,6 +159,7 @@ namespace AElf.Kernel.Miner
                 
                 await _chainManager.AppendBlockToChainAsync(block);
                 await _blockManager.AddBlockAsync(block);
+                
                 
             }
             catch (Exception e)

@@ -36,17 +36,17 @@ namespace AElf.Kernel.BlockValidationFilters
             // other block needed before this one
             if (index > currentChainHeight)
             {
-                Console.WriteLine("Received block index:" + index);
-                Console.WriteLine("Current chain height:" + currentChainHeight);
+                /*Console.WriteLine("Received block index:" + index);
+                Console.WriteLine("Current chain height:" + currentChainHeight);*/
                 return ValidationError.Pending;
             }
             
             // can be added to chain
             if (currentChainHeight == index)
             {
-                Console.WriteLine("currentChainHeight == index");
+                /*Console.WriteLine("currentChainHeight == index");
                 Console.WriteLine("context.BlockHash:" + currentPreviousBlockHash.Value.ToByteArray().ToHex());
-                Console.WriteLine("block.Header.PreviousBlockHash:" + previousBlockHash.Value.ToByteArray().ToHex());
+                Console.WriteLine("block.Header.PreviousBlockHash:" + previousBlockHash.Value.ToByteArray().ToHex());*/
                 return currentPreviousBlockHash.Equals(previousBlockHash)
                     ? ValidationError.Success
                     : ValidationError.OrphanBlock;

@@ -107,6 +107,13 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public List<ITransaction> ReadyTxs(ulong limit)
         {
+            if (_executable != null && _executable.Count > 0)
+            {
+                var pairs = _executable.Select(x => string.Format("{0}{1}{2}", x.Key.Value.ToByteArray().ToHex(), ":", x.Value == null || x.Value.Count <= 0 ? "empty" : x.Value.Select(bb => bb.GetHash().Value.ToByteArray().ToHex()).Aggregate((i, j) => i + "," + j)));
+                string join = string.Join(" \n ", pairs);
+                Console.WriteLine("Executable transactions when mine: \n" + join);
+            }
+            
             var res = new List<ITransaction>();
             foreach (var kv in _executable)
             {
@@ -529,14 +536,13 @@ namespace AElf.Kernel.TxMemPool
 
             if (_executable != null && _executable.Count > 0)
             {
-                var pairs = _executable.Select(x => string.Format("{0}{1}{2}", x.Key.Value.ToByteArray().ToHex(), ",", x.Value == null || x.Value.Count <= 0 ? "empty" : x.Value.Select(bb => bb.GetHash().Value.ToByteArray().ToHex()).Aggregate((i, j) => i + "," + j)));
-                string join = string.Join(" || ", pairs);
-                Console.WriteLine("Executable transactions: " + join);
+                var pairs = _executable.Select(x => string.Format("{0}{1}{2}", x.Key.Value.ToByteArray().ToHex(), ":", x.Value == null || x.Value.Count <= 0 ? "empty" : x.Value.Select(bb => bb.GetHash().Value.ToByteArray().ToHex()).Aggregate((i, j) => i + "," + j)));
+                string join = string.Join(" \n ", pairs);
+                Console.WriteLine("Executable transactions when sync: \n" + join);
             }
             
             if (!_executable.TryGetValue(addr, out var list) || (ulong)list.Count < count || list[0].IncrementId != start)
             {
-                Console.WriteLine();
                 return null;
             }
             
