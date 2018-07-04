@@ -257,7 +257,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             Executive1.SetTransactionContext(txnCtxt).Apply(true).Wait();
 
-            return txnCtxt.Trace.RetVal.DeserializeToUInt64();
+            return txnCtxt.Trace.RetVal.Data.DeserializeToUInt64();
         }
 
         public ulong GetBalance2(Hash account)
@@ -270,7 +270,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             };
             Executive2.SetTransactionContext(txnCtxt).Apply(true).Wait();
 
-            return txnCtxt.Trace.RetVal.DeserializeToUInt64();
+            return txnCtxt.Trace.RetVal.Data.DeserializeToUInt64();
         }
 
         private Transaction GetSTTxn(Hash contractAddress, Hash transactionHash)
@@ -305,7 +305,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             Executive1.SetTransactionContext(txnCtxt).Apply(true).Wait();
 
-            var dtStr = txnCtxt.Trace.RetVal.DeserializeToString();
+            var dtStr = txnCtxt.Trace.RetVal.Data.DeserializeToString();
             //var dtStr = BitConverter.ToString(txnCtxt.Trace.RetVal.Unpack<BytesValue>().Value.ToByteArray()).Replace("-", "");
 
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
@@ -321,7 +321,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
             Executive1.SetTransactionContext(txnCtxt).Apply(true).Wait();
 
-            var dtStr = txnCtxt.Trace.RetVal.DeserializeToString();
+            var dtStr = txnCtxt.Trace.RetVal.Data.DeserializeToString();
 
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
         }

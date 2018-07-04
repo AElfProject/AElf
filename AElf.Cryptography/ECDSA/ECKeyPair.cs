@@ -11,10 +11,10 @@ namespace AElf.Cryptography.ECDSA
     public class ECKeyPair
     {
         public static int AddressLength { get; } = 18;
-        
+
         public ECPrivateKeyParameters PrivateKey { get; private set; }
         public ECPublicKeyParameters PublicKey { get; private set; }
-        
+
         public ECKeyPair(ECPrivateKeyParameters privateKey, ECPublicKeyParameters publicKey)
         {
             PublicKey = publicKey;
@@ -28,9 +28,9 @@ namespace AElf.Cryptography.ECDSA
 
         public static ECKeyPair FromPublicKey(byte[] publicKey)
         {
-            ECPublicKeyParameters pubKey 
+            ECPublicKeyParameters pubKey
                 = new ECPublicKeyParameters(Parameters.Curve.Curve.DecodePoint(publicKey), Parameters.DomainParams);
-            
+
             ECKeyPair k = new ECKeyPair(null, pubKey);
 
             return k;
@@ -43,7 +43,7 @@ namespace AElf.Cryptography.ECDSA
 
         public string GetAddressHex()
         {
-            return BitConverter.ToString(GetAddress()).Replace("-", string.Empty).ToLower();
+            return "0x" + BitConverter.ToString(GetAddress()).Replace("-", string.Empty).ToLower();
         }
     }
 }
