@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
+using System.Text;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
@@ -9,17 +11,18 @@ namespace AElf.Types.CSharp
 {
     public static class ConversionExtension
     {
-        #region bool
-        public static bool DeserializeToBool(this byte[] bytes)
+        private static byte[] TrimLeadingZeros(this byte[] bytes)
         {
-            return BoolValue.Parser.ParseFrom(bytes).Value;
+            // TODO: Maybe improve performance
+            return bytes.Skip(Array.FindIndex(bytes, Convert.ToBoolean)).ToArray();
         }
         
+        #region bool
         public static bool DeserializeToBool(this ByteString bs)
         {
-            return bs.ToByteArray().DeserializeToBool();
+            return BoolValue.Parser.ParseFrom(bs).Value;
         }
-
+        
         public static IMessage ToPbMessage(this bool value)
         {
             return new BoolValue() { Value = value };
@@ -36,14 +39,9 @@ namespace AElf.Types.CSharp
         }
         #endregion bool
         #region int
-        public static int DeserializeToInt32(this byte[] bytes)
-        {
-            return SInt32Value.Parser.ParseFrom(bytes).Value;
-        }
-        
         public static int DeserializeToInt32(this ByteString bs)
         {
-            return bs.ToByteArray().DeserializeToInt32();
+            return SInt32Value.Parser.ParseFrom(bs).Value;
         }
 
         public static IMessage ToPbMessage(this int value)
@@ -62,16 +60,19 @@ namespace AElf.Types.CSharp
         }
         #endregion int
         #region uint
-        public static uint DeserializeToUInt32(this byte[] bytes)
-        {
-            return UInt32Value.Parser.ParseFrom(bytes).Value;
-        }
-        
         public static uint DeserializeToUInt32(this ByteString bs)
         {
-            return bs.ToByteArray().DeserializeToUInt32();
+            return UInt32Value.Parser.ParseFrom(bs).Value;
         }
 
+        public static byte[] ToFriendlyBytes(this uint value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return bytes.TrimLeadingZeros();
+        }
+        
         public static IMessage ToPbMessage(this uint value)
         {
             return new UInt32Value() { Value = value };
@@ -88,16 +89,19 @@ namespace AElf.Types.CSharp
         }
         #endregion uint
         #region long
-        public static long DeserializeToInt64(this byte[] bytes)
-        {
-            return SInt64Value.Parser.ParseFrom(bytes).Value;
-        }
-        
         public static long DeserializeToInt64(this ByteString bs)
         {
-            return bs.ToByteArray().DeserializeToInt64();
+            return SInt64Value.Parser.ParseFrom(bs).Value;
         }
 
+        public static byte[] ToFriendlyBytes(this long value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return bytes.TrimLeadingZeros();
+        }
+        
         public static IMessage ToPbMessage(this long value)
         {
             return new SInt64Value() { Value = value };
@@ -114,16 +118,19 @@ namespace AElf.Types.CSharp
         }
         #endregion long
         #region ulong
-        public static ulong DeserializeToUInt64(this byte[] bytes)
-        {
-            return UInt64Value.Parser.ParseFrom(bytes).Value;
-        }
-        
         public static ulong DeserializeToUInt64(this ByteString bs)
         {
-            return bs.ToByteArray().DeserializeToUInt64();
+            return UInt64Value.Parser.ParseFrom(bs).Value;
         }
 
+        public static byte[] ToFriendlyBytes(this ulong value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return bytes.TrimLeadingZeros();
+        }
+        
         public static IMessage ToPbMessage(this ulong value)
         {
             return new UInt64Value() { Value = value };
@@ -140,14 +147,15 @@ namespace AElf.Types.CSharp
         }
         #endregion ulong
         #region string
-        public static string DeserializeToString(this byte[] bytes)
-        {
-            return StringValue.Parser.ParseFrom(bytes).Value;
-        }
 
         public static string DeserializeToString(this ByteString bs)
         {
-            return bs.ToByteArray().DeserializeToString();
+            return StringValue.Parser.ParseFrom(bs).Value;
+        }
+        
+        public static byte[] ToFriendlyBytes(this string value)
+        {
+            return Encoding.UTF8.GetBytes(value);
         }
         
         public static IMessage ToPbMessage(this string value)
@@ -166,14 +174,15 @@ namespace AElf.Types.CSharp
         }
         #endregion string
         #region byte[]
-        public static byte[] DeserializeToBytes(this byte[] bytes)
-        {
-            return BytesValue.Parser.ParseFrom(bytes).Value.ToByteArray();
-        }
 
         public static byte[] DeserializeToBytes(this ByteString bs)
         {
-            return bs.ToByteArray().DeserializeToBytes();
+            return BytesValue.Parser.ParseFrom(bs).Value.ToByteArray();
+        }
+       
+        public static byte[] ToFriendlyBytes(this byte[] value)
+        {
+            return value;
         }
         
         public static IMessage ToPbMessage(this byte[] value)
@@ -204,6 +213,11 @@ namespace AElf.Types.CSharp
             return bs.ToByteArray().DeserializeToPbMessage<T>();
         }
 
+        public static byte[] ToFriendlyBytes(this IMessage value)
+        {
+            return value.ToByteArray();
+        }
+        
         public static IMessage ToPbMessage(this IMessage value)
         {
             return value;
@@ -251,6 +265,11 @@ namespace AElf.Types.CSharp
             return bs.ToByteArray().DeserializeToUserType<T>();
         }
 
+        public static byte[] ToFriendlyBytes(this UserType value)
+        {
+            return value.ToPbMessage().ToByteArray();
+        }
+        
         public static IMessage ToPbMessage(this UserType value)
         {
             return value.Pack();

@@ -9,7 +9,7 @@ using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
-namespace AElf.Types.CSharp {
+namespace AElf.Kernel {
 
   /// <summary>Holder for reflection information generated from SignedIntegers.proto</summary>
   public static partial class SignedIntegersReflection {
@@ -25,13 +25,13 @@ namespace AElf.Types.CSharp {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChRTaWduZWRJbnRlZ2Vycy5wcm90byIcCgtTSW50MzJWYWx1ZRINCgV2YWx1",
-            "ZRgBIAEoESIcCgtTSW50NjRWYWx1ZRINCgV2YWx1ZRgBIAEoEkIUqgIRQUVs",
-            "Zi5UeXBlcy5DU2hhcnBiBnByb3RvMw=="));
+            "ZRgBIAEoESIcCgtTSW50NjRWYWx1ZRINCgV2YWx1ZRgBIAEoEkIOqgILQUVs",
+            "Zi5LZXJuZWxiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Types.CSharp.SInt32Value), global::AElf.Types.CSharp.SInt32Value.Parser, new[]{ "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Types.CSharp.SInt64Value), global::AElf.Types.CSharp.SInt64Value.Parser, new[]{ "Value" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SInt32Value), global::AElf.Kernel.SInt32Value.Parser, new[]{ "Value" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Kernel.SInt64Value), global::AElf.Kernel.SInt64Value.Parser, new[]{ "Value" }, null, null, null)
           }));
     }
     #endregion
@@ -46,7 +46,7 @@ namespace AElf.Types.CSharp {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Types.CSharp.SignedIntegersReflection.Descriptor.MessageTypes[0]; }
+      get { return global::AElf.Kernel.SignedIntegersReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -175,7 +175,7 @@ namespace AElf.Types.CSharp {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Types.CSharp.SignedIntegersReflection.Descriptor.MessageTypes[1]; }
+      get { return global::AElf.Kernel.SignedIntegersReflection.Descriptor.MessageTypes[1]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

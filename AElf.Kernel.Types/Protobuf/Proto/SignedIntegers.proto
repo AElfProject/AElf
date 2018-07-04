@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Types.CSharp";
+option csharp_namespace = "AElf.Kernel";
 
 message SInt32Value
 {
