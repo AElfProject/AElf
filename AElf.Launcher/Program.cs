@@ -113,6 +113,7 @@ namespace AElf.Launcher
                 }
                 catch (Exception e)
                 {
+                    throw e;
                     throw new Exception("Load keystore failed");
                 }
             }
@@ -167,7 +168,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new WorldStateDictatorModule());
-            builder.RegisterModule(new LoggerModule());
+            builder.RegisterModule(new LoggerModule(netConf.Host + "-" + netConf.Port));
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new NetworkModule(netConf, isMiner));
             builder.RegisterModule(new RpcServerModule());

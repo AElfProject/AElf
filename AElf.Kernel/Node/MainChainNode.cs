@@ -86,7 +86,9 @@ namespace AElf.Kernel.Node
                 var blockProducers = new BlockProducer();
                 foreach (var bp in dict.Values)
                 {
-                    blockProducers.Nodes.Add(bp["address"]);
+                    blockProducers.Nodes.Add(
+                        ByteArrayHelpers.FromHexString(bp["address"]).ToHex()
+                    );
                 }
 
                 return blockProducers;
@@ -879,7 +881,7 @@ namespace AElf.Kernel.Node
                         if (doLogsAboutConsensus)
                         {
                             // If this node doesn't produce any block this timeslot.
-                            _logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
+                            //_logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
                         }
                     },
 
@@ -923,7 +925,7 @@ namespace AElf.Kernel.Node
                         _logger?.Debug(tc.Trace.StdErr);
                     }
 
-                    dPoSInfo = DPoSInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                    dPoSInfo = tc.Trace.RetVal.Data.DeserializeToPbMessage<DPoSInfo>();
                 }
             }
 
@@ -974,17 +976,17 @@ namespace AElf.Kernel.Node
                 
                 if (tx.MethodName.StartsWith("Supply"))
                 {
-                    currentRoundInfo = RoundInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                    currentRoundInfo = tc.Trace.RetVal.Data.DeserializeToPbMessage<RoundInfo>();
                 }
                 
                 if (tx.MethodName.StartsWith("Generate"))
                 {
-                    nextRoundInfo = RoundInfo.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                    nextRoundInfo =tc.Trace.RetVal.Data.DeserializeToPbMessage<RoundInfo>();
                 }
 
                 if (tx.MethodName.StartsWith("Set"))
                 {
-                    nextEBP = StringValue.Parser.ParseFrom(tc.Trace.RetVal.ToByteArray());
+                    nextEBP = tc.Trace.RetVal.Data.DeserializeToPbMessage<StringValue>();
                 }
             }
 
@@ -1011,7 +1013,7 @@ namespace AElf.Kernel.Node
             
             if (tcGetRoundsCountTx.Trace.StdErr.IsNullOrEmpty())
             {
-                return UInt64Value.Parser.ParseFrom(tcGetRoundsCountTx.Trace.RetVal.ToByteArray()).Value;
+                return tcGetRoundsCountTx.Trace.RetVal.Data.DeserializeToUInt64();
             }
 
             return 0;
@@ -1032,7 +1034,7 @@ namespace AElf.Kernel.Node
                 return "";
             }
             
-            return StringValue.Parser.ParseFrom(tcGetDPoSInfo.Trace.RetVal.ToByteArray()).Value + 
+            return tcGetDPoSInfo.Trace.RetVal.Data.DeserializeToString() + 
                    "\nCurrent Block Height:" + await _chainManager.GetChainCurrentHeight(ChainId);
         }
         
@@ -1052,7 +1054,7 @@ namespace AElf.Kernel.Node
                         inValue)
             };
             Executive.SetTransactionContext(tcCalculateSignature).Apply(true).Wait();
-            return Hash.Parser.ParseFrom(tcCalculateSignature.Trace.RetVal.ToByteArray());
+            return tcCalculateSignature.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
         }
 
         private async Task<bool> CheckAbleToMineNormalBlock()
@@ -1063,8 +1065,8 @@ namespace AElf.Kernel.Node
                     ContractAccountHash)
             };
             Executive.SetTransactionContext(tcAbleToMine).Apply(true).Wait();
-                            
-            return BoolValue.Parser.ParseFrom(tcAbleToMine.Trace.RetVal).Value;
+
+            return tcAbleToMine.Trace.RetVal.Data.DeserializeToBool();
         }
 
         private async Task<bool> CheckAbleToHelpMiningExtraBlock()
@@ -1076,7 +1078,7 @@ namespace AElf.Kernel.Node
             };
             Executive.SetTransactionContext(tcAbleToHelp).Apply(true).Wait();
                             
-            return BoolValue.Parser.ParseFrom(tcAbleToHelp.Trace.RetVal).Value;
+            return tcAbleToHelp.Trace.RetVal.Data.DeserializeToBool();
         }
 
         private async Task<bool> CheckIsTimeToMineExtraBlock()
@@ -1091,7 +1093,7 @@ namespace AElf.Kernel.Node
             Executive.SetTransactionContext(tcIsTimeToProduceEB).Apply(true).Wait();
 
             // ReSharper disable once InconsistentNaming
-            return BoolValue.Parser.ParseFrom(tcIsTimeToProduceEB.Trace.RetVal).Value;
+            return tcIsTimeToProduceEB.Trace.RetVal.Data.DeserializeToBool();
         }
 
         private async Task<bool> CheckAbleToMineExtraBlock()
@@ -1107,7 +1109,7 @@ namespace AElf.Kernel.Node
             Executive.SetTransactionContext(tcAbleToProduceEB).Apply(true).Wait();
 
             // ReSharper disable once InconsistentNaming
-            var res = BoolValue.Parser.ParseFrom(tcAbleToProduceEB.Trace.RetVal).Value;
+            var res = tcAbleToProduceEB.Trace.RetVal.Data.DeserializeToBool();
             return res;
         }
 

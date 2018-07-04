@@ -62,7 +62,7 @@ namespace AElf.Cryptography
 
         public Errors OpenAsync(string address, string password, bool withTimeout = true)
         {
-            if (_openAccounts.Any(x => x.Address == address))
+            if (_openAccounts.Any(x => x.Address.Replace("0x", "") == address.Replace("0x", "")))
                 return Errors.AccountAlreadyUnlocked;
 
             try
@@ -95,7 +95,7 @@ namespace AElf.Cryptography
         
         public ECKeyPair GetAccountKeyPair(string address)
         {
-            return _openAccounts.FirstOrDefault(oa => oa.Address.Equals(address))?.KeyPair;
+            return _openAccounts.FirstOrDefault(oa => oa.Address.Replace("0x", "").Equals(address.Replace("0x", "")))?.KeyPair;
         }
 
         public ECKeyPair Create(string password)
@@ -198,6 +198,17 @@ namespace AElf.Cryptography
         /// Return the full path of the files 
         /// </summary>
         internal string GetKeyFileFullPath(string address)
+        {
+            var path = GetKeyFileFullPathStrict(address.Replace("0x", ""));
+            if (File.Exists(path))
+            {
+                return path;
+            }
+
+            return GetKeyFileFullPathStrict("0x" + address.Replace("0x", ""));
+        }
+        
+        internal string GetKeyFileFullPathStrict(string address)
         {
             string dirPath = GetKeystoreDirectoryPath();
             string filePath = Path.Combine(dirPath, address);

@@ -9,6 +9,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.TxMemPool;
 using AElf.Kernel.Types;
 using Akka.Configuration;
+using Google.Protobuf;
 using NLog;
 
 namespace AElf.Kernel.Miner
@@ -125,7 +126,7 @@ namespace AElf.Kernel.Miner
                     {
                         res.Logs.AddRange(trace.FlattenedLogs);
                         res.Status = Status.Mined;
-                        res.RetVal = trace.RetVal;
+                        res.RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes());
                     }
                     else
                     {

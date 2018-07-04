@@ -23,7 +23,7 @@ namespace AElf.Kernel.Node.RPC
     [LoggerName("RPC")]
     public class RpcServer : IRpcServer
     {
-        private const string GetTxMethodName = "get_tx";
+        //private const string GetTxMethodName = "get_tx";
         //private const string InsertTxMethodName = "insert_tx";
         private const string BroadcastTxMethodName = "broadcast_tx";
         //private const string GetPeersMethodName = "get_peers";
@@ -41,7 +41,7 @@ namespace AElf.Kernel.Node.RPC
         /// </summary>
         private readonly List<string> _rpcCommands = new List<string>()
         {
-            GetTxMethodName,
+            //GetTxMethodName,
             //InsertTxMethodName,
             BroadcastTxMethodName,
             //GetPeersMethodName,
@@ -196,9 +196,9 @@ namespace AElf.Kernel.Node.RPC
                 JObject responseData = null;
                 switch (methodName)
                 {
-                    case GetTxMethodName:
+                    /*case GetTxMethodName:
                         responseData = await ProcessGetTx(reqParams);
-                        break;
+                        break;*/
                     /*case InsertTxMethodName:
                         responseData = await ProcessInsertTx(reqParams);
                         break;*/

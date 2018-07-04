@@ -41,7 +41,7 @@ namespace AElf.Contracts.Token.Tests
         {
             _contractZero = new ContractZeroShim(_mock);
             _contractZero.DeploySmartContract(0, Code);
-            var address = new Hash(_contractZero.TransactionContext.Trace.RetVal.DeserializeToBytes());
+            var address = new Hash(_contractZero.TransactionContext.Trace.RetVal.Data.DeserializeToBytes());
             _contract = new TokenContractShim(_mock, address);
         }
 
@@ -52,6 +52,7 @@ namespace AElf.Contracts.Token.Tests
             
             // Initialize
             _contract.Initialize("ELF", "AElf Token", 1000000000, 2);
+            Assert.Null(_contract.TransactionContext.Trace.StdErr);
             Assert.True(_contract.TransactionContext.Trace.IsSuccessful());
             
             // Basic info query

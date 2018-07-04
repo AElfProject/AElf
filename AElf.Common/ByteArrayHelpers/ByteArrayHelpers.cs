@@ -4,54 +4,35 @@ namespace AElf.Common.ByteArrayHelpers
 {
     public static class ByteArrayHelpers
     {
+        private static bool IsWithPrefix(string value)
+        {
+            return value.Length >= 2 && value[0] == '0' && (value[1] == 'x' || value[1] == 'X');
+        }
+
         public static byte[] FromHexString(string hex)
         {
-            int i = 2;
-            if (!hex.StartsWith("0x"))
-            {
-                i = 0;
-            }
-            int numberChars = hex.Length - i;
+            if (IsWithPrefix(hex))
+                hex = hex.Substring(2);
+            int numberChars = hex.Length;
             byte[] bytes = new byte[numberChars / 2];
-            
-            for (int j = 0 ; i < hex.Length; i += 2, j += 2)
-                bytes[j / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-            
+
+            for (int i = 0; i < numberChars; i += 2)
+                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+
             return bytes;
         }
-        
-        public static string ToHex(this byte[] bytes)
-        {
-            if (bytes.Length == 0)
-                return "";
-            char[] c = new char[2 + bytes.Length * 2];
-            c[0] = '0';
-            c[1] = 'x';
-            byte b;
 
-            for(int bx = 0, cx = 2; bx < bytes.Length; ++bx, ++cx) 
-            {
-                b = ((byte)(bytes[bx] >> 4));
-                c[cx] = (char)(b > 9 ? b + 0x37 + 0x20 : b + 0x30);
-
-                b = ((byte)(bytes[bx] & 0x0F));
-                c[++cx]=(char)(b > 9 ? b + 0x37 + 0x20 : b + 0x30);
-            }
-            
-            return new string(c);
-        }
-        
         public static bool BytesEqual(this byte[] b1, byte[] b2)
         {
-            if (b1 == b2) 
+            if (b1 == b2)
                 return true;
-            
-            if (b1 == null || b2 == null) 
+
+            if (b1 == null || b2 == null)
                 return false;
-            
-            if (b1.Length != b2.Length) 
+
+            if (b1.Length != b2.Length)
                 return false;
-            
+
             for (var i = 0; i < b1.Length; i++)
             {
                 if (b1[i] != b2[i]) return false;
@@ -59,12 +40,12 @@ namespace AElf.Common.ByteArrayHelpers
 
             return true;
         }
-        
+
         public static byte[] RandomFill(int count)
         {
             Random rnd = new Random();
             byte[] random = new byte[count];
-            
+
             rnd.NextBytes(random);
 
             return random;
