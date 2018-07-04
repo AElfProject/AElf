@@ -708,7 +708,7 @@ namespace AElf.Contracts.Genesis
             {
                 Value
                     = infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
-                                     + "Current Round : " + RoundsCount.Value
+                                     + $"Current Round : {RoundsCount.Value}"
             };
         }
 
