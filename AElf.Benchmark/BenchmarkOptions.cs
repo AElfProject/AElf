@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
+﻿using System.Collections.Generic;
 using AElf.Database;
-using AElf.Database.Config;
 using CommandLine;
-using CommandLine.Text;
 
 namespace AElf.Benchmark
 {
@@ -35,7 +30,7 @@ namespace AElf.Benchmark
         [Option(Default = 10, HelpText = "how many time to repeat the benchmark to get more stable result, default is 10")]
         public int RepeatTime { get; set; }
         
-        [Option(HelpText = "which database to choose [in-memory, redis, ssdb], default is in-memory")]
+        [Option(HelpText = "which database to choose [keyvalue (in-memory), redis, ssdb], default is keyvalue")]
         public string Database { get; set; }
 
         [Option(HelpText = "host of the database, default is 127.0.0.1")]
@@ -43,32 +38,10 @@ namespace AElf.Benchmark
         
         [Option(HelpText = "port of the database, default is 8888")]
         public int? DbPort { get; set; }
-        
-//        public DatabaseConfig DatabaseConfig
-//        {
-//            get
-//            {
-//                if (!dbTypes.TryGetValue(Database, out var dbType))
-//                {
-//                    Console.WriteLine("non-supported database " + Database + ", choose in-memory instead");
-//                    dbType = DatabaseType.KeyValue;
-//                }
-//
-//                if (!IPAddress.TryParse(DbHost, out var Ip))
-//                {
-//                    Console.WriteLine("Not valid ip address, choose 127.0.0.1 as host of database");
-//                }
-//
-//                return new DatabaseConfig()
-//                {
-//                    Type = dbType,
-//                    Host = DbHost,
-//                    Port = DbPort
-//                };
-//                
-//            }
-//        }
-        
+
+        [Option("conlevel", Hidden = true, HelpText = "ConcurrencyLevel, used to limit the group count of the result of grouper")]
+        public int? ConcurrencyLevel { get; set; }
+
         public static Dictionary<string, DatabaseType> dbTypes = new Dictionary<string, DatabaseType>()
         {
             ["in-memory"] = DatabaseType.KeyValue,

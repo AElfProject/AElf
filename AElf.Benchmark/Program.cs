@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Database;
 using AElf.Database.Config;
-using AElf.Kernel;
 using AElf.Kernel.Concurrency;
+using AElf.Kernel.Concurrency.Config;
+using AElf.Kernel.Concurrency.Execution.Config;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
-using Akka.Util.Internal;
 using Autofac;
 using CommandLine;
 
@@ -75,7 +74,15 @@ namespace AElf.Benchmark
             
             if (!string.IsNullOrWhiteSpace(opts.Database) || DatabaseConfig.Instance.Type == DatabaseType.KeyValue)
             {
-                DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.Database);
+                try
+                {
+                    DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.Database);
+                }
+                catch (ArgumentException)
+                {
+                    Console.WriteLine($"Database {opts.Database} not supported, use one of the following databases: [keyvalue, redis, ssdb]");
+                    return;
+                }
             }
             
             if (!string.IsNullOrWhiteSpace(opts.DbHost))
@@ -86,7 +93,15 @@ namespace AElf.Benchmark
             if (opts.DbPort.HasValue)
             {
                 DatabaseConfig.Instance.Port = opts.DbPort.Value;
-            }  
+            }
+
+            if (opts.ConcurrencyLevel.HasValue)
+            {
+                ActorConfig.Instance.ConcurrencyLevel = opts.ConcurrencyLevel.Value;
+            }
+
+            //enable parallel feature for benchmark
+            ParallelConfig.Instance.IsParallelEnable = true;
             
             var builder = new ContainerBuilder();
             builder.RegisterModule(new MainModule());

@@ -11,7 +11,7 @@ namespace AElf.Kernel.Concurrency.Metadata
         /// Called when deploy a new contract
         /// TODO: need to be async when this access datastore
         /// </summary>
-        /// <param name="contractClassName">Class name, should by reture value of Type.Name of the contract class</param>
+        /// <param name="contractClassName">Class name, should by reture value of Type.FullName of the contract class</param>
         /// <param name="contractAddr">The address to be assigned to the contract</param>
         /// <param name="contractReferences">the map where smart contract member reference to its acutal address</param>
         /// <exception cref="InvalidOperationException">Throw when FunctionMetadataMap already contains a function with same fullname</exception>

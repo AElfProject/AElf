@@ -4,14 +4,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using AElf.Types.CSharp.MetadataAttribute;
 using SharpRepository.Repository.Configuration;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Logging;
-using NServiceKit.Logging;
-using ServiceStack;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Genesis

@@ -6,6 +6,7 @@ using AElf.Common.Application;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
+using AElf.Kernel.Concurrency.Config;
 using AElf.Kernel.Concurrency.Execution.Config;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Config;
@@ -176,6 +177,15 @@ namespace AElf.Launcher
                 ActorConfig.Instance.HostName = opts.ActorHostName;
             if (opts.ActorPort.HasValue)
                 ActorConfig.Instance.Port = opts.ActorPort.Value;
+            if (opts.ActorConcurrencyLevel.HasValue)
+            {
+                ActorConfig.Instance.ConcurrencyLevel = opts.ActorConcurrencyLevel.Value;
+            }
+
+            if (opts.IsParallelEnable.HasValue)
+            {
+                ParallelConfig.Instance.IsParallelEnable = opts.IsParallelEnable.Value;
+            }
 
             NodeConfig.DataDir = string.IsNullOrEmpty(opts.DataDir)
                 ? ApplicationHelpers.GetDefaultDataDir()
