@@ -44,7 +44,6 @@ namespace AElf.Kernel.BlockValidationFilters
             // can be added to chain
             if (currentChainHeight == index)
             {
-                Console.WriteLine("currentChainHeight == index");
                 if (!currentPreviousBlockHash.Equals(previousBlockHash))
                 {
                     Console.WriteLine("context.BlockHash:" + currentPreviousBlockHash.Value.ToByteArray().ToHex());
@@ -56,7 +55,6 @@ namespace AElf.Kernel.BlockValidationFilters
             }
             if (index < currentChainHeight)
             {
-                Console.WriteLine("index < currentChainHeight");
                 var b = await _blockManager.GetBlockByHeight(block.Header.ChainId, index);
                 return b.Header.GetHash().Equals(block.Header.GetHash())
                     ? ValidationError.AlreadyExecuted
