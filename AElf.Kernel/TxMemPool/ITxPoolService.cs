@@ -115,5 +115,11 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="ids"></param>
         /// <returns></returns>
         Task<List<ITransaction>> GetReadyTxsAsync(Hash addr, ulong start, ulong ids);
+
+        /// <summary>
+        /// roll back
+        /// </summary>
+        /// <returns></returns>
+        void RollBack(List<ITransaction> txsOut);
     }
 }

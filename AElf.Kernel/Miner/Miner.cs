@@ -119,11 +119,12 @@ namespace AElf.Kernel.Miner
                         res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
                     }
                     results.Add(res);
+                    
                 }
             
                 // generate block
                 var block = await GenerateBlockAsync(Config.ChainId, results);
-            
+                
                 await _txPoolService.ResetAndUpdate(results);
                 // sign block
                 ECSigner signer = new ECSigner();

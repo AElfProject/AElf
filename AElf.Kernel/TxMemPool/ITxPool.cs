@@ -135,7 +135,7 @@ namespace AElf.Kernel.TxMemPool
         ulong GetExecutableSize();
 
         /// <summary>
-        /// return size for lists
+        /// return size for lists    
         /// </summary>
         /// <param name="waiting"></param>
         /// <param name="executable"></param>
@@ -166,5 +166,18 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="ids"></param>
         /// <returns></returns>
         List<ITransaction> ReadyTxs(Hash addr, ulong start, ulong count);
+
+        /// <summary>
+        /// demote all txs from executable to waiting and reset nonces
+        /// </summary>
+        void RollBack(Hash addr, ulong withdraw);
+
+        /// <summary>
+        /// add nonce if a new address inserted
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <param name="incrementId"></param>
+        /// <returns>return true if incrementId inserted</returns>
+        bool TryAddNonce(Hash addr, ulong incrementId);
     }
 }

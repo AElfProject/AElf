@@ -46,28 +46,33 @@ namespace AElf.Kernel.TxMemPool
         
         private readonly ConcurrentDictionary<Hash, ITransaction> _txs = new ConcurrentDictionary<Hash, ITransaction>();
 
+        private readonly HashSet<Hash> _addrCache = new HashSet<Hash>();
+
         /// <inheritdoc/>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx)
         {
-            // add tx
-            _txs.GetOrAdd(tx.GetHash(), tx);
-            
-            // tx from account state
-            if (!_txPool.Nonces.TryGetValue(tx.From, out var id))
+            if (!_addrCache.Contains(tx.From))
             {
-                id = (await _accountContextService.GetAccountDataContext(tx.From, _txPool.ChainId)).IncrementId;
-                _txPool.Nonces.TryAdd(tx.From, id);
+                // tx from account state
+                var incrementId = (await _accountContextService.GetAccountDataContext(tx.From, _txPool.ChainId)).IncrementId;
+                _txPool.TryAddNonce(tx.GetHash(), incrementId);
+                _addrCache.Add(tx.From);
             }
-           
+            
             if(!Cts.IsCancellationRequested)
             {
                 lock (this)
                 {
-                    return _txPool.EnQueueTx(tx);
+                    var res = _txPool.EnQueueTx(tx);
+                    if (res == TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted)
+                    {
+                        // add tx
+                        _txs.GetOrAdd(tx.GetHash(), tx);
+                    }
+                        
                 }
                 
             }
-            
             return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
             /*return await (Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
             {
@@ -322,6 +327,46 @@ namespace AElf.Kernel.TxMemPool
             {
                 return _txPool.GetPendingIncrementId(addr);
             }
+        }
+        
+        private Dictionary<Hash, List<ITransaction>> GetTxListInPool()
+        {
+            var res = new Dictionary<Hash, List<ITransaction>>();
+            res = _txs.Aggregate(res, 
+                (current, p) =>
+                {
+                    if (!current.TryGetValue(p.Value.From, out var txs))
+                    {
+                        current[p.Key] = new List<ITransaction>();
+                    }
+                    res[p.Key].Add(p.Value);
+                    return current;
+                });
+            return res;
+        }
+
+        public void RollBack(List<ITransaction> txsOut)
+        {
+            lock (this)
+            {
+                var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(), (current, p) =>
+                {
+                    if (!current.TryGetValue(p.From, out var txs))
+                    {
+                        current[p.From] = new HashSet<ITransaction>();
+                    }
+
+                    current[p.From].Add(p);
+                    return current;
+                });
+
+                foreach (var kv in tmap)
+                {
+                    _txPool.RollBack(kv.Key, (ulong) kv.Value.Count);
+                    _txPool.EnQueueTxs(kv.Value);
+                }
+            }
+            
         }
 
     }

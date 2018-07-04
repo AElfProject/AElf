@@ -165,7 +165,7 @@ namespace AElf.Kernel.TxMemPool
         public bool DiscardTx(ITransaction tx)
         {
             // executable
-            if (RemoveFromExecutable(tx, out var unValidTxList))
+            if (RemoveFromExecutable(out var unValidTxList, tx))
             {
                 // case 1: tx in executable list
                 // move unvalid txs to waiting List
@@ -254,16 +254,17 @@ namespace AElf.Kernel.TxMemPool
             
             return true;
         }
-        
-        
+
+
         /// <summary>
         /// remove tx from executable list
         /// </summary>
-        /// <param name="tx"></param>
         /// <param name="unValidTxList">invalid txs because removing this tx</param>
+        /// <param name="tx"></param>
         /// <returns></returns>
-        private bool RemoveFromExecutable(ITransaction tx, out IEnumerable<ITransaction> unValidTxList)
+        private bool RemoveFromExecutable(out IEnumerable<ITransaction> unValidTxList, ITransaction tx = null)
         {
+            
             unValidTxList = null;
             // remove the tx 
             var addr = tx.From;
@@ -294,53 +295,33 @@ namespace AElf.Kernel.TxMemPool
             return true;
         }
 
-        /*/// <inheritdoc/>
-        public List<ITransaction> RemoveExecutedTxs()
+        /// <inheritdoc/>
+        public void RollBack(Hash addr, ulong withdraw)
         {
-            var res = new List<ITransaction>();
-            foreach (var addr in _executable.Keys)
+            Demote(addr);
+            WithDrawNonce(addr, withdraw);
+        }
+
+        
+        private void Demote(Hash addr)
+        {
+            var txs = RemoveExecutableList(addr);
+            foreach (var tx in txs)
             {
-                var list = RemoveExecutedTxs(addr);
-                if(list != null)
-                    res.Concat(list);
+                AddWaitingTx(tx);
             }
-            return res;
         }
         
-        
-        /// <summary>
-        /// remove unvalid txs sent by account address addr, from executable list, like too old tx
-        /// </summary>
-        /// <param name="accountHash"></param>
-        /// <returns></returns>
-        private List<ITransaction> RemoveExecutedTxs(Hash accountHash)
+        private List<ITransaction> RemoveExecutableList(Hash addr)
         {
-            var nonce = GetNonce(accountHash);
-            if (!_executable.TryGetValue(accountHash, out var list) || list.Count ==0)
+            // fail if not exist
+            if (!_executable.TryGetValue(addr, out var executableList))
                 return null;
+            
+            _executable.TryRemove(addr, out executableList);
+            return executableList;
+        }
 
-            // remove and return executed txs
-            var hashesToRemove = list.GetRange(0, Math.Max(0, (int)(nonce - _pool[list[0]].IncrementId)));
-            list.RemoveRange(0, Math.Max(0, (int)(nonce - _pool[list[0]].IncrementId)));
-            var res = new List<ITransaction>();
-            // remove executed from pool
-            foreach (var hash in hashesToRemove)
-            {
-                if (Contains(hash))
-                {
-                    res.Add(_pool[hash]);
-                    _pool.Remove(hash);
-                }
-                else
-                {
-                    // Todo : Log errors
-                }
-                
-            }
-            return res;
-        }*/
-        
-        
         /// <summary>
         /// remove tx from waiting list
         /// </summary>
@@ -383,7 +364,7 @@ namespace AElf.Kernel.TxMemPool
             }
         }
 
-        /// <inheritdoc/>
+        
         //public ulong ReadyTxCount { get; private set; }
 
         private ulong? GetNextPromotableTxId(Hash addr)
@@ -516,6 +497,13 @@ namespace AElf.Kernel.TxMemPool
             Nonces[addr] = n + increment;
         }
 
+        private void WithDrawNonce(Hash addr, ulong increment)
+        {
+            var n = GetNonce(addr);
+            Nonces[addr] = Math.Max(n - increment, 0);
+        }
+        
+
         /// <inheritdoc/>
         public ulong GetPendingIncrementId(Hash addr)
         {
@@ -551,6 +539,18 @@ namespace AElf.Kernel.TxMemPool
             list.RemoveRange(0, (int)count);
             
             return res;
+        }
+
+        /// <inheritdoc/>
+        public bool TryAddNonce(Hash addr, ulong incrementId)
+        {
+            if (!Nonces.TryGetValue(addr, out var id))
+            {
+                Nonces.TryAdd(addr, incrementId);
+                return true;
+            }
+
+            return false;
         }
     }
     
