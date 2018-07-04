@@ -76,7 +76,7 @@ namespace AElf.Kernel.Miner
                 }
         
                 // promote txs from these address
-                await _txPoolService.PromoteAsync(map.Keys.ToList());
+                //await _txPoolService.PromoteAsync(map.Keys.ToList());
         
                 var ready = new List<ITransaction>();
                 foreach (var fromTxs in map)
@@ -114,6 +114,29 @@ namespace AElf.Kernel.Miner
                     : await _concurrencyExecutingService.ExecuteAsync(ready, block.Header.ChainId, _grouper);
                 
 
+                
+                
+                foreach (var trace in traces)
+                {
+                    _logger?.Trace($"Trace {trace.TransactionId}, {trace.StdErr}");
+                }
+        
+                await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
+                var ws = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
+
+
+                if (ws == null)
+                {
+                    _logger?.Trace($"ExecuteBlock - Could not get world state.");
+                    return false;
+                }
+
+                if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
+                {
+                    _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
+                    return false;
+                }
+                
                 var results = new List<TransactionResult>();
                 foreach (var trace in traces)
                 {
@@ -135,28 +158,8 @@ namespace AElf.Kernel.Miner
                     }
                     results.Add(res);
                 }
-                
                 await _txPoolService.ResetAndUpdate(results);
 
-                foreach (var trace in traces)
-                {
-                    _logger?.Trace($"Trace {trace.TransactionId}, {trace.StdErr}");
-                }
-        
-                await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
-                var ws = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
-
-                if (ws == null)
-                {
-                    _logger?.Trace($"ExecuteBlock - Could not get world state.");
-                    return false;
-                }
-
-                if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
-                {
-                    _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
-                    return false;
-                }
                 
                 await _chainManager.AppendBlockToChainAsync(block);
                 await _blockManager.AddBlockAsync(block);
