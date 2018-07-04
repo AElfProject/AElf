@@ -111,6 +111,31 @@ namespace AElf.Kernel.Miner
                 var traces = ready.Count == 0
                     ? new List<TransactionTrace>()
                     : await _concurrencyExecutingService.ExecuteAsync(ready, block.Header.ChainId, _grouper);
+                
+
+                var results = new List<TransactionResult>();
+                foreach (var trace in traces)
+                {
+                    var res = new TransactionResult()
+                    {
+                        TransactionId = trace.TransactionId,
+                        
+                    };
+                    if (string.IsNullOrEmpty(trace.StdErr))
+                    {
+                        res.Logs.AddRange(trace.FlattenedLogs);
+                        res.Status = Status.Mined;
+                        res.RetVal = trace.RetVal;
+                    }
+                    else
+                    {
+                        res.Status = Status.Failed;
+                        res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
+                    }
+                    results.Add(res);
+                }
+                
+                await _txPoolService.ResetAndUpdate(results);
 
                 foreach (var trace in traces)
                 {
