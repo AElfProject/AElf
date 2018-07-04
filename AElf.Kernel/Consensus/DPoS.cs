@@ -36,15 +36,6 @@ namespace AElf.Kernel.Consensus
                 {
                     From = AccountHash,
                     To = contractAccountHash,
-                    IncrementId = incrementId++,
-                    MethodName = "SetBlockProducers",
-                    P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack(blockProducer))
-                },
-                new Transaction
-                {
-                    From = AccountHash,
-                    To = contractAccountHash,
                     IncrementId = incrementId,
                     MethodName = "GenerateInfoForFirstTwoRounds",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),

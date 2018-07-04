@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
@@ -737,10 +738,9 @@ namespace AElf.Kernel.Node
                             await BroadcastBlock(firstBlock);
 
                             _logger.Log(LogLevel.Debug,
-                                "Generate first extra block: \"{0}\", with [{1}] transactions, able to mine in [{2}]",
+                                "Generate first extra block: \"{0}\", with [{1}] transactions",
                                 firstBlock.GetHash().ToHex(),
-                                firstBlock.Body.Transactions.Count, DateTime.UtcNow.ToString("u"));
-
+                                firstBlock.Body.Transactions.Count);
                             return;
                         }
 
@@ -787,11 +787,11 @@ namespace AElf.Kernel.Node
                                 latestMinedNormalBlockRoundsCount = roundsCount;
 
                                 _logger.Log(LogLevel.Debug,
-                                    "Generate block: \"{0}\", with [{1}] transactions, able to mine in [{2}]\n Published out value: {3}\n signature: \"{4}\"",
-                                    block.GetHash().ToHex(), block.Body.Transactions.Count,
-                                    DateTime.UtcNow.ToString("u"),
-                                    outValue.ToHex(),
-                                    signature.ToHex());
+                                    "Generate block: \"{0}\", with [{1}] transactions\n Published out value: {2}\n signature: \"{3}\"",
+                                    block.GetHash().Value.ToByteArray().ToHex(), 
+                                    block.Body.Transactions.Count,
+                                    outValue.Value.ToByteArray().ToHex().Remove(0, 2),
+                                    signature.Value.ToByteArray().ToHex().Remove(0, 2));
                                 return;
                             }
                         }
@@ -831,10 +831,9 @@ namespace AElf.Kernel.Node
                                 latestMinedExtraBlockRoundsCount = roundsCount;
 
                                 _logger.Log(LogLevel.Debug,
-                                    "Generate extra block: {0}, with {1} transactions, able to mine in {2}",
-                                    extraBlock.GetHash().ToHex(), 
-                                    extraBlock.Body.Transactions.Count,
-                                    DateTime.UtcNow.ToString("u"));
+                                    "Generate extra block: {0}, with {1} transactions",
+                                    extraBlock.GetHash().Value.ToByteArray().ToHex(), 
+                                    extraBlock.Body.Transactions.Count);
 
                                 return;
                             }
@@ -863,26 +862,13 @@ namespace AElf.Kernel.Node
                                 Console.WriteLine("round:" + roundsCount);
 
                                 _logger.Log(LogLevel.Debug,
-                                    "Help to generate extra block: {0}, with {1} transactions, able to mine in {2}",
-                                    extraBlock.GetHash().ToHex(),
-                                    extraBlock.Body.Transactions.Count,
-                                    DateTime.UtcNow.ToString("u"));
+                                    "Help to generate extra block: {0}, with {1} transactions",
+                                    extraBlock.GetHash().Value.ToByteArray().ToHex(),
+                                    extraBlock.Body.Transactions.Count);
                             }
-                            else
-                            {
-                                return;
-                            }
-                            
-                            return;
                         }
 
                         #endregion
-
-                        if (doLogsAboutConsensus)
-                        {
-                            // If this node doesn't produce any block this timeslot.
-                            //_logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
-                        }
                     },
 
                     ex =>
@@ -1065,7 +1051,7 @@ namespace AElf.Kernel.Node
                     ContractAccountHash)
             };
             Executive.SetTransactionContext(tcAbleToMine).Apply(true).Wait();
-
+                            
             return tcAbleToMine.Trace.RetVal.Data.DeserializeToBool();
         }
 

@@ -113,7 +113,6 @@ namespace AElf.Launcher
                 }
                 catch (Exception e)
                 {
-                    throw e;
                     throw new Exception("Load keystore failed");
                 }
             }

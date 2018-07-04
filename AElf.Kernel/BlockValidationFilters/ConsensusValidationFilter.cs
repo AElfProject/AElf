@@ -34,6 +34,12 @@ namespace AElf.Kernel.BlockValidationFilters
             var contractAccountHash = new Hash(context.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
             var executive = await _smartContractService.GetExecutiveAsync(contractAccountHash, context.ChainId);
             var tx = GetTxToVerifyBlockProducer(contractAccountHash, keyPair, recipientKeyPair.GetAddress().ToHex());
+            
+            if (tx == null)
+            {
+                return ValidationError.FailedToCheckConsensusInvalidation;
+            }
+            
             var tc = new TransactionContext
             {
                 Transaction = tx
@@ -43,7 +49,7 @@ namespace AElf.Kernel.BlockValidationFilters
             var trace = tc.Trace;
             if (!trace.StdErr.IsNullOrEmpty())
             {
-                return ValidationError.InvalidBlock;
+                return ValidationError.FailedToCheckConsensusInvalidation;
             }
 
             return BoolValue.Parser.ParseFrom(trace.RetVal.ToByteArray()).Value
@@ -53,6 +59,11 @@ namespace AElf.Kernel.BlockValidationFilters
 
         private ITransaction GetTxToVerifyBlockProducer(Hash contractAccountHash, ECKeyPair keyPair, string recepientAddress)
         {
+            if (contractAccountHash == null || keyPair == null || recepientAddress == null)
+            {
+                Console.WriteLine("Something wrong happened to consensus verification filter.");
+                return null;
+            }
             var tx = new Transaction
             {
                 From = keyPair.GetAddress(),

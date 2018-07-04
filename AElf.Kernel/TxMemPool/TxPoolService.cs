@@ -55,7 +55,7 @@ namespace AElf.Kernel.TxMemPool
             {
                 // tx from account state
                 var incrementId = (await _accountContextService.GetAccountDataContext(tx.From, _txPool.ChainId)).IncrementId;
-                _txPool.TryAddNonce(tx.GetHash(), incrementId);
+                _txPool.TryAddNonce(tx.From, incrementId);
                 _addrCache.Add(tx.From);
             }
             
@@ -64,12 +64,13 @@ namespace AElf.Kernel.TxMemPool
                 lock (this)
                 {
                     var res = _txPool.EnQueueTx(tx);
-                    if (res == TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted)
+                    if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
                     {
                         // add tx
                         _txs.GetOrAdd(tx.GetHash(), tx);
                     }
-                        
+
+                    return res;
                 }
                 
             }
