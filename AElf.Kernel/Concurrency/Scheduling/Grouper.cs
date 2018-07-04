@@ -3,12 +3,20 @@ using System.Linq;
 using System.Collections.Generic;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Types;
+using Akka.Util.Internal;
 using NLog;
 using Org.BouncyCastle.Security;
+using SharpRepository.Repository.Caching.Hash;
 
 namespace AElf.Kernel.Concurrency.Scheduling
 {
 
+    public enum GroupStrategy
+    {
+        NaiveGroup,
+        Limited_MaxAddMins,
+        Limited_MinsAddUp
+    }
     /// <summary>
     /// The grouper can be used in both producing subgroup and splitting the job in batch
     /// </summary>
@@ -24,7 +32,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
         }
 
         //TODO: for testnet we only have a single chain, thus grouper only take care of txList in one chain (hence Process has chainId as parameter)
-        public List<List<ITransaction>> Process(Hash chainId, List<ITransaction> transactions, out Dictionary<ITransaction, Exception> failedTxs)
+        public List<List<ITransaction>> ProcessNaive(Hash chainId, List<ITransaction> transactions, out Dictionary<ITransaction, Exception> failedTxs)
         {
             var txResourceHandle = new Dictionary<ITransaction, string>();
             failedTxs = new Dictionary<ITransaction, Exception>();
@@ -103,11 +111,98 @@ namespace AElf.Kernel.Concurrency.Scheduling
             return result;
         }
 
-        public List<List<ITransaction>> ProcessWithCoreCount(int totalCores, Hash chainId, List<ITransaction> transactions, out Dictionary<ITransaction, Exception> failedTxs)
+        public List<List<ITransaction>> ProcessWithCoreCount(GroupStrategy strategy, int totalCores, Hash chainId, List<ITransaction> transactions, out Dictionary<ITransaction, Exception> failedTxs)
         {
-            return SimpleProcessWithCoreCount(totalCores, chainId, transactions, out failedTxs);
+            if (strategy == GroupStrategy.NaiveGroup)
+            {
+                return ProcessNaive(chainId, transactions, out failedTxs);
+            }
+            else
+            {
+                if (transactions.Count == 0)
+                {
+                    failedTxs = new Dictionary<ITransaction, Exception>();
+                    return new List<List<ITransaction>>();
+                }
+
+                if (totalCores <= 0)
+                {
+                    throw new InvalidParameterException("Total core count " + totalCores + " is invalid");
+                }
+                
+                var groups = ProcessNaive(chainId, transactions, out failedTxs);
+
+                List<List<ITransaction>> mergedGroups;
+
+                if (strategy == GroupStrategy.Limited_MaxAddMins)
+                {
+                    mergedGroups = ProcessWithCoreCount_MaxAddMins(totalCores, groups);
+                }
+                else if(strategy == GroupStrategy.Limited_MinsAddUp)
+                {
+                    mergedGroups = ProcessWithCoreCount_MinsAddUp(totalCores, groups);
+                }
+                else
+                {
+                    mergedGroups = groups;
+                    _logger?.Error("Grouper: unsupported strategy: " + strategy);
+                }
+                
+                _logger?.Info(string.Format(
+                    "Grouper on chainId [{0}] merge {1} groups into {2} groups with sizes [{3}]", chainId,
+                    groups.Count, mergedGroups.Count, string.Join(", ", mergedGroups.Select(a=>a.Count))));
+
+                return mergedGroups;
+            }
+            
+            //return ProcessWithCoreCount_MaxAddMins(totalCores, chainId, groups);
+
+
         }
-        
+
+        /// <summary>
+        /// Rebalancing the groups, by add the two group with mininum groups size repeatly 
+        /// </summary>
+        /// <param name="totalCores"></param>
+        /// <param name="unmergedGroups"></param>
+        /// <returns></returns>
+        public List<List<ITransaction>> ProcessWithCoreCount_MinsAddUp(int totalCores, List<List<ITransaction>> unmergedGroups)
+        {
+            if (unmergedGroups.Count <= 1 || unmergedGroups.Count <= totalCores)
+            {
+                return unmergedGroups;
+            }
+            else
+            {
+                
+                var sortedList = unmergedGroups.OrderByDescending( a=> a.Count).ToList();
+                
+                while (sortedList.Count > totalCores)
+                {
+                    var min = sortedList[sortedList.Count - 1];
+                    var subMin = sortedList[sortedList.Count - 2];
+                    
+                    sortedList.RemoveRange(sortedList.Count - 2, 2);
+                    
+                    //merge two smallest groups
+                    subMin.AddRange(min);
+                    
+
+                    //start from before
+                    int index = sortedList.Count - 1;
+                    while (index >= 0 && sortedList[index].Count < subMin.Count)
+                    {
+                        index--;
+                    }
+                    
+                    sortedList.Insert(index + 1, subMin);
+                }
+
+                return sortedList;
+            }
+        }
+
+
         /// <summary>
         /// Reblancing the group, this is a simple version where calculate the threshold [= txCount / totalCores] first,
         /// then fetch next biggest group in group result, merge smallest groups untill the transactions count in group reach threshold
@@ -117,29 +212,27 @@ namespace AElf.Kernel.Concurrency.Scheduling
         ///     This func Will produce group in first step: [499, 499, 498, 498, 6], next step will be [1002, 499, 499] which is unbalanced
         /// </summary>
         /// <param name="totalCores"></param>
-        /// <param name="chainId"></param>
-        /// <param name="transactions"></param>
+        /// <param name="unmergedGroups"></param>
         /// <returns></returns>
         /// <exception cref="InvalidParameterException"></exception>
-        public List<List<ITransaction>> SimpleProcessWithCoreCount(int totalCores, Hash chainId, List<ITransaction> transactions, out Dictionary<ITransaction, Exception> failedTxs)
+        public List<List<ITransaction>> ProcessWithCoreCount_MaxAddMins(int totalCores, List<List<ITransaction>> unmergedGroups)
         {
-            failedTxs = new Dictionary<ITransaction, Exception>();
-            if (transactions.Count == 0)
+            
+            
+            var sortedUnmergedGroups = unmergedGroups.OrderByDescending( a=> a.Count).ToList();
+            
+            if (sortedUnmergedGroups.Count == 0)
             {
+                //this happens when all tx in the input list have failed.
                 return new List<List<ITransaction>>();
             }
 
-            if (totalCores <= 0)
-            {
-                throw new InvalidParameterException("Total core count " + totalCores + " is invalid");
-            }
+            int transactionCount = sortedUnmergedGroups.SelectMany(a => a).Count();
             
             
-            var sortedUnmergedGroups = Process(chainId, transactions, out failedTxs).OrderByDescending( a=> a.Count).ToList();
-
             //TODO: group's count can be a little bit more that core count, for now it's 0, this value can latter make adjustable to deal with special uses
             int resGroupCount = totalCores + 0;
-            int mergeThreshold = transactions.Count / (resGroupCount);
+            int mergeThreshold = transactionCount / (resGroupCount);
             var res = new List<List<ITransaction>>();
 
             int startIndex = 0, endIndex = sortedUnmergedGroups.Count - 1, totalCount = 0;
@@ -158,7 +251,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
             }
 
             //in case there is a bug 
-            if (totalCount != transactions.Count)
+            if (totalCount != transactionCount)
             {
                 _logger.Fatal("There is a bug in the Grouper, get inconsist transaction count, some tx lost");
             }
@@ -179,10 +272,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
                     res.Add(temp[index]);
                 }
             }
-            
-            _logger?.Info(string.Format(
-                "Grouper on chainId [{0}] merge {1} groups into {2} groups with sizes [{3}]", chainId,
-                sortedUnmergedGroups.Count, res.Count, string.Join(", ", res.Select(a=>a.Count))));
+
             return res;
         }
     }
