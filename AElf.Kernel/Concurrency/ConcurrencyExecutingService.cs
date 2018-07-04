@@ -88,6 +88,11 @@ namespace AElf.Kernel.Concurrency
             _isInit = true;
         }
 
+        public void SetDeleteChangeBeforesImmidiately(bool isDeleteChange)
+        {
+            _servicePack.WorldStateDictator.DeleteChangeBeforesImmidiately = isDeleteChange;
+        }
+
         private Akka.Configuration.Config InitActorConfig(string content)
         {
             if (ActorConfig.Instance.Seeds == null || ActorConfig.Instance.Seeds.Count == 0)
