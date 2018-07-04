@@ -44,10 +44,6 @@ namespace AElf.Launcher
         public string InitData { get; private set; }
 
         /// <summary>
-        /// fullnode if true, light node if false
-        /// </summary>
-        //public bool FullNode { get; private set; }
-        /// <summary>
         /// create new chain if true
         /// </summary>
         public bool NewChain { get; private set; }
@@ -79,7 +75,7 @@ namespace AElf.Launcher
             InitData = opts.InitData;
 
             // Network
-            AElfNetworkConfig netConfig = new AElfNetworkConfig();
+            var netConfig = new AElfNetworkConfig();
 
             if (opts.Bootnodes != null && opts.Bootnodes.Any())
             {
@@ -87,12 +83,10 @@ namespace AElf.Launcher
 
                 foreach (var strNodeData in opts.Bootnodes)
                 {
-                    NodeData nd = NodeData.FromString(strNodeData);
-                    if (nd != null)
-                    {
-                        nd.IsBootnode = true;
-                        netConfig.Bootnodes.Add(nd);
-                    }
+                    var nd = NodeData.FromString(strNodeData);
+                    if (nd == null) continue;
+                    nd.IsBootnode = true;
+                    netConfig.Bootnodes.Add(nd);
                 }
             }
             else
@@ -114,13 +108,12 @@ namespace AElf.Launcher
 
             NetConfig = netConfig;
 
-
             // Database
             if (!string.IsNullOrWhiteSpace(opts.DBType) || DatabaseConfig.Instance.Type == DatabaseType.KeyValue)
             {
                 DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
             }
-            
+
             if (!string.IsNullOrWhiteSpace(opts.DBHost))
             {
                 DatabaseConfig.Instance.Host = opts.DBHost;
@@ -129,8 +122,10 @@ namespace AElf.Launcher
             if (opts.DBPort.HasValue)
             {
                 DatabaseConfig.Instance.Port = opts.DBPort.Value;
-            }           
-            
+            }
+
+            DatabaseConfig.Instance.Number = opts.DBNumber;
+
             // to be miner
             IsMiner = opts.IsMiner;
 
@@ -151,22 +146,21 @@ namespace AElf.Launcher
                 {
                     throw new Exception("NodeAccount is needed");
                 }
-                
+
                 Coinbase = ByteString.CopyFrom(NodeAccount.HexToBytes());
             }
-            
+
             MinerConfig = new MinerConfig
             {
                 CoinBase = Coinbase,
                 TxCount = opts.TxCountLimit
             };
-            
-            
+
             // tx pool config
             TxPoolConfig = Kernel.TxMemPool.TxPoolConfig.Default;
             TxPoolConfig.FeeThreshold = opts.MinimalFee;
             TxPoolConfig.PoolLimitSize = opts.PoolCapacity;
-            
+
             // node config
             NodeConfig = new NodeConfig
             {
@@ -174,7 +168,7 @@ namespace AElf.Launcher
                 FullNode = true,
                 Coinbase = Coinbase
             };
-                        
+
             // Actor
             if (opts.ActorIsCluster.HasValue)
                 ActorConfig.Instance.IsCluster = opts.ActorIsCluster.Value;
@@ -188,17 +182,17 @@ namespace AElf.Launcher
                 : opts.DataDir;
 
             // runner config
-            RunnerConfig = new RunnerConfig()
+            RunnerConfig = new RunnerConfig
             {
                 SdkDir = Path.GetDirectoryName(typeof(AElf.Kernel.Node.MainChainNode).Assembly.Location)
             };
 
             if (opts.RunnerConfig != null)
             {
-                using (StreamReader file = File.OpenText(opts.RunnerConfig))
-                using (JsonTextReader reader = new JsonTextReader(file))
+                using (var file = File.OpenText(opts.RunnerConfig))
+                using (var reader = new JsonTextReader(file))
                 {
-                    JObject cfg = (JObject) JToken.ReadFrom(reader);
+                    var cfg = (JObject) JToken.ReadFrom(reader);
                     if (cfg.TryGetValue("csharp", out var j))
                     {
                         RunnerConfig = Runtime.CSharp.RunnerConfig.FromJObject((JObject) j);
