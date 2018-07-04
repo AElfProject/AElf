@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -9,6 +10,7 @@ using Akka.TestKit;
 using Akka.TestKit.Xunit;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
+using NServiceKit.Common.Extensions;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
@@ -42,7 +44,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Assert.Equal(JobExecutionStatus.RequestStatus.Running, js1.Status);
 
             // Return result
-            var trace = ExpectMsg<TransactionTraceMessage>().TransactionTrace;
+            var trace = ExpectMsg<TransactionTraceMessage>().TransactionTraces.FirstOrDefault();
 
             // Completed, two messages will be received
             // 1 for sender, 1 for router (in this test both are TestActor)
@@ -98,24 +100,23 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Assert.Equal(JobExecutionStatus.RequestStatus.Running, js1.Status);
 
             // Return result
-            var trace1 = ExpectMsg<TransactionTraceMessage>().TransactionTrace;
-            var trace2 = ExpectMsg<TransactionTraceMessage>().TransactionTrace;
+            var traces = ExpectMsg<TransactionTraceMessage>().TransactionTraces;
 
             // Completed
             var js2 = ExpectMsg<JobExecutionStatus>();
             Assert.Equal(JobExecutionStatus.RequestStatus.Completed, js2.Status);
 
-            Assert.Equal(tx1.GetHash(), trace1.TransactionId);
-            Assert.Equal(tx2.GetHash(), trace2.TransactionId);
-            if (!string.IsNullOrEmpty(trace1.StdErr))
+            Assert.Equal(tx1.GetHash(), traces[0].TransactionId);
+            Assert.Equal(tx2.GetHash(), traces[1].TransactionId);
+            if (!string.IsNullOrEmpty(traces[0].StdErr))
             {
-                Assert.Null(trace1.StdErr);
+                Assert.Null(traces[0].StdErr);
             }
             Assert.Equal((ulong) 90, _mock.GetBalance1(address1));
             Assert.Equal((ulong) 10, _mock.GetBalance1(address2));
-            if (!string.IsNullOrEmpty(trace2.StdErr))
+            if (!string.IsNullOrEmpty(traces[1].StdErr))
             {
-                Assert.Null(trace2.StdErr);
+                Assert.Null(traces[1].StdErr);
             }
             Assert.Equal((ulong) 190, _mock.GetBalance1(address3));
             Assert.Equal((ulong) 10, _mock.GetBalance1(address4));
@@ -142,15 +143,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Thread.Sleep(1500);
             _mock.Worker1.Tell(JobExecutionCancelMessage.Instance);
 
-            var traces = new List<TransactionTrace>()
-            {
-                ((TransactionTraceMessage) FishForMessage(msg => msg is TransactionTraceMessage))
-                .TransactionTrace,
-                ((TransactionTraceMessage) FishForMessage(msg => msg is TransactionTraceMessage))
-                .TransactionTrace,
-                ((TransactionTraceMessage) FishForMessage(msg => msg is TransactionTraceMessage))
-                .TransactionTrace
-            };
+            var traces = new List<TransactionTrace>();
+            traces.AddRange(((TransactionTraceMessage) FishForMessage(msg => msg is TransactionTraceMessage)).TransactionTraces);
 
             Assert.Equal("Execution Cancelled", traces[2].StdErr);
         }

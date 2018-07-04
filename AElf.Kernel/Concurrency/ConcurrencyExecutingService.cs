@@ -68,7 +68,7 @@ namespace AElf.Kernel.Concurrency
                 var config = InitActorConfig(ActorHocon.ActorClusterHocon);
                 _actorSystem = ActorSystem.Create(SystemName, config);
                 //Todo waiting for join cluster. we should get the status here.
-                Thread.Sleep(2000);
+                Thread.Sleep(8000);
                 _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");
             }
             else

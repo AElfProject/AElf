@@ -108,6 +108,8 @@ namespace AElf.Kernel.Concurrency.Execution
                 chainContextException = e;
             }
 
+            var traceResult = new List<TransactionTrace>();
+
             foreach (var tx in request.Transactions)
             {
                 TransactionTrace trace;
@@ -170,9 +172,9 @@ namespace AElf.Kernel.Concurrency.Execution
                         }
                     }
                 }
-
-                request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, trace));
+                traceResult.Add(trace);
             }
+            request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, traceResult));
 
             // TODO: What if actor died in the middle
 
