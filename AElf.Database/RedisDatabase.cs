@@ -11,7 +11,8 @@ namespace AElf.Database
 
         public RedisDatabase()
         {
-            _client = new PooledRedisClientManager($"{DatabaseConfig.Instance.Host}:{DatabaseConfig.Instance.Port}");
+            _client = new PooledRedisClientManager(DatabaseConfig.Instance.Number,
+                $"{DatabaseConfig.Instance.Host}:{DatabaseConfig.Instance.Port}");
         }
 
         public async Task<byte[]> GetAsync(string key, Type type)
