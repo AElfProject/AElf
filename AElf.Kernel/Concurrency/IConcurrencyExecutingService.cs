@@ -11,7 +11,5 @@ namespace AElf.Kernel.Concurrency
         void InitWorkActorSystem();
 
         void InitActorSystem();
-
-        void SetDeleteChangeBeforesImmidiately(bool isDeleteChange);
     }
 }

@@ -21,13 +21,16 @@ namespace AElf.Kernel.Concurrency.Config
         /// </summary>
         public int ConcurrencyLevel { get; set; }
 
+        public bool Benchmark { get; set; }
+
         public ActorConfig()
         {
-            IsCluster = false;
+            IsCluster = true;
             HostName = "127.0.0.1";
             Port = 32550;
-            WorkerCount = 8;
-            ConcurrencyLevel = 8;
+            WorkerCount = 6;
+            ConcurrencyLevel = 24;
+            Benchmark = false;
         }
     }
 

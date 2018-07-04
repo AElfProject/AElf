@@ -1,7 +1,8 @@
 ﻿﻿using System;
 using System.Text;
 using System.Collections.Generic;
-using System.IO;
+ using System.Diagnostics;
+ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -93,6 +94,9 @@ namespace AElf.Kernel.Concurrency.Execution
 
         private async Task<JobExecutionStatus> RunJob(JobExecutionRequest request)
         {
+            Console.WriteLine("RunJob RequestID:{0},Transaction:{1}",request.RequestId,request.Transactions.Count);
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             _state = State.Running;
 
             IChainContext chainContext = null;
@@ -183,6 +187,8 @@ namespace AElf.Kernel.Concurrency.Execution
             request.Router?.Tell(retMsg);
             _servingRequestId = -1;
             _state = State.Idle;
+            sw.Stop();
+            Console.WriteLine("RunJob RequestID:{0},Time:{1}",request.RequestId,sw.ElapsedMilliseconds);
             return retMsg;
         }
 

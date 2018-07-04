@@ -34,6 +34,7 @@ namespace AElf.Kernel.Concurrency
                 WorldStateDictator = worldStateDictator,
                 AccountContextService = accountContextService,
             };
+            _servicePack.WorldStateDictator.DeleteChangeBeforesImmidiately = ActorConfig.Instance.Benchmark;
             _isInit = false;
         }
 
@@ -66,9 +67,21 @@ namespace AElf.Kernel.Concurrency
             if (ActorConfig.Instance.IsCluster)
             {
                 var config = InitActorConfig(ActorHocon.ActorClusterHocon);
+                
+                var workerConfigs = new StringBuilder();
+                workerConfigs.Append("akka.actor.deployment./router.routees.paths = [");
+                for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
+                {
+                    workerConfigs.Append("\"/user/worker" + i).Append("\"").Append(",");
+                }
+                workerConfigs.Remove(workerConfigs.Length - 1, 1);
+                workerConfigs.Append("]");
+
+                config = ConfigurationFactory.ParseString(workerConfigs.ToString()).WithFallback(config);
+                
                 _actorSystem = ActorSystem.Create(SystemName, config);
                 //Todo waiting for join cluster. we should get the status here.
-                Thread.Sleep(8000);
+                Thread.Sleep(6000);
                 _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");
             }
             else
@@ -89,11 +102,6 @@ namespace AElf.Kernel.Concurrency
             }
 
             _isInit = true;
-        }
-
-        public void SetDeleteChangeBeforesImmidiately(bool isDeleteChange)
-        {
-            _servicePack.WorldStateDictator.DeleteChangeBeforesImmidiately = isDeleteChange;
         }
 
         private Akka.Configuration.Config InitActorConfig(string content)
