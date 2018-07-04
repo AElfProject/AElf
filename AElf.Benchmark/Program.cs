@@ -133,6 +133,7 @@ namespace AElf.Benchmark
             using(var scope = container.BeginLifetimeScope())
             {
                 var concurrencySercice = scope.Resolve<IConcurrencyExecutingService>();
+                concurrencySercice.SetDeleteChangeBeforesImmidiately(true);
                 concurrencySercice.InitActorSystem();
                 
                 var benchmarkTps = scope.Resolve<Benchmarks>();
