@@ -359,6 +359,7 @@ namespace AElf.Kernel.Node
         {
             try
             {
+                // ReSharper disable once InconsistentNaming
                 var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId))
                     .IncrementId;
                 var idInPool = _poolService.GetIncrementId(addr);

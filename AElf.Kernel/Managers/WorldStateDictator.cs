@@ -104,6 +104,57 @@ namespace AElf.Kernel.Managers
         }
 
         /// <summary>
+        /// The world state will rollback to specific block height's world state
+        /// It means world state of that height will be kept
+        /// </summary>
+        /// <param name="specificHeight"></param>
+        /// <returns></returns>
+        public async Task RollbackToSpecificHeight(ulong specificHeight)
+        {
+            await Check();
+            
+            var heightMap = (await GetAccountDataProvider(Path.CalculatePointerForAccountZero(_chainId)))
+                .GetDataProvider().GetDataProvider("HeightOfBlock");
+            
+            var currentHeight = await GetChainCurrentHeight(_chainId);
+            var rollbackHeightList = new List<UInt64Value>();
+            for (var i = currentHeight; i > specificHeight; i--)
+            {
+                rollbackHeightList.Add(new UInt64Value {Value = i});
+            }
+            
+            var rollbackHashList = new List<Hash>();
+            rollbackHashList.ForEach(async height => rollbackHashList.Add(await heightMap.GetAsync(height)));
+
+            foreach (var blockHash in rollbackHashList)
+            {
+                var paths = await GetPathsAsync(blockHash);
+                var dict = new Dictionary<Hash, Change>();
+
+                foreach (var path in paths)
+                {
+                    var change = await _changesStore.GetChangeAsync(path);
+                    dict[path] = change;
+                }
+
+                foreach (var pair in dict)
+                {
+                    if (pair.Value.Befores.Count > 0)
+                    {
+                        await _changesStore.UpdatePointerAsync(pair.Key, pair.Value.Befores[0]);
+                    }
+                }
+            }
+        }
+        
+        private async Task<ulong> GetChainCurrentHeight(Hash chainId)
+        {
+            var key = Path.CalculatePointerForCurrentBlockHeight(chainId);
+            var heightBytes = await _dataStore.GetDataAsync(key);
+            return heightBytes?.ToUInt64() ?? 0;
+        }
+
+        /// <summary>
         /// Get an AccountDataProvider instance
         /// </summary>
         /// <param name="accountAddress"></param>

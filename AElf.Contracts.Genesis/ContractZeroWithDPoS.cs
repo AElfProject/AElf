@@ -49,7 +49,7 @@ namespace AElf.Contracts.Genesis
         
         public async Task<BlockProducer> GetBlockProducers()
         {
-            // Should be setted before
+            // Should be setted before 
             var blockProducer = await _blockProducer.GetAsync();
 
             if (blockProducer.Nodes.Count < 1)
