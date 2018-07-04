@@ -881,7 +881,7 @@ namespace AElf.Kernel.Node
                         if (doLogsAboutConsensus)
                         {
                             // If this node doesn't produce any block this timeslot.
-                            _logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
+                            //_logger.Log(LogLevel.Debug, "Unable to mine: {0}", DateTime.UtcNow.ToLocalTime().ToString("u"));
                         }
                     },
 
