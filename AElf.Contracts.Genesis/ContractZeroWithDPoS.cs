@@ -20,7 +20,7 @@ namespace AElf.Contracts.Genesis
         private const int MiningTime = 8000;
 
         // After the chain creator start a chain, wait for other mimers join
-        private const int WaitFirstRoundTime = 8000;
+        private const int WaitFirstRoundTime = 16000;
 
         // Block producers check interval
         private const int CheckTime = 3000;
@@ -208,8 +208,15 @@ namespace AElf.Contracts.Genesis
             var blockProducer = await GetBlockProducers();
             var blockProducerCount = blockProducer.Nodes.Count;
 
-            foreach (var node in blockProducer.Nodes) 
-                signatureDict[(await GetBlockProducerInfoOfCurrentRound(node)).Signature] = node;
+            foreach (var node in blockProducer.Nodes)
+            {
+                var s = (await GetBlockProducerInfoOfCurrentRound(node)).Signature;
+                if (s == null)
+                {
+                    s = Hash.Generate();
+                }
+                signatureDict[s] = node;
+            }
 
             foreach (var sig in signatureDict.Keys)
             {
@@ -233,11 +240,11 @@ namespace AElf.Contracts.Genesis
 
             for (var i = 0; i < orderDict.Count; i++)
             {
-                var bpInfoNew = new BPInfo();
-
-                var timeForExtraBlockOfLastRound = await _timeForProducingExtraBlock.GetAsync();
-                bpInfoNew.TimeSlot = GetTimestamp(timeForExtraBlockOfLastRound, i * MiningTime + MiningTime);
-                bpInfoNew.Order = i + 1;
+                var bpInfoNew = new BPInfo
+                {
+                    TimeSlot = GetTimestampOfUtcNow(i * MiningTime + MiningTime),
+                    Order = i + 1
+                };
 
                 infosOfNextRound.Info[orderDict[i]] = bpInfoNew;
             }
@@ -255,6 +262,11 @@ namespace AElf.Contracts.Genesis
             var firstPlace = await _firstPlaceMap.GetValueAsync(RoundsCount);
             var firstPlaceInfo = await GetBlockProducerInfoOfCurrentRound(firstPlace.Value);
             var sig = firstPlaceInfo.Signature;
+            if (sig == null)
+            {
+                sig = Hash.Generate();
+            }
+            
             var sigNum = BitConverter.ToUInt64(
                 BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
             var blockProducer = await GetBlockProducers();
@@ -284,7 +296,7 @@ namespace AElf.Contracts.Genesis
             }
             
             var newRoundsCount = RoundsCountAddOne(RoundsCount);
-            await _roundsCount.SetAsync(newRoundsCount.Value);
+            //await _roundsCount.SetAsync(newRoundsCount.Value);
 
             return newRoundsCount;
         }
@@ -338,7 +350,7 @@ namespace AElf.Contracts.Genesis
             //Update the rounds count at last
             await _roundsCount.SetAsync(RoundsCountAddOne(RoundsCount).Value);
 
-            Console.WriteLine($"Sync dpos info of round {RoundsCountAddOne(RoundsCount).Value} succeed");
+            Console.WriteLine($"Sync dpos info of round {RoundsCount.Value} succeed");
         }
 
         #endregion
@@ -380,9 +392,13 @@ namespace AElf.Contracts.Genesis
             var offset = MiningTime * orderDiff - MiningTime;
             var assigendExtraBlockProducingTimeEndWithOffset = GetTimestamp(assigendExtraBlockProducingTimeEnd, offset);
 
-            //todo: if more than two nodes wake up suddenly after next round's timeslot, this will cause problem
-            if (CompareTimestamp(now, GetTimestamp(assigendExtraBlockProducingTimeEnd, MiningTime * blockProducerCount)))
+            var timeOfARound = MiningTime * blockProducerCount + CheckTime + MiningTime;
+            var timeDiff = (now - assigendExtraBlockProducingTimeEnd).Seconds * 1000;
+            var currentTimeslot = timeDiff % timeOfARound;
+            if (currentTimeslot > offset && currentTimeslot < offset + MiningTime)
             {
+                Console.WriteLine("currentTimeslot:" + currentTimeslot);
+                Console.WriteLine("offset:" + offset);
                 return new BoolValue {Value = true};
             }
             
@@ -413,8 +429,6 @@ namespace AElf.Contracts.Genesis
             
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
             
-            Console.WriteLine("For round:" + roundsCount.Value + " of " + accountAddress);
-
             var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, roundsCount);
             
             info.OutValue = outValue;
@@ -478,7 +492,7 @@ namespace AElf.Contracts.Genesis
                 }
             }
 
-            await _dPoSInfoMap.SetValueAsync(RoundsCount, roundInfo);
+            //await _dPoSInfoMap.SetValueAsync(RoundsCount, roundInfo);
 
             return roundInfo;
         }
@@ -708,9 +722,9 @@ namespace AElf.Contracts.Genesis
                 result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";
                 result += "Order:\t\t" + bpInfo.Value.Order + "\n";
                 result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
-                result += "Signature:\t" + bpInfo.Value.Signature + "\n";
-                result += "Out Value:\t" + bpInfo.Value.OutValue + "\n";
-                result += "In Value:\t" + bpInfo.Value.InValue + "\n";
+                result += "Signature:\t" + bpInfo.Value.Signature?.Value.ToByteArray().ToHex() + "\n";
+                result += "Out Value:\t" + bpInfo.Value.OutValue?.Value.ToByteArray().ToHex() + "\n";
+                result += "In Value:\t" + bpInfo.Value.InValue?.Value.ToByteArray().ToHex() + "\n";
             }
 
             return result + "\n";
@@ -728,11 +742,28 @@ namespace AElf.Contracts.Genesis
             var endOfTimeslotOfBlockProducer = GetTimestamp(timeslotOfBlockProducer, MiningTime);
             // ReSharper disable once InconsistentNaming
             var timeslotOfEBP = await _timeForProducingExtraBlock.GetAsync();
-            return new BoolValue
+            if (CompareTimestamp(now, timeslotOfBlockProducer) && CompareTimestamp(endOfTimeslotOfBlockProducer, now) ||
+                CompareTimestamp(now, timeslotOfEBP))
             {
-                Value = (CompareTimestamp(now, timeslotOfBlockProducer) && CompareTimestamp(endOfTimeslotOfBlockProducer, now))
-                        || CompareTimestamp(now, timeslotOfEBP)
-            };
+                return new BoolValue {Value = true};
+            }
+
+            var start = RoundsCount.Value;
+            for (var i = start; i > 0; i--)
+            {
+                var blockProducerInfo =
+                    await GetBlockProducerInfoOfSpecificRound(accountAddress.Value, new UInt64Value {Value = i});
+                var timeslot = blockProducerInfo.TimeSlot;
+                var timeslotEnd = GetTimestamp(timeslot, MiningTime);
+                if (CompareTimestamp(now, timeslot) && CompareTimestamp(timeslotEnd, now))
+                {
+                    return new BoolValue {Value = true};
+                }
+            }
+
+            Console.WriteLine("Invalid timeslot:" + timeslotOfBlockProducer.ToDateTime().ToString("u"));
+
+            return new BoolValue {Value = false};
         }
 
         #region Private Methods

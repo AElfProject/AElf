@@ -51,7 +51,7 @@ namespace AElf.Kernel.Tests.TxMemPool
 
             var tx1 = TxPoolTest.BuildTransaction();
             var res = await poolService.AddTxAsync(tx1);
-            Assert.True(res);
+            Assert.Equal(TxValidation.TxInsertionAndBroadcastingError.Success, res);
 
             Assert.Equal(0, (int) await poolService.GetWaitingSizeAsync());
             Assert.Equal(1, (int) await poolService.GetExecutableSizeAsync());
@@ -72,7 +72,8 @@ namespace AElf.Kernel.Tests.TxMemPool
             var tx2 = TxPoolTest.BuildTransaction(nonce:2);
             res = await poolService.AddTxAsync(tx2);
             
-            Assert.True(res);
+            Assert.Equal(TxValidation.TxInsertionAndBroadcastingError.Success, res);
+
             Assert.Equal(1, (int) await poolService.GetWaitingSizeAsync());
             Assert.Equal(1, (int) await poolService.GetExecutableSizeAsync());
             Assert.Equal(2, (int)pool.Size);
@@ -143,7 +144,7 @@ namespace AElf.Kernel.Tests.TxMemPool
 
             var tx = TxPoolTest.BuildTransaction();
             var res = await poolService.AddTxAsync(tx);
-            Assert.False(res);
+            Assert.Equal(TxValidation.TxInsertionAndBroadcastingError.PoolClosed, res);
         }
     }
 }

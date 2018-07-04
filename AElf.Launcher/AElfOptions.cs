@@ -72,6 +72,9 @@ namespace AElf.Launcher
         [Option("rpc.port", Default = 5000, HelpText = "The port that the RPC server.")]
         public int RpcPort { get; set; }
         
+        [Option("rpc.host", Default = "127.0.0.1", HelpText = "The port that the RPC server.")]
+        public string RpcHost { get; set; }
+        
         [Option(HelpText = "The absolute path where to store the peer database.")]
         public string PeersDbPath { get; set; }
 

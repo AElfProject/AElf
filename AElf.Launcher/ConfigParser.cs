@@ -33,6 +33,7 @@ namespace AElf.Launcher
 
         public bool Rpc { get; private set; }
         public int RpcPort { get; private set; }
+        public string RpcHost { get; private set; }
         public string DataDir { get; private set; }
         public string NodeAccount { get; set; }
 
@@ -74,6 +75,7 @@ namespace AElf.Launcher
         {
             Rpc = !opts.NoRpc;
             RpcPort = opts.RpcPort;
+            RpcHost = opts.RpcHost;
             NodeAccount = opts.NodeAccount;
             InitData = opts.InitData;
 

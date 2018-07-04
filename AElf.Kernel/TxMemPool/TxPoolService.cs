@@ -47,7 +47,7 @@ namespace AElf.Kernel.TxMemPool
         private readonly ConcurrentDictionary<Hash, ITransaction> _txs = new ConcurrentDictionary<Hash, ITransaction>();
 
         /// <inheritdoc/>
-        public async Task<bool> AddTxAsync(ITransaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx)
         {
             // add tx
             _txs.GetOrAdd(tx.GetHash(), tx);
@@ -68,7 +68,7 @@ namespace AElf.Kernel.TxMemPool
                 
             }
             
-            return false;
+            return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
             /*return await (Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
             {
                 return _txPool.EnQueueTx(tx);

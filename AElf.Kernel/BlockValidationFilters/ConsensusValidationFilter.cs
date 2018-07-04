@@ -47,7 +47,7 @@ namespace AElf.Kernel.BlockValidationFilters
 
             return BoolValue.Parser.ParseFrom(trace.RetVal.ToByteArray()).Value
                 ? ValidationError.Success
-                : ValidationError.InvalidBlock;
+                : ValidationError.InvalidTimeslot;
         }
 
         private ITransaction GetTxToVerifyBlockProducer(Hash contractAccountHash, ECKeyPair keyPair, string recepientAddress)

@@ -21,9 +21,9 @@ namespace AElf.CLI
             AElfKeyStore kstore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
             AccountManager manager = new AccountManager(kstore, screenManager);
             
-            int port = args.Length > 0 ? Int32.Parse(args[0]) : 5000;
+            string host = args.Length > 0 ? args[0] : "http://localhost:1234";
             
-            AElfCliProgram program = new AElfCliProgram(screenManager, parser, manager, port);
+            AElfCliProgram program = new AElfCliProgram(screenManager, parser, manager, host);
 
             // Register local commands
             RegisterAccountCommands(program);
@@ -36,6 +36,7 @@ namespace AElf.CLI
             program.RegisterCommand(new GetTxResultCmd());
             program.RegisterCommand(new GetGenesisContractAddressCmd());
             program.RegisterCommand(new GetDeserializedResultCmd());
+            program.RegisterCommand(new GetBlockHeightCmd());
             
             // Start the CLI
             program.StartRepl();

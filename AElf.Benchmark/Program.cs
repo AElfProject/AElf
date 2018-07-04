@@ -1,18 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Database;
 using AElf.Database.Config;
-using AElf.Kernel;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Config;
 using AElf.Kernel.Concurrency.Execution.Config;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
-using Akka.Util.Internal;
 using Autofac;
 using CommandLine;
 
@@ -30,7 +27,7 @@ namespace AElf.Benchmark
                 })
                 .WithNotParsed(errs =>
                 {
-                    //Success = false;
+                    //Valid = false;
                     //error
                 });
 

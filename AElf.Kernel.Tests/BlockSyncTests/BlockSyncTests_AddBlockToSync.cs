@@ -111,7 +111,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             mock.Setup(n => n.GetMissingTransactions(It.IsAny<IBlock>())).Returns(new List<Hash>());
             
             // Setup return oprhan block validation error
-            BlockExecutionResult res = new BlockExecutionResult(false, ValidationError.OrphanBlock);
+            BlockExecutionResult res = new BlockExecutionResult(false, TxInsertionAndBroadcastingError.OrphanBlock);
             mock.Setup(n => n.ExecuteAndAddBlock(It.IsAny<IBlock>())).Returns(Task.FromResult(res));
             
             IAElfNode m = mock.Object;
