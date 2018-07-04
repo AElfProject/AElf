@@ -6,10 +6,15 @@ namespace AElf.Common.ByteArrayHelpers
     {
         public static byte[] FromHexString(string hex)
         {
-            int numberChars = hex.Length - 2;
+            int i = 2;
+            if (!hex.StartsWith("0x"))
+            {
+                i = 0;
+            }
+            int numberChars = hex.Length - i;
             byte[] bytes = new byte[numberChars / 2];
             
-            for (int i = 2, j = 0 ; i < hex.Length; i += 2, j += 2)
+            for (int j = 0 ; i < hex.Length; i += 2, j += 2)
                 bytes[j / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
             
             return bytes;

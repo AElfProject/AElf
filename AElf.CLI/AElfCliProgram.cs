@@ -60,7 +60,7 @@ namespace AElf.CLI
         
         private static List<CliCommandDefinition> _commands = new List<CliCommandDefinition>();
         
-        private const string ExitReplCommand = "quit";`
+        private const string ExitReplCommand = "quit";
         private const string ServerConnError = "Could not connect to server.";
         private const string AbiNotLoaded = "ABI not loaded.";
         private const string NotConnected = "Please connect-blockchain first.";
