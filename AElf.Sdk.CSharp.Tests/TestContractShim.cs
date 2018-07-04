@@ -65,7 +65,7 @@ namespace AElf.Sdk.CSharp.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToUInt32();
+            return tc.Trace.RetVal.Data.DeserializeToUInt32();
         }
 
         public bool SetAccount(string name, Hash address)
@@ -83,7 +83,7 @@ namespace AElf.Sdk.CSharp.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToBool();
+            return tc.Trace.RetVal.Data.DeserializeToBool();
         }
 
         public string GetAccountName()
@@ -101,7 +101,7 @@ namespace AElf.Sdk.CSharp.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToString();
+            return tc.Trace.RetVal.Data.DeserializeToString();
         }
     }
 }

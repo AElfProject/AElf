@@ -63,7 +63,7 @@ namespace AElf.Contracts.Token.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
-            return TransactionContext.Trace.RetVal?.DeserializeToString();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
         public string TokenName()
@@ -82,7 +82,7 @@ namespace AElf.Contracts.Token.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
-            return TransactionContext.Trace.RetVal?.DeserializeToString();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
         public ulong TotalSupply()
@@ -101,7 +101,7 @@ namespace AElf.Contracts.Token.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
-            return TransactionContext.Trace.RetVal?.DeserializeToUInt64()??0;
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
         }
 
         public uint Decimals()
@@ -120,7 +120,7 @@ namespace AElf.Contracts.Token.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
-            return TransactionContext.Trace.RetVal?.DeserializeToUInt32()??0;
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt32()??0;
         }
 
         public ulong BalanceOf(Hash owner)
@@ -139,7 +139,7 @@ namespace AElf.Contracts.Token.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
-            return TransactionContext.Trace.RetVal?.DeserializeToUInt64()??0;
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
         }
 
         public ulong Allowance(Hash owner, Hash spender)
@@ -158,7 +158,7 @@ namespace AElf.Contracts.Token.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
-            return TransactionContext.Trace.RetVal?.DeserializeToUInt64()??0;
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64()??0;
         }
 
         #endregion View Only Methods

@@ -4,15 +4,16 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using AElf.CLI.Command;
-using AElf.CLI.Data.Protobuf;
 using AElf.CLI.Parsing;
 using AElf.CLI.Screen;
 using AElf.CLI.Wallet.Exceptions;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using Newtonsoft.Json.Linq;
 using ProtoBuf;
+using Transaction = AElf.CLI.Data.Protobuf.Transaction;
 
 namespace AElf.CLI.Wallet
 {
@@ -174,7 +175,7 @@ namespace AElf.CLI.Wallet
 
         public Transaction SignTransaction(Transaction tx)
         {
-            string addr = BitConverter.ToString(tx.From.Value).Replace("-", string.Empty).ToLower();
+            string addr = tx.From.Value.ToHex();
             
             ECKeyPair kp = _keyStore.GetAccountKeyPair(addr);
 

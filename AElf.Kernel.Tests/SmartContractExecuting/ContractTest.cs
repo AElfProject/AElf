@@ -134,7 +134,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             
             Assert.Null(txnCtxt.Trace.StdErr);
             
-            var address = txnCtxt.Trace.RetVal.ToByteArray().DeserializeToBytes();
+            var address = txnCtxt.Trace.RetVal.Data.DeserializeToBytes();
 
             var regExample = new SmartContractRegistration
             {
@@ -190,7 +190,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             await executive.SetTransactionContext(txnCtxt).Apply(true);
 
             var bs = txnCtxt.Trace.RetVal;
-            var address = bs.DeserializeToBytes();
+            var address = bs.Data.DeserializeToBytes();
 
             #region initialize account balance
             var account = Hash.Generate();
@@ -226,7 +226,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
             await executiveUser.SetTransactionContext(txnBalCtxt).Apply(true);
 
-            Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.DeserializeToUInt64());
+            Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.Data.DeserializeToUInt64());
             #endregion
             
             

@@ -102,7 +102,7 @@ namespace AElf.Contracts.Genesis
             // First round
             foreach (var node in blockProducers.Nodes)
             {
-                dict.Add(node, node[0]);
+                dict.Add(node, node[2]);
             }
 
             var sortedMiningNodes =
@@ -137,7 +137,7 @@ namespace AElf.Contracts.Genesis
             
             foreach (var node in blockProducers.Nodes)
             {
-                dict.Add(node, node[0]);
+                dict.Add(node, node[2]);
             }
             
             sortedMiningNodes =

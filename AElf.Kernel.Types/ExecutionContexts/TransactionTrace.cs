@@ -12,7 +12,7 @@ namespace AElf.Kernel
         public DateTime EndTime { get; set; }
         
         public Hash TransactionId { get; set; }
-        public ByteString RetVal { get; set; }
+        public RetVal RetVal { get; set; }
         public string StdOut { get; set; }
         public string StdErr { get; set; }
         public List<LogEvent> Logs { get; set; }

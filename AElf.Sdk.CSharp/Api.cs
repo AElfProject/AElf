@@ -148,7 +148,7 @@ namespace AElf.Sdk.CSharp
         {
             if (_lastInlineCallContext != null)
             {
-                return _lastInlineCallContext.Trace.RetVal.ToByteArray();
+                return _lastInlineCallContext.Trace.RetVal.Data.ToByteArray();
             }
 
             return new byte[] { };
