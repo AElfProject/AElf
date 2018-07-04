@@ -27,7 +27,10 @@ namespace AElf.Launcher
         
         [Option("tcl", Default = (ulong) 1024, HelpText  = "Transaction count limit in one block")]
         public ulong TxCountLimit { get; set; }
-        
+
+        [Option('g', Default = false, HelpText = "Is the one who will generate DPoS information")]
+        public bool IsConsensusInfoGenerator { get; set; }
+
         /*[Option("ts", Default = (uint)1024, HelpText = "Transaction size limit")]
         public uint TxSizeLimit { get; set; }*/
         
@@ -69,6 +72,9 @@ namespace AElf.Launcher
         [Option("rpc.port", Default = 5000, HelpText = "The port that the RPC server.")]
         public int RpcPort { get; set; }
         
+        [Option("rpc.host", Default = "127.0.0.1", HelpText = "The port that the RPC server.")]
+        public string RpcHost { get; set; }
+        
         [Option(HelpText = "The absolute path where to store the peer database.")]
         public string PeersDbPath { get; set; }
 
@@ -96,15 +102,6 @@ namespace AElf.Launcher
         
         [Option("actor.port", HelpText = "The port of actor.")]
         public int? ActorPort { get; set; }
-        
-        [Option("actor.isseed", HelpText = "The worker is seed node or not.")]
-        public bool? ActorIsSeed { get; set; }
-        
-        [Option("actor.workerhost", HelpText = "The hostname of worker")]
-        public string ActorWorkerHostName { get; set; }
-        
-        [Option("actor.workerport", HelpText = "The port of worker")]
-        public int? ActorWorkerPort { get; set; }
 
         #endregion
 

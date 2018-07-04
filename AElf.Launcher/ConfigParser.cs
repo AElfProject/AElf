@@ -32,12 +32,14 @@ namespace AElf.Launcher
 
         public bool Rpc { get; private set; }
         public int RpcPort { get; private set; }
+        public string RpcHost { get; private set; }
         public string DataDir { get; private set; }
         public string NodeAccount { get; set; }
 
         public bool Success { get; private set; }
         public bool IsMiner { get; private set; }
         public Hash Coinbase { get; private set; }
+        public bool IsConsensusInfoGenerater { get; private set; }
 
         public string InitData { get; private set; }
 
@@ -72,6 +74,7 @@ namespace AElf.Launcher
         {
             Rpc = !opts.NoRpc;
             RpcPort = opts.RpcPort;
+            RpcHost = opts.RpcHost;
             NodeAccount = opts.NodeAccount;
             InitData = opts.InitData;
 
@@ -113,7 +116,10 @@ namespace AElf.Launcher
 
 
             // Database
-            DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
+            if (!string.IsNullOrWhiteSpace(opts.DBType) || DatabaseConfig.Instance.Type == DatabaseType.KeyValue)
+            {
+                DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
+            }
             
             if (!string.IsNullOrWhiteSpace(opts.DBHost))
             {
@@ -128,6 +134,10 @@ namespace AElf.Launcher
             // to be miner
             IsMiner = opts.IsMiner;
 
+            if (opts.IsConsensusInfoGenerator)
+            {
+                IsConsensusInfoGenerater = true;
+            }
 
             if (opts.NewChain)
             {
@@ -137,12 +147,12 @@ namespace AElf.Launcher
 
             if (IsMiner)
             {
-                if (string.IsNullOrEmpty(opts.CoinBase))
+                if (string.IsNullOrEmpty(opts.NodeAccount))
                 {
-                    throw new Exception("coinbase is needed");
+                    throw new Exception("NodeAccount is needed");
                 }
                 
-                Coinbase = ByteString.CopyFromUtf8(opts.CoinBase);
+                Coinbase = ByteString.CopyFrom(NodeAccount.HexToBytes());
             }
             
             MinerConfig = new MinerConfig
@@ -172,12 +182,6 @@ namespace AElf.Launcher
                 ActorConfig.Instance.HostName = opts.ActorHostName;
             if (opts.ActorPort.HasValue)
                 ActorConfig.Instance.Port = opts.ActorPort.Value;
-            if (opts.ActorIsSeed.HasValue)
-                ActorWorkerConfig.Instance.IsSeedNode = opts.ActorIsSeed.Value;
-            if (!string.IsNullOrWhiteSpace(opts.ActorWorkerHostName))
-                ActorWorkerConfig.Instance.HostName = opts.ActorWorkerHostName;
-            if (opts.ActorWorkerPort.HasValue)
-                ActorWorkerConfig.Instance.Port = opts.ActorWorkerPort.Value;
 
             NodeConfig.DataDir = string.IsNullOrEmpty(opts.DataDir)
                 ? ApplicationHelpers.GetDefaultDataDir()

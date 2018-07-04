@@ -1,30 +1,12 @@
-﻿using System.Security.Cryptography;
+﻿using System;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
-using AElf.Kernel.TxMemPool;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using Funq;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using ServiceStack.FluentValidation.Internal;
 using Api = AElf.Sdk.CSharp.Api;
-
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AElf.Kernel;
-using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.Types;
-using AElf.Types.CSharp.MetadataAttribute;
-using SharpRepository.Repository.Configuration;
-using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Logging;
-using NServiceKit.Logging;
-
-
 namespace AElf.Contracts.Genesis
 {
     #region Events
@@ -94,7 +76,7 @@ namespace AElf.Contracts.Genesis
 
         #endregion Fields
 
-        public async Task<Hash> DeploySmartContract(int category, byte[] code)
+        public async Task<byte[]> DeploySmartContract(int category, byte[] code)
         {
             ulong serialNumber = _serialNumber.Increment().Value;
 
@@ -125,7 +107,8 @@ namespace AElf.Contracts.Genesis
                 Address = address
             }.Fire();
 
-            return address;
+            Console.WriteLine("Deployment success: " + address.Value.ToByteArray().ToHex());
+            return address.Value.ToByteArray();
         }
 
         public void ChangeContractOwner(Hash contractAddress, Hash newOwner)

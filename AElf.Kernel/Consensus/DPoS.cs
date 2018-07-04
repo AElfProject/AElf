@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Node;
 using AElf.Types.CSharp;
@@ -16,8 +17,6 @@ namespace AElf.Kernel.Consensus
     public class DPoS
     {
         private readonly ECKeyPair _keyPair;
-
-        public Hash TransferContractAddress { get; set; }
 
         public Hash AccountHash => _keyPair.GetAddress();
 
@@ -366,29 +365,6 @@ namespace AElf.Kernel.Consensus
             return tx;
         }
 
-        public Transaction TryToGetTxForPublishInValue(ulong incrementId, Hash contractAccountHash,
-            Hash inValue, UInt64Value roundsCount)
-        {
-            var tx =  new Transaction
-            {
-                From = AccountHash,
-                To = contractAccountHash,
-                IncrementId = incrementId,
-                MethodName = "TryToPublishInValue",
-                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(inValue, roundsCount))
-            };
-            
-            var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
-
-            // Update the signature
-            tx.R = ByteString.CopyFrom(signature.R);
-            tx.S = ByteString.CopyFrom(signature.S);
-            
-            return tx;
-        }
-
         // ReSharper disable once InconsistentNaming
         public Transaction GetDPoSInfoToStringTx(ulong incrementId, Hash contractAccountHash)
         {
@@ -397,9 +373,9 @@ namespace AElf.Kernel.Consensus
                 From = AccountHash,
                 To = contractAccountHash,
                 IncrementId = incrementId,
-                MethodName = "GetDPoSInfoToString",
+                MethodName = "GetDPoSInfoToStringOfLatestRounds",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack())
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(new UInt64Value {Value = 3}))
             };
             
             var signer = new ECSigner();
@@ -547,12 +523,12 @@ namespace AElf.Kernel.Consensus
         
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().Value.ToBase64();
+            return accountHash.ToAccount().Value.ToByteArray().ToHex();
         }
 
         private Hash AddressStringToHash(string accountAddress)
         {
-            return Convert.FromBase64String(accountAddress);
+            return ByteArrayHelpers.FromHexString(accountAddress);
         }
     }
 }

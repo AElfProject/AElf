@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -61,7 +62,7 @@ namespace AElf.Contracts.DPoS.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToPbMessage<BlockProducer>();
+            return tc.Trace.RetVal.Data.DeserializeToPbMessage<BlockProducer>();
         }
         
         public BlockProducer GetBlockProducers()
@@ -79,7 +80,7 @@ namespace AElf.Contracts.DPoS.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToPbMessage<BlockProducer>();
+            return tc.Trace.RetVal.Data.DeserializeToPbMessage<BlockProducer>();
         }
 
         public DPoSInfo RandomizeInfoForFirstTwoRounds()
@@ -97,7 +98,7 @@ namespace AElf.Contracts.DPoS.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToPbMessage<DPoSInfo>();
+            return tc.Trace.RetVal.Data.DeserializeToPbMessage<DPoSInfo>();
         }
 
         // ReSharper disable once InconsistentNaming
@@ -116,7 +117,7 @@ namespace AElf.Contracts.DPoS.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToString();
+            return tc.Trace.RetVal.Data.DeserializeToString();
         }
 
         public Hash CalculateSignature(Hash inValue)
@@ -134,7 +135,7 @@ namespace AElf.Contracts.DPoS.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToPbMessage<Hash>(); 
+            return tc.Trace.RetVal.Data.DeserializeToPbMessage<Hash>(); 
         }
         
         public RoundInfo PublishOutValueAndSignature(BlockProducer blockProducer, List<Hash> outValue, List<Hash> signatures)
@@ -155,7 +156,7 @@ namespace AElf.Contracts.DPoS.Tests
                     Transaction = tx
                 };
                 Executive.SetTransactionContext(tc).Apply(true).Wait();
-                roundInfo.Info[blockProducer.Nodes[i]] = tc.Trace.RetVal.DeserializeToPbMessage<BPInfo>();
+                roundInfo.Info[blockProducer.Nodes[i]] = tc.Trace.RetVal.Data.DeserializeToPbMessage<BPInfo>();
             }
 
             return roundInfo;
@@ -176,7 +177,7 @@ namespace AElf.Contracts.DPoS.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToPbMessage<RoundInfo>();
+            return tc.Trace.RetVal.Data.DeserializeToPbMessage<RoundInfo>();
         }
         
         public string SetNextExtraBlockProducer()
@@ -194,7 +195,7 @@ namespace AElf.Contracts.DPoS.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToString();
+            return tc.Trace.RetVal.Data.DeserializeToString();
         }
 
         public bool AbleToMine(string accountAddress)
@@ -212,7 +213,7 @@ namespace AElf.Contracts.DPoS.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToBool();
+            return tc.Trace.RetVal.Data.DeserializeToBool();
         }
 
         public bool IsTimeToProduceExtraBlock()
@@ -230,7 +231,7 @@ namespace AElf.Contracts.DPoS.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToBool();
+            return tc.Trace.RetVal.Data.DeserializeToBool();
         }
 
         public bool AbleToProduceExtraBlock(string accountAddress)
@@ -248,17 +249,17 @@ namespace AElf.Contracts.DPoS.Tests
                 Transaction = tx
             };
             Executive.SetTransactionContext(tc).Apply(true).Wait();
-            return tc.Trace.RetVal.DeserializeToBool();
+            return tc.Trace.RetVal.Data.DeserializeToBool();
         }
         
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().Value.ToBase64();
+            return accountHash.ToAccount().Value.ToByteArray().ToHex();
         }
 
         private Hash AddressStringToHash(string accountAddress)
         {
-            return Convert.FromBase64String(accountAddress);
+            return ByteArrayHelpers.FromHexString(accountAddress);
         }
     }
 }

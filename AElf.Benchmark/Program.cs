@@ -28,13 +28,25 @@ namespace AElf.Benchmark
                 })
                 .WithNotParsed(errs =>
                 {
-                    //Success = false;
+                    //Valid = false;
                     //error
                 });
 
             if (opts == null)
             {
                 return;
+            }
+
+            if (opts.SdkDir == null)
+            {
+                opts.SdkDir = Directory.GetCurrentDirectory();
+                Console.WriteLine("No Sdk directory in arg, choose current directory: " + opts.SdkDir);
+            }
+            
+            if (opts.DllDir == null)
+            {
+                opts.DllDir = Directory.GetCurrentDirectory();
+                Console.WriteLine("No dll directory in arg, choose current directory: " + opts.DllDir);
             }
 
             if (!Directory.Exists(System.IO.Path.GetFullPath(opts.SdkDir)))
@@ -61,13 +73,24 @@ namespace AElf.Benchmark
                 return;
             }
             
+            if (!string.IsNullOrWhiteSpace(opts.Database) || DatabaseConfig.Instance.Type == DatabaseType.KeyValue)
+            {
+                DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.Database);
+            }
+            
+            if (!string.IsNullOrWhiteSpace(opts.DbHost))
+            {
+                DatabaseConfig.Instance.Host = opts.DbHost;
+            }
+
+            if (opts.DbPort.HasValue)
+            {
+                DatabaseConfig.Instance.Port = opts.DbPort.Value;
+            }  
+            
             var builder = new ContainerBuilder();
             builder.RegisterModule(new MainModule());
             builder.RegisterModule(new MetadataModule());
-
-            DatabaseConfig.Instance.Type = opts.DatabaseConfig.Type;
-            DatabaseConfig.Instance.Host = opts.DatabaseConfig.Host;
-            DatabaseConfig.Instance.Port = opts.DatabaseConfig.Port;
             builder.RegisterModule(new WorldStateDictatorModule());
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new LoggerModule());
@@ -103,6 +126,8 @@ namespace AElf.Benchmark
                 {
                     await benchmarkTps.BenchmarkEvenGroup();
                 }
+
+                Console.WriteLine("\n\nPress any key to continue ");
                 Console.ReadKey();
             }
         }

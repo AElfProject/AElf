@@ -79,7 +79,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             var pool = GetPool(1, 1024);
             var tx = CreateAndSignTransaction(Hash.Generate(), Hash.Generate(), 0, 2);
-            Assert.Equal(pool.ValidateTx(tx), TxValidation.ValidationError.Success);
+            Assert.Equal(pool.ValidateTx(tx), TxValidation.TxInsertionAndBroadcastingError.Valid);
             return tx;
         }
         
@@ -90,10 +90,10 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             var pool = GetPool(1, 1024);
             var tx = ValidTx();
-            Assert.Equal(pool.ValidateTx(tx), TxValidation.ValidationError.Success);
+            Assert.Equal(pool.ValidateTx(tx), TxValidation.TxInsertionAndBroadcastingError.Valid);
 
             tx.MethodName = "";
-            Assert.Equal(pool.ValidateTx(tx), TxValidation.ValidationError.InvalidTxFormat);
+            Assert.Equal(pool.ValidateTx(tx), TxValidation.TxInsertionAndBroadcastingError.InvalidTxFormat);
         }
 
         [Fact]
@@ -101,9 +101,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             var tx = CreateAndSignTransaction(Hash.Generate(), Hash.Generate(), 0, 2);
             Assert.True(tx.VerifySignature());
-            //System.Diagnostics.Debug.WriteLine(tx.To.Value.ToBase64());
             tx.To = Hash.Generate();
-            //System.Diagnostics.Debug.WriteLine(tx.To.Value.ToBase64());
             Assert.False(tx.VerifySignature());
             
         }
@@ -122,10 +120,10 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             var pool = GetPool(2, 1024);
             var tx = CreateAndSignTransaction(Hash.Generate(), Hash.Generate(),0, 3);
-            Assert.Equal(pool.ValidateTx(tx), TxValidation.ValidationError.Success);
+            Assert.Equal(pool.ValidateTx(tx), TxValidation.TxInsertionAndBroadcastingError.Valid);
 
             tx.Fee = 1;
-            Assert.Equal(pool.ValidateTx(tx), TxValidation.ValidationError.NotEnoughGas);
+            Assert.Equal(pool.ValidateTx(tx), TxValidation.TxInsertionAndBroadcastingError.NotEnoughGas);
         }
         
 
@@ -144,7 +142,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                     }
                 }
             }.ToByteArray());
-            Assert.Equal(pool.ValidateTx(tx), TxValidation.ValidationError.TooBigSize);
+            Assert.Equal(pool.ValidateTx(tx), TxValidation.TxInsertionAndBroadcastingError.TooBigSize);
         }
         
         

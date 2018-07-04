@@ -76,6 +76,8 @@ namespace AElf.Kernel.Managers
                 throw new InvalidDataException("Invalid block");
                 //Block is not connected
             }
+
+            Console.WriteLine($"Previous block hash: {lastBlockHash.Value.ToByteArray().ToHex()}");
             
             await InitialHeightOfBlock(chainId);
             await _heightOfBlock.SetAsync(new UInt64Value {Value = header.Index}.CalculateHash(), 

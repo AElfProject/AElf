@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
@@ -18,12 +19,12 @@ namespace AElf.Kernel.Services
             _blockManager = blockManager;
         }
 
-        public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context)
+        public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
         {
             int error = (int) ValidationError.Success; 
             foreach (var filter in _filters)
             {
-                error = Math.Max((int)await filter.ValidateBlockAsync(block, context), error);
+                error = Math.Max((int)await filter.ValidateBlockAsync(block, context, keyPair), error);
                 if (error == 3)
                     return ValidationError.InvalidBlock;
             }
@@ -34,6 +35,6 @@ namespace AElf.Kernel.Services
 
     public interface IBlockValidationFilter
     {
-        Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context);
+        Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair);
     }
 }

@@ -11,7 +11,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        Task<bool> AddTxAsync(ITransaction tx);
+        Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx);
         
         /// <summary>
         /// remove a tx

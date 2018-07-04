@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.Types;
@@ -15,10 +16,8 @@ namespace AElf.Kernel.BlockValidationFilters
             _blockManager = blockManager;
         }
 
-        public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context)
+        public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
         {
-            return ValidationError.Success;
-
             /*
                 1' block height
                 2' previous block hash
@@ -28,41 +27,38 @@ namespace AElf.Kernel.BlockValidationFilters
             var previousBlockHash = block.Header.PreviousBlockHash;
 
             // return success if genesis block
-            if (index == 0 && previousBlockHash.Equals(Hash.Zero))
-                return ValidationError.Success;
+            /*if (index == 0 && previousBlockHash.Equals(Hash.Zero))
+                return TxInsertionAndBroadcastingError.Valid;*/
 
             var currentChainHeight = context.BlockHeight;
             var currentPreviousBlockHash = context.BlockHash;
 
             // other block needed before this one
             if (index > currentChainHeight)
-                return ValidationError.OrphanBlock;
+            {
+                Console.WriteLine("Received block index:" + index);
+                Console.WriteLine("Current chain height:" + currentChainHeight);
+                return ValidationError.Pending;
+            }
             
             // can be added to chain
-            if (currentChainHeight == index && currentPreviousBlockHash.Equals(previousBlockHash))
-                return ValidationError.Success;
-
-            if (index < currentChainHeight)
-                return ValidationError.AlreadyExecuted;
-            
-            // can not be added to chain with wrong prvious hash or wrong index
-            /*if (currentChainHeight != index ^ currentPreviousBlockHash.Equals(previousBlockHash))
-                return ValidationError.InvalidBlcok;*/
-            
-            // todo : manage orphan blocks
-            // orphan block
-            /*var pb = await _blockManager.GetBlockAsync(previousBlockHash);
-
-            // 
-            if (pb == null)
-                return ValidationError.OrphanBlock;
-            
-            var pbHeight = pb.Header.Index;
-            if (pbHeight + 1 != index)
+            if (currentChainHeight == index)
             {
-                return ValidationError.InvalidBlcok;
-            }*/
-            
+                Console.WriteLine("currentChainHeight == index");
+                Console.WriteLine("context.BlockHash:" + currentPreviousBlockHash.Value.ToByteArray().ToHex());
+                Console.WriteLine("block.Header.PreviousBlockHash:" + previousBlockHash.Value.ToByteArray().ToHex());
+                return currentPreviousBlockHash.Equals(previousBlockHash)
+                    ? ValidationError.Success
+                    : ValidationError.OrphanBlock;
+            }
+            if (index < currentChainHeight)
+            {
+                Console.WriteLine("index < currentChainHeight");
+                var b = await _blockManager.GetBlockByHeight(block.Header.ChainId, index);
+                return b.Header.GetHash().Equals(block.Header.GetHash())
+                    ? ValidationError.AlreadyExecuted
+                    : ValidationError.OrphanBlock;
+            }
             return ValidationError.OrphanBlock;
         }
     }

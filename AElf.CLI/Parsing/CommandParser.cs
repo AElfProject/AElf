@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AElf.CLI.Parsing
 {
@@ -9,9 +10,9 @@ namespace AElf.CLI.Parsing
             if (string.IsNullOrWhiteSpace(input))
                 return null;
 
-            string str = input.TrimEnd();
+            string str = input.TrimEnd().TrimStart();
             
-            string[] tokens = str.Split();
+            string[] tokens = str.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
             if (tokens.Length < 1)
                 return null;

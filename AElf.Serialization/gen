@@ -1,1 +1,0 @@
-protoc --proto_path=_proto --csharp_out=_gen --csharp_opt=file_extension=.g.cs _proto/*.proto

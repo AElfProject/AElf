@@ -1,5 +1,9 @@
 ﻿using System;
+using AElf.Common.ByteArrayHelpers;
+using AElf.Types.CSharp;
+using Akka.Util;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Xunit;
 
 namespace AElf.Kernel.Tests.Serialization
@@ -15,9 +19,29 @@ namespace AElf.Kernel.Tests.Serialization
 
             byte[] b = t.ToByteArray();
 
-            string bstr = Convert.ToBase64String(b);
+            string bstr = b.ToHex();
             ;
             // bstr = CgQKAgECEgQKAgME
+        }
+
+        
+        [Fact]
+        public void Deserialize()
+        {
+            int a = 202;
+            var aa = new SInt32Value
+            {
+                Value = 202
+            };
+            string ass = ByteString.CopyFrom(aa.ToByteArray()).ToByteArray().ToHex();
+            System.Diagnostics.Debug.WriteLine(ass);
+            var data = ByteArrayHelpers.FromHexString(ass);
+            System.Diagnostics.Debug.WriteLine(SInt32Value.Parser.ParseFrom(data).Value);
+            
+            //System.Diagnostics.Debug.WriteLine(BytesValue.Parser.ParseFrom(data).Value.ToByteArray().ToHex());
+            //System.Diagnostics.Debug.WriteLine(BoolValue.Parser.ParseFrom(data).Value);
+            //System.Diagnostics.Debug.WriteLine(UInt64Value.Parser.ParseFrom(data.ToByteArray()).Value);
+
         }
     }
 }

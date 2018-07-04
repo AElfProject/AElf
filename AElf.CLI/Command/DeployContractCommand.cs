@@ -20,10 +20,10 @@ namespace AElf.CLI.Command
 
         public override string Validate(CmdParseResult parsedCmd)
         {
-            /*if (parsedCmd.Args == null || parsedCmd.Args.Count != 2)
+            if (parsedCmd.Args == null || parsedCmd.Args.Count != 3)
             {
                 return "Wrong arguments";
-            }*/
+            }
 
             return null;
         }
@@ -38,10 +38,11 @@ namespace AElf.CLI.Command
         
         public override string GetPrintString(JObject resp)
         {
-            string hash = resp["hash"].ToString();
+            string hash = resp["hash"] == null ? resp["error"].ToString() :resp["hash"].ToString();
+            string res = resp["hash"] == null ? "error" : "txId";
             var jobj = new JObject
             {
-                ["txId"] = hash
+                [res] = hash
             };
             return jobj.ToString();
         }

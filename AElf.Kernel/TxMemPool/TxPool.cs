@@ -1,6 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using AElf.Common.Attributes;
 using AElf.Kernel.Types;
 using NLog;
@@ -139,21 +141,22 @@ namespace AElf.Kernel.TxMemPool
             }
         }
 
-        public bool EnQueueTx(ITransaction tx)
+        public TxValidation.TxInsertionAndBroadcastingError EnQueueTx(ITransaction tx)
         {
             var error = this.ValidateTx(tx);
-            if (error == TxValidation.ValidationError.Success)
+            if (error == TxValidation.TxInsertionAndBroadcastingError.Valid)
             {
                 var res = AddWaitingTx(tx);
                 if (res)
                 {
                     Promote(tx.From);
+                    return TxValidation.TxInsertionAndBroadcastingError.Success;
                 }
                 
-                return res;
+                return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
             }
             _logger.Error("InValid transaction: " +  error);
-            return false;
+            return error;
 
             //_pool[txHash] = tx;
         }
@@ -513,30 +516,27 @@ namespace AElf.Kernel.TxMemPool
             Nonces[addr] = n + increment;
         }
 
+        /// <inheritdoc/>
         public ulong GetPendingIncrementId(Hash addr)
         {
-            if (_waiting.TryGetValue(addr, out var dict))
-            {
-                if (dict.Keys.Count != 0)
-                {
-                    return dict.Keys.Max();
-                }
-            }
-
-            if (_executable.TryGetValue(addr, out var txs) && txs.Count > 0)
-            {
-                return txs.Last().IncrementId;
-            }
-
-            return 0;
+            return Nonces.TryGetValue(addr, out var incrementId) ? incrementId : (ulong) 0;
         }
 
         /// <inheritdoc/>
         public List<ITransaction> ReadyTxs(Hash addr, ulong start, ulong count)
         {
             var res = new List<ITransaction>();
+
+            if (_executable != null && _executable.Count > 0)
+            {
+                var pairs = _executable.Select(x => string.Format("{0}{1}{2}", x.Key.Value.ToByteArray().ToHex(), ",", x.Value == null || x.Value.Count <= 0 ? "empty" : x.Value.Select(bb => bb.GetHash().Value.ToByteArray().ToHex()).Aggregate((i, j) => i + "," + j)));
+                string join = string.Join(" || ", pairs);
+                Console.WriteLine("Executable transactions: " + join);
+            }
+            
             if (!_executable.TryGetValue(addr, out var list) || (ulong)list.Count < count || list[0].IncrementId != start)
             {
+                Console.WriteLine();
                 return null;
             }
             

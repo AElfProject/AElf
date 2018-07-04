@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using AElf.Network.Data;
 using AElf.Network.Peers;
 using Google.Protobuf;
@@ -50,8 +51,8 @@ namespace AElf.Kernel.Node.Protocol
                 _blockSynchronizer.SetNodeHeight((int)height);
                 _blockSynchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
 
-                //if (!_blockSynchronizer.IsInitialSync)
-                    //_node.Mine();
+                if (!_blockSynchronizer.IsInitialSync)
+                    BlockSynchronizerOnSyncFinished(this, EventArgs.Empty);
                 
                 Task.Run(() => _blockSynchronizer.Start());
             }
@@ -59,12 +60,16 @@ namespace AElf.Kernel.Node.Protocol
 
         private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
         {
-            //_node.Mine();
+            if (_node.IsMiner() && !_node.IsMining)
+            {
+                _node.DoDPos();
+            }
         }
 
         public void AddTransaction(Transaction tx)
         {
-            _blockSynchronizer.SetTransaction(tx.GetHash().Value.ToByteArray());
+            //_blockSynchronizer.SetTransaction(tx.GetHash().Value.ToByteArray());
+            _blockSynchronizer.EnqueueJob(new Job { Transaction = tx });
         }
 
         public List<NodeData> GetPeers(ushort? numPeers)
@@ -93,6 +98,18 @@ namespace AElf.Kernel.Node.Protocol
         {
             byte[] serializedBlock = block.ToByteArray();
             return await _peerManager.BroadcastMessage(MessageTypes.BroadcastBlock, serializedBlock, 0);
+        }
+        
+        public long GetLatestIndexOfOtherNode()
+        {
+            if (_blockSynchronizer.PendingBlocks.Count == 0)
+            {
+                return -1;
+            }
+
+            return (long) (from pendingBlock in _blockSynchronizer.PendingBlocks
+                orderby pendingBlock.Block.Header.Index descending
+                select pendingBlock.Block.Header.Index).First();
         }
         
         #region Response handling
@@ -228,7 +245,7 @@ namespace AElf.Kernel.Node.Protocol
             {
                 Block b = Block.Parser.ParseFrom(message.Payload);
                 
-                _logger?.Trace("Block received: " + Convert.ToBase64String(b.GetHash().Value.ToByteArray()));
+                _logger?.Trace("Block received: " + b.GetHash().Value.ToByteArray().ToHex());
                 _blockSynchronizer.EnqueueJob(new Job { Block = b });
 
                 /*if (types == MessageTypes.BroadcastBlock)

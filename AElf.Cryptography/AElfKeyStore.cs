@@ -29,7 +29,7 @@ namespace AElf.Cryptography
 
         private readonly List<OpenAccount> _openAccounts;
         
-        private TimeSpan _defaultAccountTimeout = TimeSpan.FromMinutes(2);
+        private TimeSpan _defaultAccountTimeout = TimeSpan.FromMinutes(10);
 
         public enum Errors
         {
@@ -62,7 +62,7 @@ namespace AElf.Cryptography
 
         public Errors OpenAsync(string address, string password, bool withTimeout = true)
         {
-            if (_openAccounts.Any(x => x.Address == address))
+            if (_openAccounts.Any(x => x.Address.Replace("0x", "") == address.Replace("0x", "")))
                 return Errors.AccountAlreadyUnlocked;
 
             try
@@ -95,15 +95,14 @@ namespace AElf.Cryptography
         
         public ECKeyPair GetAccountKeyPair(string address)
         {
-            return _openAccounts.FirstOrDefault(oa => oa.Address.Equals(address))?.KeyPair;
+            return _openAccounts.FirstOrDefault(oa => oa.Address.Replace("0x", "").Equals(address.Replace("0x", "")))?.KeyPair;
         }
 
         public ECKeyPair Create(string password)
         {
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
-            WriteKeyPair(keyPair, password);
-
-            return keyPair;
+            bool res = WriteKeyPair(keyPair, password);
+            return !res ? null : keyPair;
         }
 
         public List<string> ListAccounts()
@@ -144,7 +143,8 @@ namespace AElf.Cryptography
             }
             catch (PemException pemEx)
             {
-                throw new InvalidPasswordException("Invalid password.", pemEx);
+                //Console.WriteLine("Invalid password.");
+                throw new InvalidPasswordException("Invalid password", pemEx);
             }
             catch (Exception e)
             {
@@ -154,13 +154,17 @@ namespace AElf.Cryptography
             return null;
         }
 
-        public void WriteKeyPair(ECKeyPair keyPair, string password)
+        public bool WriteKeyPair(ECKeyPair keyPair, string password)
         {
             if (keyPair == null || keyPair.PrivateKey == null || keyPair.PublicKey == null)
                 throw new InvalidKeyPairException("Invalid keypair (null reference).", null);
-            
+
             if (string.IsNullOrEmpty(password))
-                throw new InvalidPasswordException("Invalid password.", null);
+            {
+                Console.WriteLine("Invalid password.", null);
+                return false;
+            }
+                
             
             // Ensure path exists
             GetOrCreateKeystoreDir();
@@ -173,7 +177,8 @@ namespace AElf.Cryptography
             }
             catch (Exception e)
             {
-                throw new InvalidKeyPairException("Could not calculate the address from the keypair.", e);
+                Console.WriteLine("Could not calculate the address from the keypair.", e);
+                return false;
             }
             
             var akp = new AsymmetricCipherKeyPair(keyPair.PublicKey, keyPair.PrivateKey);
@@ -185,12 +190,25 @@ namespace AElf.Cryptography
                 pw.WriteObject(akp, _algo, password.ToCharArray(), _random);
                 pw.Writer.Close();
             }
+
+            return true;
         }
         
         /// <summary>
         /// Return the full path of the files 
         /// </summary>
         internal string GetKeyFileFullPath(string address)
+        {
+            var path = GetKeyFileFullPathStrict(address.Replace("0x", ""));
+            if (File.Exists(path))
+            {
+                return path;
+            }
+
+            return GetKeyFileFullPathStrict("0x" + address.Replace("0x", ""));
+        }
+        
+        internal string GetKeyFileFullPathStrict(string address)
         {
             string dirPath = GetKeystoreDirectoryPath();
             string filePath = Path.Combine(dirPath, address);

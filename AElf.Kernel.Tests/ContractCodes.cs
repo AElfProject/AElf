@@ -9,7 +9,7 @@ namespace AElf.Kernel.Tests
     {
         public static readonly string TestContractName = "AElf.Kernel.Tests.TestContract";
 
-        public static readonly string TestContractZeroName = "AElf.Kernel.Tests.TestContractZero";
+        public static readonly string TestContractZeroName = "AElf.Contracts.Genesis";
 
         public static string TestContractFolder
         {
@@ -37,7 +37,6 @@ namespace AElf.Kernel.Tests
                 {
                     code = file.ReadFully();
                 }
-                //System.Diagnostics.Debug.WriteLine(ByteString.CopyFrom(code).ToBase64());
                 return code;
             }
         }

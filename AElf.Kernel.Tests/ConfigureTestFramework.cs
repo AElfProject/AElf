@@ -1,6 +1,7 @@
 ﻿using AElf.Database.Config;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Modules.AutofacModule;
+using AElf.Kernel.TxMemPool;
 using AElf.Runtime.CSharp;
 using Autofac;
 using Xunit;
@@ -25,6 +26,10 @@ namespace AElf.Kernel.Tests
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new WorldStateDictatorModule());
+            builder.RegisterModule(new StorageModule());
+            builder.RegisterModule(new ServicesModule());
+            builder.RegisterModule(new ManagersModule());
+            builder.RegisterModule(new TxPoolServiceModule(new TxPoolConfig()));
 
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);

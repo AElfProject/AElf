@@ -9,6 +9,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.TxMemPool;
 using AElf.Kernel.Types;
 using Akka.Configuration;
+using NLog;
 
 namespace AElf.Kernel.Miner
 {
@@ -20,16 +21,18 @@ namespace AElf.Kernel.Miner
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly IConcurrencyExecutingService _concurrencyExecutingService;
         private IGrouper _grouper;
+        private ILogger _logger;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainManager chainManager, 
             IBlockManager blockManager, IWorldStateDictator worldStateDictator, 
-            IConcurrencyExecutingService concurrencyExecutingService)
+            IConcurrencyExecutingService concurrencyExecutingService, ILogger logger)
         {
             _txPoolService = txPoolService;
             _chainManager = chainManager;
             _blockManager = blockManager;
             _worldStateDictator = worldStateDictator;
             _concurrencyExecutingService = concurrencyExecutingService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -43,17 +46,31 @@ namespace AElf.Kernel.Miner
             try
             {
                 if (Cts == null || Cts.IsCancellationRequested)
+                {
+                    _logger?.Trace("ExecuteBlock - Execution cancelled.");
                     return false;
+                }
+                    
                 
                 var map = new Dictionary<Hash, HashSet<ulong>>();
+                
+                if (block?.Body?.Transactions == null || block.Body.Transactions.Count <= 0)
+                    _logger?.Trace($"ExecuteBlock - Null block or no transactions.");
+                
                 var txs = block.Body.Transactions;
                 foreach (var id in txs)
                 {
                     if (!_txPoolService.TryGetTx(id, out var tx))
+                    {
+                        _logger?.Trace($"ExecuteBlock - Transaction not in pool {id.Value.ToBase64()}.");
                         return false;
+                    }
+
                     var from = tx.From;
+                    
                     if (!map.ContainsKey(from))
                         map[from] = new HashSet<ulong>();
+                    
                     map[from].Add(tx.IncrementId);
                 }
         
@@ -72,14 +89,21 @@ namespace AElf.Kernel.Miner
                         foreach (var id in ids)
                         {
                             if (!ids.Contains(id - 1) && !ids.Contains(id + 1))
+                            {
+                                _logger?.Trace($"ExecuteBlock - Non continuous ids, id {id}.");
                                 return false;
+                            }
                         }
                     }
                     
                     // get ready txs from pool
                     var txList = await _txPoolService.GetReadyTxsAsync(addr, ids.Min(), (ulong)ids.Count);
+
                     if (txList == null)
+                    {
+                        _logger?.Trace($"ExecuteBlock - No transactions are ready.");
                         return false;
+                    }
                     
                     ready.AddRange(txList);
                 }
@@ -87,15 +111,26 @@ namespace AElf.Kernel.Miner
                 var traces = ready.Count == 0
                     ? new List<TransactionTrace>()
                     : await _concurrencyExecutingService.ExecuteAsync(ready, block.Header.ChainId, _grouper);
-                
-                // TODO: commit tx results
+
+                foreach (var trace in traces)
+                {
+                    _logger?.Trace($"Trace {trace.TransactionId}, {trace.StdErr}");
+                }
         
                 await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
                 var ws = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
 
-                if (ws == null || await ws.GetWorldStateMerkleTreeRootAsync() !=
-                    block.Header.MerkleTreeRootOfWorldState)
+                if (ws == null)
+                {
+                    _logger?.Trace($"ExecuteBlock - Could not get world state.");
                     return false;
+                }
+
+                if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
+                {
+                    _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
+                    return false;
+                }
                 
                 await _chainManager.AppendBlockToChainAsync(block);
                 await _blockManager.AddBlockAsync(block);
@@ -103,7 +138,7 @@ namespace AElf.Kernel.Miner
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger?.Trace(e, $"ExecuteBlock - Execution failed.");
                 return false;
             }
             

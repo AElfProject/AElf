@@ -16,7 +16,6 @@ namespace AElf.Benchmark.TestContract
         
         public bool Initialize(string tokenContractName, Hash owner)
         {
-            //Console.WriteLine("Initialize " + tokenContractName + " " + owner.Value.ToBase64());
             TokenContractName.SetValue(tokenContractName);
             return true;
         }
@@ -35,7 +34,6 @@ namespace AElf.Benchmark.TestContract
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances"})]
         public bool Transfer(Hash from, Hash to, ulong qty)
         {
-            //Console.WriteLine("Transfer " + from.Value.ToBase64() + " , " + to.Value.ToBase64());
             
             var fromBal = Balances.GetValue(from);
             //Console.WriteLine("from pass");
@@ -50,9 +48,7 @@ namespace AElf.Benchmark.TestContract
             //Console.WriteLine("set from pass");
             Balances.SetValue(to, newToBal);
             //Console.WriteLine("set to pass");
-
-            //Console.WriteLine("After transfer: from- " + from.Value.ToBase64() + " (" + newFromBal +") to- " 
-            //+ to.Value.ToBase64() + "(" + newToBal + ")");
+            //Console.WriteLine($"After transfer: {from.Value.ToByteArray().ToHex()} - {newFromBal} || {to.Value.ToByteArray().ToHex()} - {newToBal}");
             return true;
         }
 

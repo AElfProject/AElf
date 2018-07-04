@@ -7,14 +7,19 @@ namespace AElf.Kernel.TxMemPool
 {
     public static class TxValidation
     {
-        public enum ValidationError
+        public enum TxInsertionAndBroadcastingError
         {
             Success,
+            Valid,
             InvalidTxFormat,
             NotEnoughGas,
             TooBigSize,
             WrongAddress,
-            InvalidSignature
+            InvalidSignature,
+            AlreadyInserted,
+            PoolClosed,
+            BroadCastFailed,
+            Failed
         }
         /// <summary>
         /// validate a tx size, signature, account format
@@ -22,12 +27,12 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="pool"></param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        public static ValidationError ValidateTx(this ITxPool pool, ITransaction tx)
+        public static TxInsertionAndBroadcastingError ValidateTx(this ITxPool pool, ITransaction tx)
         {
             if (tx.From == Hash.Zero || tx.MethodName == "" || tx.IncrementId < 0)
             {
                 // TODO: log errors
-                return ValidationError.InvalidTxFormat;
+                return TxInsertionAndBroadcastingError.InvalidTxFormat;
             }
             
             // size validation
@@ -35,20 +40,20 @@ namespace AElf.Kernel.TxMemPool
             if (size > pool.TxLimitSize)
             {
                 // TODO: log errors, wrong size
-                return ValidationError.TooBigSize;
+                return TxInsertionAndBroadcastingError.TooBigSize;
             }
             
             // TODO: signature validation
             if (!tx.VerifySignature())
             {
                 // TODO: log errors, invalid tx signature
-                return ValidationError.InvalidSignature;
+                return TxInsertionAndBroadcastingError.InvalidSignature;
             }
             
             if(!tx.CheckAccountAddress())
             {
                 // TODO: log errors, address error 
-                return ValidationError.WrongAddress;
+                return TxInsertionAndBroadcastingError.WrongAddress;
             }
             
             /*// fee validation
@@ -59,7 +64,7 @@ namespace AElf.Kernel.TxMemPool
             }*/
             
             // TODO : more validations
-            return ValidationError.Success;
+            return TxInsertionAndBroadcastingError.Valid;
         }
 
 
