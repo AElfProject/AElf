@@ -196,11 +196,6 @@ namespace AElf.Contracts.Genesis
                 return null;
             }
             
-            if (RoundsCount.Value == 1)
-            {
-                return await _dPoSInfoMap.GetValueAsync(RoundsCountAddOne(RoundsCount));
-            }
-
             var infosOfNextRound = new RoundInfo();
             var signatureDict = new Dictionary<Hash, string>();
             var orderDict = new Dictionary<int, string>();
