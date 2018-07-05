@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -225,6 +226,8 @@ namespace AElf.Network.Peers
             try
             {
                 _client = new TcpClient(DistantNodeData.IpAddress, DistantNodeData.Port);
+                Console.WriteLine("Local endpoint:" + ((IPEndPoint)_client?.Client?.LocalEndPoint)?.Address + ":" + ((IPEndPoint)_client?.Client?.LocalEndPoint)?.Port);
+                
                 _stream = _client?.GetStream();
 
                 await WriteConnectInfoAsync();
