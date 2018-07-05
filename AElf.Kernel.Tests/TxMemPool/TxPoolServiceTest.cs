@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
@@ -44,12 +45,12 @@ namespace AElf.Kernel.Tests.TxMemPool
             var pool = GetPool();
 
             var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager);
+                _transactionResultManager, _logger);
             poolService.Start();
 
             var addr11 = Hash.Generate();
 
-            var tx1 = TxPoolTest.BuildTransaction();
+            var tx1 = BuildTransaction();
             var res = await poolService.AddTxAsync(tx1);
             Assert.Equal(TxValidation.TxInsertionAndBroadcastingError.Success, res);
 
@@ -64,12 +65,12 @@ namespace AElf.Kernel.Tests.TxMemPool
             var pool = GetPool();
 
             var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager);
+                _transactionResultManager, _logger);
             poolService.Start();
-            var tx1 = TxPoolTest.BuildTransaction();
+            var tx1 = BuildTransaction();
             var res = await poolService.AddTxAsync(tx1);
             
-            var tx2 = TxPoolTest.BuildTransaction(nonce:2);
+            var tx2 = BuildTransaction(nonce:2);
             res = await poolService.AddTxAsync(tx2);
             
             Assert.Equal(TxValidation.TxInsertionAndBroadcastingError.Success, res);
@@ -88,12 +89,12 @@ namespace AElf.Kernel.Tests.TxMemPool
 
 
             var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager);
+                _transactionResultManager, _logger);
             poolService.Start();
 
             var keyPair = new KeyPairGenerator().Generate();
-            var tx1 = TxPoolTest.BuildTransaction(keyPair: keyPair);
-            var tx2 = TxPoolTest.BuildTransaction(nonce: 1, keyPair:keyPair);
+            var tx1 = BuildTransaction(keyPair: keyPair);
+            var tx2 = BuildTransaction(nonce: 1, keyPair:keyPair);
             await poolService.AddTxAsync(tx1);
             await poolService.AddTxAsync(tx2);
             var txs1 = await poolService.GetReadyTxsAsync(10);
@@ -111,8 +112,8 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.Equal(2, (int)context1.IncrementId);
 
             
-            var tx3 = TxPoolTest.BuildTransaction(nonce:2, keyPair:keyPair);
-            var tx4 = TxPoolTest.BuildTransaction(nonce: 3, keyPair:keyPair);
+            var tx3 = BuildTransaction(nonce:2, keyPair:keyPair);
+            var tx4 = BuildTransaction(nonce: 3, keyPair:keyPair);
             
             await poolService.AddTxAsync(tx3);
             await poolService.AddTxAsync(tx4);
@@ -137,14 +138,115 @@ namespace AElf.Kernel.Tests.TxMemPool
             var pool = GetPool();
 
             var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager);
+                _transactionResultManager, _logger);
             poolService.Start();
             
             await poolService.Stop();
 
-            var tx = TxPoolTest.BuildTransaction();
+            var tx = BuildTransaction();
             var res = await poolService.AddTxAsync(tx);
             Assert.Equal(TxValidation.TxInsertionAndBroadcastingError.PoolClosed, res);
+        }
+
+
+        [Fact]
+        public async Task RollBackTest()
+        {
+            var pool = GetPool();
+
+            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
+                _transactionResultManager, _logger);
+            poolService.Start();
+            
+            
+            var kp1 = new KeyPairGenerator().Generate();
+            pool.TrySetNonce(kp1.GetAddress(), 2);
+            var tx1_0 = BuildTransaction(nonce: 2, keyPair:kp1);
+            var tx1_1 = BuildTransaction(nonce: 3, keyPair:kp1);
+            await poolService.AddTxAsync(tx1_0);
+            await poolService.AddTxAsync(tx1_1);
+            var tx1_4 = BuildTransaction(nonce: 0, keyPair: kp1);
+            var tx1_5 = BuildTransaction(nonce: 1, keyPair: kp1);
+
+            var kp2 = new KeyPairGenerator().Generate();
+            pool.TrySetNonce(kp2.GetAddress(), 1);
+            var tx2_0 = BuildTransaction(nonce: 3, keyPair:kp2);
+            var tx2_1 = BuildTransaction(nonce: 4, keyPair:kp2);
+            await poolService.AddTxAsync(tx2_0);
+            await poolService.AddTxAsync(tx2_1);
+            var tx2_2 = BuildTransaction(nonce: 0, keyPair: kp2);
+
+            var kp3 = new KeyPairGenerator().Generate();
+            pool.TrySetNonce(kp3.GetAddress(), 1);
+            var tx3_0 = BuildTransaction(nonce:1, keyPair:kp3);
+            var tx3_1 = BuildTransaction(nonce: 3, keyPair: kp3);
+            await poolService.AddTxAsync(tx3_0);
+            await poolService.AddTxAsync(tx3_0);
+            var tx3_2 = BuildTransaction(nonce: 0, keyPair: kp3);
+
+            var kp4 = new KeyPairGenerator().Generate();
+            pool.TrySetNonce(kp4.GetAddress(), 3);
+            await poolService.AddTxAsync(tx3_0);
+            var tx4_0 = BuildTransaction(nonce:1, keyPair:kp4);
+            var tx4_1 = BuildTransaction(nonce:2, keyPair:kp4);
+            
+            
+            await poolService.RollBack(new List<ITransaction>{tx1_4, tx1_5, tx2_2, tx3_2, tx4_1, tx4_0});
+            
+            Assert.Equal((ulong)0, pool.GetNonce(kp1.GetAddress()).Value);
+            Assert.Equal((ulong)0, pool.GetNonce(kp2.GetAddress()).Value);
+            Assert.Equal((ulong)0, pool.GetNonce(kp3.GetAddress()).Value);
+            Assert.Equal((ulong)1, pool.GetNonce(kp4.GetAddress()).Value);
+
+
+            Assert.Equal((ulong) 0,
+                (await _accountContextService.GetAccountDataContext(kp1.GetAddress(), pool.ChainId)).IncrementId);
+            Assert.Equal((ulong) 0,
+                (await _accountContextService.GetAccountDataContext(kp2.GetAddress(), pool.ChainId)).IncrementId);
+            Assert.Equal((ulong) 0,
+                (await _accountContextService.GetAccountDataContext(kp3.GetAddress(), pool.ChainId)).IncrementId);
+            Assert.Equal((ulong) 1,
+                (await _accountContextService.GetAccountDataContext(kp4.GetAddress(), pool.ChainId)).IncrementId);
+
+            pool.ReadyTxs(100);
+            Assert.Equal((ulong)4, pool.GetNonce(kp1.GetAddress()).Value);
+            Assert.Equal((ulong)1, pool.GetNonce(kp2.GetAddress()).Value);
+            Assert.Equal((ulong)2, pool.GetNonce(kp3.GetAddress()).Value);
+            Assert.Equal((ulong)3, pool.GetNonce(kp4.GetAddress()).Value);
+
+
+        }
+        
+        public static Transaction BuildTransaction(Hash adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
+        {
+            keyPair = keyPair ?? new KeyPairGenerator().Generate();
+
+            var tx = new Transaction();
+            tx.From = keyPair.GetAddress();
+            tx.To = (adrTo == null ? Hash.Generate().ToAccount() : adrTo);
+            tx.IncrementId = nonce;
+            tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
+            tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
+            tx.MethodName = "hello world";
+            tx.Params = ByteString.CopyFrom(new Parameters
+            {
+                Params = { new Param
+                {
+                    IntVal = 1
+                }}
+            }.ToByteArray());
+
+            // Serialize and hash the transaction
+            Hash hash = tx.GetHash();
+            
+            // Sign the hash
+            ECSigner signer = new ECSigner();
+            ECSignature signature = signer.Sign(keyPair, hash.GetBytes());
+            
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+            return tx;
         }
     }
 }

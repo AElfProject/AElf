@@ -109,8 +109,6 @@ namespace AElf.Kernel.Miner
                     : await _concurrencyExecutingService.ExecuteAsync(ready, block.Header.ChainId, _grouper);
                 
 
-                
-                
                 foreach (var trace in traces)
                 {
                     _logger?.Trace($"Trace {trace.TransactionId}, {trace.StdErr}");

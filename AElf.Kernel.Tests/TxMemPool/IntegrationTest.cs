@@ -99,7 +99,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var pool = GetPool();
 
             var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager);
+                _transactionResultManager, _logger);
             poolService.Start();
             var Num = 3;
             var threadNum = 5;
@@ -199,7 +199,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             _accountContextService = new AccountContextService(_worldStateDictator);
 
             var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager);
+                _transactionResultManager, _logger);
             poolService.Start();
             
             var results = new List<TransactionResult>();
@@ -318,7 +318,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             foreach (var address in addrList)
             {
                 // pool state
-                Assert.Equal(idDict[address.GetAddress()], pool.Nonces[address.GetAddress()]);
+                Assert.Equal(idDict[address.GetAddress()], pool.GetNonce(address.GetAddress()));
                 
                 // account state
                 Assert.Equal(idDict[address.GetAddress()],

@@ -211,7 +211,7 @@ namespace AElf.Kernel.Tests.Miner
             var pool = new TxPool(poolconfig, _logger);
             
             var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager);
+                _transactionResultManager, _logger);
             
             poolService.Start();
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, 1);
