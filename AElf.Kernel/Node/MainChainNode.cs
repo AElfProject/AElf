@@ -87,9 +87,7 @@ namespace AElf.Kernel.Node
                 var blockProducers = new BlockProducer();
                 foreach (var bp in dict.Values)
                 {
-                    blockProducers.Nodes.Add(
-                        ByteArrayHelpers.FromHexString(bp["address"]).ToHex()
-                    );
+                    blockProducers.Nodes.Add(bp["address"]);
                 }
 
                 return blockProducers;
@@ -673,7 +671,7 @@ namespace AElf.Kernel.Node
         {
             new EventLoopScheduler().Schedule(() =>
             {
-                Console.WriteLine("-- DPoS Mining Has been fired!");
+                _logger.Debug("-- DPoS Mining Has been fired!");
                 
                 _dPoS = new DPoS(_nodeKeyPair);
                     
@@ -705,16 +703,16 @@ namespace AElf.Kernel.Node
                         var currentHeightOfOtherNodes = _protocolDirector.GetLatestIndexOfOtherNode();
                         if (currentHeightOfThisNode < currentHeightOfOtherNodes && currentHeightOfOtherNodes != -1 && !flag)
                         {
-                            Console.WriteLine("Current height of me: " + currentHeightOfThisNode);
-                            Console.WriteLine("Current height of others: " + currentHeightOfOtherNodes);
-                            Console.WriteLine("Having more blocks to sync, so the dpos mining won't start");
+                            _logger.Debug("Current height of me: " + currentHeightOfThisNode);
+                            _logger.Debug("Current height of others: " + currentHeightOfOtherNodes);
+                            _logger.Debug("Having more blocks to sync, so the dpos mining won't start");
                             flag = true;
                             return;
                         }
 
                         flag = false;
-                        
-                        var actualRoundsCount = await GetActualRoundsCount();
+
+                        var actualRoundsCount = x == 0 ? 0 : await GetActualRoundsCount();
                         if (roundsCount != actualRoundsCount)
                         {
                             //Update the rounds count
@@ -759,7 +757,7 @@ namespace AElf.Kernel.Node
                             if (dPoSInfo != currentDPoSInfo)
                             {
                                 dPoSInfo = currentDPoSInfo;
-                                _logger.Log(LogLevel.Debug, dPoSInfo);
+                                _logger?.Log(LogLevel.Debug, dPoSInfo);
                             }
                         }
 
@@ -790,7 +788,7 @@ namespace AElf.Kernel.Node
 
                                 latestMinedNormalBlockRoundsCount = roundsCount;
 
-                                _logger.Log(LogLevel.Debug,
+                                _logger?.Log(LogLevel.Debug,
                                     "Generate block: \"{0}\", with [{1}] transactions\n Published out value: {2}\n signature: \"{3}\"",
                                     block.GetHash().Value.ToByteArray().ToHex(), 
                                     block.Body.Transactions.Count,
@@ -834,7 +832,7 @@ namespace AElf.Kernel.Node
 
                                 latestMinedExtraBlockRoundsCount = roundsCount;
 
-                                _logger.Log(LogLevel.Debug,
+                                _logger?.Log(LogLevel.Debug,
                                     "Generate extra block: {0}, with {1} transactions",
                                     extraBlock.GetHash().Value.ToByteArray().ToHex(), 
                                     extraBlock.Body.Transactions.Count);
@@ -847,8 +845,8 @@ namespace AElf.Kernel.Node
 
                         #region Try to help mining extra block
 
-                        if (latestTriedToHelpProducingExtraBlockRoundsCount != roundsCount &&
-                            await CheckAbleToHelpMiningExtraBlock())
+                        if (await CheckAbleToHelpMiningExtraBlock() && 
+                            latestTriedToHelpProducingExtraBlockRoundsCount != roundsCount)
                         {
                             var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
 
@@ -863,9 +861,9 @@ namespace AElf.Kernel.Node
                             {
                                 latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
 
-                                Console.WriteLine("round:" + roundsCount);
+                                _logger?.Debug("round:" + roundsCount);
 
-                                _logger.Log(LogLevel.Debug,
+                                _logger?.Log(LogLevel.Debug,
                                     "Help to generate extra block: {0}, with {1} transactions",
                                     extraBlock.GetHash().Value.ToByteArray().ToHex(),
                                     extraBlock.Body.Transactions.Count);
@@ -877,12 +875,12 @@ namespace AElf.Kernel.Node
 
                     ex =>
                     {
-                        Console.WriteLine("Error occurs to dpos part");
+                        _logger.Error("Error occurs to dpos part");
                     },
 
                     () =>
                     {
-                        Console.WriteLine("Complete dpos");
+                        _logger.Debug("Complete dpos");
                     }
                 );
                 
@@ -961,6 +959,7 @@ namespace AElf.Kernel.Node
 
                 if (!tc.Trace.StdErr.IsNullOrEmpty())
                 {
+                    _logger?.Error(tc.Trace.StdErr);
                     continue;
                 }
                 
@@ -1001,10 +1000,13 @@ namespace AElf.Kernel.Node
             };
             Executive.SetTransactionContext(tcGetRoundsCountTx).Apply(true).Wait();
             
-            if (tcGetRoundsCountTx.Trace.StdErr.IsNullOrEmpty())
+            if (tcGetRoundsCountTx.Trace.IsSuccessful())
             {
                 return tcGetRoundsCountTx.Trace.RetVal.Data.DeserializeToUInt64();
             }
+            
+            _logger?.Debug("Failed to get rounds count");
+            _logger?.Error(tcGetRoundsCountTx.Trace.StdErr);
 
             return 0;
         }
@@ -1019,13 +1021,16 @@ namespace AElf.Kernel.Node
             };
             Executive.SetTransactionContext(tcGetDPoSInfo).Apply(true).Wait();
 
-            if (!tcGetDPoSInfo.Trace.StdErr.IsNullOrEmpty())
+            if (tcGetDPoSInfo.Trace.IsSuccessful())
             {
-                return "";
+                return tcGetDPoSInfo.Trace.RetVal.Data.DeserializeToString() + 
+                       "\nCurrent Block Height:" + await _chainManager.GetChainCurrentHeight(ChainId);
             }
             
-            return tcGetDPoSInfo.Trace.RetVal.Data.DeserializeToString() + 
-                   "\nCurrent Block Height:" + await _chainManager.GetChainCurrentHeight(ChainId);
+            _logger?.Debug("Failed to get dpos information");
+            _logger?.Error(tcGetDPoSInfo.Trace.StdErr);
+            
+            return "";
         }
         
         // ReSharper disable once MemberCanBeMadeStatic.Local
@@ -1050,8 +1055,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                Console.WriteLine("Failed to calculate signature");
-                Console.WriteLine(e);
+                _logger?.Error(e, "Failed to calculate signature");
                 return Hash.Generate();
             }
         }
@@ -1071,8 +1075,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                Console.WriteLine("Failed to check the ability to mine normal block");
-                Console.WriteLine(e);
+                _logger?.Error(e, "Failed to check the ability to mine normal block");
                 return false;
             }
         }
@@ -1088,12 +1091,18 @@ namespace AElf.Kernel.Node
                             ContractAccountHash)
                 };
                 Executive.SetTransactionContext(tcAbleToHelp).Apply(true).Wait();
+                
+                if (!tcAbleToHelp.Trace.StdErr.IsNullOrEmpty())
+                {
+                    _logger?.Error(tcAbleToHelp.Trace.StdErr);
+                    return false;
+                }
+                
                 return tcAbleToHelp.Trace.RetVal.Data.DeserializeToBool();
             }
             catch (Exception e)
             {
-                Console.WriteLine("Failed to check the ability to help mining extra block");
-                Console.WriteLine(e);
+                _logger.Error(e, "Failed to check the ability to help mining extra block");
                 return false;
             }
         }
@@ -1116,8 +1125,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                Console.WriteLine("Failed to check the time to mine extra block");
-                Console.WriteLine(e);
+                _logger.Error(e, "Failed to check the time to mine extra block");
                 return false;
             }
         }
@@ -1142,8 +1150,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                Console.WriteLine("Failed to check the ability to mine extra block");
-                Console.WriteLine(e);
+                _logger.Error(e, "Failed to check the ability to mine extra block");
                 return false;
             }
         }

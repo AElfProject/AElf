@@ -826,7 +826,7 @@ namespace AElf.Contracts.Genesis
         
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().Value.ToByteArray().ToHex();
+            return accountHash.ToAccount().Value.ToByteArray().ToHex().Remove(0, 2);
         }
 
         private Hash HexStringToHash(string accountAddress)
@@ -850,7 +850,7 @@ namespace AElf.Contracts.Genesis
 
         private async Task<bool> Authentication()
         {
-            var fromAccount = Api.GetTransaction().From.Value.ToByteArray().ToHex();
+            var fromAccount = Api.GetTransaction().From.Value.ToByteArray().ToHex().Remove(0, 2);
             return (await GetBlockProducers()).Nodes.Contains(fromAccount);
         }
 
