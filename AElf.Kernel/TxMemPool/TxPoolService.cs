@@ -18,7 +18,7 @@ namespace AElf.Kernel.TxMemPool
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
 
-        public TxPoolService(ITxPool txPool, IAccountContextService accountContextService, 
+        public TxPoolService(ITxPool txPool, IAccountContextService accountContextService,
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             _txPool = txPool;
@@ -31,19 +31,19 @@ namespace AElf.Kernel.TxMemPool
         /// signal event for enqueue txs
         /// </summary>
         private AutoResetEvent EnqueueEvent { get; set; }
-        
+
         /// <summary>
         /// signal event for demote executed txs
         /// </summary>
         private AutoResetEvent DemoteEvent { get; set; }
-        
+
         /// <summary>
         /// Signals to a CancellationToken that it should be canceled
         /// </summary>
-        private CancellationTokenSource Cts { get; set; } 
-        
+        private CancellationTokenSource Cts { get; set; }
+
         private TxPoolSchedulerLock Lock { get; } = new TxPoolSchedulerLock();
-        
+
         private readonly ConcurrentDictionary<Hash, ITransaction> _txs = new ConcurrentDictionary<Hash, ITransaction>();
 
         private readonly HashSet<Hash> _addrCache = new HashSet<Hash>();
@@ -54,12 +54,13 @@ namespace AElf.Kernel.TxMemPool
             if (!_addrCache.Contains(tx.From))
             {
                 // tx from account state
-                var incrementId = (await _accountContextService.GetAccountDataContext(tx.From, _txPool.ChainId)).IncrementId;
+                var incrementId = (await _accountContextService.GetAccountDataContext(tx.From, _txPool.ChainId))
+                    .IncrementId;
                 _txPool.TryAddNonce(tx.From, incrementId);
                 _addrCache.Add(tx.From);
             }
-            
-            if(!Cts.IsCancellationRequested)
+
+            if (!Cts.IsCancellationRequested)
             {
                 lock (this)
                 {
@@ -69,21 +70,25 @@ namespace AElf.Kernel.TxMemPool
                         // add tx
                         _txs.GetOrAdd(tx.GetHash(), tx);
                     }
+
                     return res;
                 }
             }
+
             return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
             /*return await (Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
             {
                 return _txPool.EnQueueTx(tx);
             }));*/
         }
-       
-        
+
+
         /// <inheritdoc/>
         public Task RemoveAsync(Hash txHash)
         {
-            return !_txs.TryGetValue(txHash, out var tx) ? Task.CompletedTask : Lock.WriteLock(() => _txPool.DiscardTx(tx));
+            return !_txs.TryGetValue(txHash, out var tx)
+                ? Task.CompletedTask
+                : Lock.WriteLock(() => _txPool.DiscardTx(tx));
         }
 
         /// <inheritdoc/>
@@ -92,7 +97,7 @@ namespace AElf.Kernel.TxMemPool
             throw new NotImplementedException();
         }
 
-        
+
         /// <summary>
         /// persist txs with storage
         /// </summary>
@@ -126,7 +131,7 @@ namespace AElf.Kernel.TxMemPool
                 return Task.FromResult(_txPool.ReadyTxs(addr, start, ids));
             }
         }
-        
+
         /// <inheritdoc/>
         public Task<bool> PromoteAsync()
         {
@@ -138,7 +143,7 @@ namespace AElf.Kernel.TxMemPool
             }
         }
 
-        
+
         /// <inheritdoc/>
         public Task PromoteAsync(List<Hash> addresses)
         {
@@ -157,6 +162,7 @@ namespace AElf.Kernel.TxMemPool
             {
                 return Task.FromResult(_txPool.Size);
             }
+
             //return Lock.ReadLock(() => _txPool.Size);
         }
 
@@ -205,7 +211,7 @@ namespace AElf.Kernel.TxMemPool
                 return Task.FromResult(_txPool.GetExecutableSize());
             }
         }
-        
+
 
         /// <inheritdoc/>
         public async Task ResetAndUpdate(List<TransactionResult> txResultList)
@@ -223,7 +229,7 @@ namespace AElf.Kernel.TxMemPool
             foreach (var addr in addrs)
             {
                 _txPool.Nonces.TryGetValue(addr, out var id);
-                
+
                 // update account context
                 await _accountContextService.SetAccountContext(new AccountDataContext
                 {
@@ -233,7 +239,7 @@ namespace AElf.Kernel.TxMemPool
                 });
             }
         }
-        
+
         /// <inheritdoc/>
         public void Start()
         {
@@ -241,15 +247,15 @@ namespace AElf.Kernel.TxMemPool
             //EnqueueEvent = new AutoResetEvent(false);
             //DemoteEvent = new AutoResetEvent(false);
             Cts = new CancellationTokenSource();
-            
+
             // waiting enqueue tx
             //var task1 = Task.Factory.StartNew(async () => await Receive());
-            
+
             // waiting demote txs
             //var task2 = Task.Factory.StartNew(async () => await Demote());
         }
 
-        
+
         /// <inheritdoc/>
         public Task Stop()
         {
@@ -277,7 +283,7 @@ namespace AElf.Kernel.TxMemPool
                 return _txPool.GetPendingIncrementId(addr);
             }
         }
-        
+
 
         /// <inheritdoc/>
         public void RollBack(List<ITransaction> txsOut)
@@ -301,18 +307,14 @@ namespace AElf.Kernel.TxMemPool
                     _txPool.EnQueueTxs(kv.Value);
                 }
             }
-            
         }
-
     }
-    
+
     /// <inheritdoc />
     /// <summary>
     /// A lock for managing asynchronous access to memory pool.
     /// </summary>
     public class TxPoolSchedulerLock : ReaderWriterLock
     {
-        
     }
-   
 }
