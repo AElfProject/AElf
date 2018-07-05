@@ -10,6 +10,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using AElf.Kernel.Types;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using ServiceStack;
@@ -110,7 +111,7 @@ namespace AElf.Kernel.Miner
                     {
                         res.Logs.AddRange(trace.FlattenedLogs);
                         res.Status = Status.Mined;
-                        res.RetVal = trace.RetVal;
+                        res.RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes());
                     }
                     else
                     {
@@ -133,7 +134,9 @@ namespace AElf.Kernel.Miner
                 block.Header.P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded());
                 block.Header.R = ByteString.CopyFrom(signature.R);
                 block.Header.S = ByteString.CopyFrom(signature.S);
-            
+
+                var foo = block.Header.MerkleTreeRootOfWorldState;
+                Console.WriteLine($"Merkle Tree Root Hash: {foo.Value.ToByteArray().ToHex()}");
                 // append block
                 await _blockManager.AddBlockAsync(block);
                 await _chainManager.AppendBlockToChainAsync(block);

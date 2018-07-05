@@ -102,12 +102,13 @@ namespace AElf.Kernel.Node.Protocol
         
         public long GetLatestIndexOfOtherNode()
         {
-            if (_blockSynchronizer.PendingBlocks.Count == 0)
+            var currentPendingBlocks = _blockSynchronizer.PendingBlocks.ToList();
+            if (currentPendingBlocks == null || currentPendingBlocks.Count <= 0)
             {
                 return -1;
             }
 
-            return (long) (from pendingBlock in _blockSynchronizer.PendingBlocks
+            return (long) (from pendingBlock in currentPendingBlocks
                 orderby pendingBlock.Block.Header.Index descending
                 select pendingBlock.Block.Header.Index).First();
         }
@@ -161,9 +162,14 @@ namespace AElf.Kernel.Node.Protocol
         
         private async Task HandleTxRequest(AElfPacketData message, MessageReceivedArgs args)
         {
+            string hash = null;
+            
             try
             {
                 TxRequest breq = TxRequest.Parser.ParseFrom(message.Payload);
+
+                hash = breq.TxHash.ToByteArray().ToHex();
+                
                 ITransaction tx = await _node.GetTransaction(breq.TxHash);
 
                 if (!(tx is Transaction t))
@@ -176,7 +182,7 @@ namespace AElf.Kernel.Node.Protocol
             }
             catch (Exception e)
             {
-                ; // todo
+                _logger?.Trace(e, $"Transaction request failed. Hash : {hash}");
             }
         }
 

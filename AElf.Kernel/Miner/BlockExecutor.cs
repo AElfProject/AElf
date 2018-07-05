@@ -7,8 +7,6 @@ using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Managers;
 using AElf.Kernel.TxMemPool;
-using AElf.Kernel.Types;
-using Akka.Configuration;
 using Google.Protobuf;
 using NLog;
 
@@ -24,8 +22,8 @@ namespace AElf.Kernel.Miner
         private IGrouper _grouper;
         private ILogger _logger;
 
-        public BlockExecutor(ITxPoolService txPoolService, IChainManager chainManager, 
-            IBlockManager blockManager, IWorldStateDictator worldStateDictator, 
+        public BlockExecutor(ITxPoolService txPoolService, IChainManager chainManager,
+            IBlockManager blockManager, IWorldStateDictator worldStateDictator,
             IConcurrencyExecutingService concurrencyExecutingService, ILogger logger)
         {
             _txPoolService = txPoolService;
@@ -39,7 +37,7 @@ namespace AElf.Kernel.Miner
         /// <summary>
         /// Signals to a CancellationToken that mining should be canceled
         /// </summary>
-        public CancellationTokenSource Cts { get; private set; } 
+        public CancellationTokenSource Cts { get; private set; }
 
         /// <inheritdoc/>
         public async Task<bool> ExecuteBlock(IBlock block)
@@ -51,13 +49,12 @@ namespace AElf.Kernel.Miner
                     _logger?.Trace("ExecuteBlock - Execution cancelled.");
                     return false;
                 }
-                    
-                
+
                 var map = new Dictionary<Hash, HashSet<ulong>>();
-                
+
                 if (block?.Body?.Transactions == null || block.Body.Transactions.Count <= 0)
                     _logger?.Trace($"ExecuteBlock - Null block or no transactions.");
-                
+
                 var txs = block.Body.Transactions;
                 foreach (var id in txs)
                 {
@@ -68,22 +65,22 @@ namespace AElf.Kernel.Miner
                     }
 
                     var from = tx.From;
-                    
+
                     if (!map.ContainsKey(from))
                         map[from] = new HashSet<ulong>();
-                    
+
                     map[from].Add(tx.IncrementId);
                 }
-        
+
                 // promote txs from these address
                 await _txPoolService.PromoteAsync(map.Keys.ToList());
-        
+
                 var ready = new List<ITransaction>();
                 foreach (var fromTxs in map)
                 {
                     var addr = fromTxs.Key;
                     var ids = fromTxs.Value;
-        
+
                     // return false if not continuousa
                     if (ids.Count != 1)
                     {
@@ -96,52 +93,28 @@ namespace AElf.Kernel.Miner
                             }
                         }
                     }
-                    
+
                     // get ready txs from pool
-                    var txList = await _txPoolService.GetReadyTxsAsync(addr, ids.Min(), (ulong)ids.Count);
-                    
+                    var txList = await _txPoolService.GetReadyTxsAsync(addr, ids.Min(), (ulong) ids.Count);
+
                     if (txList == null)
                     {
                         _logger?.Trace($"ExecuteBlock - No transactions are ready.");
                         return false;
                     }
-                    
+
                     ready.AddRange(txList);
                 }
-                
+
                 var traces = ready.Count == 0
                     ? new List<TransactionTrace>()
                     : await _concurrencyExecutingService.ExecuteAsync(ready, block.Header.ChainId, _grouper);
-
-                var results = new List<TransactionResult>();
-                foreach (var trace in traces)
-                {
-                    var res = new TransactionResult()
-                    {
-                        TransactionId = trace.TransactionId,
-                        
-                    };
-                    if (string.IsNullOrEmpty(trace.StdErr))
-                    {
-                        res.Logs.AddRange(trace.FlattenedLogs);
-                        res.Status = Status.Mined;
-                        res.RetVal = trace.RetVal;
-                    }
-                    else
-                    {
-                        res.Status = Status.Failed;
-                        res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
-                    }
-                    results.Add(res);
-                }
-                
-                await _txPoolService.ResetAndUpdate(results);
 
                 foreach (var trace in traces)
                 {
                     _logger?.Trace($"Trace {trace.TransactionId}, {trace.StdErr}");
                 }
-        
+
                 await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
                 var ws = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
 
@@ -156,18 +129,39 @@ namespace AElf.Kernel.Miner
                     _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
                     return false;
                 }
-                
+
+                var results = new List<TransactionResult>();
+                foreach (var trace in traces)
+                {
+                    var res = new TransactionResult()
+                    {
+                        TransactionId = trace.TransactionId,
+                    };
+                    if (string.IsNullOrEmpty(trace.StdErr))
+                    {
+                        res.Logs.AddRange(trace.FlattenedLogs);
+                        res.Status = Status.Mined;
+                        res.RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes());
+                    }
+                    else
+                    {
+                        res.Status = Status.Failed;
+                        res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
+                    }
+
+                    results.Add(res);
+                }
+
+                await _txPoolService.ResetAndUpdate(results);
                 await _chainManager.AppendBlockToChainAsync(block);
                 await _blockManager.AddBlockAsync(block);
-                
-                
             }
             catch (Exception e)
             {
                 _logger?.Trace(e, $"ExecuteBlock - Execution failed.");
                 return false;
             }
-            
+
             return true;
         }
 

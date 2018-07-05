@@ -42,7 +42,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             await cfts.TryAddNewContract(typeof(TestContractC));
                                                                                                   // Structure of the test data
             groundTruthMap.Add(
-                "TestContractC",                                                                  // Contract name
+                "AElf.Kernel.Tests.Concurrency.Metadata.TestContractC",                                                                  // Contract name
                 new Dictionary<string, FunctionMetadataTemplate>(new[]                            // function metadata map for contract
                 {
                     new KeyValuePair<string, FunctionMetadataTemplate>(
@@ -70,7 +70,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 
             await cfts.TryAddNewContract(typeof(TestContractB));
 
-            groundTruthMap.Add("TestContractB", new Dictionary<string, FunctionMetadataTemplate>(new[]
+            groundTruthMap.Add("AElf.Kernel.Tests.Concurrency.Metadata.TestContractB", new Dictionary<string, FunctionMetadataTemplate>(new[]
             {
                 new KeyValuePair<string, FunctionMetadataTemplate>(
                     "${this}.Func0", 
@@ -89,7 +89,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 
             await cfts.TryAddNewContract(typeof(TestContractA));
 
-            groundTruthMap.Add("TestContractA", new Dictionary<string, FunctionMetadataTemplate>(new[]
+            groundTruthMap.Add("AElf.Kernel.Tests.Concurrency.Metadata.TestContractA", new Dictionary<string, FunctionMetadataTemplate>(new[]
             {
                 new KeyValuePair<string, FunctionMetadataTemplate>(
                     "${this}.Func0(int)", 
@@ -194,8 +194,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
     }
 
     #region Dummy Contract for test
-    
-    internal class TestContractC
+
+    public class TestContractC
     {
         [SmartContractFieldData("${this}.resource4", DataAccessMode.AccountSpecific)]
         public int resource4;
