@@ -76,49 +76,6 @@ namespace AElf.Kernel.TxMemPool
         }
        
         
-        /*/// <summary>
-        /// wait new tx
-        /// </summary> 
-        /// <returns></returns>
-        private async Task Receive()
-        {
-            // TODO: need interupt waiting 
-            while (!Cts.IsCancellationRequested)
-            {
-                // wait for signal
-                EnqueueEvent.WaitOne();
-                
-                if(!_txPool.Enqueueable)
-                    continue;
-                
-                await Lock.WriteLock(() =>
-                {
-                    foreach (var t in Tmp)
-                    {
-                        if(_txPool.Nonces.ContainsKey(t.From))
-                            continue;
-                        if(_nonces.TryGetValue(t.From, out var idValue))
-                            _txPool.Nonces[t.From] = idValue;
-                    }
-                    
-                    _txPool.QueueTxs(Tmp); 
-                    Tmp.Clear();
-                });
-            }
-        }*/
-        
-        /*/// <summary>
-        /// wait signal to demote txs
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        private async Task Demote()
-        {
-            while (!Cts.IsCancellationRequested)
-            {
-                DemoteEvent.WaitOne();
-            }
-        }*/
         
 
         /// <inheritdoc/>
@@ -260,9 +217,15 @@ namespace AElf.Kernel.TxMemPool
             foreach (var res in txResultList)
             {
                 if (!TryGetTx(res.TransactionId, out var tx))
+                {
+                    Console.WriteLine("Missing tx {0}", res.TransactionId.Value.ToByteArray().ToHex());
                     continue;
+                }
+                Console.WriteLine("Reset tx {0}", res.TransactionId.Value.ToByteArray().ToHex());
+                _txs.TryRemove(res.TransactionId, out tx);
                 addrs.Add(tx.From);
                 await _transactionManager.AddTransactionAsync(tx);
+                Console.WriteLine("Insert Result: {0}", res.TransactionId.Value.ToByteArray().ToHex());
                 await _transactionResultManager.AddTransactionResultAsync(res);
             }
 

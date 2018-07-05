@@ -353,7 +353,7 @@ namespace AElf.Kernel.Node.Protocol
                         continue;
                     }
                     
-                    var str = PendingBlocks.Select(bb => bb.ToString()).Aggregate((i, jf) => i + " || " + jf);
+                    var str = PendingBlocks.Take(3).Select(bb => bb.ToString()).Aggregate((i, jf) => i + " || " + jf);
                     _logger?.Trace("Candidates for execution: " + str);
                 
                     List<PendingBlock> bte = GetBlocksToExecute();
@@ -364,7 +364,7 @@ namespace AElf.Kernel.Node.Protocol
                     }
                     else
                     {
-                        var str2 = bte.Select(bb => bb.ToString()).Aggregate((i, jf) => i + " || " + jf);
+                        var str2 = bte.Take(3).Select(bb => bb.ToString()).Aggregate((i, jf) => i + " || " + jf);
                         _logger?.Trace("Chosen for execution: " + str2);
                 
                         if (string.IsNullOrEmpty(str2))
@@ -552,9 +552,14 @@ namespace AElf.Kernel.Node.Protocol
                         executed.Add(pendingBlock);
                         CurrentExecHeight++;
                     }
+                    else
+                    {
+                        break;
+                    }
                 }
                 else
                 {
+                    break;
                     // The block wasn't executed
                     if (res.ValidationError == ValidationError.Pending)
                     {
