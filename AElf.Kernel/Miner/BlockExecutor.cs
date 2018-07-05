@@ -51,7 +51,6 @@ namespace AElf.Kernel.Miner
                     _logger?.Trace("ExecuteBlock - Execution cancelled.");
                     return false;
                 }
-                    
                 
                 var map = new Dictionary<Hash, HashSet<ulong>>();
                 

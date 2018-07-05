@@ -162,9 +162,14 @@ namespace AElf.Kernel.Node.Protocol
         
         private async Task HandleTxRequest(AElfPacketData message, MessageReceivedArgs args)
         {
+            string hash = null;
+            
             try
             {
                 TxRequest breq = TxRequest.Parser.ParseFrom(message.Payload);
+
+                hash = breq.TxHash.ToByteArray().ToHex();
+                
                 ITransaction tx = await _node.GetTransaction(breq.TxHash);
 
                 if (!(tx is Transaction t))
@@ -177,7 +182,7 @@ namespace AElf.Kernel.Node.Protocol
             }
             catch (Exception e)
             {
-                ; // todo
+                _logger?.Trace(e, $"Transaction request failed. Hash : {hash}");
             }
         }
 

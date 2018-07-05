@@ -69,10 +69,8 @@ namespace AElf.Kernel.TxMemPool
                         // add tx
                         _txs.GetOrAdd(tx.GetHash(), tx);
                     }
-
                     return res;
                 }
-                
             }
             return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
             /*return await (Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
