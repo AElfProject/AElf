@@ -141,7 +141,14 @@ namespace AElf.Network
                 if (bytesRead > 0)
                 {
                     NodeData n = NodeData.Parser.ParseFrom(bytes, 0, bytesRead);
-                    Peer p = new Peer(_nodeData, n, tcpClient);
+                    
+                    IPEndPoint remoteEndPoint = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
+                    
+                    NodeData distant = new NodeData();
+                    distant.IpAddress = remoteEndPoint.Address.ToString();
+                    distant.Port = remoteEndPoint.Port;
+                    
+                    Peer p = new Peer(_nodeData, distant, tcpClient);
                     
                     await p.WriteConnectInfoAsync();
                     
@@ -152,7 +159,7 @@ namespace AElf.Network
             }
             catch (Exception e)
             {
-                _logger?.Warn("Error creating the connection");
+                _logger?.Trace(e, "Error creating the connection");
                 return null;
             }
         }
