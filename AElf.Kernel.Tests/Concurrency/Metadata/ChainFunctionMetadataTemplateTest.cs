@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
-using AElf.Kernel.Types;
 using AElf.Types.CSharp.MetadataAttribute;
-using QuickGraph;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
