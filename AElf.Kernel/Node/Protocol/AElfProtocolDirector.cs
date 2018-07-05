@@ -200,7 +200,7 @@ namespace AElf.Kernel.Node.Protocol
             }
             catch (Exception e)
             {
-                ; // todo
+                _logger?.Trace(e, "Error while during HandleBlockRequest.");
             }
         }
 
@@ -215,7 +215,7 @@ namespace AElf.Kernel.Node.Protocol
             }
             catch (Exception e)
             {
-                ; // todo
+                _logger?.Trace(e, "Error while during HandleHeightRequest.");
             }
         }
 
@@ -228,7 +228,7 @@ namespace AElf.Kernel.Node.Protocol
             }
             catch (Exception e)
             {
-                ; // todo
+                _logger?.Trace(e, "Error while during HandlePeerHeightReception.");
             }
         }
 
@@ -237,11 +237,12 @@ namespace AElf.Kernel.Node.Protocol
             try
             {
                 var fromSend = message.MsgType == (int) MessageTypes.Tx;
+                
                 await _node.ReceiveTransaction(message.Payload, fromSend);
             }
             catch (Exception e)
             {
-                ; // todo
+                _logger?.Trace(e, "Error while receiving transaction.");
             }
         }
 
@@ -265,9 +266,9 @@ namespace AElf.Kernel.Node.Protocol
                     await _blockSynchronizer.AddRequestedBlock(b);
                 }*/
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                ; // todo
+                _logger?.Trace(e, "Error while receiving HandleBlockReception.");
             }
         }
 
