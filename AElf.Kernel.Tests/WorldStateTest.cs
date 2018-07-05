@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -248,7 +249,10 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task RollbackToSpecificHeightTest()
         {
+            ulong index = 0;
+            
             var chain = await _blockTest.CreateChain();
+            System.Diagnostics.Debug.WriteLine($"Hash of height 0: {chain.GenesisBlockHash.Value.ToByteArray().ToHex()}");
             
             var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore).SetChainId(chain.Id);
 
@@ -257,50 +261,103 @@ namespace AElf.Kernel.Tests
             var key = new Hash("testkey".CalculateHash());
             
             var address = Hash.Generate();
+            
+            //----------------- height 1 -----------------
             var accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             var dataProvider = accountDataProvider.GetDataProvider();
-            var data1 = Hash.Generate().Value.ToArray();
-            var subDataProvider1 = dataProvider.GetDataProvider("test1");
-            await subDataProvider1.SetAsync(key, data1);
-            var data2 = Hash.Generate().Value.ToArray();
-            var subDataProvider2 = dataProvider.GetDataProvider("test2");
-            await subDataProvider2.SetAsync(key, data2);
-            var data3= Hash.Generate().Value.ToArray();
-            var subDataProvider3 = dataProvider.GetDataProvider("test3");
-            await subDataProvider3.SetAsync(key, data3);
-            var data4 = Hash.Generate().Value.ToArray();
-            var subDataProvider4 = dataProvider.GetDataProvider("test4");
-            await subDataProvider4.SetAsync(key, data4);
+            var data1 = Hash.Generate().ToByteArray();
+            var subDataProvider = dataProvider.GetDataProvider("test");
+            await subDataProvider.SetAsync(key, data1);
             
-            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
-            var foo = block1.GetHash();
+            //--------------- set height 1 ---------------
+            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, ++index);
             await worldStateDictator.SetWorldStateAsync(block1.GetHash());
             await chainManger.AppendBlockToChainAsync(block1);
 
+            //----------------- height 2 -----------------
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
-            var data5 = Hash.Generate().Value.ToArray();
-            subDataProvider1 = dataProvider.GetDataProvider("test1");
-            await subDataProvider1.SetAsync(key, data5);
-            var data6 = Hash.Generate().Value.ToArray();
-            subDataProvider2 = dataProvider.GetDataProvider("test2");
-            await subDataProvider2.SetAsync(key, data6);
-            var data7= Hash.Generate().Value.ToArray();
-            subDataProvider3 = dataProvider.GetDataProvider("test3");
-            await subDataProvider3.SetAsync(key, data7);
+            var data2 = Hash.Generate().ToByteArray();
+            subDataProvider = dataProvider.GetDataProvider("test");
+            await subDataProvider.SetAsync(key, data2);
             
-            var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
+            //--------------- set height 2 ---------------
+            var block2 = CreateBlock(block1.GetHash(), chain.Id, ++index);
             await worldStateDictator.SetWorldStateAsync(block2.GetHash()); 
             await chainManger.AppendBlockToChainAsync(block2);
             
-            //Check value from height 2
-            Assert.Equal(data5, await subDataProvider1.GetAsync(key));
+            //----------------- height 3 -----------------
+            //Though do nothing
             
-            //Do rollback
+            //Check value from height 2
+            Assert.True(3 == await chainManger.GetChainCurrentHeight(chain.Id));
+            Assert.Equal(data2, await subDataProvider.GetAsync(key));
+            
+            //Do rollback - rollback world state to height 1
             await worldStateDictator.RollbackToSpecificHeight(1);
             
+            //Reset the index
+            index = 0;
+            
             //Check result of rollback
-            Assert.Equal(data1, await subDataProvider1.GetAsync(key));
+            Assert.True(1 == await chainManger.GetChainCurrentHeight(chain.Id));
+            Assert.Equal(data1, await subDataProvider.GetAsync(key));
+
+            //----------------- height 1 -----------------(again)
+            accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
+            dataProvider = accountDataProvider.GetDataProvider();
+            var data3 = Hash.Generate().ToByteArray();
+            subDataProvider = dataProvider.GetDataProvider("test");
+            await subDataProvider.SetAsync(key, data3); // value: data1 -> data3
+            
+            //--------------- set height 1 ---------------
+            var block1Quote = CreateBlock(chain.GenesisBlockHash, chain.Id, ++index);
+            await worldStateDictator.SetWorldStateAsync(block1Quote.GetHash()); 
+            await chainManger.AppendBlockToChainAsync(block1Quote);
+            
+            //----------------- height 2 -----------------
+            accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
+            dataProvider = accountDataProvider.GetDataProvider();
+            var data4 = Hash.Generate().ToByteArray();
+            subDataProvider = dataProvider.GetDataProvider("test");
+            await subDataProvider.SetAsync(key, data4);
+            
+            //--------------- set height 2 ---------------
+            var block2Quote = CreateBlock(block1Quote.GetHash(), chain.Id, ++index);
+            await worldStateDictator.SetWorldStateAsync(block2Quote.GetHash()); 
+            await chainManger.AppendBlockToChainAsync(block2Quote);
+
+            //----------------- height 3 -----------------
+            accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
+            dataProvider = accountDataProvider.GetDataProvider();
+            var data5 = Hash.Generate().ToByteArray();
+            subDataProvider = dataProvider.GetDataProvider("test");
+            await subDataProvider.SetAsync(key, data5);
+            
+            //--------------- set height 3 ---------------
+            var block3Quote = CreateBlock(block2Quote.GetHash(), chain.Id, ++index);
+            await worldStateDictator.SetWorldStateAsync(block3Quote.GetHash()); 
+            await chainManger.AppendBlockToChainAsync(block3Quote);
+            
+            //----------------- height 4 -----------------
+            //Though do nothing
+
+            //Check the value of latest height
+            Assert.Equal(data5, await subDataProvider.GetAsync(key));
+            
+            //Check height before rollback
+            Assert.True(4 == await chainManger.GetChainCurrentHeight(chain.Id));
+
+            //Let's rollback to height 2
+            await worldStateDictator.RollbackToSpecificHeight(2);
+            //And check
+            Assert.True(2 == await chainManger.GetChainCurrentHeight(chain.Id));
+            Assert.Equal(data4, await subDataProvider.GetAsync(key));
+
+            await worldStateDictator.RollbackToSpecificHeight(1);
+            Assert.True(1 == await chainManger.GetChainCurrentHeight(chain.Id));
+            var foo = await subDataProvider.GetAsync(key);
+            Assert.Equal(data3, await subDataProvider.GetAsync(key));
         }
 
         /// <summary>
@@ -327,6 +384,8 @@ namespace AElf.Kernel.Tests
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
             block.Header.Index = index;
             block.Header.MerkleTreeRootOfWorldState = Hash.Generate();
+
+            System.Diagnostics.Debug.WriteLine($"Hash of height {index}: {block.GetHash().Value.ToByteArray().ToHex()}\twith previous hash {preBlockHash.Value.ToByteArray().ToHex()}");
 
             return block;
         }

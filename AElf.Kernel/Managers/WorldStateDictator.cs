@@ -115,22 +115,44 @@ namespace AElf.Kernel.Managers
         {
             await Check();
             
+            //First rollback current changes
+            await RollbackCurrentChangesAsync();
+            
             var heightMap = (await GetAccountDataProvider(Path.CalculatePointerForAccountZero(_chainId)))
                 .GetDataProvider().GetDataProvider("HeightOfBlock");
             
-            var currentHeight = await GetChainCurrentHeight(_chainId) - 1;
+            var currentHeight = await GetChainCurrentHeight(_chainId);
+            System.Diagnostics.Debug.WriteLine($"Rollback start. Current height: {currentHeight}");
+
             var rollbackHeightList = new List<UInt64Value>();
-            for (var i = currentHeight; i >= specificHeight; i--)
+            for (var i = currentHeight - 1; i >= specificHeight; i--)
             {
                 rollbackHeightList.Add(new UInt64Value {Value = i});
             }
+
+            //Update the height of current chain
+            await SetChainCurrentHeight(_chainId, specificHeight);
+
+            //Update last block hash of curent chain
+            await SetChainLastBlockHash(_chainId,
+                Hash.Parser.ParseFrom(
+                    await heightMap.GetAsync(
+                        new UInt64Value {Value = specificHeight - 1}.CalculateHash())));
             
             var rollbackHashList = new List<Hash>();
-            rollbackHeightList.ForEach(async height => rollbackHashList.Add(
-                Hash.Parser.ParseFrom(await heightMap.GetAsync(height.CalculateHash()))));
-
+            rollbackHeightList.ForEach(async height =>
+            {
+                var heightHash = height.CalculateHash();
+                rollbackHashList.Add(
+                    Hash.Parser.ParseFrom(await heightMap.GetAsync(heightHash)));
+                await heightMap.SetAsync(heightHash, null);
+            });
+            
             foreach (var blockHash in rollbackHashList)
             {
+                System.Diagnostics.Debug.WriteLine(
+                    $"Rollback block of hash: {blockHash.Value.ToByteArray().ToHex()} with height {currentHeight-- - 1}");
+
                 var paths = await GetPathsAsync(blockHash);
                 var dict = new Dictionary<Hash, Change>();
 
@@ -148,6 +170,10 @@ namespace AElf.Kernel.Managers
                     }
                 }
             }
+            
+            System.Diagnostics.Debug.WriteLine($"Already rollback to height: {await GetChainCurrentHeight(_chainId)}");
+            
+            await RollbackCurrentChangesAsync();
         }
         
         private async Task<ulong> GetChainCurrentHeight(Hash chainId)
@@ -155,6 +181,25 @@ namespace AElf.Kernel.Managers
             var key = Path.CalculatePointerForCurrentBlockHeight(chainId);
             var heightBytes = await _dataStore.GetDataAsync(key);
             return heightBytes?.ToUInt64() ?? 0;
+        }
+        
+        public async Task SetChainCurrentHeight(Hash chainId, ulong height)
+        {
+            var key = Path.CalculatePointerForCurrentBlockHeight(chainId);
+            await _dataStore.SetDataAsync(key, height.ToBytes());
+        }
+        
+        public async Task<Hash> GetChainLastBlockHash(Hash chainId)
+        {
+            var key = Path.CalculatePointerForLastBlockHash(chainId);
+            return await _dataStore.GetDataAsync(key);
+        }
+        
+        public async Task SetChainLastBlockHash(Hash chainId, Hash blockHash)
+        {
+            var key = Path.CalculatePointerForLastBlockHash(chainId);
+            this.PreBlockHash = blockHash;
+            await _dataStore.SetDataAsync(key, blockHash.GetHashBytes());
         }
 
         /// <summary>
