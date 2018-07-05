@@ -14,13 +14,15 @@ namespace AElf.Kernel.TxMemPool
     {
         private readonly Dictionary<Hash, List<ITransaction>> _executable =
             new Dictionary<Hash, List<ITransaction>>();
+
         private readonly Dictionary<Hash, Dictionary<ulong, ITransaction>> _waiting =
             new Dictionary<Hash, Dictionary<ulong, ITransaction>>();
+
         //private readonly Dictionary<Hash, ITransaction> _pool = new Dictionary<Hash, ITransaction>();
         private readonly ILogger _logger;
-        
+
         private readonly ITxPoolConfig _config;
-        
+
 
         public TxPool(ITxPoolConfig config, ILogger logger)
         {
@@ -40,24 +42,17 @@ namespace AElf.Kernel.TxMemPool
 
         /// <inheritdoc />
         public uint TxLimitSize => _config.TxLimitSize;
-        
-        /// <inheritdoc/>
-        //public ulong TmpSize => (ulong)Tmp.Count;
 
         /// <inheritdoc/>
         public ulong MinimalFee => _config.FeeThreshold;
 
         /// <inheritdoc />
-        //public Fee MinimalFee => _config.FeeThreshold;
-
-       
-        /// <inheritdoc />
-        public ConcurrentDictionary <Hash, ulong> Nonces { get; } = new ConcurrentDictionary<Hash, ulong>();
+        public ConcurrentDictionary<Hash, ulong> Nonces { get; } = new ConcurrentDictionary<Hash, ulong>();
 
 
         /// <inheritdoc />
         public ulong Size => GetPoolSize();
-        
+
         /// <inheritdoc/>
         public void ClearAll()
         {
@@ -79,7 +74,7 @@ namespace AElf.Kernel.TxMemPool
             _executable.Clear();
         }
 
-        
+
         /// <summary>
         /// return pool size of executable, waiting
         /// </summary>
@@ -122,13 +117,14 @@ namespace AElf.Kernel.TxMemPool
                     if ((ulong) res.Count >= limit)
                         break;
                 }
-                
+
                 // update incrementId in account data context
                 AddNonce(kv.Key, (ulong) r);
-                
+
                 //remove txs from executable list 
                 kv.Value.RemoveRange(0, r);
             }
+
             return res;
         }
 
@@ -152,10 +148,10 @@ namespace AElf.Kernel.TxMemPool
                     Promote(tx.From);
                     return TxValidation.TxInsertionAndBroadcastingError.Success;
                 }
-                
                 return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
             }
-            _logger.Error("InValid transaction: " +  error);
+
+            _logger.Error("InValid transaction: " + error);
             return error;
 
             //_pool[txHash] = tx;
@@ -173,8 +169,10 @@ namespace AElf.Kernel.TxMemPool
                 {
                     AddWaitingTx(hash);
                 }
+
                 return true;
             }
+
             // in waiting 
             return RemoveFromWaiting(tx);
         }
@@ -228,30 +226,30 @@ namespace AElf.Kernel.TxMemPool
             // disgard the tx if too old
             if (tx.IncrementId < GetNonce(tx.From))
                 return false;
-            
+
             var addr = tx.From;
-            
+
             // disgard it if already pushed to exectuable list
             if (_executable.TryGetValue(addr, out var executableList) && executableList.Count > 0 &&
                 executableList.Last().IncrementId >= tx.IncrementId)
                 return false;
-            
+
             if (!_waiting.TryGetValue(tx.From, out var waitingList))
             {
                 waitingList = _waiting[tx.From] = new Dictionary<ulong, ITransaction>();
             }
-            
+
             /*var nonce = GetNonce(addr);
             var alreadyExecutable = _executable.TryGetValue(addr, out var executableList) && executableList.Count != 0
                                     && tx.IncrementId >= nonce && (int) (tx.IncrementId - nonce) < executableList.Count;*/
-            
+
             // disgard it if cannot replace the tx with same id already in waiting list
             if (waitingList.TryGetValue(tx.IncrementId, out var oldTx))
                 return ReplaceTx(tx, oldTx);
-            
+
             // add to waiting list
             waitingList.Add(tx.IncrementId, tx);
-            
+
             return true;
         }
 
@@ -264,7 +262,6 @@ namespace AElf.Kernel.TxMemPool
         /// <returns></returns>
         private bool RemoveFromExecutable(out IEnumerable<ITransaction> unValidTxList, ITransaction tx = null)
         {
-            
             unValidTxList = null;
             // remove the tx 
             var addr = tx.From;
@@ -272,22 +269,22 @@ namespace AElf.Kernel.TxMemPool
 
             // fail if not exist
             if (!_executable.TryGetValue(addr, out var executableList) ||
-                executableList.Count <= (int)(tx.IncrementId - nonce) || 
-                !executableList[(int)(tx.IncrementId - nonce)].Equals(tx)) 
+                executableList.Count <= (int) (tx.IncrementId - nonce) ||
+                !executableList[(int) (tx.IncrementId - nonce)].Equals(tx))
                 return false;
-            
+
             // return unvalid tx because removing 
             unValidTxList = executableList.GetRange((int) (tx.IncrementId - nonce + 1),
                 executableList.Count - (int) (tx.IncrementId - nonce + 1));
-            
+
             // remove
             executableList.RemoveRange((int) (tx.IncrementId - nonce),
                 executableList.Count - (int) (tx.IncrementId - nonce));
-            
+
             // remove the entry if empty
             if (executableList.Count == 0)
                 _executable.Remove(addr);
-            
+
             // Update the account nonce if needed
             /*var context = _accountContextService.GetAccountDataContext(addr, _context.ChainId);
             context.IncreasementId = Math.Min(context.IncreasementId, tx.IncrementId);
@@ -302,7 +299,7 @@ namespace AElf.Kernel.TxMemPool
             WithDrawNonce(addr, withdraw);
         }
 
-        
+
         private void Demote(Hash addr)
         {
             var txs = RemoveExecutableList(addr);
@@ -311,13 +308,13 @@ namespace AElf.Kernel.TxMemPool
                 AddWaitingTx(tx);
             }
         }
-        
+
         private List<ITransaction> RemoveExecutableList(Hash addr)
         {
             // fail if not exist
             if (!_executable.TryGetValue(addr, out var executableList))
                 return null;
-            
+
             _executable.TryRemove(addr, out executableList);
             return executableList;
         }
@@ -332,27 +329,26 @@ namespace AElf.Kernel.TxMemPool
             var addr = tx.From;
             if (!_waiting.TryGetValue(addr, out var waitingList) ||
                 !waitingList.Keys.Contains(tx.IncrementId)) return false;
-            
+
             // remove the tx from waiting list
             waitingList.Remove(tx.IncrementId);
-            
+
             // remove from pool
             //_pool.Remove(tx.GetHash());
-            
+
             // remove the entry if empty
             if (waitingList.Count == 0)
                 _waiting.Remove(addr);
             return true;
         }
-        
-        
+
+
         /// <summary>
         /// promote txs from waiting to executable list
         /// </summary>
         /// <param name="addrs"></param>
         public void Promote(List<Hash> addrs = null)
         {
-            
             if (addrs == null)
             {
                 addrs = _waiting.Keys.ToList();
@@ -364,30 +360,29 @@ namespace AElf.Kernel.TxMemPool
             }
         }
 
-        
+
         //public ulong ReadyTxCount { get; private set; }
 
         private ulong? GetNextPromotableTxId(Hash addr)
         {
-            
             if (!_waiting.TryGetValue(addr, out var waitingList))
             {
                 return null;
             }
-            
+
             // no tx left
             if (waitingList.Count <= 0)
                 return null;
-            
+
             ulong next = waitingList.Keys.Min();
-            
+
             ulong w = 0;
 
             if (_executable.TryGetValue(addr, out var executableList) && executableList.Count != 0)
             {
                 w = executableList.Last().IncrementId + 1;
             }
-            else if(Nonces.TryGetValue(addr, out var n))
+            else if (Nonces.TryGetValue(addr, out var n))
             {
                 w = n;
                 _executable[addr] = new List<ITransaction>();
@@ -396,8 +391,8 @@ namespace AElf.Kernel.TxMemPool
             {
                 return null;
             }
-            
-            
+
+
             if (next != w)
                 return null;
             return next;
@@ -411,9 +406,9 @@ namespace AElf.Kernel.TxMemPool
         private void DiscardOldTransaction(Hash addr, ulong w)
         {
             var waitingList = _waiting[addr];
-            
+
             var oldList = waitingList.Keys.Where(n => n < w).Select(n => waitingList[n]);
-            
+
             // discard
             foreach (var h in oldList)
             {
@@ -432,45 +427,30 @@ namespace AElf.Kernel.TxMemPool
             ulong? next = GetNextPromotableTxId(addr);
 
             if (!next.HasValue)
-                return ;
+                return;
 
             DiscardOldTransaction(addr, next.Value);
 
-            if (!_executable.TryGetValue(addr, out var executableList) || !_waiting.TryGetValue(addr, out var waitingList))
+            if (!_executable.TryGetValue(addr, out var executableList) ||
+                !_waiting.TryGetValue(addr, out var waitingList))
             {
                 return;
             }
 
             ulong incr = next.Value;
-            
+
             do
             {
                 var tx = waitingList[incr];
-                
+
                 // add to executable list
                 executableList.Add(tx);
                 // remove from waiting list
                 waitingList.Remove(incr);
-                
             } while (waitingList.Count > 0 && waitingList.Keys.Contains(++incr));
-
         }
 
-        /*/// <summary>
-        /// return incrementId of account
-        /// </summary>
-        /// <param name="addr"></param>
-        /// <returns></returns>
-        private ulong GetNonce(Hash addr)
-        {
-            return _accountContextService.GetAccountDataContext(addr, ChainId).IncrementId;
-        }
 
-        private void AddNonce(Hash addr, int toAdd)
-        {    
-            _accountContextService.GetAccountDataContext(addr, ChainId).IncrementId += (ulong) toAdd;
-        }*/
-        
         /// <summary>
         /// return incrementId of account
         /// </summary>
@@ -482,6 +462,7 @@ namespace AElf.Kernel.TxMemPool
             {
                 return n;
             }
+
             throw new KeyNotFoundException("Not Found Account");
         }
 
@@ -502,7 +483,7 @@ namespace AElf.Kernel.TxMemPool
             var n = GetNonce(addr);
             Nonces[addr] = Math.Max(n - increment, 0);
         }
-        
+
 
         /// <inheritdoc/>
         public ulong GetPendingIncrementId(Hash addr)
@@ -517,18 +498,22 @@ namespace AElf.Kernel.TxMemPool
 
             if (_executable != null && _executable.Count > 0)
             {
-                var pairs = _executable.Select(x => string.Format("{0}{1}{2}", x.Key.ToHex(), ",", x.Value == null || x.Value.Count <= 0 ? "empty" : x.Value.Select(bb => bb.GetHash().ToHex()).Aggregate((i, j) => i + "," + j)));
+                var pairs = _executable.Select(x => string.Format("{0}{1}{2}", x.Key.ToHex(), ",",
+                    x.Value == null || x.Value.Count <= 0
+                        ? "empty"
+                        : x.Value.Select(bb => bb.GetHash().ToHex()).Aggregate((i, j) => i + "," + j)));
                 string join = string.Join(" || ", pairs);
                 Console.WriteLine("Executable transactions: " + join);
             }
-            
-            if (!_executable.TryGetValue(addr, out var list) || (ulong)list.Count < count || list[0].IncrementId != start)
+
+            if (!_executable.TryGetValue(addr, out var list) || (ulong) list.Count < count ||
+                list[0].IncrementId != start)
             {
                 Console.WriteLine();
                 return null;
             }
-            
-            for (var i =0; i < (int)count; i++)
+
+            for (var i = 0; i < (int) count; i++)
             {
                 res.Add(list[i]);
             }
@@ -536,8 +521,8 @@ namespace AElf.Kernel.TxMemPool
             // update incrementId in account data context
             AddNonce(addr, count);
             //remove txs from executable list  
-            list.RemoveRange(0, (int)count);
-            
+            list.RemoveRange(0, (int) count);
+
             return res;
         }
 
@@ -553,5 +538,4 @@ namespace AElf.Kernel.TxMemPool
             return false;
         }
     }
-    
 }

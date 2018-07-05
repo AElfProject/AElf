@@ -80,51 +80,6 @@ namespace AElf.Kernel.TxMemPool
         }
        
         
-        /*/// <summary>
-        /// wait new tx
-        /// </summary> 
-        /// <returns></returns>
-        private async Task Receive()
-        {
-            // TODO: need interupt waiting 
-            while (!Cts.IsCancellationRequested)
-            {
-                // wait for signal
-                EnqueueEvent.WaitOne();
-                
-                if(!_txPool.Enqueueable)
-                    continue;
-                
-                await Lock.WriteLock(() =>
-                {
-                    foreach (var t in Tmp)
-                    {
-                        if(_txPool.Nonces.ContainsKey(t.From))
-                            continue;
-                        if(_nonces.TryGetValue(t.From, out var idValue))
-                            _txPool.Nonces[t.From] = idValue;
-                    }
-                    
-                    _txPool.QueueTxs(Tmp); 
-                    Tmp.Clear();
-                });
-            }
-        }*/
-        
-        /*/// <summary>
-        /// wait signal to demote txs
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        private async Task Demote()
-        {
-            while (!Cts.IsCancellationRequested)
-            {
-                DemoteEvent.WaitOne();
-            }
-        }*/
-        
-
         /// <inheritdoc/>
         public Task RemoveAsync(Hash txHash)
         {
@@ -251,11 +206,6 @@ namespace AElf.Kernel.TxMemPool
             }
         }
         
-        /// <inheritdoc/>
-        /*public Task<ulong> GetTmpSizeAsync()
-        {
-            return Lock.ReadLock(() => (ulong)Tmp.Count);
-        }*/
 
         /// <inheritdoc/>
         public async Task ResetAndUpdate(List<TransactionResult> txResultList)
@@ -328,22 +278,8 @@ namespace AElf.Kernel.TxMemPool
             }
         }
         
-        private Dictionary<Hash, List<ITransaction>> GetTxListInPool()
-        {
-            var res = new Dictionary<Hash, List<ITransaction>>();
-            res = _txs.Aggregate(res, 
-                (current, p) =>
-                {
-                    if (!current.TryGetValue(p.Value.From, out var txs))
-                    {
-                        current[p.Key] = new List<ITransaction>();
-                    }
-                    res[p.Key].Add(p.Value);
-                    return current;
-                });
-            return res;
-        }
 
+        /// <inheritdoc/>
         public void RollBack(List<ITransaction> txsOut)
         {
             lock (this)
