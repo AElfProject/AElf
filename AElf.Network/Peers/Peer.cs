@@ -198,7 +198,10 @@ namespace AElf.Network.Peers
         public async Task SendAsync(byte[] data)
         {
             if (_stream == null)
+            {
+                Console.WriteLine($"Peer {DistantNodeData.IpAddress} : {DistantNodeData.Port} - Null stream while sending");
                 return;
+            }
 
             try
             {
@@ -206,7 +209,8 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                // Peer as been close while writting
+                Console.WriteLine($"Exception while sending data.");
+                Console.WriteLine(e);
             }
         }
 
