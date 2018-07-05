@@ -23,6 +23,8 @@ namespace AElf.Kernel.Managers
         private Hash _chainId;
 
         public bool DeleteChangeBeforesImmidiately { get; set; } = false;
+        
+        public Hash PreBlockHash { get; set; }
 
         public WorldStateDictator(IWorldStateStore worldStateStore,
             IChangesStore changesStore, IDataStore dataStore)
@@ -116,15 +118,16 @@ namespace AElf.Kernel.Managers
             var heightMap = (await GetAccountDataProvider(Path.CalculatePointerForAccountZero(_chainId)))
                 .GetDataProvider().GetDataProvider("HeightOfBlock");
             
-            var currentHeight = await GetChainCurrentHeight(_chainId);
+            var currentHeight = await GetChainCurrentHeight(_chainId) - 1;
             var rollbackHeightList = new List<UInt64Value>();
-            for (var i = currentHeight; i > specificHeight; i--)
+            for (var i = currentHeight; i >= specificHeight; i--)
             {
                 rollbackHeightList.Add(new UInt64Value {Value = i});
             }
             
             var rollbackHashList = new List<Hash>();
-            rollbackHashList.ForEach(async height => rollbackHashList.Add(await heightMap.GetAsync(height)));
+            rollbackHeightList.ForEach(async height => rollbackHashList.Add(
+                Hash.Parser.ParseFrom(await heightMap.GetAsync(height.CalculateHash()))));
 
             foreach (var blockHash in rollbackHashList)
             {
@@ -393,8 +396,6 @@ namespace AElf.Kernel.Managers
             await SetDataAsync(pointerHashAfter, stateValueChange.AfterValue.ToByteArray());
             return change;
         }
-
-        public Hash PreBlockHash { get; set; }
 
         #region Private methods
 
