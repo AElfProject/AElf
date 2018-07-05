@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -198,7 +199,10 @@ namespace AElf.Network.Peers
         public async Task SendAsync(byte[] data)
         {
             if (_stream == null)
+            {
+                Console.WriteLine($"Peer {DistantNodeData.IpAddress} : {DistantNodeData.Port} - Null stream while sending");
                 return;
+            }
 
             try
             {
@@ -206,7 +210,8 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                // Peer as been close while writting
+                Console.WriteLine($"Exception while sending data.");
+                Console.WriteLine(e);
             }
         }
 
@@ -225,6 +230,8 @@ namespace AElf.Network.Peers
             try
             {
                 _client = new TcpClient(DistantNodeData.IpAddress, DistantNodeData.Port);
+                Console.WriteLine("Local endpoint:" + ((IPEndPoint)_client?.Client?.LocalEndPoint)?.Address + ":" + ((IPEndPoint)_client?.Client?.LocalEndPoint)?.Port);
+                
                 _stream = _client?.GetStream();
 
                 await WriteConnectInfoAsync();

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -102,18 +103,23 @@ namespace AElf.Benchmark
         public async Task BenchmarkEvenGroup()
         {
             var resDict = new Dictionary<string, double>();
-            for (int currentGroupCount = _options.GroupRange.ElementAt(0); currentGroupCount <= _options.GroupRange.ElementAt(1); currentGroupCount++)
+            try
             {
-                _logger.Info($"Start executing {currentGroupCount} groups where have {_options.TxNumber} transactions in total");
-                var res = await MultipleGroupBenchmark(_options.TxNumber, currentGroupCount);
-                resDict.Add(res.Key, res.Value);
+                for (int currentGroupCount = _options.GroupRange.ElementAt(0); currentGroupCount <= _options.GroupRange.ElementAt(1); currentGroupCount++)
+                {
+                    _logger.Info($"Start executing {currentGroupCount} groups where have {_options.TxNumber} transactions in total");
+                    var res = await MultipleGroupBenchmark(_options.TxNumber, currentGroupCount);
+                    resDict.Add(res.Key, res.Value);
+                }
+
+                _logger.Info("Benchmark report \n \t Configuration: \n" + 
+                             string.Join("\n", _options.ToStringDictionary().Select(option => string.Format("\t {0} - {1}", option.Key, option.Value))) + 
+                             "\n\n\n\t Benchmark result:\n" + string.Join("\n", resDict.Select(kv=> "\t" + kv.Key + ": " + kv.Value)));
             }
-
-            _logger.Info("Benchmark report \n \t Configuration: \n" + 
-                         string.Join("\n", _options.ToStringDictionary().Select(option => string.Format("\t {0} - {1}", option.Key, option.Value))) + 
-                         "\n\n\n\t Benchmark result:\n" + string.Join("\n", resDict.Select(kv=> "\t" + kv.Key + ": " + kv.Value)));
-
-            // + string.Join("\n", resDict.Select(kv=> "\t" + kv.Key + ": " + kv.Value)))
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
 
@@ -122,6 +128,11 @@ namespace AElf.Benchmark
             int repeatTime = _options.RepeatTime;
         
             var txList = _dataGenerater.GetMultipleGroupTx(txNumber, groupCount, _contractHash);
+
+            var targets = GetTargetHashesForTransfer(txList);
+            var originBalance = await ReadBalancesForAddrs(targets, _contractHash);
+            var expectedTransferBalance = originBalance.Select(balance => balance + (ulong)(((txNumber / groupCount) * 20)*repeatTime)).ToList();
+            
             long timeused = 0;
             
             for (int i = 0; i < repeatTime; i++)
@@ -152,10 +163,76 @@ namespace AElf.Benchmark
                 _logger.Info($"round {i+1} / {repeatTime} ended, used time {swExec.ElapsedMilliseconds} ms");
             }
             
+            var acturalBalance = await ReadBalancesForAddrs(GetTargetHashesForTransfer(txList), _contractHash);
+            
+            //A double zip, first combine expectedTransferBalance with acturalBalance to get the compare string " {tx count per group} * transferBal * repeatTime = {expected} || {actural}"
+            //              then combine originBalance with the compare string above.
+            _logger.Info(
+                $"Validation for balance transfer for {groupCount} group with {txNumber / groupCount} transactions: \n\t" +
+                string.Join("\n\t",
+                    originBalance.Zip(
+                        expectedTransferBalance.Zip(
+                            acturalBalance,
+                            (expected, actural) => $"{txNumber / groupCount} * 20 * {repeatTime} = {expected} || actural: {actural}"),
+                        (origin, compareStr) => $"expected: {origin} + {compareStr}")));
+
+
+            for (int j = 0; j < acturalBalance.Count; j++)
+            {
+                if (expectedTransferBalance[j] != acturalBalance[j])
+                {
+                    throw new Exception($"Result inconsist in transaction with {groupCount} groups, see log for more details");
+                }
+            }
+            
             var time = txNumber / (timeused / 1000.0 / (double)repeatTime);
             var str = groupCount + " groups with " + txList.Count + " tx in total";
 
             return new KeyValuePair<string,double>(str, time);
+        }
+
+        private List<Hash> GetTargetHashesForTransfer(List<ITransaction> transactions)
+        {
+            if (transactions.Count(a => a.MethodName != "Transfer") != 0)
+            {
+                throw new Exception("Missuse for function GetTargetHashesForTransfer with non transfer transactions");
+            }
+            HashSet<Hash> res = new HashSet<Hash>();
+            foreach (var tx in transactions)
+            {
+                var parameters = ParamsPacker.Unpack(tx.Params.ToByteArray(), new[] {typeof(Hash), typeof(Hash), typeof(ulong)});
+                res.Add(parameters[1] as Hash);
+            }
+
+            return res.ToList();
+        }
+
+        private async Task<List<ulong>> ReadBalancesForAddrs(List<Hash> targets, Hash tokenContractAddr)
+        {
+            List<ulong> res = new List<ulong>();
+            foreach (var target in targets)
+            {
+                Transaction tx = new Transaction()
+                {
+                    From = target,
+                    To = tokenContractAddr,
+                    IncrementId = 0,
+                    MethodName = "GetBalance",
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(target)),
+                };
+                
+                var txnCtxt = new TransactionContext()
+                {
+                    Transaction = tx
+                };
+            
+                var executive = await _smartContractService.GetExecutiveAsync(tokenContractAddr, ChainId);
+                await executive.SetTransactionContext(txnCtxt).Apply(true);
+                
+                res.Add(txnCtxt.Trace.RetVal.Data.DeserializeToUInt64());
+            }
+
+            return res;
         }
         
         public ulong NewIncrementId()
