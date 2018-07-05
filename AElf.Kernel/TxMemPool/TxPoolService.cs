@@ -4,27 +4,32 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
-using AElf.Kernel.Types;
+using Akka.Pattern;
+using NLog;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
 namespace AElf.Kernel.TxMemPool
 {
+    [LoggerName("Txpool")]
     public class TxPoolService : ITxPoolService
     {
         private readonly ITxPool _txPool;
         private readonly IAccountContextService _accountContextService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
+        private readonly ILogger _logger;
 
         public TxPoolService(ITxPool txPool, IAccountContextService accountContextService,
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, ILogger logger)
         {
             _txPool = txPool;
             _accountContextService = accountContextService;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
+            _logger = logger;
         }
 
         /// <summary>
@@ -51,35 +56,48 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx)
         {
-            if (!_addrCache.Contains(tx.From))
-            {
-                // tx from account state
-                var incrementId = (await _accountContextService.GetAccountDataContext(tx.From, _txPool.ChainId))
-                    .IncrementId;
-                _txPool.TryAddNonce(tx.From, incrementId);
-                _addrCache.Add(tx.From);
-            }
+            if (Cts.IsCancellationRequested) return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
 
-            if (!Cts.IsCancellationRequested)
+            if (_txs.ContainsKey(tx.GetHash()))
+                return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
+            await TrySetNonce(tx.From);
+            var incrementId = _txPool.GetNonce(tx.From);
+            if (tx.IncrementId < incrementId)
+                return TxValidation.TxInsertionAndBroadcastingError.AlreadyExecuted;
+            return AddTransaction(tx);
+        }
+
+        private TxValidation.TxInsertionAndBroadcastingError AddTransaction(ITransaction tx)
+        {
+            lock (this)
             {
-                lock (this)
+                var res = _txPool.EnQueueTx(tx);
+                if ((int)res < 2)
                 {
-                    var res = _txPool.EnQueueTx(tx);
-                    if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
-                    {
-                        // add tx
-                        _txs.GetOrAdd(tx.GetHash(), tx);
-                    }
-
-                    return res;
+                    // add tx
+                    _txs.GetOrAdd(tx.GetHash(), tx);
                 }
+                return res;
             }
+        }
 
-            return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
-            /*return await (Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
+
+        /// <summary>
+        /// set nonce for address in tx pool
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <returns></returns>
+        private async Task TrySetNonce(Hash addr)
+        {
+            // tx from account state
+            if (!_txPool.GetNonce(addr).HasValue)
             {
-                return _txPool.EnQueueTx(tx);
-            }));*/
+                var incrementId = (await _accountContextService.GetAccountDataContext(addr, _txPool.ChainId))
+                    .IncrementId;
+                _txPool.TrySetNonce(addr, incrementId);
+            }
+            
+            _addrCache.Add(addr);
         }
 
 
@@ -189,7 +207,7 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task SavePoolAsync()
         {
-            throw new System.NotImplementedException();
+            throw new System.NotImplementedException(); 
         }
 
         /// <inheritdoc/>
@@ -210,7 +228,7 @@ namespace AElf.Kernel.TxMemPool
             {
                 return Task.FromResult(_txPool.GetExecutableSize());
             }
-        }
+        }        
 
 
         /// <inheritdoc/>
@@ -219,8 +237,12 @@ namespace AElf.Kernel.TxMemPool
             var addrs = new HashSet<Hash>();
             foreach (var res in txResultList)
             {
-                if (!TryGetTx(res.TransactionId, out var tx))
+                var rem = _txs.TryRemove(res.TransactionId, out var tx);
+                if (!rem)
+                {
+                    _logger.Error($"Transaction [{res.TransactionId}] is missing before removed");
                     continue;
+                }
                 addrs.Add(tx.From);
                 await _transactionManager.AddTransactionAsync(tx);
                 await _transactionResultManager.AddTransactionResultAsync(res);
@@ -228,12 +250,14 @@ namespace AElf.Kernel.TxMemPool
 
             foreach (var addr in addrs)
             {
-                _txPool.Nonces.TryGetValue(addr, out var id);
-
+                var id = _txPool.GetNonce(addr);
+                if(!id.HasValue)
+                    continue;
+                
                 // update account context
                 await _accountContextService.SetAccountContext(new AccountDataContext
                 {
-                    IncrementId = id,
+                    IncrementId = id.Value,
                     Address = addr,
                     ChainId = _txPool.ChainId
                 });
@@ -244,15 +268,7 @@ namespace AElf.Kernel.TxMemPool
         public void Start()
         {
             // TODO: more initialization
-            //EnqueueEvent = new AutoResetEvent(false);
-            //DemoteEvent = new AutoResetEvent(false);
             Cts = new CancellationTokenSource();
-
-            // waiting enqueue tx
-            //var task1 = Task.Factory.StartNew(async () => await Receive());
-
-            // waiting demote txs
-            //var task2 = Task.Factory.StartNew(async () => await Demote());
         }
 
 
@@ -286,27 +302,46 @@ namespace AElf.Kernel.TxMemPool
 
 
         /// <inheritdoc/>
-        public void RollBack(List<ITransaction> txsOut)
+        public async Task RollBack(List<ITransaction> txsOut)
         {
-            lock (this)
+            var files = txsOut.Select(async p => await TrySetNonce(p.From));
+            await Task.WhenAll(files);
+            
+            
+            var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(),  (current, p) =>
             {
-                var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(), (current, p) =>
+                if (!current.TryGetValue(p.From, out var txs))
                 {
-                    if (!current.TryGetValue(p.From, out var txs))
-                    {
-                        current[p.From] = new HashSet<ITransaction>();
-                    }
-
-                    current[p.From].Add(p);
-                    return current;
-                });
-
-                foreach (var kv in tmap)
-                {
-                    _txPool.RollBack(kv.Key, (ulong) kv.Value.Count);
-                    _txPool.EnQueueTxs(kv.Value);
+                    current[p.From] = new HashSet<ITransaction>();
                 }
+
+                current[p.From].Add(p);
+                
+                return current;
+            });
+
+            foreach (var kv in tmap)
+            {
+                var n = _txPool.GetNonce(kv.Key);
+
+                var min = kv.Value.Min(t => t.IncrementId);
+                if(min >= n.Value)
+                    continue;
+                
+                _txPool.Withdraw(kv.Key, min);
+                foreach (var tx in kv.Value)
+                {
+                    AddTransaction(tx);
+                }
+                
+                await _accountContextService.SetAccountContext(new AccountDataContext
+                {
+                    IncrementId = min,
+                    Address = kv.Key,
+                    ChainId = _txPool.ChainId
+                });
             }
+            
         }
     }
 

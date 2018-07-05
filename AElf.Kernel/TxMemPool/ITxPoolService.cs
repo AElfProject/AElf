@@ -120,6 +120,6 @@ namespace AElf.Kernel.TxMemPool
         /// roll back
         /// </summary>
         /// <returns></returns>
-        void RollBack(List<ITransaction> txsOut);
+        Task RollBack(List<ITransaction> txsOut);
     }
 }
