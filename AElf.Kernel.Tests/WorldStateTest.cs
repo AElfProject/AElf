@@ -300,6 +300,9 @@ namespace AElf.Kernel.Tests
             index = 0;
             
             //Check result of rollback
+            accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
+            dataProvider = accountDataProvider.GetDataProvider();
+            subDataProvider = dataProvider.GetDataProvider("test");
             Assert.True(1 == await chainManger.GetChainCurrentHeight(chain.Id));
             Assert.Equal(data1, await subDataProvider.GetAsync(key));
 
@@ -350,14 +353,13 @@ namespace AElf.Kernel.Tests
 
             //Let's rollback to height 2
             await worldStateDictator.RollbackToSpecificHeight(2);
+            accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
+            dataProvider = accountDataProvider.GetDataProvider();
+            subDataProvider = dataProvider.GetDataProvider("test");
+            
             //And check
             Assert.True(2 == await chainManger.GetChainCurrentHeight(chain.Id));
             Assert.Equal(data4, await subDataProvider.GetAsync(key));
-
-            await worldStateDictator.RollbackToSpecificHeight(1);
-            Assert.True(1 == await chainManger.GetChainCurrentHeight(chain.Id));
-            var foo = await subDataProvider.GetAsync(key);
-            Assert.Equal(data3, await subDataProvider.GetAsync(key));
         }
 
         /// <summary>

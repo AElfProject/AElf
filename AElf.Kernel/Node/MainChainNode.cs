@@ -1036,71 +1036,116 @@ namespace AElf.Kernel.Node
 
         private async Task<Hash> CalculateSignature(Hash inValue)
         {
-            var tcCalculateSignature = new TransactionContext
+            try
             {
-                Transaction =
-                    _dPoS.GetCalculateSignatureTx(
-                        await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash,
-                        inValue)
-            };
-            Executive.SetTransactionContext(tcCalculateSignature).Apply(true).Wait();
-            return tcCalculateSignature.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
+                var tcCalculateSignature = new TransactionContext
+                {
+                    Transaction =
+                        _dPoS.GetCalculateSignatureTx(
+                            await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash,
+                            inValue)
+                };
+                Executive.SetTransactionContext(tcCalculateSignature).Apply(true).Wait();
+                return tcCalculateSignature.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to calculate signature");
+                Console.WriteLine(e);
+                return Hash.Generate();
+            }
         }
 
         private async Task<bool> CheckAbleToMineNormalBlock()
         {
-            var tcAbleToMine = new TransactionContext
+            try
             {
-                Transaction = _dPoS.GetAbleToMineTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
-                    ContractAccountHash)
-            };
-            Executive.SetTransactionContext(tcAbleToMine).Apply(true).Wait();
+                var tcAbleToMine = new TransactionContext
+                {
+                    Transaction = _dPoS.GetAbleToMineTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
+                        ContractAccountHash)
+                };
+                Executive.SetTransactionContext(tcAbleToMine).Apply(true).Wait();
                             
-            return tcAbleToMine.Trace.RetVal.Data.DeserializeToBool();
+                return tcAbleToMine.Trace.RetVal.Data.DeserializeToBool();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to check the ability to mine normal block");
+                Console.WriteLine(e);
+                return false;
+            }
         }
 
         private async Task<bool> CheckAbleToHelpMiningExtraBlock()
         {
-            var tcAbleToHelp = new TransactionContext
+            try
             {
-                Transaction = _dPoS.GetReadyForHelpingProducingExtraBlockTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
-                    ContractAccountHash)
-            };
-            Executive.SetTransactionContext(tcAbleToHelp).Apply(true).Wait();
-                            
-            return tcAbleToHelp.Trace.RetVal.Data.DeserializeToBool();
+                var tcAbleToHelp = new TransactionContext
+                {
+                    Transaction =
+                        _dPoS.GetReadyForHelpingProducingExtraBlockTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
+                            ContractAccountHash)
+                };
+                Executive.SetTransactionContext(tcAbleToHelp).Apply(true).Wait();
+                return tcAbleToHelp.Trace.RetVal.Data.DeserializeToBool();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to check the ability to help mining extra block");
+                Console.WriteLine(e);
+                return false;
+            }
         }
 
         private async Task<bool> CheckIsTimeToMineExtraBlock()
         {
-            // ReSharper disable once InconsistentNaming
-            var tcIsTimeToProduceEB = new TransactionContext
+            try
             {
-                Transaction =
-                    _dPoS.GetIsTimeToProduceExtraBlockTx(
-                        await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
-            };
-            Executive.SetTransactionContext(tcIsTimeToProduceEB).Apply(true).Wait();
+                // ReSharper disable once InconsistentNaming
+                var tcIsTimeToProduceEB = new TransactionContext
+                {
+                    Transaction =
+                        _dPoS.GetIsTimeToProduceExtraBlockTx(
+                            await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
+                };
+                Executive.SetTransactionContext(tcIsTimeToProduceEB).Apply(true).Wait();
 
-            // ReSharper disable once InconsistentNaming
-            return tcIsTimeToProduceEB.Trace.RetVal.Data.DeserializeToBool();
+                // ReSharper disable once InconsistentNaming
+                return tcIsTimeToProduceEB.Trace.RetVal.Data.DeserializeToBool();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to check the time to mine extra block");
+                Console.WriteLine(e);
+                return false;
+            }
         }
 
         private async Task<bool> CheckAbleToMineExtraBlock()
         {
-            // ReSharper disable once InconsistentNaming
-            var tcAbleToProduceEB = new TransactionContext
+            try
             {
-                Transaction =
-                    _dPoS.GetAbleToProduceExtraBlockTx(
-                        // This tx won't be broadcasted
-                        await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
-            };
-            Executive.SetTransactionContext(tcAbleToProduceEB).Apply(true).Wait();
+                // ReSharper disable once InconsistentNaming
+                var tcAbleToProduceEB = new TransactionContext
+                {
+                    Transaction =
+                        _dPoS.GetAbleToProduceExtraBlockTx(
+                            // This tx won't be broadcasted
+                            await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
+                };
+                Executive.SetTransactionContext(tcAbleToProduceEB).Apply(true).Wait();
 
-            // ReSharper disable once InconsistentNaming
-            var res = tcAbleToProduceEB.Trace.RetVal.Data.DeserializeToBool();
-            return res;
+                // ReSharper disable once InconsistentNaming
+                var res = tcAbleToProduceEB.Trace.RetVal.Data.DeserializeToBool();
+                return res;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to check the ability to mine extra block");
+                Console.WriteLine(e);
+                return false;
+            }
         }
 
         
