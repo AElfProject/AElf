@@ -598,6 +598,10 @@ namespace AElf.Contracts.Genesis
         
         public async Task<bool> IsTimeToProduceExtraBlock()
         {
+            if (!await IsBP(AddressHashToString(Api.GetTransaction().From)))
+            {
+                return false;
+            }
             var expectedTime = await _timeForProducingExtraBlock.GetAsync();
             var now = GetTimestampOfUtcNow();
             return CompareTimestamp(now, expectedTime)
