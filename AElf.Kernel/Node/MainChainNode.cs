@@ -895,9 +895,10 @@ namespace AElf.Kernel.Node
                                 extraBlock.GetHash().Value.ToByteArray().ToHex(),
                                 extraBlock.Body.Transactions.Count);
                             
-                            _logger?.Debug("---- DPoS checking end");
                         }
                         
+                        _logger?.Debug("---- DPoS checking end");
+
                         #endregion
                     },
 

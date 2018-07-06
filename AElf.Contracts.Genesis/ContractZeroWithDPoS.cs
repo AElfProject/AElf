@@ -829,7 +829,7 @@ namespace AElf.Contracts.Genesis
         {
             var fromAccount = ConvertToNormalHexString(Api.GetTransaction().From.Value.ToByteArray().ToHex());
             var result = (await GetBlockProducers()).Nodes.Contains(fromAccount);
-            ConsoleWriteLine($"Checked privilege to call consensus method {methodName}: {result}");
+            //ConsoleWriteLine($"Checked privilege to call consensus method {methodName}: {result}");
             return result;
         }
 
