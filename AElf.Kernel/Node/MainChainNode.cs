@@ -581,6 +581,8 @@ namespace AElf.Kernel.Node
             var block =  await _miner.Mine();
             
             int b = Interlocked.CompareExchange(ref _flag, 0, 1);
+
+            _protocolDirector.IncrementChainHeight();
             
             _logger?.Trace($"Mine - Leaving mining {b}");
             
