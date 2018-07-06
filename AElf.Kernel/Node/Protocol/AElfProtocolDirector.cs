@@ -177,8 +177,9 @@ namespace AElf.Kernel.Node.Protocol
                 
                 var req = NetRequestFactory.CreateRequest(MessageTypes.Tx, t.ToByteArray(), 0);
                 await args.Peer.SendAsync(req.ToByteArray());
-                
-                _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + t.ToByteArray().Length + " bytes)");
+
+                _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + t.ToByteArray().Length +
+                               " bytes)");
             }
             catch (Exception e)
             {
@@ -200,7 +201,7 @@ namespace AElf.Kernel.Node.Protocol
             }
             catch (Exception e)
             {
-                ; // todo
+                _logger?.Trace(e, "Error while during HandleBlockRequest.");
             }
         }
 
@@ -215,7 +216,7 @@ namespace AElf.Kernel.Node.Protocol
             }
             catch (Exception e)
             {
-                ; // todo
+                _logger?.Trace(e, "Error while during HandleHeightRequest.");
             }
         }
 
@@ -228,7 +229,7 @@ namespace AElf.Kernel.Node.Protocol
             }
             catch (Exception e)
             {
-                ; // todo
+                _logger?.Trace(e, "Error while during HandlePeerHeightReception.");
             }
         }
 
@@ -237,11 +238,12 @@ namespace AElf.Kernel.Node.Protocol
             try
             {
                 var fromSend = message.MsgType == (int) MessageTypes.Tx;
+                
                 await _node.ReceiveTransaction(message.Payload, fromSend);
             }
             catch (Exception e)
             {
-                ; // todo
+                _logger?.Trace(e, "Error while receiving transaction.");
             }
         }
 
@@ -265,9 +267,9 @@ namespace AElf.Kernel.Node.Protocol
                     await _blockSynchronizer.AddRequestedBlock(b);
                 }*/
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                ; // todo
+                _logger?.Trace(e, "Error while receiving HandleBlockReception.");
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using AElf.Network.Data;
 using AElf.Network.Helpers;
 using AElf.Network.Peers.Exceptions;
 using Google.Protobuf;
+using NLog;
 
 namespace AElf.Network.Peers
 {
@@ -32,6 +34,8 @@ namespace AElf.Network.Peers
         private const int BufferSize = 20000;
 
         private byte[] _receptionBuffer;
+
+        private ILogger _logger;
         
         /// <summary>
         /// The event that's raised when a message is received
@@ -67,6 +71,8 @@ namespace AElf.Network.Peers
             _nodeData = nodeData;
             DistantNodeData = peerData;
             _receptionBuffer = new byte[BufferSize];
+
+            _logger = LogManager.GetLogger("Peer");
         }
 
         /// <summary>
@@ -145,7 +151,7 @@ namespace AElf.Network.Peers
                     }
                     catch (InvalidProtocolBufferException invalidProtocol)
                     {
-                        Console.WriteLine("Received an invalid message", invalidProtocol);
+                        _logger?.Trace("Received an invalid message", invalidProtocol);
                     }
                 }
             }
@@ -184,6 +190,7 @@ namespace AElf.Network.Peers
             else
             {
                 _client?.Close();
+                _logger?.Trace("Stream closed");
                 throw new Exception("Stream closed");
             }
 
@@ -198,7 +205,10 @@ namespace AElf.Network.Peers
         public async Task SendAsync(byte[] data)
         {
             if (_stream == null)
+            {
+                _logger?.Trace($"Peer {DistantNodeData.IpAddress} : {DistantNodeData.Port} - Null stream while sending");
                 return;
+            }
 
             try
             {
@@ -206,7 +216,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                // Peer as been close while writting
+                _logger.Trace(e, $"Exception while sending data.");
             }
         }
 
@@ -225,6 +235,8 @@ namespace AElf.Network.Peers
             try
             {
                 _client = new TcpClient(DistantNodeData.IpAddress, DistantNodeData.Port);
+                _logger?.Trace("Local endpoint:" + ((IPEndPoint)_client?.Client?.LocalEndPoint)?.Address + ":" + ((IPEndPoint)_client?.Client?.LocalEndPoint)?.Port);
+                
                 _stream = _client?.GetStream();
 
                 await WriteConnectInfoAsync();

@@ -314,8 +314,11 @@ namespace AElf.Network.Peers
             
             // Don't add a peer already in the list
             if (GetPeer(peer) != null)
+            {
+                _logger.Trace($"[AddPeer] Peer already included - {peer.IpAddress} : {peer.Port}");
                 return false;
-            
+            }
+
             peer.DistantNodeData.IsBootnode = _bootnodes?.Any(p => p.Equals(peer.DistantNodeData)) ?? false;
             
             if (peer.DistantNodeData.IsBootnode)
