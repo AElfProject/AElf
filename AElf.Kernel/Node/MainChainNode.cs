@@ -321,19 +321,21 @@ namespace AElf.Kernel.Node
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger.Trace("DID NOT add Transaction to pool: FROM, " + Convert.ToBase64String(tx.From.Value.ToByteArray()) + ", INCR : " + tx.IncrementId);
+                    _logger.Trace("DID NOT add Transaction to pool: FROM, " + tx.GetHash().Value.ToByteArray().ToHex() + ", INCR : " + tx.IncrementId);
                     return;
                 }
 
                 if (isFromSend)
                 {
-                    _logger.Trace("Received Transaction: " + "FROM, " + Convert.ToBase64String(tx.From.Value.ToByteArray()) + ", INCR : " + tx.IncrementId);
+                    _logger.Trace("Received Transaction: " + "FROM, " + tx.GetHash().Value.ToByteArray().ToHex() + ", INCR : " + tx.IncrementId);
                     _protocolDirector.AddTransaction(tx);
                 }
+                
+                _logger?.Trace("Successfully added tx : " + tx.GetHash().Value.ToByteArray().ToHex());
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Invalid tx - Could not receive transaction from the network", null);
+                _logger?.Error(e, "Invalid tx - Could not receive transaction from the network", null);
             }
         }
 
