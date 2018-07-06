@@ -112,7 +112,12 @@ namespace AElf.Kernel.Node.Protocol
                 orderby pendingBlock.Block.Header.Index descending
                 select pendingBlock.Block.Header.Index).First();
         }
-        
+
+        public void IncrementChainHeight()
+        {
+            _blockSynchronizer.CurrentExecHeight++;
+        }
+
         #region Response handling
         
         /// <summary>

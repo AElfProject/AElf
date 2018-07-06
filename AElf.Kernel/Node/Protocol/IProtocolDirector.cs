@@ -18,5 +18,7 @@ namespace AElf.Kernel.Node.Protocol
         void AddTransaction(Transaction tx);
 
         long GetLatestIndexOfOtherNode();
+        
+        void IncrementChainHeight();
     }
 }
