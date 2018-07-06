@@ -378,6 +378,9 @@ namespace AElf.Contracts.Genesis
 
             var afterTime = (offset - currentTimeslot) / 1000;
             
+            //Add the ready-for-help time
+            afterTime += timeOfARound;
+            
             if (meAddress == (await _eBPMap.GetValueAsync(RoundsCount)).Value)
             {
                 Console.WriteLine($"[{GetTimestampOfUtcNow().ToDateTime().ToLocalTime():T} - DPoS]: I am the EBP of this round - RoundCount:" + RoundsCount);
@@ -386,6 +389,12 @@ namespace AElf.Contracts.Genesis
             
             if (afterTime < 0)
             {
+                //The only reason to come here is checking ability after expected timeslot
+                //So the abs of afterTime should not greater than CheckTime
+                if (afterTime < -MiningTime)
+                {
+                    Console.WriteLine($"[{GetTimestampOfUtcNow().ToDateTime().ToLocalTime():T} - DPoS]: Something weird happened to ready-for-help checking");
+                }
                 afterTime = 0;
             }
             

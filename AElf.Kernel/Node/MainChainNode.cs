@@ -692,8 +692,6 @@ namespace AElf.Kernel.Node
 
                 var dPoSInfo = "";
 
-                var flag = false;
-                
                 var intervalSequnce = GetIntervalObservable();
                 intervalSequnce.Subscribe
                 (
@@ -701,16 +699,13 @@ namespace AElf.Kernel.Node
                     {
                         var currentHeightOfThisNode = (long) await _chainManager.GetChainCurrentHeight(ChainId);
                         var currentHeightOfOtherNodes = _protocolDirector.GetLatestIndexOfOtherNode();
-                        if (currentHeightOfThisNode < currentHeightOfOtherNodes && currentHeightOfOtherNodes != -1 && !flag)
+                        if (currentHeightOfThisNode < currentHeightOfOtherNodes && currentHeightOfOtherNodes != -1)
                         {
                             _logger.Debug("Current height of me: " + currentHeightOfThisNode);
                             _logger.Debug("Current height of others: " + currentHeightOfOtherNodes);
                             _logger.Debug("Having more blocks to sync, so the dpos mining won't start");
-                            flag = true;
                             return;
                         }
-
-                        flag = false;
 
                         var actualRoundsCount = x == 0 ? 0 : await GetActualRoundsCount();
                         if (roundsCount != actualRoundsCount)
