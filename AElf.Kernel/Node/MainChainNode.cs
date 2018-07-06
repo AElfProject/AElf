@@ -87,7 +87,7 @@ namespace AElf.Kernel.Node
                 var blockProducers = new BlockProducer();
                 foreach (var bp in dict.Values)
                 {
-                    blockProducers.Nodes.Add(bp["address"]);
+                    blockProducers.Nodes.Add(ConvertToNormalHexString(bp["address"]));
                 }
 
                 return blockProducers;
@@ -674,7 +674,7 @@ namespace AElf.Kernel.Node
                 _logger.Debug("-- DPoS Mining Has been fired!");
                 
                 _dPoS = new DPoS(_nodeKeyPair);
-                    
+
                 //Record the rounds count in local memory
                 ulong roundsCount = 0;
                 
@@ -882,9 +882,6 @@ namespace AElf.Kernel.Node
             });
         }
        
-
-
-
         private async Task<DPoSInfo> ExecuteTxsForFirstExtraBlock()
         {
             var txsForFirstExtraBlock = _dPoS.GetTxsForFirstExtraBlock(
@@ -1150,6 +1147,10 @@ namespace AElf.Kernel.Node
             }
         }
 
+        private string ConvertToNormalHexString(string hexStr)
+        {
+            return hexStr.StartsWith("0x") ? hexStr.Remove(0, 2) : hexStr;
+        }
         
         #endregion
     }
