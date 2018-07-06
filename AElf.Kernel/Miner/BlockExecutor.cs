@@ -60,7 +60,7 @@ namespace AElf.Kernel.Miner
                 {
                     if (!_txPoolService.TryGetTx(id, out var tx))
                     {
-                        _logger?.Trace($"ExecuteBlock - Transaction not in pool {id.Value.ToBase64()}.");
+                        _logger?.Trace($"ExecuteBlock - Transaction not in pool {id.Value.ToByteArray().ToHex()}.");
                         return false;
                     }
 
