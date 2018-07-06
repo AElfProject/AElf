@@ -77,8 +77,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public async Task<byte[]> GetAsync(Hash keyHash)
         {
-            var foo = _path.SetDataKey(keyHash).GetPathHash();
-            var pointerHash = await _worldStateDictator.GetPointerAsync(foo);
+            var pointerHash = await _worldStateDictator.GetPointerAsync(GetPathFor(keyHash));
             return await _worldStateDictator.GetDataAsync(pointerHash);
         }
 
@@ -90,11 +89,8 @@ namespace AElf.Kernel
         /// <returns></returns>
         public async Task<Change> SetAsync(Hash keyHash, byte[] obj)
         {
-            //Clean the path.
-            _path.SetBlockHashToNull();
-
             //Generate the path hash.
-            var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
+            var pathHash = GetPathFor(keyHash);
 
             //Generate the new pointer hash (using previous block hash)
             var pointerHashAfter =await _worldStateDictator.CalculatePointerHashOfCurrentHeight(_path);
@@ -106,6 +102,7 @@ namespace AElf.Kernel
                     Path.CalculatePointerForLastBlockHash(_accountDataContext.ChainId));
                 preBlockHash = PreBlockHash;
             }
+            
 
             var change = await _worldStateDictator.GetChangeAsync(pathHash);
             if (change == null)
