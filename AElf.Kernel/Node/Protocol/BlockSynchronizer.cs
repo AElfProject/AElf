@@ -130,11 +130,39 @@ namespace AElf.Kernel.Node.Protocol
                 }
             }
             
+            _peerManager.PeerAdded += PeerManagerOnPeerAdded;
+            _peerManager.PeerRemoved += PeerManagerOnPeerRemoved;
+            
             _cycleTimer = new Timer(DoCycle, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(3));
             
             DoSync();
         }
-        
+
+        private void PeerManagerOnPeerRemoved(object sender, EventArgs eventArgs)
+        {
+            if (sender != null && eventArgs != null && eventArgs is PeerRemovedEventArgs args && args.Peer != null)
+            {
+                if (_syncPeers != null)
+                {
+                    _syncPeers.RemoveAll(sp => sp.Peer.Equals(args.Peer));
+                    _logger?.Trace($"Removed a peer from sync list : {args.Peer}.");
+                }
+            }
+        }
+
+        private void PeerManagerOnPeerAdded(object sender, EventArgs eventArgs)
+        {
+            if (sender != null && eventArgs != null && eventArgs is PeerAddedEventArgs args && args.Peer != null)
+            {
+                if (_syncPeers != null && !_syncPeers.Exists(p => p.Peer.Equals(args.Peer)))
+                {
+                    SyncPeer syncPeer = new SyncPeer { Peer = args.Peer, LastKnownHight = 0 };
+                    _syncPeers.Add(syncPeer);
+                    _logger?.Trace($"Added a peer to sync list : {args.Peer}." );
+                }
+            }
+        }
+
         private void FinishSync()
         {
             IsInitialSync = false;

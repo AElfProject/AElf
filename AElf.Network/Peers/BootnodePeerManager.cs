@@ -14,6 +14,9 @@ namespace AElf.Network.Peers
     {
         public event EventHandler MessageReceived;
         public event EventHandler PeerListEmpty;
+        
+        public event EventHandler PeerAdded;
+        public event EventHandler PeerRemoved;
 
         private INodeDialer _nodeDialer;
         private IAElfNetworkConfig _networkConfig;

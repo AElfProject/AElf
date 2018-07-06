@@ -13,12 +13,25 @@ using NLog;
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Network.Peers
 {
+    public class PeerAddedEventArgs : EventArgs
+    {
+        public IPeer Peer { get; set; }
+    }
+    
+    public class PeerRemovedEventArgs : EventArgs
+    {
+        public IPeer Peer { get; set; }
+    }
+    
     public class PeerManager : IPeerManager, IDisposable
     {
         public const int TargetPeerCount = 8; 
         
         public event EventHandler MessageReceived;
         public event EventHandler PeerListEmpty;
+
+        public event EventHandler PeerAdded;
+        public event EventHandler PeerRemoved;
         
         private readonly IAElfNetworkConfig _networkConfig;
         private readonly INodeDialer _nodeDialer;
@@ -330,6 +343,8 @@ namespace AElf.Network.Peers
             peer.PeerDisconnected += ProcessClientDisconnection;
 
             _logger?.Trace("Peer added : " + peer);
+            
+            PeerAdded?.Invoke(this, new PeerAddedEventArgs { Peer = peer });
 
             Task.Run(peer.StartListeningAsync);
 
@@ -374,8 +389,12 @@ namespace AElf.Network.Peers
         {
             if (peer == null)
                 return;
+            
             _peers.Remove(peer);
+            
             _logger?.Trace("Peer removed : " + peer);
+            
+            PeerRemoved?.Invoke(this, new PeerRemovedEventArgs { Peer = peer });
         }
 
         public List<IPeer> GetPeers()
