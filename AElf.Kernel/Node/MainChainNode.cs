@@ -321,13 +321,13 @@ namespace AElf.Kernel.Node
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger.Trace("DID NOT add Transaction to pool: FROM, " + tx.GetHash().Value.ToByteArray().ToHex() + ", INCR : " + tx.IncrementId);
+                    _logger?.Trace("DID NOT add Transaction to pool: FROM, " + tx.GetHash().Value.ToByteArray().ToHex() + ", INCR : " + tx.IncrementId);
                     return;
                 }
 
                 if (isFromSend)
                 {
-                    _logger.Trace("Received Transaction: " + "FROM, " + tx.GetHash().Value.ToByteArray().ToHex() + ", INCR : " + tx.IncrementId);
+                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().Value.ToByteArray().ToHex() + ", INCR : " + tx.IncrementId);
                     _protocolDirector.AddTransaction(tx);
                 }
                 

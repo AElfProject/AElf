@@ -64,6 +64,10 @@ namespace AElf.Kernel.BlockValidationFilters
                 if (index < currentChainHeight)
                 {
                     var b = await _blockManager.GetBlockByHeight(block.Header.ChainId, index);
+                    if (b == null)
+                    {
+                        return ValidationError.FailedToGetBlockByHeight;
+                    }
                     return b.Header.GetHash().Equals(block.Header.GetHash())
                         ? ValidationError.AlreadyExecuted
                         : ValidationError.OrphanBlock;

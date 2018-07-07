@@ -841,7 +841,7 @@ namespace AElf.Contracts.Genesis
 
         private DateTime GetLocalTime()
         {
-            return GetTimestampOfUtcNow().ToDateTime().ToLocalTime();
+            return DateTime.UtcNow.ToLocalTime();
         }
 
         private void ConsoleWriteLine(string log)
