@@ -12,12 +12,12 @@ namespace AElf.Kernel.TxMemPool
         /// <param name="tx"></param>
         /// <returns></returns>
         Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx);
-        
+
         /// <summary>
         /// remove a tx
         /// </summary>
         /// <param name="txHash"></param>
-        Task RemoveAsync(Hash txHash);
+        void RemoveAsync(Hash txHash);
 
         /// <summary>
         /// remove tx with worst price
@@ -87,7 +87,7 @@ namespace AElf.Kernel.TxMemPool
         /// which happens a block generated 
         /// </summary>
         /// <returns></returns>
-        Task ResetAndUpdate(List<TransactionResult> txResultList);
+        Task ResetAndUpdate(HashSet<Hash> txResultList);
         
         /// <summary>
         /// open transaction pool
@@ -112,9 +112,10 @@ namespace AElf.Kernel.TxMemPool
         /// 
         /// </summary>
         /// <param name="addr"></param>
+        /// <param name="start"></param>
         /// <param name="ids"></param>
         /// <returns></returns>
-        Task<List<ITransaction>> GetReadyTxsAsync(Hash addr, ulong start, ulong ids);
+        Task<bool> GetReadyTxsAsync(Hash addr, ulong start, ulong ids);
 
         /// <summary>
         /// roll back

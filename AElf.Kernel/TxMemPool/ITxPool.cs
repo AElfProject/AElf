@@ -105,9 +105,10 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="addr"></param>
         /// <param name="start"></param>
+        /// <param name="count"></param>
         /// <param name="ids"></param>
         /// <returns></returns>
-        List<ITransaction> ReadyTxs(Hash addr, ulong start, ulong count);
+        bool ReadyTxs(Hash addr, ulong start, ulong count);
 
         /// <summary>
         /// demote all txs from executable to waiting and reset nonces

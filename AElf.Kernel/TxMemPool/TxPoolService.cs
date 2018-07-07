@@ -61,9 +61,7 @@ namespace AElf.Kernel.TxMemPool
             if (_txs.ContainsKey(tx.GetHash()))
                 return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
             await TrySetNonce(tx.From);
-            var incrementId = _txPool.GetNonce(tx.From);
-            if (tx.IncrementId < incrementId)
-                return TxValidation.TxInsertionAndBroadcastingError.AlreadyExecuted;
+            
             return AddTransaction(tx);
         }
 
@@ -72,7 +70,7 @@ namespace AElf.Kernel.TxMemPool
             lock (this)
             {
                 var res = _txPool.EnQueueTx(tx);
-                if ((int)res < 2)
+                if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
                     // add tx
                     _txs.GetOrAdd(tx.GetHash(), tx);
@@ -96,17 +94,21 @@ namespace AElf.Kernel.TxMemPool
                     .IncrementId;
                 _txPool.TrySetNonce(addr, incrementId);
             }
-            
             _addrCache.Add(addr);
         }
 
 
         /// <inheritdoc/>
-        public Task RemoveAsync(Hash txHash)
+        public void RemoveAsync(Hash txHash)
         {
-            return !_txs.TryGetValue(txHash, out var tx)
-                ? Task.CompletedTask
-                : Lock.WriteLock(() => _txPool.DiscardTx(tx));
+            lock (this)
+            {
+                if(_txs.TryGetValue(txHash, out var tx))
+                {
+                    _txs.TryRemove(tx.GetHash(), out tx);
+                }
+            }
+            
         }
 
         /// <inheritdoc/>
@@ -137,12 +139,19 @@ namespace AElf.Kernel.TxMemPool
             lock (this)
             {
                 //_txPool.Enqueueable = false;
-                return Task.FromResult(_txPool.ReadyTxs(limit));
+
+                var readyTxs = _txPool.ReadyTxs(limit);
+                foreach (var tx in readyTxs)
+                {
+                    _txs.TryRemove(tx.GetHash(), out var t);
+                }
+
+                return Task.FromResult(readyTxs);
             }
         }
 
         /// <inheritdoc/>
-        public Task<List<ITransaction>> GetReadyTxsAsync(Hash addr, ulong start, ulong ids)
+        public Task<bool> GetReadyTxsAsync(Hash addr, ulong start, ulong ids)
         {
             lock (this)
             {
@@ -232,22 +241,8 @@ namespace AElf.Kernel.TxMemPool
 
 
         /// <inheritdoc/>
-        public async Task ResetAndUpdate(List<TransactionResult> txResultList)
+        public async Task ResetAndUpdate(HashSet<Hash> addrs)
         {
-            var addrs = new HashSet<Hash>();
-            foreach (var res in txResultList)
-            {
-                var rem = _txs.TryRemove(res.TransactionId, out var tx);
-                if (!rem)
-                {
-                    _logger.Error($"Transaction [{res.TransactionId}] is missing before removed");
-                    continue;
-                }
-                addrs.Add(tx.From);
-                await _transactionManager.AddTransactionAsync(tx);
-                await _transactionResultManager.AddTransactionResultAsync(res);
-            }
-
             foreach (var addr in addrs)
             {
                 var id = _txPool.GetNonce(addr);
@@ -307,7 +302,6 @@ namespace AElf.Kernel.TxMemPool
             var files = txsOut.Select(async p => await TrySetNonce(p.From));
             await Task.WhenAll(files);
             
-            
             var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(),  (current, p) =>
             {
                 if (!current.TryGetValue(p.From, out var txs))
@@ -322,15 +316,16 @@ namespace AElf.Kernel.TxMemPool
 
             foreach (var kv in tmap)
             {
-                var n = _txPool.GetNonce(kv.Key);
-
+                var nonce = _txPool.GetNonce(kv.Key);
                 var min = kv.Value.Min(t => t.IncrementId);
-                if(min >= n.Value)
+                if(min >= nonce.Value)
                     continue;
                 
                 _txPool.Withdraw(kv.Key, min);
                 foreach (var tx in kv.Value)
                 {
+                    if (_txs.ContainsKey(tx.GetHash()))
+                        continue;
                     AddTransaction(tx);
                 }
                 

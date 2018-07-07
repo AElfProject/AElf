@@ -134,6 +134,7 @@ namespace AElf.Kernel.TxMemPool
             // disgard the tx if too old
             if (tx.IncrementId < GetNonce(tx.From))
                 return TxValidation.TxInsertionAndBroadcastingError.AlreadyExecuted;
+            
             var error = this.ValidateTx(tx);
             if (error == TxValidation.TxInsertionAndBroadcastingError.Valid)
             {
@@ -141,9 +142,10 @@ namespace AElf.Kernel.TxMemPool
                 if (res)
                 {
                     Promote(tx.From);
-                    return TxValidation.TxInsertionAndBroadcastingError.Success;
                 }
-                return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
+                
+                // return success directlly if the incrementid already inserted
+                return TxValidation.TxInsertionAndBroadcastingError.Success;
             }
             _logger.Error("InValid transaction: " + error);
             return error;
@@ -229,8 +231,7 @@ namespace AElf.Kernel.TxMemPool
             {
                 waitingList = _waiting[tx.From] = new Dictionary<ulong, ITransaction>();
             }
-
-            // disgard it if cannot replace the tx with same id already in waiting list
+            
             if (waitingList.TryGetValue(tx.IncrementId, out var oldTx))
             {
                 // todo: try to replace the old one
@@ -470,18 +471,12 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public List<ITransaction> ReadyTxs(Hash addr, ulong start, ulong count)
+        public bool ReadyTxs(Hash addr, ulong start, ulong count)
         {
-            var res = new List<ITransaction>();
             if (!_executable.TryGetValue(addr, out var list) || (ulong) list.Count < count ||
                 list[0].IncrementId != start)
             {
-                return null;
-            }
-
-            for (var i = 0; i < (int) count; i++)
-            {
-                res.Add(list[i]);
+                return false;
             }
 
             // update incrementId in account data context
@@ -489,7 +484,7 @@ namespace AElf.Kernel.TxMemPool
             //remove txs from executable list  
             list.RemoveRange(0, (int) count);
 
-            return res;
+            return true;
         }
 
         /// <inheritdoc/>
