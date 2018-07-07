@@ -105,7 +105,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 TransactionId = t.GetHash()
             }).ToList();
 
-            await poolService.ResetAndUpdate(txResults1);
+            await poolService.ResetAndUpdate(new HashSet<Hash>{keyPair.GetAddress()});
 
             var addr1 = keyPair.GetAddress();
             var context1 = await _accountContextService.GetAccountDataContext(addr1, pool.ChainId);
@@ -126,7 +126,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 TransactionId = t.GetHash()
             }).ToList();
 
-            await poolService.ResetAndUpdate(txResults2);
+            await poolService.ResetAndUpdate(new HashSet<Hash>{addr1});
             var context2 = await _accountContextService.GetAccountDataContext(addr1, pool.ChainId);
             Assert.Equal(4, (int)context2.IncrementId);
 
@@ -150,6 +150,34 @@ namespace AElf.Kernel.Tests.TxMemPool
 
 
         [Fact]
+        public async Task AddMultiTxs()
+        {
+            var pool = GetPool();
+            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
+                _transactionResultManager, _logger);
+            poolService.Start();
+            var kp = new KeyPairGenerator().Generate();
+            var tx1 = BuildTransaction(keyPair:kp, nonce: 0);
+            var tx2 = BuildTransaction(keyPair:kp, nonce: 1);
+            var tx2_1 = BuildTransaction(adrTo:Hash.Generate().ToAccount(), keyPair: kp, nonce: 1);
+            var r2 = await poolService.AddTxAsync(tx2);
+            Assert.Equal(TxValidation.TxInsertionAndBroadcastingError.Success, r2);
+            var r2_1 = await poolService.AddTxAsync(tx2_1);
+            Assert.Equal(TxValidation.TxInsertionAndBroadcastingError.Success, r2_1);
+
+            Assert.True(poolService.TryGetTx(tx2_1.GetHash(), out var tx));
+            Assert.Equal((ulong)0, await poolService.GetExecutableSizeAsync());
+            Assert.Equal((ulong)1, await poolService.GetWaitingSizeAsync());
+            var r1 = await poolService.AddTxAsync(tx1);
+            Assert.Equal(TxValidation.TxInsertionAndBroadcastingError.Success, r1);
+
+            Assert.True(poolService.TryGetTx(tx2_1.GetHash(), out tx));
+            Assert.Equal((ulong)2, await poolService.GetExecutableSizeAsync());
+            Assert.Equal((ulong)0, await poolService.GetWaitingSizeAsync());
+            
+       }
+
+        [Fact]
         public async Task RollBackTest()
         {
             var pool = GetPool();
@@ -157,7 +185,6 @@ namespace AElf.Kernel.Tests.TxMemPool
             var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
                 _transactionResultManager, _logger);
             poolService.Start();
-            
             
             var kp1 = new KeyPairGenerator().Generate();
             pool.TrySetNonce(kp1.GetAddress(), 2);

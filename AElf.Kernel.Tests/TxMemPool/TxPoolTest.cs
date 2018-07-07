@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.KernelAccount;
@@ -119,6 +121,21 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.Equal((ulong)0, pool.GetWaitingSize());
         }
 
+        [Fact]
+        public void Foreach()
+        {
+            var list = new List<int>();
+            int t = 1000;
+            while (t-- >0)
+            {
+                list.Add(t);
+            }
+            list.ForEach(async i =>
+            {
+                await Task.Delay(1000);
+                System.Diagnostics.Debug.WriteLine(i + " " + Thread.CurrentThread.ManagedThreadId);
+            });
+        }
         
         /*[Fact]
         public async Task ContainsTx_ReturnsTrue_AfterAdd()
