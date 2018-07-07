@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
@@ -28,6 +29,8 @@ namespace AElf.Kernel.Miner
         private readonly IWorldStateDictator _worldStateDictator;
         private ISmartContractService _smartContractService;
         private IConcurrencyExecutingService _concurrencyExecutingService;
+        private ITransactionManager _transactionManager;
+        private ITransactionResultManager _transactionResultManager;
 
 
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
@@ -54,7 +57,7 @@ namespace AElf.Kernel.Miner
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, 
                 IChainManager chainManager, IBlockManager blockManager, IWorldStateDictator worldStateDictator, 
-            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService)
+            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -63,6 +66,8 @@ namespace AElf.Kernel.Miner
             _worldStateDictator = worldStateDictator;
             _smartContractService = smartContractService;
             _concurrencyExecutingService = concurrencyExecutingService;
+            _transactionManager = transactionManager;
+            _transactionResultManager = transactionResultManager;
         }
 
         
@@ -125,7 +130,9 @@ namespace AElf.Kernel.Miner
                 // generate block
                 var block = await GenerateBlockAsync(Config.ChainId, results);
                 
-                await _txPoolService.ResetAndUpdate(results);
+                var addrs = await Update(ready, results);
+                await _txPoolService.ResetAndUpdate(addrs);
+                
                 // sign block
                 ECSigner signer = new ECSigner();
                 var hash = block.GetHash();
@@ -151,7 +158,26 @@ namespace AElf.Kernel.Miner
             }
         }
         
-        
+        /// <summary>
+        /// update database
+        /// </summary>
+        /// <param name="executedTxs"></param>
+        /// <param name="txResults"></param>
+        private async Task<HashSet<Hash>> Update(List<ITransaction> executedTxs, List<TransactionResult> txResults)
+        {
+            var addrs = new HashSet<Hash>();
+            foreach (var t in executedTxs)
+            {
+                addrs.Add(t.From);
+                await _transactionManager.AddTransactionAsync(t);
+            }
+            
+            txResults.ForEach(async r =>
+            {
+                await _transactionResultManager.AddTransactionResultAsync(r);
+            });
+            return addrs;
+        }
         
         /// <summary>
         /// generate block
