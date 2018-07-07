@@ -6,11 +6,20 @@ namespace AElf.Cryptography.ECDSA
     {
         public BigInteger[] Signature { get; }
 
-        public ECSignature(BigInteger[] signature)
+        internal ECSignature(BigInteger[] signature)
         {
             Signature = signature;
         }
 
+        public ECSignature(byte[] r, byte[] s)
+        {
+            var rs = new BigInteger[2];
+            rs[0] = new BigInteger(1, r);
+            rs[1] = new BigInteger(1, s);
+            Signature = rs;
+        }
+
+        
         public byte[] Encoded()
         {
             byte[] x = Signature[0].ToByteArrayUnsigned();
@@ -30,7 +39,7 @@ namespace AElf.Cryptography.ECDSA
                 if (Signature == null || Signature.Length != 2)
                     return null;
 
-                return Signature[0].ToByteArray();
+                return Signature[0].ToByteArrayUnsigned();
             }
         }
         
@@ -41,7 +50,7 @@ namespace AElf.Cryptography.ECDSA
                 if (Signature == null || Signature.Length != 2)
                     return null;
 
-                return Signature[1].ToByteArray();
+                return Signature[1].ToByteArrayUnsigned();
             }
         }
     }
