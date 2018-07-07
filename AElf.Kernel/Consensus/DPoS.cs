@@ -46,7 +46,7 @@ namespace AElf.Kernel.Consensus
             return txs.Select(t =>
             {
                 var signer = new ECSigner();
-                var signature = signer.Sign(_keyPair, t.GetHash().GetBytes());
+                var signature = signer.Sign(_keyPair, t.GetHash().GetHashBytes());
 
                 // Update the signature
                 ((Transaction) t).R = ByteString.CopyFrom(signature.R);
@@ -69,7 +69,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -91,7 +91,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -113,7 +113,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -137,7 +137,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -160,7 +160,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -183,7 +183,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -228,7 +228,7 @@ namespace AElf.Kernel.Consensus
             return txs.Select(t =>
             {
                 var signer = new ECSigner();
-                var signature = signer.Sign(_keyPair, t.GetHash().GetBytes());
+                var signature = signer.Sign(_keyPair, t.GetHash().GetHashBytes());
 
                 // Update the signature
                 ((Transaction) t).R = ByteString.CopyFrom(signature.R);
@@ -252,7 +252,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -281,7 +281,7 @@ namespace AElf.Kernel.Consensus
             return txs.Select(t =>
             {
                 var signer = new ECSigner();
-                var signature = signer.Sign(_keyPair, t.GetHash().GetBytes());
+                var signature = signer.Sign(_keyPair, t.GetHash().GetHashBytes());
 
                 // Update the signature
                 ((Transaction) t).R = ByteString.CopyFrom(signature.R);
@@ -303,7 +303,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -325,7 +325,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -347,7 +347,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -370,7 +370,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -392,7 +392,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -414,7 +414,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -437,7 +437,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -459,7 +459,7 @@ namespace AElf.Kernel.Consensus
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);

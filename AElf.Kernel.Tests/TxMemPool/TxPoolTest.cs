@@ -65,7 +65,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             // Sign the hash
             ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.GetBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
             
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);

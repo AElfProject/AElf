@@ -18,7 +18,7 @@ namespace AElf.Kernel
         
         public Hash ToAccount()
         {
-            return GetBytes().Take(ECKeyPair.AddressLength).ToArray();
+            return GetHashBytes().Take(ECKeyPair.AddressLength).ToArray();
         }
         
         public static readonly Hash Zero = new Hash("AElf".CalculateHash()).ToAccount();
@@ -36,7 +36,7 @@ namespace AElf.Kernel
             Value = value;
         }
 
-        public byte[] GetBytes() => Value.ToByteArray();
+        public byte[] GetHashBytes() => Value.ToByteArray();
 
         public bool Equals(IHash other)
         {
@@ -83,7 +83,7 @@ namespace AElf.Kernel
 
         public string ToHex()
         {
-            return GetBytes().ToHex();
+            return GetHashBytes().ToHex();
         }
         
     }

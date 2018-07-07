@@ -147,7 +147,7 @@ namespace AElf.Kernel.Tests
             //Set data to one sub DataProvider("test").
             var dataProvider = accountDataProvider.GetDataProvider();
             var subDataProvider = dataProvider.GetDataProvider(str);
-            var data1 = Hash.Generate().GetBytes();
+            var data1 = Hash.Generate().GetHashBytes();
             var key = new Hash("testkey".CalculateHash());
             await subDataProvider.SetAsync(key, data1);
 
@@ -163,7 +163,7 @@ namespace AElf.Kernel.Tests
             dataProvider = accountDataProvider.GetDataProvider();
             subDataProvider = dataProvider.GetDataProvider(str);
             //Change the data.
-            var data2 = Hash.Generate().GetBytes();
+            var data2 = Hash.Generate().GetHashBytes();
             await subDataProvider.SetAsync(key, data2);
             Assert.False(data1.SequenceEqual(data2));
 
@@ -184,7 +184,7 @@ namespace AElf.Kernel.Tests
             accountDataProvider = await worldStateManager.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
             subDataProvider = dataProvider.GetDataProvider(str);
-            var data3 = Hash.Generate().GetBytes();
+            var data3 = Hash.Generate().GetHashBytes();
             await subDataProvider.SetAsync(key, data3);
 
             //See the ability to get data of first WorldState.

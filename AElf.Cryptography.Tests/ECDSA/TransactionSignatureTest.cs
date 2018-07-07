@@ -34,7 +34,7 @@ namespace AElf.Cryptography.Tests.ECDSA
             
             // Sign the hash
             ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.GetBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
             
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
@@ -55,7 +55,7 @@ namespace AElf.Cryptography.Tests.ECDSA
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
             
-            Assert.True(verifier.Verify(dTx.GetSignature(), dHash.GetBytes()));
+            Assert.True(verifier.Verify(dTx.GetSignature(), dHash.GetHashBytes()));
         }
     }
 }

@@ -174,7 +174,7 @@ namespace AElf.Kernel.Tests.Miner
             
             Hash hash = txnDep.GetHash();
 
-            ECSignature signature = signer.Sign(keyPair, hash.GetBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
             txnDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txnDep.R = ByteString.CopyFrom(signature.R); 
             txnDep.S = ByteString.CopyFrom(signature.S);
@@ -247,7 +247,7 @@ namespace AElf.Kernel.Tests.Miner
             
             Hash hash = txPrint.GetHash();
 
-            ECSignature signature = signer.Sign(keyPair, hash.GetBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
             txPrint.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txPrint.R = ByteString.CopyFrom(signature.R); 
             txPrint.S = ByteString.CopyFrom(signature.S);
@@ -331,7 +331,7 @@ namespace AElf.Kernel.Tests.Miner
             
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
-            Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().GetBytes()));
+            Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().GetHashBytes()));
 
         }
         
@@ -368,7 +368,7 @@ namespace AElf.Kernel.Tests.Miner
             
             ECKeyPair recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             ECVerifier verifier = new ECVerifier(recipientKeyPair);
-            Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().GetBytes()));
+            Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().GetHashBytes()));
 
         }
         

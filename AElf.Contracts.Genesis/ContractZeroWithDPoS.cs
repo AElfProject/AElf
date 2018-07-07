@@ -20,10 +20,10 @@ namespace AElf.Contracts.Genesis
         private const int MiningTime = 8000;
 
         // After the chain creator start a chain, wait for other mimers join
-        private const int WaitFirstRoundTime = 16000;
+        private const int WaitFirstRoundTime = 12000;
 
         // Block producers check interval
-        private const int CheckTime = 3000;
+        private const int CheckTime = 2000;
 
         private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");
         
@@ -40,8 +40,8 @@ namespace AElf.Contracts.Genesis
 
         private readonly Map<UInt64Value, StringValue> _firstPlaceMap
             = new Map<UInt64Value, StringValue>("FirstPlaceOfEachRound");
-        
-        private readonly object _lock;
+
+        private readonly bool _printLog = true;
  
         private UInt64Value RoundsCount => new UInt64Value {Value = _roundsCount.GetAsync().Result};
         
@@ -49,7 +49,7 @@ namespace AElf.Contracts.Genesis
         
         public async Task<BlockProducer> GetBlockProducers()
         {
-            // Should be setted before
+            // Should be setted before 
             var blockProducer = await _blockProducer.GetAsync();
 
             if (blockProducer.Nodes.Count < 1)
@@ -62,6 +62,7 @@ namespace AElf.Contracts.Genesis
 
         public async Task<BlockProducer> SetBlockProducers(BlockProducer blockProducers)
         {
+            //TODO: auto check this field, if not exists, may generate dpos info
             if (await _chainCreator.GetAsync() != null)
             {
                 return null;
@@ -85,7 +86,7 @@ namespace AElf.Contracts.Genesis
             // First round
             foreach (var node in blockProducers.Nodes)
             {
-                dict.Add(node, node[2]);
+                dict.Add(node, node[0]);
             }
 
             var sortedMiningNodes =
@@ -120,7 +121,7 @@ namespace AElf.Contracts.Genesis
             
             foreach (var node in blockProducers.Nodes)
             {
-                dict.Add(node, node[2]);
+                dict.Add(node, node[0]);
             }
             
             sortedMiningNodes =
@@ -194,7 +195,7 @@ namespace AElf.Contracts.Genesis
 
         public async Task<RoundInfo> GenerateNextRoundOrder()
         {
-            if (!await Authentication())
+            if (!await Authentication(nameof(GenerateNextRoundOrder)))
             {
                 return null;
             }
@@ -252,7 +253,7 @@ namespace AElf.Contracts.Genesis
         
         public async Task<StringValue> SetNextExtraBlockProducer()
         {
-            if (!await Authentication())
+            if (!await Authentication(nameof(SetNextExtraBlockProducer)))
             {
                 return null;
             }
@@ -277,32 +278,15 @@ namespace AElf.Contracts.Genesis
             return new StringValue {Value = nextEBP};
         }
         
-        public async Task<UInt64Value> SetRoundsCount()
-        {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
-            var newRoundsCount = RoundsCountAddOne(RoundsCount);
-
-            return newRoundsCount;
-        }
-        
         public async Task<UInt64Value> GetRoundsCount()
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             return new UInt64Value {Value = await _roundsCount.GetAsync()};
         }
 
         // ReSharper disable once InconsistentNaming
         public async Task SyncStateOfNextRound(RoundInfo suppliedPreviousRoundInfo, RoundInfo nextRoundInfo, StringValue nextEBP)
         {
-            if (!await Authentication())
+            if (!await Authentication(nameof(SyncStateOfNextRound)))
             {
                 return;
             }
@@ -335,14 +319,14 @@ namespace AElf.Contracts.Genesis
             //Update the rounds count at last
             await _roundsCount.SetAsync(RoundsCountAddOne(RoundsCount).Value);
 
-            Console.WriteLine($"Sync dpos info of round {RoundsCount.Value} succeed");
+            ConsoleWriteLine($"Sync dpos info of round {RoundsCount.Value} succeed");
         }
 
         #endregion
 
         public async Task<BoolValue> ReadyForHelpingProducingExtraBlock()
         {
-            if (!await Authentication())
+            if (!await Authentication(nameof(ReadyForHelpingProducingExtraBlock)))
             {
                 return null;
             }
@@ -363,33 +347,51 @@ namespace AElf.Contracts.Genesis
                 orderDiff = blockProducerCount + orderDiff;
             }
 
-            var assignedExtraBlockProducingTime = await _timeForProducingExtraBlock.GetAsync();
-            var assigendExtraBlockProducingTimeEnd =
-                GetTimestamp(assignedExtraBlockProducingTime, CheckTime + MiningTime);
+            var timeOfARound = MiningTime * blockProducerCount + CheckTime + MiningTime;
 
+            var assignedExtraBlockProducingTime = await _timeForProducingExtraBlock.GetAsync();
+            var assignedExtraBlockProducingTimeOfNextRound = GetTimestamp(assignedExtraBlockProducingTime, timeOfARound);
+            var assigendExtraBlockProducingTimeOfNextRoundEnd =
+                GetTimestamp(assignedExtraBlockProducingTimeOfNextRound, CheckTime + MiningTime);
+            
             var now = GetTimestampOfUtcNow();
 
             var offset = MiningTime * orderDiff - MiningTime;
-            var assigendExtraBlockProducingTimeEndWithOffset = GetTimestamp(assigendExtraBlockProducingTimeEnd, offset);
+            
+            var assigendExtraBlockProducingTimeEndWithOffset = GetTimestamp(assigendExtraBlockProducingTimeOfNextRoundEnd, offset);
 
-            var timeOfARound = MiningTime * blockProducerCount + CheckTime + MiningTime;
-            var timeDiff = (now - assigendExtraBlockProducingTimeEnd).Seconds * 1000;
+            var timeDiff = (now - assigendExtraBlockProducingTimeOfNextRoundEnd).Seconds * 1000;
+            
             var currentTimeslot = timeDiff % timeOfARound;
 
-            var afterTime = (offset - currentTimeslot) / 1000;
-            
+            var afterTime = (offset - timeDiff) / 1000;
+
             if (meAddress == (await _eBPMap.GetValueAsync(RoundsCount)).Value)
             {
-                Console.WriteLine($"[{GetTimestampOfUtcNow().ToDateTime().ToLocalTime():T} - DPoS]: I am the EBP of this round - RoundCount:" + RoundsCount);
-                afterTime = (assignedExtraBlockProducingTime - now).Seconds;
+                ConsoleWriteLine($"I am the EBP of this round - RoundCount:{RoundsCount}");
+                afterTime = (assignedExtraBlockProducingTimeOfNextRound - now).Seconds;
             }
             
             if (afterTime < 0)
             {
+                //The only reason to come here is checking ability after expected timeslot
+                //So the abs of afterTime should not greater than CheckTime
+                if (afterTime < -MiningTime)
+                {
+                    ConsoleWriteLine($"Something weird happened to ready-for-help checking");
+                }
                 afterTime = 0;
             }
             
-            Console.WriteLine($"[{GetTimestampOfUtcNow().ToDateTime().ToLocalTime():T} - DPoS]: Will produce extra block after {afterTime}s");
+            if (timeDiff > timeOfARound)
+            {
+                afterTime = afterTime + timeOfARound;
+            }
+
+            ConsoleWriteLine(CompareTimestamp(assignedExtraBlockProducingTime, now)
+                ? $"Will publish In Value after {(assignedExtraBlockProducingTime - now).Seconds}s"
+                : $"Will (help to) produce extra block after {afterTime}s");
+
 
             if (afterTime > 0)
             {
@@ -398,8 +400,6 @@ namespace AElf.Contracts.Genesis
             
             if (currentTimeslot > offset && currentTimeslot < offset + MiningTime)
             {
-                Console.WriteLine("currentTimeslot:" + currentTimeslot);
-                Console.WriteLine("offset:" + offset);
                 return new BoolValue {Value = true};
             }
             
@@ -423,7 +423,7 @@ namespace AElf.Contracts.Genesis
 
         public async Task<BPInfo> PublishOutValueAndSignature(Hash outValue, Hash signature, UInt64Value roundsCount)
         {
-            if (!await Authentication())
+            if (!await Authentication(nameof(PublishOutValueAndSignature)))
             {
                 return null;
             }
@@ -446,6 +446,11 @@ namespace AElf.Contracts.Genesis
 
         public async Task<Hash> TryToPublishInValue(Hash inValue, UInt64Value roundsCount)
         {
+            if (!await Authentication(nameof(TryToPublishInValue)))
+            {
+                return null;
+            }
+            
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
             
             var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, roundsCount);
@@ -465,7 +470,7 @@ namespace AElf.Contracts.Genesis
         /// <returns></returns>
         public async Task<RoundInfo> SupplyPreviousRoundInfo()
         {
-            if (!await Authentication())
+            if (!await Authentication(nameof(SupplyPreviousRoundInfo)))
             {
                 return null;
             }
@@ -493,8 +498,6 @@ namespace AElf.Contracts.Genesis
                 }
             }
 
-            //await _dPoSInfoMap.SetValueAsync(RoundsCount, roundInfo);
-
             return roundInfo;
         }
         
@@ -507,11 +510,6 @@ namespace AElf.Contracts.Genesis
 
         public async Task<Hash> GetInValueOf(string accountAddress, ulong roundsCount)
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             roundsCount = roundsCount == 0 ? RoundsCount.Value : roundsCount;
             return (await GetBlockProducerInfoOfSpecificRound(accountAddress,
                 new UInt64Value {Value = roundsCount}))?.InValue;
@@ -519,40 +517,25 @@ namespace AElf.Contracts.Genesis
         
         public async Task<Hash> GetOutValueOf(string accountAddress, ulong roundsCount)
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             var count = roundsCount == 0 ? RoundsCount : new UInt64Value {Value = roundsCount};
             return (await GetBlockProducerInfoOfSpecificRound(accountAddress, count))?.OutValue;
         }
         
         public async Task<Hash> GetSignatureOf(string accountAddress, ulong roundsCount)
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             var count = roundsCount == 0 ? RoundsCount : new UInt64Value {Value = roundsCount};
             return (await GetBlockProducerInfoOfSpecificRound(accountAddress, count))?.Signature;
         }
         
         public async Task<int?> GetOrderOf(string accountAddress, ulong roundsCount)
         {
-            if (!await Authentication())
-            {
-                return null;
-            }
-            
             var count = roundsCount == 0 ? RoundsCount : new UInt64Value {Value = roundsCount};
             return (await GetBlockProducerInfoOfSpecificRound(accountAddress, count))?.Order;
         }
         
         public async Task<Hash> CalculateSignature(Hash inValue)
         {
-            if (!await Authentication())
+            if (!await Authentication(nameof(CalculateSignature)))
             {
                 return null;
             }
@@ -572,11 +555,6 @@ namespace AElf.Contracts.Genesis
         
         public async Task<bool> AbleToMine()
         {
-            if (!await Authentication())
-            {
-                return false;
-            }
-            
             var accountHash = Api.GetTransaction().From;
             var accountAddress = AddressHashToString(accountHash);
             var now = GetTimestampOfUtcNow();
@@ -620,6 +598,10 @@ namespace AElf.Contracts.Genesis
         
         public async Task<bool> IsTimeToProduceExtraBlock()
         {
+            if (!await IsBP(AddressHashToString(Api.GetTransaction().From)))
+            {
+                return false;
+            }
             var expectedTime = await _timeForProducingExtraBlock.GetAsync();
             var now = GetTimestampOfUtcNow();
             return CompareTimestamp(now, expectedTime)
@@ -762,7 +744,7 @@ namespace AElf.Contracts.Genesis
                 }
             }
 
-            Console.WriteLine(accountAddress.Value + "may produce a block with invalid timeslot:" + timeslotOfBlockProducer.ToDateTime().ToString("u"));
+            ConsoleWriteLine(accountAddress.Value + " may produced a block in an invalid timeslot:" + timeslotOfBlockProducer.ToDateTime().ToString("u"));
 
             return new BoolValue {Value = false};
         }
@@ -822,20 +804,18 @@ namespace AElf.Contracts.Genesis
         {
             return (await _dPoSInfoMap.GetValueAsync(RoundsCount)).Info[accountAddress];
         }
-
         
+        // ReSharper disable once MemberCanBeMadeStatic.Local
         private string AddressHashToString(Hash accountHash)
         {
             return accountHash.ToAccount().ToHex();
         }
 
-        private Hash HexStringToHash(string accountAddress)
-        {
-            return ByteArrayHelpers.FromHexString(accountAddress);
-        }
 
         /// <summary>
-        /// In case of forgetting to check negtive value
+        /// In case of forgetting to check negtive value.
+        /// For now this method only used for generating order,
+        /// so integer should be enough.
         /// </summary>
         /// <param name="uLongVal"></param>
         /// <param name="intVal"></param>
@@ -843,15 +823,34 @@ namespace AElf.Contracts.Genesis
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private int GetModulus(ulong uLongVal, int intVal)
         {
-            var m = (int) uLongVal % intVal;
-
-            return Math.Abs(m);
+            return Math.Abs((int) (uLongVal % (ulong) intVal));
         }
 
-        private async Task<bool> Authentication()
+        private async Task<bool> Authentication(string methodName)
         {
-            var fromAccount = Api.GetTransaction().From.ToHex();
-            return (await GetBlockProducers()).Nodes.Contains(fromAccount);
+            var fromAccount = ConvertToNormalHexString(Api.GetTransaction().From.Value.ToByteArray().ToHex());
+            var result = (await GetBlockProducers()).Nodes.Contains(fromAccount);
+            //ConsoleWriteLine($"Checked privilege to call consensus method {methodName}: {result}");
+            return result;
+        }
+
+        // ReSharper disable once MemberCanBeMadeStatic.Local
+        private string ConvertToNormalHexString(string hexStr)
+        {
+            return hexStr.StartsWith("0x") ? hexStr.Remove(0, 2) : hexStr;
+        }
+
+        private DateTime GetLocalTime()
+        {
+            return GetTimestampOfUtcNow().ToDateTime().ToLocalTime();
+        }
+
+        private void ConsoleWriteLine(string log)
+        {
+            if (_printLog)
+            {
+                Console.WriteLine($"[{GetLocalTime():HH:mm:ss} - DPoS]{log}");
+            }
         }
 
         #endregion

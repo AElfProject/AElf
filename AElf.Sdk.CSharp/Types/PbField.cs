@@ -163,7 +163,7 @@ namespace AElf.Sdk.CSharp.Types
         }
         public async Task<ulong> GetAsync()
         {
-            return (await _inner.GetAsync())?.Value ?? default(ulong);
+            return (await _inner.GetAsync())?.Value ?? 0;
         }
     }
 

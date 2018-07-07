@@ -27,21 +27,12 @@ namespace AElf.Kernel.Managers
 
         public async Task<bool> AppendBlockToChainAsync(IBlock block)
         {
-            try
-            {
-                if(block.Header == null)
-                    throw new InvalidDataException("Invalid block");
+            if(block.Header == null)
+                throw new InvalidDataException("Invalid block");
 
-                var chainId = block.Header.ChainId;
+            var chainId = block.Header.ChainId;
                 
-                await AppendBlockHeaderAsync(block.Header);
-
-                
-            }
-            catch (Exception e)
-            {
-                throw;
-            }
+            await AppendBlockHeaderAsync(block.Header);
 
             return true;
         }
@@ -78,8 +69,6 @@ namespace AElf.Kernel.Managers
                 //Block is not connected
             }
 
-            Console.WriteLine($"Previous block hash: {lastBlockHash.ToHex()}");
-            
             await InitialHeightOfBlock(chainId);
             await _heightOfBlock.SetAsync(new UInt64Value {Value = header.Index}.CalculateHash(), 
                 header.GetHash().ToByteArray());
@@ -125,7 +114,7 @@ namespace AElf.Kernel.Managers
         {
             var key = Path.CalculatePointerForLastBlockHash(chainId);
             _worldStateDictator.PreBlockHash = blockHash;
-            await _dataStore.SetDataAsync(key, blockHash.GetBytes());
+            await _dataStore.SetDataAsync(key, blockHash.GetHashBytes());
         }
         
         private async Task InitialHeightOfBlock(Hash chainId)

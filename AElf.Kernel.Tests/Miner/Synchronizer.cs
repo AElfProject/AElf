@@ -200,7 +200,7 @@ namespace AElf.Kernel.Tests.Miner
             
             Hash hash = txnDep.GetHash();
 
-            ECSignature signature1 = signer.Sign(keyPair, hash.GetBytes());
+            ECSignature signature1 = signer.Sign(keyPair, hash.GetHashBytes());
             txnDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txnDep.R = ByteString.CopyFrom(signature1.R); 
             txnDep.S = ByteString.CopyFrom(signature1.S);
@@ -215,7 +215,7 @@ namespace AElf.Kernel.Tests.Miner
                 
                 Fee = TxPoolConfig.Default.FeeThreshold + 1
             };
-            ECSignature signature2 = signer.Sign(keyPair, txInv_1.GetHash().GetBytes());
+            ECSignature signature2 = signer.Sign(keyPair, txInv_1.GetHash().GetHashBytes());
             txInv_1.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txInv_1.R = ByteString.CopyFrom(signature2.R); 
             txInv_1.S = ByteString.CopyFrom(signature2.S);
@@ -231,7 +231,7 @@ namespace AElf.Kernel.Tests.Miner
                 Fee = TxPoolConfig.Default.FeeThreshold + 1
             };
             
-            ECSignature signature3 = signer.Sign(keyPair, txInv_2.GetHash().GetBytes());
+            ECSignature signature3 = signer.Sign(keyPair, txInv_2.GetHash().GetHashBytes());
             txInv_2.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txInv_2.R = ByteString.CopyFrom(signature3.R); 
             txInv_2.S = ByteString.CopyFrom(signature3.S);

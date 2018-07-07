@@ -29,7 +29,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             await s.AddBlockToSync(b);
             s.SetTransaction(missingTxHash);
 
-            byte[] array = b.GetHash().GetBytes();
+            byte[] array = b.GetHash().GetHashBytes();
             PendingBlock p = s.GetBlock(array);
             
             Assert.Equal(p.BlockHash, array);

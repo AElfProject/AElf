@@ -87,9 +87,7 @@ namespace AElf.Kernel.Node
                 var blockProducers = new BlockProducer();
                 foreach (var bp in dict.Values)
                 {
-                    blockProducers.Nodes.Add(
-                        ByteArrayHelpers.FromHexString(bp["address"]).ToHex()
-                    );
+                    blockProducers.Nodes.Add(ConvertToNormalHexString(bp["address"]));
                 }
 
                 return blockProducers;
@@ -360,6 +358,7 @@ namespace AElf.Kernel.Node
         {
             try
             {
+                // ReSharper disable once InconsistentNaming
                 var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId))
                     .IncrementId;
                 var idInPool = _poolService.GetIncrementId(addr);
@@ -478,7 +477,7 @@ namespace AElf.Kernel.Node
             
             Hash hash = txDep.GetHash();
 
-            ECSignature signature = signer.Sign(keyPair, hash.GetBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
             txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txDep.R = ByteString.CopyFrom(signature.R); 
             txDep.S = ByteString.CopyFrom(signature.S);
@@ -504,7 +503,7 @@ namespace AElf.Kernel.Node
             
             Hash txhash = txInv.GetHash();
 
-            ECSignature signature = signer.Sign(keyPair, txhash.GetBytes());
+            ECSignature signature = signer.Sign(keyPair, txhash.GetHashBytes());
             txInv.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txInv.R = ByteString.CopyFrom(signature.R); 
             txInv.S = ByteString.CopyFrom(signature.S);
@@ -540,7 +539,7 @@ namespace AElf.Kernel.Node
             
             Hash hash = txDep.GetHash();
 
-            ECSignature signature = signer.Sign(keyPair, hash.GetBytes());
+            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
             txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             txDep.R = ByteString.CopyFrom(signature.R); 
             txDep.S = ByteString.CopyFrom(signature.S);
@@ -581,6 +580,8 @@ namespace AElf.Kernel.Node
             var block =  await _miner.Mine();
             
             int b = Interlocked.CompareExchange(ref _flag, 0, 1);
+
+            _protocolDirector.IncrementChainHeight();
             
             _logger?.Trace($"Mine - Leaving mining {b}");
             
@@ -673,10 +674,10 @@ namespace AElf.Kernel.Node
         {
             new EventLoopScheduler().Schedule(() =>
             {
-                Console.WriteLine("-- DPoS Mining Has been fired!");
+                _logger.Debug("-- DPoS Mining Has been fired!");
                 
                 _dPoS = new DPoS(_nodeKeyPair);
-                    
+
                 //Record the rounds count in local memory
                 ulong roundsCount = 0;
                 
@@ -694,27 +695,24 @@ namespace AElf.Kernel.Node
 
                 var dPoSInfo = "";
 
-                var flag = false;
-                
                 var intervalSequnce = GetIntervalObservable();
                 intervalSequnce.Subscribe
                 (
                     async x =>
                     {
+                        _logger.Debug("---- DPoS checking start");
                         var currentHeightOfThisNode = (long) await _chainManager.GetChainCurrentHeight(ChainId);
                         var currentHeightOfOtherNodes = _protocolDirector.GetLatestIndexOfOtherNode();
-                        if (currentHeightOfThisNode < currentHeightOfOtherNodes && currentHeightOfOtherNodes != -1 && !flag)
+                        if (currentHeightOfThisNode < currentHeightOfOtherNodes && currentHeightOfOtherNodes != -1)
                         {
-                            Console.WriteLine("Current height of me: " + currentHeightOfThisNode);
-                            Console.WriteLine("Current height of others: " + currentHeightOfOtherNodes);
-                            Console.WriteLine("Having more blocks to sync, so the dpos mining won't start");
-                            flag = true;
+                            _logger.Debug("Current height of me: " + currentHeightOfThisNode);
+                            _logger.Debug("Current height of others: " + currentHeightOfOtherNodes);
+                            _logger.Debug("Having more blocks to sync, so the dpos mining won't start");
+                            _logger?.Debug("---- DPoS checking end");
                             return;
                         }
 
-                        flag = false;
-                        
-                        var actualRoundsCount = await GetActualRoundsCount();
+                        var actualRoundsCount = x == 0 ? 0 : await GetActualRoundsCount();
                         if (roundsCount != actualRoundsCount)
                         {
                             //Update the rounds count
@@ -729,7 +727,10 @@ namespace AElf.Kernel.Node
                         if (x == 0)
                         {
                             if (!_nodeConfig.ConsensusInfoGenerater)
+                            {
+                                _logger?.Debug("---- DPoS checking end");
                                 return;
+                            }
                             
                             var dpoSInfo = await ExecuteTxsForFirstExtraBlock();
 
@@ -744,6 +745,7 @@ namespace AElf.Kernel.Node
                                 "Generate first extra block: \"{0}\", with [{1}] transactions",
                                 firstBlock.GetHash().ToHex(),
                                 firstBlock.Body.Transactions.Count);
+                            _logger?.Debug("---- DPoS checking end");
                             return;
                         }
 
@@ -758,7 +760,7 @@ namespace AElf.Kernel.Node
                             if (dPoSInfo != currentDPoSInfo)
                             {
                                 dPoSInfo = currentDPoSInfo;
-                                _logger.Log(LogLevel.Debug, dPoSInfo);
+                                _logger?.Log(LogLevel.Debug, dPoSInfo);
                             }
                         }
 
@@ -785,16 +787,22 @@ namespace AElf.Kernel.Node
                                 var block = await Mine();
 
                                 if (!await BroadcastBlock(block))
+                                {
+                                    _logger?.Debug("---- DPoS checking end");
                                     return;
+                                }
 
                                 latestMinedNormalBlockRoundsCount = roundsCount;
 
-                                _logger.Log(LogLevel.Debug,
+                                _logger?.Log(LogLevel.Debug,
                                     "Generate block: \"{0}\", with [{1}] transactions\n Published out value: {2}\n signature: \"{3}\"",
                                     block.GetHash().Value.ToByteArray().ToHex(), 
                                     block.Body.Transactions.Count,
                                     outValue.Value.ToByteArray().ToHex().Remove(0, 2),
                                     signature.Value.ToByteArray().ToHex().Remove(0, 2));
+                                
+                                _logger?.Debug("---- DPoS checking end");
+
                                 return;
                             }
                         }
@@ -814,6 +822,8 @@ namespace AElf.Kernel.Node
 
                                 lastTryToPublishInValueRoundsCount = roundsCount;
 
+                                _logger?.Debug("---- DPoS checking end");
+
                                 return;
                             }
 
@@ -829,14 +839,22 @@ namespace AElf.Kernel.Node
                                 var extraBlock = await Mine(); //Which is an extra block
 
                                 if (!await BroadcastBlock(extraBlock))
+                                {
+                                    _logger?.Debug(extraBlock == null
+                                        ? $"Block broadcast failed: failed to mine extra block"
+                                        : $"Block broadcast failed: height {extraBlock?.Header.Index}");
+                                    _logger?.Debug("---- DPoS checking end");
                                     return;
+                                }
 
                                 latestMinedExtraBlockRoundsCount = roundsCount;
 
-                                _logger.Log(LogLevel.Debug,
+                                _logger?.Log(LogLevel.Debug,
                                     "Generate extra block: {0}, with {1} transactions",
                                     extraBlock.GetHash().Value.ToByteArray().ToHex(), 
                                     extraBlock.Body.Transactions.Count);
+
+                                _logger?.Debug("---- DPoS checking end");
 
                                 return;
                             }
@@ -846,8 +864,8 @@ namespace AElf.Kernel.Node
 
                         #region Try to help mining extra block
 
-                        if (latestTriedToHelpProducingExtraBlockRoundsCount != roundsCount &&
-                            await CheckAbleToHelpMiningExtraBlock())
+                        if (await CheckAbleToHelpMiningExtraBlock() && 
+                            latestTriedToHelpProducingExtraBlockRoundsCount != roundsCount)
                         {
                             var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
 
@@ -858,39 +876,43 @@ namespace AElf.Kernel.Node
 
                             var extraBlock = await Mine(); //Which is an extra block
 
-                            if (await BroadcastBlock(extraBlock))
+                            if (!await BroadcastBlock(extraBlock))
                             {
-                                latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
-
-                                Console.WriteLine("round:" + roundsCount);
-
-                                _logger.Log(LogLevel.Debug,
-                                    "Help to generate extra block: {0}, with {1} transactions",
-                                    extraBlock.GetHash().Value.ToByteArray().ToHex(),
-                                    extraBlock.Body.Transactions.Count);
+                                _logger?.Debug(extraBlock == null
+                                    ? $"Block broadcast failed: failed to mine extra block"
+                                    : $"Block broadcast failed: height {extraBlock?.Header.Index}");
+                                _logger?.Debug("---- DPoS checking end");
+                                return;
                             }
+                            
+                            latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
+
+                            _logger?.Log(LogLevel.Debug,
+                                "Help to generate extra block: {0}, with {1} transactions",
+                                extraBlock.GetHash().Value.ToByteArray().ToHex(),
+                                extraBlock.Body.Transactions.Count);
+                            
                         }
+                        
+                        _logger?.Debug("---- DPoS checking end");
 
                         #endregion
                     },
 
                     ex =>
                     {
-                        Console.WriteLine("Error occurs to dpos part");
+                        _logger.Error("Error occurs to dpos part");
                     },
 
                     () =>
                     {
-                        Console.WriteLine("Complete dpos");
+                        _logger.Debug("Complete dpos");
                     }
                 );
                 
             });
         }
        
-
-
-
         private async Task<DPoSInfo> ExecuteTxsForFirstExtraBlock()
         {
             var txsForFirstExtraBlock = _dPoS.GetTxsForFirstExtraBlock(
@@ -960,6 +982,7 @@ namespace AElf.Kernel.Node
 
                 if (!tc.Trace.StdErr.IsNullOrEmpty())
                 {
+                    _logger?.Error(tc.Trace.StdErr);
                     continue;
                 }
                 
@@ -1000,10 +1023,13 @@ namespace AElf.Kernel.Node
             };
             Executive.SetTransactionContext(tcGetRoundsCountTx).Apply(true).Wait();
             
-            if (tcGetRoundsCountTx.Trace.StdErr.IsNullOrEmpty())
+            if (tcGetRoundsCountTx.Trace.IsSuccessful())
             {
                 return tcGetRoundsCountTx.Trace.RetVal.Data.DeserializeToUInt64();
             }
+            
+            _logger?.Debug("Failed to get rounds count");
+            _logger?.Error(tcGetRoundsCountTx.Trace.StdErr);
 
             return 0;
         }
@@ -1018,13 +1044,16 @@ namespace AElf.Kernel.Node
             };
             Executive.SetTransactionContext(tcGetDPoSInfo).Apply(true).Wait();
 
-            if (!tcGetDPoSInfo.Trace.StdErr.IsNullOrEmpty())
+            if (tcGetDPoSInfo.Trace.IsSuccessful())
             {
-                return "";
+                return tcGetDPoSInfo.Trace.RetVal.Data.DeserializeToString() + 
+                       "\nCurrent Block Height:" + await _chainManager.GetChainCurrentHeight(ChainId);
             }
             
-            return tcGetDPoSInfo.Trace.RetVal.Data.DeserializeToString() + 
-                   "\nCurrent Block Height:" + await _chainManager.GetChainCurrentHeight(ChainId);
+            _logger?.Debug("Failed to get dpos information");
+            _logger?.Error(tcGetDPoSInfo.Trace.StdErr);
+            
+            return "";
         }
         
         // ReSharper disable once MemberCanBeMadeStatic.Local
@@ -1035,73 +1064,124 @@ namespace AElf.Kernel.Node
 
         private async Task<Hash> CalculateSignature(Hash inValue)
         {
-            var tcCalculateSignature = new TransactionContext
+            try
             {
-                Transaction =
-                    _dPoS.GetCalculateSignatureTx(
-                        await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash,
-                        inValue)
-            };
-            Executive.SetTransactionContext(tcCalculateSignature).Apply(true).Wait();
-            return tcCalculateSignature.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
+                var tcCalculateSignature = new TransactionContext
+                {
+                    Transaction =
+                        _dPoS.GetCalculateSignatureTx(
+                            await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash,
+                            inValue)
+                };
+                Executive.SetTransactionContext(tcCalculateSignature).Apply(true).Wait();
+                return tcCalculateSignature.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Failed to calculate signature");
+                return Hash.Generate();
+            }
         }
 
         private async Task<bool> CheckAbleToMineNormalBlock()
         {
-            var tcAbleToMine = new TransactionContext
+            try
             {
-                Transaction = _dPoS.GetAbleToMineTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
-                    ContractAccountHash)
-            };
-            Executive.SetTransactionContext(tcAbleToMine).Apply(true).Wait();
+                var tcAbleToMine = new TransactionContext
+                {
+                    Transaction = _dPoS.GetAbleToMineTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
+                        ContractAccountHash)
+                };
+                Executive.SetTransactionContext(tcAbleToMine).Apply(true).Wait();
                             
-            return tcAbleToMine.Trace.RetVal.Data.DeserializeToBool();
+                return tcAbleToMine.Trace.RetVal.Data.DeserializeToBool();
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Failed to check the ability to mine normal block");
+                return false;
+            }
         }
 
         private async Task<bool> CheckAbleToHelpMiningExtraBlock()
         {
-            var tcAbleToHelp = new TransactionContext
+            try
             {
-                Transaction = _dPoS.GetReadyForHelpingProducingExtraBlockTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
-                    ContractAccountHash)
-            };
-            Executive.SetTransactionContext(tcAbleToHelp).Apply(true).Wait();
-                            
-            return tcAbleToHelp.Trace.RetVal.Data.DeserializeToBool();
+                var tcAbleToHelp = new TransactionContext
+                {
+                    Transaction =
+                        _dPoS.GetReadyForHelpingProducingExtraBlockTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
+                            ContractAccountHash)
+                };
+                Executive.SetTransactionContext(tcAbleToHelp).Apply(true).Wait();
+                
+                if (!tcAbleToHelp.Trace.StdErr.IsNullOrEmpty())
+                {
+                    _logger?.Error(tcAbleToHelp.Trace.StdErr);
+                    return false;
+                }
+                
+                return tcAbleToHelp.Trace.RetVal.Data.DeserializeToBool();
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, "Failed to check the ability to help mining extra block");
+                return false;
+            }
         }
 
         private async Task<bool> CheckIsTimeToMineExtraBlock()
         {
-            // ReSharper disable once InconsistentNaming
-            var tcIsTimeToProduceEB = new TransactionContext
+            try
             {
-                Transaction =
-                    _dPoS.GetIsTimeToProduceExtraBlockTx(
-                        await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
-            };
-            Executive.SetTransactionContext(tcIsTimeToProduceEB).Apply(true).Wait();
+                // ReSharper disable once InconsistentNaming
+                var tcIsTimeToProduceEB = new TransactionContext
+                {
+                    Transaction =
+                        _dPoS.GetIsTimeToProduceExtraBlockTx(
+                            await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
+                };
+                Executive.SetTransactionContext(tcIsTimeToProduceEB).Apply(true).Wait();
 
-            // ReSharper disable once InconsistentNaming
-            return tcIsTimeToProduceEB.Trace.RetVal.Data.DeserializeToBool();
+                // ReSharper disable once InconsistentNaming
+                return tcIsTimeToProduceEB.Trace.RetVal.Data.DeserializeToBool();
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, "Failed to check the time to mine extra block");
+                return false;
+            }
         }
 
         private async Task<bool> CheckAbleToMineExtraBlock()
         {
-            // ReSharper disable once InconsistentNaming
-            var tcAbleToProduceEB = new TransactionContext
+            try
             {
-                Transaction =
-                    _dPoS.GetAbleToProduceExtraBlockTx(
-                        // This tx won't be broadcasted
-                        await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
-            };
-            Executive.SetTransactionContext(tcAbleToProduceEB).Apply(true).Wait();
+                // ReSharper disable once InconsistentNaming
+                var tcAbleToProduceEB = new TransactionContext
+                {
+                    Transaction =
+                        _dPoS.GetAbleToProduceExtraBlockTx(
+                            // This tx won't be broadcasted
+                            await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
+                };
+                Executive.SetTransactionContext(tcAbleToProduceEB).Apply(true).Wait();
 
-            // ReSharper disable once InconsistentNaming
-            var res = tcAbleToProduceEB.Trace.RetVal.Data.DeserializeToBool();
-            return res;
+                // ReSharper disable once InconsistentNaming
+                var res = tcAbleToProduceEB.Trace.RetVal.Data.DeserializeToBool();
+                return res;
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, "Failed to check the ability to mine extra block");
+                return false;
+            }
         }
 
+        private string ConvertToNormalHexString(string hexStr)
+        {
+            return hexStr.StartsWith("0x") ? hexStr.Remove(0, 2) : hexStr;
+        }
         
         #endregion
     }

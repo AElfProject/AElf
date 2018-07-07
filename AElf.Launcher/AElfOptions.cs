@@ -7,7 +7,7 @@ namespace AElf.Launcher
     {
         #region Chain
 
-        [Option("chain.new", Default = false, HelpText = "Create a new chain if true")]
+        [Option('n', "chain.new", Default = false, HelpText = "Create a new chain if true")]
         public bool NewChain { get; set; }
 
         [Option("chain.coinbase", HelpText = "Miner coinbase when a new chain created")]
@@ -56,7 +56,7 @@ namespace AElf.Launcher
 
         #region Database
 
-        [Option("db.type", HelpText = "The type of database.")]
+        [Option('t', "db.type", HelpText = "The type of database.")]
         public string DBType { get; set; }
 
         [Option("db.host", HelpText = "The IP address of database.")]
@@ -88,14 +88,14 @@ namespace AElf.Launcher
 
         #region Miner
 
-        [Option("mine.enable", Default = false, HelpText = "To be a miner verification needed ")]
+        [Option('m', "mine.enable", Default = false, HelpText = "To be a miner verification needed ")]
         public bool IsMiner { get; set; }
 
         #endregion
 
         #region DPOS
 
-        [Option("dpos.generator", Default = false, HelpText = "Is the one who will generate DPoS information")]
+        [Option('g', "dpos.generator", Default = false, HelpText = "Is the one who will generate DPoS information")]
         public bool IsConsensusInfoGenerator { get; set; }
 
         #endregion

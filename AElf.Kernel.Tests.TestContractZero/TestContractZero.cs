@@ -112,7 +112,7 @@ namespace AElf.Kernel.Tests
             
             await Api.DeployContractAsync(account, registration);
             Console.WriteLine("Deployment success, {0}", account.ToHex());
-            return account.GetBytes();
+            return account.GetHashBytes();
         }
 
         public void Print(string name)

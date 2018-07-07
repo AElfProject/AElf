@@ -109,7 +109,7 @@ namespace AElf.Contracts.Genesis
             }.Fire();
 
             Console.WriteLine("Deployment success: " + address.ToHex());
-            return address.GetBytes();
+            return address.GetHashBytes();
         }
 
         public void ChangeContractOwner(Hash contractAddress, Hash newOwner)

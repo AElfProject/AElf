@@ -154,7 +154,7 @@ namespace AElf.ABI.CSharp.Tests
             var parser = StringInputParsers.GetStringParserFor(typeof(Hash).FullName);
             // TODO: Value has to be a fixed length
             var hash = Hash.Generate().ToAccount();
-            var hashHex = BitConverter.ToString(hash.GetBytes()).Replace("-", "");
+            var hashHex = BitConverter.ToString(hash.GetHashBytes()).Replace("-", "");
             
             // Note: Hash has the same structure as BytesValue, hence using BytesValue for serialization.
             // So that we don't need dependency AElf.Kernel.

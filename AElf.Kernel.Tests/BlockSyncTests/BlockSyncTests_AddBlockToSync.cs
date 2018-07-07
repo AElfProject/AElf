@@ -93,7 +93,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             
             await s.AddBlockToSync(b);
 
-            byte[] array = b.GetHash().GetBytes();
+            byte[] array = b.GetHash().GetHashBytes();
             PendingBlock p = s.GetBlock(array);
             
             Assert.Equal(p.BlockHash, array);
@@ -122,7 +122,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             BlockSynchronizer s = new BlockSynchronizer(m, null);
             await s.AddBlockToSync(b);
             
-            byte[] array = b.GetHash().GetBytes();
+            byte[] array = b.GetHash().GetHashBytes();
             PendingBlock p = s.GetBlock(array);
             
             Assert.Equal(p.BlockHash, array);

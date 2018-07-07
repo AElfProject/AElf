@@ -13,10 +13,10 @@ namespace AElf.Kernel.Tests
         private Mock<Hash> CreateHash(byte b)
         {
             Mock<Hash> hash = new Mock<Hash>();
-            hash.Setup(h => h.GetBytes()).Returns(new[] {b});
+            hash.Setup(h => h.GetHashBytes()).Returns(new[] {b});
             
             Mock.Get(hash.Object).Setup(h => h.Equals(It.IsAny<Hash>()))
-                .Returns<Hash>(t => t?.GetBytes() == hash.Object.GetBytes());
+                .Returns<Hash>(t => t?.GetHashBytes() == hash.Object.GetHashBytes());
             return hash;
         }
         
@@ -48,9 +48,9 @@ namespace AElf.Kernel.Tests
         private ITransaction CreateTransaction(byte b, Hash from, Hash to)
         {
             Mock<Hash> hash = new Mock<Hash>();
-            hash.Setup(h => h.GetBytes()).Returns(new []{b});
+            hash.Setup(h => h.GetHashBytes()).Returns(new []{b});
             hash.Setup(h => h.Equals(It.IsAny<Hash>()))
-                .Returns<Hash>(t => t? .GetBytes() == t.GetBytes() );
+                .Returns<Hash>(t => t? .GetHashBytes() == t.GetHashBytes() );
             
             Mock <ITransaction> transaction=new Mock<ITransaction>();
             transaction.Setup(t => t.GetHash()).Returns(hash.Object);
@@ -58,7 +58,7 @@ namespace AElf.Kernel.Tests
             transaction.Setup(t => t.To).Returns(to);
 
             Mock.Get(transaction.Object).Setup(m => m.Equals(It.IsAny<ITransaction>()))
-                .Returns<ITransaction>(t =>t?.GetHash().GetBytes() == transaction.Object.GetHash().GetBytes());
+                .Returns<ITransaction>(t =>t?.GetHash().GetHashBytes() == transaction.Object.GetHash().GetHashBytes());
             
             return transaction.Object;
         }
@@ -85,7 +85,7 @@ namespace AElf.Kernel.Tests
 
             var plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(1, plan.Count);
-            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetBytes()[0]);
+            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
             
             
             // two txs
@@ -96,8 +96,8 @@ namespace AElf.Kernel.Tests
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(1, plan.Count);
-            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(66, plan[0].ElementAt(1).GetHash().GetBytes()[0]);
+            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(66, plan[0].ElementAt(1).GetHash().GetHashBytes()[0]);
             
           
 
@@ -109,8 +109,8 @@ namespace AElf.Kernel.Tests
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
-            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetBytes()[0]);
+            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetHashBytes()[0]);
             
             
             
@@ -125,9 +125,9 @@ namespace AElf.Kernel.Tests
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
-            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(67, plan[0].ElementAt(1).GetHash().GetBytes()[0]);
+            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(67, plan[0].ElementAt(1).GetHash().GetHashBytes()[0]);
            
             // one connected with the other two
             // A-B B-C
@@ -137,9 +137,9 @@ namespace AElf.Kernel.Tests
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
-            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(67, plan[0].ElementAt(1).GetHash().GetBytes()[0]);
+            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(67, plan[0].ElementAt(1).GetHash().GetHashBytes()[0]);
             
             
             
@@ -151,9 +151,9 @@ namespace AElf.Kernel.Tests
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(3, plan.Count);
-            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(67, plan[2].ElementAt(0).GetHash().GetBytes()[0]);
+            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(67, plan[2].ElementAt(0).GetHash().GetHashBytes()[0]);
             
 
             
@@ -167,10 +167,10 @@ namespace AElf.Kernel.Tests
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
-            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(67, plan[0].ElementAt(1).GetHash().GetBytes()[0]);
-            Assert.Equal(68, plan[0].ElementAt(2).GetHash().GetBytes()[0]);
+            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(67, plan[0].ElementAt(1).GetHash().GetHashBytes()[0]);
+            Assert.Equal(68, plan[0].ElementAt(2).GetHash().GetHashBytes()[0]);
             
             
             
@@ -183,10 +183,10 @@ namespace AElf.Kernel.Tests
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
-            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(67, plan[0].ElementAt(1).GetHash().GetBytes()[0]);
-            Assert.Equal(68, plan[1].ElementAt(1).GetHash().GetBytes()[0]);
+            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(67, plan[0].ElementAt(1).GetHash().GetHashBytes()[0]);
+            Assert.Equal(68, plan[1].ElementAt(1).GetHash().GetHashBytes()[0]);
             
             
             // one tx connected with other three, three edges
@@ -210,10 +210,10 @@ namespace AElf.Kernel.Tests
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(2, plan.Count);
-            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(67, plan[0].ElementAt(1).GetHash().GetBytes()[0]);
-            Assert.Equal(68, plan[1].ElementAt(1).GetHash().GetBytes()[0]);
+            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(67, plan[0].ElementAt(1).GetHash().GetHashBytes()[0]);
+            Assert.Equal(68, plan[1].ElementAt(1).GetHash().GetHashBytes()[0]);
             
             
             // one tx connected with other three
@@ -228,10 +228,10 @@ namespace AElf.Kernel.Tests
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(3, plan.Count);
-            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(67, plan[2].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(68, plan[1].ElementAt(1).GetHash().GetBytes()[0]);
+            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(67, plan[2].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(68, plan[1].ElementAt(1).GetHash().GetHashBytes()[0]);
             
             
             // connect each other, 6 edsges
@@ -244,10 +244,10 @@ namespace AElf.Kernel.Tests
             transactionExecutingManager.Schedule(transactions, context);
             plan = transactionExecutingManager.ExecutingPlan;
             Assert.Equal(4, plan.Count);
-            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(67, plan[2].ElementAt(0).GetHash().GetBytes()[0]);
-            Assert.Equal(68, plan[3].ElementAt(0).GetHash().GetBytes()[0]);*/
+            Assert.Equal(65, plan[0].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(66, plan[1].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(67, plan[2].ElementAt(0).GetHash().GetHashBytes()[0]);
+            Assert.Equal(68, plan[3].ElementAt(0).GetHash().GetHashBytes()[0]);*/
             
         }
 

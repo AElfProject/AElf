@@ -75,7 +75,7 @@ namespace AElf.Kernel.BlockValidationFilters
             };
             
             var signer = new ECSigner();
-            var signature = signer.Sign(keyPair, tx.GetHash().GetBytes());
+            var signature = signer.Sign(keyPair, tx.GetHash().GetHashBytes());
 
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);

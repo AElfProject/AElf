@@ -136,7 +136,7 @@ namespace AElf.Kernel.Miner
                 // sign block
                 ECSigner signer = new ECSigner();
                 var hash = block.GetHash();
-                var bytes = hash.GetBytes();
+                var bytes = hash.GetHashBytes();
                 ECSignature signature = signer.Sign(_keyPair, bytes);
 
                 block.Header.P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded());

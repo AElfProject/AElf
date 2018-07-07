@@ -103,7 +103,7 @@ namespace AElf.Benchmark
                 Hash txHash = tx.GetHash();
                 
                 ECSigner signer = new ECSigner();
-                ECSignature signature = signer.Sign(keyPair, txHash.GetBytes());
+                ECSignature signature = signer.Sign(keyPair, txHash.GetHashBytes());
 
                 tx.R = ByteString.CopyFrom(signature.R);
                 tx.S = ByteString.CopyFrom(signature.S);
