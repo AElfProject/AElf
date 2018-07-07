@@ -115,7 +115,7 @@ namespace AElf.Kernel.Node.Protocol
 
         public void IncrementChainHeight()
         {
-            _blockSynchronizer.CurrentExecHeight++;
+            Interlocked.Add(ref _blockSynchronizer.CurrentExecHeight, 1);
         }
 
         #region Response handling

@@ -530,7 +530,7 @@ namespace AElf.Kernel.Node.Protocol
                     // The block was executed and validation was a success: remove the pending block.
                     toRemove.Add(pendingBlock);
                     executed.Add(pendingBlock);
-                    CurrentExecHeight++;
+                    Interlocked.Add(ref CurrentExecHeight, 1);
                 }
                 else
                 {
