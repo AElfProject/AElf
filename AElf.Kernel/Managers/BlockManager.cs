@@ -110,7 +110,7 @@ namespace AElf.Kernel.Managers
         private async Task InitialHeightOfBlock(Hash chainId)
         {
             _worldStateDictator.SetChainId(chainId);
-            _heightOfBlock = (await _worldStateDictator.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId)))
+            _heightOfBlock = (await _worldStateDictator.GetAccountDataProvider(PathContextService.CalculatePointerForAccountZero(chainId)))
                 .GetDataProvider().GetDataProvider("HeightOfBlock");
         }
     }

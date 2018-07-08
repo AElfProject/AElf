@@ -374,7 +374,7 @@ namespace AElf.Kernel.Node
 
         public async Task<Hash> GetLastValidBlockHash()
         {
-            var pointer = Path.CalculatePointerForLastBlockHash(_nodeConfig.ChainId);
+            var pointer = PathContextService.CalculatePointerForLastBlockHash(_nodeConfig.ChainId);
             return await _worldStateDictator.GetDataAsync(pointer);
         }
 

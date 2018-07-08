@@ -18,7 +18,7 @@ namespace AElf.Kernel.Managers
         
         Task<Hash> GetPointerAsync(Hash pathHash);
         
-        Task<Hash> CalculatePointerHashOfCurrentHeight(Path path);
+        Task<Hash> CalculatePointerHashOfCurrentHeight(PathContextService pathContextService);
         
         Task InsertChangeAsync(Hash pathHash, Change change);
 

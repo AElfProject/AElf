@@ -108,7 +108,7 @@ namespace AElf.Kernel.Tests
 
             var address = info.Address;
             // calculate new account address
-            var account = Path.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
+            var account = PathContextService.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
             
             await Api.DeployContractAsync(account, registration);
             Console.WriteLine("Deployment success, {0}", account.Value.ToByteArray().ToHex());

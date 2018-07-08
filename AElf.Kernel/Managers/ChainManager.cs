@@ -89,7 +89,7 @@ namespace AElf.Kernel.Managers
         /// <inheritdoc/>
         public async Task<ulong> GetChainCurrentHeight(Hash chainId)
         {
-            var key = Path.CalculatePointerForCurrentBlockHeight(chainId);
+            var key = PathContextService.CalculatePointerForCurrentBlockHeight(chainId);
             var heightBytes = await _dataStore.GetDataAsync(key);
             return heightBytes?.ToUInt64() ?? 0;
         }
@@ -97,21 +97,21 @@ namespace AElf.Kernel.Managers
         /// <inheritdoc/>
         public async Task SetChainCurrentHeight(Hash chainId, ulong height)
         {
-            var key = Path.CalculatePointerForCurrentBlockHeight(chainId);
+            var key = PathContextService.CalculatePointerForCurrentBlockHeight(chainId);
             await _dataStore.SetDataAsync(key, height.ToBytes());
         }
 
         /// <inheritdoc/>
         public async Task<Hash> GetChainLastBlockHash(Hash chainId)
         {
-            var key = Path.CalculatePointerForLastBlockHash(chainId);
+            var key = PathContextService.CalculatePointerForLastBlockHash(chainId);
             return await _dataStore.GetDataAsync(key);
         }
 
         /// <inheritdoc/>
         public async Task SetChainLastBlockHash(Hash chainId, Hash blockHash)
         {
-            var key = Path.CalculatePointerForLastBlockHash(chainId);
+            var key = PathContextService.CalculatePointerForLastBlockHash(chainId);
             _worldStateDictator.PreBlockHash = blockHash;
             await _dataStore.SetDataAsync(key, blockHash.GetHashBytes());
         }
@@ -119,7 +119,7 @@ namespace AElf.Kernel.Managers
         private async Task InitialHeightOfBlock(Hash chainId)
         {
             _worldStateDictator.SetChainId(chainId);
-            _heightOfBlock = (await _worldStateDictator.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId)))
+            _heightOfBlock = (await _worldStateDictator.GetAccountDataProvider(PathContextService.CalculatePointerForAccountZero(chainId)))
                 .GetDataProvider().GetDataProvider("HeightOfBlock");
         }
     }

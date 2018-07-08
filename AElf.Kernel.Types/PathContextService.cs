@@ -6,7 +6,7 @@ using Google.Protobuf.WellKnownTypes;
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public class Path : IPath
+    public class PathContextService : IPathContextService
     {
         public bool IsPointer { get; private set; }
 
@@ -15,14 +15,15 @@ namespace AElf.Kernel
         private Hash _accountAddress;
         private Hash _dataProviderHash;
         private Hash _keyHash;
+        private Hash _blockProducerAddress;
 
-        public Path SetChainHash(Hash chainHash)
+        public PathContextService SetChainHash(Hash chainHash)
         {
             _chainHash = chainHash;
             return this;
         }
         
-        public Path SetBlockHash(Hash blockHash)
+        public PathContextService SetBlockHash(Hash blockHash)
         {
             _blockHash = blockHash;
             IsPointer = true;
@@ -30,31 +31,38 @@ namespace AElf.Kernel
         }
 
         /// <summary>
-        /// Change a pointer to a path.
+        /// Basically revert a pointer to a path.
         /// </summary>
         /// <returns></returns>
-        public Path SetBlockHashToNull()
+        public PathContextService RevertPointerToPath()
         {
             _blockHash = null;
+            _blockProducerAddress = null;
             IsPointer = false;
             return this;
         }
         
-        public Path SetAccount(Hash accountAddress)
+        public PathContextService SetAccount(Hash accountAddress)
         {
             _accountAddress = accountAddress;
             return this;
         }
 
-        public Path SetDataProvider(Hash dataProviderHash)
+        public PathContextService SetDataProvider(Hash dataProviderHash)
         {
             _dataProviderHash = dataProviderHash;
             return this;
         }
 
-        public Path SetDataKey(Hash keyHash)
+        public PathContextService SetDataKey(Hash keyHash)
         {
             _keyHash = keyHash;
+            return this;
+        }
+
+        public PathContextService SetBlockProducerAddress(Hash blockProducerAddress)
+        {
+            _blockProducerAddress = blockProducerAddress;
             return this;
         }
             
@@ -80,18 +88,28 @@ namespace AElf.Kernel
         
         #region Calculate pointer for chain context
 
+        /// <summary>
+        /// Calculate pointer hash for current block height of a chain
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <returns></returns>
         public static Hash CalculatePointerForCurrentBlockHeight(Hash chainId)
         {
             return chainId.CalculateHashWith((Hash) "Height".CalculateHash());
         }
 
+        /// <summary>
+        /// Calculate pointer hash for last block hash of a chain
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <returns></returns>
         public static Hash CalculatePointerForLastBlockHash(Hash chainId)
         {
             return chainId.CalculateHashWith((Hash) "LastBlockHash".CalculateHash());
         }
         
         /// <summary>
-        /// calculate hash for account zero in a chain
+        /// Calculate pointer hash for Account Zero of a chain
         /// </summary>
         /// <param name="chainId"></param>
         /// <returns></returns>
@@ -100,27 +118,54 @@ namespace AElf.Kernel
             return chainId.CalculateHashWith((Hash) "AccountZero".CalculateHash());
         }
 
-        public static Hash CalculatePointerForMetadataTemlate(Hash chainId)
+        /// <summary>
+        /// Calculate pointer hash for metadata template of a chain
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <returns></returns>
+        public static Hash CalculatePointerForMetadataTemplate(Hash chainId)
         {
             return chainId.CalculateHashWith((Hash) "MetadataTemplate".CalculateHash());
         }
         
-        public static Hash CalculatePointerForMetadataTemlateCallingGraph(Hash chainId)
+        /// <summary>
+        /// Calculate pointer hash for metadata template calling graph of a chain
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <returns></returns>
+        public static Hash CalculatePointerForMetadataTemplateCallingGraph(Hash chainId)
         {
             return chainId.CalculateHashWith((Hash) "MetadataTemplateCallingGraph".CalculateHash());
         }
         
+        /// <summary>
+        /// Calculate pointer hash for metadata of a chain
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <returns></returns>
         public static Hash CalculatePointerForMetadata(Hash chainId)
         {
             return chainId.CalculateHashWith((Hash) "Metadata".CalculateHash());
         }
+
+        /// <summary>
+        /// Calculate pointer hash for using block height get block hash
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public static Hash CalculatePointerForGettingBlockHashByHeight(Hash chainId, ulong height)
+        {
+            return chainId.CalculateHashWith((Hash) new UInt64Value {Value = height}.CalculateHash());
+        }
         
         #endregion
 
+        #region Calculate pointer for account
         
         /// <summary>
-        /// calculate new account address
-        /// using parent account addr and nonce
+        /// Calculate new account address,
+        /// using parent account address and nonce
         /// </summary>
         /// <param name="parentAccount"></param>
         /// <param name="nonce"></param>
@@ -133,6 +178,7 @@ namespace AElf.Kernel
             });
         }
         
+        #endregion
         
         #region Calculate pointer for block context
 
@@ -158,7 +204,7 @@ namespace AElf.Kernel
         private bool PointerValidation()
         {
             return _chainHash != null && _blockHash != null && _accountAddress != null && _dataProviderHash != null &&
-                   _keyHash != null;
+                   _keyHash != null && _blockProducerAddress != null;
         }
 
         private bool PathValidation()
@@ -166,6 +212,7 @@ namespace AElf.Kernel
             return _chainHash != null && _accountAddress != null && _dataProviderHash != null && _keyHash != null;
         }
 
+        // ReSharper disable once MemberCanBeMadeStatic.Local
         private Hash CalculateListHash(params Hash[] hashes)
         {
             if (hashes.Length == 1)

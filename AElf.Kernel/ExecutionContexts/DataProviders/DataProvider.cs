@@ -16,7 +16,7 @@ namespace AElf.Kernel
         /// </summary>
         private readonly string _dataProviderKey;
 
-        private readonly Path _path;
+        private readonly PathContextService _pathContextService;
 
         /// <summary>
         /// Will only set the value during setting data.
@@ -30,7 +30,7 @@ namespace AElf.Kernel
             _accountDataContext = accountDataContext;
             _dataProviderKey = dataProviderKey;
 
-            _path = new Path()
+            _pathContextService = new PathContextService()
                 .SetChainHash(_accountDataContext.ChainId)
                 .SetAccount(_accountDataContext.Address)
                 .SetDataProvider(GetHash());
@@ -63,7 +63,7 @@ namespace AElf.Kernel
             //Get correspoding WorldState instance
             var worldState = await _worldStateDictator.GetWorldStateAsync(preBlockHash);
             //Get corresponding path hash
-            var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
+            var pathHash = _pathContextService.RevertPointerToPath().SetDataKey(keyHash).GetPathHash();
             //Using path hash to get Change from WorldState
             var change = await worldState.GetChangeAsync(pathHash);
 
@@ -93,13 +93,13 @@ namespace AElf.Kernel
             var pathHash = GetPathFor(keyHash);
 
             //Generate the new pointer hash (using previous block hash)
-            var pointerHashAfter =await _worldStateDictator.CalculatePointerHashOfCurrentHeight(_path);
+            var pointerHashAfter =await _worldStateDictator.CalculatePointerHashOfCurrentHeight(_pathContextService);
 
             var preBlockHash = PreBlockHash;
             if (preBlockHash == null)
             {
                 PreBlockHash = await _worldStateDictator.GetDataAsync(
-                    Path.CalculatePointerForLastBlockHash(_accountDataContext.ChainId));
+                    PathContextService.CalculatePointerForLastBlockHash(_accountDataContext.ChainId));
                 preBlockHash = PreBlockHash;
             }
             
@@ -134,7 +134,7 @@ namespace AElf.Kernel
 
         public Hash GetPathFor(Hash keyHash)
         {
-            var pathHash = _path.SetBlockHashToNull().SetDataKey(keyHash).GetPathHash();
+            var pathHash = _pathContextService.RevertPointerToPath().SetDataKey(keyHash).GetPathHash();
 
             return pathHash;
         }

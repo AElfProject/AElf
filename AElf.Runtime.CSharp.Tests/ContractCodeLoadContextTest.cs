@@ -14,7 +14,6 @@ using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using AElf.Runtime.CSharp;
 using Xunit.Frameworks.Autofac;
-using Path = AElf.Kernel.Path;
 
 namespace AElf.Runtime.CSharp.Tests
 {

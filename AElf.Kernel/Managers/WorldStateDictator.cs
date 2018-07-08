@@ -60,7 +60,7 @@ namespace AElf.Kernel.Managers
             
             var count = new UInt64Value {Value = 0};
 
-            var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, PreBlockHash);
+            var keyToGetCount = PathContextService.CalculatePointerForPathsCount(_chainId, PreBlockHash);
             if (await _dataStore.GetDataAsync(keyToGetCount) == null)
             {
                 await _dataStore.SetDataAsync(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
@@ -125,7 +125,7 @@ namespace AElf.Kernel.Managers
             await RollbackCurrentChangesAsync();
 
             //Initial height - hash map
-            var heightMap = (await GetAccountDataProvider(Path.CalculatePointerForAccountZero(_chainId)))
+            var heightMap = (await GetAccountDataProvider(PathContextService.CalculatePointerForAccountZero(_chainId)))
                 .GetDataProvider().GetDataProvider("HeightOfBlock");
             
             var currentHeight = await GetChainCurrentHeight(_chainId);
@@ -163,26 +163,26 @@ namespace AElf.Kernel.Managers
         
         private async Task<ulong> GetChainCurrentHeight(Hash chainId)
         {
-            var key = Path.CalculatePointerForCurrentBlockHeight(chainId);
+            var key = PathContextService.CalculatePointerForCurrentBlockHeight(chainId);
             var heightBytes = await _dataStore.GetDataAsync(key);
             return heightBytes?.ToUInt64() ?? 0;
         }
         
         public async Task SetChainCurrentHeight(Hash chainId, ulong height)
         {
-            var key = Path.CalculatePointerForCurrentBlockHeight(chainId);
+            var key = PathContextService.CalculatePointerForCurrentBlockHeight(chainId);
             await _dataStore.SetDataAsync(key, height.ToBytes());
         }
         
         public async Task<Hash> GetChainLastBlockHash(Hash chainId)
         {
-            var key = Path.CalculatePointerForLastBlockHash(chainId);
+            var key = PathContextService.CalculatePointerForLastBlockHash(chainId);
             return await _dataStore.GetDataAsync(key);
         }
         
         public async Task SetChainLastBlockHash(Hash chainId, Hash blockHash)
         {
-            var key = Path.CalculatePointerForLastBlockHash(chainId);
+            var key = PathContextService.CalculatePointerForLastBlockHash(chainId);
             PreBlockHash = blockHash;
             await _dataStore.SetDataAsync(key, blockHash.GetHashBytes());
         }
@@ -382,20 +382,20 @@ namespace AElf.Kernel.Managers
         /// <summary>
         /// The normal way to get a pointer hash value from a Path instance.
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="pathContextService"></param>
         /// <returns></returns>
-        public async Task<Hash> CalculatePointerHashOfCurrentHeight(Path path)
+        public async Task<Hash> CalculatePointerHashOfCurrentHeight(PathContextService pathContextService)
         {
             await Check();
             
-            return path.SetBlockHash(PreBlockHash).GetPointerHash();
+            return pathContextService.SetBlockHash(PreBlockHash).GetPointerHash();
         }
 
         public async Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId)
         {
             // The code chunk is copied from DataProvider
 
-            Hash prevBlockHash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(chainId));
+            Hash prevBlockHash = await _dataStore.GetDataAsync(PathContextService.CalculatePointerForLastBlockHash(chainId));
             
             //Generate the new pointer hash (using previous block hash)
             var pointerHashAfter = stateValueChange.Path.CalculateHashWith(prevBlockHash);
@@ -440,7 +440,7 @@ namespace AElf.Kernel.Managers
             
             var changedPathsCount = new UInt64Value {Value = 0};
             
-            var keyToGetCount = Path.CalculatePointerForPathsCount(_chainId, blockHash);
+            var keyToGetCount = PathContextService.CalculatePointerForPathsCount(_chainId, blockHash);
             if (await _dataStore.GetDataAsync(keyToGetCount) == null)
             {
                 await _dataStore.SetDataAsync(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
@@ -480,7 +480,7 @@ namespace AElf.Kernel.Managers
 
             if (PreBlockHash == null)
             {
-                var hash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(_chainId));
+                var hash = await _dataStore.GetDataAsync(PathContextService.CalculatePointerForLastBlockHash(_chainId));
                 PreBlockHash = hash ?? Hash.Genesis;
             }
         }

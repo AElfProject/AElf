@@ -6,12 +6,12 @@ namespace AElf.Kernel
     /// There exists a Pointer class in System.Reflection namespace,
     /// so use "Path" to avoid the misleading.
     /// </summary>
-    public interface IPath
+    public interface IPathContextService
     {
-        Path SetChainHash(Hash chainHash);
-        Path SetBlockHash(Hash blockHash);
-        Path SetAccount(Hash accountAddress);
-        Path SetDataProvider(Hash dataProvider);
+        PathContextService SetChainHash(Hash chainHash);
+        PathContextService SetBlockHash(Hash blockHash);
+        PathContextService SetAccount(Hash accountAddress);
+        PathContextService SetDataProvider(Hash dataProvider);
         Hash GetPointerHash();
         Hash GetPathHash();
     }
