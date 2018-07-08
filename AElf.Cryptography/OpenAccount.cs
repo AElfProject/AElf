@@ -6,7 +6,8 @@ namespace AElf.Cryptography
 {
     public class OpenAccount
     {
-        public Timer Timer { get; set; }
+        // Close account when time out 
+        public Timer CloseTimer { private get; set; }
         public ECKeyPair KeyPair { get; set; }
 
         public OpenAccount()
@@ -20,7 +21,7 @@ namespace AElf.Cryptography
 
         public void Close()
         {
-            Timer.Dispose();
+            CloseTimer.Dispose();
         }
     }
 }
