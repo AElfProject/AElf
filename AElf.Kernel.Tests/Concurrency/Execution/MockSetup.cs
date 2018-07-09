@@ -57,7 +57,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
         private IFunctionMetadataService _functionMetadataService;
-        private ECKeyPair _keyPair;
+        private Hash _accountAddress;
         private ILogger _logger;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
@@ -66,15 +66,15 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             IDataStore dataStore, IChainCreationService chainCreationService,
             IBlockManager blockManager, SmartContractStore smartContractStore,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerFactory smartContractRunnerFactory, ECKeyPair keyPair, ILogger logger)
+            ISmartContractRunnerFactory smartContractRunnerFactory, Hash accountAddress, ILogger logger)
         {
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, _keyPair);
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, _accountAddress);
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _keyPair = keyPair;
+            _accountAddress = accountAddress;
             _logger = logger;
             SmartContractManager = new SmartContractManager(smartContractStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();

@@ -24,7 +24,7 @@ namespace AElf.Kernel.Managers
         #endregion
 
         private readonly ILogger _logger;
-        private readonly ECKeyPair _keyPair;
+        private readonly Hash _accountAddress;
         
         private bool _isChainIdSetted;
         private Hash _chainId;
@@ -34,13 +34,13 @@ namespace AElf.Kernel.Managers
         public Hash PreBlockHash { get; set; }
 
         public WorldStateDictator(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, ILogger logger, ECKeyPair keyPair)
+            IDataStore dataStore, ILogger logger, Hash accountAddress)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _logger = logger;
-            _keyPair = keyPair;
+            _accountAddress = accountAddress;
         }
 
         public IWorldStateDictator SetChainId(Hash chainId)
@@ -203,7 +203,7 @@ namespace AElf.Kernel.Managers
         {
             await Check();
             
-            return new AccountDataProvider(_chainId, accountAddress, this, _keyPair);
+            return new AccountDataProvider(_chainId, accountAddress, this, _accountAddress);
         }
 
         #region Methods about WorldState

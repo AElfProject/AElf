@@ -10,7 +10,7 @@ namespace AElf.Kernel
     {
         private readonly IAccountDataContext _accountDataContext;
         private readonly IWorldStateDictator _worldStateDictator;
-        private readonly ECKeyPair _keyPari;
+        private readonly Hash _accountAddress;
 
         /// <summary>
         /// To dictinct DataProviders of same account and same level.
@@ -26,16 +26,16 @@ namespace AElf.Kernel
         private Hash PreBlockHash { get; set; }
 
         public DataProvider(IAccountDataContext accountDataContext, IWorldStateDictator worldStateDictator,
-            ECKeyPair keyPari, string dataProviderKey = "")
+            Hash accountAddress, string dataProviderKey = "")
         {
             _worldStateDictator = worldStateDictator;
-            _keyPari = keyPari;
+            _accountAddress = accountAddress;
             _accountDataContext = accountDataContext;
             _dataProviderKey = dataProviderKey;
 
             _resourcePath = new ResourcePath()
                 .SetChainId(_accountDataContext.ChainId)
-                .SetBlockProducerAddress(_keyPari.GetAddress())
+                .SetBlockProducerAddress(_accountAddress)
                 .SetAccountAddress(_accountDataContext.Address)
                 .SetDataProvider(GetHash());
         }
@@ -53,7 +53,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public IDataProvider GetDataProvider(string dataProviderKey)
         {
-            return new DataProvider(_accountDataContext, _worldStateDictator, _keyPari, dataProviderKey);
+            return new DataProvider(_accountDataContext, _worldStateDictator, _accountAddress, dataProviderKey);
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace AElf.Kernel
             var pathHash = GetPathFor(keyHash);
 
             //Generate the new pointer hash (using previous block hash)
-            var pointerHashAfter =await _worldStateDictator.CalculatePointerHashOfCurrentHeight(_resourcePath);
+            var pointerHashAfter = await _worldStateDictator.CalculatePointerHashOfCurrentHeight(_resourcePath);
 
             var preBlockHash = PreBlockHash;
             if (preBlockHash == null)

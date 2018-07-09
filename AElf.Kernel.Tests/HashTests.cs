@@ -34,7 +34,7 @@ namespace AElf.Kernel.Tests
             var anotherHash = new Hash(new byte[] {10, 14, 1, 15});
             
             Assert.True(dict.TryGetValue(anotherHash, out var test));
-            Assert.Equal(test, "test");
+            Assert.Equal("test", test);
         }
 
         [Fact]
@@ -51,6 +51,7 @@ namespace AElf.Kernel.Tests
         {
             var path = new ResourcePath();
             path.SetChainId(Hash.Generate())
+                .SetBlockProducerAddress(Hash.Generate())
                 .SetAccountAddress(Hash.Generate())
                 .SetDataProvider(Hash.Generate())
                 .SetDataKey(Hash.Generate());
@@ -65,6 +66,7 @@ namespace AElf.Kernel.Tests
             var path = new ResourcePath();
             path.SetChainId(Hash.Generate())
                 .SetBlockHash(Hash.Generate())
+                .SetBlockProducerAddress(Hash.Generate())
                 .SetAccountAddress(Hash.Generate())
                 .SetDataProvider(Hash.Generate())
                 .SetDataKey(Hash.Generate());

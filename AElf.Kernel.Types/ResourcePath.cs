@@ -30,10 +30,6 @@ namespace AElf.Kernel
         public ResourcePath SetBlockHash(Hash blockHash)
         {
             _blockHash = blockHash;
-            if (PointerValidation())
-            {
-                IsPointer = true;
-            }
             return this;
         }
         
