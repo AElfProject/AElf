@@ -49,9 +49,9 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void PathTest()
         {
-            var path = new PathContextService();
-            path.SetChainHash(Hash.Generate())
-                .SetAccount(Hash.Generate())
+            var path = new PathContext();
+            path.SetChainId(Hash.Generate())
+                .SetAccountAddress(Hash.Generate())
                 .SetDataProvider(Hash.Generate())
                 .SetDataKey(Hash.Generate());
             
@@ -62,10 +62,10 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void PointerTest()
         {
-            var path = new PathContextService();
-            path.SetChainHash(Hash.Generate())
+            var path = new PathContext();
+            path.SetChainId(Hash.Generate())
                 .SetBlockHash(Hash.Generate())
-                .SetAccount(Hash.Generate())
+                .SetAccountAddress(Hash.Generate())
                 .SetDataProvider(Hash.Generate())
                 .SetDataKey(Hash.Generate());
 

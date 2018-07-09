@@ -113,9 +113,9 @@ namespace AElf.Kernel.Tests
                             Intersect(changes2.Select(c => c.Befores.FirstOrDefault())).Count() == 3);
 
             //Test the equality of pointer transfered from path and get from world state.
-            var path = new PathContextService()
-                .SetChainHash(chain.Id)
-                .SetAccount(address)
+            var path = new PathContext()
+                .SetChainId(chain.Id)
+                .SetAccountAddress(address)
                 .SetDataProvider(subDataProvider1.GetHash())
                 .SetDataKey(key);
             var pointerHash1 = path.SetBlockHash(chain.GenesisBlockHash).GetPointerHash();

@@ -120,13 +120,13 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
             DataProvider1 =
                 await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(
-                    PathContextService.CalculatePointerForAccountZero(ChainId1));
+                    PathContext.CalculatePointerForAccountZero(ChainId1));
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, reg);
             var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
             DataProvider2 =
                 await (_worldStateDictator.SetChainId(ChainId2)).GetAccountDataProvider(
-                    PathContextService.CalculatePointerForAccountZero(ChainId2));
+                    PathContext.CalculatePointerForAccountZero(ChainId2));
         }
 
         private async Task DeploySampleContracts()

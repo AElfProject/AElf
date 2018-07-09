@@ -6,7 +6,8 @@ using Google.Protobuf.WellKnownTypes;
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public class PathContextService : IPathContextService
+    /// <inheritdoc />
+    public class PathContext : IPathContext
     {
         public bool IsPointer { get; private set; }
 
@@ -17,13 +18,13 @@ namespace AElf.Kernel
         private Hash _keyHash;
         private Hash _blockProducerAddress;
 
-        public PathContextService SetChainHash(Hash chainHash)
+        public PathContext SetChainId(Hash chainId)
         {
-            _chainHash = chainHash;
+            _chainHash = chainId;
             return this;
         }
         
-        public PathContextService SetBlockHash(Hash blockHash)
+        public PathContext SetBlockHash(Hash blockHash)
         {
             _blockHash = blockHash;
             IsPointer = true;
@@ -34,7 +35,7 @@ namespace AElf.Kernel
         /// Basically revert a pointer to a path.
         /// </summary>
         /// <returns></returns>
-        public PathContextService RevertPointerToPath()
+        public PathContext RevertPointerToPath()
         {
             _blockHash = null;
             _blockProducerAddress = null;
@@ -42,25 +43,25 @@ namespace AElf.Kernel
             return this;
         }
         
-        public PathContextService SetAccount(Hash accountAddress)
+        public PathContext SetAccountAddress(Hash accountAddress)
         {
             _accountAddress = accountAddress;
             return this;
         }
 
-        public PathContextService SetDataProvider(Hash dataProviderHash)
+        public PathContext SetDataProvider(Hash dataProviderHash)
         {
             _dataProviderHash = dataProviderHash;
             return this;
         }
 
-        public PathContextService SetDataKey(Hash keyHash)
+        public PathContext SetDataKey(Hash keyHash)
         {
             _keyHash = keyHash;
             return this;
         }
 
-        public PathContextService SetBlockProducerAddress(Hash blockProducerAddress)
+        public PathContext SetBlockProducerAddress(Hash blockProducerAddress)
         {
             _blockProducerAddress = blockProducerAddress;
             return this;
@@ -73,7 +74,7 @@ namespace AElf.Kernel
                 throw new InvalidOperationException("Invalid pointer.");
             }
 
-            return CalculateListHash(_chainHash, _accountAddress, _dataProviderHash, _keyHash, _blockHash);
+            return CalculateHashOfHashList(_chainHash, _accountAddress, _dataProviderHash, _keyHash, _blockHash);
         }
 
         public Hash GetPathHash()
@@ -83,8 +84,44 @@ namespace AElf.Kernel
                 throw new InvalidOperationException("Invalid path.");
             }
 
-            return CalculateListHash(_chainHash, _accountAddress, _dataProviderHash, _keyHash);
+            return CalculateHashOfHashList(_chainHash, _accountAddress, _dataProviderHash, _keyHash);
         }
+        
+        #region Private methods
+        
+        private bool PointerValidation()
+        {
+            return _chainHash != null && _blockHash != null && _accountAddress != null && _dataProviderHash != null &&
+                   _keyHash != null && _blockProducerAddress != null;
+        }
+
+        private bool PathValidation()
+        {
+            return _chainHash != null && _accountAddress != null && _dataProviderHash != null && _keyHash != null;
+        }
+
+        /// <summary>
+        /// Calculate hash value of a hash list one by one
+        /// </summary>
+        /// <param name="hashes"></param>
+        /// <returns></returns>
+        private static Hash CalculateHashOfHashList(params Hash[] hashes)
+        {
+            if (hashes.Length == 1)
+            {
+                return hashes[0];
+            }
+            
+            var remains = hashes.Skip(1).ToArray();
+            return hashes[0].CombineHashWith(CalculateHashOfHashList(remains));
+        }
+        
+        #endregion
+
+        
+        /*
+         * Directly calculate pointer value zone
+         */
         
         #region Calculate pointer for chain context
 
@@ -156,7 +193,8 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Hash CalculatePointerForGettingBlockHashByHeight(Hash chainId, ulong height)
         {
-            return chainId.CalculateHashWith((Hash) new UInt64Value {Value = height}.CalculateHash());
+            return CalculateHashOfHashList(chainId, "HeightHashMap".CalculateHash(),
+                new UInt64Value {Value = height}.CalculateHash());
         }
         
         #endregion
@@ -184,8 +222,7 @@ namespace AElf.Kernel
 
         public static Hash CalculatePointerForPathsCount(Hash chainId, Hash blockHash)
         {
-            Hash foo = chainId.CalculateHashWith(blockHash);
-            return foo.CalculateHashWith((Hash) "PathsCount".CalculateHash());
+            return CalculateHashOfHashList(chainId, blockHash, "PathsCount".CalculateHash());
         }
         
         #endregion
@@ -194,35 +231,9 @@ namespace AElf.Kernel
 
         public static Hash CalculatePointerForTxResult(Hash txId)
         {
-            return txId.CalculateHashWith((Hash)"Result".CalculateHash());
+            return txId.CalculateHashWith((Hash)"TransactionResult".CalculateHash());
         }
 
-        #endregion
-        
-        #region Private methods
-        
-        private bool PointerValidation()
-        {
-            return _chainHash != null && _blockHash != null && _accountAddress != null && _dataProviderHash != null &&
-                   _keyHash != null && _blockProducerAddress != null;
-        }
-
-        private bool PathValidation()
-        {
-            return _chainHash != null && _accountAddress != null && _dataProviderHash != null && _keyHash != null;
-        }
-
-        // ReSharper disable once MemberCanBeMadeStatic.Local
-        private Hash CalculateListHash(params Hash[] hashes)
-        {
-            if (hashes.Length == 1)
-            {
-                return hashes[0];
-            }
-            var remains = hashes.Skip(1).ToArray();
-            return hashes[0].CombineHashWith(CalculateListHash(remains));
-        }
-        
         #endregion
     }
 }

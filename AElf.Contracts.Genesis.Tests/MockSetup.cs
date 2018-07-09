@@ -96,7 +96,7 @@ namespace AElf.Contracts.Genesis.Tests
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
-            DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(PathContextService.CalculatePointerForAccountZero(ChainId1));
+            DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(PathContext.CalculatePointerForAccountZero(ChainId1));
         }
         
         public async Task<IExecutive> GetExecutiveAsync(Hash address)
