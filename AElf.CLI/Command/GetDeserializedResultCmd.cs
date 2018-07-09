@@ -5,12 +5,13 @@ namespace AElf.CLI.Command
 {
     public class GetDeserializedResultCmd : CliCommandDefinition
     {
-        public const string Name = "get_deserialized_result";
+        public const string CommandName = "get_deserialized_result";
         
-        public GetDeserializedResultCmd() : base(Name)
+        public GetDeserializedResultCmd() : base(CommandName)
         {
         }
 
+        public override bool IsLocal { get; } = true;
         public override string GetUsage()
         {
             return "get_deserialized_result <type> <serializeddata>";

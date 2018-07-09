@@ -7,9 +7,9 @@ namespace AElf.CLI.Command
 {
     public class GetTxResultCmd : CliCommandDefinition
     {
-        public const string Name = "get_tx_result";
+        public const string CommandName = "get_tx_result";
         
-        public GetTxResultCmd() : base(Name)
+        public GetTxResultCmd() : base(CommandName)
         {
             
         }

@@ -23,10 +23,7 @@ namespace AElf.CLI.Command
 
         public override string Validate(CmdParseResult parsedCommand)
         {
-            if (parsedCommand == null)
-                return "no command";
-
-            return null;
+            return parsedCommand == null ? "no command" : null;
         }
         
         public override JObject BuildRequest(CmdParseResult parsedCommand)
