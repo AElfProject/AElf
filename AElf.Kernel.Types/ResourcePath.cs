@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Linq;
-
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     /// <inheritdoc />
-    public class PathContext : IPathContext
+    public class ResourcePath : IResourcePath
     {
         public bool IsPointer { get; private set; }
 
@@ -18,13 +17,13 @@ namespace AElf.Kernel
         private Hash _keyHash;
         private Hash _blockProducerAddress;
 
-        public PathContext SetChainId(Hash chainId)
+        public ResourcePath SetChainId(Hash chainId)
         {
             _chainHash = chainId;
             return this;
         }
         
-        public PathContext SetBlockHash(Hash blockHash)
+        public ResourcePath SetBlockHash(Hash blockHash)
         {
             _blockHash = blockHash;
             IsPointer = true;
@@ -35,7 +34,7 @@ namespace AElf.Kernel
         /// Basically revert a pointer to a path.
         /// </summary>
         /// <returns></returns>
-        public PathContext RevertPointerToPath()
+        public ResourcePath RevertPointerToPath()
         {
             _blockHash = null;
             _blockProducerAddress = null;
@@ -43,25 +42,25 @@ namespace AElf.Kernel
             return this;
         }
         
-        public PathContext SetAccountAddress(Hash accountAddress)
+        public ResourcePath SetAccountAddress(Hash accountAddress)
         {
             _accountAddress = accountAddress;
             return this;
         }
 
-        public PathContext SetDataProvider(Hash dataProviderHash)
+        public ResourcePath SetDataProvider(Hash dataProviderHash)
         {
             _dataProviderHash = dataProviderHash;
             return this;
         }
 
-        public PathContext SetDataKey(Hash keyHash)
+        public ResourcePath SetDataKey(Hash keyHash)
         {
             _keyHash = keyHash;
             return this;
         }
 
-        public PathContext SetBlockProducerAddress(Hash blockProducerAddress)
+        public ResourcePath SetBlockProducerAddress(Hash blockProducerAddress)
         {
             _blockProducerAddress = blockProducerAddress;
             return this;
@@ -117,7 +116,6 @@ namespace AElf.Kernel
         }
         
         #endregion
-
         
         /*
          * Directly calculate pointer value zone

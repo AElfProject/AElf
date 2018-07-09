@@ -15,13 +15,13 @@ namespace AElf.Kernel.Managers
 
         public async Task AddTransactionResultAsync(TransactionResult tr)
         {
-            var trKey = PathContext.CalculatePointerForTxResult(tr.TransactionId);
+            var trKey = ResourcePath.CalculatePointerForTxResult(tr.TransactionId);
             await _transactionResultStore.InsertAsync(trKey, tr);
         }
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash txId)
         {
-            var trKey = PathContext.CalculatePointerForTxResult(txId);
+            var trKey = ResourcePath.CalculatePointerForTxResult(txId);
             return await _transactionResultStore.GetAsync(trKey);
         }
     }

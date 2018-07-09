@@ -35,8 +35,8 @@ namespace AElf.Kernel.Concurrency.Metadata
             _logger = logger;
             ChainId = chainId;
             
-            var mapCache = _dataStore.GetDataAsync(PathContext.CalculatePointerForMetadataTemplate(chainId)).Result;
-            var graphCache = _dataStore.GetDataAsync(PathContext.CalculatePointerForMetadataTemplateCallingGraph(chainId))
+            var mapCache = _dataStore.GetDataAsync(ResourcePath.CalculatePointerForMetadataTemplate(chainId)).Result;
+            var graphCache = _dataStore.GetDataAsync(ResourcePath.CalculatePointerForMetadataTemplateCallingGraph(chainId))
                 .Result;
             if (mapCache != null)
             {
@@ -93,9 +93,9 @@ namespace AElf.Kernel.Concurrency.Metadata
             }
 
             //TODO: now each call of this will have large Disk IO because we replace the new whole map into the old map even if just minor changes to the map
-            await _dataStore.SetDataAsync(PathContext.CalculatePointerForMetadataTemplate(ChainId),
+            await _dataStore.SetDataAsync(ResourcePath.CalculatePointerForMetadataTemplate(ChainId),
                 GetSerializeContractMetadataTemplateMap().ToByteArray());
-            await _dataStore.SetDataAsync(PathContext.CalculatePointerForMetadataTemplateCallingGraph(ChainId),
+            await _dataStore.SetDataAsync(ResourcePath.CalculatePointerForMetadataTemplateCallingGraph(ChainId),
                 GetSerializeCallingGraph().ToByteArray());
             
             return true;

@@ -113,7 +113,7 @@ namespace AElf.Kernel.Tests
                             Intersect(changes2.Select(c => c.Befores.FirstOrDefault())).Count() == 3);
 
             //Test the equality of pointer transfered from path and get from world state.
-            var path = new PathContext()
+            var path = new ResourcePath()
                 .SetChainId(chain.Id)
                 .SetAccountAddress(address)
                 .SetDataProvider(subDataProvider1.GetHash())
