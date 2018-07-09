@@ -283,8 +283,8 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public async Task RollBack(List<ITransaction> txsOut)
         {
-            var files = txsOut.Select(async p => await TrySetNonce(p.From));
-            await Task.WhenAll(files);
+            var nonces = txsOut.Select(async p => await TrySetNonce(p.From));
+            await Task.WhenAll(nonces);
             
             var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(),  (current, p) =>
             {
