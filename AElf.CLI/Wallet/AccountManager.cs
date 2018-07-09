@@ -32,7 +32,7 @@ namespace AElf.CLI.Wallet
             _keyStore = keyStore;
         }
 
-        public readonly List<string> SubCommands = new List<string>()
+        private readonly List<string> _subCommands = new List<string>()
         {
             NewCmdName,
             ListAccountsCmdName,
@@ -50,7 +50,7 @@ namespace AElf.CLI.Wallet
                     return CliCommandDefinition.InvalidParamsError;
             }
 
-            if (!SubCommands.Contains(parsedCmd.Args.ElementAt(0)))
+            if (!_subCommands.Contains(parsedCmd.Args.ElementAt(0)))
                 return CliCommandDefinition.InvalidParamsError;
             
             return null;

@@ -25,11 +25,12 @@ namespace AElf.Cryptography
         private const string _algo = "AES-256-CFB";
         private readonly string _dataDirectory;
         
+        // IsOpen not used.
         public bool IsOpen { get; private set; }
 
         private readonly List<OpenAccount> _openAccounts;
         
-        private TimeSpan _defaultAccountTimeout = TimeSpan.FromMinutes(10);
+        private readonly TimeSpan _defaultTimeoutToClose = TimeSpan.FromMinutes(10);
 
         public enum Errors
         {
@@ -44,17 +45,17 @@ namespace AElf.Cryptography
             _openAccounts = new List<OpenAccount>();
         }
 
-        internal void OpenAsync(string address, string password, TimeSpan? timeout)
+        private void OpenAsync(string address, string password, TimeSpan? timeoutToClose)
         {
             ECKeyPair kp = ReadKeyPairAsync(address, password);
             
             OpenAccount acc = new OpenAccount();
             acc.KeyPair = kp;
 
-            if (timeout.HasValue)
+            if (timeoutToClose.HasValue)
             {
-                Timer t = new Timer(RemoveAccount, acc, timeout.Value, timeout.Value);
-                acc.Timer = t;
+                Timer t = new Timer(CloseAccount, acc, timeoutToClose.Value, timeoutToClose.Value);
+                acc.CloseTimer = t;
             }
             
             _openAccounts.Add(acc);
@@ -69,7 +70,7 @@ namespace AElf.Cryptography
             {
                 if (withTimeout)
                 {
-                    OpenAsync(address, password, _defaultAccountTimeout);
+                    OpenAsync(address, password, _defaultTimeoutToClose);
                 }
                 else
                 {
@@ -84,13 +85,11 @@ namespace AElf.Cryptography
             return Errors.None;
         }
 
-        private void RemoveAccount(object accObj)
+        private void CloseAccount(object accObj)
         {
-            if (accObj is OpenAccount openAccount)
-            {
-                openAccount.Close();
-                _openAccounts.Remove(openAccount);
-            }
+            if (!(accObj is OpenAccount openAccount)) return;
+            openAccount.Close();
+            _openAccounts.Remove(openAccount);
         }
         
         public ECKeyPair GetAccountKeyPair(string address)
@@ -143,25 +142,24 @@ namespace AElf.Cryptography
             }
             catch (PemException pemEx)
             {
-                //Console.WriteLine("Invalid password.");
                 throw new InvalidPasswordException("Invalid password", pemEx);
             }
             catch (Exception e)
             {
-                ;
             }
 
             return null;
         }
 
-        public bool WriteKeyPair(ECKeyPair keyPair, string password)
+        private bool WriteKeyPair(ECKeyPair keyPair, string password)
         {
-            if (keyPair == null || keyPair.PrivateKey == null || keyPair.PublicKey == null)
+            if (keyPair?.PrivateKey == null || keyPair.PublicKey == null)
                 throw new InvalidKeyPairException("Invalid keypair (null reference).", null);
 
             if (string.IsNullOrEmpty(password))
             {
-                Console.WriteLine("Invalid password.", null);
+                // Why here we can just invoke Console.WriteLine? should we use Logger?
+                Console.WriteLine("Invalid password.");
                 return false;
             }
                 
@@ -183,10 +181,9 @@ namespace AElf.Cryptography
             
             var akp = new AsymmetricCipherKeyPair(keyPair.PublicKey, keyPair.PrivateKey);
             
-            using (StreamWriter writer = File.CreateText(fullPath))
+            using (var writer = File.CreateText(fullPath))
             {
-                PemWriter pw = new PemWriter(writer);
-
+                var pw = new PemWriter(writer);
                 pw.WriteObject(akp, _algo, password.ToCharArray(), _random);
                 pw.Writer.Close();
             }
@@ -197,7 +194,7 @@ namespace AElf.Cryptography
         /// <summary>
         /// Return the full path of the files 
         /// </summary>
-        internal string GetKeyFileFullPath(string address)
+        private string GetKeyFileFullPath(string address)
         {
             var path = GetKeyFileFullPathStrict(address.Replace("0x", ""));
             if (File.Exists(path))
@@ -207,8 +204,8 @@ namespace AElf.Cryptography
 
             return GetKeyFileFullPathStrict("0x" + address.Replace("0x", ""));
         }
-        
-        internal string GetKeyFileFullPathStrict(string address)
+
+        private string GetKeyFileFullPathStrict(string address)
         {
             string dirPath = GetKeystoreDirectoryPath();
             string filePath = Path.Combine(dirPath, address);
@@ -217,7 +214,7 @@ namespace AElf.Cryptography
             return filePathWithExtension;
         }
 
-        internal DirectoryInfo GetOrCreateKeystoreDir()
+        private DirectoryInfo GetOrCreateKeystoreDir()
         {
             try
             {
@@ -230,7 +227,7 @@ namespace AElf.Cryptography
             }
         }
 
-        internal string GetKeystoreDirectoryPath()
+        private string GetKeystoreDirectoryPath()
         {
             return Path.Combine(_dataDirectory, KeyFolderName);
         }
