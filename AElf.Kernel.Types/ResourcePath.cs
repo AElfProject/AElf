@@ -8,6 +8,9 @@ namespace AElf.Kernel
     /// <inheritdoc />
     public class ResourcePath : IResourcePath
     {
+        /// <summary>
+        /// For now just change this value manually
+        /// </summary>
         public bool IsPointer { get; private set; }
 
         private Hash _chainHash;
@@ -23,10 +26,24 @@ namespace AElf.Kernel
             return this;
         }
         
+        /// <inheritdoc />
         public ResourcePath SetBlockHash(Hash blockHash)
         {
             _blockHash = blockHash;
-            IsPointer = true;
+            if (PointerValidation())
+            {
+                IsPointer = true;
+            }
+            return this;
+        }
+        
+        public ResourcePath SetBlockProducerAddress(Hash blockProducerAddress)
+        {
+            _blockProducerAddress = blockProducerAddress;
+            if (PointerValidation())
+            {
+                IsPointer = true;
+            }
             return this;
         }
 
@@ -41,31 +58,25 @@ namespace AElf.Kernel
             IsPointer = false;
             return this;
         }
-        
+
         public ResourcePath SetAccountAddress(Hash accountAddress)
         {
             _accountAddress = accountAddress;
             return this;
         }
-
+        
         public ResourcePath SetDataProvider(Hash dataProviderHash)
         {
             _dataProviderHash = dataProviderHash;
             return this;
         }
-
+        
         public ResourcePath SetDataKey(Hash keyHash)
         {
             _keyHash = keyHash;
             return this;
         }
 
-        public ResourcePath SetBlockProducerAddress(Hash blockProducerAddress)
-        {
-            _blockProducerAddress = blockProducerAddress;
-            return this;
-        }
-            
         public Hash GetPointerHash()
         {
             if (!PointerValidation())

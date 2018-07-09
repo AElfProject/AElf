@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
+using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -15,14 +18,18 @@ namespace AElf.Kernel.Tests
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
         private readonly BlockTest _blockTest;
+        private readonly ILogger _logger;
+        private readonly ECKeyPair _keyPair;
 
         public DataProviderTest(IWorldStateStore worldStateStore,
-            IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest)
+            IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest, ILogger logger, ECKeyPair keyPair)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _blockTest = blockTest;
+            _logger = logger;
+            _keyPair = keyPair;
         }
 
         [Fact]
@@ -36,7 +43,7 @@ namespace AElf.Kernel.Tests
 
             var address = Hash.Generate();
             
-            var worldStateManager =  new WorldStateDictator(_worldStateStore, _changesStore, _dataStore).SetChainId(chain.Id);
+            var worldStateManager =  new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _keyPair).SetChainId(chain.Id);
             
             await worldStateManager.SetWorldStateAsync(chain.GenesisBlockHash);
             

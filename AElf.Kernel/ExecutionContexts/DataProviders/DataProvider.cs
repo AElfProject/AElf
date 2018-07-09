@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
-
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Node;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -9,6 +10,7 @@ namespace AElf.Kernel
     {
         private readonly IAccountDataContext _accountDataContext;
         private readonly IWorldStateDictator _worldStateDictator;
+        private readonly ECKeyPair _keyPari;
 
         /// <summary>
         /// To dictinct DataProviders of same account and same level.
@@ -16,7 +18,7 @@ namespace AElf.Kernel
         /// </summary>
         private readonly string _dataProviderKey;
 
-        private readonly ResourcePath _resourcePath;
+        private readonly IResourcePath _resourcePath;
 
         /// <summary>
         /// Will only set the value during setting data.
@@ -24,14 +26,16 @@ namespace AElf.Kernel
         private Hash PreBlockHash { get; set; }
 
         public DataProvider(IAccountDataContext accountDataContext, IWorldStateDictator worldStateDictator,
-            string dataProviderKey = "")
+            ECKeyPair keyPari, string dataProviderKey = "")
         {
             _worldStateDictator = worldStateDictator;
+            _keyPari = keyPari;
             _accountDataContext = accountDataContext;
             _dataProviderKey = dataProviderKey;
 
             _resourcePath = new ResourcePath()
                 .SetChainId(_accountDataContext.ChainId)
+                .SetBlockProducerAddress(_keyPari.GetAddress())
                 .SetAccountAddress(_accountDataContext.Address)
                 .SetDataProvider(GetHash());
         }
@@ -49,7 +53,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public IDataProvider GetDataProvider(string dataProviderKey)
         {
-            return new DataProvider(_accountDataContext, _worldStateDictator, dataProviderKey);
+            return new DataProvider(_accountDataContext, _worldStateDictator, _keyPari, dataProviderKey);
         }
 
         /// <summary>

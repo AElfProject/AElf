@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
-using AElf.Kernel.Storages;
+  using AElf.Cryptography.ECDSA;
+  using AElf.Kernel.Node;
+  using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
   using Akka.Event;
   using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+  using NLog;
   using Debug = System.Diagnostics.Debug;
 
 namespace AElf.Kernel.Managers
@@ -20,6 +22,9 @@ namespace AElf.Kernel.Managers
         private readonly IDataStore _dataStore;
         private readonly IChangesStore _changesStore;
         #endregion
+
+        private readonly ILogger _logger;
+        private readonly ECKeyPair _keyPair;
         
         private bool _isChainIdSetted;
         private Hash _chainId;
@@ -28,12 +33,14 @@ namespace AElf.Kernel.Managers
         
         public Hash PreBlockHash { get; set; }
 
-        public WorldStateDictator(IWorldStateStore worldStateStore,
-            IChangesStore changesStore, IDataStore dataStore)
+        public WorldStateDictator(IWorldStateStore worldStateStore, IChangesStore changesStore,
+            IDataStore dataStore, ILogger logger, ECKeyPair keyPair)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
+            _logger = logger;
+            _keyPair = keyPair;
         }
 
         public IWorldStateDictator SetChainId(Hash chainId)
@@ -196,7 +203,7 @@ namespace AElf.Kernel.Managers
         {
             await Check();
             
-            return new AccountDataProvider(_chainId, accountAddress, this);
+            return new AccountDataProvider(_chainId, accountAddress, this, _keyPair);
         }
 
         #region Methods about WorldState
@@ -384,7 +391,7 @@ namespace AElf.Kernel.Managers
         /// </summary>
         /// <param name="resourcePath"></param>
         /// <returns></returns>
-        public async Task<Hash> CalculatePointerHashOfCurrentHeight(ResourcePath resourcePath)
+        public async Task<Hash> CalculatePointerHashOfCurrentHeight(IResourcePath resourcePath)
         {
             await Check();
             
@@ -425,6 +432,17 @@ namespace AElf.Kernel.Managers
             await InsertChangeAsync(stateValueChange.Path, change);
             await SetDataAsync(pointerHashAfter, stateValueChange.AfterValue.ToByteArray());
             return change;
+        }
+        
+        public async Task SetBlockHashToCorrespondingHeight(ulong height, BlockHeader header)
+        {
+            var blockHash = header.GetHash();
+            _logger?.Trace($"{GetLogPrefix()}Set height {height} block hash: {blockHash.Value.ToByteArray().ToHex()}");
+            await _dataStore.SetDataAsync(
+                ResourcePath.CalculatePointerForGettingBlockHashByHeight(
+                    header.ChainId,
+                    height),
+                blockHash.ToByteArray());
         }
 
         #region Private methods
@@ -483,6 +501,15 @@ namespace AElf.Kernel.Managers
                 var hash = await _dataStore.GetDataAsync(ResourcePath.CalculatePointerForLastBlockHash(_chainId));
                 PreBlockHash = hash ?? Hash.Genesis;
             }
+        }
+        
+        /// <summary>
+        /// Use "nameof" in case of chaging this class name
+        /// </summary>
+        /// <returns></returns>
+        private static string GetLogPrefix()
+        {
+            return $"[{DateTime.UtcNow.ToLocalTime(): HH:mm:ss} - {nameof(WorldStateDictator)}] ";
         }
         #endregion
     }

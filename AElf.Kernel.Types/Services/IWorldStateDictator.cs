@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Types;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Managers
 {
     public interface IWorldStateDictator
@@ -18,7 +19,7 @@ namespace AElf.Kernel.Managers
         
         Task<Hash> GetPointerAsync(Hash pathHash);
         
-        Task<Hash> CalculatePointerHashOfCurrentHeight(ResourcePath resourcePath);
+        Task<Hash> CalculatePointerHashOfCurrentHeight(IResourcePath resourcePath);
         
         Task InsertChangeAsync(Hash pathHash, Change change);
 
@@ -43,6 +44,8 @@ namespace AElf.Kernel.Managers
         Task<byte[]> GetDataAsync(Hash pointerHash);
 
         Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId);
+
+        Task SetBlockHashToCorrespondingHeight(ulong height, BlockHeader header);
         
         Hash PreBlockHash { get; set; }
     }

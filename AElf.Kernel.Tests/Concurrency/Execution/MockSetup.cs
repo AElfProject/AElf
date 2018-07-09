@@ -1,28 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Reflection;
-using AElf.Kernel;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Storages;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using ServiceStack;
-using Xunit;
-using AElf.Runtime.CSharp;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Metadata;
-using Xunit.Frameworks.Autofac;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Types.CSharp;
 using Akka.Actor;
+using NLog;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
@@ -66,18 +57,25 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
         private IFunctionMetadataService _functionMetadataService;
+        private ECKeyPair _keyPair;
+        private ILogger _logger;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateStore worldStateStore, IChangesStore changesStore, IDataStore dataStore, IChainCreationService chainCreationService,
-            IBlockManager blockManager, SmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IWorldStateStore worldStateStore, IChangesStore changesStore,
+            IDataStore dataStore, IChainCreationService chainCreationService,
+            IBlockManager blockManager, SmartContractStore smartContractStore,
+            IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
+            ISmartContractRunnerFactory smartContractRunnerFactory, ECKeyPair keyPair, ILogger logger)
         {
-            _worldStateDictator = new WorldStateDictator( worldStateStore, changesStore,  dataStore);
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, _keyPair);
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
+            _keyPair = keyPair;
+            _logger = logger;
             SmartContractManager = new SmartContractManager(smartContractStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =

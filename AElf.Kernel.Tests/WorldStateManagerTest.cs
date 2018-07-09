@@ -1,7 +1,10 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
+using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -11,15 +14,18 @@ namespace AElf.Kernel.Tests
     public class WorldStateManagerTest
     {
         private readonly IWorldStateDictator _worldStateDictator;
-
+        private readonly ILogger _logger;
+        private readonly ECKeyPair _keyPair;
+        
         private readonly BlockTest _blockTest;
 
         public WorldStateManagerTest(IWorldStateStore worldStateStore, IChangesStore changesStore, 
-            IDataStore dataStore, BlockTest blockTest)
+            IDataStore dataStore, BlockTest blockTest, ILogger logger, ECKeyPair keyPair)
         {
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore);
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, _keyPair);
             _blockTest = blockTest;
-
+            _logger = logger;
+            _keyPair = keyPair;
         }
 
         [Fact]

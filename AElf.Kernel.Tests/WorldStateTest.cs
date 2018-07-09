@@ -2,10 +2,13 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -18,16 +21,20 @@ namespace AElf.Kernel.Tests
         private readonly IChainStore _chainStore;
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
+        private readonly ILogger _logger;
+        private readonly ECKeyPair _keyPair;
         private readonly BlockTest _blockTest;
 
         public WorldStateTest(IChainStore chainStore, IWorldStateStore worldStateStore, 
-            IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest)
+            IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest, ILogger logger, ECKeyPair keyPair)
         {
             _chainStore = chainStore;
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _blockTest = blockTest;
+            _logger = logger;
+            _keyPair = keyPair;
         }
         
         [Fact]
@@ -35,7 +42,7 @@ namespace AElf.Kernel.Tests
         {
             // Data preparation
             var chain = await _blockTest.CreateChain();
-            var worldStateDirector = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore).SetChainId(chain.Id);
+            var worldStateDirector = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _keyPair).SetChainId(chain.Id);
             var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDirector);
             
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
@@ -59,7 +66,7 @@ namespace AElf.Kernel.Tests
         {
             var chain = await _blockTest.CreateChain();
             
-            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore).SetChainId(chain.Id);
+            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _keyPair).SetChainId(chain.Id);
 
             var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDictator);
 
@@ -175,7 +182,7 @@ namespace AElf.Kernel.Tests
             var chain = await _blockTest.CreateChain();
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             
-            var worldStateManager = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore).SetChainId(chain.Id);
+            var worldStateManager = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _keyPair).SetChainId(chain.Id);
             var chainManger = new ChainManager(_chainStore, _dataStore, worldStateManager);
             
             var address = Hash.Generate();
@@ -254,7 +261,7 @@ namespace AElf.Kernel.Tests
             var chain = await _blockTest.CreateChain();
             System.Diagnostics.Debug.WriteLine($"Hash of height 0: {chain.GenesisBlockHash.Value.ToByteArray().ToHex()}");
             
-            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore).SetChainId(chain.Id);
+            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _keyPair).SetChainId(chain.Id);
 
             var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDictator);
 
