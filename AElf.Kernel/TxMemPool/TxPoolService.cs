@@ -18,29 +18,13 @@ namespace AElf.Kernel.TxMemPool
     {
         private readonly ITxPool _txPool;
         private readonly IAccountContextService _accountContextService;
-        private readonly ITransactionManager _transactionManager;
-        private readonly ITransactionResultManager _transactionResultManager;
-        private readonly ILogger _logger;
 
         public TxPoolService(ITxPool txPool, IAccountContextService accountContextService,
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, ILogger logger)
         {
             _txPool = txPool;
             _accountContextService = accountContextService;
-            _transactionManager = transactionManager;
-            _transactionResultManager = transactionResultManager;
-            _logger = logger;
         }
-
-        /// <summary>
-        /// signal event for enqueue txs
-        /// </summary>
-        private AutoResetEvent EnqueueEvent { get; set; }
-
-        /// <summary>
-        /// signal event for demote executed txs
-        /// </summary>
-        private AutoResetEvent DemoteEvent { get; set; }
 
         /// <summary>
         /// Signals to a CancellationToken that it should be canceled
@@ -241,7 +225,7 @@ namespace AElf.Kernel.TxMemPool
 
 
         /// <inheritdoc/>
-        public async Task ResetAndUpdate(HashSet<Hash> addrs)
+        public async Task UpdateAccountContext(HashSet<Hash> addrs)
         {
             foreach (var addr in addrs)
             {

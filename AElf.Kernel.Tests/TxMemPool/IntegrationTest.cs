@@ -154,7 +154,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                             TransactionId = t.GetHash()
                         });
                     }
-                    await poolService.ResetAndUpdate(new HashSet<Hash>(addrList.Select(kp=> new Hash(kp.GetAddress()))));
+                    await poolService.UpdateAccountContext(new HashSet<Hash>(addrList.Select(kp=> new Hash(kp.GetAddress()))));
                 }
                 
                 j1++;
@@ -285,7 +285,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                                     TransactionId = t.GetHash()
                                 });
                             }
-                            await poolService.ResetAndUpdate(new HashSet<Hash>(addrList.Select(kp=> new Hash(kp.GetAddress()))));
+                            await poolService.UpdateAccountContext(new HashSet<Hash>(addrList.Select(kp=> new Hash(kp.GetAddress()))));
                         }
                     });
                     tasks.Add(task);
@@ -314,7 +314,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 TransactionId = t.GetHash()
             }).ToList();
             
-            await poolService.ResetAndUpdate(new HashSet<Hash>(addrList.Select(kp=> new Hash(kp.GetAddress()))));
+            await poolService.UpdateAccountContext(new HashSet<Hash>(addrList.Select(kp=> new Hash(kp.GetAddress()))));
             
             foreach (var address in addrList)
             {

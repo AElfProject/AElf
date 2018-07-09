@@ -105,7 +105,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 TransactionId = t.GetHash()
             }).ToList();
 
-            await poolService.ResetAndUpdate(new HashSet<Hash>{keyPair.GetAddress()});
+            await poolService.UpdateAccountContext(new HashSet<Hash>{keyPair.GetAddress()});
 
             var addr1 = keyPair.GetAddress();
             var context1 = await _accountContextService.GetAccountDataContext(addr1, pool.ChainId);
@@ -126,7 +126,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 TransactionId = t.GetHash()
             }).ToList();
 
-            await poolService.ResetAndUpdate(new HashSet<Hash>{addr1});
+            await poolService.UpdateAccountContext(new HashSet<Hash>{addr1});
             var context2 = await _accountContextService.GetAccountDataContext(addr1, pool.ChainId);
             Assert.Equal(4, (int)context2.IncrementId);
 

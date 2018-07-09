@@ -119,27 +119,7 @@ namespace AElf.Kernel.Miner
                 {
                     _logger?.Trace($"Trace {trace.TransactionId}, {trace.StdErr}");
                 }
-
-                await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
-                var ws = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
-
-
-                if (ws == null)
-                {
-                    _logger?.Trace($"ExecuteBlock - Could not get world state.");
-                    return false;
-                }
-
-                Console.WriteLine(await ws.GetWorldStateMerkleTreeRootAsync());
-                Console.WriteLine(block.Header.MerkleTreeRootOfWorldState);
-                if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
-                {
-                    
-                    _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
-                    // rollback txs in transaction
-                    await Rollback(readyTxs);
-                    return false;
-                }
+                
                 var results = new List<TransactionResult>();
                 foreach (var trace in traces)
                 {
@@ -162,7 +142,28 @@ namespace AElf.Kernel.Miner
                 }
 
                 var addrs = await Update(readyTxs, results);
-                await _txPoolService.ResetAndUpdate(addrs);
+                await _txPoolService.UpdateAccountContext(addrs);
+                
+                await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
+                var ws = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
+
+
+                if (ws == null)
+                {
+                    _logger?.Trace($"ExecuteBlock - Could not get world state.");
+                    return false;
+                }
+
+                if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
+                {
+                    
+                    _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
+                    // rollback txs in transaction
+                    await Rollback(readyTxs);
+                    return false;
+                }
+                
+                
                 await _chainManager.AppendBlockToChainAsync(block);
                 await _blockManager.AddBlockAsync(block);
             }
@@ -196,6 +197,11 @@ namespace AElf.Kernel.Miner
             return addrs;
         }
 
+        /// <summary>
+        /// withdraw txs in tx pool
+        /// </summary>
+        /// <param name="readyTxs"></param>
+        /// <returns></returns>
         private async Task Rollback(List<ITransaction> readyTxs)
         {
             await _txPoolService.RollBack(readyTxs);

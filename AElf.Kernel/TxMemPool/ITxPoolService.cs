@@ -87,7 +87,7 @@ namespace AElf.Kernel.TxMemPool
         /// which happens a block generated 
         /// </summary>
         /// <returns></returns>
-        Task ResetAndUpdate(HashSet<Hash> txResultList);
+        Task UpdateAccountContext(HashSet<Hash> txResultList);
         
         /// <summary>
         /// open transaction pool

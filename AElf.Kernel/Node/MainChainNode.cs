@@ -319,8 +319,8 @@ namespace AElf.Kernel.Node
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger.Trace("DID NOT add Transaction to pool: FROM, " + tx.GetHash().ToHex() + ", INCR : " +
-                                  tx.IncrementId);
+                    _logger.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ", tx.GetHash().ToHex() ,
+                                  tx.IncrementId, success);
                     return;
                 }
 

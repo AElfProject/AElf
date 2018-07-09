@@ -808,7 +808,7 @@ namespace AElf.Contracts.Genesis
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().ToHex();
+            return accountHash.ToAccount().ToHex().Remove(0, 2);
         }
 
 
