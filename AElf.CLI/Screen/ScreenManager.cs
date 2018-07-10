@@ -257,7 +257,7 @@ namespace AElf.CLI.Screen
             Console.Write(str);
         }
 
-        public string AskInvisible(string prefix)
+        public virtual string AskInvisible(string prefix)
         {
             Print(prefix);
             

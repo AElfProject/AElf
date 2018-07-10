@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
+using AElf.Cryptography;
 
 namespace AElf.CLI.Command
 {
@@ -13,12 +14,15 @@ namespace AElf.CLI.Command
             SubCommands = new Dictionary<string, ICommand>
             {
                 ["list"] = new ListAccountCommand(),
-                ["new"] = new NewAccountCommand()
+                ["new"] = new NewAccountCommand(),
+                ["unlock"] = new UnlockAccountCommand()
             };
             CurrentCommandName = "account";
         }
 
         public const string MsgAccountCreated = "account successfully created!";
+
+        #region ListAccount
 
         private class ListAccountCommand : ICommand
         {
@@ -45,6 +49,10 @@ namespace AElf.CLI.Command
             public string Usage { get; } = "account list";
         }
 
+        #endregion
+
+        #region NewAccount
+
         private class NewAccountCommand : ICommand
         {
             public string Process(IEnumerable<string> args, AElfClientProgramContext context)
@@ -60,7 +68,7 @@ namespace AElf.CLI.Command
                         pwd = args.First();
                         break;
                     default:
-                        throw new CommandException("Invalid parameter number");
+                        throw new InvalidNumberArgumentsException();
                 }
 
                 var pair = context.KeyStore.Create(pwd);
@@ -74,7 +82,55 @@ namespace AElf.CLI.Command
                 }
             }
 
-            public string Usage { get; } = "account new";
+            public string Usage { get; } = "account new [<password>]";
         }
+
+        #endregion
+
+        #region UnlockAccount
+
+        private class UnlockAccountCommand : ICommand
+        {
+            public string Process(IEnumerable<string> args, AElfClientProgramContext context)
+            {
+                var argc = args.Count();
+                switch (argc)
+                {
+                    case 1:
+                        return Process(args.First(), context);
+                    case 2:
+                        return Process(args.First(), context, false);
+                    default:
+                        throw new InvalidNumberArgumentsException();
+                }
+            }
+
+            private static string Process(string username, AElfClientProgramContext context, bool timeout = true)
+            {
+                var accounts = context.KeyStore.ListAccounts();
+
+                if (!(accounts?.Contains(username) ?? false))
+                {
+                    throw new CommandException($"the account '{username}' does not exist.");
+                }
+
+                var password = context.ScreenManager.AskInvisible("password: ");
+                var tryOpen = context.KeyStore.OpenAsync(username, password, timeout);
+
+                switch (tryOpen)
+                {
+                    case AElfKeyStore.Errors.WrongPassword:
+                        throw new CommandException("incorrect password!");
+                    case AElfKeyStore.Errors.AccountAlreadyUnlocked:
+                        throw new CommandException("account already unlocked!");
+                    default:
+                        return "account successfully unlocked!";
+                }
+            }
+
+            public string Usage { get; } = "account unlock <address> <timeout>";
+        }
+
+        #endregion
     }
 }

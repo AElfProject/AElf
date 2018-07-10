@@ -8,4 +8,11 @@ namespace AElf.CLI.Command
         {
         }
     }
+
+    public class InvalidNumberArgumentsException : CommandException
+    {
+        public InvalidNumberArgumentsException() : base("Invalid number of arguments")
+        {
+        }
+    }
 }
