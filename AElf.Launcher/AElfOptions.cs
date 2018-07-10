@@ -23,9 +23,6 @@ namespace AElf.Launcher
         [Option("node.peers", HelpText = "Sets an initial list of peers. Format: IP:Port")]
         public IEnumerable<string> Peers { get; set; }
 
-        [Option("node.host", HelpText = "The IP address this node is listening on.")]
-        public string Host { get; set; }
-
         [Option("node.port", HelpText = "The port this node is listening on.")]
         public int? Port { get; set; }
 
