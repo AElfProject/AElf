@@ -27,9 +27,15 @@ namespace AElf.Kernel
 
         public static byte[] HexToBytes(this string str)
         {
+            //remove possible 0x prefix
+            if (str.StartsWith("0x"))
+            {
+                str = str.Substring(2);
+            }
+            
             if (str.Length == 0 || str.Length % 2 != 0)
                 return new byte[0];
-
+            
             byte[] buffer = new byte[str.Length / 2];
             char c;
             for (int bx = 0, sx = 0; bx < buffer.Length; ++bx, ++sx)
