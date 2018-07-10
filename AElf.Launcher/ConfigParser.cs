@@ -93,7 +93,7 @@ namespace AElf.Launcher
             }
             else
             {
-                netConfig.Bootnodes = Bootnodes.BootNodes;
+                netConfig.Bootnodes = new List<NodeData>();
             }
 
             if (opts.PeersDbPath != null)
@@ -105,8 +105,8 @@ namespace AElf.Launcher
             if (opts.Port.HasValue)
                 netConfig.Port = opts.Port.Value;
 
-            if (!string.IsNullOrEmpty(opts.Host))
-                netConfig.Host = opts.Host;
+            /*if (!string.IsNullOrEmpty(opts.Host))
+                netConfig.Host = opts.Host;*/
 
             NetConfig = netConfig;
 
