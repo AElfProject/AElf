@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Akka.Util.Internal.Collections;
@@ -173,7 +174,7 @@ namespace AElf.Benchmark
                 string addrStr;
                 while ((addrStr = sr.ReadLine()) != null)
                 {
-                    KeyList.Add(new Hash(addrStr.HexToBytes()));
+                    KeyList.Add(new Hash(ByteArrayHelpers.FromHexString(addrStr)));
                 }
 
                 if (KeyList.Count != _maxTxNumber + _maxGroupNumber)
