@@ -14,6 +14,9 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
         public AkkaProtobufSerializer(ExtendedActorSystem system) : base(system)
         {
         }
+        
+        public override int Identifier { get; } = 1234567;
+
 
         public override byte[] ToBinary(object obj)
         {

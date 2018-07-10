@@ -15,7 +15,7 @@ namespace AElf.Kernel.Concurrency.Config
         public int WorkerCount { get; set; }
 
         public List<SeedNode> Seeds { get; set; }
-        
+
         /// <summary>
         /// the max group count of the grouper's output, see <see cref="AElf.Kernel.Concurrency.Scheduling.Grouper"/> for more details
         /// </summary>
@@ -25,12 +25,15 @@ namespace AElf.Kernel.Concurrency.Config
 
         public ActorConfig()
         {
-            IsCluster = false;
+            IsCluster = true;
             HostName = "127.0.0.1";
             Port = 32550;
-            WorkerCount = 8;
-            ConcurrencyLevel = 8;
-            Benchmark = false;
+            WorkerCount = 16;
+            ConcurrencyLevel = 160;
+            Benchmark = true;
+            Seeds = new List<SeedNode>();
+            //Seeds.Add(new SeedNode {HostName = "127.0.0.1", Port = 32551});
+            Seeds.Add(new SeedNode {HostName = "192.168.197.22", Port = 32551});
         }
     }
 
