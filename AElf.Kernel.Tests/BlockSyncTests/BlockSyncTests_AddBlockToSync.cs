@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Collections;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node;
@@ -17,6 +18,37 @@ namespace AElf.Kernel.Tests.BlockSyncTests
 {
     public class BlockSyncTests_AddBlockToSync
     {
+
+        [Fact]
+        public void Test()
+        {
+            byte[] byte01 = ByteArrayHelpers.RandomFill(10);
+            byte[] byte02 = new byte[10];
+            
+            byte[] byte03 = ByteArrayHelpers.RandomFill(10);
+            
+            Array.Copy(byte01, byte02, 10);
+            
+            SyncPeer s = new SyncPeer();
+            s.AlreadyRequested.Enqueue(byte01);
+            
+            Assert.True(s.AlreadyRequested.Contains(byte03));
+        }
+        
+        [Fact]
+        public void Test2()
+        {
+            BoundedByteArrayQueue bq = new BoundedByteArrayQueue(2);
+            
+            byte[] byte01 = ByteArrayHelpers.RandomFill(10);
+            bq.Enqueue(byte01);
+            
+            byte[] byte02 = ByteArrayHelpers.RandomFill(10);
+            bq.Enqueue(byte02);
+            
+            Assert.True(bq.Contains(byte01));
+        }
+        
         [Fact]
         public async Task AddBlockToSync_NullBlock_ShouldThrow()
         {
