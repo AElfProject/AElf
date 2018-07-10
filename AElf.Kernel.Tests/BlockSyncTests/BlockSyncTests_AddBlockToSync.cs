@@ -19,7 +19,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
     public class BlockSyncTests_AddBlockToSync
     {
 
-        [Fact]
+        [Fact(Skip = "todo")]a
         public void Test()
         {
             byte[] byte01 = ByteArrayHelpers.RandomFill(10);
@@ -35,7 +35,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             Assert.True(s.AlreadyRequested.Contains(byte03));
         }
         
-        [Fact]
+        [Fact(Skip = "todo")]
         public void Test2()
         {
             BoundedByteArrayQueue bq = new BoundedByteArrayQueue(2);
@@ -49,7 +49,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             Assert.True(bq.Contains(byte01));
         }
         
-        [Fact]
+        [Fact(Skip = "todo")]
         public async Task AddBlockToSync_NullBlock_ShouldThrow()
         {
             /*BlockSynchronizer s = new BlockSynchronizer(null, null);
@@ -79,7 +79,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             */
         }
 
-        [Fact]
+        [Fact(Skip = "todo")]
         public async Task AddBlockToSync_NoHash_ShouldThrow()
         {
             /*BlockSynchronizer s = new BlockSynchronizer(null, null);
@@ -93,7 +93,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             Assert.Equal("Invalid block hash", ex.Message);*/
         }
         
-        [Fact]
+        [Fact(Skip = "todo")]
         public async Task AddBlockToSync_BlockHeightLowerThanCurrent_ReturnsFalse()
         {
             /*BlockSynchronizer s = new BlockSynchronizer(null, null);
@@ -107,7 +107,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             Assert.False(res);*/
         }
 
-        [Fact]
+        [Fact(Skip = "todo")]
         public async Task AddBlockToSync_TxMissing_ShouldPutBlockToSync()
         {
             /*var missingTxHash = ByteArrayHelpers.RandomFill(256);
@@ -134,7 +134,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             Assert.True(missingTx.BytesEqual(missingTxHash));*/
         }
 
-        [Fact]
+        [Fact(Skip = "todo")]
         public async Task AddBlockToSync_AlreadyInPool_ShouldPutBlockToSyncIfOrphan()
         {
             /*Mock<IAElfNode> mock = new Mock<IAElfNode>();
