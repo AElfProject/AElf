@@ -24,32 +24,5 @@ namespace AElf.Kernel
 
             return new string(c);
         }
-
-        public static byte[] HexToBytes(this string str)
-        {
-            //remove possible 0x prefix
-            if (str.StartsWith("0x"))
-            {
-                str = str.Substring(2);
-            }
-            
-            if (str.Length == 0 || str.Length % 2 != 0)
-                return new byte[0];
-            
-            byte[] buffer = new byte[str.Length / 2];
-            char c;
-            for (int bx = 0, sx = 0; bx < buffer.Length; ++bx, ++sx)
-            {
-                // Convert first half of byte
-                c = str[sx];
-                buffer[bx] = (byte) ((c > '9' ? (c > 'Z' ? (c - 'a' + 10) : (c - 'A' + 10)) : (c - '0')) << 4);
-
-                // Convert second half of byte
-                c = str[++sx];
-                buffer[bx] |= (byte) (c > '9' ? (c > 'Z' ? (c - 'a' + 10) : (c - 'A' + 10)) : (c - '0'));
-            }
-
-            return buffer;
-        }
     }
 }
