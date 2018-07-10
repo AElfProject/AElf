@@ -48,7 +48,7 @@ namespace AElf.Network.Peers
         // List of non bootnode peers
         private readonly List<IPeer> _peers = new List<IPeer>();
         
-        private readonly NodeData _nodeData;
+        private readonly int _port;
 
         public bool UndergoingPm { get; private set; } = false;
         public bool ReceivingPeers { get; private set; } = false;
@@ -71,26 +71,20 @@ namespace AElf.Network.Peers
 
             if (_networkConfig != null)
             {
-                _nodeData = new NodeData()
+                _port = config.Port;
+                
+                // Add the provided bootnodes
+                if (_networkConfig.Bootnodes != null && _networkConfig.Bootnodes.Any())
                 {
-                    IpAddress = config.Host,
-                    Port = config.Port
-                };
-
-                _nodeData.IsBootnode = _networkConfig?.Bootnodes?.Any(p => p.Equals(_nodeData)) ?? false;
-
-                if (_networkConfig.Bootnodes != null)
-                {
-                    foreach (var node in _networkConfig.Bootnodes.Where(p => !p.Equals(_nodeData)))
+                    foreach (var node in _networkConfig.Bootnodes)
                     {
                         node.IsBootnode = true;
                         _bootnodes.Add(node);
                     }
                 }
-
-                if (_networkConfig.PeersDbPath != null)
+                else
                 {
-                    _peerDatabase = new PeerDataStore(_networkConfig.PeersDbPath);
+                    _logger?.Trace("Warning : bootnode list is empty.");
                 }
             }
         }

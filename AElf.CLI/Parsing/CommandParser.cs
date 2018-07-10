@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AElf.CLI.Parsing
 {
@@ -11,22 +12,17 @@ namespace AElf.CLI.Parsing
                 return null;
 
             string str = input.TrimEnd().TrimStart();
-            
+
             string[] tokens = str.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
             if (tokens.Length < 1)
                 return null;
-            
-            CmdParseResult res = new CmdParseResult();
-            res.Command = tokens[0];
 
-            res.Args = new List<string>();
-            for (int i = 1; i < tokens.Length; i++)
+            return new CmdParseResult
             {
-                res.Args.Add(tokens[i]);
-            }
-
-            return res;
+                Command = tokens[0],
+                Args = tokens.Skip(1).ToList()
+            };
         }
     }
 }

@@ -51,7 +51,8 @@ namespace AElf.Kernel.Concurrency.Metadata
             {
                 if (!Template.ContractMetadataTemplateMap.TryGetValue(contractClassName, out var classTemplate))
                 {
-                    throw new FunctionMetadataException("Cannot find contract named " + contractClassName + " in the template storage");
+                    throw new FunctionMetadataException("Cannot find contract named " + contractClassName +
+                                                        " in the template storage");
                 }
 
                 if (classTemplate.Count == 0 || classTemplate.First().Value.TemplateContainsMetadata == false)
@@ -60,10 +61,19 @@ namespace AElf.Kernel.Concurrency.Metadata
                     {
                         //TODO: this if is aim to support contracts that contains no metadata for now
                         var funcNameWithAddr =
-                            Replacement.ReplaceValueIntoReplacement(functionMetadataTemplate.Key, Replacement.This, contractAddr.Value.ToByteArray().ToHex());
+                            Replacement.ReplaceValueIntoReplacement(functionMetadataTemplate.Key, Replacement.This,
+                                contractAddr.Value.ToByteArray().ToHex());
 
-                        var localResourceSet = new HashSet<Resource>(){new Resource(contractAddr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)};
-                        var fullResourceSet = new HashSet<Resource>(){new Resource(contractAddr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)};
+                        var localResourceSet = new HashSet<Resource>()
+                        {
+                            new Resource(contractAddr.Value.ToByteArray().ToHex() + "._lock",
+                                DataAccessMode.ReadWriteAccountSharing)
+                        };
+                        var fullResourceSet = new HashSet<Resource>()
+                        {
+                            new Resource(contractAddr.Value.ToByteArray().ToHex() + "._lock",
+                                DataAccessMode.ReadWriteAccountSharing)
+                        };
                         var metadata = new FunctionMetadata(new HashSet<string>(), fullResourceSet, localResourceSet);
                         FunctionMetadataMap.Add(funcNameWithAddr, metadata);
                     }
@@ -73,16 +83,18 @@ namespace AElf.Kernel.Concurrency.Metadata
                     //local calling graph in template map of template must be topological, so ignore the callGraph
                     Template.TryGetLocalCallingGraph(classTemplate, out var callGraph, out var topologicRes);
 
-                foreach (var localFuncName in topologicRes.Reverse())
-                {
-                    var funcNameWithAddr =
-                        Replacement.ReplaceValueIntoReplacement(localFuncName, Replacement.This, contractAddr.Value.ToByteArray().ToHex());
-                    var funcMetadata = GetMetadataForNewFunction(funcNameWithAddr, classTemplate[localFuncName], contractAddr, contractReferences, tempMap);
-                
+                    foreach (var localFuncName in topologicRes.Reverse())
+                    {
+                        var funcNameWithAddr =
+                            Replacement.ReplaceValueIntoReplacement(localFuncName, Replacement.This,
+                                contractAddr.Value.ToByteArray().ToHex());
+                        var funcMetadata = GetMetadataForNewFunction(funcNameWithAddr, classTemplate[localFuncName],
+                            contractAddr, contractReferences, tempMap);
+
                         tempMap.Add(funcNameWithAddr, funcMetadata);
                     }
                 }
-            
+
                 //if no exception is thrown, merge the tempMap into FunctionMetadataMap
                 foreach (var functionMetadata in tempMap)
                 {
