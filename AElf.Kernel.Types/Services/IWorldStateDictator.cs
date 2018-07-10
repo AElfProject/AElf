@@ -48,5 +48,8 @@ namespace AElf.Kernel.Managers
         Task SetBlockHashToCorrespondingHeight(ulong height, BlockHeader header);
         
         Hash PreBlockHash { get; set; }
+        
+        Hash BlockProducerAccountAddress { get; set; }
+
     }
 }

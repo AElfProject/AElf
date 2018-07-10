@@ -15,17 +15,16 @@ namespace AElf.Kernel.Tests
     {
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly ILogger _logger;
-        private readonly Hash _accountAddress;
         
         private readonly BlockTest _blockTest;
 
         public WorldStateManagerTest(IWorldStateStore worldStateStore, IChangesStore changesStore, 
-            IDataStore dataStore, BlockTest blockTest, ILogger logger, Hash accountAddress)
+            IDataStore dataStore, BlockTest blockTest, ILogger logger)
         {
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, _accountAddress);
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger);
+            _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
             _blockTest = blockTest;
             _logger = logger;
-            _accountAddress = accountAddress;
         }
 
         [Fact]

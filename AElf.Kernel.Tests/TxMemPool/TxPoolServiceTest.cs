@@ -29,6 +29,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _worldStateDictator = worldStateDictator;
+            _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
         }
 
         private TxPool GetPool()

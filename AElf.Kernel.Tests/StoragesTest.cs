@@ -22,11 +22,10 @@ namespace AElf.Kernel.Tests
         private readonly BlockTest _blockTest;
         private readonly ChainManager _chainManager;
         private readonly ILogger _logger;
-        private readonly Hash _accountAddress;
 
         public StoragesTest(IWorldStateStore worldStateStore, IChangesStore changesStore, 
             IDataStore dataStore, BlockTest blockTest, ChainManager chainManager,
-            ILogger logger, Hash accountAddress)
+            ILogger logger)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
@@ -34,7 +33,6 @@ namespace AElf.Kernel.Tests
             _blockTest = blockTest;
             _chainManager = chainManager;
             _logger = logger;
-            _accountAddress = accountAddress;
         }
         
         [Fact]
@@ -47,9 +45,10 @@ namespace AElf.Kernel.Tests
 
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
-            var worldStateManager = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _accountAddress).SetChainId(chain.Id);
-            await worldStateManager.SetWorldStateAsync(chain.GenesisBlockHash);
-            var accountDataProvider = await worldStateManager.GetAccountDataProvider(address);
+            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger).SetChainId(chain.Id);
+            worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
+            await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);
+            var accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             
             //Get the DataProvider of the AccountDataProvider.
             var dataProvider = accountDataProvider.GetDataProvider();
@@ -93,10 +92,12 @@ namespace AElf.Kernel.Tests
 
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
-            var worldStateManager = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _accountAddress).SetChainId(chain.Id);
-            var accountDataProvider = await worldStateManager.GetAccountDataProvider(address);
+            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger).SetChainId(chain.Id);
+            worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
 
-            await worldStateManager.SetWorldStateAsync(chain.GenesisBlockHash);
+            var accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
+
+            await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);
 
             var dataProvider = accountDataProvider.GetDataProvider();
             var subDataProvider = dataProvider.GetDataProvider("test");
@@ -110,10 +111,10 @@ namespace AElf.Kernel.Tests
 
             var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
             
-            await worldStateManager.SetWorldStateAsync(block1.GetHash());
+            await worldStateDictator.SetWorldStateAsync(block1.GetHash());
             await _chainManager.AppendBlockToChainAsync(block2);
             
-            accountDataProvider = await worldStateManager.GetAccountDataProvider(address);
+            accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
             subDataProvider = dataProvider.GetDataProvider("test");
             
@@ -147,10 +148,12 @@ namespace AElf.Kernel.Tests
 
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
-            var worldStateManager = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _accountAddress).SetChainId(chain.Id);
-            var accountDataProvider = await worldStateManager.GetAccountDataProvider(address);
+            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger).SetChainId(chain.Id);
+            worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
+
+            var accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             
-            await worldStateManager.SetWorldStateAsync(chain.GenesisBlockHash);
+            await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);
 
             //Set data to one sub DataProvider("test").
             var dataProvider = accountDataProvider.GetDataProvider();
@@ -160,14 +163,14 @@ namespace AElf.Kernel.Tests
             await subDataProvider.SetAsync(key, data1);
 
             //Set WorldState and add a new block.
-            await worldStateManager.SetWorldStateAsync(block1.GetHash());
+            await worldStateDictator.SetWorldStateAsync(block1.GetHash());
             
             var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
 
             await _chainManager.AppendBlockToChainAsync(block2);
 
             //Must refresh the DataProviders before set new data.
-            accountDataProvider = await worldStateManager.GetAccountDataProvider(address);
+            accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
             subDataProvider = dataProvider.GetDataProvider(str);
             //Change the data.
@@ -183,13 +186,13 @@ namespace AElf.Kernel.Tests
             Assert.False(data1.SequenceEqual(getData2));
             
             //Now set WorldState again and add a third block.
-            await worldStateManager.SetWorldStateAsync(block2.GetHash());
+            await worldStateDictator.SetWorldStateAsync(block2.GetHash());
             
             var block3 = CreateBlock(block2.GetHash(), chain.Id, 3);
 
             await _chainManager.AppendBlockToChainAsync(block3);
             
-            accountDataProvider = await worldStateManager.GetAccountDataProvider(address);
+            accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
             subDataProvider = dataProvider.GetDataProvider(str);
             var data3 = Hash.Generate().Value.ToByteArray();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+  using AElf.Common.Attributes;
   using AElf.Cryptography.ECDSA;
   using AElf.Kernel.Node;
   using AElf.Kernel.Storages;
@@ -15,6 +16,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Managers
 {
+    [LoggerName(nameof(WorldStateDictator))]
     public class WorldStateDictator: IWorldStateDictator
     {
         #region Stores
@@ -24,7 +26,6 @@ namespace AElf.Kernel.Managers
         #endregion
 
         private readonly ILogger _logger;
-        private readonly Hash _blockProducerAccountAddress;
         
         private bool _isChainIdSetted;
         private Hash _chainId;
@@ -32,16 +33,15 @@ namespace AElf.Kernel.Managers
         public bool DeleteChangeBeforesImmidiately { get; set; } = false;
         
         public Hash PreBlockHash { get; set; }
+        public Hash BlockProducerAccountAddress { get; set; }
 
         public WorldStateDictator(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, ILogger logger, Hash blockProducerAccountAddress)
+            IDataStore dataStore, ILogger logger)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _logger = logger;
-            
-            _blockProducerAccountAddress = blockProducerAccountAddress;
         }
 
         public IWorldStateDictator SetChainId(Hash chainId)
@@ -193,7 +193,7 @@ namespace AElf.Kernel.Managers
         {
             await Check();
             
-            return new AccountDataProvider(_chainId, accountAddress, this, _blockProducerAccountAddress);
+            return new AccountDataProvider(_chainId, accountAddress, this);
         }
 
         #region Methods about WorldState
@@ -385,7 +385,8 @@ namespace AElf.Kernel.Managers
         {
             await Check();
             
-            return resourcePath.SetBlockProducerAddress(_blockProducerAccountAddress).SetBlockHash(PreBlockHash).GetPointerHash();
+            return resourcePath.SetBlockProducerAddress(BlockProducerAccountAddress)
+                .SetBlockHash(PreBlockHash).GetPointerHash();
         }
 
         public async Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId)
@@ -427,7 +428,7 @@ namespace AElf.Kernel.Managers
         public async Task SetBlockHashToCorrespondingHeight(ulong height, BlockHeader header)
         {
             var blockHash = header.GetHash();
-            _logger?.Trace($"{GetLogPrefix()}Set height {height} block hash: {blockHash.Value.ToByteArray().ToHex()}");
+            _logger?.Trace($"Set height {height} block hash: {blockHash.Value.ToByteArray().ToHex()}");
             await _dataStore.SetDataAsync(
                 ResourcePath.CalculatePointerForGettingBlockHashByHeight(
                     header.ChainId,
@@ -491,15 +492,6 @@ namespace AElf.Kernel.Managers
                 var hash = await _dataStore.GetDataAsync(ResourcePath.CalculatePointerForLastBlockHash(_chainId));
                 PreBlockHash = hash ?? Hash.Genesis;
             }
-        }
-        
-        /// <summary>
-        /// Use "nameof" in case of chaging this class name
-        /// </summary>
-        /// <returns></returns>
-        private static string GetLogPrefix()
-        {
-            return $"[{DateTime.UtcNow.ToLocalTime(): HH:mm:ss} - {nameof(WorldStateDictator)}] ";
         }
         #endregion
     }

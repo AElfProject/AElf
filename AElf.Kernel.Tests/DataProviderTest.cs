@@ -19,18 +19,16 @@ namespace AElf.Kernel.Tests
         private readonly IDataStore _dataStore;
         private readonly BlockTest _blockTest;
         private readonly ILogger _logger;
-        private readonly Hash _accountAddress;
 
         public DataProviderTest(IWorldStateStore worldStateStore,
             IChangesStore changesStore, IDataStore dataStore, 
-            BlockTest blockTest, ILogger logger, Hash accountAddress)
+            BlockTest blockTest, ILogger logger)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _blockTest = blockTest;
             _logger = logger;
-            _accountAddress = accountAddress;
         }
 
         [Fact]
@@ -44,11 +42,12 @@ namespace AElf.Kernel.Tests
 
             var address = Hash.Generate();
             
-            var worldStateManager =  new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _accountAddress).SetChainId(chain.Id);
+            var worldStateDictator =  new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger).SetChainId(chain.Id);
+            worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
+
+            await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);
             
-            await worldStateManager.SetWorldStateAsync(chain.GenesisBlockHash);
-            
-            var accountDataProvider = await worldStateManager.GetAccountDataProvider(address);
+            var accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             var dataProvider = accountDataProvider.GetDataProvider();
 
             for (var i = 0; i < count; i++)

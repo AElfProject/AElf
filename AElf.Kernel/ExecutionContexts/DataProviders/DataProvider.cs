@@ -8,7 +8,6 @@ namespace AElf.Kernel
     {
         private readonly IAccountDataContext _accountDataContext;
         private readonly IWorldStateDictator _worldStateDictator;
-        private readonly Hash _blockProducerAccountAddress;
 
         /// <summary>
         /// To dictinct DataProviders of same account and same level.
@@ -24,16 +23,15 @@ namespace AElf.Kernel
         private Hash PreBlockHash { get; set; }
 
         public DataProvider(IAccountDataContext accountDataContext, IWorldStateDictator worldStateDictator,
-            Hash blockProducerAccountAddress, string dataProviderKey = "")
+            string dataProviderKey = "")
         {
             _worldStateDictator = worldStateDictator;
-            _blockProducerAccountAddress = blockProducerAccountAddress;
             _accountDataContext = accountDataContext;
             _dataProviderKey = dataProviderKey;
 
             _resourcePath = new ResourcePath()
                 .SetChainId(_accountDataContext.ChainId)
-                .SetBlockProducerAddress(_blockProducerAccountAddress)
+                .SetBlockProducerAddress(worldStateDictator.BlockProducerAccountAddress)
                 .SetAccountAddress(_accountDataContext.Address)
                 .SetDataProvider(GetHash());
         }
@@ -51,7 +49,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public IDataProvider GetDataProvider(string dataProviderKey)
         {
-            return new DataProvider(_accountDataContext, _worldStateDictator, _blockProducerAccountAddress, dataProviderKey);
+            return new DataProvider(_accountDataContext, _worldStateDictator, dataProviderKey);
         }
 
         /// <summary>

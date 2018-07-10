@@ -220,7 +220,7 @@ namespace AElf.Kernel.Node
                 _miner.Start(nodeKeyPair, grouper);
                 
                 //DoDPos();
-                _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToByteArray().ToHex());
+                _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToByteArray().ToHex());
             }
             
             _logger?.Log(LogLevel.Debug, "AElf node started.");

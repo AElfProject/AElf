@@ -6,15 +6,13 @@ namespace AElf.Kernel
     public class AccountDataProvider : IAccountDataProvider
     {
         private readonly IWorldStateDictator _worldStateDictator;
-        private readonly Hash _blockProducerAccountAddress;
         
         public IAccountDataContext Context { get; set; }
 
         public AccountDataProvider(Hash chainId, Hash accountAddress, 
-            IWorldStateDictator worldStateDictator, Hash blockProducerAccountAddress)
+            IWorldStateDictator worldStateDictator)
         {
             _worldStateDictator = worldStateDictator;
-            _blockProducerAccountAddress = blockProducerAccountAddress;
 
             //Just use its structure to store info.
             Context = new AccountDataContext
@@ -27,7 +25,7 @@ namespace AElf.Kernel
 
         public IDataProvider GetDataProvider()
         {
-            return new DataProvider(Context, _worldStateDictator, _blockProducerAccountAddress);
+            return new DataProvider(Context, _worldStateDictator);
         }
     }
 }

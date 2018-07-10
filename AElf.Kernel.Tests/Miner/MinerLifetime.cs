@@ -91,6 +91,7 @@ namespace AElf.Kernel.Tests.Miner
             _concurrencyExecutingService = concurrencyExecutingService;
 
             _worldStateDictator = worldStateDictator;
+            _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
             
             Initialize();
         }
