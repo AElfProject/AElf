@@ -2,7 +2,10 @@
 using System.IO;
 using System.Linq;
 using AElf.CLI.Command;
+using AElf.CLI.RPC;
 using AElf.CLI.Screen;
+using Newtonsoft.Json.Linq;
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Security;
 using Xunit;
@@ -78,6 +81,52 @@ namespace AElf.CLI.Tests
             var usage = rootCmd.Usage;
             // TODO Make a better way to check usage correct.
             Assert.NotEmpty(usage);
+        }
+
+        private class MockRPCClient : IRPCClient
+        {
+            public string Request(string method, JObject param = null)
+            {
+                return new JObject()
+                {
+                    ["method"] = method,
+                    ["params"] = param
+                }.ToString();
+            }
+        }
+
+        [Fact]
+        public void TestGetPeersCommand()
+        {
+            var ctx = new AElfClientProgramContext(null, new MockRPCClient());
+            var rootCmd = new RootCommand();
+            var result = rootCmd.Process(new string[]
+            {
+                "get_peers"
+            }, ctx);
+            Assert.Equal(new JObject()
+            {
+                ["method"] = "get_peers",
+                ["params"] = new JObject()
+                {
+                    ["numPeers"] = null
+                }
+            }, JObject.Parse(result));
+
+
+            result = rootCmd.Process(new string[]
+            {
+                "get_peers",
+                "10"
+            }, ctx);
+            Assert.Equal(new JObject()
+            {
+                ["method"] = "get_peers",
+                ["params"] = new JObject()
+                {
+                    ["numPeers"] = 10
+                }
+            }, JObject.Parse(result));
         }
     }
 }

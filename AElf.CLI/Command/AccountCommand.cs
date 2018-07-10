@@ -68,7 +68,7 @@ namespace AElf.CLI.Command
                         pwd = args.First();
                         break;
                     default:
-                        throw new InvalidNumberArgumentsException();
+                        throw new InvalidArgumentNumberException();
                 }
 
                 var pair = context.KeyStore.Create(pwd);
@@ -101,7 +101,7 @@ namespace AElf.CLI.Command
                     case 2:
                         return Process(args.First(), context, false);
                     default:
-                        throw new InvalidNumberArgumentsException();
+                        throw new InvalidArgumentNumberException();
                 }
             }
 

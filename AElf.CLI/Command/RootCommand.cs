@@ -34,6 +34,7 @@ namespace AElf.CLI.Command
             SubCommands = new Dictionary<string, ICommand>();
             SubCommands["get_commands"] = new GetCommands(SubCommands);
             SubCommands["account"] = new AccountCommand();
+            SubCommands["get_peers"] = new GetPeersCommand();
             CurrentCommandName = "";
         }
     }
