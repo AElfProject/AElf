@@ -28,8 +28,8 @@ namespace AElf.Kernel.Concurrency.Config
             IsCluster = false;
             HostName = "127.0.0.1";
             Port = 32550;
-            WorkerCount = 6;
-            ConcurrencyLevel = 24;
+            WorkerCount = 8;
+            ConcurrencyLevel = 8;
             Benchmark = false;
         }
     }

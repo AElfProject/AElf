@@ -93,7 +93,7 @@ namespace AElf.Benchmark
             }
             _contractHash = Prepare(code).Result;
             
-            InitContract(_contractHash, _dataGenerater.KeyDict.Keys).GetResult();
+            InitContract(_contractHash, _dataGenerater.KeyDict).GetResult();
             
         }
 
@@ -230,7 +230,7 @@ namespace AElf.Benchmark
             {
                 var txnBalInit = new Transaction
                 {
-                    From = Hash.Zero.ToAccount(),
+                    From = addr,
                     To = contractAddr,
                     IncrementId = NewIncrementId(),
                     MethodName = "InitBalance",

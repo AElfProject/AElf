@@ -69,7 +69,7 @@ namespace AElf.Kernel.Concurrency.Execution
                         throw new TaskNotCompletedProperlyException("TransactionTrace is received after the task has completed.");
                     }
 
-                    traces.AddRange(msg.TransactionTraces);
+                    traces.Add(msg.TransactionTrace);
 //                    _requestIdToPendingTransactionIds[msg.RequestId].Remove(msg.TransactionTrace.TransactionId);
                     if (traces.Count == _requesteIdTransactionCounts[msg.RequestId])
                     {

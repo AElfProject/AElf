@@ -12,45 +12,39 @@ namespace AElf.Benchmark
     public class TransactionDataGenerator
     {
         private int _totalNumber;
-        public Dictionary<Hash, ECKeyPair> KeyDict;
+        public List<Hash> KeyDict;
 
         public TransactionDataGenerator(int maxNumber)
         {
             _totalNumber = maxNumber;
-            KeyDict = new Dictionary<Hash, ECKeyPair>();
-            for (int i = 0; i < maxNumber + 90; i++)
+            KeyDict = new List<Hash>();
+            for (int i = 0; i < maxNumber + 1000; i++)
             {
-                if (maxNumber > 100 && i % (maxNumber / 10) == 0)
-                {
-                    Console.WriteLine((double)(i*100) / (double)maxNumber + "% pub-priv key generated");
-                }
-                var keyPairGenerator = new KeyPairGenerator();
-                var kpair = keyPairGenerator.Generate();
-                KeyDict.Add(new Hash(kpair.GetAddress()), kpair);
+                KeyDict.Add(Hash.Generate().ToAccount());
             }
         }
 
-        private IEnumerable<KeyValuePair<Hash, Hash>> GenerateTransferAddressPair(int txCount, double conflictRate, ref Iterator<KeyValuePair<Hash, ECKeyPair>> keyDictIter)
+        private IEnumerable<KeyValuePair<Hash, Hash>> GenerateTransferAddressPair(int txCount, double conflictRate, ref Iterator<Hash> keyDictIter)
         {
             if (txCount > _totalNumber) throw new InvalidParameterException();
             var txAccountList = new List<KeyValuePair<Hash, Hash>>();
             
             int conflictTxCount = (int) (conflictRate * txCount);
             var conflictKeyPair = keyDictIter.Next();
-            var conflictAddr = new Hash(conflictKeyPair.Key);
+            var conflictAddr = new Hash(conflictKeyPair);
 
             
             for (int i = 0; i < conflictTxCount; i++)
             {
                 var senderKp = keyDictIter.Next();
-                txAccountList.Add(new KeyValuePair<Hash, Hash>(senderKp.Key, conflictAddr));
+                txAccountList.Add(new KeyValuePair<Hash, Hash>(senderKp, conflictAddr));
             }
 
             for (int i = 0; i < txCount - conflictTxCount; i++)
             {
                 var senderKp = keyDictIter.Next();
                 var receiverKp = keyDictIter.Next();
-                txAccountList.Add(new KeyValuePair<Hash, Hash>(senderKp.Key, receiverKp.Key));
+                txAccountList.Add(new KeyValuePair<Hash, Hash>(senderKp, receiverKp));
             }
 
             return txAccountList;
@@ -88,7 +82,7 @@ namespace AElf.Benchmark
             foreach (var addressPair in transferAddressPairs)
             {
 
-                var keyPair = KeyDict[addressPair.Key];
+                //var keyPair = KeyDict[addressPair.Key];
                 ulong qty = 50;
                 Transaction tx = new Transaction()
                 {
@@ -97,17 +91,9 @@ namespace AElf.Benchmark
                     IncrementId = 0,
                     MethodName = "Transfer",
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(addressPair.Key, addressPair.Value, (ulong)20)),
-                    P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
                 };
 
                 Hash txHash = tx.GetHash();
-                
-                ECSigner signer = new ECSigner();
-                ECSignature signature = signer.Sign(keyPair, txHash.GetHashBytes());
-
-                tx.R = ByteString.CopyFrom(signature.R);
-                tx.S = ByteString.CopyFrom(signature.S);
-                
                 resList.Add(tx);
             }
 
