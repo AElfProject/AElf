@@ -4,7 +4,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-using AElf.Database;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
@@ -14,7 +13,6 @@ using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Tests.Concurrency.Execution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Kernel.TxMemPool;
 using AElf.Runtime.CSharp;
@@ -24,12 +22,10 @@ using Google.Protobuf;
 using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
-
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using Org.BouncyCastle.Crypto.Generators;
 
 namespace AElf.Kernel.Tests.Miner
 {
@@ -73,7 +69,6 @@ namespace AElf.Kernel.Tests.Miner
             _accountContextService = accountContextService;
 
             Initialize();
-
         }
 
         private void Initialize()
@@ -251,7 +246,7 @@ namespace AElf.Kernel.Tests.Miner
         private ISmartContractService _smartContractService;
         private IActorRef _requestor;
 
-
+        
         [Fact]
         public async Task SyncGenesisBlock_False_Rollback()
         {
@@ -298,54 +293,5 @@ namespace AElf.Kernel.Tests.Miner
             Assert.Equal((ulong)1, await _chainManager.GetChainCurrentHeight(chain.Id));
             Assert.Equal(chain.GenesisBlockHash, await _chainManager.GetChainLastBlockHash(chain.Id));
         }
-        
-        
-        [Fact]
-        public async Task SyncGenesisBlock()
-        {
-            var poolconfig = TxPoolConfig.Default;
-            var chain = await CreateChain(OldSmartContractZeroCode);
-            poolconfig.ChainId = chain.Id;
-            
-            var pool = new TxPool(poolconfig, _logger);
-            
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
-            
-            poolService.Start();
-            var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, 1);
-            
-            var txs = CreateTxs(chain.Id);
-            foreach (var transaction in txs)
-            {
-                await poolService.AddTxAsync(transaction);
-            }
-            
-            Assert.Equal((ulong)0, await poolService.GetWaitingSizeAsync());
-            Assert.Equal((ulong)2, await poolService.GetExecutableSizeAsync());
-            Assert.True(poolService.TryGetTx(txs[2].GetHash(), out var tx));
-            
-            block.Body.Transactions.Add(txs[0].GetHash());
-            block.Body.Transactions.Add(txs[2].GetHash());
-
-            block.FillTxsMerkleTreeRootInHeader();
-            block.Body.BlockHeader = block.Header.GetHash();
-
-            var synchronizer = new Kernel.Miner.BlockExecutor(poolService,
-                _chainManager, _blockManager, _worldStateDictator, _concurrencyExecutingService, null, _transactionManager, _transactionResultManager);
-            synchronizer.Start(new Grouper(_servicePack.ResourceDetectionService));
-            var res = await synchronizer.ExecuteBlock(block);
-            Assert.True(res);
-
-            Assert.Equal((ulong)0, await poolService.GetWaitingSizeAsync());
-            Assert.Equal((ulong)0, await poolService.GetExecutableSizeAsync());
-            //Assert.False(poolService.TryGetTx(txs[2].GetHash(), out tx));
-            Assert.True(poolService.TryGetTx(txs[1].GetHash(), out tx));
-            Assert.Equal((ulong)2, pool.GetNonce(tx.From));
-
-            Assert.Equal((ulong)2, await _chainManager.GetChainCurrentHeight(chain.Id));
-            Assert.Equal(block.GetHash(), await _chainManager.GetChainLastBlockHash(chain.Id));
-        }
-       
     }
 }

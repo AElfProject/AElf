@@ -208,12 +208,11 @@ namespace AElf.Kernel.Tests.TxMemPool
             var tx3_0 = BuildTransaction(nonce:1, keyPair:kp3);
             var tx3_1 = BuildTransaction(nonce: 3, keyPair: kp3);
             await poolService.AddTxAsync(tx3_0);
-            await poolService.AddTxAsync(tx3_0);
+            await poolService.AddTxAsync(tx3_1);
             var tx3_2 = BuildTransaction(nonce: 0, keyPair: kp3);
 
             var kp4 = new KeyPairGenerator().Generate();
             pool.TrySetNonce(kp4.GetAddress(), 3);
-            await poolService.AddTxAsync(tx3_0);
             var tx4_0 = BuildTransaction(nonce:1, keyPair:kp4);
             var tx4_1 = BuildTransaction(nonce:2, keyPair:kp4);
             
@@ -235,15 +234,14 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.Equal((ulong) 1,
                 (await _accountContextService.GetAccountDataContext(kp4.GetAddress(), pool.ChainId)).IncrementId);
 
-            pool.ReadyTxs(100);
+            await poolService.GetReadyTxsAsync(100);
             Assert.Equal((ulong)4, pool.GetNonce(kp1.GetAddress()).Value);
             Assert.Equal((ulong)1, pool.GetNonce(kp2.GetAddress()).Value);
             Assert.Equal((ulong)2, pool.GetNonce(kp3.GetAddress()).Value);
             Assert.Equal((ulong)3, pool.GetNonce(kp4.GetAddress()).Value);
-
-
         }
-        
+
+
         public static Transaction BuildTransaction(Hash adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
         {
             keyPair = keyPair ?? new KeyPairGenerator().Generate();
