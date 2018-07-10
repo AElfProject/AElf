@@ -10,13 +10,15 @@ namespace AElf.CLI.Command
     {
         public AccountCommand()
         {
-            SubCommands = new Dictionary<string, ICommand>();
-            SubCommands["list"] = new ListAccountCommand();
-            SubCommands["new"] = new NewAccountCommand();
+            SubCommands = new Dictionary<string, ICommand>
+            {
+                ["list"] = new ListAccountCommand(),
+                ["new"] = new NewAccountCommand()
+            };
             CurrentCommandName = "account";
         }
 
-        public static readonly string MsgAccountCreated = "account successfully created!";
+        public const string MsgAccountCreated = "account successfully created!";
 
         private class ListAccountCommand : ICommand
         {
@@ -27,7 +29,7 @@ namespace AElf.CLI.Command
                     throw new CommandException("account list does not need to take any params");
                 }
 
-                List<string> accounts = context.KeyStore.ListAccounts();
+                var accounts = context.KeyStore.ListAccounts();
                 if (accounts.Count != 0)
                 {
                     return string.Join("\n",

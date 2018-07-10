@@ -23,7 +23,7 @@ namespace AElf.CLI.Command
                     throw new CommandException("get_commands does not need any params");
                 }
 
-                return String.Join("\n", _commands.Keys);
+                return string.Join("\n", _commands.Keys);
             }
 
             public string Usage { get; } = "get_commands";

@@ -49,5 +49,14 @@ namespace AElf.CLI.Tests
             }, ctx);
             Assert.Equal(2, listResult.Split('\n').Length);
         }
+
+        [Fact]
+        public void TestGetUsage()
+        {
+            var rootCmd = new RootCommand();
+            var usage = rootCmd.Usage;
+            // TODO Make a better way to check usage correct.
+            Assert.NotEmpty(usage);
+        }
     }
 }
