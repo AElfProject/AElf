@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AElf.Database
 {
@@ -18,9 +19,13 @@ namespace AElf.Database
 
         static DatabaseTypeHelper()
         {
-            _typeDic.Add("keyvalue", DatabaseType.KeyValue);
-            _typeDic.Add("redis", DatabaseType.Redis);
-            _typeDic.Add("ssdb", DatabaseType.Ssdb);
+            var dbType = typeof(DatabaseType);
+            var dbNames = Enum.GetNames(dbType);
+            var dbValues = Enum.GetValues(dbType);
+            for (var i = 0; i < dbNames.Length; ++i)
+            {
+                _typeDic.Add(dbNames[i].ToLower(), (DatabaseType) dbValues.GetValue(i));
+            }
         }
 
         public static DatabaseType GetType(string type)

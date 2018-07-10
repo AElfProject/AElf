@@ -37,7 +37,8 @@ namespace AElf.Network
         private readonly ILogger _logger;
         
         private TcpListener _listener;
-        private readonly NodeData _nodeData;
+        //private readonly NodeData _nodeData;
+        private readonly int _port;
         
         private CancellationTokenSource _tokenSource;
         private CancellationToken _token;
@@ -47,8 +48,8 @@ namespace AElf.Network
             _config = config;
             _logger = logger;
             
-            if (config != null && !string.IsNullOrEmpty(config.Host))
-                _nodeData = new NodeData { IpAddress = config.Host, Port = config.Port };
+            if (config != null)
+                _port = config.Port;
         }
 
         /// <summary>
@@ -62,12 +63,12 @@ namespace AElf.Network
             if (_config == null)
                 throw new ServerConfigurationException("Could not start the server, config object is null.");
 
-            if (!IPAddress.TryParse(_config.Host, out var listenAddress))
-                throw new ServerConfigurationException("Could not start the server, invalid ip.");
+            /*if (!IPAddress.TryParse(_config.Host, out var listenAddress))
+                throw new ServerConfigurationException("Could not start the server, invalid ip.");*/
                 
             try
             {
-                _listener = new TcpListener(listenAddress, _config.Port);
+                _listener = new TcpListener(IPAddress.Any, _config.Port);
                 _listener.Start();
             }
             catch (Exception e)
@@ -146,9 +147,9 @@ namespace AElf.Network
                     
                     NodeData distant = new NodeData();
                     distant.IpAddress = remoteEndPoint.Address.ToString();
-                    distant.Port = remoteEndPoint.Port;
+                    distant.Port = n.Port;
                     
-                    Peer p = new Peer(_nodeData, distant, tcpClient);
+                    Peer p = new Peer(_port, distant, tcpClient);
                     
                     await p.WriteConnectInfoAsync();
                     

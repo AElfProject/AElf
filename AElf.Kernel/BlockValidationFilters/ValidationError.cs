@@ -9,6 +9,7 @@
         Pending = 5,
         Mining = 6,
         InvalidTimeslot = 7,
-        FailedToCheckConsensusInvalidation = 8
+        FailedToCheckConsensusInvalidation = 8,
+        FailedToGetBlockByHeight = 9
     }
 }

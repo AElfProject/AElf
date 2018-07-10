@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -549,7 +549,7 @@ namespace AElf.Kernel.Node.Protocol
                     // The block was executed and validation was a success: remove the pending block.
                     toRemove.Add(pendingBlock);
                     executed.Add(pendingBlock);
-                    CurrentExecHeight++;
+                    Interlocked.Increment(ref CurrentExecHeight);
                 }
                 else
                 {
