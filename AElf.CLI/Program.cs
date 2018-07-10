@@ -7,28 +7,44 @@ using AElf.CLI.Screen;
 using AElf.CLI.Wallet;
 using AElf.Common.Application;
 using AElf.Cryptography;
+using CommandLine;
 
 namespace AElf.CLI
 {
+    class CommandLineOptions
+    {
+        [Value(0,
+            MetaName = "AElf server address",
+            HelpText = "The address of AElf server.",
+            Default = "http://localhost:1234")]
+        public string ServerAddr { get; set; }
+    }
+
     class Program
     {
-        // todo Parse command line options
         public static void Main(string[] args)
         {
             ScreenManager screenManager = new ScreenManager();
             CommandParser parser = new CommandParser();
-            
+
             AElfKeyStore kstore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
             AccountManager manager = new AccountManager(kstore, screenManager);
-            
-            string host = args.Length > 0 ? args[0] : "http://localhost:1234";
-            
-            AElfCliProgram program = new AElfCliProgram(screenManager, parser, manager, host);
+
+            var cmdOptions = new CommandLineOptions();
+
+            Parser.Default.ParseArguments<CommandLineOptions>(args).WithNotParsed(err =>
+                {
+                    Environment.Exit(1);
+                }
+            ).WithParsed(
+                result => { cmdOptions = result; });
+
+            AElfCliProgram program = new AElfCliProgram(screenManager, parser, manager, cmdOptions.ServerAddr);
 
             // Register local commands
             RegisterAccountCommands(program);
             RegisterNetworkCommands(program);
-            
+
             program.RegisterCommand(new GetIncrementCmd());
             program.RegisterCommand(new SendTransactionCmd());
             program.RegisterCommand(new LoadContractAbiCmd());
@@ -37,7 +53,7 @@ namespace AElf.CLI
             program.RegisterCommand(new GetGenesisContractAddressCmd());
             program.RegisterCommand(new GetDeserializedResultCmd());
             program.RegisterCommand(new GetBlockHeightCmd());
-            
+
             // Start the CLI
             program.StartRepl();
         }
