@@ -14,7 +14,7 @@ namespace AElf.CLI.Tests
         [Fact]
         public void TestListCommands()
         {
-            var ctx = new AElfClientProgramContext(new ScreenManager());
+            var ctx = new AElfClientProgramContext(new ScreenManager(), null);
             var command = new RootCommand();
             var cmds = command.Process(new string[]
             {
@@ -42,7 +42,7 @@ namespace AElf.CLI.Tests
             }
 
             Directory.CreateDirectory(tmpPath);
-            var ctx = new AElfClientProgramContext(new MockScreenManager(), tmpPath);
+            var ctx = new AElfClientProgramContext(new MockScreenManager(), tmpPath, null);
             var command = new RootCommand();
             for (var i = 0; i < 2; ++i)
             {
