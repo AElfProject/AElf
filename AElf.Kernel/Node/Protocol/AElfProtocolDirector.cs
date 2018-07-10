@@ -115,7 +115,7 @@ namespace AElf.Kernel.Node.Protocol
 
         public void IncrementChainHeight()
         {
-            _blockSynchronizer.CurrentExecHeight++;
+            Interlocked.Increment(ref _blockSynchronizer.CurrentExecHeight);
         }
 
         #region Response handling
@@ -178,7 +178,10 @@ namespace AElf.Kernel.Node.Protocol
                 ITransaction tx = await _node.GetTransaction(breq.TxHash);
 
                 if (!(tx is Transaction t))
+                {
+                    _logger?.Trace("Could not find transaction: ", hash);
                     return;
+                }
                 
                 var req = NetRequestFactory.CreateRequest(MessageTypes.Tx, t.ToByteArray(), 0);
                 await args.Peer.SendAsync(req.ToByteArray());
@@ -198,10 +201,9 @@ namespace AElf.Kernel.Node.Protocol
             {
                 BlockRequest breq = BlockRequest.Parser.ParseFrom(message.Payload);
                 Block block = await _node.GetBlockAtHeight(breq.Height);
-                
+
                 var req = NetRequestFactory.CreateRequest(MessageTypes.Block, block.ToByteArray(), 0);
                 await args.Peer.SendAsync(req.ToByteArray());
-                
                 _logger?.Trace("Send block " + block.GetHash().ToHex() + " to " + args.Peer);
             }
             catch (Exception e)
