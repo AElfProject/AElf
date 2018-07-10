@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common.Application;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
@@ -92,7 +93,7 @@ namespace AElf.Launcher
             }
             else
             {
-                netConfig.Bootnodes = Bootnodes.BootNodes;
+                netConfig.Bootnodes = new List<NodeData>();
             }
 
             if (opts.PeersDbPath != null)
@@ -104,8 +105,8 @@ namespace AElf.Launcher
             if (opts.Port.HasValue)
                 netConfig.Port = opts.Port.Value;
 
-            if (!string.IsNullOrEmpty(opts.Host))
-                netConfig.Host = opts.Host;
+            /*if (!string.IsNullOrEmpty(opts.Host))
+                netConfig.Host = opts.Host;*/
 
             NetConfig = netConfig;
 
@@ -148,7 +149,7 @@ namespace AElf.Launcher
                     throw new Exception("NodeAccount is needed");
                 }
 
-                Coinbase = ByteString.CopyFrom(NodeAccount.HexToBytes());
+                Coinbase = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeAccount));
             }
 
             MinerConfig = new MinerConfig

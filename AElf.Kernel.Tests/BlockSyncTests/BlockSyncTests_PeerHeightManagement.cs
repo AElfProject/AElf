@@ -16,7 +16,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         
         #endregion
         
-        [Fact(Skip = "NullReferenceException")]
+        /*[Fact(Skip = "NullReferenceException")]
         public void SetPeerHeight_LowerHightThanCurrent_False()
         {
             BlockSynchronizer s = new BlockSynchronizer(null, null);
@@ -25,7 +25,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             bool res = s.SetPeerHeight(new Peer(null, null), 5);
             
             Assert.False(res);
-        }
+        }*/
         
         [Fact(Skip = "todo")]
         public void SetPeerHeight_SamePeerHigher_True()

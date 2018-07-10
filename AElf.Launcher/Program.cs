@@ -167,7 +167,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new WorldStateDictatorModule());
-            builder.RegisterModule(new LoggerModule(netConf.Host + "-" + netConf.Port));
+            builder.RegisterModule(new LoggerModule("aelf-node-" + netConf.Port));
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new NetworkModule(netConf, isMiner));
             builder.RegisterModule(new RpcServerModule());
