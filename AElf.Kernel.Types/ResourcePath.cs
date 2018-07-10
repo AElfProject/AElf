@@ -23,6 +23,10 @@ namespace AElf.Kernel
         public ResourcePath SetChainId(Hash chainId)
         {
             _chainHash = chainId;
+            if (PointerValidation())
+            {
+                IsPointer = true;
+            }
             return this;
         }
         
@@ -30,6 +34,10 @@ namespace AElf.Kernel
         public ResourcePath SetBlockHash(Hash blockHash)
         {
             _blockHash = blockHash;
+            if (PointerValidation())
+            {
+                IsPointer = true;
+            }
             return this;
         }
         
@@ -58,18 +66,30 @@ namespace AElf.Kernel
         public ResourcePath SetAccountAddress(Hash accountAddress)
         {
             _accountAddress = accountAddress;
+            if (PointerValidation())
+            {
+                IsPointer = true;
+            }
             return this;
         }
         
         public ResourcePath SetDataProvider(Hash dataProviderHash)
         {
             _dataProviderHash = dataProviderHash;
+            if (PointerValidation())
+            {
+                IsPointer = true;
+            }
             return this;
         }
         
         public ResourcePath SetDataKey(Hash keyHash)
         {
             _keyHash = keyHash;
+            if (PointerValidation())
+            {
+                IsPointer = true;
+            }
             return this;
         }
 
@@ -80,7 +100,8 @@ namespace AElf.Kernel
                 throw new InvalidOperationException("Invalid pointer.");
             }
 
-            return CalculateHashOfHashList(_chainHash, _accountAddress, _dataProviderHash, _keyHash, _blockHash);
+            return CalculateHashOfHashList(_chainHash, _accountAddress, _dataProviderHash, _keyHash, _blockHash,
+                _blockProducerAddress);
         }
 
         public Hash GetPathHash()

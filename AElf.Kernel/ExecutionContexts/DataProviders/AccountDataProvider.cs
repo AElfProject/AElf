@@ -1,9 +1,6 @@
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Node;
-using AElf.Kernel.Services;
-using AElf.Kernel.Types;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public class AccountDataProvider : IAccountDataProvider

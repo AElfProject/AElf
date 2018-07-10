@@ -1,7 +1,5 @@
 using System.Threading.Tasks;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Node;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -10,7 +8,7 @@ namespace AElf.Kernel
     {
         private readonly IAccountDataContext _accountDataContext;
         private readonly IWorldStateDictator _worldStateDictator;
-        private readonly Hash _accountAddress;
+        private readonly Hash _blockProducerAccountAddress;
 
         /// <summary>
         /// To dictinct DataProviders of same account and same level.
@@ -26,16 +24,16 @@ namespace AElf.Kernel
         private Hash PreBlockHash { get; set; }
 
         public DataProvider(IAccountDataContext accountDataContext, IWorldStateDictator worldStateDictator,
-            Hash accountAddress, string dataProviderKey = "")
+            Hash blockProducerAccountAddress, string dataProviderKey = "")
         {
             _worldStateDictator = worldStateDictator;
-            _accountAddress = accountAddress;
+            _blockProducerAccountAddress = blockProducerAccountAddress;
             _accountDataContext = accountDataContext;
             _dataProviderKey = dataProviderKey;
 
             _resourcePath = new ResourcePath()
                 .SetChainId(_accountDataContext.ChainId)
-                .SetBlockProducerAddress(_accountAddress)
+                .SetBlockProducerAddress(_blockProducerAccountAddress)
                 .SetAccountAddress(_accountDataContext.Address)
                 .SetDataProvider(GetHash());
         }
@@ -53,7 +51,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public IDataProvider GetDataProvider(string dataProviderKey)
         {
-            return new DataProvider(_accountDataContext, _worldStateDictator, _accountAddress, dataProviderKey);
+            return new DataProvider(_accountDataContext, _worldStateDictator, _blockProducerAccountAddress, dataProviderKey);
         }
 
         /// <summary>
@@ -106,7 +104,6 @@ namespace AElf.Kernel
                     ResourcePath.CalculatePointerForLastBlockHash(_accountDataContext.ChainId));
                 preBlockHash = PreBlockHash;
             }
-            
 
             var change = await _worldStateDictator.GetChangeAsync(pathHash);
             if (change == null)

@@ -195,11 +195,6 @@ namespace AElf.Contracts.Genesis
 
         public async Task<RoundInfo> GenerateNextRoundOrder()
         {
-            if (!await Authentication(nameof(GenerateNextRoundOrder)))
-            {
-                return null;
-            }
-            
             var infosOfNextRound = new RoundInfo();
             var signatureDict = new Dictionary<Hash, string>();
             var orderDict = new Dictionary<int, string>();
@@ -253,11 +248,6 @@ namespace AElf.Contracts.Genesis
         
         public async Task<StringValue> SetNextExtraBlockProducer()
         {
-            if (!await Authentication(nameof(SetNextExtraBlockProducer)))
-            {
-                return null;
-            }
-            
             var firstPlace = await _firstPlaceMap.GetValueAsync(RoundsCount);
             var firstPlaceInfo = await GetBlockProducerInfoOfCurrentRound(firstPlace.Value);
             var sig = firstPlaceInfo.Signature;
@@ -326,11 +316,6 @@ namespace AElf.Contracts.Genesis
 
         public async Task<BoolValue> ReadyForHelpingProducingExtraBlock()
         {
-            if (!await Authentication(nameof(ReadyForHelpingProducingExtraBlock)))
-            {
-                return null;
-            }
-
             var me = Api.GetTransaction().From;
             var meAddress = AddressHashToString(me);
             
@@ -423,11 +408,6 @@ namespace AElf.Contracts.Genesis
 
         public async Task<BPInfo> PublishOutValueAndSignature(Hash outValue, Hash signature, UInt64Value roundsCount)
         {
-            if (!await Authentication(nameof(PublishOutValueAndSignature)))
-            {
-                return null;
-            }
-            
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
             
             var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, roundsCount);
@@ -446,11 +426,6 @@ namespace AElf.Contracts.Genesis
 
         public async Task<Hash> TryToPublishInValue(Hash inValue, UInt64Value roundsCount)
         {
-            if (!await Authentication(nameof(TryToPublishInValue)))
-            {
-                return null;
-            }
-            
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
             
             var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, roundsCount);
@@ -470,11 +445,6 @@ namespace AElf.Contracts.Genesis
         /// <returns></returns>
         public async Task<RoundInfo> SupplyPreviousRoundInfo()
         {
-            if (!await Authentication(nameof(SupplyPreviousRoundInfo)))
-            {
-                return null;
-            }
-            
             var roundInfo = await _dPoSInfoMap.GetValueAsync(RoundsCount);
 
             foreach (var info in roundInfo.Info)
@@ -535,11 +505,6 @@ namespace AElf.Contracts.Genesis
         
         public async Task<Hash> CalculateSignature(Hash inValue)
         {
-            if (!await Authentication(nameof(CalculateSignature)))
-            {
-                return null;
-            }
-            
             var add = Hash.Default;
             var blockProducer = await GetBlockProducers();
             foreach (var node in blockProducer.Nodes)

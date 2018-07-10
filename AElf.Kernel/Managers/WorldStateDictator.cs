@@ -24,7 +24,7 @@ namespace AElf.Kernel.Managers
         #endregion
 
         private readonly ILogger _logger;
-        private readonly Hash _accountAddress;
+        private readonly Hash _blockProducerAccountAddress;
         
         private bool _isChainIdSetted;
         private Hash _chainId;
@@ -34,13 +34,14 @@ namespace AElf.Kernel.Managers
         public Hash PreBlockHash { get; set; }
 
         public WorldStateDictator(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, ILogger logger, Hash accountAddress)
+            IDataStore dataStore, ILogger logger, Hash blockProducerAccountAddress)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _logger = logger;
-            _accountAddress = accountAddress;
+            
+            _blockProducerAccountAddress = blockProducerAccountAddress;
         }
 
         public IWorldStateDictator SetChainId(Hash chainId)
@@ -130,10 +131,6 @@ namespace AElf.Kernel.Managers
             await Check();
             
             await RollbackCurrentChangesAsync();
-
-            //Initial height - hash map
-            var heightMap = (await GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(_chainId)))
-                .GetDataProvider().GetDataProvider("HeightOfBlock");
             
             var currentHeight = await GetChainCurrentHeight(_chainId);
             
@@ -143,24 +140,17 @@ namespace AElf.Kernel.Managers
             await SetChainCurrentHeight(_chainId, specificHeight);
 
             //Update last block hash of curent chain
-            var lastBlockHash = Hash.Parser.ParseFrom(await heightMap.GetAsync(
-                new UInt64Value {Value = specificHeight - 1}.CalculateHash()));
+            var lastBlockHash = Hash.Parser.ParseFrom(await _dataStore.GetDataAsync(
+                ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, specificHeight - 1)));
             await SetChainLastBlockHash(_chainId, lastBlockHash);
             PreBlockHash = lastBlockHash;
 
-            //Clear the hash value of blocks already rollbacked
-            var rollbackHeightList = new List<UInt64Value>();
+            //Just for logging
             for (var i = currentHeight - 1; i >= specificHeight; i--)
             {
                 Debug.WriteLine(
                     $"Rollback block hash: " +
-                    $"{Hash.Parser.ParseFrom(await heightMap.GetAsync(new UInt64Value {Value = i}.CalculateHash())).Value.ToByteArray().ToHex()}");
-                rollbackHeightList.Add(new UInt64Value {Value = i});
-            }
-            foreach (var height in rollbackHeightList)
-            {
-                var heightHash = height.CalculateHash();
-                //await heightMap.SetAsync(heightHash, null);
+                    $"{Hash.Parser.ParseFrom(await _dataStore.GetDataAsync(ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, i))).Value.ToByteArray().ToHex()}");
             }
             
             Debug.WriteLine($"Already rollback to height: {await GetChainCurrentHeight(_chainId)}");
@@ -203,7 +193,7 @@ namespace AElf.Kernel.Managers
         {
             await Check();
             
-            return new AccountDataProvider(_chainId, accountAddress, this, _accountAddress);
+            return new AccountDataProvider(_chainId, accountAddress, this, _blockProducerAccountAddress);
         }
 
         #region Methods about WorldState
@@ -395,7 +385,7 @@ namespace AElf.Kernel.Managers
         {
             await Check();
             
-            return resourcePath.SetBlockHash(PreBlockHash).GetPointerHash();
+            return resourcePath.SetBlockProducerAddress(_blockProducerAccountAddress).SetBlockHash(PreBlockHash).GetPointerHash();
         }
 
         public async Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId)
