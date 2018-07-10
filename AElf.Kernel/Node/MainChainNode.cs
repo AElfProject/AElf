@@ -361,7 +361,7 @@ namespace AElf.Kernel.Node
                 // ReSharper disable once InconsistentNaming
                 var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId))
                     .IncrementId;
-                var idInPool = _poolService.GetIncrementId(addr);
+                var idInPool = await _poolService.GetIncrementId(addr);
 
                 return Math.Max(idInDB, idInPool);
             }

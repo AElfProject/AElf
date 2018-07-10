@@ -46,12 +46,12 @@ namespace AElf.Kernel.TxMemPool
                 return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
             await TrySetNonce(tx.From);
             
-            return AddTransaction(tx);
+            return await AddTransaction(tx);
         }
 
-        private TxValidation.TxInsertionAndBroadcastingError AddTransaction(ITransaction tx)
+        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(ITransaction tx)
         {
-            lock (this)
+            return await Lock.WriteLock(() =>
             {
                 var res = _txPool.EnQueueTx(tx);
                 if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
@@ -59,8 +59,9 @@ namespace AElf.Kernel.TxMemPool
                     // add tx
                     _txs.GetOrAdd(tx.GetHash(), tx);
                 }
+
                 return res;
-            }
+            });
         }
 
 
@@ -83,16 +84,16 @@ namespace AElf.Kernel.TxMemPool
 
 
         /// <inheritdoc/>
-        public void RemoveAsync(Hash txHash)
+        public Task RemoveAsync(Hash txHash)
         {
-            lock (this)
+            return Lock.WriteLock(() =>
             {
-                if(_txs.TryGetValue(txHash, out var tx))
+                if (_txs.TryGetValue(txHash, out var tx))
                 {
                     _txs.TryRemove(tx.GetHash(), out tx);
                 }
-            }
-            
+            });
+
         }
 
         /// <inheritdoc/>
@@ -119,8 +120,7 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task<List<ITransaction>> GetReadyTxsAsync(ulong limit)
         {
-            //return Lock.ReadLock(() =>
-            lock (this)
+            return Lock.ReadLock(() =>
             {
                 //_txPool.Enqueueable = false;
 
@@ -130,17 +130,14 @@ namespace AElf.Kernel.TxMemPool
                     _txs.TryRemove(tx.GetHash(), out var t);
                 }
 
-                return Task.FromResult(readyTxs);
-            }
+                return readyTxs;
+            });
         }
 
         /// <inheritdoc/>
         public Task<bool> GetReadyTxsAsync(Hash addr, ulong start, ulong ids)
         {
-            lock (this)
-            {
-                return Task.FromResult(_txPool.ReadyTxs(addr, start, ids));
-            }
+            return Lock.WriteLock(() => { return _txPool.ReadyTxs(addr, start, ids); });
         }
 
         /// <inheritdoc/>
@@ -169,12 +166,12 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task<ulong> GetPoolSize()
         {
-            lock (this)
+            /*lock (this)
             {
                 return Task.FromResult(_txPool.Size);
-            }
+            }*/
 
-            //return Lock.ReadLock(() => _txPool.Size);
+            return Lock.ReadLock(() => _txPool.Size);
         }
 
         /// <inheritdoc/>
@@ -186,15 +183,15 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task ClearAsync()
         {
-            /*return Lock.WriteLock(()=>
+            return Lock.WriteLock(()=>
             {
                 _txPool.ClearAll();
-            });*/
-            lock (this)
+            });
+            /*lock (this)
             {
                 _txPool.ClearAll();
                 return Task.CompletedTask;
-            }
+            }*/
         }
 
         /// <inheritdoc/>
@@ -206,21 +203,21 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task<ulong> GetWaitingSizeAsync()
         {
-            //return Lock.ReadLock(() => _txPool.GetWaitingSize());
-            lock (this)
+            return Lock.ReadLock(() => _txPool.GetWaitingSize());
+            /*lock (this)
             {
                 return Task.FromResult(_txPool.GetWaitingSize());
-            }
+            }*/
         }
 
         /// <inheritdoc/>
         public Task<ulong> GetExecutableSizeAsync()
         {
-            //return Lock.ReadLock(() => _txPool.GetExecutableSize());
-            lock (this)
+            return Lock.ReadLock(() => _txPool.GetExecutableSize());
+            /*lock (this)
             {
                 return Task.FromResult(_txPool.GetExecutableSize());
-            }
+            }*/
         }        
 
 
@@ -262,21 +259,21 @@ namespace AElf.Kernel.TxMemPool
                 //EnqueueEvent.Dispose();
                 //DemoteEvent.Dispose();
             });*/
-            lock (this)
+            return Lock.WriteLock(() =>
             {
                 Cts.Cancel();
                 Cts.Dispose();
-                return Task.CompletedTask;
-            }
+            });
         }
 
+
         /// <inheritdoc/>
-        public ulong GetIncrementId(Hash addr)
+        public Task<ulong> GetIncrementId(Hash addr)
         {
-            lock (this)
+            return Lock.ReadLock(()=>
             {
                 return _txPool.GetPendingIncrementId(addr);
-            }
+            });
         }
 
 

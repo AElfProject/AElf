@@ -17,7 +17,7 @@ namespace AElf.Kernel.TxMemPool
         /// remove a tx
         /// </summary>
         /// <param name="txHash"></param>
-        void RemoveAsync(Hash txHash);
+        Task RemoveAsync(Hash txHash);
 
         /// <summary>
         /// remove tx with worst price
@@ -99,7 +99,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         Task Stop();
 
-        ulong GetIncrementId(Hash addr);
+        Task<ulong> GetIncrementId(Hash addr);
         
         /// <summary>
         /// promote txs from some addresses
