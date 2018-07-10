@@ -17,7 +17,7 @@ namespace AElf.CLI.Tests
             {
                 "get_commands"
             }, ctx);
-            Assert.Equal(cmds.Split('\n').Length, RootCommand.Commands.Count);
+            Assert.Equal(cmds.Split('\n').Length, command.SubCommands.Count);
         }
 
         [Fact]

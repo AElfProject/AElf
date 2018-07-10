@@ -8,16 +8,15 @@ namespace AElf.CLI.Command
 {
     public class AccountCommand : ComposedCommand
     {
-        static AccountCommand()
+        public AccountCommand()
         {
+            SubCommands = new Dictionary<string, ICommand>();
             SubCommands["list"] = new ListAccountCommand();
             SubCommands["new"] = new NewAccountCommand();
+            CurrentCommandName = "account";
         }
 
         public static readonly string MsgAccountCreated = "account successfully created!";
-
-
-        private static readonly Dictionary<string, ICommand> SubCommands = new Dictionary<string, ICommand>();
 
         private class ListAccountCommand : ICommand
         {
@@ -75,13 +74,5 @@ namespace AElf.CLI.Command
 
             public string Usage { get; } = "account new";
         }
-
-
-        public override string Process(IEnumerable<string> args, AElfClientProgramContext context)
-        {
-            return DispatchToSubCommands(args, context, SubCommands);
-        }
-
-        public override string Usage { get; }
     }
 }
