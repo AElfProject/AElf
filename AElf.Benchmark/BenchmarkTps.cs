@@ -86,7 +86,7 @@ namespace AElf.Benchmark
 
             //TODO: set timeout to int.max in order to run the large trunk of tx list
             
-            _dataGenerater = new TransactionDataGenerator(options.TxNumber);
+            _dataGenerater = new TransactionDataGenerator(options);
             byte[] code = null;
             using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(options.DllDir + "/" + options.ContractDll)))
             {
@@ -94,7 +94,7 @@ namespace AElf.Benchmark
             }
             _contractHash = Prepare(code).Result;
             
-            InitContract(_contractHash, _dataGenerater.KeyDict.Keys).GetResult();
+            InitContract(_contractHash, _dataGenerater.KeyList).GetResult();
             
         }
 
@@ -307,7 +307,7 @@ namespace AElf.Benchmark
             {
                 var txnBalInit = new Transaction
                 {
-                    From = Hash.Zero.ToAccount(),
+                    From = addr,
                     To = contractAddr,
                     IncrementId = NewIncrementId(),
                     MethodName = "InitBalance",

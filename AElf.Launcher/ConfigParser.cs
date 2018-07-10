@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common.Application;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
@@ -148,7 +149,7 @@ namespace AElf.Launcher
                     throw new Exception("NodeAccount is needed");
                 }
 
-                Coinbase = ByteString.CopyFrom(NodeAccount.HexToBytes());
+                Coinbase = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(NodeAccount));
             }
 
             MinerConfig = new MinerConfig
