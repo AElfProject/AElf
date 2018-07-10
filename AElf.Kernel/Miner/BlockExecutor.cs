@@ -141,12 +141,11 @@ namespace AElf.Kernel.Miner
                     results.Add(res);
                 }
 
-                var addrs = await Update(readyTxs, results);
+                var addrs = await InsertTxs(readyTxs, results);
                 await _txPoolService.UpdateAccountContext(addrs);
                 
                 await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
                 var ws = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
-
 
                 if (ws == null)
                 {
@@ -156,7 +155,6 @@ namespace AElf.Kernel.Miner
 
                 if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
                 {
-                    
                     _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
                     // rollback txs in transaction
                     await Rollback(readyTxs);
@@ -181,7 +179,7 @@ namespace AElf.Kernel.Miner
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
-        private async Task<HashSet<Hash>> Update(List<ITransaction> executedTxs, List<TransactionResult> txResults)
+        private async Task<HashSet<Hash>> InsertTxs(List<ITransaction> executedTxs, List<TransactionResult> txResults)
         {
             var addrs = new HashSet<Hash>();
             foreach (var t in executedTxs)

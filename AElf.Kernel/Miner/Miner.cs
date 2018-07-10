@@ -42,14 +42,8 @@ namespace AElf.Kernel.Miner
         /// </summary>
         public CancellationTokenSource Cts { get; private set; }
 
-
         private IGrouper _grouper;
-
-        
-        /// <summary>
-        /// event set to mine
-        /// </summary>
-        public AutoResetEvent MiningResetEvent { get; private set; }
+      
         
         public IMinerConfig Config { get; }
 
@@ -109,8 +103,7 @@ namespace AElf.Kernel.Miner
                 {
                     var res = new TransactionResult()
                     {
-                        TransactionId = trace.TransactionId,
-                        
+                        TransactionId = trace.TransactionId
                     };
                     if (string.IsNullOrEmpty(trace.StdErr))
                     {
@@ -124,7 +117,6 @@ namespace AElf.Kernel.Miner
                         res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
                     }
                     results.Add(res);
-                    
                 }
                 
                 // insert txs to db
