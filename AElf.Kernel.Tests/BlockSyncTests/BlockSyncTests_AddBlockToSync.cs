@@ -19,7 +19,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
     public class BlockSyncTests_AddBlockToSync
     {
 
-        [Fact(Skip = "todo")]a
+        [Fact(Skip = "todo")]
         public void Test()
         {
             byte[] byte01 = ByteArrayHelpers.RandomFill(10);
