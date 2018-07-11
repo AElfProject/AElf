@@ -44,6 +44,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             _worldStateDictator = worldStateDictator;
+            _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
             
             _accountContextService = new AccountContextService(worldStateDictator);
 

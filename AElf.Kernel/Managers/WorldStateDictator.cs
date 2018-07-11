@@ -138,7 +138,7 @@ namespace AElf.Kernel.Managers
             
             var currentHeight = await GetChainCurrentHeight(_chainId);
             
-            Debug.WriteLine($"Rollback start. Current height: {currentHeight}");
+            _logger?.Trace($"Rollback start. Current height: {currentHeight}");
 
             //Update the height of current chain
             await SetChainCurrentHeight(_chainId, specificHeight);
@@ -168,12 +168,12 @@ namespace AElf.Kernel.Managers
                     await _transactionStore.RemoveAsync(tx);
                 }
 
-                Debug.WriteLine(
+                _logger?.Trace(
                     $"Rollback block hash: " +
                     $"{rollBackBlockHash.Value.ToByteArray().ToHex()}");
             }
             
-            Debug.WriteLine($"Already rollback to height: {await GetChainCurrentHeight(_chainId)}");
+            _logger?.Trace($"Already rollback to height: {await GetChainCurrentHeight(_chainId)}");
             
             await RollbackCurrentChangesAsync();
 
