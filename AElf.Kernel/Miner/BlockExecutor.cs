@@ -66,11 +66,11 @@ namespace AElf.Kernel.Miner
                     if (!_txPoolService.TryGetTx(id, out var tx))
                     {
                         _logger?.Trace($"ExecuteBlock - Transaction not in pool {id.ToHex()}.");
-                        await Rollback(readyTxs);
+                        //await Rollback(readyTxs);
                         return false;
                     }
                     readyTxs.Add(tx);
-                    _txPoolService.RemoveAsync(tx.GetHash());
+                    await _txPoolService.RemoveAsync(tx.GetHash());
                     var from = tx.From;
                     if (!map.ContainsKey(from))
                         map[from] = new HashSet<ulong>();
@@ -93,7 +93,7 @@ namespace AElf.Kernel.Miner
                             if (!ids.Contains(id - 1) && !ids.Contains(id + 1))
                             {
                                 _logger?.Trace($"ExecuteBlock - Non continuous ids, id {id}.");
-                                await Rollback(readyTxs);
+                                //await Rollback(readyTxs);
                                 return false;
                             }
                         }
@@ -105,7 +105,7 @@ namespace AElf.Kernel.Miner
                     if (!ready)
                     {
                         _logger?.Trace($"ExecuteBlock - No transactions are ready.");
-                        await Rollback(readyTxs);
+                        //await Rollback(readyTxs);
                         return false;
                     }
                 }
@@ -157,7 +157,7 @@ namespace AElf.Kernel.Miner
                 {
                     _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
                     // rollback txs in transaction
-                    await Rollback(readyTxs);
+                    //await Rollback(readyTxs);
                     
                     return false;
                 }
