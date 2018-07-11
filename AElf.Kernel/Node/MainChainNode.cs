@@ -394,6 +394,7 @@ namespace AElf.Kernel.Node
                 {
                     if (error == ValidationError.OrphanBlock)
                     {
+                        _logger?.Trace("Ready to rollback");
                         //Rollback world state
                         var rollbackBlockHashList = await _worldStateDictator.RollbackToSpecificHeight(block.Header.Index);
                         
@@ -413,7 +414,7 @@ namespace AElf.Kernel.Node
                     else
                     {
                         Interlocked.CompareExchange(ref _flag, 0, 1);
-                        _logger.Trace("Invalid block received from network: " + error);
+                        _logger?.Trace("Invalid block received from network: " + error);
                         return new BlockExecutionResult(false, error);
                     }
                 }
@@ -426,7 +427,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Block synchronzing failed");
+                _logger?.Error(e, "Block synchronzing failed");
                 Interlocked.CompareExchange(ref _flag, 0, 1);
                 return new BlockExecutionResult(e);
             }
