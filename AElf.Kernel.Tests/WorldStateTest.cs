@@ -6,6 +6,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
+using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
@@ -23,9 +24,15 @@ namespace AElf.Kernel.Tests
         private readonly IDataStore _dataStore;
         private readonly ILogger _logger;
         private readonly BlockTest _blockTest;
+        private readonly ITxPoolService _txPoolService;
+        private readonly IBlockHeaderStore _blockHeaderStore;
+        private readonly IBlockBodyStore _blockBodyStore;
+        private readonly ITransactionStore _transactionStore;
 
-        public WorldStateTest(IChainStore chainStore, IWorldStateStore worldStateStore, 
-            IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest, ILogger logger)
+        public WorldStateTest(IChainStore chainStore, IWorldStateStore worldStateStore,
+            IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest, ILogger logger,
+            ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
+            ITransactionStore transactionStore)
         {
             _chainStore = chainStore;
             _worldStateStore = worldStateStore;
@@ -33,15 +40,20 @@ namespace AElf.Kernel.Tests
             _dataStore = dataStore;
             _blockTest = blockTest;
             _logger = logger;
+            _txPoolService = txPoolService;
+            _blockHeaderStore = blockHeaderStore;
+            _blockBodyStore = blockBodyStore;
+            _transactionStore = transactionStore;
         }
-        
+
         [Fact]
         public async Task GetWorldStateTest()
         {
             // Data preparation
             var chain = await _blockTest.CreateChain();
             var worldStateDirector = 
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger).SetChainId(chain.Id);
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,_txPoolService,
+                    _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger).SetChainId(chain.Id);
             var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDirector);
             
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
@@ -66,7 +78,8 @@ namespace AElf.Kernel.Tests
             var chain = await _blockTest.CreateChain();
             
             var worldStateDictator = 
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger).SetChainId(chain.Id);
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,_txPoolService,
+                    _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
             var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDictator);
 
@@ -184,7 +197,8 @@ namespace AElf.Kernel.Tests
             var chain = await _blockTest.CreateChain();
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             
-            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger)
+            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,_txPoolService,
+                    _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger)
                 .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
             var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDictator);
@@ -265,7 +279,8 @@ namespace AElf.Kernel.Tests
             var chain = await _blockTest.CreateChain();
             System.Diagnostics.Debug.WriteLine($"Hash of height 0: {chain.GenesisBlockHash.Value.ToByteArray().ToHex()}");
             
-            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger).SetChainId(chain.Id);
+            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,_txPoolService,
+                _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
             var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDictator);

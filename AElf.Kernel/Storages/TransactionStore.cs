@@ -29,5 +29,10 @@ namespace AElf.Kernel.Storages
             var txBytes = await _keyValueDatabase.GetAsync(hash.ToHex(), typeof(ITransaction));
             return txBytes == null ? null : Transaction.Parser.ParseFrom(txBytes);
         }
+
+        public async Task RemoveAsync(Hash hash)
+        {
+            await _keyValueDatabase.RemoveAsync(hash.ToHex());
+        }
     }
 }

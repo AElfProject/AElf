@@ -7,5 +7,6 @@ namespace AElf.Kernel.Storages
     {
         Task<IHash> InsertAsync(ITransaction tx);
         Task<ITransaction> GetAsync(Hash hash);
+        Task RemoveAsync(Hash hash);
     }
 }

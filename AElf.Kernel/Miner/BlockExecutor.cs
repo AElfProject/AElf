@@ -212,7 +212,6 @@ namespace AElf.Kernel.Miner
         {
             await _txPoolService.RollBack(readyTxs);
         }
-                
         
         public void Start(IGrouper grouper)
         {

@@ -1,9 +1,8 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,12 +11,10 @@ using AElf.Common.Collections;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Protocol.Exceptions;
-using AElf.Kernel.Types;
 using AElf.Network.Data;
 using AElf.Network.Peers;
 using Google.Protobuf;
 using NLog;
-using ServiceStack;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
 namespace AElf.Kernel.Node.Protocol

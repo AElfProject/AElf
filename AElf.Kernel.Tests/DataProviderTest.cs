@@ -5,6 +5,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
+using AElf.Kernel.TxMemPool;
 using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -19,16 +20,26 @@ namespace AElf.Kernel.Tests
         private readonly IDataStore _dataStore;
         private readonly BlockTest _blockTest;
         private readonly ILogger _logger;
+        private readonly ITxPoolService _txPoolService;
+        private readonly IBlockHeaderStore _blockHeaderStore;
+        private readonly IBlockBodyStore _blockBodyStore;
+        private readonly ITransactionStore _transactionStore;
 
         public DataProviderTest(IWorldStateStore worldStateStore,
-            IChangesStore changesStore, IDataStore dataStore, 
-            BlockTest blockTest, ILogger logger)
+            IChangesStore changesStore, IDataStore dataStore,
+            BlockTest blockTest, ILogger logger,
+            ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
+            ITransactionStore transactionStore)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _blockTest = blockTest;
             _logger = logger;
+            _txPoolService = txPoolService;
+            _blockHeaderStore = blockHeaderStore;
+            _blockBodyStore = blockBodyStore;
+            _transactionStore = transactionStore;
         }
 
         [Fact]
@@ -41,8 +52,9 @@ namespace AElf.Kernel.Tests
             var chain = await _blockTest.CreateChain();
 
             var address = Hash.Generate();
-            
-            var worldStateDictator =  new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger).SetChainId(chain.Id);
+
+            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _txPoolService,
+                _blockHeaderStore, _blockBodyStore, _transactionStore, _logger).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
 
             await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);

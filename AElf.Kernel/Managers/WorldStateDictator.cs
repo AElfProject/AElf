@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Kernel.Storages;
+using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
@@ -18,9 +20,13 @@ namespace AElf.Kernel.Managers
         private readonly IWorldStateStore _worldStateStore;
         private readonly IDataStore _dataStore;
         private readonly IChangesStore _changesStore;
+        private readonly IBlockHeaderStore _blockHeaderStore;
+        private readonly IBlockBodyStore _blockBodyStore;
+        private readonly ITransactionStore _transactionStore;
         #endregion
 
         private readonly ILogger _logger;
+        private readonly ITxPoolService _txPoolService;
         
         private bool _isChainIdSetted;
         private Hash _chainId;
@@ -31,12 +37,17 @@ namespace AElf.Kernel.Managers
         public Hash BlockProducerAccountAddress { get; set; }
 
         public WorldStateDictator(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, ILogger logger)
+            IDataStore dataStore, ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore,
+            IBlockBodyStore blockBodyStore, ITransactionStore transactionStore, ILogger logger)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _logger = logger;
+            _txPoolService = txPoolService;
+            _blockHeaderStore = blockHeaderStore;
+            _blockBodyStore = blockBodyStore;
+            _transactionStore = transactionStore;
         }
 
         public IWorldStateDictator SetChainId(Hash chainId)
@@ -143,9 +154,24 @@ namespace AElf.Kernel.Managers
             //Just for logging
             for (var i = currentHeight - 1; i >= specificHeight; i--)
             {
+                var rollBackBlockHash =
+                    Hash.Parser.ParseFrom(
+                        await _dataStore.GetDataAsync(
+                            ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, i)));
+                var header = await _blockHeaderStore.GetAsync(rollBackBlockHash);
+                var body = await _blockBodyStore.GetAsync(header.GetHash().CalculateHashWith(header.MerkleTreeRootOfTransactions));
+                var txs = new List<ITransaction>();
+                foreach (var tx in body.Transactions)
+                {
+                    txs.Add(await _transactionStore.GetAsync(tx));
+                    await _transactionStore.RemoveAsync(tx);
+                }
+
+                await _txPoolService.RollBack(txs);
+                
                 Debug.WriteLine(
                     $"Rollback block hash: " +
-                    $"{Hash.Parser.ParseFrom(await _dataStore.GetDataAsync(ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, i))).Value.ToByteArray().ToHex()}");
+                    $"{rollBackBlockHash.Value.ToByteArray().ToHex()}");
             }
             
             Debug.WriteLine($"Already rollback to height: {await GetChainCurrentHeight(_chainId)}");

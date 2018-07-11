@@ -11,6 +11,7 @@ using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Execution.Messages;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
+using AElf.Kernel.TxMemPool;
 using AElf.Types.CSharp;
 using Akka.Actor;
 using NLog;
@@ -62,12 +63,14 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
         public MockSetup(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, IChainCreationService chainCreationService,
-            IBlockManager blockManager, SmartContractStore smartContractStore,
+            IDataStore dataStore, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
+            ITransactionStore transactionStore, IChainCreationService chainCreationService,
+            IBlockManager blockManager, ISmartContractStore smartContractStore,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerFactory smartContractRunnerFactory, Hash accountAddress, ILogger logger)
+            ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger)
         {
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger);
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, txPoolService,
+                blockHeaderStore, blockBodyStore, transactionStore, _logger);
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             ChainContextService = chainContextService;
@@ -77,7 +80,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             SmartContractManager = new SmartContractManager(smartContractStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator, functionMetadataService);
+                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator,
+                    functionMetadataService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
             {
@@ -86,7 +90,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 ResourceDetectionService = new NewMockResourceUsageDetectionService(),
                 WorldStateDictator = _worldStateDictator
             };
-            
+
             var workers = new[] {"/user/worker1", "/user/worker2"};
             Worker1 = Sys.ActorOf(Props.Create<Worker>(), "worker1");
             Worker2 = Sys.ActorOf(Props.Create<Worker>(), "worker2");
@@ -95,7 +99,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Worker2.Tell(new LocalSerivcePack(ServicePack));
             Requestor = Sys.ActorOf(AElf.Kernel.Concurrency.Execution.Requestor.Props(Router));
         }
-        
+
         public byte[] SmartContractZeroCode
         {
             get

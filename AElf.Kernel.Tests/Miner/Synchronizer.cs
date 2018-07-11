@@ -44,14 +44,16 @@ namespace AElf.Kernel.Tests.Miner
         private ServicePack _servicePack;
 
         public Synchronizer(
-            IChainCreationService chainCreationService, IChainContextService chainContextService, 
-            IChainManager chainManager, IBlockManager blockManager, ILogger logger, 
-            ITransactionResultManager transactionResultManager, ITransactionManager transactionManager, 
+            IChainCreationService chainCreationService, IChainContextService chainContextService,
+            IChainManager chainManager, IBlockManager blockManager, ILogger logger,
+            ITransactionResultManager transactionResultManager, ITransactionManager transactionManager,
             FunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService,
-            IChangesStore changesStore, IWorldStateStore worldStateStore, IDataStore dataStore, 
-            ISmartContractManager smartContractManager, IAccountContextService accountContextService) : base(new XunitAssertions())
+            IChangesStore changesStore, IWorldStateStore worldStateStore, IDataStore dataStore,
+            ISmartContractManager smartContractManager, IAccountContextService accountContextService,
+            ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
+            ITransactionStore transactionStore) : base(new XunitAssertions())
         {
-            
+
             _chainCreationService = chainCreationService;
             _chainContextService = chainContextService;
             _chainManager = chainManager;
@@ -64,7 +66,8 @@ namespace AElf.Kernel.Tests.Miner
             _changesStore = changesStore;
             _worldStateStore = worldStateStore;
             _dataStore = dataStore;
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger);
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, txPoolService,
+                blockHeaderStore, blockBodyStore, transactionStore, _logger);
             _smartContractManager = smartContractManager;
             _accountContextService = accountContextService;
 

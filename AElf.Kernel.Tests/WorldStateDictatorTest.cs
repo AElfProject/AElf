@@ -4,6 +4,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
+using AElf.Kernel.TxMemPool;
 using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -11,18 +12,23 @@ using Xunit.Frameworks.Autofac;
 namespace AElf.Kernel.Tests
 {
     [UseAutofacTestFramework]
-    public class WorldStateManagerTest
+    public class WorldStateDictatorTest
     {
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly ILogger _logger;
         
         private readonly BlockTest _blockTest;
 
-        public WorldStateManagerTest(IWorldStateStore worldStateStore, IChangesStore changesStore, 
-            IDataStore dataStore, BlockTest blockTest, ILogger logger)
+        public WorldStateDictatorTest(IWorldStateStore worldStateStore, IChangesStore changesStore,
+            IDataStore dataStore, ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore,
+            IBlockBodyStore blockBodyStore,
+            ITransactionStore transactionStore, BlockTest blockTest, ILogger logger)
         {
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger);
-            _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, txPoolService,
+                blockHeaderStore, blockBodyStore, transactionStore, _logger)
+            {
+                BlockProducerAccountAddress = Hash.Generate()
+            };
             _blockTest = blockTest;
             _logger = logger;
         }
