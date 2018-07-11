@@ -11,7 +11,7 @@ namespace AElf.Kernel
 
         /// <summary>
         /// To dictinct DataProviders of same account and same level.
-        /// Using a string value is just a choise, actually we can use any type of value.
+        /// Using a string value is just a choise, actually we can use any type of value, even integer
         /// </summary>
         private readonly string _dataProviderKey;
 

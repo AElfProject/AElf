@@ -280,43 +280,67 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public async Task RollBack(List<ITransaction> txsOut)
         {
-            var nonces = txsOut.Select(async p => await TrySetNonce(p.From));
-            await Task.WhenAll(nonces);
-            
-            var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(),  (current, p) =>
+            try
             {
-                if (!current.TryGetValue(p.From, out var txs))
+                Console.WriteLine(txsOut == null);
+                Console.WriteLine(txsOut.Count);
+                foreach (var t in txsOut)
                 {
-                    current[p.From] = new HashSet<ITransaction>();
+                    Console.WriteLine(t);
+                    await TrySetNonce(t.From);
                 }
-
-                current[p.From].Add(p);
+                //var nonces = txsOut.Select(async p => await TrySetNonce(p.From));
                 
-                return current;
-            });
-
-            foreach (var kv in tmap)
-            {
-                var nonce = _txPool.GetNonce(kv.Key);
-                var min = kv.Value.Min(t => t.IncrementId);
-                if(min >= nonce.Value)
-                    continue;
-                
-                _txPool.Withdraw(kv.Key, min);
-                foreach (var tx in kv.Value)
+                //await Task.WhenAll(nonces);
+ 
+                foreach (var t in txsOut)
                 {
-                    if (_txs.ContainsKey(tx.GetHash()))
-                        continue;
-                    await AddTransaction(tx);
+                    if(t !=null)
+                        Console.WriteLine(t.GetHash().ToHex());
+                    else
+                        Console.WriteLine("t is null");
                 }
-                
-                await _accountContextService.SetAccountContext(new AccountDataContext
+                var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(),  (current, p) =>
                 {
-                    IncrementId = min,
-                    Address = kv.Key,
-                    ChainId = _txPool.ChainId
+                    if (!current.TryGetValue(p.From, out var _))
+                    {
+                        current[p.From] = new HashSet<ITransaction>();
+                    }
+
+                    current[p.From].Add(p);
+                
+                    return current;
                 });
+
+                foreach (var kv in tmap)
+                {
+                    var nonce = _txPool.GetNonce(kv.Key);
+                    var min = kv.Value.Min(t => t.IncrementId);
+                    if(min >= nonce.Value)
+                        continue;
+                
+                    _txPool.Withdraw(kv.Key, min);
+                    foreach (var tx in kv.Value)
+                    {
+                        if (_txs.ContainsKey(tx.GetHash()))
+                            continue;
+                        await AddTransaction(tx);
+                    }
+                
+                    await _accountContextService.SetAccountContext(new AccountDataContext
+                    {
+                        IncrementId = min,
+                        Address = kv.Key,
+                        ChainId = _txPool.ChainId
+                    });
+                }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            
             
         }
     }

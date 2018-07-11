@@ -476,8 +476,8 @@ namespace AElf.Kernel.Node.Protocol
             if (block?.Header == null || block.Body == null)
                 throw new InvalidBlockException("The block, blockheader or body is null");
             
-            if (block.Header.Index < (ulong)CurrentExecHeight)
-                return false;
+//            if (block.Header.Index < (ulong)CurrentExecHeight)
+//                return false;
 
             byte[] h = null;
             try

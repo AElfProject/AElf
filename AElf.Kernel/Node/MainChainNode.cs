@@ -67,15 +67,12 @@ namespace AElf.Kernel.Node
         public IExecutive Executive =>
             _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
         
-        private const int CheckTime = 3000;
+        private const int CheckTime = 2000;
 
-        private int _flag = 0;
-        public bool IsMining { get; private set; } = false;
+        private int _flag;
+        public bool IsMining { get; private set; }
 
-        public int IsMiningInProcess
-        {
-            get { return _flag; }
-        }
+        public int IsMiningInProcess => _flag;
 
         public BlockProducer BlockProducers
         {
@@ -395,7 +392,8 @@ namespace AElf.Kernel.Node
                 
                 if (error != ValidationError.Success)
                 {
-                    if (error == ValidationError.OrphanBlock)
+                    var localPreviousBlock = await _blockManager.GetBlockAsync(_worldStateDictator.PreBlockHash);
+                    if (error == ValidationError.OrphanBlock && block.Header.Time.ToDateTime() < localPreviousBlock.Header.Time.ToDateTime())
                     {
                         _logger?.Trace("Ready to rollback");
                         //Rollback world state
@@ -410,7 +408,7 @@ namespace AElf.Kernel.Node
                             {
                                 txs.Add(await _transactionManager.GetTransaction(tx));
                             }
-
+                            
                             await _txPoolService.RollBack(txs);
                         }
                     }

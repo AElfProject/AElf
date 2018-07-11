@@ -36,10 +36,12 @@ namespace AElf.Kernel.BlockValidationFilters
             
             //Calculate the address of smart contract zero
             var contractAccountHash = new Hash(context.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
+
+            var timestampOfBlock = block.Header.Time;
             
             //Formulate an Executive and execute a transaction of checking time slot of this block producer
             var executive = await _smartContractService.GetExecutiveAsync(contractAccountHash, context.ChainId);
-            var tx = GetTxToVerifyBlockProducer(contractAccountHash, keyPair, recipientKeyPair.GetAddress().ToHex());
+            var tx = GetTxToVerifyBlockProducer(contractAccountHash, keyPair, recipientKeyPair.GetAddress().ToHex(), timestampOfBlock);
             if (tx == null)
             {
                 return ValidationError.FailedToCheckConsensusInvalidation;
@@ -61,7 +63,7 @@ namespace AElf.Kernel.BlockValidationFilters
                 : ValidationError.InvalidTimeslot;
         }
 
-        private ITransaction GetTxToVerifyBlockProducer(Hash contractAccountHash, ECKeyPair keyPair, string recepientAddress)
+        private ITransaction GetTxToVerifyBlockProducer(Hash contractAccountHash, ECKeyPair keyPair, string recepientAddress, Timestamp timestamp)
         {
             if (contractAccountHash == null || keyPair == null || recepientAddress == null)
             {
@@ -76,7 +78,7 @@ namespace AElf.Kernel.BlockValidationFilters
                 IncrementId = 0,
                 MethodName = "BlockProducerVerification",
                 P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(new StringValue {Value = recepientAddress}))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(new StringValue {Value = recepientAddress}, timestamp))
             };
             
             var signer = new ECSigner();

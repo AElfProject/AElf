@@ -17,7 +17,7 @@ namespace AElf.Kernel.Storages
             _keyValueDatabase = keyValueDatabase;
         }
 
-        public async Task<IHash> InsertAsync(ITransaction tx)
+        public async Task<Hash> InsertAsync(ITransaction tx)
         {
             var key = tx.GetHash();
             await _keyValueDatabase.SetAsync(key.ToHex(), tx.Serialize());
