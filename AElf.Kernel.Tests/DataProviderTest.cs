@@ -53,7 +53,7 @@ namespace AElf.Kernel.Tests
 
             var address = Hash.Generate();
 
-            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _txPoolService,
+            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
                 _blockHeaderStore, _blockBodyStore, _transactionStore, _logger).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
 

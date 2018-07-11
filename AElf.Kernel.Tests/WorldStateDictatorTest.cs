@@ -24,7 +24,7 @@ namespace AElf.Kernel.Tests
             IBlockBodyStore blockBodyStore,
             ITransactionStore transactionStore, BlockTest blockTest, ILogger logger)
         {
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, txPoolService,
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore,
                 blockHeaderStore, blockBodyStore, transactionStore, _logger)
             {
                 BlockProducerAccountAddress = Hash.Generate()

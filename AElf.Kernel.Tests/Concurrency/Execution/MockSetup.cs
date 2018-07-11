@@ -69,7 +69,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger)
         {
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, txPoolService,
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore,
                 blockHeaderStore, blockBodyStore, transactionStore, _logger);
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;

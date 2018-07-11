@@ -40,7 +40,7 @@ namespace AElf.Kernel.Node
         private ECKeyPair _nodeKeyPair;
         private ActorSystem _sys = ActorSystem.Create("AElf");
         private readonly IBlockManager _blockManager;
-        private readonly ITxPoolService _poolService;
+        private readonly ITxPoolService _txPoolService;
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
@@ -92,7 +92,7 @@ namespace AElf.Kernel.Node
         public Hash ChainId => _nodeConfig.ChainId;
 
 
-        public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer,
+        public MainChainNode(ITxPoolService txPoolService, ITransactionManager txManager, IRpcServer rpcServer,
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner,
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
@@ -108,7 +108,7 @@ namespace AElf.Kernel.Node
             _transactionResultService = transactionResultService;
             _blockManager = blockManager;
             _functionMetadataService = functionMetadataService;
-            _poolService = poolService;
+            _txPoolService = txPoolService;
             _protocolDirector = protocolDirector;
             _transactionManager = txManager;
             _rpcServer = rpcServer;
@@ -186,7 +186,7 @@ namespace AElf.Kernel.Node
             if (startRpc)
                 _rpcServer.Start(rpcHost, rpcPort);
 
-            _poolService.Start();
+            _txPoolService.Start();
             _protocolDirector.Start();
 
             // todo : avoid circular dependency
@@ -276,7 +276,7 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         public async Task<ITransaction> GetTransaction(Hash txId)
         {
-            if (_poolService.TryGetTx(txId, out var tx))
+            if (_txPoolService.TryGetTx(txId, out var tx))
             {
                 return tx;
             }
@@ -309,7 +309,7 @@ namespace AElf.Kernel.Node
             {
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
                 
-                TxValidation.TxInsertionAndBroadcastingError success = await _poolService.AddTxAsync(tx);
+                TxValidation.TxInsertionAndBroadcastingError success = await _txPoolService.AddTxAsync(tx);
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
@@ -356,7 +356,7 @@ namespace AElf.Kernel.Node
                 // ReSharper disable once InconsistentNaming
                 var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId))
                     .IncrementId;
-                var idInPool = await _poolService.GetIncrementId(addr);
+                var idInPool = await _txPoolService.GetIncrementId(addr);
 
                 return Math.Max(idInDB, idInPool);
             }
@@ -394,7 +394,21 @@ namespace AElf.Kernel.Node
                 {
                     if (error == ValidationError.OrphanBlock)
                     {
-                        await _worldStateDictator.RollbackToSpecificHeight(block.Header.Index);
+                        //Rollback world state
+                        var rollbackBlockHashList = await _worldStateDictator.RollbackToSpecificHeight(block.Header.Index);
+                        
+                        //Rollback tx pool
+                        foreach (var blockHash in rollbackBlockHashList)
+                        {
+                            var rollbackBlock = await _blockManager.GetBlockAsync(blockHash);
+                            var txs = new List<ITransaction>();
+                            foreach (var tx in rollbackBlock.Body.Transactions)
+                            {
+                                txs.Add(await _transactionManager.GetTransaction(tx));
+                            }
+
+                            await _txPoolService.RollBack(txs);
+                        }
                     }
                     else
                     {
@@ -433,7 +447,7 @@ namespace AElf.Kernel.Node
                 var txs = block.Body.Transactions;
                 foreach (var id in txs)
                 {
-                    if (!_poolService.TryGetTx(id, out var tx))
+                    if (!_txPoolService.TryGetTx(id, out var tx))
                     {
                         res.Add(id);
                     }
@@ -461,7 +475,7 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(ITransaction tx)
         {
-            return await _poolService.AddTxAsync(tx);
+            return await _txPoolService.AddTxAsync(tx);
         }
         
         private static int currentIncr = 0;
@@ -626,7 +640,7 @@ namespace AElf.Kernel.Node
 
             try
             {
-                res = await _poolService.AddTxAsync(tx);
+                res = await _txPoolService.AddTxAsync(tx);
             }
             catch (Exception e)
             {

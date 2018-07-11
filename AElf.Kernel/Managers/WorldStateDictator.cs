@@ -26,7 +26,6 @@ namespace AElf.Kernel.Managers
         #endregion
 
         private readonly ILogger _logger;
-        private readonly ITxPoolService _txPoolService;
         
         private bool _isChainIdSetted;
         private Hash _chainId;
@@ -37,14 +36,13 @@ namespace AElf.Kernel.Managers
         public Hash BlockProducerAccountAddress { get; set; }
 
         public WorldStateDictator(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore,
+            IDataStore dataStore, IBlockHeaderStore blockHeaderStore,
             IBlockBodyStore blockBodyStore, ITransactionStore transactionStore, ILogger logger)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _logger = logger;
-            _txPoolService = txPoolService;
             _blockHeaderStore = blockHeaderStore;
             _blockBodyStore = blockBodyStore;
             _transactionStore = transactionStore;
@@ -127,7 +125,7 @@ namespace AElf.Kernel.Managers
         /// </summary>
         /// <param name="specificHeight"></param>
         /// <returns></returns>
-        public async Task RollbackToSpecificHeight(ulong specificHeight)
+        public async Task<List<Hash>> RollbackToSpecificHeight(ulong specificHeight)
         {
             if (specificHeight < 1)
             {
@@ -150,6 +148,8 @@ namespace AElf.Kernel.Managers
                 ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, specificHeight - 1)));
             await SetChainLastBlockHash(_chainId, lastBlockHash);
             PreBlockHash = lastBlockHash;
+            
+            var rollbackBlockHashList = new List<Hash>();
 
             //Just for logging
             for (var i = currentHeight - 1; i >= specificHeight; i--)
@@ -158,6 +158,7 @@ namespace AElf.Kernel.Managers
                     Hash.Parser.ParseFrom(
                         await _dataStore.GetDataAsync(
                             ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, i)));
+                rollbackBlockHashList.Add(rollBackBlockHash);
                 var header = await _blockHeaderStore.GetAsync(rollBackBlockHash);
                 var body = await _blockBodyStore.GetAsync(header.GetHash().CalculateHashWith(header.MerkleTreeRootOfTransactions));
                 var txs = new List<ITransaction>();
@@ -167,8 +168,6 @@ namespace AElf.Kernel.Managers
                     await _transactionStore.RemoveAsync(tx);
                 }
 
-                await _txPoolService.RollBack(txs);
-                
                 Debug.WriteLine(
                     $"Rollback block hash: " +
                     $"{rollBackBlockHash.Value.ToByteArray().ToHex()}");
@@ -177,6 +176,8 @@ namespace AElf.Kernel.Managers
             Debug.WriteLine($"Already rollback to height: {await GetChainCurrentHeight(_chainId)}");
             
             await RollbackCurrentChangesAsync();
+
+            return rollbackBlockHashList;
         }
         
         private async Task<ulong> GetChainCurrentHeight(Hash chainId)
