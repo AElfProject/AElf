@@ -73,12 +73,12 @@ namespace AElf.Kernel.BlockValidationFilters
                         : ValidationError.OrphanBlock;
                 }
                 
-                return ValidationError.OrphanBlock;
+                return ValidationError.DontKnowReason;
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Error while validating blocks.");
-                return ValidationError.OrphanBlock;
+                _logger?.Error(e, "Error while validating blocks.");
+                return ValidationError.FailedToCheckChainContextInvalidation;
             }
         }
     }

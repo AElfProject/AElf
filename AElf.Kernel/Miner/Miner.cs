@@ -52,8 +52,8 @@ namespace AElf.Kernel.Miner
 
         public Hash Coinbase => Config.CoinBase;
 
-        public Miner(IMinerConfig config, ITxPoolService txPoolService, 
-                IChainManager chainManager, IBlockManager blockManager, IWorldStateDictator worldStateDictator, 
+        public Miner(IMinerConfig config, ITxPoolService txPoolService,
+            IChainManager chainManager, IBlockManager blockManager, IWorldStateDictator worldStateDictator,
             ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService)
         {
             Config = config;
@@ -65,10 +65,9 @@ namespace AElf.Kernel.Miner
             _concurrencyExecutingService = concurrencyExecutingService;
         }
 
-        
+
         public async Task<IBlock> Mine()
         {
-
             try
             {
                 if (Cts == null || Cts.IsCancellationRequested)

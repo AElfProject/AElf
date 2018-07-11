@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Managers;
@@ -55,6 +56,9 @@ namespace AElf.Kernel.Miner
                 if (block?.Body?.Transactions == null || block.Body.Transactions.Count <= 0)
                     _logger?.Trace($"ExecuteBlock - Null block or no transactions.");
 
+                var uncompressedPrivKey = block.Header.P.ToByteArray();
+                var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
+                _worldStateDictator.BlockProducerAccountAddress = recipientKeyPair.GetAddress();
                 var txs = block.Body.Transactions;
                 foreach (var id in txs)
                 {

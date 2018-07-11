@@ -1,8 +1,11 @@
 ﻿using System.Threading.Tasks;
-using AElf.Kernel.Types;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
+    /// <summary>
+    /// A DataProvider is used to access database and will cause changes.
+    /// </summary>
     public interface IDataProvider
     {
         IDataProvider GetDataProvider(string name);

@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
@@ -71,13 +69,10 @@ namespace AElf.Kernel.Node
         
         private const int CheckTime = 3000;
 
-        private int _flag = 0;
-        public bool IsMining { get; private set; } = false;
+        private int _flag;
+        public bool IsMining { get; private set; }
 
-        public int IsMiningInProcess
-        {
-            get { return _flag; }
-        }
+        public int IsMiningInProcess => _flag;
 
         public BlockProducer BlockProducers
         {
@@ -94,10 +89,7 @@ namespace AElf.Kernel.Node
             }
         }
 
-        public Hash ChainId
-        {
-            get => _nodeConfig.ChainId;
-        }
+        public Hash ChainId => _nodeConfig.ChainId;
 
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer,
@@ -398,12 +390,19 @@ namespace AElf.Kernel.Node
                 
                 if (error != ValidationError.Success)
                 {
-                    Interlocked.CompareExchange(ref _flag, 0, 1);
-                    _logger.Trace("Invalid block received from network: " + error.ToString());
-                    return new BlockExecutionResult(false, error);
+                    if (error == ValidationError.OrphanBlock)
+                    {
+                        await _worldStateDictator.RollbackToSpecificHeight(block.Header.Index);
+                    }
+                    else
+                    {
+                        Interlocked.CompareExchange(ref _flag, 0, 1);
+                        _logger.Trace("Invalid block received from network: " + error);
+                        return new BlockExecutionResult(false, error);
+                    }
                 }
 
-                bool executed = await _blockExecutor.ExecuteBlock(block);
+                var executed = await _blockExecutor.ExecuteBlock(block);
                 Interlocked.CompareExchange(ref _flag, 0, 1);
                 
                 return new BlockExecutionResult(executed, error);
@@ -577,6 +576,8 @@ namespace AElf.Kernel.Node
                 return null;
             
             _logger?.Trace($"Mine - Entered mining {res}");
+
+            _worldStateDictator.BlockProducerAccountAddress = _nodeKeyPair.GetAddress();
             
             var block =  await _miner.Mine();
             

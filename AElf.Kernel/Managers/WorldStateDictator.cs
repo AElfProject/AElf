@@ -1,18 +1,13 @@
-﻿﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-  using AElf.Common.Attributes;
-  using AElf.Cryptography.ECDSA;
-  using AElf.Kernel.Node;
-  using AElf.Kernel.Storages;
-using AElf.Kernel.Types;
-  using Akka.Event;
-  using Google.Protobuf;
+using AElf.Common.Attributes;
+using AElf.Kernel.Storages;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-  using NLog;
-  using Debug = System.Diagnostics.Debug;
+using NLog;
+using Debug = System.Diagnostics.Debug;
 
 namespace AElf.Kernel.Managers
 {

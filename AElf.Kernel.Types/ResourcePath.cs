@@ -51,10 +51,7 @@ namespace AElf.Kernel
             return this;
         }
 
-        /// <summary>
-        /// Basically revert a pointer to a path.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc />
         public ResourcePath RevertPointerToPath()
         {
             _blockHash = null;

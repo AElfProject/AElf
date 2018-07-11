@@ -10,6 +10,8 @@
         Mining = 6,
         InvalidTimeslot = 7,
         FailedToCheckConsensusInvalidation = 8,
-        FailedToGetBlockByHeight = 9
+        FailedToGetBlockByHeight = 9,
+        FailedToCheckChainContextInvalidation = 10,
+        DontKnowReason = 11
     }
 }

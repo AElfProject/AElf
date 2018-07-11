@@ -28,6 +28,10 @@ namespace AElf.Kernel
         ResourcePath SetDataProvider(Hash dataProvider);
         ResourcePath SetDataKey(Hash keyHash);
 
+        /// <summary>
+        /// Basically revert a pointer to a path.
+        /// </summary>
+        /// <returns></returns>
         ResourcePath RevertPointerToPath();
         
         Hash GetPointerHash();
