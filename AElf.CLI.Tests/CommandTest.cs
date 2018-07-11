@@ -128,5 +128,29 @@ namespace AElf.CLI.Tests
                 }
             }, JObject.Parse(result));
         }
+
+        [Fact]
+        public void TestGetIncrementCommand()
+        {
+            var tmpPath = Path.Combine(Path.GetTempPath(), "TestGetIncrementCommand");
+            if (Directory.Exists(tmpPath))
+            {
+                Directory.Delete(tmpPath, true);
+            }
+            var ctx = new AElfClientProgramContext(new MockScreenManager(), tmpPath, new MockRPCClient());
+            var rootCmd = new RootCommand();
+            rootCmd.Process(new string[]
+            {
+                "account",
+                "new"
+            }, ctx);
+            var account = ctx.KeyStore.ListAccounts()[0];
+            var req = rootCmd.Process(new string[]
+            {
+                "get_increment",
+                account
+            }, ctx);
+            // TODO: Check request is as expect.
+        }
     }
 }
