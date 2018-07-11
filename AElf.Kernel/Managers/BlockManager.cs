@@ -1,12 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Types;
-using Google.Protobuf.WellKnownTypes;
 using NLog;
 
 namespace AElf.Kernel.Managers
 {
+    [LoggerName(nameof(BlockManager))]
     public class BlockManager : IBlockManager
     {
         private readonly IBlockHeaderStore _blockHeaderStore;
@@ -66,13 +65,13 @@ namespace AElf.Kernel.Managers
         
         public async Task<Block> GetBlockByHeight(Hash chainId, ulong height)
         {
-            _logger?.Trace($"{GetLogPrefix()}Trying to get block by height {height}");
+            _logger?.Trace($"Trying to get block by height {height}");
 
             var keyQuote = await _dataStore.GetDataAsync(
                 ResourcePath.CalculatePointerForGettingBlockHashByHeight(chainId, height));
             if (keyQuote == null)
             {
-                _logger?.Error($"{GetLogPrefix()}Invalid block height - {height}");
+                _logger?.Error($"Invalid block height - {height}");
                 return null;
             }
             var key = Hash.Parser.ParseFrom(keyQuote);
@@ -84,15 +83,6 @@ namespace AElf.Kernel.Managers
                 Header = blockHeader,
                 Body = blockBody
             };
-        }
-
-        /// <summary>
-        /// Use "nameof" in case of chaging this class name
-        /// </summary>
-        /// <returns></returns>
-        private static string GetLogPrefix()
-        {
-            return $"[{DateTime.UtcNow.ToLocalTime(): HH:mm:ss} - {nameof(BlockManager)}] ";
         }
     }
 }
