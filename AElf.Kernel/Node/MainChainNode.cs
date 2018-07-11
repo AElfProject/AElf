@@ -316,18 +316,18 @@ namespace AElf.Kernel.Node
                 Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
                 
                 TxValidation.TxInsertionAndBroadcastingError success = await _poolService.AddTxAsync(tx);
+                
+                if (isFromSend)
+                {
+                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " + tx.IncrementId);
+                    _protocolDirector.AddTransaction(tx);
+                }
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ", tx.GetHash().ToHex() ,
+                    _logger?.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ", tx.GetHash().ToHex() ,
                                   tx.IncrementId, success);
                     return;
-                }
-
-                if (isFromSend)
-                {
-                    _logger.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " + tx.IncrementId);
-                    _protocolDirector.AddTransaction(tx);
                 }
                 
                 _logger?.Trace("Successfully added tx : " + tx.GetHash().Value.ToByteArray().ToHex());
