@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel;
+using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

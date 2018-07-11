@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.SmartContract;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using Google.Protobuf;

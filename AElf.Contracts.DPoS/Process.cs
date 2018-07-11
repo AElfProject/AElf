@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel;
-using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Types;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;

@@ -1,16 +1,13 @@
-﻿﻿using System;
-using System.IO;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.KernelAccount;
+using AElf.Services;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using ServiceStack;
 
 namespace AElf.Kernel.Tests
 {

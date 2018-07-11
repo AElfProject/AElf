@@ -1,20 +1,8 @@
-﻿using System;
-using System.ComponentModel;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Reflection;
-using AElf.Kernel;
-using AElf.Kernel.Storages;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Xunit;
-using AElf.Runtime.CSharp;
 using Xunit.Frameworks.Autofac;
-using Path = AElf.Kernel.Path;
 
 namespace AElf.Runtime.CSharp.Tests
 {

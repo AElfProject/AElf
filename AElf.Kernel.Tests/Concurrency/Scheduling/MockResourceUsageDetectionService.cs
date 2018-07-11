@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using AElf.Kernel.Concurrency;
+using AElf.Execution;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {

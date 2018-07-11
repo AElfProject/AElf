@@ -1,11 +1,10 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Concurrency.Execution;
-using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.KernelAccount;
+using AElf.Services;
+using AElf.Execution;
+using AElf.SmartContract;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
 using AElf.Runtime.CSharp;
 using Google.Protobuf;

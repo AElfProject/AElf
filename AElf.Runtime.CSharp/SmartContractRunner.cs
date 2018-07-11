@@ -6,12 +6,12 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.KernelAccount;
 using Google.Protobuf;
 using Path = System.IO.Path;
 using AElf.ABI.CSharp;
 using Mono.Cecil;
 using Module = AElf.ABI.CSharp.Module;
+using AElf.SmartContract;
 
 namespace AElf.Runtime.CSharp
 {

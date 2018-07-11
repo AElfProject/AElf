@@ -1,4 +1,5 @@
 ﻿using AElf.Kernel.TxMemPool;
+using AElf.Services.TxMemPool;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule

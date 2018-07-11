@@ -2,9 +2,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.KernelAccount;
+using AElf.Services;
+using AElf.Services.TxMemPool;
+using AElf.SmartContract;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
 using NLog;

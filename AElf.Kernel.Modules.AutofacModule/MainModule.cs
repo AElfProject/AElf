@@ -1,5 +1,5 @@
-﻿using AElf.Kernel.Managers;
-using Autofac;
+﻿using Autofac;
+using AElf.SmartContract;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {

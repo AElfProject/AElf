@@ -1,23 +1,14 @@
-﻿using System;
-using System.Text;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Reflection;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
-using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
+using AElf.Services;
+using AElf.SmartContract;
+using AElf.Execution;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using ServiceStack;
-using Xunit;
-using AElf.Runtime.CSharp;
-using AElf.Kernel.Concurrency.Execution;
-using AElf.Kernel.Concurrency.Metadata;
-using Xunit.Frameworks.Autofac;
 using Path = AElf.Kernel.Path;
 
 namespace AElf.Contracts.Token.Tests

@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Collections;
-using AElf.Kernel.BlockValidationFilters;
-using AElf.Kernel.Miner;
-using AElf.Kernel.Node;
 using AElf.Kernel.Node.Protocol;
-using AElf.Kernel.Node.Protocol.Exceptions;
-using Castle.DynamicProxy.Generators;
-using Google.Protobuf.WellKnownTypes;
-using Moq;
 using Xunit;
 
 namespace AElf.Kernel.Tests.BlockSyncTests

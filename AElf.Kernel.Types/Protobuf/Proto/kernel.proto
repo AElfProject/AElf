@@ -19,6 +19,20 @@ message Transaction
     bytes P = 9;
 }
 
+enum Status {
+    NotExisted = 0;
+    Pending = 1;
+    Failed = 2;
+    Mined = 3;
+}
+
+message TransactionResult{
+    Hash TransactionId = 1;
+    Status status = 2;
+    repeated LogEvent Logs = 3;
+    bytes RetVal = 4;
+}
+
 message StateValueChange{
     Hash Path = 1;
     bytes BeforeValue = 2;

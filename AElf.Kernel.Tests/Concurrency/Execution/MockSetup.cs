@@ -8,19 +8,11 @@ using System.Threading.Tasks;
 using System.Reflection;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
-using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using ServiceStack;
-using Xunit;
-using AElf.Runtime.CSharp;
-using AElf.Kernel.Concurrency.Execution;
-using AElf.Kernel.Concurrency.Execution.Messages;
-using AElf.Kernel.Concurrency.Metadata;
-using Xunit.Frameworks.Autofac;
-using Path = AElf.Kernel.Path;
+using AElf.Services;
+using AElf.SmartContract;
+using AElf.Execution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Types.CSharp;
 using Akka.Actor;
@@ -98,7 +90,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
             Worker1.Tell(new LocalSerivcePack(ServicePack));
             Worker2.Tell(new LocalSerivcePack(ServicePack));
-            Requestor = Sys.ActorOf(AElf.Kernel.Concurrency.Execution.Requestor.Props(Router));
+            Requestor = Sys.ActorOf(AElf.Execution.Requestor.Props(Router));
         }
         
         public byte[] SmartContractZeroCode

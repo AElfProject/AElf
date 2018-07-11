@@ -4,16 +4,13 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Concurrency;
-using AElf.Kernel.Concurrency.Execution;
-using AElf.Kernel.Concurrency.Execution.Messages;
-using AElf.Kernel.Concurrency.Scheduling;
-using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.KernelAccount;
+using AElf.Services;
+using AElf.Services.TxMemPool;
+using AElf.SmartContract;
+using AElf.Execution;
+using AElf.Execution.Scheduling;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Tests.Concurrency.Execution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Kernel.TxMemPool;
 using AElf.Runtime.CSharp;
@@ -28,7 +25,6 @@ using Akka.TestKit;
 using Akka.TestKit.Xunit;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using Org.BouncyCastle.Crypto.Generators;
 
 namespace AElf.Kernel.Tests.Miner
 {
@@ -230,7 +226,7 @@ namespace AElf.Kernel.Tests.Miner
             /*IParallelTransactionExecutingService parallelTransactionExecutingService =
                 new ParallelTransactionExecutingService(_requestor,
                     new Grouper(_servicePack.ResourceDetectionService));*/
-            var synchronizer = new Kernel.Miner.BlockExecutor(poolService,
+            var synchronizer = new Services.Miner.BlockExecutor(poolService,
                 _chainManager, _blockManager, _worldStateDictator, _concurrencyExecutingService, null);
             synchronizer.Start(new Grouper(_servicePack.ResourceDetectionService));
             var res = await synchronizer.ExecuteBlock(block);

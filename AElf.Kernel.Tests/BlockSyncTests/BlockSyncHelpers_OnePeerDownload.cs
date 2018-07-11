@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.BlockValidationFilters;
-using AElf.Kernel.Miner;
+using AElf.Services;
+using AElf.Services.Miner;
 using AElf.Kernel.Node;
 using AElf.Kernel.Node.Protocol;
 using AElf.Network.Data;

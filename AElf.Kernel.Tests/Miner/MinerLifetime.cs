@@ -5,21 +5,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Concurrency;
-using AElf.Kernel.Concurrency.Execution;
-using AElf.Kernel.Concurrency.Execution.Messages;
-using AElf.Kernel.Concurrency.Scheduling;
-using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Miner;
+using AElf.Services;
+using AElf.Services.Miner;
+using AElf.Services.TxMemPool;
+using AElf.SmartContract;
+using AElf.Execution;
+using AElf.Execution.Scheduling;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
-using AElf.Kernel.Storages;
-using AElf.Kernel.Tests.Concurrency.Execution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Kernel.TxMemPool;
 using Akka.Actor;
-using Akka.Dispatch.SysMsg;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
 using Google.Protobuf;
@@ -275,7 +270,7 @@ namespace AElf.Kernel.Tests.Miner
         
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {
-            var miner = new Kernel.Miner.Miner(config, poolService, _chainManager, _blockManager, _worldStateDictator,
+            var miner = new Services.Miner.Miner(config, poolService, _chainManager, _blockManager, _worldStateDictator,
                 _smartContractService, _concurrencyExecutingService);
             return miner;
         }

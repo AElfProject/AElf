@@ -1,15 +1,9 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using AElf.Kernel;
+using AElf.SmartContract;
 using ServiceStack;
 using Google.Protobuf;
-using AElf.Runtime.CSharp;
-using AElf.Sdk.CSharp.Types;
-using Xunit.Frameworks.Autofac;
-using System.Reflection;
-using Xunit;
-using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;
 
 namespace AElf.Sdk.CSharp.Tests

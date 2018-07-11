@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
+    <ProjectReference Include="..\AElf.Services\AElf.Services.csproj" />
+  </ItemGroup>
+</Project>

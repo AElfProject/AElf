@@ -10,7 +10,7 @@ using Google.Protobuf;
 using Type = System.Type;
 using Module = AElf.ABI.CSharp.Module;
 using Method = AElf.ABI.CSharp.Method;
-
+using AElf.SmartContract;
 
 namespace AElf.Runtime.CSharp
 {

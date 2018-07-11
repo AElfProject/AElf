@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
-using AElf.Kernel.TxMemPool;
-using AElf.Node.RPC.DTO;
+using AElf.Services;
+using AElf.Services.TxMemPool;
+using AElf.SmartContract;
 using Google.Protobuf;
 using Newtonsoft.Json.Linq;
 using NLog;

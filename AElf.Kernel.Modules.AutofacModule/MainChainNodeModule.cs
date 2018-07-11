@@ -1,7 +1,6 @@
-﻿using AElf.Kernel.Node;
+﻿using Autofac;
 using AElf.Kernel.Node.Config;
-using AElf.Kernel.Services;
-using Autofac;
+using AElf.Kernel.Node;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {

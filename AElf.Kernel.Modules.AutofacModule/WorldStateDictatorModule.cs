@@ -1,6 +1,6 @@
 ﻿using AElf.Kernel.Managers;
 using Autofac;
-using Org.BouncyCastle.Crypto.Tls;
+using AElf.SmartContract;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
