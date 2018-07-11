@@ -81,7 +81,7 @@ namespace AElf.Kernel.Managers
             
             // make a path related to its order
             var key = CalculateKeyForPath(PreBlockHash, count);
-            await _dataStore.SetDataAsync(key, pathHash.Value.ToByteArray());
+            await _dataStore.SetDataAsync(key, pathHash.GetHashBytes());
 
             // update the count of changes
             count = new UInt64Value {Value = count.Value + 1};

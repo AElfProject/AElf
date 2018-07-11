@@ -110,9 +110,6 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
 
             var code = ExampleContractCode;
-
-            
-
             var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
 
             var txnDep = new Transaction()

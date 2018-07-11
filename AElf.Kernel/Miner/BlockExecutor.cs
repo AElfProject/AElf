@@ -9,6 +9,7 @@ using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Managers;
 using AElf.Kernel.TxMemPool;
+using Akka.Routing;
 using Google.Protobuf;
 using NLog;
 
@@ -20,6 +21,8 @@ namespace AElf.Kernel.Miner
         private readonly ITxPoolService _txPoolService;
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
+        private readonly ITransactionManager _transactionManager;
+        private readonly ITransactionResultManager _transactionResultManager;
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly IConcurrencyExecutingService _concurrencyExecutingService;
         private IGrouper _grouper;
@@ -27,7 +30,7 @@ namespace AElf.Kernel.Miner
 
         public BlockExecutor(ITxPoolService txPoolService, IChainManager chainManager,
             IBlockManager blockManager, IWorldStateDictator worldStateDictator,
-            IConcurrencyExecutingService concurrencyExecutingService, ILogger logger)
+            IConcurrencyExecutingService concurrencyExecutingService, ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             _txPoolService = txPoolService;
             _chainManager = chainManager;
@@ -35,6 +38,8 @@ namespace AElf.Kernel.Miner
             _worldStateDictator = worldStateDictator;
             _concurrencyExecutingService = concurrencyExecutingService;
             _logger = logger;
+            _transactionManager = transactionManager;
+            _transactionResultManager = transactionResultManager;
         }
 
         /// <summary>
@@ -52,7 +57,6 @@ namespace AElf.Kernel.Miner
                     _logger?.Trace("ExecuteBlock - Execution cancelled.");
                     return false;
                 }
-
                 var map = new Dictionary<Hash, HashSet<ulong>>();
 
                 if (block?.Body?.Transactions == null || block.Body.Transactions.Count <= 0)
@@ -63,16 +67,18 @@ namespace AElf.Kernel.Miner
                 _worldStateDictator.BlockProducerAccountAddress = recipientKeyPair.GetAddress();
                 
                 var txs = block.Body.Transactions;
+                var readyTxs = new List<ITransaction>();
                 foreach (var id in txs)
                 {
                     if (!_txPoolService.TryGetTx(id, out var tx))
                     {
-                        _logger?.Trace($"ExecuteBlock - Transaction not in pool {id.Value.ToByteArray().ToHex()}.");
+                        _logger?.Trace($"ExecuteBlock - Transaction not in pool {id.ToHex()}.");
+                        //await Rollback(readyTxs);
                         return false;
                     }
-
+                    readyTxs.Add(tx);
+                    await _txPoolService.RemoveAsync(tx.GetHash());
                     var from = tx.From;
-
                     if (!map.ContainsKey(from))
                         map[from] = new HashSet<ulong>();
 
@@ -80,13 +86,11 @@ namespace AElf.Kernel.Miner
                 }
 
                 // promote txs from these address
-                await _txPoolService.PromoteAsync(map.Keys.ToList());
-
-                var ready = new List<ITransaction>();
+                //await _txPoolService.PromoteAsync(map.Keys.ToList());
                 foreach (var fromTxs in map)
                 {
                     var addr = fromTxs.Key;
-                    var ids = fromTxs.Value;
+                    var ids = fromTxs.Value; 
 
                     // return false if not continuousa
                     if (ids.Count != 1)
@@ -96,47 +100,33 @@ namespace AElf.Kernel.Miner
                             if (!ids.Contains(id - 1) && !ids.Contains(id + 1))
                             {
                                 _logger?.Trace($"ExecuteBlock - Non continuous ids, id {id}.");
+                                //await Rollback(readyTxs);
                                 return false;
                             }
                         }
                     }
 
                     // get ready txs from pool
-                    var txList = await _txPoolService.GetReadyTxsAsync(addr, ids.Min(), (ulong) ids.Count);
+                    var ready = await _txPoolService.GetReadyTxsAsync(addr, ids.Min(), (ulong) ids.Count);
 
-                    if (txList == null)
+                    if (!ready)
                     {
                         _logger?.Trace($"ExecuteBlock - No transactions are ready.");
+                        //await Rollback(readyTxs);
                         return false;
                     }
-
-                    ready.AddRange(txList);
                 }
-
-                var traces = ready.Count == 0
+                
+                var traces = readyTxs.Count == 0
                     ? new List<TransactionTrace>()
-                    : await _concurrencyExecutingService.ExecuteAsync(ready, block.Header.ChainId, _grouper);
+                    : await _concurrencyExecutingService.ExecuteAsync(readyTxs, block.Header.ChainId, _grouper);
+                
 
                 foreach (var trace in traces)
                 {
                     _logger?.Trace($"Trace {trace.TransactionId}, {trace.StdErr}");
                 }
-
-                await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
-                var ws = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
-
-                if (ws == null)
-                {
-                    _logger?.Trace($"ExecuteBlock - Could not get world state.");
-                    return false;
-                }
-
-                if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
-                {
-                    _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
-                    return false;
-                }
-
+                
                 var results = new List<TransactionResult>();
                 foreach (var trace in traces)
                 {
@@ -155,11 +145,31 @@ namespace AElf.Kernel.Miner
                         res.Status = Status.Failed;
                         res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
                     }
-
                     results.Add(res);
                 }
 
-                await _txPoolService.ResetAndUpdate(results);
+                var addrs = await InsertTxs(readyTxs, results);
+                await _txPoolService.UpdateAccountContext(addrs);
+                
+                await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
+                var ws = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
+
+                if (ws == null)
+                {
+                    _logger?.Trace($"ExecuteBlock - Could not get world state.");
+                    return false;
+                }
+
+                if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
+                {
+                    _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
+                    // rollback txs in transaction
+                    //await Rollback(readyTxs);
+                    
+                    return false;
+                }
+                
+                
                 await _chainManager.AppendBlockToChainAsync(block);
                 await _blockManager.AddBlockAsync(block);
             }
@@ -172,6 +182,38 @@ namespace AElf.Kernel.Miner
             return true;
         }
 
+        /// <summary>
+        /// update database
+        /// </summary>
+        /// <param name="executedTxs"></param>
+        /// <param name="txResults"></param>
+        private async Task<HashSet<Hash>> InsertTxs(List<ITransaction> executedTxs, List<TransactionResult> txResults)
+        {
+            var addrs = new HashSet<Hash>();
+            foreach (var t in executedTxs)
+            {
+                addrs.Add(t.From);
+                await _transactionManager.AddTransactionAsync(t);
+            }
+            
+            txResults.ForEach(async r =>
+            {
+                await _transactionResultManager.AddTransactionResultAsync(r);
+            });
+            return addrs;
+        }
+
+        /// <summary>
+        /// withdraw txs in tx pool
+        /// </summary>
+        /// <param name="readyTxs"></param>
+        /// <returns></returns>
+        private async Task Rollback(List<ITransaction> readyTxs)
+        {
+            await _txPoolService.RollBack(readyTxs);
+        }
+                
+        
         public void Start(IGrouper grouper)
         {
             Cts = new CancellationTokenSource();

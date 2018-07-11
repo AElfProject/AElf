@@ -73,7 +73,7 @@ namespace AElf.Kernel.Tests
             var list = new List<byte[]>(count);
             for (var i = 0; i < count; i++)
             {
-                list.Add(Hash.Generate().Value.ToByteArray());
+                list.Add(Hash.Generate().GetHashBytes());
             }
 
             return list;

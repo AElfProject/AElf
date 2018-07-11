@@ -106,6 +106,10 @@ namespace AElf.Launcher
                     ks.OpenAsync(confParser.NodeAccount, pass, false);
 
                     nodeKey = ks.GetAccountKeyPair(confParser.NodeAccount);
+                    if (nodeKey == null)
+                    {
+                        Console.WriteLine("Load keystore failed");
+                    }
                 }
                 catch (Exception e)
                 {
@@ -179,7 +183,7 @@ namespace AElf.Launcher
             if (isNewChain)
             {
                 chainId = Hash.Generate();
-                JObject obj = new JObject(new JProperty("id", chainId.Value.ToByteArray().ToHex()));
+                JObject obj = new JObject(new JProperty("id", chainId.ToHex()));
 
                 // write JSON directly to a file
                 using (StreamWriter file = File.CreateText(filepath))

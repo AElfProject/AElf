@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Database;
 using AElf.Kernel.Types;
 
@@ -15,12 +16,12 @@ namespace AElf.Kernel.Storages
 
         public async Task InsertAsync(Hash hash, SmartContractRegistration registration)
         {
-            await _keyValueDatabase.SetAsync(hash.Value.ToByteArray().ToHex(), registration.Serialize());
+            await _keyValueDatabase.SetAsync(hash.ToHex(), registration.Serialize());
         }
 
         public async Task<SmartContractRegistration> GetAsync(Hash hash)
         {
-            var bytes = await _keyValueDatabase.GetAsync(hash.Value.ToByteArray().ToHex(), typeof(SmartContractRegistration));
+            var bytes = await _keyValueDatabase.GetAsync(hash.ToHex(), typeof(SmartContractRegistration));
             return SmartContractRegistration.Parser.ParseFrom(bytes);
         }
     }

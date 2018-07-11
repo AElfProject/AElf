@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AElf.Common.ByteArrayHelpers;
 
 
 namespace AElf.Kernel.Types.Merkle
@@ -133,8 +134,8 @@ namespace AElf.Kernel.Types.Merkle
         {
             var combineHash = 
                 hash2?.Value != null ? 
-                    hash1.Value.ToByteArray().ToHex() + hash2.Value.ToByteArray().ToHex() : 
-                    hash1.Value.ToByteArray().ToHex();
+                    hash1.ToHex() + hash2.ToHex() : 
+                    hash1.ToHex();
 
             return _cache.TryGetValue(combineHash, out var resultHash)
                 ? resultHash

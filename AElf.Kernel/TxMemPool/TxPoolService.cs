@@ -4,127 +4,96 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
-using AElf.Kernel.Types;
+using Akka.Pattern;
+using NLog;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
 namespace AElf.Kernel.TxMemPool
 {
+    [LoggerName("Txpool")]
     public class TxPoolService : ITxPoolService
     {
         private readonly ITxPool _txPool;
         private readonly IAccountContextService _accountContextService;
-        private readonly ITransactionManager _transactionManager;
-        private readonly ITransactionResultManager _transactionResultManager;
 
-        public TxPoolService(ITxPool txPool, IAccountContextService accountContextService, 
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
+        public TxPoolService(ITxPool txPool, IAccountContextService accountContextService,
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, ILogger logger)
         {
             _txPool = txPool;
             _accountContextService = accountContextService;
-            _transactionManager = transactionManager;
-            _transactionResultManager = transactionResultManager;
         }
 
         /// <summary>
-        /// signal event for enqueue txs
-        /// </summary>
-        private AutoResetEvent EnqueueEvent { get; set; }
-        
-        /// <summary>
-        /// signal event for demote executed txs
-        /// </summary>
-        private AutoResetEvent DemoteEvent { get; set; }
-        
-        /// <summary>
         /// Signals to a CancellationToken that it should be canceled
         /// </summary>
-        private CancellationTokenSource Cts { get; set; } 
-        
+        private CancellationTokenSource Cts { get; set; }
+
         private TxPoolSchedulerLock Lock { get; } = new TxPoolSchedulerLock();
-        
+
         private readonly ConcurrentDictionary<Hash, ITransaction> _txs = new ConcurrentDictionary<Hash, ITransaction>();
+
+        private readonly HashSet<Hash> _addrCache = new HashSet<Hash>();
 
         /// <inheritdoc/>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx)
         {
-            // add tx
-            _txs.GetOrAdd(tx.GetHash(), tx);
+            if (Cts.IsCancellationRequested) return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
+
+            if (_txs.ContainsKey(tx.GetHash()))
+                return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
+            await TrySetNonce(tx.From);
             
-            // tx from account state
-            if (!_txPool.Nonces.TryGetValue(tx.From, out var id))
-            {
-                id = (await _accountContextService.GetAccountDataContext(tx.From, _txPool.ChainId)).IncrementId;
-                _txPool.Nonces.TryAdd(tx.From, id);
-            }
-           
-            if(!Cts.IsCancellationRequested)
-            {
-                lock (this)
-                {
-                    return _txPool.EnQueueTx(tx);
-                }
-                
-            }
-            
-            return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
-            /*return await (Cts.IsCancellationRequested ? Task.FromResult(false) : Lock.WriteLock(() =>
-            {
-                return _txPool.EnQueueTx(tx);
-            }));*/
+            return await AddTransaction(tx);
         }
-       
-        
-        /*/// <summary>
-        /// wait new tx
-        /// </summary> 
-        /// <returns></returns>
-        private async Task Receive()
+
+        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(ITransaction tx)
         {
-            // TODO: need interupt waiting 
-            while (!Cts.IsCancellationRequested)
+            return await Lock.WriteLock(() =>
             {
-                // wait for signal
-                EnqueueEvent.WaitOne();
-                
-                if(!_txPool.Enqueueable)
-                    continue;
-                
-                await Lock.WriteLock(() =>
+                var res = _txPool.EnQueueTx(tx);
+                if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    foreach (var t in Tmp)
-                    {
-                        if(_txPool.Nonces.ContainsKey(t.From))
-                            continue;
-                        if(_nonces.TryGetValue(t.From, out var idValue))
-                            _txPool.Nonces[t.From] = idValue;
-                    }
-                    
-                    _txPool.QueueTxs(Tmp); 
-                    Tmp.Clear();
-                });
-            }
-        }*/
-        
-        /*/// <summary>
-        /// wait signal to demote txs
+                    // add tx
+                    _txs.GetOrAdd(tx.GetHash(), tx);
+                }
+
+                return res;
+            });
+        }
+
+
+        /// <summary>
+        /// set nonce for address in tx pool
         /// </summary>
+        /// <param name="addr"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        private async Task Demote()
+        private async Task TrySetNonce(Hash addr)
         {
-            while (!Cts.IsCancellationRequested)
+            // tx from account state
+            if (!_txPool.GetNonce(addr).HasValue)
             {
-                DemoteEvent.WaitOne();
+                var incrementId = (await _accountContextService.GetAccountDataContext(addr, _txPool.ChainId))
+                    .IncrementId;
+                _txPool.TrySetNonce(addr, incrementId);
             }
-        }*/
-        
+            _addrCache.Add(addr);
+        }
+
 
         /// <inheritdoc/>
         public Task RemoveAsync(Hash txHash)
         {
-            return !_txs.TryGetValue(txHash, out var tx) ? Task.CompletedTask : Lock.WriteLock(() => _txPool.DiscardTx(tx));
+            return Lock.WriteLock(() =>
+            {
+                if (_txs.TryGetValue(txHash, out var tx))
+                {
+                    _txs.TryRemove(tx.GetHash(), out tx);
+                }
+            });
+
         }
 
         /// <inheritdoc/>
@@ -133,7 +102,7 @@ namespace AElf.Kernel.TxMemPool
             throw new NotImplementedException();
         }
 
-        
+
         /// <summary>
         /// persist txs with storage
         /// </summary>
@@ -151,23 +120,26 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task<List<ITransaction>> GetReadyTxsAsync(ulong limit)
         {
-            //return Lock.ReadLock(() =>
-            lock (this)
+            return Lock.ReadLock(() =>
             {
                 //_txPool.Enqueueable = false;
-                return Task.FromResult(_txPool.ReadyTxs(limit));
-            }
+
+                var readyTxs = _txPool.ReadyTxs(limit);
+                foreach (var tx in readyTxs)
+                {
+                    _txs.TryRemove(tx.GetHash(), out var t);
+                }
+
+                return readyTxs;
+            });
         }
 
         /// <inheritdoc/>
-        public Task<List<ITransaction>> GetReadyTxsAsync(Hash addr, ulong start, ulong ids)
+        public Task<bool> GetReadyTxsAsync(Hash addr, ulong start, ulong ids)
         {
-            lock (this)
-            {
-                return Task.FromResult(_txPool.ReadyTxs(addr, start, ids));
-            }
+            return Lock.WriteLock(() => { return _txPool.ReadyTxs(addr, start, ids); });
         }
-        
+
         /// <inheritdoc/>
         public Task<bool> PromoteAsync()
         {
@@ -179,7 +151,7 @@ namespace AElf.Kernel.TxMemPool
             }
         }
 
-        
+
         /// <inheritdoc/>
         public Task PromoteAsync(List<Hash> addresses)
         {
@@ -194,11 +166,12 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task<ulong> GetPoolSize()
         {
-            lock (this)
+            /*lock (this)
             {
                 return Task.FromResult(_txPool.Size);
-            }
-            //return Lock.ReadLock(() => _txPool.Size);
+            }*/
+
+            return Lock.ReadLock(() => _txPool.Size);
         }
 
         /// <inheritdoc/>
@@ -210,92 +183,71 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task ClearAsync()
         {
-            /*return Lock.WriteLock(()=>
+            return Lock.WriteLock(()=>
             {
                 _txPool.ClearAll();
-            });*/
-            lock (this)
+            });
+            /*lock (this)
             {
                 _txPool.ClearAll();
                 return Task.CompletedTask;
-            }
+            }*/
         }
 
         /// <inheritdoc/>
         public Task SavePoolAsync()
         {
-            throw new System.NotImplementedException();
+            throw new System.NotImplementedException(); 
         }
 
         /// <inheritdoc/>
         public Task<ulong> GetWaitingSizeAsync()
         {
-            //return Lock.ReadLock(() => _txPool.GetWaitingSize());
-            lock (this)
+            return Lock.ReadLock(() => _txPool.GetWaitingSize());
+            /*lock (this)
             {
                 return Task.FromResult(_txPool.GetWaitingSize());
-            }
+            }*/
         }
 
         /// <inheritdoc/>
         public Task<ulong> GetExecutableSizeAsync()
         {
-            //return Lock.ReadLock(() => _txPool.GetExecutableSize());
-            lock (this)
+            return Lock.ReadLock(() => _txPool.GetExecutableSize());
+            /*lock (this)
             {
                 return Task.FromResult(_txPool.GetExecutableSize());
-            }
-        }
-        
-        /// <inheritdoc/>
-        /*public Task<ulong> GetTmpSizeAsync()
-        {
-            return Lock.ReadLock(() => (ulong)Tmp.Count);
-        }*/
+            }*/
+        }        
+
 
         /// <inheritdoc/>
-        public async Task ResetAndUpdate(List<TransactionResult> txResultList)
+        public async Task UpdateAccountContext(HashSet<Hash> addrs)
         {
-            var addrs = new HashSet<Hash>();
-            foreach (var res in txResultList)
-            {
-                if (!TryGetTx(res.TransactionId, out var tx))
-                    continue;
-                addrs.Add(tx.From);
-                await _transactionManager.AddTransactionAsync(tx);
-                await _transactionResultManager.AddTransactionResultAsync(res);
-            }
-
             foreach (var addr in addrs)
             {
-                _txPool.Nonces.TryGetValue(addr, out var id);
+                var id = _txPool.GetNonce(addr);
+                if(!id.HasValue)
+                    continue;
                 
                 // update account context
                 await _accountContextService.SetAccountContext(new AccountDataContext
                 {
-                    IncrementId = id,
+                    IncrementId = id.Value,
                     Address = addr,
                     ChainId = _txPool.ChainId
                 });
             }
         }
-        
+
         /// <inheritdoc/>
         public void Start()
         {
             // TODO: more initialization
-            //EnqueueEvent = new AutoResetEvent(false);
-            //DemoteEvent = new AutoResetEvent(false);
             Cts = new CancellationTokenSource();
-            
-            // waiting enqueue tx
-            //var task1 = Task.Factory.StartNew(async () => await Receive());
-            
-            // waiting demote txs
-            //var task2 = Task.Factory.StartNew(async () => await Demote());
         }
 
-        
+
         /// <inheritdoc/>
         public Task Stop()
         {
@@ -307,32 +259,73 @@ namespace AElf.Kernel.TxMemPool
                 //EnqueueEvent.Dispose();
                 //DemoteEvent.Dispose();
             });*/
-            lock (this)
+            return Lock.WriteLock(() =>
             {
                 Cts.Cancel();
                 Cts.Dispose();
-                return Task.CompletedTask;
-            }
+            });
         }
+
 
         /// <inheritdoc/>
-        public ulong GetIncrementId(Hash addr)
+        public Task<ulong> GetIncrementId(Hash addr)
         {
-            lock (this)
+            return Lock.ReadLock(()=>
             {
                 return _txPool.GetPendingIncrementId(addr);
-            }
+            });
         }
 
+
+        /// <inheritdoc/>
+        public async Task RollBack(List<ITransaction> txsOut)
+        {
+            var nonces = txsOut.Select(async p => await TrySetNonce(p.From));
+            await Task.WhenAll(nonces);
+            
+            var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(),  (current, p) =>
+            {
+                if (!current.TryGetValue(p.From, out var txs))
+                {
+                    current[p.From] = new HashSet<ITransaction>();
+                }
+
+                current[p.From].Add(p);
+                
+                return current;
+            });
+
+            foreach (var kv in tmap)
+            {
+                var nonce = _txPool.GetNonce(kv.Key);
+                var min = kv.Value.Min(t => t.IncrementId);
+                if(min >= nonce.Value)
+                    continue;
+                
+                _txPool.Withdraw(kv.Key, min);
+                foreach (var tx in kv.Value)
+                {
+                    if (_txs.ContainsKey(tx.GetHash()))
+                        continue;
+                    await AddTransaction(tx);
+                }
+                
+                await _accountContextService.SetAccountContext(new AccountDataContext
+                {
+                    IncrementId = min,
+                    Address = kv.Key,
+                    ChainId = _txPool.ChainId
+                });
+            }
+            
+        }
     }
-    
+
     /// <inheritdoc />
     /// <summary>
     /// A lock for managing asynchronous access to memory pool.
     /// </summary>
     public class TxPoolSchedulerLock : ReaderWriterLock
     {
-        
     }
-   
 }

@@ -773,8 +773,9 @@ namespace AElf.Contracts.Genesis
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().Value.ToByteArray().ToHex().Remove(0, 2);
+            return accountHash.ToAccount().ToHex().Remove(0, 2);
         }
+
 
         /// <summary>
         /// In case of forgetting to check negtive value.
