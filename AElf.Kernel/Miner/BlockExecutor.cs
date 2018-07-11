@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Concurrency;
 using AElf.Kernel.Concurrency.Scheduling;
@@ -13,6 +14,7 @@ using NLog;
 
 namespace AElf.Kernel.Miner
 {
+    [LoggerName(nameof(BlockExecutor))]
     public class BlockExecutor : IBlockExecutor
     {
         private readonly ITxPoolService _txPoolService;
@@ -59,6 +61,7 @@ namespace AElf.Kernel.Miner
                 var uncompressedPrivKey = block.Header.P.ToByteArray();
                 var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
                 _worldStateDictator.BlockProducerAccountAddress = recipientKeyPair.GetAddress();
+                
                 var txs = block.Body.Transactions;
                 foreach (var id in txs)
                 {

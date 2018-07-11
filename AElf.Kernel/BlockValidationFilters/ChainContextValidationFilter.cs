@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
@@ -8,6 +9,7 @@ using ServiceStack;
 
 namespace AElf.Kernel.BlockValidationFilters
 {
+    [LoggerName(nameof(ChainContextValidationFilter))]
     public class ChainContextValidationFilter : IBlockValidationFilter
     {
         private readonly IBlockManager _blockManager;
