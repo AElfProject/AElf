@@ -152,18 +152,18 @@ namespace AElf.Kernel.Node
                     var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg)
                         .Result;
                     
-                    _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.Value.ToByteArray().ToHex());
-                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToByteArray().ToHex());
+                    _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToHex());
+                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.ToHex());
                     var contractAddress = GetGenesisContractHash();
                     _logger.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
-                        contractAddress.ToAccount().Value.ToByteArray().ToHex());
+                        contractAddress.ToAccount().ToHex());
                     
                 }
             }
             catch (Exception e)
             {
                 _logger?.Log(LogLevel.Error,
-                    "Could not create the chain : " + _nodeConfig.ChainId.Value.ToByteArray().ToHex());
+                    "Could not create the chain : " + _nodeConfig.ChainId.ToHex());
             }
             
             
@@ -212,7 +212,7 @@ namespace AElf.Kernel.Node
                 _miner.Start(nodeKeyPair, grouper);
                 
                 //DoDPos();
-                _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToByteArray().ToHex());
+                _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.ToHex());
             }
             
             _logger?.Log(LogLevel.Debug, "AElf node started.");
@@ -313,13 +313,15 @@ namespace AElf.Kernel.Node
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger?.Trace("DID NOT add Transaction to pool: FROM, " + tx.GetHash().Value.ToByteArray().ToHex() + ", INCR : " + tx.IncrementId);
+                    _logger.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ",
+                        tx.GetHash().ToHex(),
+                        tx.IncrementId, success);
                     return;
                 }
 
                 if (isFromSend)
                 {
-                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().Value.ToByteArray().ToHex() + ", INCR : " + tx.IncrementId);
+                    _logger.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " + tx.IncrementId);
                     _protocolDirector.AddTransaction(tx);
                 }
                 
@@ -354,7 +356,7 @@ namespace AElf.Kernel.Node
                 // ReSharper disable once InconsistentNaming
                 var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId))
                     .IncrementId;
-                var idInPool = _poolService.GetIncrementId(addr);
+                var idInPool = await _poolService.GetIncrementId(addr);
 
                 return Math.Max(idInDB, idInPool);
             }
@@ -745,7 +747,7 @@ namespace AElf.Kernel.Node
 
                             _logger.Log(LogLevel.Debug,
                                 "Generate first extra block: \"{0}\", with [{1}] transactions",
-                                firstBlock.GetHash().Value.ToByteArray().ToHex(),
+                                firstBlock.GetHash().ToHex(),
                                 firstBlock.Body.Transactions.Count);
 
                             _logger?.Debug("---- DPoS checking end");

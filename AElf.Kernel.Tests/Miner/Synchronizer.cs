@@ -64,7 +64,7 @@ namespace AElf.Kernel.Tests.Miner
             _changesStore = changesStore;
             _worldStateStore = worldStateStore;
             _dataStore = dataStore;
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore);
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger);
             _smartContractManager = smartContractManager;
             _accountContextService = accountContextService;
 
