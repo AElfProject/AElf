@@ -307,7 +307,7 @@ namespace AElf.Kernel.TxMemPool
                 {
                     if (_txs.ContainsKey(tx.GetHash()))
                         continue;
-                    AddTransaction(tx);
+                    await AddTransaction(tx);
                 }
                 
                 await _accountContextService.SetAccountContext(new AccountDataContext

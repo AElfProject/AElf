@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Collections;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Protocol.Exceptions;
@@ -32,6 +33,7 @@ namespace AElf.Kernel.Node.Protocol
 
     public class Job
     {
+        public bool IsWakeUp { get; set; }
         public bool IsSend { get; set; }
         public Block Block { get; set; }
         public Transaction Transaction { get; set; }
@@ -39,9 +41,18 @@ namespace AElf.Kernel.Node.Protocol
 
     public class SyncPeer
     {
+        public const int AlreadyRequestedQueueLimit = 5;
+        
         public IPeer Peer { get; set; }
         public int? LastKnownHight { get; set; }
         public int RequestCount { get; set; } = 0;
+        
+        public BoundedByteArrayQueue AlreadyRequested { get; set; }
+
+        public SyncPeer()
+        {
+            AlreadyRequested = new BoundedByteArrayQueue(AlreadyRequestedQueueLimit);
+        }
     }
     
     /// <summary>
@@ -216,6 +227,11 @@ namespace AElf.Kernel.Node.Protocol
                 //RemoveLowerHeightPeers();
                 await ManagePeers();
             }
+            else
+            {
+                if (_jobQueue.Count <= 0)
+                    EnqueueJob(new Job { IsWakeUp = true });
+            }
         }
 
         /// <summary>
@@ -286,7 +302,7 @@ namespace AElf.Kernel.Node.Protocol
             }
             catch (Exception e)
             {
-                _logger?.Trace("Error while adding " + job.Block.GetHash().ToHex());
+                _logger?.Trace("Error while adding " + job.Block.GetHash().Value.ToByteArray().ToHex());
             }
         }
 
@@ -310,32 +326,35 @@ namespace AElf.Kernel.Node.Protocol
 
                 try
                 {
-                    if (j.Transaction != null)
+                    if (!j.IsWakeUp)
                     {
-                        // Process transaction
-                        SetTransaction(j.Transaction.GetHash().GetHashBytes());
-                    }
-                    else
-                    {
-                        // Process block
-                        _logger?.Trace("Dequed block : " + j.Block.GetHash().ToHex());
-                        
-                        bool b = AddBlockToSync(j.Block).Result;
-               
-                        /* print candidates */
-
-                        if (!b)
+                        if (j.Transaction != null)
                         {
-                            _logger.Trace("Could not add block to sync");
+                            // Process transaction
+                            SetTransaction(j.Transaction.GetHash().GetHashBytes());
+                        }
+                        else
+                        {
+                            // Process block
+                            _logger?.Trace("Dequed block : " + j.Block.GetHash().ToHex());
+
+                            bool b = AddBlockToSync(j.Block).Result;
+
+                            /* print candidates */
+
+                            if (!b)
+                            {
+                                _logger.Trace("Could not add block to sync");
+                            }
                         }
                     }
-
+                    
                     if (PendingBlocks == null || PendingBlocks.Count <= 0)
                     {
                         _logger.Trace("No pending blocks");
                         continue;
                     }
-                    
+
                     var str = PendingBlocks.Select(bb => bb.ToString()).Aggregate((i, jf) => i + " || " + jf);
                     _logger?.Trace("Candidates for execution: " + str);
                 
@@ -523,7 +542,7 @@ namespace AElf.Kernel.Node.Protocol
 
                 BlockExecutionResult res = await _mainChainNode.ExecuteAndAddBlock(block);
                 
-                _logger?.Trace($"TryExecuteBlocks - Block execution result : {res.Executed}, {res.ValidationError} : { block.GetHash().ToHex() } - Index {block.Header.Index}");
+                _logger?.Trace($"TryExecuteBlocks - Block execution result : {res.Executed}, {res.ValidationError} : { block.GetHash().Value.ToByteArray().ToHex() } - Index {block.Header.Index}");
 
                 if (res.ValidationError == ValidationError.Success && res.Executed)
                 {
@@ -551,14 +570,20 @@ namespace AElf.Kernel.Node.Protocol
                             if (_syncPeers.Count > 0)
                             {
                                 // for now we use only one - the one with the highest hight
-                                var peerHeightKvp = _syncPeers.Where(p => p.LastKnownHight.HasValue)
+                                var peerHeightKvp = _syncPeers.Where(p => !p.AlreadyRequested.Contains(pendingBlock.BlockHash))
                                     .OrderByDescending(p => p.LastKnownHight)
                                     .FirstOrDefault();
 
                                 if (peerHeightKvp != null)
                                 {
-                                    _logger?.Trace("Missing block, request for height : " + CurrentExecHeight);
+                                    _logger?.Trace("Missing block, request for height : " + CurrentExecHeight + ", to : " + peerHeightKvp.Peer);
                                     await SendBlockRequest(peerHeightKvp.Peer, CurrentExecHeight);
+
+                                    peerHeightKvp.AlreadyRequested.Enqueue(pendingBlock.BlockHash);
+                                }
+                                else
+                                {
+                                    _logger?.Trace("All peers already tried for request.");
                                 }
                             }
                             
@@ -654,7 +679,7 @@ namespace AElf.Kernel.Node.Protocol
             Block = block;
             BlockHash = blockHash;
             
-            MissingTxs = missing == null ? new List<byte[]>() : missing.Select(m => m.GetHashBytes()).ToList();
+            MissingTxs = missing == null ? new List<byte[]>() : missing.Select(m => m.Value.ToByteArray()).ToList();
         }
         
         public void RemoveTransaction(byte[] txid)

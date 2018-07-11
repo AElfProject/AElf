@@ -158,6 +158,7 @@ namespace AElf.Kernel.Miner
                     _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
                     // rollback txs in transaction
                     await Rollback(readyTxs);
+                    
                     return false;
                 }
                 
