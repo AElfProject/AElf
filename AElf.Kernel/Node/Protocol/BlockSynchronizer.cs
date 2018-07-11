@@ -335,7 +335,7 @@ namespace AElf.Kernel.Node.Protocol
                             // Process block
                             _logger?.Trace("Dequed block : " + j.Block.GetHash().ToHex());
 
-                            bool b = AddBlockToSync(j.Block).Result;
+                            var b = AddBlockToSync(j.Block).Result;
 
                             /* print candidates */
 
