@@ -44,7 +44,6 @@ message FunctionMetadata {
     repeated string SerializeCallingSet = 1;
     repeated Resource SerializeFullResourceSet = 2;
     repeated Resource SerializeLocalResourceSet = 3;
-    bool ContractContainsMetadata = 4;
 }
 
 message SerializeFunctionMetadataMap {

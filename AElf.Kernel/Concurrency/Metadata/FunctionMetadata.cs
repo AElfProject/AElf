@@ -14,20 +14,11 @@ namespace AElf.Kernel
     {
         public FunctionMetadata(HashSet<string> callingSet, HashSet<Resource> fullResourceSet, HashSet<Resource> localResourceSet)
         {
-            ContractContainsMetadata = true;
             SerializeCallingSet.AddRange(callingSet.AsEnumerable());
             SerializeFullResourceSet.AddRange(fullResourceSet.AsEnumerable());
             SerializeLocalResourceSet.AddRange(localResourceSet.AsEnumerable());
         }
         
-        /// <summary>
-        /// For contracts that contains no metadata
-        /// </summary>
-        /// <param name="nonMetadataContract">should always be false</param>
-        public FunctionMetadata(bool nonMetadataContract)
-        {
-            ContractContainsMetadata = nonMetadataContract;
-        }
         
         /// <summary>
         /// used to find influenced contract when a contract is updated
