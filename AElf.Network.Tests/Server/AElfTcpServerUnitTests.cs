@@ -20,7 +20,7 @@ namespace AElf.Network.Tests.Server
             Assert.Equal("Could not start the server, config object is null.", ex.Message);
         }
 
-        [Theory]
+        /*[Theory]
         [InlineData("")]
         [InlineData(null)]
         [InlineData("127.0..1")]
@@ -33,6 +33,6 @@ namespace AElf.Network.Tests.Server
                 await Assert.ThrowsAsync<ServerConfigurationException>(async () => await server.StartAsync());
 
             Assert.Equal("Could not start the server, invalid ip.", ex.Message);
-        }
+        }*/
     }
 }

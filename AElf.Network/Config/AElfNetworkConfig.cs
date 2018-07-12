@@ -19,7 +19,7 @@ namespace AElf.Network.Config
         /// <summary>
         /// Server listening host
         /// </summary>
-        public string Host { get; set; } = "127.0.0.1";
+        //public string Host { get; set; } = "127.0.0.1";
         
         /// <summary>
         /// Server listening Port

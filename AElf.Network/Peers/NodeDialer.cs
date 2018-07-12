@@ -8,16 +8,16 @@ namespace AElf.Network.Peers
     [LoggerName("NodeDialer")]
     public class NodeDialer : INodeDialer
     {
-        public NodeData NodeData { get; private set; }
+        private int _localPort;
 
-        public NodeDialer(NodeData _nodeData)
+        public NodeDialer(int localPort)
         {
-            NodeData = _nodeData;
+            _localPort = localPort;
         }
 
         public async Task<IPeer> DialAsync(NodeData RemoteNodeData)
         {
-            IPeer peer = new Peer(NodeData, RemoteNodeData);
+            IPeer peer = new Peer(_localPort, RemoteNodeData);
             
             try
             {

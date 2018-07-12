@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
 using Google.Protobuf.WellKnownTypes;
+using NLog;
 
 namespace AElf.Kernel.Managers
 {
@@ -13,14 +14,17 @@ namespace AElf.Kernel.Managers
         private readonly IBlockBodyStore _blockBodyStore;
 
         private readonly IWorldStateDictator _worldStateDictator;
+        
+        private readonly ILogger _logger;
 
         private IDataProvider _heightOfBlock;
 
-        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore, IWorldStateDictator worldStateDictator)
+        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore, IWorldStateDictator worldStateDictator, ILogger logger)
         {
             _blockHeaderStore = blockHeaderStore;
             _blockBodyStore = blockBodyStore;
             _worldStateDictator = worldStateDictator;
+            _logger = logger;
         }
 
         public async Task<IBlock> AddBlockAsync(IBlock block)
@@ -69,9 +73,17 @@ namespace AElf.Kernel.Managers
         
         public async Task<Block> GetBlockByHeight(Hash chainId, ulong height)
         {
-            await InitialHeightOfBlock(chainId);
+            _logger?.Trace($"[{DateTime.UtcNow.ToLocalTime() : HH:mm:ss} - BlockManager] Trying to get block by height {height}");
             
-            var key = Hash.Parser.ParseFrom(await _heightOfBlock.GetAsync(new UInt64Value {Value = height}.CalculateHash()));
+            await InitialHeightOfBlock(chainId);
+
+            var keyQuote = await _heightOfBlock.GetAsync(new UInt64Value {Value = height}.CalculateHash());
+            if (keyQuote == null)
+            {
+                _logger?.Trace($"[{DateTime.UtcNow.ToLocalTime() : HH:mm:ss} - BlockManager] Invalid block height - {height}");
+                return null;
+            }
+            var key = Hash.Parser.ParseFrom(keyQuote);
 
             var blockHeader = await _blockHeaderStore.GetAsync(key);
             var blockBody = await _blockBodyStore.GetAsync(blockHeader.GetHash().CalculateHashWith(blockHeader.MerkleTreeRootOfTransactions));

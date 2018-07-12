@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Collections;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Protocol.Exceptions;
@@ -32,6 +33,7 @@ namespace AElf.Kernel.Node.Protocol
 
     public class Job
     {
+        public bool IsWakeUp { get; set; }
         public bool IsSend { get; set; }
         public Block Block { get; set; }
         public Transaction Transaction { get; set; }
@@ -39,9 +41,18 @@ namespace AElf.Kernel.Node.Protocol
 
     public class SyncPeer
     {
+        public const int AlreadyRequestedQueueLimit = 5;
+        
         public IPeer Peer { get; set; }
         public int? LastKnownHight { get; set; }
         public int RequestCount { get; set; } = 0;
+        
+        public BoundedByteArrayQueue AlreadyRequested { get; set; }
+
+        public SyncPeer()
+        {
+            AlreadyRequested = new BoundedByteArrayQueue(AlreadyRequestedQueueLimit);
+        }
     }
     
     /// <summary>
@@ -216,6 +227,11 @@ namespace AElf.Kernel.Node.Protocol
                 //RemoveLowerHeightPeers();
                 await ManagePeers();
             }
+            else
+            {
+                if (_jobQueue.Count <= 0)
+                    EnqueueJob(new Job { IsWakeUp = true });
+            }
         }
 
         /// <summary>
@@ -310,32 +326,35 @@ namespace AElf.Kernel.Node.Protocol
 
                 try
                 {
-                    if (j.Transaction != null)
+                    if (!j.IsWakeUp)
                     {
-                        // Process transaction
-                        SetTransaction(j.Transaction.GetHash().Value.ToByteArray());
-                    }
-                    else
-                    {
-                        // Process block
-                        _logger?.Trace("Dequed block : " + j.Block.GetHash().Value.ToByteArray().ToHex());
-                        
-                        bool b = AddBlockToSync(j.Block).Result;
-               
-                        /* print candidates */
-
-                        if (!b)
+                        if (j.Transaction != null)
                         {
-                            _logger.Trace("Could not add block to sync");
+                            // Process transaction
+                            SetTransaction(j.Transaction.GetHash().Value.ToByteArray());
+                        }
+                        else
+                        {
+                            // Process block
+                            _logger?.Trace("Dequed block : " + j.Block.GetHash().Value.ToByteArray().ToHex());
+
+                            bool b = AddBlockToSync(j.Block).Result;
+
+                            /* print candidates */
+
+                            if (!b)
+                            {
+                                _logger.Trace("Could not add block to sync");
+                            }
                         }
                     }
-
+                    
                     if (PendingBlocks == null || PendingBlocks.Count <= 0)
                     {
                         _logger.Trace("No pending blocks");
                         continue;
                     }
-                    
+
                     var str = PendingBlocks.Select(bb => bb.ToString()).Aggregate((i, jf) => i + " || " + jf);
                     _logger?.Trace("Candidates for execution: " + str);
                 
@@ -530,7 +549,7 @@ namespace AElf.Kernel.Node.Protocol
                     // The block was executed and validation was a success: remove the pending block.
                     toRemove.Add(pendingBlock);
                     executed.Add(pendingBlock);
-                    CurrentExecHeight++;
+                    Interlocked.Increment(ref CurrentExecHeight);
                 }
                 else
                 {
@@ -551,14 +570,20 @@ namespace AElf.Kernel.Node.Protocol
                             if (_syncPeers.Count > 0)
                             {
                                 // for now we use only one - the one with the highest hight
-                                var peerHeightKvp = _syncPeers.Where(p => p.LastKnownHight.HasValue)
+                                var peerHeightKvp = _syncPeers.Where(p => !p.AlreadyRequested.Contains(pendingBlock.BlockHash))
                                     .OrderByDescending(p => p.LastKnownHight)
                                     .FirstOrDefault();
 
                                 if (peerHeightKvp != null)
                                 {
-                                    _logger?.Trace("Missing block, request for height : " + CurrentExecHeight);
+                                    _logger?.Trace("Missing block, request for height : " + CurrentExecHeight + ", to : " + peerHeightKvp.Peer);
                                     await SendBlockRequest(peerHeightKvp.Peer, CurrentExecHeight);
+
+                                    peerHeightKvp.AlreadyRequested.Enqueue(pendingBlock.BlockHash);
+                                }
+                                else
+                                {
+                                    _logger?.Trace("All peers already tried for request.");
                                 }
                             }
                             

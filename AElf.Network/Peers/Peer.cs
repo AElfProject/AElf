@@ -48,11 +48,13 @@ namespace AElf.Network.Peers
         /// as ended.
         /// </summary>
         public event EventHandler PeerDisconnected;
-        
+
         /// <summary>
         /// The data relative to the current nodes identity.
         /// </summary>
-        private NodeData _nodeData; // todo readonly
+        //private NodeData _nodeData; // todo readonly
+
+        private int _port;
         
         private TcpClient _client;
         private NetworkStream _stream;
@@ -65,10 +67,13 @@ namespace AElf.Network.Peers
         /// would be to call <see cref="DoConnectAsync"/>.
         /// </summary>
         /// <param name="nodeData"></param>
-        /// /// <param name="peerData"></param>
-        public Peer(NodeData nodeData, NodeData peerData)
+        /// ///
+        /// <param name="localPort"></param>
+        /// <param name="peerData"></param>
+        public Peer(int localPort, NodeData peerData)
         {
-            _nodeData = nodeData;
+            _port = localPort;
+            
             DistantNodeData = peerData;
             _receptionBuffer = new byte[BufferSize];
 
@@ -81,11 +86,12 @@ namespace AElf.Network.Peers
         /// step is to call <see cref="StartListeningAsync"/>.
         /// </summary>
         /// <param name="nodeData"></param>
+        /// <param name="localPort"></param>
         /// <param name="distantNodeData"></param>
         /// <param name="client"></param>
-        public Peer(NodeData nodeData, NodeData distantNodeData, TcpClient client)
+        public Peer(int localPort, NodeData distantNodeData, TcpClient client)
         {
-            _nodeData = nodeData;
+            _port = localPort;
             DistantNodeData = distantNodeData;
             
             _client = client;
@@ -264,7 +270,9 @@ namespace AElf.Network.Peers
         {
             try
             {
-                byte[] packet = _nodeData.ToByteArray();
+                var nd = new NodeData {Port = _port};
+                
+                byte[] packet = nd.ToByteArray();
                 await _stream.WriteAsync(packet, 0, packet.Length);
             }
             catch (Exception e)

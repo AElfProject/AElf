@@ -4,6 +4,11 @@ using CommandLine;
 
 namespace AElf.Benchmark
 {
+    public enum BenchmarkMethod
+    {
+        EvenGroup,
+        GenerateAccounts
+    }
     public class BenchmarkOptions
     {
         [Option(HelpText = "The directory where store the sdk dll file (usually named AElf.Sdk.CSharp.dll).")]
@@ -18,7 +23,7 @@ namespace AElf.Benchmark
         [Option(Default = "AElf.Contracts.Genesis.dll", HelpText = "The dll file name that contains the contract zero.")]
         public string ZeroContractDll { get; set; }
         
-        [Option('f', "SupportedBenchmark", Default = "evenGroup", HelpText = "The benchmark you want to run. Choose one of the following options [evenGroup] (more benchmark method is under development)")]
+        [Option('f', "SupportedBenchmark", Default = "evenGroup", HelpText = "The benchmark you want to run. Choose one of the following options [evenGroup, genAccount] (more benchmark method is under development)")]
         public string SupportedBenchmark { get; set; }
         
         [Option('n', "TxNumber", Default = 2400, HelpText = "Transaction number in the benchmark, default is 2400")]
@@ -42,11 +47,23 @@ namespace AElf.Benchmark
         [Option("conlevel", Hidden = true, HelpText = "ConcurrencyLevel, used to limit the group count of the result of grouper")]
         public int? ConcurrencyLevel { get; set; }
 
-        public static Dictionary<string, DatabaseType> dbTypes = new Dictionary<string, DatabaseType>()
+        [Option(HelpText = "path to account file, which contains several account list")]
+        public string AccountFileDir { get; set; }
+
+        public BenchmarkMethod BenchmarkMethod
         {
-            ["in-memory"] = DatabaseType.KeyValue,
-            ["redis"] = DatabaseType.Redis,
-            ["ssdb"] = DatabaseType.Ssdb
-        };
+            get
+            {
+                switch (SupportedBenchmark)
+                {
+                        case "evenGroup":
+                            return BenchmarkMethod.EvenGroup;
+                        case "genAccount":
+                            return BenchmarkMethod.GenerateAccounts;
+                }
+
+                return BenchmarkMethod.EvenGroup;
+            }
+        }
     }
 }
