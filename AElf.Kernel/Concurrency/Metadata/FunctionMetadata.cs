@@ -17,8 +17,8 @@ namespace AElf.Kernel
             SerializeCallingSet.AddRange(callingSet.AsEnumerable());
             SerializeFullResourceSet.AddRange(fullResourceSet.AsEnumerable());
         }
-        
-        
+
+
         /// <summary>
         /// used to find influenced contract when a contract is updated
         /// </summary>
@@ -28,6 +28,12 @@ namespace AElf.Kernel
         /// used to find what resource this function will access (recursive)
         /// </summary>
         public HashSet<Resource> FullResourceSet => new HashSet<Resource>(SerializeFullResourceSet);
+
+        bool IEquatable<FunctionMetadata>.Equals(FunctionMetadata other)
+        {
+            return HashSet<string>.CreateSetComparer().Equals(CallingSet, other.CallingSet) &&
+                   HashSet<Resource>.CreateSetComparer().Equals(FullResourceSet, other.FullResourceSet);
+        }
     }
 
     public partial class FunctionMetadataTemplate
@@ -38,7 +44,7 @@ namespace AElf.Kernel
             SerializeCallingSet.AddRange(callingSet.AsEnumerable());
             SerializeLocalResourceSet.Add(localResourceSet.AsEnumerable());
         }
-        
+
         /// <summary>
         /// TODO: For the contracts that contains no metadata
         /// </summary>

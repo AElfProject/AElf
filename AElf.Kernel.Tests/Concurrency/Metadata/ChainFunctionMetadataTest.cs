@@ -15,10 +15,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
     [UseAutofacTestFramework]
     public class ChainFunctionMetadataTest
-    {
-    
-        private ParallelTestDataUtil util = new ParallelTestDataUtil();
-        
+    {        
         private IDataStore _templateStore;
         
 
@@ -72,7 +69,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                         new Resource(addrC.Value.ToByteArray().ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing) 
                     })));
             
-            Assert.Equal(util.FunctionMetadataMapToString(groundTruthMap), util.FunctionMetadataMapToString(cfms.FunctionMetadataMap));
+            Assert.Equal(groundTruthMap, cfms.FunctionMetadataMap);
 
             
             referenceBookForB.Add("ContractC", addrC);
@@ -100,7 +97,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                         new Resource(addrB.Value.ToByteArray().ToHex() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
                     })));
             
-            Assert.Equal(util.FunctionMetadataMapToString(groundTruthMap), util.FunctionMetadataMapToString(cfms.FunctionMetadataMap));
+            Assert.Equal(groundTruthMap, cfms.FunctionMetadataMap);
 
             
             referenceBookForA.Add("ContractC", addrC);
@@ -201,12 +198,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                         new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
                     })));
             
-            Assert.Equal(util.FunctionMetadataMapToString(groundTruthMap), util.FunctionMetadataMapToString(cfms.FunctionMetadataMap));
+            Assert.Equal(groundTruthMap, cfms.FunctionMetadataMap);
 
             //test restore
             ChainFunctionMetadataTemplate retoredTemplate  = new ChainFunctionMetadataTemplate(_templateStore, chainId, null);
             ChainFunctionMetadata newCFMS = new ChainFunctionMetadata(retoredTemplate, _templateStore, null);
-            Assert.Equal(util.FunctionMetadataMapToString(cfms.FunctionMetadataMap), util.FunctionMetadataMapToString(newCFMS.FunctionMetadataMap));
+            Assert.Equal(cfms.FunctionMetadataMap, newCFMS.FunctionMetadataMap);
             
             return cfms;
         }

@@ -22,9 +22,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 
         [Fact]
         public async Task TestDepolyContract()
-        {
-            ParallelTestDataUtil dataGenerator = new ParallelTestDataUtil();
-            
+        {   
             Hash chainId = Hash.Generate();
             var addrA = new Hash("TestContractA".CalculateHash());
             var addrB = new Hash("TestContractB".CalculateHash());
@@ -179,14 +177,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 
             foreach (var kv in groundTruthMap)
             {
-                Assert.Equal(dataGenerator.FunctionMetadataToString(kv.Value), dataGenerator.FunctionMetadataToString(_functionMetadataService.GetFunctionMetadata(chainId, kv.Key)));
+                Assert.Equal(kv.Value, _functionMetadataService.GetFunctionMetadata(chainId, kv.Key));
             }
         }
         
         [Fact]
         public async Task TestEmptyContract()
         {
-            ParallelTestDataUtil util = new ParallelTestDataUtil();
             var chainId = Hash.Generate();
             var contract1Addr = new Hash("contract1".CalculateHash()).ToAccount();
             var contract2Addr = new Hash("contract2".CalculateHash()).ToAccount();
@@ -491,7 +488,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 
             foreach (var kv in groundTruthMap)
             {
-                Assert.Equal(util.FunctionMetadataToString(kv.Value), util.FunctionMetadataToString(_functionMetadataService.GetFunctionMetadata(chainId, kv.Key)));
+                Assert.Equal(kv.Value, _functionMetadataService.GetFunctionMetadata(chainId, kv.Key));
             }
         }
     }

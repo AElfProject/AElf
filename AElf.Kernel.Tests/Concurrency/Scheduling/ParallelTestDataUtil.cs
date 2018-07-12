@@ -307,56 +307,5 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             }).ToHashSet();
 
         }
-        
-        public string FunctionMetadataMapToString(Dictionary<string, FunctionMetadata> map)
-        {
-            
-            return string.Join(
-                " ",
-                map.OrderBy(a => a.Key)
-                    .Select(item => String.Format("[<{0},{1}>]", 
-                        item.Key,
-                        FunctionMetadataToString(item.Value))));
-        }
-        
-        public string FunctionMetadataToString(FunctionMetadata functionMetadata)
-        {
-            return String.Format("[({0}),({1})]", 
-                CallingSetToString(functionMetadata.CallingSet), 
-                PathSetToString(functionMetadata.FullResourceSet));
-        }
-        
-        public string FunctionMetadataTemplateMapToString(Dictionary<string, FunctionMetadataTemplate> map)
-        {
-            
-            return string.Join(
-                " ",
-                map.OrderBy(a => a.Key)
-                    .Select(item => String.Format("[{0},({1}),({2})]", 
-                        item.Key,
-                        CallingSetToString(item.Value.CallingSet), 
-                        PathSetToString(item.Value.LocalResourceSet))));
-        }
-
-        public string ContractMetadataTemplateMapToString(
-            Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> map)
-        {
-            return string.Join(
-                " | ",
-                map.OrderBy(a => a.Key)
-                    .Select(item =>
-                        String.Format("({0} - {1})", item.Key, FunctionMetadataTemplateMapToString(item.Value))));
-        }
-        
-        public string PathSetToString(HashSet<Resource> resourceSet)
-        {
-            return string.Join(", ",
-                resourceSet.OrderBy(a =>a.Name));
-        }
-
-        public string CallingSetToString(HashSet<string> callingSet)
-        {
-            return string.Join(", ", callingSet.OrderBy(a => a));
-        }
     }
 }
