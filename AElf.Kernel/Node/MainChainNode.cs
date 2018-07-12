@@ -392,6 +392,7 @@ namespace AElf.Kernel.Node
                     var localCorrespondingBlock = await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, block.Header.Index);
                     if (error == ValidationError.OrphanBlock) 
                     {
+                        //TODO: limit the count of blocks to rollback
                         if (block.Header.Time.ToDateTime() < localCorrespondingBlock.Header.Time.ToDateTime())
                         {
                             _logger?.Trace("Ready to rollback");
