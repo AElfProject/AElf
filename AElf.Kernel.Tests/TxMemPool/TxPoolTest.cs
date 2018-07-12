@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-using AElf.Services;
-using AElf.Services.TxMemPool;
+using AElf.ChainController;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Newtonsoft.Json.Linq;

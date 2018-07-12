@@ -1,5 +1,5 @@
 ﻿using Autofac;
-using AElf.Services.Miner;
+using AElf.ChainController;
 using AElf.Execution;
 
 namespace AElf.Kernel.Modules.AutofacModule

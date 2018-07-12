@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using AElf.Services;
+using AElf.ChainController;
 using AElf.SmartContract;
 using Xunit;
 using Xunit.Frameworks.Autofac;

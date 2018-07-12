@@ -5,9 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-using AElf.Services;
-using AElf.Services.Miner;
-using AElf.Services.TxMemPool;
+using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
@@ -270,7 +268,7 @@ namespace AElf.Kernel.Tests.Miner
         
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {
-            var miner = new Services.Miner.Miner(config, poolService, _chainManager, _blockManager, _worldStateDictator,
+            var miner = new ChainController.Miner(config, poolService, _chainManager, _blockManager, _worldStateDictator,
                 _smartContractService, _concurrencyExecutingService);
             return miner;
         }

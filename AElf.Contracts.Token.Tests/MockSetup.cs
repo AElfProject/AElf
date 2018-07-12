@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Managers;
-using AElf.Services;
+using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Execution;
 using Google.Protobuf;

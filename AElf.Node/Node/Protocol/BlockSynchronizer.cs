@@ -16,8 +16,7 @@ using AElf.Network.Peers;
 using Google.Protobuf;
 using NLog;
 using ServiceStack;
-using AElf.Services.Miner;
-using AElf.Services;
+using AElf.ChainController;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
 namespace AElf.Kernel.Node.Protocol

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-using AElf.Services.Miner;
+using AElf.ChainController;
 using AElf.SmartContract;
 
 namespace AElf.Kernel.Node

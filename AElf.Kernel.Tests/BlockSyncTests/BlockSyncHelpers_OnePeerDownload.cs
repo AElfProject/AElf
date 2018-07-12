@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Services;
-using AElf.Services.Miner;
+using AElf.ChainController;
 using AElf.Kernel.Node;
 using AElf.Kernel.Node.Protocol;
 using AElf.Network.Data;

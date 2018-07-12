@@ -21,7 +21,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             var assembly3 = typeof(WorldStateDictator).Assembly;
             builder.RegisterAssemblyTypes(assembly3).AsImplementedInterfaces();
 
-            var assembly4 = typeof(Services.BlockVaildationService).Assembly;
+            var assembly4 = typeof(ChainController.BlockVaildationService).Assembly;
             builder.RegisterAssemblyTypes(assembly4).AsImplementedInterfaces();
 
             var assembly5 = typeof(Execution.ParallelTransactionExecutingService).Assembly;

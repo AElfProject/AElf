@@ -8,7 +8,7 @@ using AElf.Kernel;
 using AElf.Kernel.Storages;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
-using AElf.Services;
+using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Kernel.Tests;
 using Google.Protobuf;

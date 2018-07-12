@@ -2,8 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-using AElf.Services;
-using AElf.Services.TxMemPool;
+using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Kernel.Managers;
 using AElf.Kernel.TxMemPool;

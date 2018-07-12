@@ -18,7 +18,6 @@
     </None>
     <ProjectReference Include="..\AElf.Node\AElf.Node.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
-    <ProjectReference Include="..\AElf.Services\AElf.Services.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.0" />

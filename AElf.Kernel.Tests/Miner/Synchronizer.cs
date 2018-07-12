@@ -4,8 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-using AElf.Services;
-using AElf.Services.TxMemPool;
+using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
@@ -226,7 +225,7 @@ namespace AElf.Kernel.Tests.Miner
             /*IParallelTransactionExecutingService parallelTransactionExecutingService =
                 new ParallelTransactionExecutingService(_requestor,
                     new Grouper(_servicePack.ResourceDetectionService));*/
-            var synchronizer = new Services.Miner.BlockExecutor(poolService,
+            var synchronizer = new BlockExecutor(poolService,
                 _chainManager, _blockManager, _worldStateDictator, _concurrencyExecutingService, null);
             synchronizer.Start(new Grouper(_servicePack.ResourceDetectionService));
             var res = await synchronizer.ExecuteBlock(block);

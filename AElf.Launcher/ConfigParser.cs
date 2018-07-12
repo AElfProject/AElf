@@ -11,8 +11,7 @@ using AElf.Kernel;
 //using AElf.Kernel.Concurrency.Execution.Config;
 //using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Config;
-using AElf.Services.TxMemPool;
-using AElf.Services.Miner;
+using AElf.ChainController;
 using AElf.Configuration;
 using AElf.Network.Config;
 using AElf.Network.Data;
@@ -160,7 +159,7 @@ namespace AElf.Launcher
             };
 
             // tx pool config
-            TxPoolConfig = AElf.Services.TxMemPool.TxPoolConfig.Default;
+            TxPoolConfig = ChainController.TxPoolConfig.Default;
             TxPoolConfig.FeeThreshold = opts.MinimalFee;
             TxPoolConfig.PoolLimitSize = opts.PoolCapacity;
 
