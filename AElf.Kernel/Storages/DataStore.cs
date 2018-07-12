@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AElf.Database;
 using AElf.Kernel.Types;
 
@@ -25,6 +27,11 @@ namespace AElf.Kernel.Storages
                 return null;
             }
             return await _keyValueDatabase.GetAsync(pointerHash.Value.ToByteArray().ToHex(), typeof(byte[]));
+        }
+
+        public async Task<bool> PipelineSetDataAsync(IEnumerable<KeyValuePair<string, byte[]>> queue)
+        {
+            return await _keyValueDatabase.PipelineSetAsync(queue);
         }
     }
 }

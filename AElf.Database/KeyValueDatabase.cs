@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AElf.Database
@@ -17,6 +18,19 @@ namespace AElf.Database
         {
             _dictionary[key] = bytes;
             return Task.CompletedTask;
+        }
+
+        public async Task<bool> PipelineSetAsync(IEnumerable<KeyValuePair<string, byte[]>> queue)
+        {
+            return await Task.Factory.StartNew(() =>
+            {
+                foreach (var update in queue)
+                {
+                    _dictionary[update.Key] = update.Value;
+                }
+
+                return true;
+            });
         }
 
         public bool IsConnected()

@@ -25,11 +25,11 @@ namespace AElf.Kernel.Concurrency.Config
 
         public ActorConfig()
         {
-            IsCluster = true;
+            IsCluster = false;
             HostName = "127.0.0.1";
             Port = 32550;
-            WorkerCount = 16;
-            ConcurrencyLevel = 160;
+            WorkerCount = 8;
+            ConcurrencyLevel = 8;
             Benchmark = true;
             Seeds = new List<SeedNode>();
             //Seeds.Add(new SeedNode {HostName = "127.0.0.1", Port = 32551});

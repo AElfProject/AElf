@@ -306,7 +306,7 @@ namespace AElf.Kernel.Managers
             return path.SetBlockHash(PreBlockHash).GetPointerHash();
         }
 
-        public async Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId)
+        public async Task<KeyValuePair<Hash, byte[]>> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId)
         {
             // The code chunk is copied from DataProvider
 
@@ -338,8 +338,21 @@ namespace AElf.Kernel.Managers
             change.LatestChangedBlockHash = prevBlockHash;
 
             await InsertChangeAsync(stateValueChange.Path, change);
-            await SetDataAsync(pointerHashAfter, stateValueChange.AfterValue.ToByteArray());
-            return change;
+            //await SetDataAsync(pointerHashAfter, stateValueChange.AfterValue.ToByteArray());     temporary solution to let data provider access actor's state cache
+            return new KeyValuePair<Hash, byte[]>(stateValueChange.Path, stateValueChange.AfterValue.ToByteArray());    //temporary solution to let data provider access actor's state cache
+        }
+
+        /// <summary>
+        /// temporary solution to let data provider access actor's state cache
+        /// </summary>
+        /// <param name="queue"></param>
+        /// <param name="chainId"></param>
+        /// <returns></returns>
+        public async Task<bool> ApplyQueuedDataSet(IEnumerable<KeyValuePair<Hash, byte[]>> queue, Hash chainId)
+        {
+            Hash prevBlockHash = await _dataStore.GetDataAsync(Path.CalculatePointerForLastBlockHash(chainId));
+            var pipelineSet = queue.ToDictionary(kv => kv.Key.CalculateHashWith(prevBlockHash).ToHex(), kv => kv.Value);
+            return await _dataStore.PipelineSetDataAsync(pipelineSet);
         }
 
         public Hash PreBlockHash { get; set; }

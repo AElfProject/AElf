@@ -40,7 +40,9 @@ namespace AElf.Kernel.Managers
 
         Task<byte[]> GetDataAsync(Hash pointerHash);
 
-        Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId);
+        Task<KeyValuePair<Hash, byte[]>> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId);
+
+        Task<bool> ApplyQueuedDataSet(IEnumerable<KeyValuePair<Hash, byte[]>> queue, Hash chainId); //temporary solution to let data provider access actor's state cache
         
         Hash PreBlockHash { get; set; }
     }

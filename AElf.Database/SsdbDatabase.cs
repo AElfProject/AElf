@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Database.Config;
@@ -23,6 +24,11 @@ namespace AElf.Database
         public async Task SetAsync(string key, byte[] bytes)
         {
             await Task.FromResult(_client.GetCacheClient().Set(key, bytes));
+        }
+
+        public async Task<bool> PipelineSetAsync(IEnumerable<KeyValuePair<string, byte[]>> queue)
+        {
+            throw new NotImplementedException();
         }
 
         public bool IsConnected()

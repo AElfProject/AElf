@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Database.Config;
-using NServiceKit.Redis;
 using StackExchange.Redis;
 
 namespace AElf.Database
@@ -26,6 +27,14 @@ namespace AElf.Database
         public async Task SetAsync(string key, byte[] bytes)
         {
             await Task.FromResult(_database.StringSet(key, bytes));
+        }
+
+        public async Task<bool> PipelineSetAsync(IEnumerable<KeyValuePair<string, byte[]>> queue)
+        {
+            var batch = _database.CreateBatch();
+            var task = await batch.StringSetAsync(queue.ToDictionary(kv => (RedisKey) kv.Key, kv => (RedisValue) kv.Value).ToArray());
+            batch.Execute();
+            return task;
         }
 
         public bool IsConnected()

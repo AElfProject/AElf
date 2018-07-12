@@ -82,6 +82,16 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
+        /// <summary>
+        /// temporary function to let dataprovider access the memory cache of the actor's job
+        /// </summary>
+        /// <param name="cache"></param>
+        public void SetDataCache(Dictionary<Hash, byte[]> cache)
+        {
+            _currentSmartContractContext.DataProvider.StateCache = cache;
+            //Console.WriteLine($"Inject cache with size {cache.Count}: " + string.Join(", ", cache.Select(kv=> $"[{kv.Key} : {kv.Value}]")));
+        }
+
         public Executive SetApi(Type ApiType)
         {
             var scc = ApiType.GetMethod("SetSmartContractContext", BindingFlags.Public | BindingFlags.Static);

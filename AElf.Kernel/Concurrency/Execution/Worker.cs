@@ -101,6 +101,9 @@ namespace AElf.Kernel.Concurrency.Execution
             IChainContext chainContext = null;
 
             Exception chainContextException = null;
+
+            //path <-> value
+            Dictionary<Hash, byte[]> stateCache = new Dictionary<Hash, byte[]>(); //temporary solution to let data provider access actor's state cache
             
             try
             {
@@ -144,7 +147,7 @@ namespace AElf.Kernel.Concurrency.Execution
                     else
                     {
                         // TODO: The job is still running but we will leave it, we need a way to abort the job if it runs for too long
-                        var task = Task.Run(async () => await ExecuteTransaction(chainContext, tx),
+                        var task = Task.Run(async () => await ExecuteTransaction(chainContext, tx, stateCache),
                             _cancellationTokenSource.Token);
                         try
                         {
@@ -152,7 +155,11 @@ namespace AElf.Kernel.Concurrency.Execution
                             trace = await task;
                             if (trace.IsSuccessful())
                             {
-                                await trace.CommitChangesAsync(_servicePack.WorldStateDictator, chainContext.ChainId);
+                                var bufferedStateUpdates = await trace.CommitChangesAsync(_servicePack.WorldStateDictator, chainContext.ChainId);
+                                foreach (var kv in bufferedStateUpdates)
+                                {
+                                    stateCache[kv.Key] = kv.Value;
+                                }
                             }
                         }
                         catch (OperationCanceledException)
@@ -176,6 +183,12 @@ namespace AElf.Kernel.Concurrency.Execution
                 request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, trace));
             }
 
+            if (chainContext != null)
+            {
+                await _servicePack.WorldStateDictator.ApplyQueuedDataSet(stateCache, chainContext.ChainId);  //temporary solution to let data provider access actor's state cache
+            }
+            stateCache.Clear();
+            
             // TODO: What if actor died in the middle
 
             var retMsg = new JobExecutionStatus(request.RequestId, JobExecutionStatus.RequestStatus.Completed);
@@ -188,7 +201,7 @@ namespace AElf.Kernel.Concurrency.Execution
             return retMsg;
         }
 
-        private async Task<TransactionTrace> ExecuteTransaction(IChainContext chainContext, ITransaction transaction)
+        private async Task<TransactionTrace> ExecuteTransaction(IChainContext chainContext, ITransaction transaction, Dictionary<Hash, byte[]> stateCache)
         {
             
             var trace = new TransactionTrace()
@@ -210,6 +223,8 @@ namespace AElf.Kernel.Concurrency.Execution
             {
                 executive = await _servicePack.SmartContractService
                     .GetExecutiveAsync(transaction.To, chainContext.ChainId);
+                
+                executive.SetDataCache(stateCache); //temporary solution to let data provider access actor's state cache
 
                 await executive.SetTransactionContext(txCtxt).Apply(false);
                 trace.Logs.AddRange(txCtxt.Trace.FlattenedLogs);

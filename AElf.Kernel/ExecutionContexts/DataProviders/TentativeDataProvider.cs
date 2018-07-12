@@ -1,15 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.ComponentModel;
 using System.Threading.Tasks;
-using AElf.Database;
-using AElf.Kernel.Managers;
-using AElf.Kernel;
-using AElf.Kernel.Types;
 using Google.Protobuf;
-using Microsoft.AspNetCore.Server.Kestrel.Transport.Libuv.Internal.Networking;
-using Microsoft.Net.Http.Headers;
+using System.Linq;
 
 namespace AElf.Kernel
 {
@@ -45,33 +38,61 @@ namespace AElf.Kernel
         }
     }
 
-    public class CachedDataProvider : ICachedDataProvider
+    public class TentativeDataProvider : ITentativeDataProvider
     {
         private IDataProvider _dataProvider;
 
-        private List<CachedDataProvider> _children = new List<CachedDataProvider>();
+        private List<TentativeDataProvider> _children = new List<TentativeDataProvider>();
 
-        private readonly Dictionary<Hash, StateCache> _cache = new Dictionary<Hash, StateCache>();
+        public Dictionary<Hash, byte[]> StateCache
+        {
+            get => _stateCache;
+            set
+            {
+                _stateCache = value;
+                foreach (var dataProvider in _children)
+                {
+                    dataProvider.StateCache = value;
+                }
+            }
+        } //temporary solution to let data provider access actor's state cache
+
+        private Dictionary<Hash, byte[]> _stateCache;
+
+        private readonly Dictionary<Hash, StateCache> _tentativeCache = new Dictionary<Hash, StateCache>();
 
         private async Task<StateCache> GetStateAsync(Hash keyHash)
         {
-            if (!_cache.TryGetValue(keyHash, out var state))
+            //Console.WriteLine($"Trying to get with cache of size {StateCache.Count}: " + string.Join(", ", StateCache.Select(kv=> $"[{kv.Key} : {kv.Value}]")));
+            if (!_tentativeCache.TryGetValue(keyHash, out var state))
             {
-                state = new StateCache(await _dataProvider.GetAsync(keyHash));
-                _cache.Add(keyHash, state);
+                if (!StateCache.TryGetValue(GetPathFor(keyHash), out var rawData))
+                {
+                    //Console.WriteLine($"Can't find Key {GetPathFor(keyHash)} in cache");
+                    state = new StateCache(await _dataProvider.GetAsync(keyHash));
+                }
+                else
+                {
+                    //Console.WriteLine($"Key {GetPathFor(keyHash)} hit cache");
+                    state = new StateCache(rawData);
+                }
+                
+                _tentativeCache.Add(keyHash, state);
             }
 
             return state;
         }
 
-        public CachedDataProvider(IDataProvider dataProvider)
+        public TentativeDataProvider(IDataProvider dataProvider)
         {
             _dataProvider = dataProvider;
+            StateCache = new Dictionary<Hash, byte[]>();
         }
 
         public IDataProvider GetDataProvider(string name)
         {
-            var dp = new CachedDataProvider(_dataProvider.GetDataProvider(name));
+            var dp = new TentativeDataProvider(_dataProvider.GetDataProvider(name));
+            dp.StateCache = StateCache; //temporary solution to let data provider access actor's state cache
             _children.Add(dp);
             return dp;
         }
@@ -113,7 +134,7 @@ namespace AElf.Kernel
         public IEnumerable<StateValueChange> GetValueChanges()
         {
             var changes = new List<StateValueChange>();
-            foreach (var keyState in _cache)
+            foreach (var keyState in _tentativeCache)
             {
                 if (keyState.Value.Dirty)
                 {
@@ -133,10 +154,10 @@ namespace AElf.Kernel
 
             return changes;
         }
-
+        
         public void ClearCache()
         {
-            _cache.Clear();
+            _tentativeCache.Clear();
             foreach (var dp in _children)
             {
                 dp.ClearCache();

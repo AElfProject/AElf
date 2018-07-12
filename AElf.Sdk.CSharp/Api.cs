@@ -7,6 +7,7 @@ using AElf.Sdk.CSharp.ReadOnly;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;
+using System.Linq;
 
 namespace AElf.Sdk.CSharp
 {

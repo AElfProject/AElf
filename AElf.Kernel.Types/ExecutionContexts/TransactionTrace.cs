@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using Google.Protobuf;
@@ -55,8 +56,9 @@ namespace AElf.Kernel
             return successful;
         }
 
-        public async Task CommitChangesAsync(IWorldStateDictator worldStateDictator, Hash chainId)
+        public async Task<IEnumerable<KeyValuePair<Hash, byte[]>>> CommitChangesAsync(IWorldStateDictator worldStateDictator, Hash chainId)
         {
+            Dictionary<Hash, byte[]> changedDataDict = new Dictionary<Hash, byte[]>();
             if (!IsSuccessful())
             {
                 throw new InvalidOperationException("Attempting to commit an unsuccessful trace.");
@@ -66,15 +68,21 @@ namespace AElf.Kernel
             {
                 foreach (var vc in ValueChanges)
                 {
-                    await worldStateDictator.ApplyStateValueChangeAsync(vc, chainId);
+                    var changedData = await worldStateDictator.ApplyStateValueChangeAsync(vc, chainId);
+                    changedDataDict[changedData.Key] = changedData.Value; //temporary solution to let data provider access actor's state cache
                 }
                 foreach (var trc in InlineTraces)
                 {
-                    await trc.CommitChangesAsync(worldStateDictator, chainId);
+                    var inlineChangedData = await trc.CommitChangesAsync(worldStateDictator, chainId);
+                    foreach (var kv in inlineChangedData)
+                    {
+                        changedDataDict[kv.Key] = kv.Value;    //temporary solution to let data provider access actor's state cache
+                    }
                 }
             }
 
             _alreadyCommited = true;
+            return changedDataDict;
         }
     }
 }
