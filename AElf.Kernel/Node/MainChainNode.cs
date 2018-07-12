@@ -158,6 +158,16 @@ namespace AElf.Kernel.Node
                         contractAddress.ToAccount().ToHex());
                     
                 }
+                else
+                {
+                    var preBlockHash = GetLastValidBlockHash().Result;
+                    _worldStateDictator.SetWorldStateAsync(preBlockHash);
+                    var worldState = _worldStateDictator.GetWorldStateAsync(preBlockHash).Result;
+                    _logger?.Trace($"Merkle Tree Root before execution:{(worldState.GetWorldStateMerkleTreeRootAsync()).Result.ToHex()}");
+                    
+                    _worldStateDictator.PreBlockHash = preBlockHash;
+                    _worldStateDictator.RollbackCurrentChangesAsync();
+                }
             }
             catch (Exception e)
             {
@@ -842,6 +852,7 @@ namespace AElf.Kernel.Node
 
                         if (await CheckIsTimeToMineExtraBlock())
                         {
+                            //TODO: move this out
                             if (lastTryToPublishInValueRoundsCount != roundsCount)
                             {
                                 //Try to publish in value (every BP can do this)

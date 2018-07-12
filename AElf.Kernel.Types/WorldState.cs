@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Kernel.Types.Merkle;
+using NLog;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -22,10 +24,12 @@ namespace AElf.Kernel
         public async Task<Hash> GetWorldStateMerkleTreeRootAsync()
         {
             var merkleTree = new BinaryMerkleTree();
-            foreach (var pair in _changesDict.Dict)
-            {
-                merkleTree.AddNode(pair.Key);
-            }
+
+            merkleTree.AddNodes(_changesDict.Dict.ToList().Select(p => p.Key));
+//            foreach (var pair in _changesDict.Dict)
+//            {
+//                merkleTree.AddNode(pair.Key);
+//            }
 
             return await Task.FromResult(merkleTree.ComputeRootHash());
         }

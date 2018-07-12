@@ -16,13 +16,11 @@ namespace AElf.Kernel.Managers
 
         public async Task<Hash> AddTransactionAsync(ITransaction tx)
         {
-            Console.WriteLine($"Add tx: {tx.GetHash().ToHex()}");
             return await _transactionStore.InsertAsync(tx);
         }
 
         public async Task<ITransaction> GetTransaction(Hash txId)
         {
-            Console.WriteLine($"Get tx: {txId.ToHex()}");
             return await _transactionStore.GetAsync(txId);
         }
     }

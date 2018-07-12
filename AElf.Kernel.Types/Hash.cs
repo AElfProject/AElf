@@ -85,6 +85,5 @@ namespace AElf.Kernel
         {
             return GetHashBytes().ToHex();
         }
-        
     }
 }

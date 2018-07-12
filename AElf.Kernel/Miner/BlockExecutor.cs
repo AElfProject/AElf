@@ -12,6 +12,7 @@ using AElf.Kernel.TxMemPool;
 using Akka.Routing;
 using Google.Protobuf;
 using NLog;
+using NServiceKit.Common;
 
 namespace AElf.Kernel.Miner
 {
@@ -52,6 +53,10 @@ namespace AElf.Kernel.Miner
         {
             var readyTxs = new List<ITransaction>();
 
+            await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
+            var worldState = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
+            _logger?.Trace($"Merkle Tree Root before execution:{(await worldState.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
+            
             try
             {
                 if (Cts == null || Cts.IsCancellationRequested)
@@ -165,6 +170,11 @@ namespace AElf.Kernel.Miner
                 if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
                 {
                     _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
+                    _logger?.Trace($"Merkle tree root hash of execution: {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
+                    _logger?.Trace($"Merkle tree root hash of received block: {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
+                    _logger?.Trace($"Pre block hash of mime:{_worldStateDictator.PreBlockHash.ToHex()}");
+                    _logger?.Trace($"Pre block hash of received block:{block.Header.PreviousBlockHash.ToHex()}");
+
                     await Rollback(readyTxs);
                     return false;
                 }

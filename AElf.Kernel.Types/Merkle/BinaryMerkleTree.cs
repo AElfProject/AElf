@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using AElf.Common.ByteArrayHelpers;
-
+using System.Linq;
 
 namespace AElf.Kernel.Types.Merkle
 {
@@ -26,13 +25,17 @@ namespace AElf.Kernel.Types.Merkle
         /// <param name="hash"></param>
         public void AddNode(Hash hash)
         {
+            Console.WriteLine($"Add hash to calculate merkle tree root: {hash.ToHex()}");
             Nodes.Add(hash);
             ComputeRootHash();
         }
 
         public void AddNodes(IEnumerable<Hash> hashes)
         {
-            foreach (var hash in hashes)
+            var enumerable = hashes as Hash[] ?? hashes.ToArray();
+            var hashesList = enumerable.ToList();
+            hashesList.Sort(CompareHash);
+            foreach (var hash in hashesList)
             {
                 Nodes.Add(hash);
             }
@@ -146,5 +149,35 @@ namespace AElf.Kernel.Types.Merkle
         {
             return _cache[keyHash] = valueHash;
         }
+        
+        private int CompareHash(Hash hash1, Hash hash2)
+        {
+            if (hash1 != null) return hash2 == null ? 1 : Compare(hash1, hash2);
+            if (hash2 == null)
+            {
+                return 0;
+            }
+            return -1;
+
+        }
+        
+        private int Compare(IHash x, IHash y)
+        {
+            if (Equals(x, y))
+                return 0;
+
+            var xValue = x.Value;
+            var yValue = y.Value;
+            for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
+            {
+                if (xValue[i] > yValue[i])
+                {
+                    return 1;
+                }
+            }
+
+            return -1;
+        }
     }
+    
 }
