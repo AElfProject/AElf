@@ -38,7 +38,7 @@ namespace AElf.CLI
         {
             _commands = commandNames;
         }
-        
+
         public string[] GetSuggestions(string text, int index)
         {
             return _commands.Where(c => c.StartsWith(text)).ToArray();
@@ -46,20 +46,19 @@ namespace AElf.CLI
 
         public char[] Separators { get; set; } = {' '};
     }
-    
+
     public class AElfCliProgram
     {
-
         private string _rpcAddress;
 
         private string _genesisAddress;
-            
+
         private static readonly RpcCalls Rpc = new RpcCalls();
-        
+
         private static readonly Deserializer Deserializer = new Deserializer();
-        
+
         private static List<CliCommandDefinition> _commands = new List<CliCommandDefinition>();
-        
+
         private const string ExitReplCommand = "quit";
         private const string ServerConnError = "Could not connect to server.";
         private const string AbiNotLoaded = "ABI not loaded.";
@@ -70,17 +69,18 @@ namespace AElf.CLI
         private const string NoReplyContentError = "Failed. Pleas check input.";
         private const string DeploySmartContract = "DeploySmartContract";
         private const string WrongInputFormat = "Invalid input format.";
-        
+
         private readonly ScreenManager _screenManager;
         private readonly CommandParser _cmdParser;
         private readonly AccountManager _accountManager;
 
         private readonly Dictionary<string, Module> _loadedModules;
-        
-        public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager, string host = "http://localhost:5000")
+
+        public AElfCliProgram(ScreenManager screenManager, CommandParser cmdParser, AccountManager accountManager,
+            string host = "http://localhost:5000")
         {
             _rpcAddress = host;
-            
+
             _screenManager = screenManager;
             _cmdParser = cmdParser;
             _accountManager = accountManager;
@@ -88,24 +88,25 @@ namespace AElf.CLI
 
             _commands = new List<CliCommandDefinition>();
         }
-        
+
         public void StartRepl()
         {
             _screenManager.PrintHeader();
             _screenManager.PrintUsage();
             _screenManager.PrintLine();
-            
-            ReadLine.AutoCompletionHandler = new AutoCompleteWithRegisteredCommand(_commands.Select(c => c.Name).ToList());
-            
+
+            ReadLine.AutoCompletionHandler =
+                new AutoCompleteWithRegisteredCommand(_commands.Select(c => c.Name).ToList());
+
             while (true)
             {
                 //string command = _screenManager.GetCommand();
                 string command = ReadLine.Read("aelf> ");
-                
-                
+
+
                 if (string.IsNullOrWhiteSpace(command))
                     continue;
-                    
+
                 ReadLine.AddHistory(command);
 
                 // stop the repl if "quit", "Quit", "QuiT", ... is encountered
@@ -114,7 +115,7 @@ namespace AElf.CLI
                     Stop();
                     break;
                 }
-                
+
                 CmdParseResult parsedCmd = _cmdParser.Parse(command);
                 CliCommandDefinition def = GetCommandDefinition(parsedCmd.Command);
 
@@ -136,354 +137,356 @@ namespace AElf.CLI
             if (!string.IsNullOrEmpty(error))
             {
                 _screenManager.PrintError(error);
+                return;
             }
-            else
+
+            if (def is GetDeserializedResultCmd g)
             {
-                if (def is GetDeserializedResultCmd g)
+                try
                 {
+                    // RPC
+                    var t = parsedCmd.Args.ElementAt(0);
+                    var data = parsedCmd.Args.ElementAt(1);
+
+                    byte[] sd;
                     try
                     {
-                        var str = g.Validate(parsedCmd);
-                        if (str != null)
-                        {
-                            _screenManager.PrintError(str);
-                            return;
-                        }
-                        
-                        // RPC
-                        var t = parsedCmd.Args.ElementAt(0);
-                        var data = parsedCmd.Args.ElementAt(1);
-
-                        byte[] sd;
-                        try
-                        {
-                            sd = ByteArrayHelpers.FromHexString(data);
-                        }
-                        catch (Exception e)
-                        {
-                            _screenManager.PrintError("Wrong data formant.");
-                            return;
-                        }
-
-                        object dd;
-                        try
-                        {
-                            dd = Deserializer.Deserialize(t, sd);
-                        }
-                        catch (Exception e)
-                        {
-                            _screenManager.PrintError("Invalid data format");
-                            return;
-                        }
-                        if (dd == null)
-                        {
-                            _screenManager.PrintError("Not supported type.");
-                            return;
-                        }
-                        _screenManager.PrintLine(dd.ToString());
-                        return;
+                        sd = ByteArrayHelpers.FromHexString(data);
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e);
+                        _screenManager.PrintError("Wrong data formant.");
                         return;
                     }
+
+                    object dd;
+                    try
+                    {
+                        dd = Deserializer.Deserialize(t, sd);
+                    }
+                    catch (Exception e)
+                    {
+                        _screenManager.PrintError("Invalid data format");
+                        return;
+                    }
+
+                    if (dd == null)
+                    {
+                        _screenManager.PrintError("Not supported type.");
+                        return;
+                    }
+
+                    _screenManager.PrintLine(dd.ToString());
+                    return;
                 }
-                
-                if (def is LoadContractAbiCmd l)
+                catch (Exception e)
                 {
-                    error = l.Validate(parsedCmd);
+                    Console.WriteLine(e);
+                    return;
+                }
+            }
 
-                    if (!string.IsNullOrEmpty(error))
-                    {
-                        _screenManager.PrintError(error);
-                    }
-                    try
-                    {
-                        // RPC
-                        HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
-                        if (!parsedCmd.Args.Any())
-                        {
-                            if (_genesisAddress == null)
-                            {
-                                _screenManager.PrintError(ConnectionNeeded);
-                                return;
-                            }
-                            parsedCmd.Args.Add(_genesisAddress);
-                        }
+            if (def is LoadContractAbiCmd l)
+            {
+                error = l.Validate(parsedCmd);
 
-                        var addr = parsedCmd.Args.ElementAt(0);
-                        Module m = null;
-                        if (!_loadedModules.TryGetValue(addr, out m))
-                        {
-                            string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
-        
-                            if (resp == null)
-                            { 
-                                _screenManager.PrintError(ServerConnError);
-                                return;
-                            }
+                if (!string.IsNullOrEmpty(error))
+                {
+                    _screenManager.PrintError(error);
+                }
 
-                            if (resp.IsEmpty())
-                            {
-                                _screenManager.PrintError(NoReplyContentError);
-                                return;
-                            }
-                            JObject jObj = JObject.Parse(resp);
-                            var res = JObject.FromObject(jObj["result"]);
-                        
-                            JToken ss = res["abi"];
-                            byte[] aa = ByteArrayHelpers.FromHexString(ss.ToString());
-                        
-                            MemoryStream ms = new MemoryStream(aa);
-                            m = Serializer.Deserialize<Module>(ms);
-                            _loadedModules.Add(addr, m);
-                        }
-                        
-                        var obj = JObject.FromObject(m);
-                        _screenManager.PrintLine(obj.ToString());
-                        
-                    }
-                    catch (Exception e)
+                try
+                {
+                    // RPC
+                    HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
+                    if (!parsedCmd.Args.Any())
                     {
-                        if (e is JsonReaderException)
+                        if (_genesisAddress == null)
                         {
-                            _screenManager.PrintError(WrongInputFormat);
+                            _screenManager.PrintError(ConnectionNeeded);
                             return;
                         }
+
+                        parsedCmd.Args.Add(_genesisAddress);
+                    }
+
+                    var addr = parsedCmd.Args.ElementAt(0);
+                    Module m = null;
+                    if (!_loadedModules.TryGetValue(addr, out m))
+                    {
+                        string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
+
+                        if (resp == null)
+                        {
+                            _screenManager.PrintError(ServerConnError);
+                            return;
+                        }
+
+                        if (resp.IsEmpty())
+                        {
+                            _screenManager.PrintError(NoReplyContentError);
+                            return;
+                        }
+
+                        JObject jObj = JObject.Parse(resp);
+                        var res = JObject.FromObject(jObj["result"]);
+
+                        JToken ss = res["abi"];
+                        byte[] aa = ByteArrayHelpers.FromHexString(ss.ToString());
+
+                        MemoryStream ms = new MemoryStream(aa);
+                        m = Serializer.Deserialize<Module>(ms);
+                        _loadedModules.Add(addr, m);
+                    }
+
+                    var obj = JObject.FromObject(m);
+                    _screenManager.PrintLine(obj.ToString());
+                }
+                catch (Exception e)
+                {
+                    if (e is JsonReaderException)
+                    {
+                        _screenManager.PrintError(WrongInputFormat);
                         return;
                     }
 
                     return;
                 }
-                if (def is DeployContractCommand dcc)
+
+                return;
+            }
+
+            if (def is DeployContractCommand dcc)
+            {
+                if (_genesisAddress == null)
                 {
-                    if (_genesisAddress == null)
+                    _screenManager.PrintError(NotConnected);
+                    return;
+                }
+
+                try
+                {
+                    string err = dcc.Validate(parsedCmd);
+                    if (!string.IsNullOrEmpty(err))
                     {
-                        _screenManager.PrintError(NotConnected);
+                        _screenManager.PrintLine(err);
                         return;
                     }
-                    
+
+                    //string cat = parsedCmd.Args.ElementAt(0);
+                    string filename = parsedCmd.Args.ElementAt(0);
+
+                    // Read sc bytes
+                    SmartContractReader screader = new SmartContractReader();
+                    byte[] sc = screader.Read(filename);
+                    string hex = sc.ToHex();
+
+                    var name = Globals.GenesisSmartContractZeroAssemblyName + Globals.GenesisSmartContractLastName;
+                    Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals(name));
+
+                    if (m == null)
+                    {
+                        _screenManager.PrintError(AbiNotLoaded);
+                        return;
+                    }
+
+                    Method meth = m.Methods.FirstOrDefault(mt => mt.Name.Equals(DeploySmartContract));
+
+                    if (meth == null)
+                    {
+                        _screenManager.PrintError(MethodNotFound);
+                        return;
+                    }
+
+                    byte[] serializedParams = meth.SerializeParams(new List<string> {"1", hex});
+
+                    Transaction t = new Transaction();
+                    t = CreateTransaction(parsedCmd.Args.ElementAt(2), _genesisAddress, parsedCmd.Args.ElementAt(1),
+                        DeploySmartContract, serializedParams);
+
+                    MemoryStream ms = new MemoryStream();
+                    Serializer.Serialize(ms, t);
+                    byte[] b = ms.ToArray();
+                    byte[] toSig = SHA256.Create().ComputeHash(b);
+                    ECSigner signer = new ECSigner();
+                    ECSignature signature;
+                    ECKeyPair kp = _accountManager.GetKeyPair(parsedCmd.Args.ElementAt(2));
+                    if (kp == null)
+                        throw new AccountLockedException(parsedCmd.Args.ElementAt(2));
+                    signature = signer.Sign(kp, toSig);
+
+                    // Update the signature
+                    t.R = signature.R;
+                    t.S = signature.S;
+                    t.P = kp.PublicKey.Q.GetEncoded();
+
+                    var resp = SignAndSendTransaction(t);
+
+                    if (resp == null)
+                    {
+                        _screenManager.PrintError(ServerConnError);
+                        return;
+                    }
+
+                    if (resp.IsEmpty())
+                    {
+                        _screenManager.PrintError(NoReplyContentError);
+                        return;
+                    }
+
+                    JObject jObj = JObject.Parse(resp);
+
+                    string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
+                    _screenManager.PrintLine(toPrint);
+                    return;
+                }
+                catch (Exception e)
+                {
+                    if (e is ContractLoadedException || e is AccountLockedException)
+                    {
+                        _screenManager.PrintError(e.Message);
+                        return;
+                    }
+
+                    if (e is InvalidTransactionException)
+                    {
+                        _screenManager.PrintError(InvalidTransaction);
+                        return;
+                    }
+
+                    if (e is JsonReaderException)
+                    {
+                        _screenManager.PrintError(WrongInputFormat);
+                        return;
+                    }
+
+                    return;
+                }
+            }
+
+            // Execute
+            // 2 cases : RPC command, Local command (like account management)
+            if (def.IsLocal)
+            {
+                if (def is SendTransactionCmd c)
+                {
                     try
                     {
-                        string err = dcc.Validate(parsedCmd);
-                        if (!string.IsNullOrEmpty(err))
-                        {
-                            _screenManager.PrintLine(err);
-                            return;
-                        }
-            
-                        //string cat = parsedCmd.Args.ElementAt(0);
-                        string filename = parsedCmd.Args.ElementAt(0);
-                        
-                        // Read sc bytes
-                        SmartContractReader screader = new SmartContractReader();
-                        byte[] sc = screader.Read(filename);
-                        string hex = sc.ToHex();
+                        JObject j = JObject.Parse(parsedCmd.Args.ElementAt(0));
 
-                        var name = Globals.GenesisSmartContractZeroAssemblyName + Globals.GenesisSmartContractLastName;
-                        Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals(name));
-            
-                        if (m == null)
+                        Transaction tr;
+
+                        tr = ConvertFromJson(j);
+                        string hex = tr.To.Value.ToHex();
+
+                        Module m = null;
+                        if (!_loadedModules.TryGetValue(hex.Replace("0x", ""), out m))
                         {
-                            _screenManager.PrintError(AbiNotLoaded);
-                            return;
+                            if (!_loadedModules.TryGetValue("0x" + hex.Replace("0x", ""), out m))
+                            {
+                                _screenManager.PrintError(AbiNotLoaded);
+                                return;
+                            }
                         }
-            
-                        Method meth = m.Methods.FirstOrDefault(mt => mt.Name.Equals(DeploySmartContract));
-                        
-                        if (meth == null)
+
+                        Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(tr.MethodName));
+
+                        if (method == null)
                         {
                             _screenManager.PrintError(MethodNotFound);
                             return;
                         }
-                        
-                        byte[] serializedParams = meth.SerializeParams(new List<string> {"1", hex} );
-            
-                        Transaction t = new Transaction();
-                        t = CreateTransaction(parsedCmd.Args.ElementAt(2), _genesisAddress, parsedCmd.Args.ElementAt(1),
-                            DeploySmartContract, serializedParams);
-                        
-                        MemoryStream ms = new MemoryStream();
-                        Serializer.Serialize(ms, t);
-                        byte[] b = ms.ToArray();
-                        byte[] toSig = SHA256.Create().ComputeHash(b);
-                        ECSigner signer = new ECSigner();
-                        ECSignature signature;
-                        ECKeyPair kp = _accountManager.GetKeyPair(parsedCmd.Args.ElementAt(2));
-                        if (kp == null)
-                            throw new AccountLockedException(parsedCmd.Args.ElementAt(2));
-                        signature = signer.Sign(kp, toSig);
-                        
-                        // Update the signature
-                        t.R = signature.R;
-                        t.S = signature.S;
-                        t.P = kp.PublicKey.Q.GetEncoded();
-                        
-                        var resp = SignAndSendTransaction(t);
-                        
+
+                        JArray p = j["params"] == null ? null : JArray.Parse(j["params"].ToString());
+                        tr.Params = j["params"] == null ? null : method.SerializeParams(p.ToObject<string[]>());
+
+                        _accountManager.SignTransaction(tr);
+                        var resp = SignAndSendTransaction(tr);
+
                         if (resp == null)
-                        { 
+                        {
                             _screenManager.PrintError(ServerConnError);
                             return;
                         }
+
                         if (resp.IsEmpty())
                         {
                             _screenManager.PrintError(NoReplyContentError);
                             return;
                         }
+
                         JObject jObj = JObject.Parse(resp);
-                        
+
                         string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
                         _screenManager.PrintLine(toPrint);
-                        return;
-
                     }
                     catch (Exception e)
                     {
-                        if (e is ContractLoadedException || e is AccountLockedException)
-                        {
+                        if (e is AccountLockedException || e is InvalidTransactionException ||
+                            e is InvalidInputException)
                             _screenManager.PrintError(e.Message);
-                            return;
-                        }
-
-                        if (e is InvalidTransactionException)
-                        {
-                            _screenManager.PrintError(InvalidTransaction);
-                            return;
-                        }
-                        if (e is JsonReaderException)
+                        if (e is JsonReaderException || e is FormatException)
                         {
                             _screenManager.PrintError(WrongInputFormat);
                             return;
                         }
-
-                        return;
-                    }
-                    
-                }
-                
-                // Execute
-                // 2 cases : RPC command, Local command (like account management)
-                if (def.IsLocal)
-                {
-                    if (def is SendTransactionCmd c)
-                    {
-                        try
-                        {
-                            JObject j = JObject.Parse(parsedCmd.Args.ElementAt(0));
-                            
-                            Transaction tr ;
-
-                            tr = ConvertFromJson(j);
-                            string hex = tr.To.Value.ToHex();
-
-                            Module m = null;
-                            if (!_loadedModules.TryGetValue(hex.Replace("0x", ""), out m))
-                            {
-                                if (!_loadedModules.TryGetValue("0x"+hex.Replace("0x", ""), out m))
-                                {
-                                    _screenManager.PrintError(AbiNotLoaded);
-                                    return;
-                                }
-                            }
-
-                            Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(tr.MethodName));
-
-                            if (method == null)
-                            {
-                                _screenManager.PrintError(MethodNotFound);
-                                return;
-                            }
-                            
-                            JArray p = j["params"] == null ? null : JArray.Parse(j["params"].ToString());
-                            tr.Params = j["params"] == null ? null : method.SerializeParams(p.ToObject<string[]>());
-
-                            _accountManager.SignTransaction(tr);
-                            var resp = SignAndSendTransaction(tr);
-                            
-                            if (resp == null)
-                            { 
-                                _screenManager.PrintError(ServerConnError);
-                                return;
-                            }
-                            if (resp.IsEmpty())
-                            {
-                                _screenManager.PrintError(NoReplyContentError);
-                                return;
-                            }
-                            JObject jObj = JObject.Parse(resp);
-
-                            string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
-                            _screenManager.PrintLine(toPrint);
-
-                        }
-                        catch (Exception e)
-                        {
-                            if (e is AccountLockedException || e is InvalidTransactionException ||
-                                e is InvalidInputException)
-                                _screenManager.PrintError(e.Message);
-                            if (e is JsonReaderException || e is FormatException)
-                            {
-                                _screenManager.PrintError(WrongInputFormat);
-                                return;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        _accountManager.ProcessCommand(parsedCmd);
                     }
                 }
                 else
                 {
-                    try
+                    _accountManager.ProcessCommand(parsedCmd);
+                }
+            }
+            else
+            {
+                try
+                {
+                    // RPC
+                    HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
+                    string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
+                    if (resp == null)
                     {
-                        // RPC
-                        HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
-                        string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
-                        if (resp == null)
-                        { 
-                            _screenManager.PrintError(ServerConnError);
-                            return;
-                        }
-                        if (resp.IsEmpty())
-                        {
-                            _screenManager.PrintError(NoReplyContentError);
-                            return;
-                        }
-                    
-                        JObject jObj = JObject.Parse(resp);
-                        
-                        var j = jObj["result"];
-                        if (j["error"] != null)
-                        {
-                            _screenManager.PrintLine(j["error"].ToString());
-                            return;
-                        }
-                        
-                        if (j["result"]["genesis_contract"] != null)
-                        {
-                            _genesisAddress = j["result"]["genesis_contract"].ToString();
-                        }
-                        string toPrint = def.GetPrintString(JObject.FromObject(j));
-                        
-                        _screenManager.PrintLine(toPrint);
+                        _screenManager.PrintError(ServerConnError);
+                        return;
                     }
-                    catch (Exception e)
+
+                    if (resp.IsEmpty())
                     {
-                        if (e is JsonReaderException)
-                        {
-                            _screenManager.PrintError(WrongInputFormat);
-                            return;
-                        }
+                        _screenManager.PrintError(NoReplyContentError);
+                        return;
                     }
-                    
+
+                    JObject jObj = JObject.Parse(resp);
+
+                    var j = jObj["result"];
+                    if (j["error"] != null)
+                    {
+                        _screenManager.PrintLine(j["error"].ToString());
+                        return;
+                    }
+
+                    if (j["result"]["genesis_contract"] != null)
+                    {
+                        _genesisAddress = j["result"]["genesis_contract"].ToString();
+                    }
+
+                    string toPrint = def.GetPrintString(JObject.FromObject(j));
+
+                    _screenManager.PrintLine(toPrint);
+                }
+                catch (Exception e)
+                {
+                    if (e is JsonReaderException)
+                    {
+                        _screenManager.PrintError(WrongInputFormat);
+                        return;
+                    }
                 }
             }
         }
 
-        private Transaction CreateTransaction(string elementAt, string genesisAddress, string incrementid, string methodName, byte[] serializedParams)
+        private Transaction CreateTransaction(string elementAt, string genesisAddress, string incrementid,
+            string methodName, byte[] serializedParams)
         {
             try
             {
@@ -505,12 +508,12 @@ namespace AElf.CLI
         {
             MemoryStream ms = new MemoryStream();
             Serializer.Serialize(ms, tx);
-                        
+
             byte[] b = ms.ToArray();
             string payload = b.ToHex();
-            var reqParams = new JObject { ["rawtx"] = payload };
+            var reqParams = new JObject {["rawtx"] = payload};
             var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);
-                        
+
             // todo send raw tx
             HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
             string resp = reqhttp.DoRequest(req.ToString());
@@ -531,7 +534,6 @@ namespace AElf.CLI
 
         private void Stop()
         {
-            
         }
 
         private Transaction ConvertFromJson(JObject j)
