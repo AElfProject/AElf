@@ -50,6 +50,8 @@ namespace AElf.Kernel.Miner
         /// <inheritdoc/>
         public async Task<bool> ExecuteBlock(IBlock block)
         {
+            var readyTxs = new List<ITransaction>();
+
             try
             {
                 if (Cts == null || Cts.IsCancellationRequested)
@@ -67,13 +69,12 @@ namespace AElf.Kernel.Miner
                 _worldStateDictator.BlockProducerAccountAddress = recipientKeyPair.GetAddress();
                 
                 var txs = block.Body.Transactions;
-                var readyTxs = new List<ITransaction>();
                 foreach (var id in txs)
                 {
                     if (!_txPoolService.TryGetTx(id, out var tx))
                     {
                         _logger?.Trace($"ExecuteBlock - Transaction not in pool {id.ToHex()}.");
-                        //await Rollback(readyTxs);
+                        await Rollback(readyTxs);
                         return false;
                     }
                     readyTxs.Add(tx);
@@ -100,7 +101,7 @@ namespace AElf.Kernel.Miner
                             if (!ids.Contains(id - 1) && !ids.Contains(id + 1))
                             {
                                 _logger?.Trace($"ExecuteBlock - Non continuous ids, id {id}.");
-                                //await Rollback(readyTxs);
+                                await Rollback(readyTxs);
                                 return false;
                             }
                         }
@@ -112,7 +113,7 @@ namespace AElf.Kernel.Miner
                     if (!ready)
                     {
                         _logger?.Trace($"ExecuteBlock - No transactions are ready.");
-                        //await Rollback(readyTxs);
+                        await Rollback(readyTxs);
                         return false;
                     }
                 }
@@ -124,7 +125,7 @@ namespace AElf.Kernel.Miner
 
                 foreach (var trace in traces)
                 {
-                    _logger?.Trace($"Trace {trace.TransactionId}, {trace.StdErr}");
+                    _logger?.Trace($"Trace {trace.TransactionId.ToHex()}, {trace.StdErr}");
                 }
                 
                 var results = new List<TransactionResult>();
@@ -157,18 +158,16 @@ namespace AElf.Kernel.Miner
                 if (ws == null)
                 {
                     _logger?.Trace($"ExecuteBlock - Could not get world state.");
+                    await Rollback(readyTxs);
                     return false;
                 }
 
                 if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
                 {
                     _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
-                    // rollback txs in transaction
-                    //await Rollback(readyTxs);
-                    
+                    await Rollback(readyTxs);
                     return false;
                 }
-                
                 
                 await _chainManager.AppendBlockToChainAsync(block);
                 await _blockManager.AddBlockAsync(block);
@@ -176,6 +175,7 @@ namespace AElf.Kernel.Miner
             catch (Exception e)
             {
                 _logger?.Trace(e, $"ExecuteBlock - Execution failed.");
+                await Rollback(readyTxs);
                 return false;
             }
 
@@ -211,6 +211,7 @@ namespace AElf.Kernel.Miner
         private async Task Rollback(List<ITransaction> readyTxs)
         {
             await _txPoolService.RollBack(readyTxs);
+            await _worldStateDictator.RollbackCurrentChangesAsync();
         }
         
         public void Start(IGrouper grouper)

@@ -8,6 +8,7 @@ using AElf.Common.Attributes;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using Akka.Pattern;
+using Akka.Routing;
 using NLog;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
@@ -282,24 +283,9 @@ namespace AElf.Kernel.TxMemPool
         {
             try
             {
-                Console.WriteLine(txsOut == null);
-                Console.WriteLine(txsOut.Count);
-                foreach (var t in txsOut)
-                {
-                    Console.WriteLine(t);
-                    await TrySetNonce(t.From);
-                }
-                //var nonces = txsOut.Select(async p => await TrySetNonce(p.From));
-                
-                //await Task.WhenAll(nonces);
+                var nonces = txsOut.Select(async p => await TrySetNonce(p.From));
+                await Task.WhenAll(nonces);
  
-                foreach (var t in txsOut)
-                {
-                    if(t !=null)
-                        Console.WriteLine(t.GetHash().ToHex());
-                    else
-                        Console.WriteLine("t is null");
-                }
                 var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(),  (current, p) =>
                 {
                     if (!current.TryGetValue(p.From, out var _))
@@ -333,6 +319,7 @@ namespace AElf.Kernel.TxMemPool
                         Address = kv.Key,
                         ChainId = _txPool.ChainId
                     });
+                    Console.WriteLine("After rollback, addr {0}: nonce {1}", kv.Key.ToHex(), _txPool.GetNonce(kv.Key).Value);
                 }
             }
             catch (Exception e)

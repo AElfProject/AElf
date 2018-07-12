@@ -117,15 +117,18 @@ namespace AElf.Kernel.Managers
                     await _changesStore.UpdatePointerAsync(pair.Key, pair.Value.Befores[0]);
                 }
             }
+            
+            var keyToGetCount = ResourcePath.CalculatePointerForPathsCount(_chainId, PreBlockHash);
+            await _dataStore.SetDataAsync(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
         }
-
+        
         /// <summary>
         /// The world state will rollback to specific block height's world state
         /// It means world state of that height will be kept
         /// </summary>
         /// <param name="specificHeight"></param>
         /// <returns></returns>
-        public async Task<List<Hash>> RollbackToSpecificHeight(ulong specificHeight)
+        public async Task<List<ITransaction>> RollbackToSpecificHeight(ulong specificHeight)
         {
             if (specificHeight < 1)
             {
@@ -148,8 +151,8 @@ namespace AElf.Kernel.Managers
                 ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, specificHeight - 1)));
             await SetChainLastBlockHash(_chainId, lastBlockHash);
             PreBlockHash = lastBlockHash;
-            
-            var rollbackBlockHashList = new List<Hash>();
+
+            var txs = new List<ITransaction>();
 
             //Just for logging
             for (var i = currentHeight - 1; i >= specificHeight; i--)
@@ -158,14 +161,17 @@ namespace AElf.Kernel.Managers
                     Hash.Parser.ParseFrom(
                         await _dataStore.GetDataAsync(
                             ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, i)));
-                rollbackBlockHashList.Add(rollBackBlockHash);
                 var header = await _blockHeaderStore.GetAsync(rollBackBlockHash);
                 var body = await _blockBodyStore.GetAsync(header.GetHash().CalculateHashWith(header.MerkleTreeRootOfTransactions));
-                var txs = new List<ITransaction>();
-                foreach (var tx in body.Transactions)
+                foreach (var txId in body.Transactions)
                 {
-                    txs.Add(await _transactionStore.GetAsync(tx));
-                    await _transactionStore.RemoveAsync(tx);
+                    var tx = await _transactionStore.GetAsync(txId);
+                    if (tx == null)
+                    {
+                        _logger?.Trace($"tx {txId} is null");
+                    }
+                    txs.Add(tx);
+                    await _transactionStore.RemoveAsync(txId);
                 }
 
                 _logger?.Trace(
@@ -177,7 +183,7 @@ namespace AElf.Kernel.Managers
             
             await RollbackCurrentChangesAsync();
 
-            return rollbackBlockHashList;
+            return txs;
         }
         
         private async Task<ulong> GetChainCurrentHeight(Hash chainId)

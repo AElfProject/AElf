@@ -27,7 +27,7 @@ namespace AElf.Kernel.Managers
         
         Task RollbackCurrentChangesAsync();
 
-        Task<List<Hash>> RollbackToSpecificHeight(ulong specificHeight);
+        Task<List<ITransaction>> RollbackToSpecificHeight(ulong specificHeight);
 
         Task<List<Hash>> GetPathsAsync(Hash blockHash = null);
 

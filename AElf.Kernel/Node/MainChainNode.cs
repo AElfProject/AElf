@@ -66,7 +66,7 @@ namespace AElf.Kernel.Node
 
         public IExecutive Executive =>
             _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
-        
+
         private const int CheckTime = 2000;
 
         private int _flag;
@@ -89,11 +89,7 @@ namespace AElf.Kernel.Node
             }
         }
 
-        public Hash ChainId
-        {
-            get => _nodeConfig.ChainId;
-        }
-
+        public Hash ChainId => _nodeConfig.ChainId;
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer,
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner,
@@ -297,20 +293,21 @@ namespace AElf.Kernel.Node
         {
             return await _transactionManager.AddTransactionAsync(tx);
         }
-        
+
         /// <summary>
         /// This method processes a transaction received from one of the
         /// connected peers.
         /// </summary>
         /// <param name="messagePayload"></param>
+        /// <param name="isFromSend"></param>
         /// <returns></returns>
         public async Task ReceiveTransaction(ByteString messagePayload, bool isFromSend)
         {
             try
             {
-                Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
+                var tx = Transaction.Parser.ParseFrom(messagePayload);
                 
-                TxValidation.TxInsertionAndBroadcastingError success = await _txPoolService.AddTxAsync(tx);
+                var success = await _txPoolService.AddTxAsync(tx);
                 
                 if (isFromSend)
                 {
@@ -320,7 +317,7 @@ namespace AElf.Kernel.Node
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger?.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ", tx.GetHash().ToHex() ,
+                    _logger?.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ", tx.GetTransactionInfo() ,
                         tx.IncrementId, success);
                     return;
                 }
@@ -392,24 +389,29 @@ namespace AElf.Kernel.Node
                 
                 if (error != ValidationError.Success)
                 {
-                    var localPreviousBlock = await _blockManager.GetBlockAsync(_worldStateDictator.PreBlockHash);
-                    if (error == ValidationError.OrphanBlock && block.Header.Time.ToDateTime() < localPreviousBlock.Header.Time.ToDateTime())
+                    var localCorrespondingBlock = await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, block.Header.Index);
+                    if (error == ValidationError.OrphanBlock) 
                     {
-                        _logger?.Trace("Ready to rollback");
-                        //Rollback world state
-                        var rollbackBlockHashList = await _worldStateDictator.RollbackToSpecificHeight(block.Header.Index);
-                        
-                        //Rollback tx pool
-                        foreach (var blockHash in rollbackBlockHashList)
+                        if (block.Header.Time.ToDateTime() < localCorrespondingBlock.Header.Time.ToDateTime())
                         {
-                            var rollbackBlock = await _blockManager.GetBlockAsync(blockHash);
-                            var txs = new List<ITransaction>();
-                            foreach (var tx in rollbackBlock.Body.Transactions)
-                            {
-                                txs.Add(await _transactionManager.GetTransaction(tx));
-                            }
-                            
+                            _logger?.Trace("Ready to rollback");
+                            //Rollback world state
+                            var txs = await _worldStateDictator.RollbackToSpecificHeight(block.Header.Index);
+                        
                             await _txPoolService.RollBack(txs);
+                            _worldStateDictator.PreBlockHash = block.Header.PreviousBlockHash;
+                            await _worldStateDictator.RollbackCurrentChangesAsync();
+
+                            var ws = await _worldStateDictator.GetWorldStateAsync(block.GetHash());
+                            _logger?.Trace($"Current world state {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
+
+                            error = ValidationError.Success;
+                        }
+                        else
+                        {
+                            // insert to database 
+                            Interlocked.CompareExchange(ref _flag, 0, 1);
+                            return new BlockExecutionResult(false, ValidationError.OrphanBlock);
                         }
                     }
                     else
@@ -449,7 +451,7 @@ namespace AElf.Kernel.Node
                 var txs = block.Body.Transactions;
                 foreach (var id in txs)
                 {
-                    if (!_txPoolService.TryGetTx(id, out var tx))
+                    if (!_txPoolService.TryGetTx(id, out var _))
                     {
                         res.Add(id);
                     }
@@ -589,24 +591,31 @@ namespace AElf.Kernel.Node
         public async Task<IBlock> Mine()
         {
             int res = Interlocked.CompareExchange(ref _flag, 1, 0);
-            
+
             if (res == 1)
                 return null;
+            try
+            {
+                _logger?.Trace($"Mine - Entered mining {res}");
             
-            _logger?.Trace($"Mine - Entered mining {res}");
-            
-            _worldStateDictator.BlockProducerAccountAddress = _nodeKeyPair.GetAddress();
+                _worldStateDictator.BlockProducerAccountAddress = _nodeKeyPair.GetAddress();
 
-            var block =  await _miner.Mine();
+                var block =  await _miner.Mine();
             
-            int b = Interlocked.CompareExchange(ref _flag, 0, 1);
+                int b = Interlocked.CompareExchange(ref _flag, 0, 1);
 
-            _protocolDirector.IncrementChainHeight();
+                _protocolDirector.IncrementChainHeight();
             
-            _logger?.Trace($"Mine - Leaving mining {b}");
+                _logger?.Trace($"Mine - Leaving mining {b}");
             
-            return block;
-
+                return block;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                Interlocked.CompareExchange(ref _flag, 0, 1);
+                return null;
+            }
         }
 
         public async Task<bool> BroadcastBlock(IBlock block)
@@ -615,9 +624,8 @@ namespace AElf.Kernel.Node
             {
                 return false;
             }
-            
-            int count = 0;
-            count = await _protocolDirector.BroadcastBlock(block as Block);
+
+            var count = await _protocolDirector.BroadcastBlock(block as Block);
 
             var bh = block.GetHash().ToHex();
             _logger?.Trace($"Broadcasted block \"{bh}\"  to [" +

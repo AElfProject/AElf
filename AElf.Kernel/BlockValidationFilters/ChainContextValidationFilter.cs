@@ -54,8 +54,8 @@ namespace AElf.Kernel.BlockValidationFilters
                 {
                     if (!currentPreviousBlockHash.Equals(previousBlockHash))
                     {
-                        _logger?.Trace("context.BlockHash:" + currentPreviousBlockHash.Value.ToByteArray().ToHex());
-                        _logger?.Trace("block.Header.PreviousBlockHash:" + previousBlockHash.Value.ToByteArray().ToHex());
+                        _logger?.Trace("context.BlockHash:" + currentPreviousBlockHash.ToHex());
+                        _logger?.Trace("block.Header.PreviousBlockHash:" + previousBlockHash.ToHex());
                     }
                     
                     return currentPreviousBlockHash.Equals(previousBlockHash)

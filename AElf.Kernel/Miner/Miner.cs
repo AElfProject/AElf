@@ -184,9 +184,14 @@ namespace AElf.Kernel.Miner
             
             var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
             var index = await _chainManager.GetChainCurrentHeight(chainId);
-            var block = new Block(lastBlockHash);
-            block.Header.Index = index;
-            block.Header.ChainId = chainId;
+            var block = new Block(lastBlockHash)
+            {
+                Header =
+                {
+                    Index = index,
+                    ChainId = chainId
+                }
+            };
 
             // add tx hash
             foreach (var r in results)

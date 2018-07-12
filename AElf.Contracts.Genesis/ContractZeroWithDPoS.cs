@@ -761,11 +761,13 @@ namespace AElf.Contracts.Genesis
 
         private async Task<BPInfo> GetBlockProducerInfoOfSpecificRound(string accountAddress, UInt64Value roundsCount)
         {
+            ConsoleWriteLine($"Try to get bp {accountAddress}'s info of {roundsCount.Value} round");
             return (await _dPoSInfoMap.GetValueAsync(roundsCount)).Info[accountAddress];
         }
         
         private async Task<BPInfo> GetBlockProducerInfoOfCurrentRound(string accountAddress)
         {
+            ConsoleWriteLine($"Try to get bp {accountAddress}'s info of {RoundsCount.Value} round");
             return (await _dPoSInfoMap.GetValueAsync(RoundsCount)).Info[accountAddress];
         }
         
