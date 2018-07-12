@@ -287,7 +287,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 
                 var pathSet = TranslateStringToResourceSet(functionCallingGraph[i][0], pathSetStrings);
                     //ToDictionary(a=> a, a=> a);
-                var funMetadata = new FunctionMetadata(callingSet, new HashSet<Resource>(), pathSet);
+                var funMetadata = new FunctionMetadata(callingSet, new HashSet<Resource>());
                 
                 result.Add(new KeyValuePair<string, FunctionMetadata>(functionCallingGraph[i][0],funMetadata));
             }
@@ -321,9 +321,8 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         
         public string FunctionMetadataToString(FunctionMetadata functionMetadata)
         {
-            return String.Format("[({0}),({1}),({2})]", 
+            return String.Format("[({0}),({1})]", 
                 CallingSetToString(functionMetadata.CallingSet), 
-                PathSetToString(functionMetadata.LocalResourceSet),
                 PathSetToString(functionMetadata.FullResourceSet));
         }
         

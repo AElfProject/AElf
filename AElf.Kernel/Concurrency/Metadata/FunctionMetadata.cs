@@ -12,11 +12,10 @@ namespace AElf.Kernel
     /// </summary>
     public partial class FunctionMetadata
     {
-        public FunctionMetadata(HashSet<string> callingSet, HashSet<Resource> fullResourceSet, HashSet<Resource> localResourceSet)
+        public FunctionMetadata(HashSet<string> callingSet, HashSet<Resource> fullResourceSet)
         {
             SerializeCallingSet.AddRange(callingSet.AsEnumerable());
             SerializeFullResourceSet.AddRange(fullResourceSet.AsEnumerable());
-            SerializeLocalResourceSet.AddRange(localResourceSet.AsEnumerable());
         }
         
         
@@ -29,11 +28,6 @@ namespace AElf.Kernel
         /// used to find what resource this function will access (recursive)
         /// </summary>
         public HashSet<Resource> FullResourceSet => new HashSet<Resource>(SerializeFullResourceSet);
-        
-        /// <summary>
-        /// used when updating a function, the caller functions of this updating function should use this NonRecursivePathSet to regenerate the new metadata
-        /// </summary>
-        public HashSet<Resource> LocalResourceSet => new HashSet<Resource>(SerializeLocalResourceSet);
     }
 
     public partial class FunctionMetadataTemplate

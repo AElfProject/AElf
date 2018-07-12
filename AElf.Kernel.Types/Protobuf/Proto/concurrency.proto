@@ -49,10 +49,6 @@ message FunctionMetadata {
     
     // All data members except other contracts are recorded by this field.
     repeated Resource SerializeFullResourceSet = 2;
-    
-    // All local data members except other contracts are recorded by this field.
-    // local means DataAccessMode is AccountSpecific
-    repeated Resource SerializeLocalResourceSet = 3;
 }
 
 message SerializeFunctionMetadataMap {
