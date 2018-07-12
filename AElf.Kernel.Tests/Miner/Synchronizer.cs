@@ -92,7 +92,13 @@ namespace AElf.Kernel.Tests.Miner
         {
             get
             {
-                return ContractCodes.TestContractZeroCode;
+                const string TestContractZeroName = "AElf.Kernel.Tests.TestContractZero";
+                byte[] code = null;
+                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath($"../../../../{TestContractZeroName}/bin/Debug/netstandard2.0/{TestContractZeroName}.dll")))
+                {
+                    code = file.ReadFully();
+                }
+                return code;
             }
         }
         
