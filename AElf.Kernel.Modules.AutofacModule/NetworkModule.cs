@@ -33,8 +33,9 @@ using Autofac;
              PeerDataStore peerDb = new PeerDataStore(NetConfig.PeersDbPath);
              builder.RegisterInstance(peerDb).As<IPeerDatabase>();
 
-             NodeData nd = NodeData.FromString(NetConfig.Host + ":" + NetConfig.Port);
-             NodeDialer dialer = new NodeDialer(nd);
+             //NodeData nd = NodeData.FromString(NetConfig.Host + ":" + NetConfig.Port);
+             
+             NodeDialer dialer = new NodeDialer(NetConfig.Port);
              builder.RegisterInstance(dialer).As<INodeDialer>();
 
          }

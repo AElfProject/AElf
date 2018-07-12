@@ -23,9 +23,6 @@ namespace AElf.Launcher
         [Option("node.peers", HelpText = "Sets an initial list of peers. Format: IP:Port")]
         public IEnumerable<string> Peers { get; set; }
 
-        [Option("node.host", HelpText = "The IP address this node is listening on.")]
-        public string Host { get; set; }
-
         [Option("node.port", HelpText = "The port this node is listening on.")]
         public int? Port { get; set; }
 
@@ -56,7 +53,8 @@ namespace AElf.Launcher
 
         #region Database
 
-        [Option('t', "db.type", HelpText = "The type of database.")]
+        // TODO: Find a way to generate help text or just use the enum DBType as its type.
+        [Option('t', "db.type", HelpText = "The type of database. Must in [KeyValue, Redis, SSDB].")]
         public string DBType { get; set; }
 
         [Option("db.host", HelpText = "The IP address of database.")]
