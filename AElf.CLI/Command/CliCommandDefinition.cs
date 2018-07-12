@@ -10,8 +10,8 @@ namespace AElf.CLI.Command
         
         public string Name { get; }
         public virtual bool IsLocal { get; } = false;
-    
-        public CliCommandDefinition(string name)
+
+        protected CliCommandDefinition(string name)
         {
             Name = name;
         }

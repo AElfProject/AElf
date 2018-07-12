@@ -7,9 +7,9 @@ namespace AElf.CLI.Command
 {
     public class GetGenesisContractAddressCmd : CliCommandDefinition
     {
-        public const string Name = "connect_chain";
+        public const string CommandName = "connect_chain";
         
-        public GetGenesisContractAddressCmd() : base(Name)
+        public GetGenesisContractAddressCmd() : base(CommandName)
         {
             
         }

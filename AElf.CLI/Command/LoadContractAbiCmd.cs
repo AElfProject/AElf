@@ -1,24 +1,15 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using AElf.CLI.Data.Protobuf;
-using AElf.CLI.Parsing;
+﻿using AElf.CLI.Parsing;
 using AElf.CLI.RPC;
-using AElf.Common.ByteArrayHelpers;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using ProtoBuf;
-using Method = AElf.CLI.Data.Protobuf.Method;
+using System.Linq;
 
 namespace AElf.CLI.Command
 {
     public class LoadContractAbiCmd : CliCommandDefinition
     {
-        public const string Name = "load_contract_abi";
+        public const string CommandName = "load_contract_abi";
         
-        public LoadContractAbiCmd() : base(Name)
+        public LoadContractAbiCmd() : base(CommandName)
         {
             
         }
@@ -30,12 +21,7 @@ namespace AElf.CLI.Command
 
         public override string Validate(CmdParseResult parsedCmd)
         {
-            if (parsedCmd.Args.Count > 1)
-            {
-                return "Invalid number of arguments.";
-            }
-
-            return null;
+            return parsedCmd.Args.Count > 1 ? "Invalid number of arguments." : null;
         }
         
         public override JObject BuildRequest(CmdParseResult parsedCmd)
@@ -46,7 +32,7 @@ namespace AElf.CLI.Command
             return req;
         }
 
-        public override string GetPrintString(JObject resp)
+        /*public override string GetPrintString(JObject resp)
         {
             JToken ss = resp["abi"];
             byte[] aa = ByteArrayHelpers.FromHexString(ss.ToString());
@@ -54,7 +40,7 @@ namespace AElf.CLI.Command
             MemoryStream ms = new MemoryStream(aa);
             Module m = Serializer.Deserialize<Module>(ms);
 
-            return JsonConvert.SerializeObject(m);
-        }
+            return JsonConvert.SerializeObject(m);          
+        }*/
     }
 }

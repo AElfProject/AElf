@@ -6,9 +6,9 @@ namespace AElf.CLI.Command
 {
     public class GetBlockHeightCmd : CliCommandDefinition
     {
-        public const string Name = "get_block_height";
+        public const string CommandName = "get_block_height";
         
-        public GetBlockHeightCmd() : base(Name)
+        public GetBlockHeightCmd() : base(CommandName)
         {
             
         }
@@ -33,9 +33,8 @@ namespace AElf.CLI.Command
 
         public override string GetPrintString(JObject resp)
         {
-            var j = JObject.FromObject(resp["result"]);
-            
-            return j.ToString();
+            var blockHeight = resp["result"]["block_height"].ToString();            
+            return blockHeight;            
         }
     }
 }
