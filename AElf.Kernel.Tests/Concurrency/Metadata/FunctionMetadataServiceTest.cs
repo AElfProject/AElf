@@ -23,7 +23,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [Fact]
         public async Task TestDepolyContract()
         {
-            ParallelTestDataUtil util = new ParallelTestDataUtil();
+            ParallelTestDataUtil dataGenerator = new ParallelTestDataUtil();
             
             Hash chainId = Hash.Generate();
             var addrA = new Hash("TestContractA".CalculateHash());
@@ -215,7 +215,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 
             foreach (var kv in groundTruthMap)
             {
-                Assert.Equal(util.FunctionMetadataToString(kv.Value), util.FunctionMetadataToString(_functionMetadataService.GetFunctionMetadata(chainId, kv.Key)));
+                Assert.Equal(dataGenerator.FunctionMetadataToString(kv.Value), dataGenerator.FunctionMetadataToString(_functionMetadataService.GetFunctionMetadata(chainId, kv.Key)));
             }
         }
         
