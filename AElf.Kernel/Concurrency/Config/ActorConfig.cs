@@ -31,9 +31,9 @@ namespace AElf.Kernel.Concurrency.Config
             WorkerCount = 8;
             ConcurrencyLevel = 8;
             Benchmark = true;
-            Seeds = new List<SeedNode>();
+//            Seeds = new List<SeedNode>();
             //Seeds.Add(new SeedNode {HostName = "127.0.0.1", Port = 32551});
-            Seeds.Add(new SeedNode {HostName = "192.168.197.22", Port = 32551});
+//            Seeds.Add(new SeedNode {HostName = "192.168.197.22", Port = 32551});
         }
     }
 
