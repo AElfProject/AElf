@@ -21,7 +21,7 @@ namespace AElf.Kernel.Tests
             var hash1 = new Hash(new byte[] {10, 14, 1, 15});
             var hash2 = new Hash(new byte[] {15, 1, 14, 10});
             
-            Assert.True(new Hash().Compare(hash1, hash2) == 1);
+            Assert.True(new Hash().Compare(hash1, hash2) == -1);
         }
 
         [Fact]
