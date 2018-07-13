@@ -626,7 +626,7 @@ namespace AElf.Contracts.DPoS
 
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().Value.ToByteArray().ToHex();
+            return accountHash.ToAccount().ToHex();
         }
 
         private Hash AddressStringToHash(string accountAddress)

@@ -38,7 +38,7 @@ namespace AElf.Kernel.Tests.Serialization
             var data = ByteArrayHelpers.FromHexString(ass);
             System.Diagnostics.Debug.WriteLine(SInt32Value.Parser.ParseFrom(data).Value);
             
-            //System.Diagnostics.Debug.WriteLine(BytesValue.Parser.ParseFrom(data).Value.ToByteArray().ToHex());
+            //System.Diagnostics.Debug.WriteLine(BytesValue.Parser.ParseFrom(data).ToHex());
             //System.Diagnostics.Debug.WriteLine(BoolValue.Parser.ParseFrom(data).Value);
             //System.Diagnostics.Debug.WriteLine(UInt64Value.Parser.ParseFrom(data.ToByteArray()).Value);
 

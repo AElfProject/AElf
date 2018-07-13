@@ -1,5 +1,4 @@
-﻿
-using AElf.Kernel.Types.Merkle;
+﻿using AElf.Kernel.Types.Merkle;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
@@ -8,7 +7,7 @@ namespace AElf.Kernel
     public partial class BlockBody : IBlockBody
     {
         public int TransactionsCount => Transactions.Count;
-
+        
         public bool AddTransaction(Hash tx)
         {
             if (Transactions.Contains(tx))

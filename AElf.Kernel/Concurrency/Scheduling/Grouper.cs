@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Types;
 using Akka.Util.Internal;
@@ -105,7 +106,7 @@ namespace AElf.Kernel.Concurrency.Scheduling
             result.AddRange(grouped.Values);
 
             _logger?.Info(string.Format(
-                "Grouper on chainId \"{0}\" group [{1}] transactions into [{2}] groups with sizes [{3}]", chainId.Value.ToByteArray().ToHex(),
+                "Grouper on chainId \"{0}\" group [{1}] transactions into [{2}] groups with sizes [{3}]", chainId.ToHex(),
                 transactions.Count, result.Count, string.Join(", ", result.Select(a=>a.Count))));
             
             return result;

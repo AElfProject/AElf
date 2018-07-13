@@ -108,11 +108,11 @@ namespace AElf.Kernel.Tests
 
             var address = info.Address;
             // calculate new account address
-            var account = Path.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
+            var account = ResourcePath.CalculateAccountAddress(tx.From, tx.IncrementId).ToAccount();
             
             await Api.DeployContractAsync(account, registration);
-            Console.WriteLine("Deployment success, {0}", account.Value.ToByteArray().ToHex());
-            return account.Value.ToByteArray();
+            Console.WriteLine("Deployment success, {0}", account.ToHex());
+            return account.GetHashBytes();
         }
 
         public void Print(string name)
@@ -891,7 +891,7 @@ namespace AElf.Kernel.Tests
         
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().Value.ToByteArray().ToHex();
+            return accountHash.ToAccount().ToHex();
         }
 
         private Hash HexStringToHash(string accountAddress)
@@ -916,7 +916,7 @@ namespace AElf.Kernel.Tests
         [SmartContractFunction("${this}.Authentication", new string[]{"${this}.GetBlockProducers"}, new string[]{})]
         private async Task<bool> Authentication()
         {
-            var fromAccount = Api.GetTransaction().From.Value.ToByteArray().ToHex();
+            var fromAccount = Api.GetTransaction().From.ToHex();
             return (await GetBlockProducers()).Nodes.Contains(fromAccount);
         }
 

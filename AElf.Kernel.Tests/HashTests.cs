@@ -21,7 +21,7 @@ namespace AElf.Kernel.Tests
             var hash1 = new Hash(new byte[] {10, 14, 1, 15});
             var hash2 = new Hash(new byte[] {15, 1, 14, 10});
             
-            Assert.True(new Hash().Compare(hash1, hash2) == 1);
+            Assert.True(new Hash().Compare(hash1, hash2) == -1);
         }
 
         [Fact]
@@ -34,7 +34,7 @@ namespace AElf.Kernel.Tests
             var anotherHash = new Hash(new byte[] {10, 14, 1, 15});
             
             Assert.True(dict.TryGetValue(anotherHash, out var test));
-            Assert.Equal(test, "test");
+            Assert.Equal("test", test);
         }
 
         [Fact]
@@ -49,9 +49,10 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void PathTest()
         {
-            var path = new Path();
-            path.SetChainHash(Hash.Generate())
-                .SetAccount(Hash.Generate())
+            var path = new ResourcePath();
+            path.SetChainId(Hash.Generate())
+                .SetBlockProducerAddress(Hash.Generate())
+                .SetAccountAddress(Hash.Generate())
                 .SetDataProvider(Hash.Generate())
                 .SetDataKey(Hash.Generate());
             
@@ -62,10 +63,11 @@ namespace AElf.Kernel.Tests
         [Fact]
         public void PointerTest()
         {
-            var path = new Path();
-            path.SetChainHash(Hash.Generate())
+            var path = new ResourcePath();
+            path.SetChainId(Hash.Generate())
                 .SetBlockHash(Hash.Generate())
-                .SetAccount(Hash.Generate())
+                .SetBlockProducerAddress(Hash.Generate())
+                .SetAccountAddress(Hash.Generate())
                 .SetDataProvider(Hash.Generate())
                 .SetDataKey(Hash.Generate());
 

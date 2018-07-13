@@ -61,7 +61,7 @@ namespace AElf.Kernel.Concurrency
                 {
                     var failedTrace = new TransactionTrace
                     {
-                        StdErr = "Transaction with ID/hash " + failed.Key.GetHash().Value.ToByteArray().ToHex() +
+                        StdErr = "Transaction with ID/hash " + failed.Key.GetHash().ToHex() +
                                  " failed, detail message: \n" + failed.Value.Dump(),
                         TransactionId = failed.Key.GetHash()
                     };

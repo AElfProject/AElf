@@ -23,7 +23,7 @@ namespace AElf.Kernel.Node.RPC
     [LoggerName("RPC")]
     public class RpcServer : IRpcServer
     {
-        private const string GetTxMethodName = "get_tx";
+        //private const string GetTxMethodName = "get_tx";
         //private const string InsertTxMethodName = "insert_tx";
         private const string BroadcastTxMethodName = "broadcast_tx";
         //private const string GetPeersMethodName = "get_peers";
@@ -41,7 +41,7 @@ namespace AElf.Kernel.Node.RPC
         /// </summary>
         private readonly List<string> _rpcCommands = new List<string>()
         {
-            GetTxMethodName,
+            //GetTxMethodName,
             //InsertTxMethodName,
             BroadcastTxMethodName,
             //GetPeersMethodName,
@@ -196,9 +196,9 @@ namespace AElf.Kernel.Node.RPC
                 JObject responseData = null;
                 switch (methodName)
                 {
-                    case GetTxMethodName:
+                    /*case GetTxMethodName:
                         responseData = await ProcessGetTx(reqParams);
-                        break;
+                        break;*/
                     /*case InsertTxMethodName:
                         responseData = await ProcessInsertTx(reqParams);
                         break;*/
@@ -271,8 +271,8 @@ namespace AElf.Kernel.Node.RPC
             {
                 ["result"] = new JObject
                 {
-                    ["genesis_contract"] = genesisHash.Value.ToByteArray().ToHex(),
-                    ["chain_id"] = chainId.Value.ToByteArray().ToHex()
+                    ["genesis_contract"] = genesisHash.ToHex(),
+                    ["chain_id"] = chainId.ToHex()
                 }
             };
             
@@ -299,11 +299,10 @@ namespace AElf.Kernel.Node.RPC
             TransactionResult txResult = await _node.GetTransactionResult(txHash);
             var jobj = new JObject
             {
-                ["tx_id"] = txResult.TransactionId.Value.ToByteArray().ToHex(),
+                ["tx_id"] = txResult.TransactionId.ToHex(),
                 ["tx_status"] = txResult.Status.ToString()
             };
 
-            // for the case that return type is Hash
             
             if (txResult.Status == Status.Failed)
             {
@@ -315,7 +314,6 @@ namespace AElf.Kernel.Node.RPC
                 jobj["return"] = txResult.RetVal.ToByteArray().ToHex();
             }
             // Todo: it should be deserialized to obj ion cli, 
-            
             
             
             JObject j = new JObject
@@ -359,7 +357,7 @@ namespace AElf.Kernel.Node.RPC
         private async Task<JObject> ProcessGetContractAbi(JObject reqParams)
         {
             string addr = reqParams["address"] == null
-                ? _node.GetGenesisContractHash().Value.ToByteArray().ToHex()
+                ? _node.GetGenesisContractHash().ToHex()
                 : reqParams["address"].ToString();
             JObject j = null;
 
@@ -410,7 +408,7 @@ namespace AElf.Kernel.Node.RPC
                 return JObject.FromObject(j);
             }
 
-            j = new JObject { ["hash"] = t.GetHash().Value.ToByteArray().ToHex() };
+            j = new JObject { ["hash"] = t.GetHash().ToHex() };
             
             return JObject.FromObject(j);
         }

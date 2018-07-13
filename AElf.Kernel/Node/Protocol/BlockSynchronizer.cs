@@ -1,9 +1,8 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,12 +11,10 @@ using AElf.Common.Collections;
 using AElf.Kernel.BlockValidationFilters;
 using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Protocol.Exceptions;
-using AElf.Kernel.Types;
 using AElf.Network.Data;
 using AElf.Network.Peers;
 using Google.Protobuf;
 using NLog;
-using ServiceStack;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
 namespace AElf.Kernel.Node.Protocol
@@ -320,7 +317,7 @@ namespace AElf.Kernel.Node.Protocol
                 }
                 catch (Exception e)
                 {
-                    _logger?.Trace("Error while dequeuing " + j?.Block.GetHash().Value.ToByteArray().ToHex());
+                    _logger?.Trace("Error while dequeuing " + j?.Block.GetHash().ToHex());
                     continue;
                 }
 
@@ -331,14 +328,14 @@ namespace AElf.Kernel.Node.Protocol
                         if (j.Transaction != null)
                         {
                             // Process transaction
-                            SetTransaction(j.Transaction.GetHash().Value.ToByteArray());
+                            SetTransaction(j.Transaction.GetHash().GetHashBytes());
                         }
                         else
                         {
                             // Process block
-                            _logger?.Trace("Dequed block : " + j.Block.GetHash().Value.ToByteArray().ToHex());
+                            _logger?.Trace("Dequed block : " + j.Block.GetHash().ToHex());
 
-                            bool b = AddBlockToSync(j.Block).Result;
+                            var b = AddBlockToSync(j.Block).Result;
 
                             /* print candidates */
 
@@ -479,8 +476,8 @@ namespace AElf.Kernel.Node.Protocol
             if (block?.Header == null || block.Body == null)
                 throw new InvalidBlockException("The block, blockheader or body is null");
             
-            if (block.Header.Index < (ulong)CurrentExecHeight)
-                return false;
+//            if (block.Header.Index < (ulong)CurrentExecHeight)
+//                return false;
 
             byte[] h = null;
             try
@@ -528,12 +525,11 @@ namespace AElf.Kernel.Node.Protocol
         {
             List<PendingBlock> toRemove = new List<PendingBlock>();
             List<PendingBlock> executed = new List<PendingBlock>();
-
+            
             var blcks = pendingBlocks.ToList();
             foreach (var pendingBlock in blcks)
             {
                 Block block = pendingBlock.Block;
-
                 if (_mainChainNode.IsMiningInProcess == 1)
                 {
                     _logger?.Trace("----- MINING !!");
@@ -541,9 +537,8 @@ namespace AElf.Kernel.Node.Protocol
                 }
 
                 BlockExecutionResult res = await _mainChainNode.ExecuteAndAddBlock(block);
-                
-                _logger?.Trace($"TryExecuteBlocks - Block execution result : {res.Executed}, {res.ValidationError} : { block.GetHash().Value.ToByteArray().ToHex() } - Index {block.Header.Index}");
-
+                _logger?.Trace(
+                    $"TryExecuteBlocks - Block execution result : {res.Executed}, {res.ValidationError} : {block.GetHash().Value.ToByteArray().ToHex()} - Index {block.Header.Index}");
                 if (res.ValidationError == ValidationError.Success && res.Executed)
                 {
                     // The block was executed and validation was a success: remove the pending block.
@@ -554,8 +549,7 @@ namespace AElf.Kernel.Node.Protocol
                 else
                 {
                     // The block wasn't executed or validation failed
-                    
-                    if (res.ValidationError == ValidationError.AlreadyExecuted)
+                    if (res.ValidationError == ValidationError.AlreadyExecuted || res.ValidationError == ValidationError.OrphanBlock)
                     {
                         // The block is an earlier block and one with the same
                         // height as already been executed so it can safely be
@@ -565,20 +559,20 @@ namespace AElf.Kernel.Node.Protocol
                     else if (res.ValidationError == ValidationError.Pending)
                     {
                         // The current blocks index is higher than the current height so we're missing
-                        if (!IsInitialSync && (int)block.Header.Index > CurrentExecHeight)
+                        if (!IsInitialSync && (int) block.Header.Index > CurrentExecHeight)
                         {
                             if (_syncPeers.Count > 0)
                             {
                                 // for now we use only one - the one with the highest hight
-                                var peerHeightKvp = _syncPeers.Where(p => !p.AlreadyRequested.Contains(pendingBlock.BlockHash))
+                                var peerHeightKvp = _syncPeers
+                                    .Where(p => !p.AlreadyRequested.Contains(pendingBlock.BlockHash))
                                     .OrderByDescending(p => p.LastKnownHight)
                                     .FirstOrDefault();
-
                                 if (peerHeightKvp != null)
                                 {
-                                    _logger?.Trace("Missing block, request for height : " + CurrentExecHeight + ", to : " + peerHeightKvp.Peer);
+                                    _logger?.Trace("Missing block, request for height : " + CurrentExecHeight +
+                                                   ", to : " + peerHeightKvp.Peer);
                                     await SendBlockRequest(peerHeightKvp.Peer, CurrentExecHeight);
-
                                     peerHeightKvp.AlreadyRequested.Enqueue(pendingBlock.BlockHash);
                                 }
                                 else
@@ -586,19 +580,14 @@ namespace AElf.Kernel.Node.Protocol
                                     _logger?.Trace("All peers already tried for request.");
                                 }
                             }
-                            
+
                             // At this point no need to execute more
                             break;
                         }
                     }
-                    else
-                    {
-                        _logger?.Trace("Stop pending list execution.");
-                        break;
-                    }
                 }
             }
-            
+
             // remove the pending blocks
             foreach (var pdBlock in toRemove)
             {
@@ -607,12 +596,11 @@ namespace AElf.Kernel.Node.Protocol
                     PendingBlocks.Remove(pdBlock);
                 }
             }
-            
+
             if (IsInitialSync && CurrentExecHeight >= SyncTargetHeight)
             {
                 IsInitialSync = false;
                 _logger?.Trace("-- Initial sync is finished at height: " + CurrentExecHeight);
-                            
                 SyncFinished?.Invoke(this, EventArgs.Empty);
             }
 
@@ -628,7 +616,7 @@ namespace AElf.Kernel.Node.Protocol
         /// <param name="txHash"></param>
         private bool SetTransaction(byte[] txHash)
         {
-            PendingBlock b = RemoveTxFromBlock(txHash);
+            var b = RemoveTxFromBlock(txHash);
 
             if (b == null)
                 return false;

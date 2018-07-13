@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
 
@@ -13,7 +14,7 @@ namespace AElf.Kernel.Managers
             _transactionStore = transactionStore;
         }
 
-        public async Task<IHash> AddTransactionAsync(ITransaction tx)
+        public async Task<Hash> AddTransactionAsync(ITransaction tx)
         {
             return await _transactionStore.InsertAsync(tx);
         }

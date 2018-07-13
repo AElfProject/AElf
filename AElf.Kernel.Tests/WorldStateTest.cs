@@ -2,10 +2,14 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
+using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -18,24 +22,38 @@ namespace AElf.Kernel.Tests
         private readonly IChainStore _chainStore;
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
+        private readonly ILogger _logger;
         private readonly BlockTest _blockTest;
+        private readonly ITxPoolService _txPoolService;
+        private readonly IBlockHeaderStore _blockHeaderStore;
+        private readonly IBlockBodyStore _blockBodyStore;
+        private readonly ITransactionStore _transactionStore;
 
-        public WorldStateTest(IChainStore chainStore, IWorldStateStore worldStateStore, 
-            IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest)
+        public WorldStateTest(IChainStore chainStore, IWorldStateStore worldStateStore,
+            IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest, ILogger logger,
+            ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
+            ITransactionStore transactionStore)
         {
             _chainStore = chainStore;
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _blockTest = blockTest;
+            _logger = logger;
+            _txPoolService = txPoolService;
+            _blockHeaderStore = blockHeaderStore;
+            _blockBodyStore = blockBodyStore;
+            _transactionStore = transactionStore;
         }
-        
+
         [Fact]
         public async Task GetWorldStateTest()
         {
             // Data preparation
             var chain = await _blockTest.CreateChain();
-            var worldStateDirector = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore).SetChainId(chain.Id);
+            var worldStateDirector = 
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
+                    _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger).SetChainId(chain.Id);
             var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDirector);
             
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
@@ -59,8 +77,10 @@ namespace AElf.Kernel.Tests
         {
             var chain = await _blockTest.CreateChain();
             
-            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore).SetChainId(chain.Id);
-
+            var worldStateDictator = 
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
+                    _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger).SetChainId(chain.Id);
+            worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
             var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDictator);
 
             var key = new Hash("testkey".CalculateHash());
@@ -113,15 +133,17 @@ namespace AElf.Kernel.Tests
                             Intersect(changes2.Select(c => c.Befores.FirstOrDefault())).Count() == 3);
 
             //Test the equality of pointer transfered from path and get from world state.
-            var path = new Path()
-                .SetChainHash(chain.Id)
-                .SetAccount(address)
+            var path = new ResourcePath()
+                .SetChainId(chain.Id)
+                .SetAccountAddress(address)
                 .SetDataProvider(subDataProvider1.GetHash())
                 .SetDataKey(key);
-            var pointerHash1 = path.SetBlockHash(chain.GenesisBlockHash).GetPointerHash();
-            var pointerHash2 = path.SetBlockHash(block1.GetHash()).GetPointerHash();
-            Assert.True(changes2[1].GetLastHashBefore() == pointerHash1);
-            Assert.True(changes2[1].After == pointerHash2);
+            var pointerHash1 = path.SetBlockProducerAddress(worldStateDictator.BlockProducerAccountAddress)
+                .SetBlockHash(chain.GenesisBlockHash).GetPointerHash();
+            var pointerHash2 = path.SetBlockProducerAddress(worldStateDictator.BlockProducerAccountAddress)
+                .SetBlockHash(block1.GetHash()).GetPointerHash();
+            Assert.True(changes2[0].GetLastHashBefore() == pointerHash1);
+            Assert.True(changes2[0].After == pointerHash2);
 
             //Test data equal or not equal from different world states.
             var getData1InHeight1 = await subDataProvider1.GetAsync(key, chain.GenesisBlockHash);
@@ -152,7 +174,7 @@ namespace AElf.Kernel.Tests
 
             var changes4 = await worldStateDictator.GetChangesAsync(block3.GetHash());
             
-            Assert.True(changes4.Count == 2);
+            Assert.True(changes4.Count == 1);
             var getData8 = await subDataProvider5.GetAsync(key);
             Assert.True(data8.SequenceEqual(getData8));
             
@@ -175,15 +197,18 @@ namespace AElf.Kernel.Tests
             var chain = await _blockTest.CreateChain();
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             
-            var worldStateManager = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore).SetChainId(chain.Id);
-            var chainManger = new ChainManager(_chainStore, _dataStore, worldStateManager);
+            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
+                    _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger)
+                .SetChainId(chain.Id);
+            worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
+            var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDictator);
             
             var address = Hash.Generate();
             
             var key1 = new Hash("testkey1".CalculateHash());
             var key2 = new Hash("testkey2".CalculateHash());
 
-            var accountDataProvider = await worldStateManager.GetAccountDataProvider(address);
+            var accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             var dataProvider = accountDataProvider.GetDataProvider();
             var data1 = Hash.Generate().Value.ToArray();
             var data2 = Hash.Generate().Value.ToArray();
@@ -192,9 +217,9 @@ namespace AElf.Kernel.Tests
             await subDataProvider.SetAsync(key2, data2);
             
             await chainManger.AppendBlockToChainAsync(block1);
-            await worldStateManager.SetWorldStateAsync(block1.GetHash());
+            await worldStateDictator.SetWorldStateAsync(block1.GetHash());
 
-            accountDataProvider = await worldStateManager.GetAccountDataProvider(address);
+            accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
             var data3 = Hash.Generate().Value.ToArray();
             var data4 = Hash.Generate().Value.ToArray();
@@ -208,7 +233,7 @@ namespace AElf.Kernel.Tests
             Assert.True(data4.SequenceEqual(getData4));
 
             //Do the rollback
-            await worldStateManager.RollbackCurrentChangesAsync();
+            await worldStateDictator.RollbackCurrentChangesAsync();
 
             //Now the "key"'s value of subDataProvider rollback to previous data.
             var getData1 = await subDataProvider.GetAsync(key1);
@@ -227,9 +252,9 @@ namespace AElf.Kernel.Tests
 
             var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
             await chainManger.AppendBlockToChainAsync(block2);
-            await worldStateManager.SetWorldStateAsync(block2.GetHash());
+            await worldStateDictator.SetWorldStateAsync(block2.GetHash());
 
-            accountDataProvider = await worldStateManager.GetAccountDataProvider(address);
+            accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
             var data5 = Hash.Generate().Value.ToArray();
             var data6 = Hash.Generate().Value.ToArray();
@@ -240,7 +265,7 @@ namespace AElf.Kernel.Tests
             var getData5 = await subDataProvider.GetAsync(key1);
             Assert.True(getData5.SequenceEqual(data5));
 
-            await worldStateManager.RollbackCurrentChangesAsync();
+            await worldStateDictator.RollbackCurrentChangesAsync();
 
             getData3 = await subDataProvider.GetAsync(key1);
             Assert.True(getData3.SequenceEqual(data3));
@@ -254,9 +279,12 @@ namespace AElf.Kernel.Tests
             var chain = await _blockTest.CreateChain();
             System.Diagnostics.Debug.WriteLine($"Hash of height 0: {chain.GenesisBlockHash.Value.ToByteArray().ToHex()}");
             
-            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore).SetChainId(chain.Id);
+            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
+                _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger).SetChainId(chain.Id);
+            worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
-            var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDictator);
+            var chainManager = new ChainManager(_chainStore, _dataStore, worldStateDictator);
+            var blockManager = new BlockManager(_blockHeaderStore, _blockBodyStore, _dataStore, _logger);
 
             var key = new Hash("testkey".CalculateHash());
             
@@ -272,7 +300,8 @@ namespace AElf.Kernel.Tests
             //--------------- set height 1 ---------------
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, ++index);
             await worldStateDictator.SetWorldStateAsync(block1.GetHash());
-            await chainManger.AppendBlockToChainAsync(block1);
+            await blockManager.AddBlockAsync(block1);
+            await chainManager.AppendBlockToChainAsync(block1);
 
             //----------------- height 2 -----------------
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
@@ -283,14 +312,15 @@ namespace AElf.Kernel.Tests
             
             //--------------- set height 2 ---------------
             var block2 = CreateBlock(block1.GetHash(), chain.Id, ++index);
-            await worldStateDictator.SetWorldStateAsync(block2.GetHash()); 
-            await chainManger.AppendBlockToChainAsync(block2);
+            await worldStateDictator.SetWorldStateAsync(block2.GetHash());
+            await blockManager.AddBlockAsync(block2);
+            await chainManager.AppendBlockToChainAsync(block2);
             
             //----------------- height 3 -----------------
             //Though do nothing
             
             //Check value from height 2
-            Assert.True(3 == await chainManger.GetChainCurrentHeight(chain.Id));
+            Assert.Equal("3", (await chainManager.GetChainCurrentHeight(chain.Id)).ToString());
             Assert.Equal(data2, await subDataProvider.GetAsync(key));
             
             //Do rollback - rollback world state to height 1
@@ -303,8 +333,8 @@ namespace AElf.Kernel.Tests
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
             subDataProvider = dataProvider.GetDataProvider("test");
-            Assert.True(1 == await chainManger.GetChainCurrentHeight(chain.Id));
-            //Assert.Equal(data1, await subDataProvider.GetAsync(key));
+            Assert.True(1 == await chainManager.GetChainCurrentHeight(chain.Id));
+            Assert.Equal(data1, await subDataProvider.GetAsync(key));
 
             //----------------- height 1 -----------------(again)
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
@@ -315,8 +345,9 @@ namespace AElf.Kernel.Tests
             
             //--------------- set height 1 ---------------
             var block1Quote = CreateBlock(chain.GenesisBlockHash, chain.Id, ++index);
-            await worldStateDictator.SetWorldStateAsync(block1Quote.GetHash()); 
-            await chainManger.AppendBlockToChainAsync(block1Quote);
+            await worldStateDictator.SetWorldStateAsync(block1Quote.GetHash());
+            await blockManager.AddBlockAsync(block1Quote);
+            await chainManager.AppendBlockToChainAsync(block1Quote);
             
             //----------------- height 2 -----------------
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
@@ -328,7 +359,8 @@ namespace AElf.Kernel.Tests
             //--------------- set height 2 ---------------
             var block2Quote = CreateBlock(block1Quote.GetHash(), chain.Id, ++index);
             await worldStateDictator.SetWorldStateAsync(block2Quote.GetHash()); 
-            await chainManger.AppendBlockToChainAsync(block2Quote);
+            await blockManager.AddBlockAsync(block2Quote);
+            await chainManager.AppendBlockToChainAsync(block2Quote);
 
             //----------------- height 3 -----------------
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
@@ -339,8 +371,9 @@ namespace AElf.Kernel.Tests
             
             //--------------- set height 3 ---------------
             var block3Quote = CreateBlock(block2Quote.GetHash(), chain.Id, ++index);
-            await worldStateDictator.SetWorldStateAsync(block3Quote.GetHash()); 
-            await chainManger.AppendBlockToChainAsync(block3Quote);
+            await worldStateDictator.SetWorldStateAsync(block3Quote.GetHash());
+            await blockManager.AddBlockAsync(block3Quote);
+            await chainManager.AppendBlockToChainAsync(block3Quote);
             
             //----------------- height 4 -----------------
             //Though do nothing
@@ -349,7 +382,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(data5, await subDataProvider.GetAsync(key));
             
             //Check height before rollback
-            Assert.True(4 == await chainManger.GetChainCurrentHeight(chain.Id));
+            Assert.True(4 == await chainManager.GetChainCurrentHeight(chain.Id));
 
             //Let's rollback to height 2
             await worldStateDictator.RollbackToSpecificHeight(2);
@@ -358,8 +391,66 @@ namespace AElf.Kernel.Tests
             subDataProvider = dataProvider.GetDataProvider("test");
             
             //And check
-            Assert.True(2 == await chainManger.GetChainCurrentHeight(chain.Id));
+            Assert.Equal("2", (await chainManager.GetChainCurrentHeight(chain.Id)).ToString());
             Assert.Equal(data4, await subDataProvider.GetAsync(key));
+        }
+
+        [Fact]
+        public async Task CheckoutTest()
+        {
+            var chain = await _blockTest.CreateChain();
+            System.Diagnostics.Debug.WriteLine($"Hash of height 0: {chain.GenesisBlockHash.Value.ToByteArray().ToHex()}");
+            
+            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
+                _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger).SetChainId(chain.Id);
+            worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
+
+            var chainManager = new ChainManager(_chainStore, _dataStore, worldStateDictator);
+            var blockManager = new BlockManager(_blockHeaderStore, _blockBodyStore, _dataStore, _logger);
+
+            var key = new Hash("testkey".CalculateHash());
+            
+            var address = Hash.Generate();
+            
+            //----------------- height 1 -----------------
+            var accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
+            var dataProvider = accountDataProvider.GetDataProvider();
+            var data1 = Hash.Generate().ToByteArray();
+            var subDataProvider = dataProvider.GetDataProvider("test");
+            await subDataProvider.SetAsync(key, data1);
+            
+            //--------------- set height 1 ---------------
+            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
+            await worldStateDictator.SetWorldStateAsync(block1.GetHash());
+            await blockManager.AddBlockAsync(block1);
+            await chainManager.AppendBlockToChainAsync(block1);
+
+            //----------------- height 2 -----------------
+            accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
+            dataProvider = accountDataProvider.GetDataProvider();
+            var data2 = Hash.Generate().ToByteArray();
+            subDataProvider = dataProvider.GetDataProvider("test");
+            await subDataProvider.SetAsync(key, data2);
+            
+            //--------------- set height 2 ---------------
+            var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
+            await worldStateDictator.SetWorldStateAsync(block2.GetHash());
+            await blockManager.AddBlockAsync(block2);
+            await chainManager.AppendBlockToChainAsync(block2);
+            
+            //------------ create height 2 again------------
+            var block2Again = CreateBlock(block1.GetHash(), chain.Id, 2);
+            //Assuming the validation filter result is ValidationError.Orphan, and passed the consensus validation
+            await worldStateDictator.RollbackToSpecificHeight(block2Again.Header.Index);
+
+            Assert.Equal("2", (await chainManager.GetChainCurrentHeight(chain.Id)).ToString());
+            
+            //--------------- set height 2 ---------------
+            await worldStateDictator.SetWorldStateAsync(block2Again.GetHash());
+            await blockManager.AddBlockAsync(block2Again);
+            await chainManager.AppendBlockToChainAsync(block2Again);
+
+            Assert.Equal("3", (await chainManager.GetChainCurrentHeight(chain.Id)).ToString());
         }
 
         /// <summary>
@@ -386,6 +477,7 @@ namespace AElf.Kernel.Tests
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
             block.Header.Index = index;
             block.Header.MerkleTreeRootOfWorldState = Hash.Generate();
+            block.Body.BlockHeader = block.Header.GetHash();
 
             System.Diagnostics.Debug.WriteLine($"Hash of height {index}: {block.GetHash().Value.ToByteArray().ToHex()}\twith previous hash {preBlockHash.Value.ToByteArray().ToHex()}");
 

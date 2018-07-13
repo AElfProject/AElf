@@ -1,9 +1,7 @@
-﻿﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -15,8 +13,6 @@ namespace AElf.Kernel.Managers
         private readonly IDataStore _dataStore;
         private readonly IWorldStateDictator _worldStateDictator;
         
-        private IDataProvider _heightOfBlock;
-
         public ChainManager(IChainStore chainStore, IDataStore dataStore, IWorldStateDictator worldStateDictator)
         {
             _chainStore = chainStore;
@@ -27,10 +23,8 @@ namespace AElf.Kernel.Managers
         public async Task<bool> AppendBlockToChainAsync(IBlock block)
         {
             if(block.Header == null)
-                throw new InvalidDataException("Invalid block");
+                throw new InvalidDataException("Block header happen to be null");
 
-            var chainId = block.Header.ChainId;
-                
             await AppendBlockHeaderAsync(block.Header);
 
             return true;
@@ -46,7 +40,7 @@ namespace AElf.Kernel.Managers
         {
             var chainId = header.ChainId;
             if (await _chainStore.GetAsync(chainId) == null)
-                throw new KeyNotFoundException("Not existed Chain");
+                throw new KeyNotFoundException("The chain doesn't exist!");
 
             var height = await GetChainCurrentHeight(chainId);
 
@@ -68,10 +62,7 @@ namespace AElf.Kernel.Managers
                 //Block is not connected
             }
 
-            await InitialHeightOfBlock(chainId);
-            await _heightOfBlock.SetAsync(new UInt64Value {Value = header.Index}.CalculateHash(), 
-                header.GetHash().ToByteArray());
-            
+            await _worldStateDictator.SetBlockHashToCorrespondingHeight(height, header);
             await SetChainCurrentHeight(chainId, height + 1);
             await SetChainLastBlockHash(chainId, header.GetHash());
         }
@@ -89,7 +80,7 @@ namespace AElf.Kernel.Managers
         /// <inheritdoc/>
         public async Task<ulong> GetChainCurrentHeight(Hash chainId)
         {
-            var key = Path.CalculatePointerForCurrentBlockHeight(chainId);
+            var key = ResourcePath.CalculatePointerForCurrentBlockHeight(chainId);
             var heightBytes = await _dataStore.GetDataAsync(key);
             return heightBytes?.ToUInt64() ?? 0;
         }
@@ -97,30 +88,23 @@ namespace AElf.Kernel.Managers
         /// <inheritdoc/>
         public async Task SetChainCurrentHeight(Hash chainId, ulong height)
         {
-            var key = Path.CalculatePointerForCurrentBlockHeight(chainId);
+            var key = ResourcePath.CalculatePointerForCurrentBlockHeight(chainId);
             await _dataStore.SetDataAsync(key, height.ToBytes());
         }
 
         /// <inheritdoc/>
         public async Task<Hash> GetChainLastBlockHash(Hash chainId)
         {
-            var key = Path.CalculatePointerForLastBlockHash(chainId);
+            var key = ResourcePath.CalculatePointerForLastBlockHash(chainId);
             return await _dataStore.GetDataAsync(key);
         }
 
         /// <inheritdoc/>
         public async Task SetChainLastBlockHash(Hash chainId, Hash blockHash)
         {
-            var key = Path.CalculatePointerForLastBlockHash(chainId);
+            var key = ResourcePath.CalculatePointerForLastBlockHash(chainId);
             _worldStateDictator.PreBlockHash = blockHash;
             await _dataStore.SetDataAsync(key, blockHash.GetHashBytes());
-        }
-        
-        private async Task InitialHeightOfBlock(Hash chainId)
-        {
-            _worldStateDictator.SetChainId(chainId);
-            _heightOfBlock = (await _worldStateDictator.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId)))
-                .GetDataProvider().GetDataProvider("HeightOfBlock");
         }
     }
 }
