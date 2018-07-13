@@ -26,7 +26,7 @@ namespace AElf.Kernel.Concurrency.Metadata
             _dataStore = dataStore;
             _logger = logger;
 
-            var mapCache = _dataStore.GetDataAsync(Path.CalculatePointerForMetadata(ChainId)).Result;
+            var mapCache = _dataStore.GetDataAsync(ResourcePath.CalculatePointerForMetadata(ChainId)).Result;
             if (mapCache != null)
             {
                 FunctionMetadataMap = RestoreFunctionMetadata(SerializeFunctionMetadataMap.Parser.ParseFrom(mapCache));
@@ -96,7 +96,7 @@ namespace AElf.Kernel.Concurrency.Metadata
                     FunctionMetadataMap.Add(functionMetadata.Key, functionMetadata.Value);
                 }
 
-                await _dataStore.SetDataAsync(Path.CalculatePointerForMetadata(ChainId),
+                await _dataStore.SetDataAsync(ResourcePath.CalculatePointerForMetadata(ChainId),
                     GenerateSerializeFunctionMetadataMap().ToByteArray());
             }
             catch (FunctionMetadataException e)

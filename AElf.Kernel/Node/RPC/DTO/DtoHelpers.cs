@@ -14,9 +14,9 @@ namespace AElf.Kernel.Node.RPC.DTO
         {
             return new JObject {
                 ["tx"] = new JObject {
-                    {"TxId", tx.GetHash().Value.ToByteArray().ToHex()},
-                    {"From", tx.From.Value.ToByteArray().ToHex()},
-                    {"To", tx.To.Value.ToByteArray().ToHex()},
+                    {"TxId", tx.GetHash().ToHex()},
+                    {"From", tx.From.ToHex()},
+                    {"To", tx.To.ToHex()},
                     {"Method", tx.MethodName},
                     {"IncrementId", tx.IncrementId}
                 }

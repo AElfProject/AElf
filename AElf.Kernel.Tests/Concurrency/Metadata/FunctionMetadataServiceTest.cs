@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Sdk.CSharp;
@@ -42,7 +43,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             var groundTruthMap = new Dictionary<string, FunctionMetadata>();
             
             groundTruthMap.Add(
-                addrC.Value.ToByteArray().ToHex() + ".Func0", 
+                addrC.ToHex() + ".Func0", 
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -51,7 +52,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrC.Value.ToByteArray().ToHex() + ".Func1", 
+                addrC.ToHex() + ".Func1", 
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -60,11 +61,11 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrB.Value.ToByteArray().ToHex() + ".Func0",
+                addrB.ToHex() + ".Func0",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrC.Value.ToByteArray().ToHex() + ".Func1"
+                        addrC.ToHex() + ".Func1"
                     }),
                     new HashSet<Resource>(new []
                     {
@@ -73,7 +74,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrB.Value.ToByteArray().ToHex() + ".Func1",
+                addrB.ToHex() + ".Func1",
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -82,17 +83,17 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func0(int)",
+                addrA.ToHex() + ".Func0(int)",
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>()));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func0",
+                addrA.ToHex() + ".Func0",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func1"
+                        addrA.ToHex() + ".Func1"
                     }),
                     new HashSet<Resource>(new []
                     {
@@ -102,11 +103,11 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func1",
+                addrA.ToHex() + ".Func1",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func2"
+                        addrA.ToHex() + ".Func2"
                     }),
                     new HashSet<Resource>(new[]
                     {
@@ -115,7 +116,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func2",
+                addrA.ToHex() + ".Func2",
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new[]
@@ -125,13 +126,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func3",
+                addrA.ToHex() + ".Func3",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func0",
-                        addrB.Value.ToByteArray().ToHex() + ".Func0", 
-                        addrC.Value.ToByteArray().ToHex() + ".Func0"
+                        addrA.ToHex() + ".Func0",
+                        addrB.ToHex() + ".Func0", 
+                        addrC.ToHex() + ".Func0"
                     }),
                     new HashSet<Resource>(new[]
                     {
@@ -144,11 +145,11 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func4",
+                addrA.ToHex() + ".Func4",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func2"
+                        addrA.ToHex() + ".Func2"
                     }),
                     new HashSet<Resource>(new[]
                     {
@@ -157,12 +158,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func5",
+                addrA.ToHex() + ".Func5",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func3",
-                        addrB.Value.ToByteArray().ToHex() + ".Func1"
+                        addrA.ToHex() + ".Func3",
+                        addrB.ToHex() + ".Func1"
                     }),
                     new HashSet<Resource>(new[]
                     {
@@ -220,7 +221,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             var groundTruthMap = new Dictionary<string, FunctionMetadata>();
             
             groundTruthMap.Add(
-                addrC.Value.ToByteArray().ToHex() + ".Func0", 
+                addrC.ToHex() + ".Func0", 
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -229,7 +230,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrC.Value.ToByteArray().ToHex() + ".Func1", 
+                addrC.ToHex() + ".Func1", 
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -238,11 +239,11 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrB.Value.ToByteArray().ToHex() + ".Func0",
+                addrB.ToHex() + ".Func0",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrC.Value.ToByteArray().ToHex() + ".Func1"
+                        addrC.ToHex() + ".Func1"
                     }),
                     new HashSet<Resource>(new []
                     {
@@ -251,7 +252,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrB.Value.ToByteArray().ToHex() + ".Func1",
+                addrB.ToHex() + ".Func1",
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -260,17 +261,17 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func0(int)",
+                addrA.ToHex() + ".Func0(int)",
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>()));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func0",
+                addrA.ToHex() + ".Func0",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func1"
+                        addrA.ToHex() + ".Func1"
                     }),
                     new HashSet<Resource>(new []
                     {
@@ -280,11 +281,11 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func1",
+                addrA.ToHex() + ".Func1",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func2"
+                        addrA.ToHex() + ".Func2"
                     }),
                     new HashSet<Resource>(new[]
                     {
@@ -293,7 +294,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func2",
+                addrA.ToHex() + ".Func2",
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new[]
@@ -303,13 +304,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func3",
+                addrA.ToHex() + ".Func3",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func0",
-                        addrB.Value.ToByteArray().ToHex() + ".Func0", 
-                        addrC.Value.ToByteArray().ToHex() + ".Func0"
+                        addrA.ToHex() + ".Func0",
+                        addrB.ToHex() + ".Func0", 
+                        addrC.ToHex() + ".Func0"
                     }),
                     new HashSet<Resource>(new[]
                     {
@@ -322,11 +323,11 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func4",
+                addrA.ToHex() + ".Func4",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func2"
+                        addrA.ToHex() + ".Func2"
                     }),
                     new HashSet<Resource>(new[]
                     {
@@ -335,12 +336,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func5",
+                addrA.ToHex() + ".Func5",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func3",
-                        addrB.Value.ToByteArray().ToHex() + ".Func1"
+                        addrA.ToHex() + ".Func3",
+                        addrB.ToHex() + ".Func1"
                     }),
                     new HashSet<Resource>(new[]
                     {
@@ -355,7 +356,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             
             
             groundTruthMap.Add(
-                contract1Addr.Value.ToByteArray().ToHex() + ".Func1", 
+                contract1Addr.ToHex() + ".Func1", 
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -364,7 +365,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                contract1Addr.Value.ToByteArray().ToHex() + ".Func2", 
+                contract1Addr.ToHex() + ".Func2", 
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -373,7 +374,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                contract2Addr.Value.ToByteArray().ToHex() + ".Func1", 
+                contract2Addr.ToHex() + ".Func1", 
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -382,7 +383,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                contract2Addr.Value.ToByteArray().ToHex() + ".Func2", 
+                contract2Addr.ToHex() + ".Func2", 
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -391,17 +392,18 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                refContractAddr.Value.ToByteArray().ToHex() + ".Func1", 
+                refContractAddr.ToHex() + ".Func1", 
                 new FunctionMetadata(
-                    new HashSet<string>(new []{contract1Addr.Value.ToByteArray().ToHex() + ".Func1"}),
+                    new HashSet<string>(new []{contract1Addr.ToHex() + ".Func1"}),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)})));
+                        new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
+                    })));
             
             groundTruthMap.Add(
-                refContractAddr.Value.ToByteArray().ToHex() + ".Func1_1", 
+                refContractAddr.ToHex() + ".Func1_1", 
                 new FunctionMetadata(
-                    new HashSet<string>(new []{contract1Addr.Value.ToByteArray().ToHex() + ".Func1"}),
+                    new HashSet<string>(new []{contract1Addr.ToHex() + ".Func1"}),
                     new HashSet<Resource>(new []
                     {
                         new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
@@ -409,21 +411,21 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                refContractAddr.Value.ToByteArray().ToHex() + ".Func2", 
+                refContractAddr.ToHex() + ".Func2", 
                 new FunctionMetadata(
-                    new HashSet<string>(new []{contract1Addr.Value.ToByteArray().ToHex() + ".Func2"}),
+                    new HashSet<string>(new []{contract1Addr.ToHex() + ".Func2"}),
                     new HashSet<Resource>(new []
                     {
                         new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
                     })));
             
             groundTruthMap.Add(
-                refContractAddr.Value.ToByteArray().ToHex() + ".Func2_1", 
+                refContractAddr.ToHex() + ".Func2_1", 
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        contract1Addr.Value.ToByteArray().ToHex() + ".Func2",
-                        refContractAddr.Value.ToByteArray().ToHex() + ".Func1_1"
+                        contract1Addr.ToHex() + ".Func2",
+                        refContractAddr.ToHex() + ".Func1_1"
                     }),
                     new HashSet<Resource>(new []
                     {
@@ -432,12 +434,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                refContractAddr.Value.ToByteArray().ToHex() + ".Func2_2", 
+                refContractAddr.ToHex() + ".Func2_2", 
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        contract1Addr.Value.ToByteArray().ToHex() + ".Func2",
-                        refContractAddr.Value.ToByteArray().ToHex() + ".Func1"
+                        contract1Addr.ToHex() + ".Func2",
+                        refContractAddr.ToHex() + ".Func1"
                     }),
                     new HashSet<Resource>(new []
                     {
@@ -445,12 +447,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                refContractAddr.Value.ToByteArray().ToHex() + ".Func3", 
+                refContractAddr.ToHex() + ".Func3", 
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        contract1Addr.Value.ToByteArray().ToHex() + ".Func1",
-                        contract1Addr.Value.ToByteArray().ToHex() + ".Func2"
+                        contract1Addr.ToHex() + ".Func1",
+                        contract1Addr.ToHex() + ".Func2"
                     }),
                     new HashSet<Resource>(new []
                     {
@@ -458,12 +460,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                refContractAddr.Value.ToByteArray().ToHex() + ".Func4", 
+                refContractAddr.ToHex() + ".Func4", 
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        contract1Addr.Value.ToByteArray().ToHex() + ".Func1",
-                        contract2Addr.Value.ToByteArray().ToHex() + ".Func1"
+                        contract1Addr.ToHex() + ".Func1",
+                        contract2Addr.ToHex() + ".Func1"
                     }),
                     new HashSet<Resource>(new []
                     {
@@ -472,12 +474,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                refContractAddr.Value.ToByteArray().ToHex() + ".Func5", 
+                refContractAddr.ToHex() + ".Func5", 
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        contract1Addr.Value.ToByteArray().ToHex() + ".Func2",
-                        addrC.Value.ToByteArray().ToHex() + ".Func0"
+                        contract1Addr.ToHex() + ".Func2",
+                        addrC.ToHex() + ".Func0"
                     }),
                     new HashSet<Resource>(new []
                     {

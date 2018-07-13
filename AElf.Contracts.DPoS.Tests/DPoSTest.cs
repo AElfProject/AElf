@@ -28,7 +28,7 @@ namespace AElf.Contracts.DPoS.Tests
 
             _blockProducer = new BlockProducer();
             _blockProducer.Nodes.AddRange(Enumerable.Range(0, 17)
-                .Select(i => (Hash.Generate().ToAccount().Value.ToByteArray().ToHex())));
+                .Select(i => (Hash.Generate().ToAccount().ToHex())));
         }
         
         [Fact]
@@ -339,7 +339,7 @@ namespace AElf.Contracts.DPoS.Tests
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().Value.ToByteArray().ToHex();
+            return accountHash.ToAccount().ToHex();
         }
 
         private Hash AddressStringToHash(string accountAddress)

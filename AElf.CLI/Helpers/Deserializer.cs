@@ -1,5 +1,8 @@
-﻿using AElf.Common.ByteArrayHelpers;
+﻿using System;
+using System.Text;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel;
+using AElf.Network.Helpers;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -13,37 +16,37 @@ namespace AElf.CLI.Helpers
         {
             if (type == "ulong")
             {
-                return ByteString.CopyFrom(sd).DeserializeToUInt64();
+                return BitConverter.ToUInt64(sd, 0);
             }
 
             if (type == "uint")
             {
-                return ByteString.CopyFrom(sd).DeserializeToUInt32();
+                return BitConverter.ToUInt32(sd, 0);
             }
 
             if (type == "int")
             {
-                return ByteString.CopyFrom(sd).DeserializeToInt32();
+                return BitConverter.ToInt32(sd, 0);
             }
 
             if (type == "long")
             {
-                return ByteString.CopyFrom(sd).DeserializeToInt64();
+                return BitConverter.ToInt64(sd, 0);
             }
             
             if (type == "bool")
             {
-                return ByteString.CopyFrom(sd).DeserializeToBool();
+                return BitConverter.ToBoolean(sd, 0);
             }
 
             if (type == "byte[]")
             {
-                return ByteString.CopyFrom(sd).DeserializeToBytes().ToHex();
+                return sd.ToHex();
             }
 
             if (type == "string")
             {
-                return ByteString.CopyFrom(sd).DeserializeToString();
+                return Encoding.UTF8.GetString(sd);
             }
             
             return null;

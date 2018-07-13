@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
@@ -8,6 +9,7 @@ using ServiceStack;
 
 namespace AElf.Kernel.BlockValidationFilters
 {
+    [LoggerName(nameof(ChainContextValidationFilter))]
     public class ChainContextValidationFilter : IBlockValidationFilter
     {
         private readonly IBlockManager _blockManager;
@@ -52,8 +54,8 @@ namespace AElf.Kernel.BlockValidationFilters
                 {
                     if (!currentPreviousBlockHash.Equals(previousBlockHash))
                     {
-                        _logger?.Trace("context.BlockHash:" + currentPreviousBlockHash.Value.ToByteArray().ToHex());
-                        _logger?.Trace("block.Header.PreviousBlockHash:" + previousBlockHash.Value.ToByteArray().ToHex());
+                        _logger?.Trace("context.BlockHash:" + currentPreviousBlockHash.ToHex());
+                        _logger?.Trace("block.Header.PreviousBlockHash:" + previousBlockHash.ToHex());
                     }
                     
                     return currentPreviousBlockHash.Equals(previousBlockHash)
@@ -73,12 +75,12 @@ namespace AElf.Kernel.BlockValidationFilters
                         : ValidationError.OrphanBlock;
                 }
                 
-                return ValidationError.OrphanBlock;
+                return ValidationError.DontKnowReason;
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Error while validating blocks.");
-                return ValidationError.OrphanBlock;
+                _logger?.Error(e, "Error while validating blocks.");
+                return ValidationError.FailedToCheckChainContextInvalidation;
             }
         }
     }

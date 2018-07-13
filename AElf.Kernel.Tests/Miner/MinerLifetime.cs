@@ -74,7 +74,9 @@ namespace AElf.Kernel.Tests.Miner
             IChainCreationService chainCreationService, 
             IChainContextService chainContextService, ILogger logger, IAccountContextService accountContextService, 
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
-            IChainManager chainManager, IBlockManager blockManager, ISmartContractManager smartContractManager, ISmartContractRunnerFactory smartContractRunnerFactory, IFunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService) : base(new XunitAssertions())
+            IChainManager chainManager, IBlockManager blockManager, ISmartContractManager smartContractManager, 
+            IFunctionMetadataService functionMetadataService, 
+            IConcurrencyExecutingService concurrencyExecutingService) : base(new XunitAssertions())
         {
             _chainCreationService = chainCreationService;
             _chainContextService = chainContextService;
@@ -86,11 +88,11 @@ namespace AElf.Kernel.Tests.Miner
             _chainManager = chainManager;
             _blockManager = blockManager;
             _smartContractManager = smartContractManager;
-            _smartContractRunnerFactory = smartContractRunnerFactory;
             _functionMetadataService = functionMetadataService;
             _concurrencyExecutingService = concurrencyExecutingService;
 
             _worldStateDictator = worldStateDictator;
+            _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
             
             Initialize();
         }
@@ -276,7 +278,7 @@ namespace AElf.Kernel.Tests.Miner
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {
             var miner = new Kernel.Miner.Miner(config, poolService, _chainManager, _blockManager, _worldStateDictator,
-                _smartContractService, _concurrencyExecutingService);
+                _smartContractService, _concurrencyExecutingService, _transactionManager, _transactionResultManager);
             return miner;
         }
 
@@ -303,7 +305,7 @@ namespace AElf.Kernel.Tests.Miner
             var pool = new TxPool(poolconfig, _logger);
             
             var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager);
+                _transactionResultManager, _logger);
             
             poolService.Start();
 
@@ -345,7 +347,7 @@ namespace AElf.Kernel.Tests.Miner
             var pool = new TxPool(poolconfig, _logger);
             
             var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager);
+                _transactionResultManager, _logger);
             
             poolService.Start();
 

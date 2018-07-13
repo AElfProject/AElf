@@ -164,8 +164,6 @@ namespace AElf.Kernel.Services
                     available[j] = false;
                 }
             }
-            
         }
-        
     }
 }

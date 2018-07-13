@@ -19,7 +19,6 @@ using AElf.Kernel.Concurrency.Execution;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Tests;
 using Xunit.Frameworks.Autofac;
-using Path = AElf.Kernel.Path;
 
 namespace AElf.Sdk.CSharp.Tests
 {
@@ -93,7 +92,7 @@ namespace AElf.Sdk.CSharp.Tests
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
-            DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
+            DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId1));
         }
 
         public async Task DeployContractAsync(byte[] code, Hash address)

@@ -19,5 +19,6 @@ namespace AElf.Kernel
                     bytes.Reverse().ToArray() : 
                     bytes, 0);
         }
+        
     }
 }

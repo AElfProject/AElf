@@ -1,5 +1,4 @@
-﻿using AElf.Kernel.Types;
-
+﻿// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public class AccountDataContext : IAccountDataContext

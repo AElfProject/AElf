@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
@@ -52,7 +53,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             cfms.DeployNewContract("AElf.Kernel.Tests.Concurrency.Metadata.TestContractC", addrC, referenceBookForC);
             
             groundTruthMap.Add(
-                addrC.Value.ToByteArray().ToHex() + ".Func0", 
+                addrC.ToHex() + ".Func0", 
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -61,7 +62,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrC.Value.ToByteArray().ToHex() + ".Func1", 
+                addrC.ToHex() + ".Func1", 
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -76,11 +77,11 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             cfms.DeployNewContract("AElf.Kernel.Tests.Concurrency.Metadata.TestContractB", addrB, referenceBookForB);
             
             groundTruthMap.Add(
-                addrB.Value.ToByteArray().ToHex() + ".Func0",
+                addrB.ToHex() + ".Func0",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrC.Value.ToByteArray().ToHex() + ".Func1"
+                        addrC.ToHex() + ".Func1"
                     }),
                     new HashSet<Resource>(new []
                     {
@@ -89,7 +90,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrB.Value.ToByteArray().ToHex() + ".Func1",
+                addrB.ToHex() + ".Func1",
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
@@ -105,17 +106,17 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             cfms.DeployNewContract("AElf.Kernel.Tests.Concurrency.Metadata.TestContractA", addrA, referenceBookForA);
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func0(int)",
+                addrA.ToHex() + ".Func0(int)",
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>()));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func0",
+                addrA.ToHex() + ".Func0",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func1"
+                        addrA.ToHex() + ".Func1"
                     }),
                     new HashSet<Resource>(new []
                     {
@@ -125,11 +126,11 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func1",
+                addrA.ToHex() + ".Func1",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func2"
+                        addrA.ToHex() + ".Func2"
                     }),
                     new HashSet<Resource>(new[]
                     {
@@ -138,7 +139,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func2",
+                addrA.ToHex() + ".Func2",
                 new FunctionMetadata(
                     new HashSet<string>(),
                     new HashSet<Resource>(new[]
@@ -148,13 +149,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func3",
+                addrA.ToHex() + ".Func3",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func0",
-                        addrB.Value.ToByteArray().ToHex() + ".Func0", 
-                        addrC.Value.ToByteArray().ToHex() + ".Func0"
+                        addrA.ToHex() + ".Func0",
+                        addrB.ToHex() + ".Func0", 
+                        addrC.ToHex() + ".Func0"
                     }),
                     new HashSet<Resource>(new[]
                     {
@@ -167,11 +168,11 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func4",
+                addrA.ToHex() + ".Func4",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func2"
+                        addrA.ToHex() + ".Func2"
                     }),
                     new HashSet<Resource>(new[]
                     {
@@ -180,12 +181,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     })));
             
             groundTruthMap.Add(
-                addrA.Value.ToByteArray().ToHex() + ".Func5",
+                addrA.ToHex() + ".Func5",
                 new FunctionMetadata(
                     new HashSet<string>(new []
                     {
-                        addrA.Value.ToByteArray().ToHex() + ".Func3",
-                        addrB.Value.ToByteArray().ToHex() + ".Func1"
+                        addrA.ToHex() + ".Func3",
+                        addrB.ToHex() + ".Func1"
                     }),
                     new HashSet<Resource>(new[]
                     {

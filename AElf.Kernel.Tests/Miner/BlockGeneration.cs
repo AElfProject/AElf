@@ -2,9 +2,10 @@
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Merkle;
 using AElf.Kernel.Services;
+using AElf.Kernel.Types.Merkle;
 using Akka.IO;
 using Google.Protobuf;
 using Moq;
@@ -101,7 +102,7 @@ namespace AElf.Kernel.Tests.Miner
             mock.Setup(ws => ws.SetWorldStateAsync(It.IsAny<Hash>())).Returns( () =>
             {
                 Hash wsKey = chainId.CalculateHashWith(lastBlockHash);
-                dic[wsKey.Value.ToByteArray().ToHex()] = changeDict.ToByteArray();
+                dic[wsKey.ToHex()] = changeDict.ToByteArray();
 
                 //Refresh _preBlockHash after setting WorldState.
                 //_preBlockHash = preBlockHash;

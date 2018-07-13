@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
@@ -42,7 +40,7 @@ namespace AElf.Kernel.Node
         private ECKeyPair _nodeKeyPair;
         private ActorSystem _sys = ActorSystem.Create("AElf");
         private readonly IBlockManager _blockManager;
-        private readonly ITxPoolService _poolService;
+        private readonly ITxPoolService _txPoolService;
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
@@ -68,16 +66,13 @@ namespace AElf.Kernel.Node
 
         public IExecutive Executive =>
             _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
-        
-        private const int CheckTime = 3000;
 
-        private int _flag = 0;
-        public bool IsMining { get; private set; } = false;
+        private const int CheckTime = 2000;
 
-        public int IsMiningInProcess
-        {
-            get { return _flag; }
-        }
+        private int _flag;
+        public bool IsMining { get; private set; }
+
+        public int IsMiningInProcess => _flag;
 
         public BlockProducer BlockProducers
         {
@@ -85,20 +80,19 @@ namespace AElf.Kernel.Node
             {
                 var dict = MinersInfo.Instance.Producers;
                 var blockProducers = new BlockProducer();
+                _logger?.Trace("Block producers of your config:");
                 foreach (var bp in dict.Values)
                 {
-                    blockProducers.Nodes.Add(ConvertToNormalHexString(bp["address"]));
+                    var b = ConvertToNormalHexString(bp["address"]);
+                    _logger?.Trace(b);
+                    blockProducers.Nodes.Add(b);
                 }
 
                 return blockProducers;
             }
         }
 
-        public Hash ChainId
-        {
-            get => _nodeConfig.ChainId;
-        }
-
+        public Hash ChainId => _nodeConfig.ChainId;
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer,
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner,
@@ -116,7 +110,7 @@ namespace AElf.Kernel.Node
             _transactionResultService = transactionResultService;
             _blockManager = blockManager;
             _functionMetadataService = functionMetadataService;
-            _poolService = poolService;
+            _txPoolService = poolService;
             _protocolDirector = protocolDirector;
             _transactionManager = txManager;
             _rpcServer = rpcServer;
@@ -160,18 +154,28 @@ namespace AElf.Kernel.Node
                     var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg)
                         .Result;
                     
-                    _logger.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.Value.ToByteArray().ToHex());
-                    _logger.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.Value.ToByteArray().ToHex());
+                    _logger?.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToHex());
+                    _logger?.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.ToHex());
                     var contractAddress = GetGenesisContractHash();
-                    _logger.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
-                        contractAddress.ToAccount().Value.ToByteArray().ToHex());
+                    _logger?.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
+                        contractAddress.ToAccount().ToHex());
                     
+                }
+                else
+                {
+                    var preBlockHash = GetLastValidBlockHash().Result;
+                    _worldStateDictator.SetWorldStateAsync(preBlockHash);
+                    //var worldState = _worldStateDictator.GetWorldStateAsync(preBlockHash).Result;
+                    //_logger?.Trace($"Merkle Tree Root before execution:{(worldState.GetWorldStateMerkleTreeRootAsync()).Result.ToHex()}");
+                    
+                    _worldStateDictator.PreBlockHash = preBlockHash;
+                    _worldStateDictator.RollbackCurrentChangesAsync();
                 }
             }
             catch (Exception e)
             {
                 _logger?.Log(LogLevel.Error,
-                    "Could not create the chain : " + _nodeConfig.ChainId.Value.ToByteArray().ToHex());
+                    "Could not create the chain : " + _nodeConfig.ChainId.ToHex());
             }
             
             
@@ -189,12 +193,10 @@ namespace AElf.Kernel.Node
             
             _nodeKeyPair = nodeKeyPair;
             
-            
-
             if (startRpc)
                 _rpcServer.Start(rpcHost, rpcPort);
 
-            _poolService.Start();
+            _txPoolService.Start();
             _protocolDirector.Start();
 
             // todo : avoid circular dependency
@@ -220,7 +222,7 @@ namespace AElf.Kernel.Node
                 _miner.Start(nodeKeyPair, grouper);
                 
                 //DoDPos();
-                _logger.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.Value.ToByteArray().ToHex());
+                _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.ToHex());
             }
             
             _logger?.Log(LogLevel.Debug, "AElf node started.");
@@ -265,7 +267,7 @@ namespace AElf.Kernel.Node
                         await dataProvider.SetAsync("Balance".CalculateHash(),
                             new UInt64Value {Value = balance}.ToByteArray());
                         var str = $"Initial balance {balance} in Address \"{kv.Key}\""; 
-                        _logger.Log(LogLevel.Debug, "Initial balance {0} in Address \"{1}\"", balance, kv.Key);
+                        _logger?.Log(LogLevel.Debug, "Initial balance {0} in Address \"{1}\"", balance, kv.Key);
                     }
                 }
             }
@@ -284,7 +286,7 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         public async Task<ITransaction> GetTransaction(Hash txId)
         {
-            if (_poolService.TryGetTx(txId, out var tx))
+            if (_txPoolService.TryGetTx(txId, out var tx))
             {
                 return tx;
             }
@@ -304,31 +306,33 @@ namespace AElf.Kernel.Node
         {
             return await _transactionManager.AddTransactionAsync(tx);
         }
-        
+
         /// <summary>
         /// This method processes a transaction received from one of the
         /// connected peers.
         /// </summary>
         /// <param name="messagePayload"></param>
+        /// <param name="isFromSend"></param>
         /// <returns></returns>
         public async Task ReceiveTransaction(ByteString messagePayload, bool isFromSend)
         {
             try
             {
-                Transaction tx = Transaction.Parser.ParseFrom(messagePayload);
+                var tx = Transaction.Parser.ParseFrom(messagePayload);
                 
-                TxValidation.TxInsertionAndBroadcastingError success = await _poolService.AddTxAsync(tx);
+                var success = await _txPoolService.AddTxAsync(tx);
+                
+                if (isFromSend)
+                {
+                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " + tx.IncrementId);
+                    _protocolDirector.AddTransaction(tx);
+                }
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger?.Trace("DID NOT add Transaction to pool: FROM, " + tx.GetHash().Value.ToByteArray().ToHex() + ", INCR : " + tx.IncrementId);
+                    _logger?.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ", tx.GetTransactionInfo() ,
+                        tx.IncrementId, success);
                     return;
-                }
-
-                if (isFromSend)
-                {
-                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().Value.ToByteArray().ToHex() + ", INCR : " + tx.IncrementId);
-                    _protocolDirector.AddTransaction(tx);
                 }
                 
                 _logger?.Trace("Successfully added tx : " + tx.GetHash().Value.ToByteArray().ToHex());
@@ -362,7 +366,7 @@ namespace AElf.Kernel.Node
                 // ReSharper disable once InconsistentNaming
                 var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId))
                     .IncrementId;
-                var idInPool = _poolService.GetIncrementId(addr);
+                var idInPool = await _txPoolService.GetIncrementId(addr);
 
                 return Math.Max(idInDB, idInPool);
             }
@@ -374,7 +378,7 @@ namespace AElf.Kernel.Node
 
         public async Task<Hash> GetLastValidBlockHash()
         {
-            var pointer = Path.CalculatePointerForLastBlockHash(_nodeConfig.ChainId);
+            var pointer = ResourcePath.CalculatePointerForLastBlockHash(_nodeConfig.ChainId);
             return await _worldStateDictator.GetDataAsync(pointer);
         }
 
@@ -398,20 +402,49 @@ namespace AElf.Kernel.Node
                 
                 if (error != ValidationError.Success)
                 {
-                    Interlocked.CompareExchange(ref _flag, 0, 1);
-                    _logger.Trace("Invalid block received from network: " + error.ToString());
-                    return new BlockExecutionResult(false, error);
+                    var localCorrespondingBlock = await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, block.Header.Index);
+                    if (error == ValidationError.OrphanBlock) 
+                    {
+                        //TODO: limit the count of blocks to rollback
+                        if (block.Header.Time.ToDateTime() < localCorrespondingBlock.Header.Time.ToDateTime())
+                        {
+                            _logger?.Trace("Ready to rollback");
+                            //Rollback world state
+                            var txs = await _worldStateDictator.RollbackToSpecificHeight(block.Header.Index);
+                        
+                            await _txPoolService.RollBack(txs);
+                            _worldStateDictator.PreBlockHash = block.Header.PreviousBlockHash;
+                            await _worldStateDictator.RollbackCurrentChangesAsync();
+
+                            var ws = await _worldStateDictator.GetWorldStateAsync(block.GetHash());
+                            _logger?.Trace($"Current world state {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
+
+                            error = ValidationError.Success;
+                        }
+                        else
+                        {
+                            // insert to database 
+                            Interlocked.CompareExchange(ref _flag, 0, 1);
+                            return new BlockExecutionResult(false, ValidationError.OrphanBlock);
+                        }
+                    }
+                    else
+                    {
+                        Interlocked.CompareExchange(ref _flag, 0, 1);
+                        _logger?.Trace("Invalid block received from network: " + error);
+                        return new BlockExecutionResult(false, error);
+                    }
                 }
 
-                bool executed = await _blockExecutor.ExecuteBlock(block);
+                var executed = await _blockExecutor.ExecuteBlock(block);
                 Interlocked.CompareExchange(ref _flag, 0, 1);
-                
+
                 return new BlockExecutionResult(executed, error);
                 //return new BlockExecutionResult(true, error);
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Block synchronzing failed");
+                _logger?.Error(e, "Block synchronzing failed");
                 Interlocked.CompareExchange(ref _flag, 0, 1);
                 return new BlockExecutionResult(e);
             }
@@ -432,7 +465,7 @@ namespace AElf.Kernel.Node
                 var txs = block.Body.Transactions;
                 foreach (var id in txs)
                 {
-                    if (!_poolService.TryGetTx(id, out var tx))
+                    if (!_txPoolService.TryGetTx(id, out var _))
                     {
                         res.Add(id);
                     }
@@ -460,7 +493,7 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(ITransaction tx)
         {
-            return await _poolService.AddTxAsync(tx);
+            return await _txPoolService.AddTxAsync(tx);
         }
         
         private static int currentIncr = 0;
@@ -572,22 +605,31 @@ namespace AElf.Kernel.Node
         public async Task<IBlock> Mine()
         {
             int res = Interlocked.CompareExchange(ref _flag, 1, 0);
-            
+
             if (res == 1)
                 return null;
+            try
+            {
+                _logger?.Trace($"Mine - Entered mining {res}");
             
-            _logger?.Trace($"Mine - Entered mining {res}");
-            
-            var block =  await _miner.Mine();
-            
-            int b = Interlocked.CompareExchange(ref _flag, 0, 1);
+                _worldStateDictator.BlockProducerAccountAddress = _nodeKeyPair.GetAddress();
 
-            _protocolDirector.IncrementChainHeight();
+                var block =  await _miner.Mine();
             
-            _logger?.Trace($"Mine - Leaving mining {b}");
-            
-            return block;
+                int b = Interlocked.CompareExchange(ref _flag, 0, 1);
 
+                _protocolDirector.IncrementChainHeight();
+            
+                _logger?.Trace($"Mine - Leaving mining {b}");
+            
+                return block;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                Interlocked.CompareExchange(ref _flag, 0, 1);
+                return null;
+            }
         }
 
         public async Task<bool> BroadcastBlock(IBlock block)
@@ -596,12 +638,11 @@ namespace AElf.Kernel.Node
             {
                 return false;
             }
-            
-            int count = 0;
-            count = await _protocolDirector.BroadcastBlock(block as Block);
 
-            var bh = block.GetHash().Value.ToByteArray().ToHex();
-            _logger.Trace($"Broadcasted block \"{bh}\"  to [" +
+            var count = await _protocolDirector.BroadcastBlock(block as Block);
+
+            var bh = block.GetHash().ToHex();
+            _logger?.Trace($"Broadcasted block \"{bh}\"  to [" +
                           count + $"] peers. Block height: [{block.Header.Index}]");
 
             return true;
@@ -623,11 +664,11 @@ namespace AElf.Kernel.Node
 
             try
             {
-                res = await _poolService.AddTxAsync(tx);
+                res = await _txPoolService.AddTxAsync(tx);
             }
             catch (Exception e)
             {
-                _logger.Trace("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
+                _logger?.Trace("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
                 return TxValidation.TxInsertionAndBroadcastingError.Failed;
             }
 
@@ -639,15 +680,15 @@ namespace AElf.Kernel.Node
                 }
                 catch (Exception e)
                 {
-                    _logger.Trace("Broadcasting transaction failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
+                    _logger?.Trace("Broadcasting transaction failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
                     return TxValidation.TxInsertionAndBroadcastingError.BroadCastFailed;
                 }
 
-                _logger.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
+                _logger?.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return TxValidation.TxInsertionAndBroadcastingError.Success;
             }
 
-            _logger.Trace("Transaction insertion failed:{0}, [{1}]", res, tx.GetTransactionInfo());
+            _logger?.Trace("Transaction insertion failed:{0}, [{1}]", res, tx.GetTransactionInfo());
             //await _poolService.RemoveAsync(tx.GetHash());
             return res;
         }
@@ -675,7 +716,7 @@ namespace AElf.Kernel.Node
         {
             new EventLoopScheduler().Schedule(() =>
             {
-                _logger.Debug("-- DPoS Mining Has been fired!");
+                _logger?.Debug("-- DPoS Mining Has been fired!");
                 
                 _dPoS = new DPoS(_nodeKeyPair);
 
@@ -701,14 +742,14 @@ namespace AElf.Kernel.Node
                 (
                     async x =>
                     {
-                        _logger.Debug("---- DPoS checking start");
+                        _logger?.Debug("---- DPoS checking start");
                         var currentHeightOfThisNode = (long) await _chainManager.GetChainCurrentHeight(ChainId);
                         var currentHeightOfOtherNodes = _protocolDirector.GetLatestIndexOfOtherNode();
                         if (currentHeightOfThisNode < currentHeightOfOtherNodes && currentHeightOfOtherNodes != -1)
                         {
-                            _logger.Debug("Current height of me: " + currentHeightOfThisNode);
-                            _logger.Debug("Current height of others: " + currentHeightOfOtherNodes);
-                            _logger.Debug("Having more blocks to sync, so the dpos mining won't start");
+                            _logger?.Debug("Current height of me: " + currentHeightOfThisNode);
+                            _logger?.Debug("Current height of others: " + currentHeightOfOtherNodes);
+                            _logger?.Debug("Having more blocks to sync, so the dpos mining won't start");
                             _logger?.Debug("---- DPoS checking end");
                             return;
                         }
@@ -742,13 +783,11 @@ namespace AElf.Kernel.Node
 
                             await BroadcastBlock(firstBlock);
 
-                            _logger.Log(LogLevel.Debug,
+                            _logger?.Log(LogLevel.Debug,
                                 "Generate first extra block: \"{0}\", with [{1}] transactions",
-                                firstBlock.GetHash().Value.ToByteArray().ToHex(),
+                                firstBlock.GetHash().ToHex(),
                                 firstBlock.Body.Transactions.Count);
-
                             _logger?.Debug("---- DPoS checking end");
-
                             return;
                         }
 
@@ -816,6 +855,7 @@ namespace AElf.Kernel.Node
 
                         if (await CheckIsTimeToMineExtraBlock())
                         {
+                            //TODO: move this out
                             if (lastTryToPublishInValueRoundsCount != roundsCount)
                             {
                                 //Try to publish in value (every BP can do this)
@@ -904,12 +944,12 @@ namespace AElf.Kernel.Node
 
                     ex =>
                     {
-                        _logger.Error("Error occurs to dpos part");
+                        _logger?.Error("Error occurs to dpos part");
                     },
 
                     () =>
                     {
-                        _logger.Debug("Complete dpos");
+                        _logger?.Debug("Complete dpos");
                     }
                 );
                 
@@ -1128,7 +1168,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Failed to check the ability to help mining extra block");
+                _logger?.Error(e, "Failed to check the ability to help mining extra block");
                 return false;
             }
         }
@@ -1151,7 +1191,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Failed to check the time to mine extra block");
+                _logger?.Error(e, "Failed to check the time to mine extra block");
                 return false;
             }
         }
@@ -1176,7 +1216,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Failed to check the ability to mine extra block");
+                _logger?.Error(e, "Failed to check the ability to mine extra block");
                 return false;
             }
         }

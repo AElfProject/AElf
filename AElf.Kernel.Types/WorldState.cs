@@ -22,11 +22,9 @@ namespace AElf.Kernel
         public async Task<Hash> GetWorldStateMerkleTreeRootAsync()
         {
             var merkleTree = new BinaryMerkleTree();
-            foreach (var pair in _changesDict.Dict)
-            {
-                merkleTree.AddNode(pair.Key);
-            }
 
+            merkleTree.AddNodes(_changesDict.Dict.ToList().Select(p => p.Key));
+            
             return await Task.FromResult(merkleTree.ComputeRootHash());
         }
     }

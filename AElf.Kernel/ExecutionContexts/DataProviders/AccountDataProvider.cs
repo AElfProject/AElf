@@ -1,7 +1,6 @@
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
-using AElf.Kernel.Types;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public class AccountDataProvider : IAccountDataProvider
@@ -14,7 +13,7 @@ namespace AElf.Kernel
             IWorldStateDictator worldStateDictator)
         {
             _worldStateDictator = worldStateDictator;
-            
+
             //Just use its structure to store info.
             Context = new AccountDataContext
             {

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 
 namespace AElf.Kernel.Types.Merkle
 {
@@ -31,8 +31,12 @@ namespace AElf.Kernel.Types.Merkle
 
         public void AddNodes(IEnumerable<Hash> hashes)
         {
-            foreach (var hash in hashes)
+            var enumerable = hashes as Hash[] ?? hashes.ToArray();
+            var hashesList = enumerable.ToList();
+            hashesList.Sort(CompareHash);
+            foreach (var hash in hashesList)
             {
+                //Console.WriteLine($"Add hash to calculate merkle tree root: {hash.ToHex()}");
                 Nodes.Add(hash);
             }
         }
@@ -133,8 +137,8 @@ namespace AElf.Kernel.Types.Merkle
         {
             var combineHash = 
                 hash2?.Value != null ? 
-                    hash1.Value.ToByteArray().ToHex() + hash2.Value.ToByteArray().ToHex() : 
-                    hash1.Value.ToByteArray().ToHex();
+                    hash1.ToHex() + hash2.ToHex() : 
+                    hash1.ToHex();
 
             return _cache.TryGetValue(combineHash, out var resultHash)
                 ? resultHash
@@ -145,5 +149,48 @@ namespace AElf.Kernel.Types.Merkle
         {
             return _cache[keyHash] = valueHash;
         }
+        
+        private int CompareHash(Hash hash1, Hash hash2)
+        {
+            if (hash1 != null)
+            {
+                if (hash2 == null)
+                {
+                    return 1;
+                }
+
+                return Compare(hash1, hash2);
+            }
+            
+            if (hash2 == null)
+            {
+                return 0;
+            }
+            
+            return -1;
+        }
+        
+        private int Compare(Hash x, Hash y)
+        {
+            var xValue = x.Value;
+            var yValue = y.Value;
+            for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
+            {
+                if (xValue[i] > yValue[i])
+                {
+                    //Console.WriteLine($"{x.ToHex()} > {y.ToHex()}");
+                    return 1;
+                }
+
+                if (xValue[i] < yValue[i])
+                {
+                    //Console.WriteLine($"{x.ToHex()} < {y.ToHex()}");
+                    return -1;
+                }
+            }
+
+            return 0;
+        }
     }
+    
 }

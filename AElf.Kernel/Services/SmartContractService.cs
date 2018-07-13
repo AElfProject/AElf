@@ -12,7 +12,6 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.Services
 {
-
     public class SmartContractService : ISmartContractService
     {
         private readonly ISmartContractManager _smartContractManager;
@@ -42,8 +41,7 @@ namespace AElf.Kernel.Services
         public async Task<IExecutive> GetExecutiveAsync(Hash account, Hash chainId)
         {
             var pool = GetPoolFor(account);
-            IExecutive executive = null;
-            if (pool.TryTake(out executive))
+            if (pool.TryTake(out var executive))
                 return executive;
 
             // get registration
