@@ -32,11 +32,7 @@ namespace AElf.Kernel
 
         public ECSignature GetSignature()
         {
-            BigInteger[] sig = new BigInteger[2];
-            sig[0] = new BigInteger(R.ToByteArray());
-            sig[1] = new BigInteger(S.ToByteArray());
-            
-            return new ECSignature(sig);
+            return new ECSignature(R.ToByteArray(), S.ToByteArray());
         }
 
         public int Size()
