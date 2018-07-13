@@ -33,7 +33,7 @@ namespace AElf.Kernel.Types.Merkle
         {
             var enumerable = hashes as Hash[] ?? hashes.ToArray();
             var hashesList = enumerable.ToList();
-            hashesList.Sort(new Comparison<Hash>(CompareHash));
+            hashesList.Sort(CompareHash);
             foreach (var hash in hashesList)
             {
                 //Console.WriteLine($"Add hash to calculate merkle tree root: {hash.ToHex()}");

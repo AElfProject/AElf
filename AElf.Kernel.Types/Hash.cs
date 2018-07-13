@@ -45,9 +45,11 @@ namespace AElf.Kernel
 
         public int Compare(IHash x, IHash y)
         {
-            if (Equals(x, y))
-                return 0;
-
+            if (x == null || y == null)
+            {
+                throw new InvalidOperationException("Cannot compare hash when hash is null");
+            }
+            
             var xValue = x.Value;
             var yValue = y.Value;
             for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
@@ -56,9 +58,14 @@ namespace AElf.Kernel
                 {
                     return 1;
                 }
+
+                if (xValue[i] < yValue[i])
+                {
+                    return -1;
+                }
             }
 
-            return -1;
+            return 0;
         }
 
         public static bool operator ==(Hash h1, Hash h2)

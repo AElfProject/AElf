@@ -1,8 +1,5 @@
-﻿
-using AElf.Common.Attributes;
-using AElf.Kernel.Types.Merkle;
+﻿using AElf.Kernel.Types.Merkle;
 using Google.Protobuf;
-using NLog;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
