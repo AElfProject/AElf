@@ -12,23 +12,13 @@ namespace AElf.Kernel
     /// </summary>
     public partial class FunctionMetadata
     {
-        public FunctionMetadata(HashSet<string> callingSet, HashSet<Resource> fullResourceSet, HashSet<Resource> localResourceSet)
+        public FunctionMetadata(HashSet<string> callingSet, HashSet<Resource> fullResourceSet)
         {
-            ContractContainsMetadata = true;
             SerializeCallingSet.AddRange(callingSet.AsEnumerable());
             SerializeFullResourceSet.AddRange(fullResourceSet.AsEnumerable());
-            SerializeLocalResourceSet.AddRange(localResourceSet.AsEnumerable());
         }
-        
-        /// <summary>
-        /// For contracts that contains no metadata
-        /// </summary>
-        /// <param name="nonMetadataContract">should always be false</param>
-        public FunctionMetadata(bool nonMetadataContract)
-        {
-            ContractContainsMetadata = nonMetadataContract;
-        }
-        
+
+
         /// <summary>
         /// used to find influenced contract when a contract is updated
         /// </summary>
@@ -38,11 +28,12 @@ namespace AElf.Kernel
         /// used to find what resource this function will access (recursive)
         /// </summary>
         public HashSet<Resource> FullResourceSet => new HashSet<Resource>(SerializeFullResourceSet);
-        
-        /// <summary>
-        /// used when updating a function, the caller functions of this updating function should use this NonRecursivePathSet to regenerate the new metadata
-        /// </summary>
-        public HashSet<Resource> LocalResourceSet => new HashSet<Resource>(SerializeLocalResourceSet);
+
+        bool IEquatable<FunctionMetadata>.Equals(FunctionMetadata other)
+        {
+            return HashSet<string>.CreateSetComparer().Equals(CallingSet, other.CallingSet) &&
+                   HashSet<Resource>.CreateSetComparer().Equals(FullResourceSet, other.FullResourceSet);
+        }
     }
 
     public partial class FunctionMetadataTemplate
@@ -53,7 +44,7 @@ namespace AElf.Kernel
             SerializeCallingSet.AddRange(callingSet.AsEnumerable());
             SerializeLocalResourceSet.Add(localResourceSet.AsEnumerable());
         }
-        
+
         /// <summary>
         /// TODO: For the contracts that contains no metadata
         /// </summary>
