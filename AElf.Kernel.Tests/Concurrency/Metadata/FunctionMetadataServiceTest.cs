@@ -22,9 +22,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
 
         [Fact]
         public async Task TestDepolyContract()
-        {
-            ParallelTestDataUtil util = new ParallelTestDataUtil();
-            
+        {   
             Hash chainId = Hash.Generate();
             var addrA = new Hash("TestContractA".CalculateHash());
             var addrB = new Hash("TestContractB".CalculateHash());
@@ -49,11 +47,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(addrC.ToHex() + ".resource4", DataAccessMode.AccountSpecific)
-                    }), 
-                    new HashSet<Resource>(new []
-                    {
-                        new Resource(addrC.ToHex() + ".resource4", DataAccessMode.AccountSpecific)
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource4", DataAccessMode.AccountSpecific)
                     })));
             
             groundTruthMap.Add(
@@ -62,11 +56,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(addrC.ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing) 
-                    }),
-                    new HashSet<Resource>(new []
-                    {
-                        new Resource(addrC.ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing) 
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing) 
                     })));
             
             groundTruthMap.Add(
@@ -78,12 +68,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(addrC.ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrB.ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
-                    }),
-                    new HashSet<Resource>(new []
-                    {
-                        new Resource(addrB.ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrB.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
                     })));
             
             groundTruthMap.Add(
@@ -92,18 +78,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(addrB.ToHex() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
-                    }),
-                    new HashSet<Resource>(new []
-                    {
-                        new Resource(addrB.ToHex() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
+                        new Resource(addrB.Value.ToByteArray().ToHex() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
                     })));
             
             groundTruthMap.Add(
                 addrA.ToHex() + ".Func0(int)",
                 new FunctionMetadata(
                     new HashSet<string>(),
-                    new HashSet<Resource>(),
                     new HashSet<Resource>()));
             
             groundTruthMap.Add(
@@ -115,13 +96,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(addrA.ToHex() + ".resource0", DataAccessMode.AccountSpecific),
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                    }),
-                    new HashSet<Resource>(new []
-                    {
-                        new Resource(addrA.ToHex() + ".resource0", DataAccessMode.AccountSpecific),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource0", DataAccessMode.AccountSpecific),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -133,12 +110,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new[]
                     {
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                    }),
-                    new HashSet<Resource>(new[]
-                    {
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing)
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -147,13 +120,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(),
                     new HashSet<Resource>(new[]
                     {
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                    }),
-                    new HashSet<Resource>(new[]
-                    {
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -167,16 +135,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new[]
                     {
-                        new Resource(addrA.ToHex() + ".resource0", DataAccessMode.AccountSpecific),
-                        new Resource(addrB.ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
-                        new Resource(addrC.ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrC.ToHex() + ".resource4", DataAccessMode.AccountSpecific),
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                    }),
-                    new HashSet<Resource>(new[]
-                    {
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing)
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource0", DataAccessMode.AccountSpecific),
+                        new Resource(addrB.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource4", DataAccessMode.AccountSpecific),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -188,10 +152,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new[]
                     {
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                    }),
-                    new HashSet<Resource>()));
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    })));
             
             groundTruthMap.Add(
                 addrA.ToHex() + ".Func5",
@@ -203,26 +166,24 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new[]
                     {
-                        new Resource(addrA.ToHex() + ".resource0", DataAccessMode.AccountSpecific),
-                        new Resource(addrB.ToHex() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
-                        new Resource(addrB.ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
-                        new Resource(addrC.ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrC.ToHex() + ".resource4", DataAccessMode.AccountSpecific),
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                    }),
-                    new HashSet<Resource>()));
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource0", DataAccessMode.AccountSpecific),
+                        new Resource(addrB.Value.ToByteArray().ToHex() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
+                        new Resource(addrB.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource4", DataAccessMode.AccountSpecific),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    })));
 
             foreach (var kv in groundTruthMap)
             {
-                Assert.Equal(util.FunctionMetadataToString(kv.Value), util.FunctionMetadataToString(_functionMetadataService.GetFunctionMetadata(chainId, kv.Key)));
+                Assert.Equal(kv.Value, _functionMetadataService.GetFunctionMetadata(chainId, kv.Key));
             }
         }
         
         [Fact]
         public async Task TestEmptyContract()
         {
-            ParallelTestDataUtil util = new ParallelTestDataUtil();
             var chainId = Hash.Generate();
             var contract1Addr = new Hash("contract1".CalculateHash()).ToAccount();
             var contract2Addr = new Hash("contract2".CalculateHash()).ToAccount();
@@ -264,11 +225,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(addrC.ToHex() + ".resource4", DataAccessMode.AccountSpecific)
-                    }), 
-                    new HashSet<Resource>(new []
-                    {
-                        new Resource(addrC.ToHex() + ".resource4", DataAccessMode.AccountSpecific)
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource4", DataAccessMode.AccountSpecific)
                     })));
             
             groundTruthMap.Add(
@@ -277,11 +234,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(addrC.ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing) 
-                    }),
-                    new HashSet<Resource>(new []
-                    {
-                        new Resource(addrC.ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing) 
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing) 
                     })));
             
             groundTruthMap.Add(
@@ -293,12 +246,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(addrC.ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrB.ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
-                    }),
-                    new HashSet<Resource>(new []
-                    {
-                        new Resource(addrB.ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrB.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
                     })));
             
             groundTruthMap.Add(
@@ -307,18 +256,13 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(addrB.ToHex() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
-                    }),
-                    new HashSet<Resource>(new []
-                    {
-                        new Resource(addrB.ToHex() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
+                        new Resource(addrB.Value.ToByteArray().ToHex() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
                     })));
             
             groundTruthMap.Add(
                 addrA.ToHex() + ".Func0(int)",
                 new FunctionMetadata(
                     new HashSet<string>(),
-                    new HashSet<Resource>(),
                     new HashSet<Resource>()));
             
             groundTruthMap.Add(
@@ -330,13 +274,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(addrA.ToHex() + ".resource0", DataAccessMode.AccountSpecific),
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                    }),
-                    new HashSet<Resource>(new []
-                    {
-                        new Resource(addrA.ToHex() + ".resource0", DataAccessMode.AccountSpecific),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource0", DataAccessMode.AccountSpecific),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -348,12 +288,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new[]
                     {
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                    }),
-                    new HashSet<Resource>(new[]
-                    {
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing)
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -362,13 +298,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(),
                     new HashSet<Resource>(new[]
                     {
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                    }),
-                    new HashSet<Resource>(new[]
-                    {
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -382,16 +313,12 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new[]
                     {
-                        new Resource(addrA.ToHex() + ".resource0", DataAccessMode.AccountSpecific),
-                        new Resource(addrB.ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
-                        new Resource(addrC.ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrC.ToHex() + ".resource4", DataAccessMode.AccountSpecific),
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                    }),
-                    new HashSet<Resource>(new[]
-                    {
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing)
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource0", DataAccessMode.AccountSpecific),
+                        new Resource(addrB.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource4", DataAccessMode.AccountSpecific),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -403,10 +330,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new[]
                     {
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                    }),
-                    new HashSet<Resource>()));
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    })));
             
             groundTruthMap.Add(
                 addrA.ToHex() + ".Func5",
@@ -418,15 +344,14 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new[]
                     {
-                        new Resource(addrA.ToHex() + ".resource0", DataAccessMode.AccountSpecific),
-                        new Resource(addrB.ToHex() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
-                        new Resource(addrB.ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
-                        new Resource(addrC.ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrC.ToHex() + ".resource4", DataAccessMode.AccountSpecific),
-                        new Resource(addrA.ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
-                        new Resource(addrA.ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
-                    }),
-                    new HashSet<Resource>()));
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource0", DataAccessMode.AccountSpecific),
+                        new Resource(addrB.Value.ToByteArray().ToHex() + ".resource3", DataAccessMode.ReadOnlyAccountSharing), 
+                        new Resource(addrB.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.AccountSpecific), 
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource5", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource4", DataAccessMode.AccountSpecific),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
+                        new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
+                    })));
             
             
             groundTruthMap.Add(
@@ -435,11 +360,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(contract1Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
-                    }), 
-                    new HashSet<Resource>(new []
-                    {
-                        new Resource(contract1Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
+                        new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -448,11 +369,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(contract1Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
-                    }), 
-                    new HashSet<Resource>(new []
-                    {
-                        new Resource(contract1Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
+                        new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -461,11 +378,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(contract2Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
-                    }), 
-                    new HashSet<Resource>(new []
-                    {
-                        new Resource(contract2Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
+                        new Resource(contract2Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -474,11 +387,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(contract2Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
-                    }), 
-                    new HashSet<Resource>(new []
-                    {
-                        new Resource(contract2Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
+                        new Resource(contract2Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
                     })));
             
             groundTruthMap.Add(
@@ -487,8 +396,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(new []{contract1Addr.ToHex() + ".Func1"}),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(contract1Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)}), 
-                    new HashSet<Resource>()));
+                        new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing)
+                    })));
             
             groundTruthMap.Add(
                 refContractAddr.ToHex() + ".Func1_1", 
@@ -496,12 +405,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(new []{contract1Addr.ToHex() + ".Func1"}),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(contract1Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
-                        new Resource(refContractAddr.ToHex() + ".localRes", DataAccessMode.AccountSpecific)
-                    }), 
-                    new HashSet<Resource>(
-                    new []{
-                        new Resource(refContractAddr.ToHex() + ".localRes", DataAccessMode.AccountSpecific)
+                        new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
+                        new Resource(refContractAddr.Value.ToByteArray().ToHex() + ".localRes", DataAccessMode.AccountSpecific)
                     })));
             
             groundTruthMap.Add(
@@ -510,9 +415,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new HashSet<string>(new []{contract1Addr.ToHex() + ".Func2"}),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(contract1Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
-                    }), 
-                    new HashSet<Resource>()));
+                        new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
+                    })));
             
             groundTruthMap.Add(
                 refContractAddr.ToHex() + ".Func2_1", 
@@ -524,10 +428,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(contract1Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
-                        new Resource(refContractAddr.ToHex() + ".localRes", DataAccessMode.AccountSpecific)
-                    }), 
-                    new HashSet<Resource>()));
+                        new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
+                        new Resource(refContractAddr.Value.ToByteArray().ToHex() + ".localRes", DataAccessMode.AccountSpecific)
+                    })));
             
             groundTruthMap.Add(
                 refContractAddr.ToHex() + ".Func2_2", 
@@ -539,9 +442,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(contract1Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
-                    }), 
-                    new HashSet<Resource>()));
+                        new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
+                    })));
             
             groundTruthMap.Add(
                 refContractAddr.ToHex() + ".Func3", 
@@ -553,9 +455,8 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(contract1Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
-                    }), 
-                    new HashSet<Resource>()));
+                        new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
+                    })));
             
             groundTruthMap.Add(
                 refContractAddr.ToHex() + ".Func4", 
@@ -567,10 +468,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(contract1Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
-                        new Resource(contract2Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
-                    }), 
-                    new HashSet<Resource>()));
+                        new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
+                        new Resource(contract2Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
+                    })));
             
             groundTruthMap.Add(
                 refContractAddr.ToHex() + ".Func5", 
@@ -582,15 +482,14 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }),
                     new HashSet<Resource>(new []
                     {
-                        new Resource(contract1Addr.ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
-                        new Resource(addrC.ToHex() + ".resource4", DataAccessMode.AccountSpecific),
-                    }), 
-                    new HashSet<Resource>()));
+                        new Resource(contract1Addr.Value.ToByteArray().ToHex() + "._lock", DataAccessMode.ReadWriteAccountSharing),
+                        new Resource(addrC.Value.ToByteArray().ToHex() + ".resource4", DataAccessMode.AccountSpecific),
+                    })));
             
 
             foreach (var kv in groundTruthMap)
             {
-                Assert.Equal(util.FunctionMetadataToString(kv.Value), util.FunctionMetadataToString(_functionMetadataService.GetFunctionMetadata(chainId, kv.Key)));
+                Assert.Equal(kv.Value, _functionMetadataService.GetFunctionMetadata(chainId, kv.Key));
             }
         }
     }

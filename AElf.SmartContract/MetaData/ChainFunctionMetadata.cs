@@ -65,17 +65,12 @@ namespace AElf.SmartContract
                             Replacement.ReplaceValueIntoReplacement(functionMetadataTemplate.Key, Replacement.This,
                                 contractAddr.Value.ToByteArray().ToHex());
 
-                        var localResourceSet = new HashSet<Resource>()
-                        {
-                            new Resource(contractAddr.Value.ToByteArray().ToHex() + "._lock",
-                                DataAccessMode.ReadWriteAccountSharing)
-                        };
                         var fullResourceSet = new HashSet<Resource>()
                         {
                             new Resource(contractAddr.Value.ToByteArray().ToHex() + "._lock",
                                 DataAccessMode.ReadWriteAccountSharing)
                         };
-                        var metadata = new FunctionMetadata(new HashSet<string>(), fullResourceSet, localResourceSet);
+                        var metadata = new FunctionMetadata(new HashSet<string>(), fullResourceSet);
                         FunctionMetadataMap.Add(funcNameWithAddr, metadata);
                     }
                 }
@@ -130,7 +125,6 @@ namespace AElf.SmartContract
                     return new Resource(resName, resource.DataAccessMode);
                 }));
             
-            var localResourceSet = new HashSet<Resource>(resourceSet);
             var callingSet = new HashSet<string>();
             
             foreach (var calledFunc in functionTemplate.CallingSet ?? Enumerable.Empty<string>())
@@ -171,7 +165,7 @@ namespace AElf.SmartContract
                 }
             }
             
-            var metadata = new FunctionMetadata(callingSet, resourceSet, localResourceSet);
+            var metadata = new FunctionMetadata(callingSet, resourceSet);
 
             return metadata;
         }

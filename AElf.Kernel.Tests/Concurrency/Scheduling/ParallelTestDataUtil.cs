@@ -6,7 +6,7 @@ using AElf.SmartContract;
 namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
     /// <summary>
-    /// This class putting test data for parallel altogather
+    /// This class putting test data for parallel all together
     /// </summary>
     public class ParallelTestDataUtil
     {
@@ -60,27 +60,27 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var txList = new List<ITransaction>();
             //Build txs that belong to same group
-            AddTxInList(txList, 0, 1);        //A -> B
-            AddTxInList(txList, 0, 5);        //A -> F
-            AddTxInList(txList, 0, 4);        //A -> E
-            AddTxInList(txList, 1, 5);        //B -> F   
-            AddTxInList(txList, 1, 6);        //B -> G
-            AddTxInList(txList, 1, 7);        //B -> H
-            AddTxInList(txList, 1, 2);        //B -> C
-            AddTxInList(txList, 2, 3);        //C -> D
-            AddTxInList(txList, 3, 4);        //D -> E
-            AddTxInList(txList, 7, 5);        //H -> F
-            AddTxInList(txList, 8, 9);        //I -> J    
-            AddTxInList(txList, 10, 9);       //K -> J
-            AddTxInList(txList, 9, 11);       //J -> L
-            AddTxInList(txList, 9, 3);        //J -> D
-            AddTxInList(txList, 11, 10);      //L -> k
-            AddTxInList(txList, 11, 14);      //L -> O
-            AddTxInList(txList, 12, 11);      //M -> L
-            AddTxInList(txList, 12, 13);      //M -> N
-            AddTxInList(txList, 14, 15);      //O -> P
-            AddTxInList(txList, 14, 16);      //O -> Q
-            AddTxInList(txList, 16, 15);      //Q -> P
+            AddTxToList(txList, 0, 1);        //A -> B
+            AddTxToList(txList, 0, 5);        //A -> F
+            AddTxToList(txList, 0, 4);        //A -> E
+            AddTxToList(txList, 1, 5);        //B -> F   
+            AddTxToList(txList, 1, 6);        //B -> G
+            AddTxToList(txList, 1, 7);        //B -> H
+            AddTxToList(txList, 1, 2);        //B -> C
+            AddTxToList(txList, 2, 3);        //C -> D
+            AddTxToList(txList, 3, 4);        //D -> E
+            AddTxToList(txList, 7, 5);        //H -> F
+            AddTxToList(txList, 8, 9);        //I -> J    
+            AddTxToList(txList, 10, 9);       //K -> J
+            AddTxToList(txList, 9, 11);       //J -> L
+            AddTxToList(txList, 9, 3);        //J -> D
+            AddTxToList(txList, 11, 10);      //L -> k
+            AddTxToList(txList, 11, 14);      //L -> O
+            AddTxToList(txList, 12, 11);      //M -> L
+            AddTxToList(txList, 12, 13);      //M -> N
+            AddTxToList(txList, 14, 15);      //O -> P
+            AddTxToList(txList, 14, 16);      //O -> Q
+            AddTxToList(txList, 16, 15);      //Q -> P
             
             return txList;
         }
@@ -90,8 +90,8 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var txList = new List<ITransaction>();
             //Build txs that belong to same group
-            AddTxInList(txList, 17, 18);        //R -> S
-            AddTxInList(txList, 19, 18);        //T -> S
+            AddTxToList(txList, 17, 18);        //R -> S
+            AddTxToList(txList, 19, 18);        //T -> S
             
             
             return txList;
@@ -102,18 +102,18 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var txList = new List<ITransaction>();
             //build txs that is the first batch of test case in ParallelGroupTest.cs
-            AddTxInList(txList, 0, 1);        //0: A -> B    //group1
-            AddTxInList(txList, 1, 5);        //1: B -> F    //group1
-            AddTxInList(txList, 2, 3);        //2: C -> D    //group2
-            AddTxInList(txList, 8, 9);        //3: I -> J    //group3
-            AddTxInList(txList, 16, 15);      //4: Q -> P    //group4
-            AddTxInList(txList, 9, 11);       //5: J -> L    //group3
-            AddTxInList(txList, 3, 4);        //6: D -> E    //group2
-            AddTxInList(txList, 7, 5);        //7: H -> F    //group1
-            AddTxInList(txList, 10, 9);       //8: K -> J    //group3    this J, K, L form a circle
-            AddTxInList(txList, 11, 10);      //9: L -> k    //group3
-            AddTxInList(txList, 12, 11);      //10: M -> L    //group3
-            AddTxInList(txList, 14, 15);      //11: O -> P    //group4
+            AddTxToList(txList, 0, 1);        //0: A -> B    //group1
+            AddTxToList(txList, 1, 5);        //1: B -> F    //group1
+            AddTxToList(txList, 2, 3);        //2: C -> D    //group2
+            AddTxToList(txList, 8, 9);        //3: I -> J    //group3
+            AddTxToList(txList, 16, 15);      //4: Q -> P    //group4
+            AddTxToList(txList, 9, 11);       //5: J -> L    //group3
+            AddTxToList(txList, 3, 4);        //6: D -> E    //group2
+            AddTxToList(txList, 7, 5);        //7: H -> F    //group1
+            AddTxToList(txList, 10, 9);       //8: K -> J    //group3    this J, K, L form a circle
+            AddTxToList(txList, 11, 10);      //9: L -> k    //group3
+            AddTxToList(txList, 12, 11);      //10: M -> L    //group3
+            AddTxToList(txList, 14, 15);      //11: O -> P    //group4
 
             return txList;
         }
@@ -125,43 +125,41 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             {
                     case 0: 
                         //{A - > B -> F <- H}
-                        AddTxInList(txList, 0, 1);
-                        AddTxInList(txList, 1, 5);
-                        AddTxInList(txList, 7, 5);
+                        AddTxToList(txList, 0, 1);
+                        AddTxToList(txList, 1, 5);
+                        AddTxToList(txList, 7, 5);
                         break;
                     case 1:
                         //{C -> D -> E}
-                        AddTxInList(txList, 2, 3);
-                        AddTxInList(txList, 3, 4);
+                        AddTxToList(txList, 2, 3);
+                        AddTxToList(txList, 3, 4);
                         break;
                     case 2:
                         //{I ->J <- K, J -> L -> K, M -> L}
-                        AddTxInList(txList, 8, 9);
-                        AddTxInList(txList, 10, 9);
-                        AddTxInList(txList, 9, 11);
-                        AddTxInList(txList, 11, 10);
-                        AddTxInList(txList, 12, 11);
+                        AddTxToList(txList, 8, 9);
+                        AddTxToList(txList, 10, 9);
+                        AddTxToList(txList, 9, 11);
+                        AddTxToList(txList, 11, 10);
+                        AddTxToList(txList, 12, 11);
                         break;
                     case 3:
                         //{O->P, Q->P}
-                        AddTxInList(txList, 14, 15);
-                        AddTxInList(txList, 16, 15);
+                        AddTxToList(txList, 14, 15);
+                        AddTxToList(txList, 16, 15);
                         break;
             }
 
             return txList;
         }
-        
-        
-        
-        
-        public void AddTxInList(List<ITransaction> txList, int from, int to)
+
+
+        private void AddTxToList(ICollection<ITransaction> txList, int from, int to)
         {
             var tx = NewTransaction(from, to);
             txList.Add(tx);
         }
 
-        public Transaction NewTransaction(int from, int to)
+        private Transaction NewTransaction(int from, int to)
         {
             var tx = new Transaction();
             tx.From = AccountList[from];
@@ -287,7 +285,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 
                 var pathSet = TranslateStringToResourceSet(functionCallingGraph[i][0], pathSetStrings);
                     //ToDictionary(a=> a, a=> a);
-                var funMetadata = new FunctionMetadata(callingSet, new HashSet<Resource>(), pathSet);
+                var funMetadata = new FunctionMetadata(callingSet, new HashSet<Resource>());
                 
                 result.Add(new KeyValuePair<string, FunctionMetadata>(functionCallingGraph[i][0],funMetadata));
             }
@@ -306,58 +304,6 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                 return new Resource(name, dataAccessMode);
             }).ToHashSet();
 
-        }
-        
-        public string FunctionMetadataMapToString(Dictionary<string, FunctionMetadata> map)
-        {
-            
-            return string.Join(
-                " ",
-                map.OrderBy(a => a.Key)
-                    .Select(item => String.Format("[<{0},{1}>]", 
-                        item.Key,
-                        FunctionMetadataToString(item.Value))));
-        }
-        
-        public string FunctionMetadataToString(FunctionMetadata functionMetadata)
-        {
-            return String.Format("[({0}),({1}),({2})]", 
-                CallingSetToString(functionMetadata.CallingSet), 
-                PathSetToString(functionMetadata.LocalResourceSet),
-                PathSetToString(functionMetadata.FullResourceSet));
-        }
-        
-        public string FunctionMetadataTemplateMapToString(Dictionary<string, FunctionMetadataTemplate> map)
-        {
-            
-            return string.Join(
-                " ",
-                map.OrderBy(a => a.Key)
-                    .Select(item => String.Format("[{0},({1}),({2})]", 
-                        item.Key,
-                        CallingSetToString(item.Value.CallingSet), 
-                        PathSetToString(item.Value.LocalResourceSet))));
-        }
-
-        public string ContractMetadataTemplateMapToString(
-            Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> map)
-        {
-            return string.Join(
-                " | ",
-                map.OrderBy(a => a.Key)
-                    .Select(item =>
-                        String.Format("({0} - {1})", item.Key, FunctionMetadataTemplateMapToString(item.Value))));
-        }
-        
-        public string PathSetToString(HashSet<Resource> resourceSet)
-        {
-            return string.Join(", ",
-                resourceSet.OrderBy(a =>a.Name));
-        }
-
-        public string CallingSetToString(HashSet<string> callingSet)
-        {
-            return string.Join(", ", callingSet.OrderBy(a => a));
         }
     }
 }
