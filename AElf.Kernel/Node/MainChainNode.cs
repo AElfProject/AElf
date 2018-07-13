@@ -80,9 +80,12 @@ namespace AElf.Kernel.Node
             {
                 var dict = MinersInfo.Instance.Producers;
                 var blockProducers = new BlockProducer();
+                _logger?.Trace("Block producers of your config:");
                 foreach (var bp in dict.Values)
                 {
-                    blockProducers.Nodes.Add(ConvertToNormalHexString(bp["address"]));
+                    var b = ConvertToNormalHexString(bp["address"]);
+                    _logger?.Trace(b);
+                    blockProducers.Nodes.Add(b);
                 }
 
                 return blockProducers;
@@ -162,8 +165,8 @@ namespace AElf.Kernel.Node
                 {
                     var preBlockHash = GetLastValidBlockHash().Result;
                     _worldStateDictator.SetWorldStateAsync(preBlockHash);
-                    var worldState = _worldStateDictator.GetWorldStateAsync(preBlockHash).Result;
-                    _logger?.Trace($"Merkle Tree Root before execution:{(worldState.GetWorldStateMerkleTreeRootAsync()).Result.ToHex()}");
+                    //var worldState = _worldStateDictator.GetWorldStateAsync(preBlockHash).Result;
+                    //_logger?.Trace($"Merkle Tree Root before execution:{(worldState.GetWorldStateMerkleTreeRootAsync()).Result.ToHex()}");
                     
                     _worldStateDictator.PreBlockHash = preBlockHash;
                     _worldStateDictator.RollbackCurrentChangesAsync();
