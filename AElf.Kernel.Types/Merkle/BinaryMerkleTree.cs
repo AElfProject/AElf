@@ -25,7 +25,6 @@ namespace AElf.Kernel.Types.Merkle
         /// <param name="hash"></param>
         public void AddNode(Hash hash)
         {
-            Console.WriteLine($"Add hash to calculate merkle tree root: {hash.ToHex()}");
             Nodes.Add(hash);
             ComputeRootHash();
         }
@@ -34,9 +33,10 @@ namespace AElf.Kernel.Types.Merkle
         {
             var enumerable = hashes as Hash[] ?? hashes.ToArray();
             var hashesList = enumerable.ToList();
-            hashesList.Sort(CompareHash);
+            hashesList.Sort(new Comparison<Hash>(CompareHash));
             foreach (var hash in hashesList)
             {
+                //Console.WriteLine($"Add hash to calculate merkle tree root: {hash.ToHex()}");
                 Nodes.Add(hash);
             }
         }
@@ -152,31 +152,44 @@ namespace AElf.Kernel.Types.Merkle
         
         private int CompareHash(Hash hash1, Hash hash2)
         {
-            if (hash1 != null) return hash2 == null ? 1 : Compare(hash1, hash2);
+            if (hash1 != null)
+            {
+                if (hash2 == null)
+                {
+                    return 1;
+                }
+
+                return Compare(hash1, hash2);
+            }
+            
             if (hash2 == null)
             {
                 return 0;
             }
+            
             return -1;
-
         }
         
-        private int Compare(IHash x, IHash y)
+        private int Compare(Hash x, Hash y)
         {
-            if (Equals(x, y))
-                return 0;
-
             var xValue = x.Value;
             var yValue = y.Value;
             for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
             {
                 if (xValue[i] > yValue[i])
                 {
+                    //Console.WriteLine($"{x.ToHex()} > {y.ToHex()}");
                     return 1;
+                }
+
+                if (xValue[i] < yValue[i])
+                {
+                    //Console.WriteLine($"{x.ToHex()} < {y.ToHex()}");
+                    return -1;
                 }
             }
 
-            return -1;
+            return 0;
         }
     }
     
