@@ -12,9 +12,6 @@ using AElf.Kernel.Concurrency.Metadata;
 using AElf.Kernel.Concurrency.Scheduling;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
-using AElf.Kernel.Storages;
-using AElf.Runtime.CSharp;
-using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using NLog;
@@ -28,8 +25,6 @@ namespace AElf.Benchmark
         private readonly IChainCreationService _chainCreationService;
         private readonly IBlockManager _blockManager;
         private readonly ISmartContractService _smartContractService;
-        private readonly IWorldStateDictator _worldStateDictator;
-        private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
         private readonly BenchmarkOptions _options;
         private readonly IConcurrencyExecutingService _concurrencyExecutingService;
@@ -41,13 +36,13 @@ namespace AElf.Benchmark
         private readonly Hash _contractHash;
         
         private Hash ChainId { get; }
-        private int _incrementId = 0;
-        
-        public byte[] SmartContractZeroCode
+        private int _incrementId;
+
+        private byte[] SmartContractZeroCode
         {
             get
             {
-                byte[] code = null;
+                byte[] code;
                 using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(System.IO.Path.Combine(_options.DllDir, _options.ZeroContractDll))))
                 {
                     code = file.ReadFully();
@@ -63,13 +58,12 @@ namespace AElf.Benchmark
         {
             ChainId = Hash.Generate();
             
-            _worldStateDictator = worldStateDictator;
-            _worldStateDictator.SetChainId(ChainId).DeleteChangeBeforesImmidiately = true;
+            var worldStateDictator1 = worldStateDictator;
+            worldStateDictator1.SetChainId(ChainId).DeleteChangeBeforesImmidiately = true;
             
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             _smartContractService = smartContractService;
-            _accountContextService = accountContextService;
             _logger = logger;
             _options = options;
             _concurrencyExecutingService = concurrencyExecutingService;
@@ -80,14 +74,14 @@ namespace AElf.Benchmark
                 ChainContextService = chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new ResourceUsageDetectionService(functionMetadataService),
-                WorldStateDictator = _worldStateDictator,
-                AccountContextService = _accountContextService,
+                WorldStateDictator = worldStateDictator1,
+                AccountContextService = accountContextService,
             };
 
             //TODO: set timeout to int.max in order to run the large trunk of tx list
             
             _dataGenerater = new TransactionDataGenerator(options.TxNumber);
-            byte[] code = null;
+            byte[] code;
             using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(options.DllDir + "/" + options.ContractDll)))
             {
                 code = file.ReadFully();
@@ -142,13 +136,10 @@ namespace AElf.Benchmark
                 {
                     tx.IncrementId += 1;
                 }
-                Stopwatch swExec = new Stopwatch();
+                var swExec = new Stopwatch();
                 swExec.Start();
 
-                var txResult = await Task.Factory.StartNew(async () =>
-                {
-                    return await _concurrencyExecutingService.ExecuteAsync(txList, ChainId,new Grouper(_servicePack.ResourceDetectionService, _logger) );
-                }).Unwrap();
+                var txResult = await _concurrencyExecutingService.ExecuteAsync(txList, ChainId,new Grouper(_servicePack.ResourceDetectionService, _logger) );
         
                 swExec.Stop();
                 timeused += swExec.ElapsedMilliseconds;
@@ -160,6 +151,8 @@ namespace AElf.Benchmark
                     }
                 });
                 
+                //use thread.sleep to avoid print in messy order
+                Thread.Sleep(50);
                 _logger.Info($"round {i+1} / {repeatTime} ended, used time {swExec.ElapsedMilliseconds} ms");
             }
             
@@ -185,7 +178,7 @@ namespace AElf.Benchmark
                 }
             }
             
-            var time = txNumber / (timeused / 1000.0 / (double)repeatTime);
+            var time = txNumber / (timeused / 1000.0 / repeatTime);
             var str = groupCount + " groups with " + txList.Count + " tx in total";
 
             return new KeyValuePair<string,double>(str, time);
@@ -234,14 +227,14 @@ namespace AElf.Benchmark
 
             return res;
         }
-        
-        public ulong NewIncrementId()
+
+        private ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
             return (ulong)n;
         }
 
-        public async Task<Hash> Prepare(byte[] contractCode)
+        private async Task<Hash> Prepare(byte[] contractCode)
         {
             //create smart contact zero
             var reg = new SmartContractRegistration
@@ -252,14 +245,14 @@ namespace AElf.Benchmark
             };
             
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
-            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
+            await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
             var contractAddressZero = _chainCreationService.GenesisContractHash(ChainId);
             
             
             //deploy token contract
             var code = contractCode;
             
-            var txnDep = new Transaction()
+            var txnDep = new Transaction
             {
                 From = Hash.Zero.ToAccount(),
                 To = contractAddressZero,
@@ -281,7 +274,7 @@ namespace AElf.Benchmark
             return contractAddr;
         }
 
-        public async Task InitContract(Hash contractAddr, IEnumerable<Hash> addrBook)
+        private async Task InitContract(Hash contractAddr, IEnumerable<Hash> addrBook)
         {
             //init contract
             string name = "TestToken" + _incrementId;
@@ -316,8 +309,14 @@ namespace AElf.Benchmark
                 
                 initTxList.Add(txnBalInit);
             }
-            var txTrace = await _concurrencyExecutingService.ExecuteAsync(initTxList, ChainId,new Grouper(_servicePack.ResourceDetectionService, _logger));
+            var txTraces = await _concurrencyExecutingService.ExecuteAsync(initTxList, ChainId,new Grouper(_servicePack.ResourceDetectionService, _logger));
+            txTraces.ForEach(trace =>
+            {
+                if (!trace.StdErr.IsNullOrEmpty())
+                {
+                    _logger.Error("Execution error: " + trace.StdErr);
+                }
+            });
         }
-        
     }
 }

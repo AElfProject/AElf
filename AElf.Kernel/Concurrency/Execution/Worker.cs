@@ -185,6 +185,7 @@ namespace AElf.Kernel.Concurrency.Execution
 
             if (chainContext != null)
             {
+                Console.WriteLine($"Finish up job RequestID: {request.RequestId}, PipelineSetAsync: {stateCache.Count}");
                 await _servicePack.WorldStateDictator.ApplyQueuedDataSet(stateCache, chainContext.ChainId);  //temporary solution to let data provider access actor's state cache
             }
             stateCache.Clear();
