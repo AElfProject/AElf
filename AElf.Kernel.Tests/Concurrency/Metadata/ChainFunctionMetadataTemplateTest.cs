@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Concurrency.Metadata;
+using AElf.SmartContract;
 using AElf.Kernel.Storages;
 using AElf.Types.CSharp.MetadataAttribute;
 using Xunit;

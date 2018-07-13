@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Services;
+using AElf.ChainController;
 using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;

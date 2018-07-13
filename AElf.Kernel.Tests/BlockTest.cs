@@ -1,16 +1,12 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.KernelAccount;
+using AElf.ChainController;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using Xunit.Frameworks.Autofac;
-using ServiceStack;
 
 namespace AElf.Kernel.Tests
 {

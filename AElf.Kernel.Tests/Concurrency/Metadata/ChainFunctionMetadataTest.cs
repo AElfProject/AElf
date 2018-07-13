@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Kernel.Concurrency.Metadata;
+using AElf.SmartContract;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using Google.Protobuf;

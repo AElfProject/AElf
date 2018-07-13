@@ -1,6 +1,5 @@
-﻿using AElf.Database.Config;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Modules.AutofacModule;
+﻿using AElf.Kernel.Modules.AutofacModule;
+using AElf.SmartContract;
 using AElf.Runtime.CSharp;
 using Autofac;
 using Xunit;

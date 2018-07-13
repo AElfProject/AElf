@@ -1,7 +1,6 @@
-﻿using AElf.Kernel.Concurrency;
-using AElf.Kernel.Miner;
-using Akka.Actor;
-using Autofac;
+﻿using Autofac;
+using AElf.ChainController;
+using AElf.Execution;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
@@ -26,7 +25,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             }
             
             builder.RegisterType(typeof(ParallelTransactionExecutingService)).As<IParallelTransactionExecutingService>();
-            builder.RegisterType(typeof(Miner.Miner)).As<IMiner>();
+            builder.RegisterType(typeof(Miner)).As<IMiner>();
             builder.RegisterType(typeof(ConcurrencyExecutingService)).As<IConcurrencyExecutingService>().SingleInstance();
         }
     }

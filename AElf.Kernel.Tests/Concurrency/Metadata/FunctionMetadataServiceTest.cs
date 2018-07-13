@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
-using AElf.Kernel.Concurrency.Metadata;
+using AElf.SmartContract;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Sdk.CSharp;
 using AElf.Types.CSharp.MetadataAttribute;

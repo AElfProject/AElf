@@ -1,15 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
+using AElf.SmartContract;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
 using AElf.Kernel.Types.Merkle;
 using Akka.IO;
 using Google.Protobuf;
 using Moq;
-using Xunit;
 using Xunit.Frameworks.Autofac;
 
 namespace AElf.Kernel.Tests.Miner

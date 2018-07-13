@@ -1,5 +1,6 @@
-﻿using AElf.Kernel.Concurrency.Metadata;
-using Autofac;
+﻿using Autofac;
+using AElf.SmartContract.Metadata;
+using AElf.SmartContract;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {

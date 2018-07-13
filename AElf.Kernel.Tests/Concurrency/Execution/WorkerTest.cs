@@ -1,14 +1,12 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
-using AElf.Kernel.Concurrency.Execution;
-using AElf.Kernel.Concurrency.Execution.Messages;
+using AElf.SmartContract;
+using AElf.Execution;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {

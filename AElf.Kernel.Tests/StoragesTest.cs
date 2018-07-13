@@ -2,7 +2,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Cryptography.ECDSA;
+using AElf.SmartContract;
+using AElf.ChainController;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node;
 using AElf.Kernel.Storages;

@@ -1,16 +1,12 @@
 ﻿using System;
 using AElf.Database;
-using AElf.Database.Config;
-using AElf.Kernel.Concurrency;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Miner;
 using AElf.Kernel.Modules.AutofacModule;
-using AElf.Kernel.Node.Config;
-using AElf.Kernel.TxMemPool;
 using AElf.Launcher;
 using AElf.Network.Config;
 using AElf.Runtime.CSharp;
 using Autofac;
+using AElf.SmartContract;
+using AElf.Execution;
 
 namespace AElf.Concurrency.Worker
 {

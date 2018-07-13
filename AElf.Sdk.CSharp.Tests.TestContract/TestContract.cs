@@ -1,10 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
-using AElf.Sdk.CSharp.Types;
+﻿using AElf.Sdk.CSharp.Types;
 using AElf.Kernel;
-using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.Types;
-using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 using AElf.Types.CSharp.MetadataAttribute;
 

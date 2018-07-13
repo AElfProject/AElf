@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Kernel.Concurrency;
-using AElf.Kernel.Concurrency.Metadata;
-using ServiceStack.Redis;
+using AElf.SmartContract;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Contracts.Genesis;
-using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
@@ -13,6 +12,7 @@ using Google.Protobuf.WellKnownTypes;
 using SharpRepository.Repository.Configuration;
 using Api = AElf.Sdk.CSharp.Api;
 using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
+using AElf.Kernel.KernelAccount;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Tests

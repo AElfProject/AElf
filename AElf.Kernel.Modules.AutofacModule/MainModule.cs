@@ -1,5 +1,5 @@
-﻿using AElf.Kernel.Managers;
-using Autofac;
+﻿using Autofac;
+using AElf.SmartContract;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
@@ -21,7 +21,15 @@ namespace AElf.Kernel.Modules.AutofacModule
             var assembly3 = typeof(WorldStateDictator).Assembly;
             builder.RegisterAssemblyTypes(assembly3).AsImplementedInterfaces();
 
+            var assembly4 = typeof(ChainController.BlockVaildationService).Assembly;
+            builder.RegisterAssemblyTypes(assembly4).AsImplementedInterfaces();
+
+            var assembly5 = typeof(Execution.ParallelTransactionExecutingService).Assembly;
+            builder.RegisterAssemblyTypes(assembly5).AsImplementedInterfaces();
             
+            var assembly6 = typeof(Node.MainChainNode).Assembly;
+            builder.RegisterAssemblyTypes(assembly6).AsImplementedInterfaces();
+
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));
 
             builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));

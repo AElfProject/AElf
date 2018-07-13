@@ -1,8 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Node;
+using AElf.SmartContract;
+using AElf.ChainController;
 using AElf.Kernel.Storages;
 using AElf.Kernel.TxMemPool;
 using NLog;

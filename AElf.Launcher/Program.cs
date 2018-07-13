@@ -11,14 +11,14 @@ using AElf.Cryptography.ECDSA;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
-using AElf.Kernel.Concurrency;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Miner;
+//using AElf.Kernel.Concurrency;
+//using AElf.Kernel.KernelAccount;
+//using AElf.Kernel.Miner;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
 using AElf.Kernel.Node.Config;
-using AElf.Kernel.Services;
-using AElf.Kernel.TxMemPool;
+//using AElf.Kernel.Services;
+using AElf.ChainController;
 using AElf.Network.Config;
 using AElf.Runtime.CSharp;
 using Akka.Actor;
@@ -30,6 +30,8 @@ using IContainer = Autofac.IContainer;
 using ServiceStack;
 using Globals = AElf.Kernel.Globals;
 using Path = System.IO.Path;
+using AElf.SmartContract;
+using AElf.Execution;
 
 namespace AElf.Launcher
 {
@@ -164,6 +166,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new MainModule()); // todo : eventually we won't need this
             
             // Module registrations
+            builder.RegisterModule(new ManagersModule());
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new WorldStateDictatorModule());

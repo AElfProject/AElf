@@ -4,19 +4,17 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Concurrency;
-using AElf.Kernel.Concurrency.Execution;
-using AElf.Kernel.Concurrency.Execution.Messages;
-using AElf.Kernel.Concurrency.Scheduling;
-using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.KernelAccount;
+using AElf.ChainController;
+using AElf.SmartContract.Metadata;
+using AElf.Execution;
+using AElf.Execution.Scheduling;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Kernel.TxMemPool;
 using AElf.Runtime.CSharp;
 using AElf.Types.CSharp;
+using AElf.SmartContract;
 using Akka.Actor;
 using Google.Protobuf;
 using ServiceStack;
@@ -281,8 +279,9 @@ namespace AElf.Kernel.Tests.Miner
             block.FillTxsMerkleTreeRootInHeader();
             block.Body.BlockHeader = block.Header.GetHash();
 
-            var synchronizer = new Kernel.Miner.BlockExecutor(poolService,
+            var synchronizer = new BlockExecutor(poolService,
                 _chainManager, _blockManager, _worldStateDictator, _concurrencyExecutingService, null, _transactionManager, _transactionResultManager);
+
             synchronizer.Start(new Grouper(_servicePack.ResourceDetectionService));
             var res = await synchronizer.ExecuteBlock(block);
             Assert.False(res);

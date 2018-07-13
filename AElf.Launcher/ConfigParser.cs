@@ -7,14 +7,14 @@ using AElf.Common.ByteArrayHelpers;
 using AElf.Database;
 using AElf.Database.Config;
 using AElf.Kernel;
-using AElf.Kernel.Concurrency.Config;
-using AElf.Kernel.Concurrency.Execution.Config;
-using AElf.Kernel.Miner;
+//using AElf.Kernel.Concurrency.Config;
+//using AElf.Kernel.Concurrency.Execution.Config;
+//using AElf.Kernel.Miner;
 using AElf.Kernel.Node.Config;
-using AElf.Kernel.TxMemPool;
+using AElf.ChainController;
+using AElf.Configuration;
 using AElf.Network.Config;
 using AElf.Network.Data;
-using AElf.Network.Peers;
 using AElf.Runtime.CSharp;
 using CommandLine;
 using Google.Protobuf;
@@ -159,7 +159,7 @@ namespace AElf.Launcher
             };
 
             // tx pool config
-            TxPoolConfig = Kernel.TxMemPool.TxPoolConfig.Default;
+            TxPoolConfig = ChainController.TxPoolConfig.Default;
             TxPoolConfig.FeeThreshold = opts.MinimalFee;
             TxPoolConfig.PoolLimitSize = opts.PoolCapacity;
 

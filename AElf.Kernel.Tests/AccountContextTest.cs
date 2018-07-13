@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
+using AElf.ChainController;
+using AElf.SmartContract;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 

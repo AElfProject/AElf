@@ -59,8 +59,4 @@
     </ProjectReference>
     <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Concurrency\Execution\Messages\" />
-    <Folder Include="Concurrency\Scheduling\" />
-  </ItemGroup>
 </Project>

@@ -3,13 +3,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Storages;
-using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
 using Google.Protobuf;
-using AElf.Kernel.Concurrency.Execution;
-using AElf.Kernel.Concurrency.Execution.Messages;
-using AElf.Kernel.Concurrency.Metadata;
+using AElf.ChainController;
+using AElf.SmartContract;
+using AElf.Execution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Kernel.TxMemPool;
 using AElf.Types.CSharp;
@@ -97,7 +95,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
             Worker1.Tell(new LocalSerivcePack(ServicePack));
             Worker2.Tell(new LocalSerivcePack(ServicePack));
-            Requestor = Sys.ActorOf(AElf.Kernel.Concurrency.Execution.Requestor.Props(Router));
+            Requestor = Sys.ActorOf(AElf.Execution.Requestor.Props(Router));
         }
 
         public byte[] SmartContractZeroCode

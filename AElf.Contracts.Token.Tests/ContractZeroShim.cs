@@ -4,12 +4,7 @@ using System.Linq;
 using AElf.Kernel;
 using ServiceStack;
 using Google.Protobuf;
-using AElf.Runtime.CSharp;
-using AElf.Sdk.CSharp.Types;
-using Xunit.Frameworks.Autofac;
-using System.Reflection;
-using Xunit;
-using Google.Protobuf.WellKnownTypes;
+using AElf.SmartContract;
 using AElf.Types.CSharp;
 
 namespace AElf.Contracts.Token.Tests

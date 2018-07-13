@@ -1,7 +1,5 @@
-﻿using System;
+﻿using AElf.ChainController;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Services;
-using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
 using NLog;
 using Xunit;

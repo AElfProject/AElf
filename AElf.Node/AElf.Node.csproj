@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.ChainControllerImpl\AElf.ChainControllerImpl.csproj" />
+    <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
+    <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
+    <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.6.0" />
+    <PackageReference Include="ServiceStack" Version="5.1.0" />
+  </ItemGroup>
+</Project>

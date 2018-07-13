@@ -2,7 +2,7 @@
 using System.IO;
 using AElf.Kernel;
 using AElf.Types.CSharp;
-using Akka.Event;
+using AElf.SmartContract;
 using Xunit.Frameworks.Autofac;
 using Xunit;
 using ServiceStack;

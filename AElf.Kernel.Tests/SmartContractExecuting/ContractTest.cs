@@ -1,19 +1,11 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.Concurrency.Metadata;
-using AElf.Kernel.KernelAccount;
+using AElf.ChainController;
+using AElf.SmartContract;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
-using Type = System.Type;
-using AElf.Runtime.CSharp;
 using AElf.Types.CSharp;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting

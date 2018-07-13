@@ -1,16 +1,8 @@
-﻿using System;
-using System.Text;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.Types;
+using AElf.SmartContract;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;
-using Xunit;
 
 namespace AElf.Runtime.CSharp.Tests
 {
