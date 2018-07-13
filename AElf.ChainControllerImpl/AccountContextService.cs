@@ -32,7 +32,7 @@ namespace AElf.ChainController
                 return ctx;
             }
             
-            var adp = await _worldStateDictator.GetAccountDataProvider(account);
+            var adp = await _worldStateDictator.SetChainId(chainId).GetAccountDataProvider(account);
             var idBytes = await adp.GetDataProvider().GetAsync(GetKeyForIncrementId());
             var id = idBytes == null ? 0 : UInt64Value.Parser.ParseFrom(idBytes).Value;
             
