@@ -1,5 +1,6 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
@@ -25,6 +26,8 @@ namespace AElf.ChainController
         private readonly IWorldStateDictator _worldStateDictator;
         private ISmartContractService _smartContractService;
         private IConcurrencyExecutingService _concurrencyExecutingService;
+        private ITransactionManager _transactionManager;
+        private ITransactionResultManager _transactionResultManager;
 
 
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
@@ -36,14 +39,8 @@ namespace AElf.ChainController
         /// </summary>
         public CancellationTokenSource Cts { get; private set; }
 
-
         private IGrouper _grouper;
-
-        
-        /// <summary>
-        /// event set to mine
-        /// </summary>
-        public AutoResetEvent MiningResetEvent { get; private set; }
+      
         
         public IMinerConfig Config { get; }
 
@@ -51,7 +48,7 @@ namespace AElf.ChainController
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, 
                 IChainManager chainManager, IBlockManager blockManager, IWorldStateDictator worldStateDictator, 
-            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService)
+            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -60,6 +57,8 @@ namespace AElf.ChainController
             _worldStateDictator = worldStateDictator;
             _smartContractService = smartContractService;
             _concurrencyExecutingService = concurrencyExecutingService;
+            _transactionManager = transactionManager;
+            _transactionResultManager = transactionResultManager;
         }
 
         
@@ -71,7 +70,7 @@ namespace AElf.ChainController
                 if (Cts == null || Cts.IsCancellationRequested)
                     return null;            
 
-                var ready = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
+                var readyTxs = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
                 // TODO：dispatch txs with ISParallel, return list of tx results
 
                 // reset Promotable and update account context
@@ -79,13 +78,13 @@ namespace AElf.ChainController
                 List<TransactionTrace> traces = null;
                 if(Config.IsParallel)
                 {  
-                    traces = ready.Count == 0
+                    traces = readyTxs.Count == 0
                     ? new List<TransactionTrace>()
-                    : await _concurrencyExecutingService.ExecuteAsync(ready, Config.ChainId, _grouper);
+                    : await _concurrencyExecutingService.ExecuteAsync(readyTxs, Config.ChainId, _grouper);
                 }
                 else
                 {
-                    foreach (var transaction in ready)
+                    foreach (var transaction in readyTxs)
                     {
                         var executive = await _smartContractService.GetExecutiveAsync(transaction.To, Config.ChainId);
                         var txnInitCtxt = new TransactionContext()
@@ -101,8 +100,7 @@ namespace AElf.ChainController
                 {
                     var res = new TransactionResult()
                     {
-                        TransactionId = trace.TransactionId,
-                        
+                        TransactionId = trace.TransactionId
                     };
                     if (string.IsNullOrEmpty(trace.StdErr))
                     {
@@ -117,11 +115,15 @@ namespace AElf.ChainController
                     }
                     results.Add(res);
                 }
+                
+                // insert txs to db
+                // update tx pool state
+                var addrs = await InsertTxs(readyTxs, results);
+                await _txPoolService.UpdateAccountContext(addrs);
             
                 // generate block
                 var block = await GenerateBlockAsync(Config.ChainId, results);
-            
-                await _txPoolService.ResetAndUpdate(results);
+                
                 // sign block
                 ECSigner signer = new ECSigner();
                 var hash = block.GetHash();
@@ -147,7 +149,26 @@ namespace AElf.ChainController
             }
         }
         
-        
+        /// <summary>
+        /// update database
+        /// </summary>
+        /// <param name="executedTxs"></param>
+        /// <param name="txResults"></param>
+        private async Task<HashSet<Hash>> InsertTxs(List<ITransaction> executedTxs, List<TransactionResult> txResults)
+        {
+            var addrs = new HashSet<Hash>();
+            foreach (var t in executedTxs)
+            {
+                addrs.Add(t.From);
+                await _transactionManager.AddTransactionAsync(t);
+            }
+            
+            txResults.ForEach(async r =>
+            {
+                await _transactionResultManager.AddTransactionResultAsync(r);
+            });
+            return addrs;
+        }
         
         /// <summary>
         /// generate block
@@ -160,9 +181,14 @@ namespace AElf.ChainController
             
             var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
             var index = await _chainManager.GetChainCurrentHeight(chainId);
-            var block = new Block(lastBlockHash);
-            block.Header.Index = index;
-            block.Header.ChainId = chainId;
+            var block = new Block(lastBlockHash)
+            {
+                Header =
+                {
+                    Index = index,
+                    ChainId = chainId
+                }
+            };
 
             // add tx hash
             foreach (var r in results)

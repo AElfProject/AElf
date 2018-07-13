@@ -11,7 +11,6 @@ using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using Newtonsoft.Json.Linq;
 using ProtoBuf;
 using Transaction = AElf.CLI.Data.Protobuf.Transaction;
 
@@ -126,7 +125,7 @@ namespace AElf.CLI.Wallet
             var password = _screenManager.AskInvisible("password: ");
             var keypair = _keyStore.Create(password);
             if(keypair!=null)
-                _screenManager.PrintLine("account successfully created!");
+                _screenManager.PrintLine("Account address: " + keypair.GetAddressHex());
         }
 
         private void ListAccounts()

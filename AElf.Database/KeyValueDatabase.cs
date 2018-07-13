@@ -19,6 +19,12 @@ namespace AElf.Database
             return Task.CompletedTask;
         }
 
+        public Task RemoveAsync(string key)
+        {
+            _dictionary.TryRemove(key, out var _);
+            return Task.CompletedTask;
+        }
+
         public bool IsConnected()
         {
             return true;

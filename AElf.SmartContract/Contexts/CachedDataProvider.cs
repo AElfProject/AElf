@@ -1,15 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.ComponentModel;
 using System.Threading.Tasks;
-using AElf.Database;
-using AElf.Kernel.Managers;
-using AElf.Kernel;
-using AElf.Kernel.Types;
 using Google.Protobuf;
-using Microsoft.AspNetCore.Server.Kestrel.Transport.Libuv.Internal.Networking;
-using Microsoft.Net.Http.Headers;
+using AElf.Kernel;
 
 namespace AElf.SmartContract
 {
@@ -29,7 +22,7 @@ namespace AElf.SmartContract
 
         public byte[] CurrentValue
         {
-            get { return _currentValue; }
+            get => _currentValue;
             set
             {
                 Dirty = true;

@@ -25,6 +25,11 @@ namespace AElf.Database
             await Task.FromResult(_client.GetCacheClient().Set(key, bytes));
         }
 
+        public async Task RemoveAsync(string key)
+        {
+            await Task.FromResult(_client.GetCacheClient());
+        }
+
         public bool IsConnected()
         {
             try

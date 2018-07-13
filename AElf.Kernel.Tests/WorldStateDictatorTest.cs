@@ -1,25 +1,35 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using AElf.SmartContract;
+using AElf.ChainController;
 using AElf.Kernel.Storages;
+using AElf.Kernel.TxMemPool;
+using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
 namespace AElf.Kernel.Tests
 {
     [UseAutofacTestFramework]
-    public class WorldStateManagerTest
+    public class WorldStateDictatorTest
     {
         private readonly IWorldStateDictator _worldStateDictator;
-
+        private readonly ILogger _logger;
+        
         private readonly BlockTest _blockTest;
 
-        public WorldStateManagerTest(IWorldStateStore worldStateStore, IChangesStore changesStore, 
-            IDataStore dataStore, BlockTest blockTest)
+        public WorldStateDictatorTest(IWorldStateStore worldStateStore, IChangesStore changesStore,
+            IDataStore dataStore, ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore,
+            IBlockBodyStore blockBodyStore,
+            ITransactionStore transactionStore, BlockTest blockTest, ILogger logger)
         {
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore);
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore,
+                blockHeaderStore, blockBodyStore, transactionStore, _logger)
+            {
+                BlockProducerAccountAddress = Hash.Generate()
+            };
             _blockTest = blockTest;
-
+            _logger = logger;
         }
 
         [Fact]

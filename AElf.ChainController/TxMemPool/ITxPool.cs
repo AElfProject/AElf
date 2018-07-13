@@ -12,7 +12,6 @@ namespace AElf.ChainController
         /// <param name="txs"></param>
         void EnQueueTxs(HashSet<ITransaction> txs);
         
-        
         /// <summary>
         /// queue txs from tmp to waiting
         /// </summary>
@@ -26,20 +25,10 @@ namespace AElf.ChainController
         bool DiscardTx(ITransaction tx);
 
         /// <summary>
-        /// remove executed txs from executable
-        /// </summary>
-        //List<ITransaction> RemoveExecutedTxs();
-
-        /// <summary>
         /// promote txs from waiting to executable
         /// </summary>
         /// <param name="addrs"></param>
         void Promote(List<Hash> addrs = null);
-        
-        /// <summary>
-        /// return ready tx count 
-        /// </summary>
-        //ulong ReadyTxCount { get; }
         
         /// <summary>
         /// return pool size
@@ -51,17 +40,6 @@ namespace AElf.ChainController
         /// return tx list can be executed
         /// </summary>
         List<ITransaction> ReadyTxs(ulong limit);
-
-        /// <summary>
-        /// threshold for entering pool
-        /// </summary>
-        //ulong EntryThreshold { get; }
-
-        /// <summary>
-        /// txs can be enqueued to waiting list if Enqueueable is true,
-        /// otherwise they can't be.
-        /// </summary>
-        bool Enqueueable { get; set; }
         
         /// <summary>
         /// return chain id for this pool
@@ -79,28 +57,6 @@ namespace AElf.ChainController
         /// <returns></returns>
         ulong  MinimalFee { get; }
 
-
-        /// <summary>
-        /// cache incrementId for account
-        /// </summary>
-        /// <returns></returns>
-        ConcurrentDictionary <Hash, ulong> Nonces { get; }
-
-        /// <summary>
-        /// return a tx alread in pool
-        /// </summary>
-        /// <param name="txHash"></param>
-        /// <param name="tx"></param>
-        /// <returns></returns>
-        //bool GetTx(Hash txHash, out ITransaction tx);
-
-        /// <summary>
-        /// return a tx alread in pool
-        /// </summary>
-        /// <param name="txHash"></param>
-        /// <returns></returns>
-        //ITransaction GetTx(Hash txHash);
-
         /// <summary>
         /// clear all txs in pool
         /// </summary>
@@ -117,12 +73,6 @@ namespace AElf.ChainController
         void ClearExecutable();
 
         /// <summary>
-        /// return true if contained in pool, otherwise false
-        /// </summary>
-        /// <param name="txHash"></param>
-        //bool Contains(Hash txHash);
-        
-        /// <summary>
         /// return waiting list size
         /// </summary>
         /// <returns></returns>
@@ -135,18 +85,11 @@ namespace AElf.ChainController
         ulong GetExecutableSize();
 
         /// <summary>
-        /// return size for lists
+        /// return size for lists    
         /// </summary>
         /// <param name="waiting"></param>
         /// <param name="executable"></param>
         void GetPoolState(out ulong executable, out ulong waiting);
-
-        /// <summary>
-        /// return Tmp list size
-        /// </summary>
-        /// <returns></returns>
-        //ulong TmpSize { get; }
-
 
         /// <summary>
         /// return the biggest incrementId for the addr in the pool
@@ -156,15 +99,35 @@ namespace AElf.ChainController
         /// <returns></returns>
         ulong GetPendingIncrementId(Hash addr);
 
-
         /// <summary>
         /// return ready txs from the addr
         /// incrementIds should be 
         /// </summary>
         /// <param name="addr"></param>
         /// <param name="start"></param>
+        /// <param name="count"></param>
         /// <param name="ids"></param>
         /// <returns></returns>
-        List<ITransaction> ReadyTxs(Hash addr, ulong start, ulong count);
+        bool ReadyTxs(Hash addr, ulong start, ulong count);
+
+        /// <summary>
+        /// demote all txs from executable to waiting and reset nonces
+        /// </summary>
+        void Withdraw(Hash addr, ulong withdraw);
+
+        /// <summary>
+        /// add nonce if a new address inserted
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <param name="incrementId"></param>
+        /// <returns>return true if incrementId inserted</returns>
+        bool TrySetNonce(Hash addr, ulong incrementId);
+        
+        /// <summary>
+        /// return incrementId of account
+        /// </summary>
+        /// <param name="addr"></param>
+        /// <returns></returns>
+        ulong? GetNonce(Hash addr);
     }
 }

@@ -165,8 +165,6 @@ namespace AElf.Execution
                     available[j] = false;
                 }
             }
-            
         }
-        
     }
 }

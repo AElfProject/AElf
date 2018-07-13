@@ -81,7 +81,7 @@ namespace AElf.Kernel.TxMemPool
             throw new System.NotImplementedException();
         }
 
-        /*public void ResetAndUpdate(List<TransactionResult> txResultList)
+        /*public void UpdateAccountContext(List<TransactionResult> txResultList)
         {
             foreach (var res in txResultList)
             {

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
 using NLog;
@@ -53,7 +54,7 @@ namespace AElf.SmartContract.Metadata
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
-                throw new InvalidParameterException("No chainFunctionMetadata with chainId: " + chainId.Value.ToByteArray().ToHex());
+                throw new InvalidParameterException("No chainFunctionMetadata with chainId: " + chainId.ToHex());
             }
 
             return chainFuncMetadata.GetFunctionMetadata(addrFunctionName);

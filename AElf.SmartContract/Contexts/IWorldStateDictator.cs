@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Types;
 using AElf.Kernel;
 
 namespace AElf.SmartContract
@@ -19,7 +18,7 @@ namespace AElf.SmartContract
         
         Task<Hash> GetPointerAsync(Hash pathHash);
         
-        Task<Hash> CalculatePointerHashOfCurrentHeight(Path path);
+        Task<Hash> CalculatePointerHashOfCurrentHeight(IResourcePath resourcePath);
         
         Task InsertChangeAsync(Hash pathHash, Change change);
 
@@ -27,7 +26,7 @@ namespace AElf.SmartContract
         
         Task RollbackCurrentChangesAsync();
 
-        Task RollbackToSpecificHeight(ulong specificHeight);
+        Task<List<ITransaction>> RollbackToSpecificHeight(ulong specificHeight);
 
         Task<List<Hash>> GetPathsAsync(Hash blockHash = null);
 
@@ -44,7 +43,12 @@ namespace AElf.SmartContract
         Task<byte[]> GetDataAsync(Hash pointerHash);
 
         Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId);
+
+        Task SetBlockHashToCorrespondingHeight(ulong height, BlockHeader header);
         
         Hash PreBlockHash { get; set; }
+        
+        Hash BlockProducerAccountAddress { get; set; }
+
     }
 }

@@ -1,45 +1,37 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Kernel.Storages;
-using AElf.SmartContract;
-using Google.Protobuf.WellKnownTypes;
 using NLog;
 
 namespace AElf.Kernel.Managers
 {
+    [LoggerName(nameof(BlockManager))]
     public class BlockManager : IBlockManager
     {
         private readonly IBlockHeaderStore _blockHeaderStore;
 
         private readonly IBlockBodyStore _blockBodyStore;
 
-        private readonly IWorldStateDictator _worldStateDictator;
-        
+        private readonly IDataStore _dataStore;
+
         private readonly ILogger _logger;
 
-        private IDataProvider _heightOfBlock;
-
-        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore, IWorldStateDictator worldStateDictator, ILogger logger)
+        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
+            IDataStore dataStore, ILogger logger)
         {
             _blockHeaderStore = blockHeaderStore;
             _blockBodyStore = blockBodyStore;
-            _worldStateDictator = worldStateDictator;
+            _dataStore = dataStore;
             _logger = logger;
         }
 
         public async Task<IBlock> AddBlockAsync(IBlock block)
         {
-            if (!Validation(block))
-            {
-                throw new InvalidOperationException("Invalid block.");
-            }
-
             await _blockHeaderStore.InsertAsync(block.Header);
             await _blockBodyStore.InsertAsync(block.Body.GetHash(), block.Body);
 
             return block;
         }
-
 
         public async Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash)
         {
@@ -64,23 +56,22 @@ namespace AElf.Kernel.Managers
         
         public async Task<Block> GetNextBlockOf(Hash chainId, Hash blockHash)
         {
-            await InitialHeightOfBlock(chainId);
-            
             var nextBlockHeight = (await GetBlockAsync(blockHash)).Header.Index + 1;
-            var nextBlockHash = Hash.Parser.ParseFrom(await _heightOfBlock.GetAsync(new UInt64Value {Value = nextBlockHeight}.CalculateHash()));
+            var nextBlockHashBytes = await _dataStore.GetDataAsync(
+                ResourcePath.CalculatePointerForGettingBlockHashByHeight(chainId, nextBlockHeight));
+            var nextBlockHash = Hash.Parser.ParseFrom(nextBlockHashBytes);
             return await GetBlockAsync(nextBlockHash);
         }
         
         public async Task<Block> GetBlockByHeight(Hash chainId, ulong height)
         {
-            _logger?.Trace($"[{DateTime.UtcNow.ToLocalTime() : HH:mm:ss} - BlockManager] Trying to get block by height {height}");
-            
-            await InitialHeightOfBlock(chainId);
+            _logger?.Trace($"Trying to get block by height {height}");
 
-            var keyQuote = await _heightOfBlock.GetAsync(new UInt64Value {Value = height}.CalculateHash());
+            var keyQuote = await _dataStore.GetDataAsync(
+                ResourcePath.CalculatePointerForGettingBlockHashByHeight(chainId, height));
             if (keyQuote == null)
             {
-                _logger?.Trace($"[{DateTime.UtcNow.ToLocalTime() : HH:mm:ss} - BlockManager] Invalid block height - {height}");
+                _logger?.Error($"Invalid block height - {height}");
                 return null;
             }
             var key = Hash.Parser.ParseFrom(keyQuote);
@@ -92,26 +83,6 @@ namespace AElf.Kernel.Managers
                 Header = blockHeader,
                 Body = blockBody
             };
-        }
-
-
-        /// <summary>
-        /// The validation should be done in manager instead of storage.
-        /// </summary>
-        /// <param name="block"></param>
-        /// <returns></returns>
-        private bool Validation(IBlock block)
-        {
-            // TODO:
-            // Do some checks like duplication
-            return true;
-        }
-
-        private async Task InitialHeightOfBlock(Hash chainId)
-        {
-            _worldStateDictator.SetChainId(chainId);
-            _heightOfBlock = (await _worldStateDictator.GetAccountDataProvider(Path.CalculatePointerForAccountZero(chainId)))
-                .GetDataProvider().GetDataProvider("HeightOfBlock");
         }
     }
 }

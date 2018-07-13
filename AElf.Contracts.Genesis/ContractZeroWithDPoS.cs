@@ -20,7 +20,7 @@ namespace AElf.Contracts.Genesis
         private const int MiningTime = 8000;
 
         // After the chain creator start a chain, wait for other mimers join
-        private const int WaitFirstRoundTime = 12000;
+        private const int WaitFirstRoundTime = 6000;
 
         // Block producers check interval
         private const int CheckTime = 2000;
@@ -195,11 +195,6 @@ namespace AElf.Contracts.Genesis
 
         public async Task<RoundInfo> GenerateNextRoundOrder()
         {
-            if (!await Authentication(nameof(GenerateNextRoundOrder)))
-            {
-                return null;
-            }
-            
             var infosOfNextRound = new RoundInfo();
             var signatureDict = new Dictionary<Hash, string>();
             var orderDict = new Dictionary<int, string>();
@@ -253,11 +248,6 @@ namespace AElf.Contracts.Genesis
         
         public async Task<StringValue> SetNextExtraBlockProducer()
         {
-            if (!await Authentication(nameof(SetNextExtraBlockProducer)))
-            {
-                return null;
-            }
-            
             var firstPlace = await _firstPlaceMap.GetValueAsync(RoundsCount);
             var firstPlaceInfo = await GetBlockProducerInfoOfCurrentRound(firstPlace.Value);
             var sig = firstPlaceInfo.Signature;
@@ -326,11 +316,6 @@ namespace AElf.Contracts.Genesis
 
         public async Task<BoolValue> ReadyForHelpingProducingExtraBlock()
         {
-            if (!await Authentication(nameof(ReadyForHelpingProducingExtraBlock)))
-            {
-                return null;
-            }
-
             var me = Api.GetTransaction().From;
             var meAddress = AddressHashToString(me);
             
@@ -423,11 +408,6 @@ namespace AElf.Contracts.Genesis
 
         public async Task<BPInfo> PublishOutValueAndSignature(Hash outValue, Hash signature, UInt64Value roundsCount)
         {
-            if (!await Authentication(nameof(PublishOutValueAndSignature)))
-            {
-                return null;
-            }
-            
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
             
             var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, roundsCount);
@@ -446,11 +426,6 @@ namespace AElf.Contracts.Genesis
 
         public async Task<Hash> TryToPublishInValue(Hash inValue, UInt64Value roundsCount)
         {
-            if (!await Authentication(nameof(TryToPublishInValue)))
-            {
-                return null;
-            }
-            
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
             
             var info = await GetBlockProducerInfoOfSpecificRound(accountAddress, roundsCount);
@@ -470,11 +445,6 @@ namespace AElf.Contracts.Genesis
         /// <returns></returns>
         public async Task<RoundInfo> SupplyPreviousRoundInfo()
         {
-            if (!await Authentication(nameof(SupplyPreviousRoundInfo)))
-            {
-                return null;
-            }
-            
             var roundInfo = await _dPoSInfoMap.GetValueAsync(RoundsCount);
 
             foreach (var info in roundInfo.Info)
@@ -535,11 +505,6 @@ namespace AElf.Contracts.Genesis
         
         public async Task<Hash> CalculateSignature(Hash inValue)
         {
-            if (!await Authentication(nameof(CalculateSignature)))
-            {
-                return null;
-            }
-            
             var add = Hash.Default;
             var blockProducer = await GetBlockProducers();
             foreach (var node in blockProducer.Nodes)
@@ -713,20 +678,19 @@ namespace AElf.Contracts.Genesis
             return result + "\n";
         }
 
-        public async Task<BoolValue> BlockProducerVerification(StringValue accountAddress)
+        public async Task<BoolValue> BlockProducerVerification(StringValue accountAddress, Timestamp timestampOfBlock)
         {
             if (!await IsBP(accountAddress.Value))
             {
                 return new BoolValue {Value = false};
             }
 
-            var now = GetTimestampOfUtcNow();
             var timeslotOfBlockProducer = await GetTimeSlot(accountAddress.Value);
             var endOfTimeslotOfBlockProducer = GetTimestamp(timeslotOfBlockProducer, MiningTime);
             // ReSharper disable once InconsistentNaming
             var timeslotOfEBP = await _timeForProducingExtraBlock.GetAsync();
-            if (CompareTimestamp(now, timeslotOfBlockProducer) && CompareTimestamp(endOfTimeslotOfBlockProducer, now) ||
-                CompareTimestamp(now, timeslotOfEBP))
+            if (CompareTimestamp(timestampOfBlock, timeslotOfBlockProducer) && CompareTimestamp(endOfTimeslotOfBlockProducer, timestampOfBlock) ||
+                CompareTimestamp(timestampOfBlock, timeslotOfEBP))
             {
                 return new BoolValue {Value = true};
             }
@@ -738,7 +702,7 @@ namespace AElf.Contracts.Genesis
                     await GetBlockProducerInfoOfSpecificRound(accountAddress.Value, new UInt64Value {Value = i});
                 var timeslot = blockProducerInfo.TimeSlot;
                 var timeslotEnd = GetTimestamp(timeslot, MiningTime);
-                if (CompareTimestamp(now, timeslot) && CompareTimestamp(timeslotEnd, now))
+                if (CompareTimestamp(timestampOfBlock, timeslot) && CompareTimestamp(timeslotEnd, timestampOfBlock))
                 {
                     return new BoolValue {Value = true};
                 }
@@ -797,19 +761,22 @@ namespace AElf.Contracts.Genesis
 
         private async Task<BPInfo> GetBlockProducerInfoOfSpecificRound(string accountAddress, UInt64Value roundsCount)
         {
+            //ConsoleWriteLine($"Try to get bp {accountAddress}'s info of {roundsCount.Value} round");
             return (await _dPoSInfoMap.GetValueAsync(roundsCount)).Info[accountAddress];
         }
         
         private async Task<BPInfo> GetBlockProducerInfoOfCurrentRound(string accountAddress)
         {
+            //ConsoleWriteLine($"Try to get bp {accountAddress}'s info of {RoundsCount.Value} round");
             return (await _dPoSInfoMap.GetValueAsync(RoundsCount)).Info[accountAddress];
         }
         
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private string AddressHashToString(Hash accountHash)
         {
-            return accountHash.ToAccount().Value.ToByteArray().ToHex().Remove(0, 2);
+            return accountHash.ToAccount().ToHex().Remove(0, 2);
         }
+
 
         /// <summary>
         /// In case of forgetting to check negtive value.

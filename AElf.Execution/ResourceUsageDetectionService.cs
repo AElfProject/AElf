@@ -20,7 +20,7 @@ namespace AElf.Execution
         {
 
             var addrs = GetRelatedAccount(transaction).ToImmutableHashSet()
-                .Select(addr => addr.Value.ToByteArray().ToHex()).ToList();
+                .Select(addr => addr.ToHex()).ToList();
 
             var results = new List<string>();
             var functionMetadata = _functionMetadataService.GetFunctionMetadata(chainId, GetFunctionName(transaction));
@@ -46,7 +46,7 @@ namespace AElf.Execution
 
         private string GetFunctionName(ITransaction tx)
         {
-            return tx.To.Value.ToByteArray().ToHex() + "." + tx.MethodName;
+            return tx.To.ToHex() + "." + tx.MethodName;
         }
 
         private List<Hash> GetRelatedAccount(ITransaction transaction)

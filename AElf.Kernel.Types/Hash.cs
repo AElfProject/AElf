@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography.ECDSA;
 
 using Google.Protobuf;
@@ -17,7 +18,7 @@ namespace AElf.Kernel
         
         public Hash ToAccount()
         {
-            return Value.ToByteArray().Take(ECKeyPair.AddressLength).ToArray();
+            return GetHashBytes().Take(ECKeyPair.AddressLength).ToArray();
         }
         
         public static readonly Hash Zero = new Hash("AElf".CalculateHash()).ToAccount();
@@ -44,9 +45,11 @@ namespace AElf.Kernel
 
         public int Compare(IHash x, IHash y)
         {
-            if (Equals(x, y))
-                return 0;
-
+            if (x == null || y == null)
+            {
+                throw new InvalidOperationException("Cannot compare hash when hash is null");
+            }
+            
             var xValue = x.Value;
             var yValue = y.Value;
             for (var i = 0; i < Math.Min(xValue.Length, yValue.Length); i++)
@@ -55,9 +58,14 @@ namespace AElf.Kernel
                 {
                     return 1;
                 }
+
+                if (xValue[i] < yValue[i])
+                {
+                    return -1;
+                }
             }
 
-            return -1;
+            return 0;
         }
 
         public static bool operator ==(Hash h1, Hash h2)
@@ -79,6 +87,10 @@ namespace AElf.Kernel
         {
             return value == null ? Default : new Hash(value);
         }
-        
+
+        public string ToHex()
+        {
+            return GetHashBytes().ToHex();
+        }
     }
 }

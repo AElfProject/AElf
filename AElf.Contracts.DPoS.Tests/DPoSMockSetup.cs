@@ -8,7 +8,6 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Runtime.CSharp;
 using Google.Protobuf;
-using Path = AElf.Kernel.Path;
 
 namespace AElf.Contracts.DPoS.Tests
 {
@@ -65,7 +64,7 @@ namespace AElf.Contracts.DPoS.Tests
 
         private async Task Init()
         {
-            DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
+            DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId1));
         }
 
         public async Task DeployContractAsync(byte[] code, Hash address)

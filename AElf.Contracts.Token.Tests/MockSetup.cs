@@ -9,7 +9,6 @@ using AElf.SmartContract;
 using AElf.Execution;
 using Google.Protobuf;
 using ServiceStack;
-using Path = AElf.Kernel.Path;
 
 namespace AElf.Contracts.Token.Tests
 {
@@ -88,7 +87,7 @@ namespace AElf.Contracts.Token.Tests
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
-            DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(Path.CalculatePointerForAccountZero(ChainId1));
+            DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId1));
         }
         
         public async Task<IExecutive> GetExecutiveAsync(Hash address)

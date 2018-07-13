@@ -14,6 +14,8 @@ namespace AElf.Kernel.Tests
         public AccountContextTest(IWorldStateDictator worldStateDictator)
         {
             worldStateDictator.SetChainId(Hash.Generate());
+            worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
+
             _accountContextService = new AccountContextService(worldStateDictator);
         }
 

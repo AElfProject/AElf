@@ -1,9 +1,11 @@
 ﻿using System.Threading.Tasks;
-using AElf.Kernel.Types;
 using AElf.Kernel;
 
 namespace AElf.SmartContract
 {
+    /// <summary>
+    /// A DataProvider is used to access database and will cause changes.
+    /// </summary>
     public interface IDataProvider
     {
         IDataProvider GetDataProvider(string name);

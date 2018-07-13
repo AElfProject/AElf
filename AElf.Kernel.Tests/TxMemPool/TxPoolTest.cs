@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
@@ -6,6 +8,8 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using Newtonsoft.Json.Linq;
 using NLog;
+using Org.BouncyCastle.Asn1.Esf;
+using Org.BouncyCastle.Crypto.Agreement.JPake;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities.Collections;
 using Xunit;
@@ -78,7 +82,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var tx = BuildTransaction();
             var tmp = new HashSet<ITransaction> {tx};
             var ctx = await _accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
-            pool.Nonces[tx.From] = ctx.IncrementId;
+            pool.TrySetNonce(tx.From,ctx.IncrementId);
             pool.EnQueueTxs(tmp);
             
             pool.GetPoolState(out var executable, out var waiting);
@@ -86,6 +90,49 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.Equal(1, (int)executable);
         }
 
+        [Fact]
+        public void DemoteTxs()
+        {
+            var pool = GetPool();
+            var kp1 = new KeyPairGenerator().Generate();
+            var tx1_0 = BuildTransaction(nonce: 2, keyPair:kp1);
+            var tx1_1 = BuildTransaction(nonce: 1, keyPair:kp1);
+            var tx1_2 = BuildTransaction(nonce: 3, keyPair: kp1);
+
+            pool.TrySetNonce(kp1.GetAddress(), 1);
+            pool.EnQueueTx(tx1_0);
+            pool.EnQueueTx(tx1_1);
+            pool.EnQueueTx(tx1_2);
+            
+            Assert.Equal((ulong)0, pool.GetWaitingSize());
+            Assert.Equal((ulong)3, pool.GetExecutableSize());
+            
+            pool.Withdraw(kp1.GetAddress(), 0);
+            Assert.Equal((ulong)0, pool.GetNonce(kp1.GetAddress()));
+            Assert.Equal((ulong)0, pool.GetExecutableSize());
+            Assert.Equal((ulong)3, pool.GetWaitingSize());
+
+            var tx1_4 = BuildTransaction(nonce: 0, keyPair: kp1);
+            pool.EnQueueTx(tx1_4);
+            Assert.Equal((ulong)4, pool.GetExecutableSize());
+            Assert.Equal((ulong)0, pool.GetWaitingSize());
+        }
+
+        [Fact]
+        public void Foreach()
+        {
+            var list = new List<int>();
+            int t = 1000;
+            while (t-- >0)
+            {
+                list.Add(t);
+            }
+            list.ForEach(async i =>
+            {
+                await Task.Delay(1000);
+                System.Diagnostics.Debug.WriteLine(i + " " + Thread.CurrentThread.ManagedThreadId);
+            });
+        }
         
         /*[Fact]
         public async Task ContainsTx_ReturnsTrue_AfterAdd()
@@ -133,7 +180,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var tx = BuildTransaction();
             var tmp = new HashSet<ITransaction> {tx};
             var ctx =  await _accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
-            pool.Nonces[tx.From] = ctx.IncrementId;
+            pool.TrySetNonce(tx.From, ctx.IncrementId);
             pool.EnQueueTxs(tmp);
             
             //pool.Promote();
@@ -142,7 +189,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             Assert.Equal(1, ready.Count);
             Assert.True(ready.Contains(tx));
-            Assert.Equal(pool.Nonces[tx.From], ctx.IncrementId + 1);
+            Assert.Equal(pool.GetNonce(tx.From).Value, ctx.IncrementId + 1);
         }
 
 

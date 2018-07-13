@@ -10,8 +10,8 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var list = new List<string>()
             {
-                transaction.From.Value.ToByteArray().ToHex(),
-                transaction.To.Value.ToByteArray().ToHex()
+                transaction.From.ToHex(),
+                transaction.To.ToHex()
             };
             return list.Select(a => a);
         }

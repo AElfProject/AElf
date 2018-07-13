@@ -1,4 +1,3 @@
-using AElf.Kernel.Managers;
 using AElf.Kernel;
 
 namespace AElf.SmartContract
@@ -13,7 +12,7 @@ namespace AElf.SmartContract
             IWorldStateDictator worldStateDictator)
         {
             _worldStateDictator = worldStateDictator;
-            
+
             //Just use its structure to store info.
             Context = new AccountDataContext
             {

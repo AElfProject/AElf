@@ -7,6 +7,7 @@ namespace AElf.Database
     {
         Task<byte[]> GetAsync(string key,Type type);
         Task SetAsync(string key, byte[] bytes);
+        Task RemoveAsync(string key);
         bool IsConnected();
     }
 }

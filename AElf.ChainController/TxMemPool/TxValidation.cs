@@ -9,17 +9,18 @@ namespace AElf.ChainController
     {
         public enum TxInsertionAndBroadcastingError
         {
-            Success,
+            Success = 0,
+            AlreadyInserted,
             Valid,
             InvalidTxFormat,
             NotEnoughGas,
             TooBigSize,
             WrongAddress,
             InvalidSignature,
-            AlreadyInserted,
             PoolClosed,
             BroadCastFailed,
-            Failed
+            Failed,
+            AlreadyExecuted
         }
         /// <summary>
         /// validate a tx size, signature, account format

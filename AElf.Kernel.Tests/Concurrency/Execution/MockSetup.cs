@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Reflection;
-using AElf.Kernel;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Managers;
 using Google.Protobuf;
@@ -14,8 +9,10 @@ using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
+using AElf.Kernel.TxMemPool;
 using AElf.Types.CSharp;
 using Akka.Actor;
+using NLog;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
@@ -59,22 +56,30 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
         private IFunctionMetadataService _functionMetadataService;
+        private ILogger _logger;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateStore worldStateStore, IChangesStore changesStore, IDataStore dataStore, IChainCreationService chainCreationService,
-            IBlockManager blockManager, SmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IWorldStateStore worldStateStore, IChangesStore changesStore,
+            IDataStore dataStore, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
+            ITransactionStore transactionStore, IChainCreationService chainCreationService,
+            IBlockManager blockManager, ISmartContractStore smartContractStore,
+            IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
+            ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger)
         {
-            _worldStateDictator = new WorldStateDictator( worldStateStore, changesStore,  dataStore);
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore,
+                blockHeaderStore, blockBodyStore, transactionStore, _logger);
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
+            _logger = logger;
             SmartContractManager = new SmartContractManager(smartContractStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator, functionMetadataService);
+                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator,
+                    functionMetadataService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
             {
@@ -83,7 +88,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 ResourceDetectionService = new NewMockResourceUsageDetectionService(),
                 WorldStateDictator = _worldStateDictator
             };
-            
+
             var workers = new[] {"/user/worker1", "/user/worker2"};
             Worker1 = Sys.ActorOf(Props.Create<Worker>(), "worker1");
             Worker2 = Sys.ActorOf(Props.Create<Worker>(), "worker2");
@@ -92,7 +97,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Worker2.Tell(new LocalSerivcePack(ServicePack));
             Requestor = Sys.ActorOf(AElf.Execution.Requestor.Props(Router));
         }
-        
+
         public byte[] SmartContractZeroCode
         {
             get
@@ -113,13 +118,13 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
             DataProvider1 =
                 await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(
-                    Path.CalculatePointerForAccountZero(ChainId1));
+                    ResourcePath.CalculatePointerForAccountZero(ChainId1));
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, reg);
             var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
             DataProvider2 =
                 await (_worldStateDictator.SetChainId(ChainId2)).GetAccountDataProvider(
-                    Path.CalculatePointerForAccountZero(ChainId2));
+                    ResourcePath.CalculatePointerForAccountZero(ChainId2));
         }
 
         private async Task DeploySampleContracts()

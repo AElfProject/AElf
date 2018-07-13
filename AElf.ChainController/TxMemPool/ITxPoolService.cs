@@ -13,7 +13,7 @@ namespace AElf.ChainController
         /// <param name="tx"></param>
         /// <returns></returns>
         Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx);
-        
+
         /// <summary>
         /// remove a tx
         /// </summary>
@@ -88,7 +88,7 @@ namespace AElf.ChainController
         /// which happens a block generated 
         /// </summary>
         /// <returns></returns>
-        Task ResetAndUpdate(List<TransactionResult> txResultList);
+        Task UpdateAccountContext(HashSet<Hash> txResultList);
         
         /// <summary>
         /// open transaction pool
@@ -100,7 +100,7 @@ namespace AElf.ChainController
         /// </summary>
         Task Stop();
 
-        ulong GetIncrementId(Hash addr);
+        Task<ulong> GetIncrementId(Hash addr);
         
         /// <summary>
         /// promote txs from some addresses
@@ -113,8 +113,15 @@ namespace AElf.ChainController
         /// 
         /// </summary>
         /// <param name="addr"></param>
+        /// <param name="start"></param>
         /// <param name="ids"></param>
         /// <returns></returns>
-        Task<List<ITransaction>> GetReadyTxsAsync(Hash addr, ulong start, ulong ids);
+        Task<bool> GetReadyTxsAsync(Hash addr, ulong start, ulong ids);
+
+        /// <summary>
+        /// roll back
+        /// </summary>
+        /// <returns></returns>
+        Task RollBack(List<ITransaction> txsOut);
     }
 }

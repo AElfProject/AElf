@@ -1,5 +1,4 @@
-﻿using AElf.Kernel.Types;
-using AElf.Kernel;
+﻿using AElf.Kernel;
 
 namespace AElf.SmartContract
 {
