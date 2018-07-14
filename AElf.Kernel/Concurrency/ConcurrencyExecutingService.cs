@@ -80,6 +80,7 @@ namespace AElf.Kernel.Concurrency
                 config = ConfigurationFactory.ParseString(workerConfigs.ToString()).WithFallback(config);
                 
                 _actorSystem = ActorSystem.Create(SystemName, config);
+                
                 //Todo waiting for join cluster. we should get the status here.
                 Thread.Sleep(8000);
                 _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");

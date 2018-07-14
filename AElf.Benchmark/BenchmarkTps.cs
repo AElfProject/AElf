@@ -39,19 +39,22 @@ namespace AElf.Benchmark
 
         private readonly TransactionDataGenerator _dataGenerater;
         private readonly Hash _contractHash;
-        
+
         private Hash ChainId { get; }
         private int _incrementId = 0;
-        
+
         public byte[] SmartContractZeroCode
         {
             get
             {
                 byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(System.IO.Path.Combine(_options.DllDir, _options.ZeroContractDll))))
+                using (FileStream file =
+                    File.OpenRead(
+                        System.IO.Path.GetFullPath(System.IO.Path.Combine(_options.DllDir, _options.ZeroContractDll))))
                 {
                     code = file.ReadFully();
                 }
+
                 return code;
             }
         }
@@ -59,13 +62,14 @@ namespace AElf.Benchmark
         public Benchmarks(IChainCreationService chainCreationService, IBlockManager blockManager,
             IChainContextService chainContextService, ISmartContractService smartContractService,
             ILogger logger, IFunctionMetadataService functionMetadataService,
-            IAccountContextService accountContextService, IWorldStateDictator worldStateDictator, BenchmarkOptions options, IConcurrencyExecutingService concurrencyExecutingService)
+            IAccountContextService accountContextService, IWorldStateDictator worldStateDictator,
+            BenchmarkOptions options, IConcurrencyExecutingService concurrencyExecutingService)
         {
             ChainId = Hash.Generate();
-            
+
             _worldStateDictator = worldStateDictator;
             _worldStateDictator.SetChainId(ChainId).DeleteChangeBeforesImmidiately = true;
-            
+
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             _smartContractService = smartContractService;
@@ -85,36 +89,42 @@ namespace AElf.Benchmark
             };
 
             //TODO: set timeout to int.max in order to run the large trunk of tx list
-            
+
             _dataGenerater = new TransactionDataGenerator(options.TxNumber);
             byte[] code = null;
-            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(options.DllDir + "/" + options.ContractDll)))
+            using (FileStream file =
+                File.OpenRead(System.IO.Path.GetFullPath(options.DllDir + "/" + options.ContractDll)))
             {
                 code = file.ReadFully();
             }
+
             _contractHash = Prepare(code).Result;
-            
+
             InitContract(_contractHash, _dataGenerater.KeyDict).GetResult();
-            
         }
 
-        
 
         public async Task BenchmarkEvenGroup()
         {
             var resDict = new Dictionary<string, double>();
             try
             {
-                for (int currentGroupCount = _options.GroupRange.ElementAt(0); currentGroupCount <= _options.GroupRange.ElementAt(1); currentGroupCount++)
+                for (int currentGroupCount = _options.GroupRange.ElementAt(0);
+                    currentGroupCount <= _options.GroupRange.ElementAt(1);
+                    currentGroupCount++)
                 {
-                    _logger.Info($"Start executing {currentGroupCount} groups where have {_options.TxNumber} transactions in total");
+                    _logger.Info(
+                        $"Start executing {currentGroupCount} groups where have {_options.TxNumber} transactions in total");
                     var res = await MultipleGroupBenchmark(_options.TxNumber, currentGroupCount);
                     resDict.Add(res.Key, res.Value);
                 }
 
-                _logger.Info("Benchmark report \n \t Configuration: \n" + 
-                             string.Join("\n", _options.ToStringDictionary().Select(option => string.Format("\t {0} - {1}", option.Key, option.Value))) + 
-                             "\n\n\n\t Benchmark result:\n" + string.Join("\n", resDict.Select(kv=> "\t" + kv.Key + ": " + kv.Value)));
+                _logger.Info("Benchmark report \n \t Configuration: \n" +
+                             string.Join("\n",
+                                 _options.ToStringDictionary().Select(option =>
+                                     string.Format("\t {0} - {1}", option.Key, option.Value))) +
+                             "\n\n\n\t Benchmark result:\n" +
+                             string.Join("\n", resDict.Select(kv => "\t" + kv.Key + ": " + kv.Value)));
             }
             catch (Exception e)
             {
@@ -126,30 +136,31 @@ namespace AElf.Benchmark
         public async Task<KeyValuePair<string, double>> MultipleGroupBenchmark(int txNumber, int groupCount)
         {
             int repeatTime = _options.RepeatTime;
-        
+
             var txList = _dataGenerater.GetMultipleGroupTx(txNumber, groupCount, _contractHash);
 
             var targets = GetTargetHashesForTransfer(txList);
             var originBalance = await ReadBalancesForAddrs(targets, _contractHash);
-            var expectedTransferBalance = originBalance.Select(balance => balance + (ulong)(((txNumber / groupCount) * 20)*repeatTime)).ToList();
-            
+            var expectedTransferBalance = originBalance
+                .Select(balance => balance + (ulong) (((txNumber / groupCount) * 20) * repeatTime)).ToList();
+
             long timeused = 0;
-            
+
             for (int i = 0; i < repeatTime; i++)
             {
-                _logger.Info($"round {i+1} / {repeatTime} start");
+                _logger.Info($"round {i + 1} / {repeatTime} start");
                 foreach (var tx in txList)
                 {
                     tx.IncrementId += 1;
                 }
+
                 Stopwatch swExec = new Stopwatch();
                 swExec.Start();
 
                 var txResult = await Task.Factory.StartNew(async () =>
-                {
-                    return await _concurrencyExecutingService.ExecuteAsync(txList, ChainId,new Grouper(_servicePack.ResourceDetectionService, _logger) );
-                }).Unwrap();
-        
+                    await _concurrencyExecutingService.ExecuteAsync(txList, ChainId,
+                        new Grouper(_servicePack.ResourceDetectionService, _logger))).Unwrap();
+
                 swExec.Stop();
                 timeused += swExec.ElapsedMilliseconds;
                 txResult.ForEach(trace =>
@@ -159,12 +170,12 @@ namespace AElf.Benchmark
                         _logger.Error("Execution error: " + trace.StdErr);
                     }
                 });
-                
-                _logger.Info($"round {i+1} / {repeatTime} ended, used time {swExec.ElapsedMilliseconds} ms");
+
+                _logger.Info($"round {i + 1} / {repeatTime} ended, used time {swExec.ElapsedMilliseconds} ms");
             }
-            
+
             var acturalBalance = await ReadBalancesForAddrs(GetTargetHashesForTransfer(txList), _contractHash);
-            
+
             //A double zip, first combine expectedTransferBalance with acturalBalance to get the compare string " {tx count per group} * transferBal * repeatTime = {expected} || {actural}"
             //              then combine originBalance with the compare string above.
             _logger.Info(
@@ -173,7 +184,8 @@ namespace AElf.Benchmark
                     originBalance.Zip(
                         expectedTransferBalance.Zip(
                             acturalBalance,
-                            (expected, actural) => $"{txNumber / groupCount} * 20 * {repeatTime} = {expected} || actural: {actural}"),
+                            (expected, actural) =>
+                                $"{txNumber / groupCount} * 20 * {repeatTime} = {expected} || actural: {actural}"),
                         (origin, compareStr) => $"expected: {origin} + {compareStr}")));
 
 
@@ -181,14 +193,15 @@ namespace AElf.Benchmark
             {
                 if (expectedTransferBalance[j] != acturalBalance[j])
                 {
-                    throw new Exception($"Result inconsist in transaction with {groupCount} groups, see log for more details");
+                    throw new Exception(
+                        $"Result inconsist in transaction with {groupCount} groups, see log for more details");
                 }
             }
-            
-            var time = txNumber / (timeused / 1000.0 / (double)repeatTime);
+
+            var time = txNumber / (timeused / 1000.0 / (double) repeatTime);
             var str = groupCount + " groups with " + txList.Count + " tx in total";
 
-            return new KeyValuePair<string,double>(str, time);
+            return new KeyValuePair<string, double>(str, time);
         }
 
         private List<Hash> GetTargetHashesForTransfer(List<ITransaction> transactions)
@@ -197,10 +210,12 @@ namespace AElf.Benchmark
             {
                 throw new Exception("Missuse for function GetTargetHashesForTransfer with non transfer transactions");
             }
+
             HashSet<Hash> res = new HashSet<Hash>();
             foreach (var tx in transactions)
             {
-                var parameters = ParamsPacker.Unpack(tx.Params.ToByteArray(), new[] {typeof(Hash), typeof(Hash), typeof(ulong)});
+                var parameters = ParamsPacker.Unpack(tx.Params.ToByteArray(),
+                    new[] {typeof(Hash), typeof(Hash), typeof(ulong)});
                 res.Add(parameters[1] as Hash);
             }
 
@@ -220,25 +235,25 @@ namespace AElf.Benchmark
                     MethodName = "GetBalance",
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(target)),
                 };
-                
+
                 var txnCtxt = new TransactionContext()
                 {
                     Transaction = tx
                 };
-            
+
                 var executive = await _smartContractService.GetExecutiveAsync(tokenContractAddr, ChainId);
                 await executive.SetTransactionContext(txnCtxt).Apply(true);
-                
+
                 res.Add(txnCtxt.Trace.RetVal.Data.DeserializeToUInt64());
             }
 
             return res;
         }
-        
+
         public ulong NewIncrementId()
         {
             var n = Interlocked.Increment(ref _incrementId);
-            return (ulong)n;
+            return (ulong) n;
         }
 
         public async Task<Hash> Prepare(byte[] contractCode)
@@ -250,15 +265,15 @@ namespace AElf.Benchmark
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.Zero
             };
-            
+
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
             var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
             var contractAddressZero = _chainCreationService.GenesisContractHash(ChainId);
-            
-            
+
+
             //deploy token contract
             var code = contractCode;
-            
+
             var txnDep = new Transaction()
             {
                 From = Hash.Zero.ToAccount(),
@@ -267,16 +282,16 @@ namespace AElf.Benchmark
                 MethodName = "DeploySmartContract",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code))
             };
-            
+
             var txnCtxt = new TransactionContext()
             {
                 Transaction = txnDep
             };
-            
+
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply(true);
 
-            
+
             var contractAddr = txnCtxt.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
             return contractAddr;
         }
@@ -293,14 +308,14 @@ namespace AElf.Benchmark
                 MethodName = "Initialize",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(name, Hash.Zero.ToAccount()))
             };
-            
+
             var txnInitCtxt = new TransactionContext()
             {
                 Transaction = txnInit
             };
             var executiveUser = await _smartContractService.GetExecutiveAsync(contractAddr, ChainId);
             await executiveUser.SetTransactionContext(txnInitCtxt).Apply(true);
-            
+
             //init contract
             var initTxList = new List<ITransaction>();
             foreach (var addr in addrBook)
@@ -313,11 +328,12 @@ namespace AElf.Benchmark
                     MethodName = "InitBalance",
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(addr))
                 };
-                
+
                 initTxList.Add(txnBalInit);
             }
-            var txTrace = await _concurrencyExecutingService.ExecuteAsync(initTxList, ChainId,new Grouper(_servicePack.ResourceDetectionService, _logger));
+
+            var txTrace = await _concurrencyExecutingService.ExecuteAsync(initTxList, ChainId,
+                new Grouper(_servicePack.ResourceDetectionService, _logger));
         }
-        
     }
 }

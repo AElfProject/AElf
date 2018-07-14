@@ -19,12 +19,9 @@ namespace AElf.Kernel.Concurrency.Execution
 
     public class Requestor : UntypedActor
     {
-        private long _currentRequestId = 0;
+        private long _currentRequestId;
 
-        private long NextRequestId
-        {
-            get => Interlocked.Increment(ref _currentRequestId);
-        }
+        private long NextRequestId => Interlocked.Increment(ref _currentRequestId);
 
         private Dictionary<long, TaskCompletionSource<List<TransactionTrace>>> _requestIdToTaskCompleteSource =
             new Dictionary<long, TaskCompletionSource<List<TransactionTrace>>>();
@@ -66,6 +63,7 @@ namespace AElf.Kernel.Concurrency.Execution
                 case TransactionTraceMessage msg:
                     if (!_requestIdToTraces.TryGetValue(msg.RequestId, out var traces))
                     {
+                        Console.WriteLine("###Debug:{0}, {1}",  msg.RequestId, _requestIdToTraces.Keys);
                         throw new TaskNotCompletedProperlyException("TransactionTrace is received after the task has completed.");
                     }
 
