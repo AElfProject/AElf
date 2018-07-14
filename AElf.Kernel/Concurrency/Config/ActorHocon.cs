@@ -43,8 +43,10 @@
                     }
                     serializers {
                         hyperion = ""Akka.Serialization.HyperionSerializer, Akka.Serialization.Hyperion""
+                        bytes = ""Akka.Serialization.ByteArraySerializer""
                     }
                     serialization-bindings {
+                        ""System.Byte[]"" = bytes
                         ""System.Object"" = hyperion
                     }
                 }
