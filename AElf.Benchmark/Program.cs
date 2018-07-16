@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Database;
 using AElf.Database.Config;
@@ -142,6 +143,8 @@ namespace AElf.Benchmark
                     concurrencySercice.InitActorSystem();
 
                     var benchmarkTps = scope.Resolve<Benchmarks>();
+                    
+                    Thread.Sleep(200); //sleep 200 ms to let async console print in order 
                     await benchmarkTps.BenchmarkEvenGroup();
                 }
             }

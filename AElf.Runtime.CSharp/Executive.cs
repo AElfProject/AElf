@@ -82,6 +82,11 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
+        public void SetDataCache(Dictionary<Hash, StateCache> cache)
+        {
+            _currentSmartContractContext.DataProvider.StateCache = cache;
+        }
+
         // ReSharper disable once InconsistentNaming
         public Executive SetApi(Type ApiType)
         {
@@ -193,8 +198,11 @@ namespace AElf.Runtime.CSharp
                         .GetValueChanges());
                     if (autoCommit)
                     {
-                        await _currentTransactionContext.Trace.CommitChangesAsync(_worldStateDictator,
+                        var changeDict = await _currentTransactionContext.Trace.CommitChangesAsync(_worldStateDictator,
                             _currentSmartContractContext.ChainId);
+                        await _worldStateDictator.ApplyCachedDataAction(changeDict,
+                            _currentSmartContractContext.ChainId);
+                        _currentSmartContractContext.DataProvider.StateCache.Clear(); //clear state cache for special tx that called with "autoCommit = true"
                     }
                 }
             }

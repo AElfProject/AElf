@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -448,8 +449,27 @@ namespace AElf.SmartContract
             change.LatestChangedBlockHash = prevBlockHash;
 
             await InsertChangeAsync(stateValueChange.Path, change);
-            await SetDataAsync(pointerHashAfter, stateValueChange.AfterValue.ToByteArray());
+            
+            //set data to database action have been moved to ApplyCachedDataAction, which will be called by worker
+            //await SetDataAsync(pointerHashAfter, stateValueChange.AfterValue.ToByteArray()); 
             return change;
+        }
+
+        /// <summary>
+        /// Apply data changes in cache layer into database
+        /// </summary>
+        /// <param name="cachedActions"></param>
+        /// <param name="chainId"></param>
+        /// <returns></returns>
+        public async Task<bool> ApplyCachedDataAction(Dictionary<Hash, StateCache> cachedActions, Hash chainId)
+        {
+            Hash prevBlockHash = await _dataStore.GetDataAsync(ResourcePath.CalculatePointerForLastBlockHash(chainId));
+            
+            //Only dirty, i.e., changed data item, will be applied to database
+            var pipelineSet = cachedActions.Where(kv => kv.Value.Dirty)
+                .ToDictionary(kv => new Hash(kv.Key.CalculateHashWith(prevBlockHash)), kv => kv.Value.CurrentValue);
+            _logger?.Debug($"Pipeline set {pipelineSet.Count} data item");
+            return await _dataStore.PipelineSetDataAsync(pipelineSet);
         }
         
         public async Task SetBlockHashToCorrespondingHeight(ulong height, BlockHeader header)

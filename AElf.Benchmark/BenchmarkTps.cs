@@ -77,8 +77,6 @@ namespace AElf.Benchmark
                 AccountContextService = accountContextService,
             };
 
-            //TODO: set timeout to int.max in order to run the large trunk of tx list
-            
             _dataGenerater = new TransactionDataGenerator(options);
             byte[] code;
             using (FileStream file = File.OpenRead(Path.GetFullPath(options.DllDir + "/" + options.ContractDll)))
@@ -111,7 +109,7 @@ namespace AElf.Benchmark
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                _logger.Error(e);
             }
         }
 

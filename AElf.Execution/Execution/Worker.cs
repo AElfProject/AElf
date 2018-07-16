@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
@@ -92,6 +93,9 @@ namespace AElf.Execution
 
             Exception chainContextException = null;
             
+            //path <-> value
+            Dictionary<Hash, StateCache> stateCache = new Dictionary<Hash, StateCache>();
+            
             try
             {
                 chainContext = await _servicePack.ChainContextService.GetChainContextAsync(request.ChainId);
@@ -134,7 +138,7 @@ namespace AElf.Execution
                     else
                     {
                         // TODO: The job is still running but we will leave it, we need a way to abort the job if it runs for too long
-                        var task = Task.Run(async () => await ExecuteTransaction(chainContext, tx),
+                        var task = Task.Run(async () => await ExecuteTransaction(chainContext, tx, stateCache),
                             _cancellationTokenSource.Token);
                         try
                         {
@@ -142,7 +146,12 @@ namespace AElf.Execution
                             trace = await task;
                             if (trace.IsSuccessful())
                             {
-                                await trace.CommitChangesAsync(_servicePack.WorldStateDictator, chainContext.ChainId);
+                                //commit update results to state cache
+                                var bufferedStateUpdates = await trace.CommitChangesAsync(_servicePack.WorldStateDictator, chainContext.ChainId);
+                                foreach (var kv in bufferedStateUpdates)
+                                {
+                                    stateCache[kv.Key] = kv.Value;
+                                }
                             }
                         }
                         catch (OperationCanceledException)
@@ -167,6 +176,12 @@ namespace AElf.Execution
                 request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, trace));
             }
 
+            if (chainContext != null)
+            {
+                await _servicePack.WorldStateDictator.ApplyCachedDataAction(stateCache, chainContext.ChainId);
+            }
+            stateCache.Clear();
+
             // TODO: What if actor died in the middle
 
             var retMsg = new JobExecutionStatus(request.RequestId, JobExecutionStatus.RequestStatus.Completed);
@@ -177,7 +192,7 @@ namespace AElf.Execution
             return retMsg;
         }
 
-        private async Task<TransactionTrace> ExecuteTransaction(IChainContext chainContext, ITransaction transaction)
+        private async Task<TransactionTrace> ExecuteTransaction(IChainContext chainContext, ITransaction transaction, Dictionary<Hash, StateCache> stateCache)
         {
             
             var trace = new TransactionTrace()
@@ -199,6 +214,8 @@ namespace AElf.Execution
             {
                 executive = await _servicePack.SmartContractService
                     .GetExecutiveAsync(transaction.To, chainContext.ChainId);
+                
+                executive.SetDataCache(stateCache);
 
                 await executive.SetTransactionContext(txCtxt).Apply(false);
                 trace.Logs.AddRange(txCtxt.Trace.FlattenedLogs);

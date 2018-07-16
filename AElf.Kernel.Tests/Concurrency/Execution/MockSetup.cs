@@ -67,6 +67,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger)
         {
+            _logger = logger;
             _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore,
                 blockHeaderStore, blockBodyStore, transactionStore, _logger);
             _chainCreationService = chainCreationService;
@@ -74,7 +75,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _logger = logger;
             SmartContractManager = new SmartContractManager(smartContractStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =

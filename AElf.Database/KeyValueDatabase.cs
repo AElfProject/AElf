@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AElf.Database
@@ -23,6 +24,19 @@ namespace AElf.Database
         {
             _dictionary.TryRemove(key, out var _);
             return Task.CompletedTask;
+        }
+
+        public async Task<bool> PipelineSetAsync(Dictionary<string, byte[]> cache)
+        {
+            return await Task.Factory.StartNew(() =>
+            {
+                foreach (var change in cache)
+                {
+                    _dictionary[change.Key] = change.Value;
+                }
+
+                return true;
+            });
         }
 
         public bool IsConnected()

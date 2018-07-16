@@ -6,38 +6,6 @@ using AElf.Kernel;
 
 namespace AElf.SmartContract
 {
-    internal class StateCache
-    {
-        private byte[] _currentValue;
-
-        public StateCache(byte[] initialValue)
-        {
-            InitialValue = initialValue;
-            _currentValue = initialValue;
-        }
-
-        public bool Dirty { get; private set; } = false;
-
-        public byte[] InitialValue { get; }
-
-        public byte[] CurrentValue
-        {
-            get => _currentValue;
-            set
-            {
-                Dirty = true;
-                _currentValue = value;
-            }
-        }
-
-
-        public void SetValue(byte[] value)
-        {
-            Dirty = true;
-            CurrentValue = value;
-        }
-    }
-
     public class TentativeDataProvider : ITentativeDataProvider
     {
         private IDataProvider _dataProvider;
@@ -45,12 +13,33 @@ namespace AElf.SmartContract
         private List<TentativeDataProvider> _children = new List<TentativeDataProvider>();
 
         private readonly Dictionary<Hash, StateCache> _tentativeCache = new Dictionary<Hash, StateCache>();
+        
+        //Injected from outside for the entry data provider of the executive ( in worker actor )
+        public Dictionary<Hash, StateCache> StateCache
+        {
+            get => _stateCache;
+            set
+            {
+                _stateCache = value;
+                foreach (var dataProvider in _children)
+                {
+                    dataProvider.StateCache = value;
+                }
+            }
+        }
+
+        private Dictionary<Hash, StateCache> _stateCache;
+
 
         private async Task<StateCache> GetStateAsync(Hash keyHash)
         {
             if (!_tentativeCache.TryGetValue(keyHash, out var state))
             {
-                state = new StateCache(await _dataProvider.GetAsync(keyHash));
+                if (!StateCache.TryGetValue(GetPathFor(keyHash), out state))
+                {
+                    state = new StateCache(await _dataProvider.GetAsync(keyHash));
+                    StateCache.Add(GetPathFor(keyHash), state);
+                }
                 _tentativeCache.Add(keyHash, state);
             }
 
@@ -60,11 +49,15 @@ namespace AElf.SmartContract
         public TentativeDataProvider(IDataProvider dataProvider)
         {
             _dataProvider = dataProvider;
+            
+            //initialize the state cache to empty in case we choose not to use tx-shared cache
+            StateCache = new Dictionary<Hash, StateCache>(); 
         }
 
         public IDataProvider GetDataProvider(string name)
         {
             var dp = new TentativeDataProvider(_dataProvider.GetDataProvider(name));
+            dp.StateCache = StateCache;
             _children.Add(dp);
             return dp;
         }
@@ -126,6 +119,7 @@ namespace AElf.SmartContract
 
             return changes;
         }
+
 
         public void ClearTentativeCache()
         {
