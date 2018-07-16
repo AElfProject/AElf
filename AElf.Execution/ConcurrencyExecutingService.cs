@@ -49,7 +49,7 @@ namespace AElf.Execution
 
         public void InitWorkActorSystem()
         {
-            var config = InitActorConfig(ActorHocon.ActorWorkerHocon);
+            var config = InitActorConfig(ActorConfig.Instance.WorkerHoconConfig);
 
             _actorSystem = ActorSystem.Create(SystemName, config);
             var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker");
@@ -60,7 +60,7 @@ namespace AElf.Execution
         {
             if (ActorConfig.Instance.IsCluster)
             {
-                var config = InitActorConfig(ActorHocon.ActorClusterHocon);
+                var config = InitActorConfig(ActorConfig.Instance.MasterHoconConfig);
                 _actorSystem = ActorSystem.Create(SystemName, config);
                 //Todo waiting for join cluster. we should get the status here.
                 Thread.Sleep(2000);

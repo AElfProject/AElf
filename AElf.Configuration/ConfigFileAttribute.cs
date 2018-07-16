@@ -2,7 +2,7 @@
 
 namespace AElf.Configuration
 {
-    public class ConfigFileAttribute:Attribute
+    public class ConfigFileAttribute : Attribute
     {
         public string FileName { get; set; }
     }
