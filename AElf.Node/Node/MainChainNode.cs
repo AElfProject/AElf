@@ -58,6 +58,7 @@ namespace AElf.Kernel.Node
         private readonly IBlockExecutor _blockExecutor;
 
         private DPoS _dPoS;
+        private DPoSCheck _dPoSCheck;
 
         public Hash ContractAccountHash =>
             _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
@@ -65,7 +66,7 @@ namespace AElf.Kernel.Node
         public IExecutive Executive =>
             _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
 
-        private const int CheckTime = 2000;
+        private const int CheckTime = 1000;
 
         private int _flag;
         public bool IsMining { get; private set; }
@@ -163,8 +164,6 @@ namespace AElf.Kernel.Node
                 {
                     var preBlockHash = GetLastValidBlockHash().Result;
                     _worldStateDictator.SetWorldStateAsync(preBlockHash);
-                    //var worldState = _worldStateDictator.GetWorldStateAsync(preBlockHash).Result;
-                    //_logger?.Trace($"Merkle Tree Root before execution:{(worldState.GetWorldStateMerkleTreeRootAsync()).Result.ToHex()}");
                     
                     _worldStateDictator.PreBlockHash = preBlockHash;
                     _worldStateDictator.RollbackCurrentChangesAsync();
@@ -717,6 +716,7 @@ namespace AElf.Kernel.Node
                 _logger?.Debug("-- DPoS Mining Has been fired!");
                 
                 _dPoS = new DPoS(_nodeKeyPair);
+                _dPoSCheck = new DPoSCheck(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers, ContractAccountHash);
 
                 //Record the rounds count in local memory
                 ulong roundsCount = 0;
@@ -1128,6 +1128,7 @@ namespace AElf.Kernel.Node
         {
             try
             {
+                return await _dPoSCheck.AbleToMine();
                 var tcAbleToMine = new TransactionContext
                 {
                     Transaction = _dPoS.GetAbleToMineTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
