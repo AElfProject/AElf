@@ -139,6 +139,30 @@ namespace AElf.Kernel.Consensus
             return CompareTimestamp(now, assigendExtraBlockProducingTimeEndWithOffset)
                    && CompareTimestamp(GetTimestamp(assigendExtraBlockProducingTimeEndWithOffset, Globals.MiningTime), now);
         }
+        
+        public async Task<bool> IsTimeToProduceExtraBlock()
+        {
+            if (!_blockProducer.Nodes.Contains(AddressHashToString(_keyPair.GetAddress())))
+            {
+                return false;
+            }
+
+            var expectedTime = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync("EBTime".CalculateHash()));
+            var now = GetTimestampOfUtcNow();
+            return CompareTimestamp(now, expectedTime)
+                   && CompareTimestamp(GetTimestamp(expectedTime, Globals.MiningTime), now);
+        }
+        
+        public async Task<bool> AbleToProduceExtraBlock()
+        {
+            var accountHash = _keyPair.GetAddress();
+
+            // ReSharper disable once InconsistentNaming
+            var eBP = StringValue.Parser
+                .ParseFrom(await _dataProvider.GetDataProvider("EBP").GetAsync(RoundsCount.CalculateHash())).Value;
+            
+            return AddressHashToString(accountHash) == eBP;
+        }
 
         private async Task<Timestamp> GetTimeSlot(string accountAddress)
         {

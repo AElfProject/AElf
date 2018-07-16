@@ -1154,17 +1154,7 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                // ReSharper disable once InconsistentNaming
-                var tcIsTimeToProduceEB = new TransactionContext
-                {
-                    Transaction =
-                        _dPoS.GetIsTimeToProduceExtraBlockTx(
-                            await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
-                };
-                Executive.SetTransactionContext(tcIsTimeToProduceEB).Apply(true).Wait();
-
-                // ReSharper disable once InconsistentNaming
-                return tcIsTimeToProduceEB.Trace.RetVal.Data.DeserializeToBool();
+                return await _dPoSCheck.IsTimeToProduceExtraBlock();
             }
             catch (Exception e)
             {
@@ -1177,19 +1167,7 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                // ReSharper disable once InconsistentNaming
-                var tcAbleToProduceEB = new TransactionContext
-                {
-                    Transaction =
-                        _dPoS.GetAbleToProduceExtraBlockTx(
-                            // This tx won't be broadcasted
-                            await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
-                };
-                Executive.SetTransactionContext(tcAbleToProduceEB).Apply(true).Wait();
-
-                // ReSharper disable once InconsistentNaming
-                var res = tcAbleToProduceEB.Trace.RetVal.Data.DeserializeToBool();
-                return res;
+                return await _dPoSCheck.AbleToProduceExtraBlock();
             }
             catch (Exception e)
             {
