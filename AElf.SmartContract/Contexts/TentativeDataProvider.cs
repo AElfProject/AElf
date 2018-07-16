@@ -38,33 +38,33 @@ namespace AElf.SmartContract
         }
     }
 
-    public class CachedDataProvider : ICachedDataProvider
+    public class TentativeDataProvider : ITentativeDataProvider
     {
         private IDataProvider _dataProvider;
 
-        private List<CachedDataProvider> _children = new List<CachedDataProvider>();
+        private List<TentativeDataProvider> _children = new List<TentativeDataProvider>();
 
-        private readonly Dictionary<Hash, StateCache> _cache = new Dictionary<Hash, StateCache>();
+        private readonly Dictionary<Hash, StateCache> _tentativeCache = new Dictionary<Hash, StateCache>();
 
         private async Task<StateCache> GetStateAsync(Hash keyHash)
         {
-            if (!_cache.TryGetValue(keyHash, out var state))
+            if (!_tentativeCache.TryGetValue(keyHash, out var state))
             {
                 state = new StateCache(await _dataProvider.GetAsync(keyHash));
-                _cache.Add(keyHash, state);
+                _tentativeCache.Add(keyHash, state);
             }
 
             return state;
         }
 
-        public CachedDataProvider(IDataProvider dataProvider)
+        public TentativeDataProvider(IDataProvider dataProvider)
         {
             _dataProvider = dataProvider;
         }
 
         public IDataProvider GetDataProvider(string name)
         {
-            var dp = new CachedDataProvider(_dataProvider.GetDataProvider(name));
+            var dp = new TentativeDataProvider(_dataProvider.GetDataProvider(name));
             _children.Add(dp);
             return dp;
         }
@@ -106,7 +106,7 @@ namespace AElf.SmartContract
         public IEnumerable<StateValueChange> GetValueChanges()
         {
             var changes = new List<StateValueChange>();
-            foreach (var keyState in _cache)
+            foreach (var keyState in _tentativeCache)
             {
                 if (keyState.Value.Dirty)
                 {
@@ -127,12 +127,12 @@ namespace AElf.SmartContract
             return changes;
         }
 
-        public void ClearCache()
+        public void ClearTentativeCache()
         {
-            _cache.Clear();
+            _tentativeCache.Clear();
             foreach (var dp in _children)
             {
-                dp.ClearCache();
+                dp.ClearTentativeCache();
             }
         }
     }

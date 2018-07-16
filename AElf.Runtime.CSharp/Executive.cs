@@ -157,7 +157,7 @@ namespace AElf.Runtime.CSharp
 
                     try
                     {
-                        _currentSmartContractContext.DataProvider.ClearCache();
+                        _currentSmartContractContext.DataProvider.ClearTentativeCache();
                         var retVal = await handler(tx.Params.ToByteArray());
                         _currentTransactionContext.Trace.RetVal = retVal;
                     }
@@ -177,7 +177,7 @@ namespace AElf.Runtime.CSharp
 
                     try
                     {
-                        _currentSmartContractContext.DataProvider.ClearCache();
+                        _currentSmartContractContext.DataProvider.ClearTentativeCache();
                         var retVal = handler(tx.Params.ToByteArray());
                         _currentTransactionContext.Trace.RetVal = retVal;
                     }

@@ -4,9 +4,9 @@ using AElf.Kernel.Types;
 
 namespace AElf.SmartContract
 {
-    public interface ICachedDataProvider : IDataProvider
+    public interface ITentativeDataProvider : IDataProvider
     {
         IEnumerable<StateValueChange> GetValueChanges();
-        void ClearCache();
+        void ClearTentativeCache();
     }
 }
