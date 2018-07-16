@@ -716,7 +716,7 @@ namespace AElf.Kernel.Node
                 _logger?.Debug("-- DPoS Mining Has been fired!");
                 
                 _dPoS = new DPoS(_nodeKeyPair);
-                _dPoSCheck = new DPoSCheck(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers, ContractAccountHash);
+                _dPoSCheck = new DPoSCheck(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers, ContractAccountHash, _logger);
 
                 //Record the rounds count in local memory
                 ulong roundsCount = 0;
@@ -1129,14 +1129,6 @@ namespace AElf.Kernel.Node
             try
             {
                 return await _dPoSCheck.AbleToMine();
-                var tcAbleToMine = new TransactionContext
-                {
-                    Transaction = _dPoS.GetAbleToMineTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
-                        ContractAccountHash)
-                };
-                Executive.SetTransactionContext(tcAbleToMine).Apply(true).Wait();
-                            
-                return tcAbleToMine.Trace.RetVal.Data.DeserializeToBool();
             }
             catch (Exception e)
             {
@@ -1149,21 +1141,7 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                var tcAbleToHelp = new TransactionContext
-                {
-                    Transaction =
-                        _dPoS.GetReadyForHelpingProducingExtraBlockTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
-                            ContractAccountHash)
-                };
-                Executive.SetTransactionContext(tcAbleToHelp).Apply(true).Wait();
-                
-                if (!tcAbleToHelp.Trace.StdErr.IsNullOrEmpty())
-                {
-                    _logger?.Error(tcAbleToHelp.Trace.StdErr);
-                    return false;
-                }
-                
-                return tcAbleToHelp.Trace.RetVal.Data.DeserializeToBool();
+                return await _dPoSCheck.ReadyForHelpingProducingExtraBlock();
             }
             catch (Exception e)
             {
