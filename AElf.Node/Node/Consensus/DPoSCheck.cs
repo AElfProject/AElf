@@ -7,14 +7,12 @@ using NLog;
 
 namespace AElf.Kernel.Consensus
 {
+    // ReSharper disable once InconsistentNaming
     public class DPoSCheck
     {
-        private readonly IWorldStateDictator _worldStateDictator;
         private readonly ECKeyPair _keyPair;
         private readonly IDataProvider _dataProvider;
-        private readonly Hash _chainId;
         private readonly BlockProducer _blockProducer;
-        private readonly Hash _contractAddressHash;
         private readonly ILogger _logger;
         
         private UInt64Value RoundsCount
@@ -28,14 +26,12 @@ namespace AElf.Kernel.Consensus
 
         public DPoSCheck(IWorldStateDictator worldStateDictator, ECKeyPair keyPair, Hash chainId, BlockProducer blockProducer, Hash contractAddressHash, ILogger logger)
         {
-            _worldStateDictator = worldStateDictator.SetChainId(chainId);
+            worldStateDictator.SetChainId(chainId);
             _keyPair = keyPair;
-            _chainId = chainId;
             _blockProducer = blockProducer;
-            _contractAddressHash = contractAddressHash;
             _logger = logger;
 
-            _dataProvider = _worldStateDictator.GetAccountDataProvider(contractAddressHash).Result.GetDataProvider();
+            _dataProvider = worldStateDictator.GetAccountDataProvider(contractAddressHash).Result.GetDataProvider();
 
         }
 
