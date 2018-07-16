@@ -46,24 +46,24 @@ namespace AElf.Benchmark
                     Console.WriteLine("No dll directory in arg, choose current directory: " + opts.DllDir);
                 }
 
-                if (!Directory.Exists(System.IO.Path.GetFullPath(opts.SdkDir)))
+                if (!Directory.Exists(Path.GetFullPath(opts.SdkDir)))
                 {
-                    Console.WriteLine("directory " + System.IO.Path.GetFullPath(opts.SdkDir) + " not exist");
+                    Console.WriteLine("directory " + Path.GetFullPath(opts.SdkDir) + " not exist");
                     return;
                 }
 
-                if (!File.Exists(System.IO.Path.GetFullPath(System.IO.Path.Combine(opts.DllDir, opts.ContractDll))))
+                if (!File.Exists(Path.GetFullPath(Path.Combine(opts.DllDir, opts.ContractDll))))
                 {
                     Console.WriteLine(
-                        System.IO.Path.GetFullPath(System.IO.Path.Combine(opts.DllDir, opts.ContractDll) +
+                        Path.GetFullPath(Path.Combine(opts.DllDir, opts.ContractDll) +
                                                    " not exist"));
                     return;
                 }
 
-                if (!File.Exists(System.IO.Path.GetFullPath(System.IO.Path.Combine(opts.DllDir, opts.ZeroContractDll))))
+                if (!File.Exists(Path.GetFullPath(Path.Combine(opts.DllDir, opts.ZeroContractDll))))
                 {
                     Console.WriteLine(
-                        System.IO.Path.GetFullPath(System.IO.Path.Combine(opts.DllDir, opts.ZeroContractDll) +
+                        Path.GetFullPath(Path.Combine(opts.DllDir, opts.ZeroContractDll) +
                                                    " not exist"));
                     return;
                 }
@@ -130,7 +130,7 @@ namespace AElf.Benchmark
                     return;
                 }
 
-                if (!CheckDBConnect(container))
+                if (!CheckDbConnect(container))
                 {
                     Console.WriteLine("Database connection failed");
                     return;
@@ -155,7 +155,7 @@ namespace AElf.Benchmark
             Console.ReadKey();
         }
 
-        private static bool CheckDBConnect(IContainer container)
+        private static bool CheckDbConnect(IContainer container)
         {
             var db = container.Resolve<IKeyValueDatabase>();
             return db.IsConnected();
