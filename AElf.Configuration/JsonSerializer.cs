@@ -3,14 +3,14 @@ using Newtonsoft.Json;
 
 namespace AElf.Configuration
 {
-    public class JsonSerializer:ISerializer
+    public class JsonSerializer : ISerializer
     {
         public static readonly ISerializer Instance = new JsonSerializer();
-        
+
         private JsonSerializer()
         {
         }
-        
+
         public string Serialize<T>(T obj)
         {
             var json = JsonConvert.SerializeObject(obj);
@@ -25,7 +25,7 @@ namespace AElf.Configuration
 
         public object Deserialize(string vaule, Type type)
         {
-            var obj = JsonConvert.DeserializeObject(vaule,type);
+            var obj = JsonConvert.DeserializeObject(vaule, type);
             return obj;
         }
     }
