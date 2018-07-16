@@ -468,8 +468,14 @@ namespace AElf.SmartContract
             //Only dirty, i.e., changed data item, will be applied to database
             var pipelineSet = cachedActions.Where(kv => kv.Value.Dirty)
                 .ToDictionary(kv => new Hash(kv.Key.CalculateHashWith(prevBlockHash)), kv => kv.Value.CurrentValue);
-            _logger?.Debug($"Pipeline set {pipelineSet.Count} data item");
-            return await _dataStore.PipelineSetDataAsync(pipelineSet);
+            if (pipelineSet.Count > 0)
+            {
+                _logger?.Debug($"Pipeline set {pipelineSet.Count} data item");
+                return await _dataStore.PipelineSetDataAsync(pipelineSet);
+            }
+
+            //return true for read-only 
+            return true;
         }
         
         public async Task SetBlockHashToCorrespondingHeight(ulong height, BlockHeader header)
