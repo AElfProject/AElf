@@ -150,7 +150,7 @@ namespace AElf.Benchmark
                         _logger.Error("Execution error: " + trace.StdErr);
                     }
                 });
-                
+                Thread.Sleep(50); //sleep 50 ms to let async logger finish printing contents of previous round
                 _logger.Info($"round {i+1} / {repeatTime} ended, used time {swExec.ElapsedMilliseconds} ms");
             }
             
@@ -310,7 +310,7 @@ namespace AElf.Benchmark
             var txTrace = await _concurrencyExecutingService.ExecuteAsync(initTxList, ChainId,new Grouper(_servicePack.ResourceDetectionService, _logger));
             foreach (var trace in txTrace)
             {
-                if (trace.StdErr.IsNullOrEmpty())
+                if (!trace.StdErr.IsNullOrEmpty())
                 {
                     _logger.Error("Execution Error: " + trace.StdErr);
                 }
