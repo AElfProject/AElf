@@ -62,8 +62,8 @@ namespace AElf.Contracts.Token {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public HashPair(HashPair other) : this() {
-      First = other.first_ != null ? other.First.Clone() : null;
-      Second = other.second_ != null ? other.Second.Clone() : null;
+      first_ = other.first_ != null ? other.first_.Clone() : null;
+      second_ = other.second_ != null ? other.second_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 

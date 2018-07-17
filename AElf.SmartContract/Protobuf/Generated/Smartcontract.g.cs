@@ -39,18 +39,16 @@ namespace AElf.SmartContract {
             "Q2FsbGluZ1NldBgBIAMoCRIsChlTZXJpYWxpemVMb2NhbFJlc291cmNlU2V0",
             "GAIgAygLMgkuUmVzb3VyY2USIAoYVGVtcGxhdGVDb250YWluc01ldGFkYXRh",
             "GAMgASgIIkEKCFJlc291cmNlEgwKBE5hbWUYASABKAkSJwoORGF0YUFjY2Vz",
-            "c01vZGUYAiABKA4yDy5EYXRhQWNjZXNzTW9kZSKsAQoQRnVuY3Rpb25NZXRh",
-            "ZGF0YRIbChNTZXJpYWxpemVDYWxsaW5nU2V0GAEgAygJEisKGFNlcmlhbGl6",
-            "ZUZ1bGxSZXNvdXJjZVNldBgCIAMoCzIJLlJlc291cmNlEiwKGVNlcmlhbGl6",
-            "ZUxvY2FsUmVzb3VyY2VTZXQYAyADKAsyCS5SZXNvdXJjZRIgChhDb250cmFj",
-            "dENvbnRhaW5zTWV0YWRhdGEYBCABKAgiqgEKHFNlcmlhbGl6ZUZ1bmN0aW9u",
-            "TWV0YWRhdGFNYXASQwoLTWV0YWRhdGFNYXAYASADKAsyLi5TZXJpYWxpemVG",
-            "dW5jdGlvbk1ldGFkYXRhTWFwLk1ldGFkYXRhTWFwRW50cnkaRQoQTWV0YWRh",
-            "dGFNYXBFbnRyeRILCgNrZXkYASABKAkSIAoFdmFsdWUYAiABKAsyES5GdW5j",
-            "dGlvbk1ldGFkYXRhOgI4ASIuChFDYWxsaW5nR3JhcGhFZGdlcxIZCgVFZGdl",
-            "cxgBIAMoCzIKLkdyYXBoRWRnZSIrCglHcmFwaEVkZ2USDgoGU291cmNlGAEg",
-            "ASgJEg4KBlRhcmdldBgCIAEoCUIVqgISQUVsZi5TbWFydENvbnRyYWN0YgZw",
-            "cm90bzM="));
+            "c01vZGUYAiABKA4yDy5EYXRhQWNjZXNzTW9kZSJcChBGdW5jdGlvbk1ldGFk",
+            "YXRhEhsKE1NlcmlhbGl6ZUNhbGxpbmdTZXQYASADKAkSKwoYU2VyaWFsaXpl",
+            "RnVsbFJlc291cmNlU2V0GAIgAygLMgkuUmVzb3VyY2UiqgEKHFNlcmlhbGl6",
+            "ZUZ1bmN0aW9uTWV0YWRhdGFNYXASQwoLTWV0YWRhdGFNYXAYASADKAsyLi5T",
+            "ZXJpYWxpemVGdW5jdGlvbk1ldGFkYXRhTWFwLk1ldGFkYXRhTWFwRW50cnka",
+            "RQoQTWV0YWRhdGFNYXBFbnRyeRILCgNrZXkYASABKAkSIAoFdmFsdWUYAiAB",
+            "KAsyES5GdW5jdGlvbk1ldGFkYXRhOgI4ASIuChFDYWxsaW5nR3JhcGhFZGdl",
+            "cxIZCgVFZGdlcxgBIAMoCzIKLkdyYXBoRWRnZSIrCglHcmFwaEVkZ2USDgoG",
+            "U291cmNlGAEgASgJEg4KBlRhcmdldBgCIAEoCUIVqgISQUVsZi5TbWFydENv",
+            "bnRyYWN0YgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::AElf.Kernel.KernelReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -58,7 +56,7 @@ namespace AElf.SmartContract {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.SerializeFunctionMetadataTemplateMap), global::AElf.SmartContract.SerializeFunctionMetadataTemplateMap.Parser, new[]{ "TemplateMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.FunctionMetadataTemplate), global::AElf.SmartContract.FunctionMetadataTemplate.Parser, new[]{ "SerializeCallingSet", "SerializeLocalResourceSet", "TemplateContainsMetadata" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.Resource), global::AElf.SmartContract.Resource.Parser, new[]{ "Name", "DataAccessMode" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.FunctionMetadata), global::AElf.SmartContract.FunctionMetadata.Parser, new[]{ "SerializeCallingSet", "SerializeFullResourceSet", "SerializeLocalResourceSet", "ContractContainsMetadata" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.FunctionMetadata), global::AElf.SmartContract.FunctionMetadata.Parser, new[]{ "SerializeCallingSet", "SerializeFullResourceSet" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.SerializeFunctionMetadataMap), global::AElf.SmartContract.SerializeFunctionMetadataMap.Parser, new[]{ "MetadataMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.CallingGraphEdges), global::AElf.SmartContract.CallingGraphEdges.Parser, new[]{ "Edges" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.GraphEdge), global::AElf.SmartContract.GraphEdge.Parser, new[]{ "Source", "Target" }, null, null, null)
@@ -636,6 +634,9 @@ namespace AElf.SmartContract {
 
   }
 
+  /// <summary>
+  /// The function meta data describes the data members of contract object.
+  /// </summary>
   public sealed partial class FunctionMetadata : pb::IMessage<FunctionMetadata> {
     private static readonly pb::MessageParser<FunctionMetadata> _parser = new pb::MessageParser<FunctionMetadata>(() => new FunctionMetadata());
     private pb::UnknownFieldSet _unknownFields;
@@ -663,8 +664,6 @@ namespace AElf.SmartContract {
     public FunctionMetadata(FunctionMetadata other) : this() {
       serializeCallingSet_ = other.serializeCallingSet_.Clone();
       serializeFullResourceSet_ = other.serializeFullResourceSet_.Clone();
-      serializeLocalResourceSet_ = other.serializeLocalResourceSet_.Clone();
-      contractContainsMetadata_ = other.contractContainsMetadata_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -678,6 +677,10 @@ namespace AElf.SmartContract {
     private static readonly pb::FieldCodec<string> _repeated_serializeCallingSet_codec
         = pb::FieldCodec.ForString(10);
     private readonly pbc::RepeatedField<string> serializeCallingSet_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// AElf allows one contracts to invoke others. This field record
+    /// which contracts are invoked by the current contract.
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<string> SerializeCallingSet {
       get { return serializeCallingSet_; }
@@ -688,30 +691,12 @@ namespace AElf.SmartContract {
     private static readonly pb::FieldCodec<global::AElf.SmartContract.Resource> _repeated_serializeFullResourceSet_codec
         = pb::FieldCodec.ForMessage(18, global::AElf.SmartContract.Resource.Parser);
     private readonly pbc::RepeatedField<global::AElf.SmartContract.Resource> serializeFullResourceSet_ = new pbc::RepeatedField<global::AElf.SmartContract.Resource>();
+    /// <summary>
+    /// All data members except other contracts are recorded by this field.
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<global::AElf.SmartContract.Resource> SerializeFullResourceSet {
       get { return serializeFullResourceSet_; }
-    }
-
-    /// <summary>Field number for the "SerializeLocalResourceSet" field.</summary>
-    public const int SerializeLocalResourceSetFieldNumber = 3;
-    private static readonly pb::FieldCodec<global::AElf.SmartContract.Resource> _repeated_serializeLocalResourceSet_codec
-        = pb::FieldCodec.ForMessage(26, global::AElf.SmartContract.Resource.Parser);
-    private readonly pbc::RepeatedField<global::AElf.SmartContract.Resource> serializeLocalResourceSet_ = new pbc::RepeatedField<global::AElf.SmartContract.Resource>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.SmartContract.Resource> SerializeLocalResourceSet {
-      get { return serializeLocalResourceSet_; }
-    }
-
-    /// <summary>Field number for the "ContractContainsMetadata" field.</summary>
-    public const int ContractContainsMetadataFieldNumber = 4;
-    private bool contractContainsMetadata_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool ContractContainsMetadata {
-      get { return contractContainsMetadata_; }
-      set {
-        contractContainsMetadata_ = value;
-      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -729,8 +714,6 @@ namespace AElf.SmartContract {
       }
       if(!serializeCallingSet_.Equals(other.serializeCallingSet_)) return false;
       if(!serializeFullResourceSet_.Equals(other.serializeFullResourceSet_)) return false;
-      if(!serializeLocalResourceSet_.Equals(other.serializeLocalResourceSet_)) return false;
-      if (ContractContainsMetadata != other.ContractContainsMetadata) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -739,8 +722,6 @@ namespace AElf.SmartContract {
       int hash = 1;
       hash ^= serializeCallingSet_.GetHashCode();
       hash ^= serializeFullResourceSet_.GetHashCode();
-      hash ^= serializeLocalResourceSet_.GetHashCode();
-      if (ContractContainsMetadata != false) hash ^= ContractContainsMetadata.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -756,11 +737,6 @@ namespace AElf.SmartContract {
     public void WriteTo(pb::CodedOutputStream output) {
       serializeCallingSet_.WriteTo(output, _repeated_serializeCallingSet_codec);
       serializeFullResourceSet_.WriteTo(output, _repeated_serializeFullResourceSet_codec);
-      serializeLocalResourceSet_.WriteTo(output, _repeated_serializeLocalResourceSet_codec);
-      if (ContractContainsMetadata != false) {
-        output.WriteRawTag(32);
-        output.WriteBool(ContractContainsMetadata);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -771,10 +747,6 @@ namespace AElf.SmartContract {
       int size = 0;
       size += serializeCallingSet_.CalculateSize(_repeated_serializeCallingSet_codec);
       size += serializeFullResourceSet_.CalculateSize(_repeated_serializeFullResourceSet_codec);
-      size += serializeLocalResourceSet_.CalculateSize(_repeated_serializeLocalResourceSet_codec);
-      if (ContractContainsMetadata != false) {
-        size += 1 + 1;
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -788,10 +760,6 @@ namespace AElf.SmartContract {
       }
       serializeCallingSet_.Add(other.serializeCallingSet_);
       serializeFullResourceSet_.Add(other.serializeFullResourceSet_);
-      serializeLocalResourceSet_.Add(other.serializeLocalResourceSet_);
-      if (other.ContractContainsMetadata != false) {
-        ContractContainsMetadata = other.ContractContainsMetadata;
-      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -809,14 +777,6 @@ namespace AElf.SmartContract {
           }
           case 18: {
             serializeFullResourceSet_.AddEntriesFrom(input, _repeated_serializeFullResourceSet_codec);
-            break;
-          }
-          case 26: {
-            serializeLocalResourceSet_.AddEntriesFrom(input, _repeated_serializeLocalResourceSet_codec);
-            break;
-          }
-          case 32: {
-            ContractContainsMetadata = input.ReadBool();
             break;
           }
         }

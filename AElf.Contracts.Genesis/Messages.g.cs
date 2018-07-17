@@ -62,7 +62,7 @@ namespace AElf.Contracts.Genesis {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public ContractInfo(ContractInfo other) : this() {
-      Owner = other.owner_ != null ? other.Owner.Clone() : null;
+      owner_ = other.owner_ != null ? other.owner_.Clone() : null;
       serialNumer_ = other.serialNumer_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }

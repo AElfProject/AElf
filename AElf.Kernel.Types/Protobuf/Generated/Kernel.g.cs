@@ -157,8 +157,8 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public Transaction(Transaction other) : this() {
-      From = other.from_ != null ? other.From.Clone() : null;
-      To = other.to_ != null ? other.To.Clone() : null;
+      from_ = other.from_ != null ? other.from_.Clone() : null;
+      to_ = other.to_ != null ? other.to_.Clone() : null;
       incrementId_ = other.incrementId_;
       methodName_ = other.methodName_;
       params_ = other.params_;
@@ -522,7 +522,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public TransactionResult(TransactionResult other) : this() {
-      TransactionId = other.transactionId_ != null ? other.TransactionId.Clone() : null;
+      transactionId_ = other.transactionId_ != null ? other.transactionId_.Clone() : null;
       status_ = other.status_;
       logs_ = other.logs_.Clone();
       retVal_ = other.retVal_;
@@ -733,7 +733,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public StateValueChange(StateValueChange other) : this() {
-      Path = other.path_ != null ? other.Path.Clone() : null;
+      path_ = other.path_ != null ? other.path_.Clone() : null;
       beforeValue_ = other.beforeValue_;
       afterValue_ = other.afterValue_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -925,7 +925,7 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public EventField(EventField other) : this() {
       name_ = other.name_;
-      Value = other.value_ != null ? other.Value.Clone() : null;
+      value_ = other.value_ != null ? other.value_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1087,8 +1087,8 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public LogEvent(LogEvent other) : this() {
-      Address = other.address_ != null ? other.Address.Clone() : null;
-      Topic = other.topic_ != null ? other.Topic.Clone() : null;
+      address_ = other.address_ != null ? other.address_.Clone() : null;
+      topic_ = other.topic_ != null ? other.topic_.Clone() : null;
       details_ = other.details_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -1454,15 +1454,15 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public BlockHeader(BlockHeader other) : this() {
       version_ = other.version_;
-      PreviousBlockHash = other.previousBlockHash_ != null ? other.PreviousBlockHash.Clone() : null;
-      MerkleTreeRootOfTransactions = other.merkleTreeRootOfTransactions_ != null ? other.MerkleTreeRootOfTransactions.Clone() : null;
-      MerkleTreeRootOfWorldState = other.merkleTreeRootOfWorldState_ != null ? other.MerkleTreeRootOfWorldState.Clone() : null;
+      previousBlockHash_ = other.previousBlockHash_ != null ? other.previousBlockHash_.Clone() : null;
+      merkleTreeRootOfTransactions_ = other.merkleTreeRootOfTransactions_ != null ? other.merkleTreeRootOfTransactions_.Clone() : null;
+      merkleTreeRootOfWorldState_ = other.merkleTreeRootOfWorldState_ != null ? other.merkleTreeRootOfWorldState_.Clone() : null;
       index_ = other.index_;
       r_ = other.r_;
       s_ = other.s_;
       p_ = other.p_;
-      Time = other.time_ != null ? other.Time.Clone() : null;
-      ChainId = other.chainId_ != null ? other.ChainId.Clone() : null;
+      time_ = other.time_ != null ? other.time_.Clone() : null;
+      chainId_ = other.chainId_ != null ? other.chainId_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1864,7 +1864,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public BlockBody(BlockBody other) : this() {
-      BlockHeader = other.blockHeader_ != null ? other.BlockHeader.Clone() : null;
+      blockHeader_ = other.blockHeader_ != null ? other.blockHeader_.Clone() : null;
       transactions_ = other.transactions_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -2019,8 +2019,8 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public Block(Block other) : this() {
-      Header = other.header_ != null ? other.Header.Clone() : null;
-      Body = other.body_ != null ? other.Body.Clone() : null;
+      header_ = other.header_ != null ? other.header_.Clone() : null;
+      body_ = other.body_ != null ? other.body_.Clone() : null;
       fullTransactions_ = other.fullTransactions_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -2209,7 +2209,7 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public SmartContractRegistration(SmartContractRegistration other) : this() {
       category_ = other.category_;
-      ContractHash = other.contractHash_ != null ? other.ContractHash.Clone() : null;
+      contractHash_ = other.contractHash_ != null ? other.contractHash_.Clone() : null;
       contractBytes_ = other.contractBytes_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -2399,8 +2399,8 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public SmartContractDeployment(SmartContractDeployment other) : this() {
-      ContractHash = other.contractHash_ != null ? other.ContractHash.Clone() : null;
-      Caller = other.caller_ != null ? other.Caller.Clone() : null;
+      contractHash_ = other.contractHash_ != null ? other.contractHash_.Clone() : null;
+      caller_ = other.caller_ != null ? other.caller_.Clone() : null;
       constructParams_ = other.constructParams_;
       incrementId_ = other.incrementId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -3239,7 +3239,7 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public SmartContractInvokeContext(SmartContractInvokeContext other) : this() {
-      Caller = other.caller_ != null ? other.Caller.Clone() : null;
+      caller_ = other.caller_ != null ? other.caller_.Clone() : null;
       incrementId_ = other.incrementId_;
       methodName_ = other.methodName_;
       params_ = other.params_;
@@ -3459,9 +3459,9 @@ namespace AElf.Kernel {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public Change(Change other) : this() {
       befores_ = other.befores_.Clone();
-      After = other.after_ != null ? other.After.Clone() : null;
-      TransactionIds = other.transactionIds_ != null ? other.TransactionIds.Clone() : null;
-      LatestChangedBlockHash = other.latestChangedBlockHash_ != null ? other.LatestChangedBlockHash.Clone() : null;
+      after_ = other.after_ != null ? other.after_.Clone() : null;
+      transactionIds_ = other.transactionIds_ != null ? other.transactionIds_.Clone() : null;
+      latestChangedBlockHash_ = other.latestChangedBlockHash_ != null ? other.latestChangedBlockHash_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3681,8 +3681,8 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public PairHashChange(PairHashChange other) : this() {
-      Key = other.key_ != null ? other.Key.Clone() : null;
-      Value = other.value_ != null ? other.Value.Clone() : null;
+      key_ = other.key_ != null ? other.key_.Clone() : null;
+      value_ = other.value_ != null ? other.value_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3971,8 +3971,8 @@ namespace AElf.Kernel {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public Chain(Chain other) : this() {
-      Id = other.id_ != null ? other.Id.Clone() : null;
-      GenesisBlockHash = other.genesisBlockHash_ != null ? other.GenesisBlockHash.Clone() : null;
+      id_ = other.id_ != null ? other.id_.Clone() : null;
+      genesisBlockHash_ = other.genesisBlockHash_ != null ? other.genesisBlockHash_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -4263,10 +4263,10 @@ namespace AElf.Kernel {
     public BPInfo(BPInfo other) : this() {
       order_ = other.order_;
       isEBP_ = other.isEBP_;
-      InValue = other.inValue_ != null ? other.InValue.Clone() : null;
-      OutValue = other.outValue_ != null ? other.OutValue.Clone() : null;
-      Signature = other.signature_ != null ? other.Signature.Clone() : null;
-      TimeSlot = other.timeSlot_ != null ? other.TimeSlot.Clone() : null;
+      inValue_ = other.inValue_ != null ? other.inValue_.Clone() : null;
+      outValue_ = other.outValue_ != null ? other.outValue_.Clone() : null;
+      signature_ = other.signature_ != null ? other.signature_.Clone() : null;
+      timeSlot_ = other.timeSlot_ != null ? other.timeSlot_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
