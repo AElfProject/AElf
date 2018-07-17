@@ -36,6 +36,7 @@ namespace AElf.Kernel.Node.RPC
         private const string GetGenesisiAddress = "connect_chain";
         private const string GetDeserializedData = "get_deserialized_result";
         private const string GetBlockHeight = "get_block_height";
+        private const string GetBlockInfo = "get_block_info";
         /// <summary>
         /// The names of the exposed RPC methods and also the
         /// names used in the JSON to perform a call.
@@ -53,7 +54,8 @@ namespace AElf.Kernel.Node.RPC
             GetTxResultMethodName,
             GetGenesisiAddress,
             GetDeserializedData,
-            GetBlockHeight
+            GetBlockHeight,
+            GetBlockInfo
         };
 
         /// <summary>
@@ -230,6 +232,9 @@ namespace AElf.Kernel.Node.RPC
                     case GetBlockHeight:
                         responseData = await ProGetBlockHeight(reqParams);
                         break;
+                    case GetBlockInfo:
+                        responseData = await ProGetBlockInfo(reqParams);
+                        break;
                     default:
                         Console.WriteLine("Method name not found"); // todo log
                         break;
@@ -248,6 +253,40 @@ namespace AElf.Kernel.Node.RPC
             {
                 Console.WriteLine(e);
             }
+        }
+
+        private async Task<JObject> ProGetBlockInfo(JObject reqParams)
+        {
+            var error = JObject.FromObject(new JObject
+            {
+                ["error"] = "Invalid Block Height"
+            });
+            var height = int.Parse(reqParams["block_height"].ToString());
+
+            if (height < 0)
+                return error;
+            var blockinfo = await _node.GetBlockAtHeight(height);
+            if (blockinfo == null)
+                return error;
+
+            JObject j = new JObject
+            {
+                ["result"] = new JObject
+                {
+                    ["Blockhash"] = blockinfo.GetHash().ToHex(),
+                    ["Header"] = new JObject
+                    {
+                        ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.ToHex(),
+                        ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.ToHex(),
+                        ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.ToHex(),
+                        ["Index"] = blockinfo.Header.Index.ToString(),
+                        ["Time"] = blockinfo.Header.Time.ToDateTime(),
+                        ["ChainId"] = blockinfo.Header.ChainId.ToHex()
+                    }
+                }
+            };
+
+            return JObject.FromObject(j);
         }
 
         private async Task<JObject> ProGetBlockHeight(JObject reqParams)
