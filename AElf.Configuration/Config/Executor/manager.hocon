@@ -1,0 +1,30 @@
+manager {
+    system-name: "AElfSystem"
+}
+
+petabridge.cmd {
+    host = "0.0.0.0"
+    port = 9110
+}
+
+akka {
+    actor {
+        provider = cluster
+    }
+    
+    remote {
+        log-remote-lifecycle-events = DEBUG
+        dot-netty.tcp {
+            transport-class = "Akka.Remote.Transport.DotNetty.TcpTransport, Akka.Remote"
+            applied-adapters = []
+            transport-protocol = tcp
+            hostname = "192.168.199.112"
+            port = 4053
+        }
+    }
+
+    cluster {
+        seed-nodes = [] 
+        roles = [lighthouse]
+    }
+}

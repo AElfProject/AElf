@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Text;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel;
-using AElf.Network.Helpers;
-using AElf.Types.CSharp;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.CLI.Helpers
 {

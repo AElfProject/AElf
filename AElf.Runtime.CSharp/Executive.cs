@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Type = System.Type;

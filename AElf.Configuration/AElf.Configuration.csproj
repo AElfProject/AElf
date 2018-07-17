@@ -10,19 +10,22 @@
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="Configs\Executor\actor.json">
+    <None Update="Config\Executor\actor.json" Link="config\actor.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Configs\Executor\master.hocon">
+    <None Update="Config\Executor\master.hocon" Link="config\master.hocon">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Configs\Executor\parallel.json">
+    <None Update="Config\Executor\parallel.json" Link="config\parallel.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Configs\Executor\single.hocon">
+    <None Update="Config\Executor\single.hocon" Link="config\single.hocon">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Configs\Executor\worker.hocon">
+    <None Update="Config\Executor\worker.hocon" Link="config\worker.hocon">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\Executor\manager.hocon" Link="config\manager.hocon">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
