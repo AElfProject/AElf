@@ -18,8 +18,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
-    <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
-    <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
-    <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
   </ItemGroup>
 </Project>

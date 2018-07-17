@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Database;
 
 namespace AElf.Kernel.Storages
