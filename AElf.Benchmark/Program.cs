@@ -109,10 +109,13 @@ namespace AElf.Benchmark
 
                 var builder = new ContainerBuilder();
                 builder.RegisterModule(new MainModule());
-                builder.RegisterModule(new MetadataModule());
                 builder.RegisterModule(new WorldStateDictatorModule());
                 builder.RegisterModule(new DatabaseModule());
                 builder.RegisterModule(new LoggerModule());
+                builder.RegisterModule(new StorageModule());
+                builder.RegisterModule(new ServicesModule());
+                builder.RegisterModule(new ManagersModule());
+                builder.RegisterModule(new MetadataModule());
                 builder.RegisterType(typeof(ConcurrencyExecutingService)).As<IConcurrencyExecutingService>()
                     .SingleInstance();
                 builder.RegisterType<Benchmarks>().WithParameter("options", opts);

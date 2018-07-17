@@ -3,7 +3,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
     <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
   </ItemGroup>
 </Project>

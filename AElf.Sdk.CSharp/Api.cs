@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.SmartContract;
-using AElf.Execution;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Types.CSharp;

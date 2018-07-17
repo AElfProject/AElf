@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Database;
 using AElf.Kernel.Types;
 
