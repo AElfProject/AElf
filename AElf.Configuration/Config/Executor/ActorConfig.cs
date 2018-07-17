@@ -13,13 +13,15 @@ namespace AElf.Configuration
         public int WorkerCount { get; set; }
         public List<SeedNode> Seeds { get; set; }
 
-        public string SingleHoconFile { get; set; }
-        public string MasterHoconFile { get; set; }
-        public string WorkerHoconFile { get; set; }
+        public string SingleHoconFile { get; set; } = "";
+        public string MasterHoconFile { get; set; } = "";
+        public string WorkerHoconFile { get; set; } = "";
+        public string ManagerHoconFile { get; set; } = "";
 
         private string _singleHoconConfig;
         private string _masterHoconConfig;
         private string _workerHoconConfig;
+        private string _managerHoconConfig;
 
         public string SingleHoconConfig
         {
@@ -37,7 +39,6 @@ namespace AElf.Configuration
             {
                 if (string.IsNullOrEmpty(_masterHoconConfig))
                     _masterHoconConfig = ReadConfFile(Instance.MasterHoconFile);
-                Console.WriteLine(_masterHoconConfig);
                 return _masterHoconConfig;
             }
         }
@@ -52,12 +53,25 @@ namespace AElf.Configuration
             }
         }
 
-        private string ReadConfFile(string name)
+        public string ManagerHoconConfig
         {
-            var file = Path.Combine(ConfigManager.ConfigFilePath, name);
-            if (File.Exists(file)) return File.ReadAllText(file);
-            _logger.Error("Config file not exist: {0}", file);
-            return "";
+            get
+            {
+                if (string.IsNullOrEmpty(_managerHoconConfig))
+                    _managerHoconConfig = ReadConfFile(Instance.ManagerHoconFile);
+                return _managerHoconConfig;
+            }
+        }
+
+        private static string ReadConfFile(string name)
+        {
+            foreach (var configFilePath in ConfigManager.ConfigFilePaths)
+            {
+                var file = Path.Combine(configFilePath, name);
+                if (!File.Exists(file)) continue;
+                return File.ReadAllText(file);
+            }
+            throw new FileNotFoundException(name);
         }
 
         /// <summary>

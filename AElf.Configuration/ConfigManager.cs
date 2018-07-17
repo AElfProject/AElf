@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using AElf.Common.Application;
 
@@ -9,9 +11,14 @@ namespace AElf.Configuration
 {
     internal class ConfigManager
     {
-        internal static string ConfigFilePath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config");
-        private static Dictionary<string, ConfigInfo> ConfigInfos = new Dictionary<string, ConfigInfo>();
-        private static readonly object _configLock = new object();
+        public static readonly List<string> ConfigFilePaths = new List<string>
+        {
+            Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "config"),
+            Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config")
+        };
+
+        private static readonly Dictionary<string, ConfigInfo> ConfigInfos = new Dictionary<string, ConfigInfo>();
+        private static readonly object ConfigLock = new object();
 
         internal static T GetConfigInstance<T>()
         {
@@ -23,29 +30,20 @@ namespace AElf.Configuration
         {
             var t = typeof(T);
             var attrs = t.GetCustomAttributes(typeof(ConfigFileAttribute), false);
-            if (attrs.Length > 0)
-            {
-                return ((ConfigFileAttribute) attrs[0]).FileName;
-            }
-
-            return t.Name;
+            return attrs.Length > 0 ? ((ConfigFileAttribute) attrs[0]).FileName : t.Name;
         }
 
         private static T GetConfigInstance<T>(string name)
         {
             var configName = name.ToLower();
             var config = GetConfigInfo(configName);
-            if (config == null)
+            if (config != null) return (T) config.Value;
+            lock (ConfigLock)
             {
-                lock (_configLock)
-                {
-                    if (!ConfigInfos.TryGetValue(configName, out config))
-                    {
-                        var configContent = GetFromLocalFile(configName);
-                        config = new ConfigInfo(configName, typeof(T), configContent);
-                        ConfigInfos.Add(configName, config);
-                    }
-                }
+                if (ConfigInfos.TryGetValue(configName, out config)) return (T) config.Value;
+                var configContent = GetFromLocalFile(configName);
+                config = new ConfigInfo(configName, typeof(T), configContent);
+                ConfigInfos.Add(configName, config);
             }
 
             return (T) config.Value;
@@ -55,7 +53,7 @@ namespace AElf.Configuration
         {
             configName = configName.ToLower();
             ConfigInfo configInfo;
-            lock (_configLock)
+            lock (ConfigLock)
             {
                 ConfigInfos.TryGetValue(configName, out configInfo);
             }
@@ -65,14 +63,11 @@ namespace AElf.Configuration
 
         private static string GetFromLocalFile(string name)
         {
-            var filePath = Path.Combine(ConfigFilePath, name);
-            if (!File.Exists(filePath))
-            {
-                return null;
-            }
-
-            var text = File.ReadAllText(filePath);
-            return text;
+            return (from configFilePath in ConfigFilePaths
+                select Path.Combine(configFilePath, name)
+                into filePath
+                where File.Exists(filePath)
+                select File.ReadAllText(filePath)).FirstOrDefault();
         }
     }
 }

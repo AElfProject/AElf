@@ -95,6 +95,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.DPoS", "AElf
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.DPoS.Tests", "AElf.Contracts.DPoS.Tests\AElf.Contracts.DPoS.Tests.csproj", "{B0905B6C-1DAA-47BF-9486-094B9FB037E6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Concurrency.Manager", "AElf.Concurrency.Manager\AElf.Concurrency.Manager.csproj", "{F44EDCEC-7BE4-4A43-B7AE-04C2570CB17D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -285,6 +287,10 @@ Global
 		{B0905B6C-1DAA-47BF-9486-094B9FB037E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0905B6C-1DAA-47BF-9486-094B9FB037E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0905B6C-1DAA-47BF-9486-094B9FB037E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F44EDCEC-7BE4-4A43-B7AE-04C2570CB17D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F44EDCEC-7BE4-4A43-B7AE-04C2570CB17D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F44EDCEC-7BE4-4A43-B7AE-04C2570CB17D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F44EDCEC-7BE4-4A43-B7AE-04C2570CB17D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

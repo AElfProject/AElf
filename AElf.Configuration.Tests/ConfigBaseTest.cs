@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using Newtonsoft.Json;
 using Xunit;
@@ -9,11 +10,11 @@ namespace AElf.Configuration.Tests
 {
     public class ConfigBaseTest:IDisposable
     {
-        private List<string> _fileNames = new List<string>();
+        private readonly List<string> _fileNames = new List<string>();
 
         public ConfigBaseTest()
         {
-            ConfigManager.ConfigFilePath = "aelfconfig/";
+            ConfigManager.ConfigFilePaths.Insert(0, "aelfconfig/");
         }
 
         [Fact]
@@ -63,10 +64,10 @@ namespace AElf.Configuration.Tests
 
         private void CheckAndCreateFile(string fileName)
         {
-            var filePath = ConfigManager.ConfigFilePath + fileName;
-            if (!Directory.Exists(ConfigManager.ConfigFilePath))
+            var filePath = ConfigManager.ConfigFilePaths[0] + fileName;
+            if (!Directory.Exists(ConfigManager.ConfigFilePaths[0]))
             {
-                Directory.CreateDirectory(ConfigManager.ConfigFilePath);
+                Directory.CreateDirectory(ConfigManager.ConfigFilePaths[0]);
             }
             if (!File.Exists(filePath))
             {
@@ -85,7 +86,7 @@ namespace AElf.Configuration.Tests
 
         private void DeleteFile(string fileName)
         {
-            var filePath = ConfigManager.ConfigFilePath + fileName;
+            var filePath = ConfigManager.ConfigFilePaths[0] + fileName;
             if (File.Exists(filePath))
             {
                 File.Delete(filePath);
