@@ -462,22 +462,22 @@ namespace AElf.Kernel.Consensus
         }
 
         // ReSharper disable once InconsistentNaming
-        public async Task<StringValue> GetDPoSInfoToStringOfLatestRounds(UInt64Value countOfRounds)
+        public async Task<string> GetDPoSInfoToStringOfLatestRounds(ulong countOfRounds)
         {
             if (RoundsCount.Value == 0)
             {
-                return new StringValue {Value = "No DPoS Information, maybe failed to sync blocks"};
+                return "No DPoS Information, maybe failed to sync blocks";
             }
             
             var currentRoundsCount = RoundsCount.Value;
             ulong startRound;
-            if (countOfRounds.Value >= currentRoundsCount)
+            if (countOfRounds >= currentRoundsCount)
             {
                 startRound = 1;
             }
             else
             {
-                startRound = currentRoundsCount - countOfRounds.Value + 1;
+                startRound = currentRoundsCount - countOfRounds + 1;
             }
 
             var infoOfOneRound = "";
@@ -497,12 +497,8 @@ namespace AElf.Kernel.Consensus
             // ReSharper disable once InconsistentNaming
             var eBPTimeslot = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync("EBTime".CalculateHash()));
 
-            return new StringValue
-            {
-                Value
-                    = infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
-                                     + $"Current Round : {RoundsCount.Value}"
-            };
+            return infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
+                                  + $"Current Round : {RoundsCount.Value}";
         }
 
         public async Task<string> GetRoundInfoToString(UInt64Value roundsCount)
@@ -523,41 +519,6 @@ namespace AElf.Kernel.Consensus
             }
 
             return result + "\n";
-        }
-
-        public async Task<bool> BlockProducerVerification(StringValue accountAddress, Timestamp timestampOfBlock)
-        {
-            if (!_blockProducer.Nodes.Contains(accountAddress.Value))
-            {
-                return false;
-            }
-
-            var timeslotOfBlockProducer = await GetTimeSlot(accountAddress.Value);
-            var endOfTimeslotOfBlockProducer = GetTimestamp(timeslotOfBlockProducer, Globals.MiningTime);
-            // ReSharper disable once InconsistentNaming
-            var timeslotOfEBP = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync("EBTime".CalculateHash()));
-            if (CompareTimestamp(timestampOfBlock, timeslotOfBlockProducer) && CompareTimestamp(endOfTimeslotOfBlockProducer, timestampOfBlock) ||
-                CompareTimestamp(timestampOfBlock, timeslotOfEBP))
-            {
-                return true;
-            }
-
-            var start = RoundsCount.Value;
-            for (var i = start; i > 0; i--)
-            {
-                var blockProducerInfo =
-                    await GetBlockProducerInfoOfSpecificRound(accountAddress.Value, new UInt64Value {Value = i});
-                var timeslot = blockProducerInfo.TimeSlot;
-                var timeslotEnd = GetTimestamp(timeslot, Globals.MiningTime);
-                if (CompareTimestamp(timestampOfBlock, timeslot) && CompareTimestamp(timeslotEnd, timestampOfBlock))
-                {
-                    return true;
-                }
-            }
-
-            _logger?.Error(accountAddress.Value + " may produced a block in an invalid timeslot:" + timeslotOfBlockProducer.ToDateTime().ToString("u"));
-
-            return false;
         }
         
         // ReSharper disable once MemberCanBeMadeStatic.Local

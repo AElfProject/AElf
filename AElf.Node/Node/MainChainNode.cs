@@ -1003,23 +1003,7 @@ namespace AElf.Kernel.Node
         // ReSharper disable once InconsistentNaming
         private async Task<string> GetDPoSInfo()
         {
-            // ReSharper disable once InconsistentNaming
-            var tcGetDPoSInfo = new TransactionContext
-            {
-                Transaction = _dPoSTxGenerator.GetDPoSInfoToStringTx(await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
-            };
-            Executive.SetTransactionContext(tcGetDPoSInfo).Apply(true).Wait();
-
-            if (tcGetDPoSInfo.Trace.IsSuccessful())
-            {
-                return tcGetDPoSInfo.Trace.RetVal.Data.DeserializeToString() + 
-                       "\nCurrent Block Height:" + await _chainManager.GetChainCurrentHeight(ChainId);
-            }
-            
-            _logger?.Debug("Failed to get dpos information");
-            _logger?.Error(tcGetDPoSInfo.Trace.StdErr);
-            
-            return "";
+            return await _dPoSHelper.GetDPoSInfoToStringOfLatestRounds(3);
         }
         
         // ReSharper disable once MemberCanBeMadeStatic.Local

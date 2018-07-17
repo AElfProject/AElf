@@ -104,29 +104,6 @@ namespace AElf.Kernel.Consensus
                 return t;
             }).ToList();
         }
-
-        // ReSharper disable once InconsistentNaming
-        public Transaction GetDPoSInfoToStringTx(ulong incrementId, Hash contractAccountHash)
-        {
-            var tx = new Transaction
-            {
-                From = AccountHash,
-                To = contractAccountHash,
-                IncrementId = incrementId,
-                MethodName = "GetDPoSInfoToStringOfLatestRounds",
-                P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(new UInt64Value {Value = 3}))
-            };
-            
-            var signer = new ECSigner();
-            var signature = signer.Sign(_keyPair, tx.GetHash().GetHashBytes());
-
-            // Update the signature
-            tx.R = ByteString.CopyFrom(signature.R);
-            tx.S = ByteString.CopyFrom(signature.S);
-
-            return tx;
-        }
         
         public Transaction GetTxToPublishInValueTx(ulong incrementId, Hash contractAccountHash,
             Hash inValue, UInt64Value roundsCount)
