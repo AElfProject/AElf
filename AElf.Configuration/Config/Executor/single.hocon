@@ -1,3 +1,7 @@
+manager {
+    system-name: "AElfSystem"
+}
+
 akka {
     actor {
         deployment {
