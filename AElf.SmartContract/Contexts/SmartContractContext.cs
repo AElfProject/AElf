@@ -8,7 +8,7 @@ namespace AElf.SmartContract
     {
         public Hash ChainId { get; set; }
         public Hash ContractAddress { get; set; }
-        public ICachedDataProvider DataProvider { get; set; }
+        public ITentativeDataProvider DataProvider { get; set; }
         public ISmartContractService SmartContractService { get; set; }
     }
 }

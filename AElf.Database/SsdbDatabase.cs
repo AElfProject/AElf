@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Database.Config;
@@ -28,6 +29,15 @@ namespace AElf.Database
         public async Task RemoveAsync(string key)
         {
             await Task.FromResult(_client.GetCacheClient().Remove(key));
+        }
+
+        public async Task<bool> PipelineSetAsync(Dictionary<string, byte[]> cache)
+        {
+            return await Task.Factory.StartNew(() =>
+            {
+                _client.GetCacheClient().SetAll(cache);
+                return true;
+            });
         }
 
         public bool IsConnected()
