@@ -23,7 +23,7 @@ namespace AElf.Kernel.Consensus
             get
             {
                 var bytes = _dataProvider.GetAsync("RoundsCount".CalculateHash()).Result;
-                return UInt64Value.Parser.ParseFrom(bytes);
+                return bytes == null ? new UInt64Value {Value = 0} : UInt64Value.Parser.ParseFrom(bytes);
             }
         }
 
