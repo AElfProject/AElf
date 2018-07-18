@@ -32,6 +32,7 @@ namespace AElf.Execution
                 WorldStateDictator = worldStateDictator,
                 AccountContextService = accountContextService,
             };
+            worldStateDictator.DeleteChangeBeforesImmidiately = true;
             _isInit = false;
         }
 

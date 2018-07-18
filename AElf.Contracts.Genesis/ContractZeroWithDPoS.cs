@@ -1,149 +1,55 @@
 ﻿using System;
 using System.Linq;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.Types;
-using SharpRepository.Repository.Configuration;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Genesis
 {
     // ReSharper disable once InconsistentNaming
+    // ReSharper disable once UnusedMember.Global
     public class ContractZeroWithDPoS : BasicContractZero
     {
-        #region DPoS
-
         // The length of one timeslot for a miner to produce block
-        private static readonly int MiningTime = Globals.MiningTime;
-
-        // After the chain creator start a chain, wait for other mimers join
-        private static readonly int WaitFirstRoundTime = Globals.WaitFirstRoundTime;
+        private const int MiningTime = Globals.MiningTime;
 
         // Block producers check interval
-        private static readonly int CheckTime = Globals.CheckTime;
+        private const int CheckTime = Globals.CheckTime;
 
-        private readonly UInt64Field _roundsCount = new UInt64Field("RoundsCount");
-        
-        private readonly PbField<BlockProducer> _blockProducer = new PbField<BlockProducer>("BPs");
-        
-        private readonly Map<UInt64Value, RoundInfo> _dPoSInfoMap = new Map<UInt64Value, RoundInfo>("DPoSInfo");
+        #region Protobuf fields and maps
+
+        private readonly UInt64Field _roundsCount = new UInt64Field(Globals.DPoSRoundsCountString);
+
+        private readonly PbField<BlockProducer> _blockProducer =
+            new PbField<BlockProducer>(Globals.DPoSBlockProducerString);
+
+        private readonly Map<UInt64Value, RoundInfo> _dPoSInfoMap =
+            new Map<UInt64Value, RoundInfo>(Globals.DPoSInfoString);
         
         // ReSharper disable once InconsistentNaming
-        private readonly Map<UInt64Value, StringValue> _eBPMap = new Map<UInt64Value, StringValue>("EBP");
-        
-        private readonly PbField<Timestamp> _timeForProducingExtraBlock  = new PbField<Timestamp>("EBTime");
+        private readonly Map<UInt64Value, StringValue> _eBPMap =
+            new Map<UInt64Value, StringValue>(Globals.DPoSExtraBlockProducerString);
 
-        private readonly PbField<Hash> _chainCreator = new PbField<Hash>("ChainCreator");
+        private readonly PbField<Timestamp> _timeForProducingExtraBlock =
+            new PbField<Timestamp>(Globals.DPoSExtraBlockTimeslotString);
+
+        private readonly PbField<Hash> _chainCreator = new PbField<Hash>(Globals.DPoSChainCreatorString);
 
         private readonly Map<UInt64Value, StringValue> _firstPlaceMap
-            = new Map<UInt64Value, StringValue>("FirstPlaceOfEachRound");
+            = new Map<UInt64Value, StringValue>(Globals.DPoSFirstPlaceOfEachRoundString);
+
+        #endregion
 
         private readonly bool _printLog = true;
  
         private UInt64Value RoundsCount => new UInt64Value {Value = _roundsCount.GetAsync().Result};
+        private BlockProducer BlockProducer => _blockProducer.GetAsync().Result;
         
-        #region Block Producers
+        #region Methods of Block Height 1
         
-        public async Task<BlockProducer> GetBlockProducers()
-        {
-            // Should be setted before 
-            var blockProducer = await _blockProducer.GetAsync();
-
-            if (blockProducer.Nodes.Count < 1)
-            {
-                throw new ConfigurationErrorsException("No block producer.");
-            }
-
-            return blockProducer;
-        }
-        
-        #endregion
-        
-        #region Genesis block methods
-        
-        public async Task<DPoSInfo> GenerateInfoForFirstTwoRounds(BlockProducer blockProducers)
-        {
-            var dict = new Dictionary<string, int>();
-
-            // First round
-            foreach (var node in blockProducers.Nodes)
-            {
-                dict.Add(node, node[0]);
-            }
-
-            var sortedMiningNodes =
-                from obj in dict
-                orderby obj.Value descending
-                select obj.Key;
-
-            var enumerable = sortedMiningNodes.ToList();
-            
-            var infosOfRound1 = new RoundInfo();
-
-            var selected = blockProducers.Nodes.Count / 2;
-            for (var i = 0; i < enumerable.Count; i++)
-            {
-                var bpInfo = new BPInfo {IsEBP = false};
-                
-                if (i == selected)
-                {
-                    bpInfo.IsEBP = true;
-
-                }
-
-                bpInfo.Order = i + 1;
-                bpInfo.Signature = Hash.Generate();
-                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * MiningTime + WaitFirstRoundTime);
-
-                infosOfRound1.Info.Add(enumerable[i], bpInfo);
-            }
-
-            // Second round
-            dict = new Dictionary<string, int>();
-            
-            foreach (var node in blockProducers.Nodes)
-            {
-                dict.Add(node, node[0]);
-            }
-            
-            sortedMiningNodes =
-                from obj in dict
-                orderby obj.Value descending
-                select obj.Key;
-            
-            enumerable = sortedMiningNodes.ToList();
-            
-            var infosOfRound2 = new RoundInfo();
-
-            var addition = enumerable.Count * MiningTime + MiningTime;
-
-            selected = blockProducers.Nodes.Count / 2;
-            for (var i = 0; i < enumerable.Count; i++)
-            {
-                var bpInfo = new BPInfo {IsEBP = false};
-
-                if (i == selected)
-                {
-                    bpInfo.IsEBP = true;
-                }
-
-                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * MiningTime + addition + WaitFirstRoundTime);
-                bpInfo.Order = i + 1;
-
-                infosOfRound2.Info.Add(enumerable[i], bpInfo);
-            }
-
-            var dPoSInfo = new DPoSInfo
-            {
-                RoundInfo = {infosOfRound1, infosOfRound2}
-            };
-            
-            return dPoSInfo;
-        }
-
+        // ReSharper disable once UnusedMember.Global
         public async Task SyncStateOfFirstTwoRounds(DPoSInfo dPoSInfo, BlockProducer blockProducer)
         {
             await _blockProducer.SetAsync(blockProducer);
@@ -176,12 +82,13 @@ namespace AElf.Contracts.Genesis
         
         #endregion
 
-        #region EBP Methods
+        #region Methods for Extra Block Producer
 
         // ReSharper disable once InconsistentNaming
+        // ReSharper disable once UnusedMember.Global
         public async Task SyncStateOfNextRound(RoundInfo suppliedPreviousRoundInfo, RoundInfo nextRoundInfo, StringValue nextEBP)
         {
-            if (!await Authentication(nameof(SyncStateOfNextRound)))
+            if (!Authentication(nameof(SyncStateOfNextRound)))
             {
                 return;
             }
@@ -219,8 +126,9 @@ namespace AElf.Contracts.Genesis
 
         #endregion
 
-        #region BP Methods
-
+        #region Methods for Normal Block Producer
+        
+        // ReSharper disable once UnusedMember.Global
         public async Task<BPInfo> PublishOutValueAndSignature(Hash outValue, Hash signature, UInt64Value roundsCount)
         {
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
@@ -238,7 +146,8 @@ namespace AElf.Contracts.Genesis
 
             return info;
         }
-
+        
+        // ReSharper disable once UnusedMember.Global
         public async Task<Hash> TryToPublishInValue(Hash inValue, UInt64Value roundsCount)
         {
             var accountAddress = AddressHashToString(Api.GetTransaction().From);
@@ -255,10 +164,13 @@ namespace AElf.Contracts.Genesis
         }
 
         #endregion
-        
+
+        #region Methods for Every node
+
+        // ReSharper disable once UnusedMember.Global
         public async Task<BoolValue> BlockProducerVerification(StringValue accountAddress)
         {
-            if (!await IsBP(accountAddress.Value))
+            if (!IsBP(accountAddress.Value))
             {
                 return new BoolValue {Value = false};
             }
@@ -291,28 +203,30 @@ namespace AElf.Contracts.Genesis
 
             return new BoolValue {Value = false};
         }
+
+        #endregion
         
-        public async Task<Timestamp> GetTimeSlot(string accountAddress)
+        #region Private Methods
+
+        private async Task<Timestamp> GetTimeSlot(string accountAddress)
         {
             return (await GetBlockProducerInfoOfCurrentRound(accountAddress)).TimeSlot;
         }
         
         // ReSharper disable once InconsistentNaming
-        private async Task<bool> IsBP(string accountAddress)
+        private bool IsBP(string accountAddress)
         {
-            var blockProducer = await GetBlockProducers();
-            return blockProducer.Nodes.Contains(accountAddress);
+            return BlockProducer.Nodes.Contains(accountAddress);
         }
         
         // ReSharper disable once InconsistentNaming
+        // ReSharper disable once UnusedMember.Local
         private async Task<bool> IsEBP(string accountAddress)
         {
             var info = await GetBlockProducerInfoOfCurrentRound(accountAddress);
             return info.IsEBP;
         }
-
-        #region Private Methods
-
+        
         /// <summary>
         /// Get local time
         /// </summary>
@@ -324,6 +238,7 @@ namespace AElf.Contracts.Genesis
             return Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
         }
 
+        // ReSharper disable once MemberCanBeMadeStatic.Local
         private Timestamp GetTimestamp(Timestamp origin, int offset)
         {
             return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
@@ -348,14 +263,6 @@ namespace AElf.Contracts.Genesis
             current++;
             return new UInt64Value {Value = current};
         }
-        
-        // ReSharper disable once MemberCanBeMadeStatic.Local
-        private UInt64Value RoundsCountMinusOne(UInt64Value currentCount)
-        {
-            var current = currentCount.Value;
-            current--;
-            return new UInt64Value {Value = current};
-        }
 
         private async Task<BPInfo> GetBlockProducerInfoOfSpecificRound(string accountAddress, UInt64Value roundsCount)
         {
@@ -375,25 +282,11 @@ namespace AElf.Contracts.Genesis
             return accountHash.ToAccount().ToHex().Remove(0, 2);
         }
 
-
-        /// <summary>
-        /// In case of forgetting to check negtive value.
-        /// For now this method only used for generating order,
-        /// so integer should be enough.
-        /// </summary>
-        /// <param name="uLongVal"></param>
-        /// <param name="intVal"></param>
-        /// <returns></returns>
-        // ReSharper disable once MemberCanBeMadeStatic.Local
-        private int GetModulus(ulong uLongVal, int intVal)
-        {
-            return Math.Abs((int) (uLongVal % (ulong) intVal));
-        }
-
-        private async Task<bool> Authentication(string methodName)
+        // ReSharper disable once UnusedParameter.Local
+        private bool Authentication(string methodName)
         {
             var fromAccount = ConvertToNormalHexString(Api.GetTransaction().From.Value.ToByteArray().ToHex());
-            var result = (await GetBlockProducers()).Nodes.Contains(fromAccount);
+            var result = IsBP(fromAccount);
             //ConsoleWriteLine($"Checked privilege to call consensus method {methodName}: {result}");
             return result;
         }
@@ -404,6 +297,7 @@ namespace AElf.Contracts.Genesis
             return hexStr.StartsWith("0x") ? hexStr.Remove(0, 2) : hexStr;
         }
 
+        // ReSharper disable once MemberCanBeMadeStatic.Local
         private DateTime GetLocalTime()
         {
             return DateTime.UtcNow.ToLocalTime();
@@ -419,6 +313,5 @@ namespace AElf.Contracts.Genesis
 
         #endregion
 
-        #endregion
     }
 }
