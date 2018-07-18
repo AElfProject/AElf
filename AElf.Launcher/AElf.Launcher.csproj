@@ -4,19 +4,14 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.ABI.CSharp\AElf.ABI.CSharp.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj">
       <Project>{C7B2F451-DF68-4FBB-AEA1-020F17BB6598}</Project>
       <Name>AElf.Kernel.Modules.AutofacModule</Name>
     </ProjectReference>
-    <ProjectReference Include="..\AElf.Kernel.Tests.TestContractZero\AElf.Kernel.Tests.TestContractZero.csproj" />
-    <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
-    <ProjectReference Include="..\AElf.Network\AElf.Network.csproj" />
     <None Update="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <ProjectReference Include="..\AElf.Node\AElf.Node.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
