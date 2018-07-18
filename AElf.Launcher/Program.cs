@@ -4,7 +4,6 @@ using System.Net;
 using System.Runtime.InteropServices.ComTypes;
 using System.Security;
 using System.Threading.Tasks;
-using AElf.ABI.CSharp;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;

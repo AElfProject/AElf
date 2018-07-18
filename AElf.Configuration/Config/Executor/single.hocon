@@ -1,0 +1,16 @@
+manager {
+    system-name: "AElfSystem"
+}
+
+akka {
+    actor {
+        deployment {
+            /router {
+                router = tracked-group
+            }
+        }
+        router.type-mapping {
+            tracked-group = "AElf.Kernel.Concurrency.Execution.TrackedGroup, AElf.Kernel"
+        }
+    }
+}

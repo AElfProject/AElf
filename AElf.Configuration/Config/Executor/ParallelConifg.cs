@@ -1,6 +1,4 @@
-﻿using AElf.Configuration;
-
-namespace AElf.Configuration
+﻿namespace AElf.Configuration
 {
     [ConfigFile(FileName = "parallelconfig.json")]
     public class ParallelConfig : ConfigBase<ParallelConfig>
