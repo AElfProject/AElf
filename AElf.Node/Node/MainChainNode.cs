@@ -55,7 +55,8 @@ namespace AElf.Kernel.Node
 
         private readonly IBlockExecutor _blockExecutor;
 
-        private DPoS _dPoS;
+        private DPoSTxGenerator _dPoSTxGenerator;
+        private DPoSHelper _dPoSHelper;
 
         public Hash ContractAccountHash =>
             _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
@@ -63,7 +64,7 @@ namespace AElf.Kernel.Node
         public IExecutive Executive =>
             _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
 
-        private const int CheckTime = 2000;
+        private const int CheckTime = 1000;
 
         private int _flag;
         public bool IsMining { get; private set; }
@@ -161,8 +162,6 @@ namespace AElf.Kernel.Node
                 {
                     var preBlockHash = GetLastValidBlockHash().Result;
                     _worldStateDictator.SetWorldStateAsync(preBlockHash);
-                    //var worldState = _worldStateDictator.GetWorldStateAsync(preBlockHash).Result;
-                    //_logger?.Trace($"Merkle Tree Root before execution:{(worldState.GetWorldStateMerkleTreeRootAsync()).Result.ToHex()}");
                     
                     _worldStateDictator.PreBlockHash = preBlockHash;
                     _worldStateDictator.RollbackCurrentChangesAsync();
@@ -714,7 +713,8 @@ namespace AElf.Kernel.Node
             {
                 _logger?.Debug("-- DPoS Mining Has been fired!");
                 
-                _dPoS = new DPoS(_nodeKeyPair);
+                _dPoSTxGenerator = new DPoSTxGenerator(_nodeKeyPair);
+                _dPoSHelper = new DPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers, ContractAccountHash, _logger);
 
                 //Record the rounds count in local memory
                 ulong roundsCount = 0;
@@ -750,7 +750,7 @@ namespace AElf.Kernel.Node
                             return;
                         }
 
-                        var actualRoundsCount = x == 0 ? 0 : await GetActualRoundsCount();
+                        var actualRoundsCount = x == 0 ? 0 : _dPoSHelper.RoundsCount.Value;
                         if (roundsCount != actualRoundsCount)
                         {
                             //Update the rounds count
@@ -770,7 +770,7 @@ namespace AElf.Kernel.Node
                                 return;
                             }
                             
-                            var dpoSInfo = await ExecuteTxsForFirstExtraBlock();
+                            var dpoSInfo = ExecuteTxsForFirstExtraBlock();
 
                             await BroadcastSyncTxForFirstExtraBlock(dpoSInfo);
 
@@ -855,7 +855,7 @@ namespace AElf.Kernel.Node
                             if (lastTryToPublishInValueRoundsCount != roundsCount)
                             {
                                 //Try to publish in value (every BP can do this)
-                                await BroadcastTransaction(_dPoS.GetTxToPublishInValueTx(
+                                await BroadcastTransaction(_dPoSTxGenerator.GetTxToPublishInValueTx(
                                     await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash, inValue,
                                     new UInt64Value {Value = roundsCount}));
 
@@ -951,40 +951,12 @@ namespace AElf.Kernel.Node
                 
             });
         }
-       
-        private async Task<DPoSInfo> ExecuteTxsForFirstExtraBlock()
-        {
-            var txsForFirstExtraBlock = _dPoS.GetTxsForFirstExtraBlock(
-                await GetIncrementId(_nodeKeyPair.GetAddress()), BlockProducers, ContractAccountHash
-            );
 
-            var dPoSInfo = new DPoSInfo();
-            
-            foreach (var tx in txsForFirstExtraBlock)
-            {
-                var tc = new TransactionContext
-                {
-                    Transaction = tx
-                };
-                Executive.SetTransactionContext(tc).Apply(true).Wait();
-                
-                if (tx.MethodName.StartsWith("Generate"))
-                {
-                    if (!tc.Trace.IsSuccessful())
-                    {
-                        _logger?.Debug(tc.Trace.StdErr);
-                    }
-
-                    dPoSInfo = tc.Trace.RetVal.Data.DeserializeToPbMessage<DPoSInfo>();
-                }
-            }
-
-            return dPoSInfo;
-        }
+        #region Broadcast Txs
 
         private async Task BroadcastSyncTxForFirstExtraBlock(DPoSInfo dPoSInfo)
         {
-            var txToSyncFirstExtraBlock = _dPoS.GetTxToSyncFirstExtraBlock(
+            var txToSyncFirstExtraBlock = _dPoSTxGenerator.GetTxToSyncFirstExtraBlock(
                 await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash, dPoSInfo, BlockProducers);
 
             await BroadcastTransaction(txToSyncFirstExtraBlock);
@@ -992,7 +964,7 @@ namespace AElf.Kernel.Node
 
         private async Task BroadcastTxsForNormalBlock(ulong roundsCount, Hash outValue, Hash signature, ulong incrementId)
         {
-            var txForNormalBlock = _dPoS.GetTxsForNormalBlock(
+            var txForNormalBlock = _dPoSTxGenerator.GetTxsForNormalBlock(
                 incrementId, ContractAccountHash, roundsCount,
                 outValue, signature);
             foreach (var tx in txForNormalBlock)
@@ -1001,98 +973,37 @@ namespace AElf.Kernel.Node
             }
         }
         
-        private async Task<Tuple<RoundInfo, RoundInfo, StringValue>> ExecuteTxsForExtraBlock(ulong incrementId)
-        {
-            var txsForNormalBlock = _dPoS.GetTxsForExtraBlock(
-                incrementId, ContractAccountHash);
-            
-            var currentRoundInfo = new RoundInfo();
-            var nextRoundInfo = new RoundInfo();
-            // ReSharper disable once InconsistentNaming
-            var nextEBP = new StringValue();
-            
-            foreach (var tx in txsForNormalBlock)
-            {
-                var tc = new TransactionContext
-                {
-                    Transaction = tx
-                };
-                Executive.SetTransactionContext(tc).Apply(true).Wait();
-
-                if (!tc.Trace.StdErr.IsNullOrEmpty())
-                {
-                    _logger?.Error(tc.Trace.StdErr);
-                    continue;
-                }
-                
-                if (tx.MethodName.StartsWith("Supply"))
-                {
-                    currentRoundInfo = tc.Trace.RetVal.Data.DeserializeToPbMessage<RoundInfo>();
-                }
-                
-                if (tx.MethodName.StartsWith("Generate"))
-                {
-                    nextRoundInfo =tc.Trace.RetVal.Data.DeserializeToPbMessage<RoundInfo>();
-                }
-
-                if (tx.MethodName.StartsWith("Set"))
-                {
-                    nextEBP = tc.Trace.RetVal.Data.DeserializeToPbMessage<StringValue>();
-                }
-            }
-
-            return Tuple.Create(currentRoundInfo, nextRoundInfo, nextEBP);
-        }
-
         // ReSharper disable once InconsistentNaming
         private async Task BroadcastTxsToSyncExtraBlock(ulong incrementId,
             RoundInfo currentRoundInfo, RoundInfo nextRoundInfo, StringValue nextEBP)
         {
-            var txForExtraBlock = _dPoS.GetTxToSyncExtraBlock(
+            var txForExtraBlock = _dPoSTxGenerator.GetTxToSyncExtraBlock(
                 incrementId, ContractAccountHash, currentRoundInfo, nextRoundInfo, nextEBP);
 
             await BroadcastTransaction(txForExtraBlock);
         }
 
-        private async Task<ulong> GetActualRoundsCount()
+        #endregion
+        
+        private DPoSInfo ExecuteTxsForFirstExtraBlock()
         {
-            var tcGetRoundsCountTx = new TransactionContext
-            {
-                Transaction = _dPoS.GetRoundsCountTx(await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
-            };
-            Executive.SetTransactionContext(tcGetRoundsCountTx).Apply(true).Wait();
+            return _dPoSHelper.GenerateInfoForFirstTwoRounds();
+        }
+        
+        private async Task<Tuple<RoundInfo, RoundInfo, StringValue>> ExecuteTxsForExtraBlock(ulong incrementId)
+        {
+            var currentRoundInfo = await _dPoSHelper.SupplyPreviousRoundInfo();
+            var nextRoundInfo = await _dPoSHelper.GenerateNextRoundOrder();
+            // ReSharper disable once InconsistentNaming
+            var nextEBP = await _dPoSHelper.SetNextExtraBlockProducer();
             
-            if (tcGetRoundsCountTx.Trace.IsSuccessful())
-            {
-                return tcGetRoundsCountTx.Trace.RetVal.Data.DeserializeToUInt64();
-            }
-            
-            _logger?.Debug("Failed to get rounds count");
-            _logger?.Error(tcGetRoundsCountTx.Trace.StdErr);
-
-            return 0;
+            return Tuple.Create(currentRoundInfo, nextRoundInfo, nextEBP);
         }
 
         // ReSharper disable once InconsistentNaming
         private async Task<string> GetDPoSInfo()
         {
-            // ReSharper disable once InconsistentNaming
-            var tcGetDPoSInfo = new TransactionContext
-            {
-                Transaction = _dPoS.GetDPoSInfoToStringTx(await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
-            };
-            Executive.SetTransactionContext(tcGetDPoSInfo).Apply(true).Wait();
-
-            if (tcGetDPoSInfo.Trace.IsSuccessful())
-            {
-                return tcGetDPoSInfo.Trace.RetVal.Data.DeserializeToString() + 
-                       "\nCurrent Block Height:" + await _chainManager.GetChainCurrentHeight(ChainId);
-            }
-            
-            _logger?.Debug("Failed to get dpos information");
-            _logger?.Error(tcGetDPoSInfo.Trace.StdErr);
-            
-            return "";
+            return await _dPoSHelper.GetDPoSInfoToStringOfLatestRounds(3);
         }
         
         // ReSharper disable once MemberCanBeMadeStatic.Local
@@ -1103,37 +1014,14 @@ namespace AElf.Kernel.Node
 
         private async Task<Hash> CalculateSignature(Hash inValue)
         {
-            try
-            {
-                var tcCalculateSignature = new TransactionContext
-                {
-                    Transaction =
-                        _dPoS.GetCalculateSignatureTx(
-                            await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash,
-                            inValue)
-                };
-                Executive.SetTransactionContext(tcCalculateSignature).Apply(true).Wait();
-                return tcCalculateSignature.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, "Failed to calculate signature");
-                return Hash.Generate();
-            }
+            return await _dPoSHelper.CalculateSignature(inValue);
         }
 
         private async Task<bool> CheckAbleToMineNormalBlock()
         {
             try
             {
-                var tcAbleToMine = new TransactionContext
-                {
-                    Transaction = _dPoS.GetAbleToMineTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
-                        ContractAccountHash)
-                };
-                Executive.SetTransactionContext(tcAbleToMine).Apply(true).Wait();
-                            
-                return tcAbleToMine.Trace.RetVal.Data.DeserializeToBool();
+                return await _dPoSHelper.AbleToMine();
             }
             catch (Exception e)
             {
@@ -1146,21 +1034,7 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                var tcAbleToHelp = new TransactionContext
-                {
-                    Transaction =
-                        _dPoS.GetReadyForHelpingProducingExtraBlockTx(await GetIncrementId(_nodeKeyPair.GetAddress()),
-                            ContractAccountHash)
-                };
-                Executive.SetTransactionContext(tcAbleToHelp).Apply(true).Wait();
-                
-                if (!tcAbleToHelp.Trace.StdErr.IsNullOrEmpty())
-                {
-                    _logger?.Error(tcAbleToHelp.Trace.StdErr);
-                    return false;
-                }
-                
-                return tcAbleToHelp.Trace.RetVal.Data.DeserializeToBool();
+                return await _dPoSHelper.ReadyForHelpingProducingExtraBlock();
             }
             catch (Exception e)
             {
@@ -1173,17 +1047,7 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                // ReSharper disable once InconsistentNaming
-                var tcIsTimeToProduceEB = new TransactionContext
-                {
-                    Transaction =
-                        _dPoS.GetIsTimeToProduceExtraBlockTx(
-                            await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
-                };
-                Executive.SetTransactionContext(tcIsTimeToProduceEB).Apply(true).Wait();
-
-                // ReSharper disable once InconsistentNaming
-                return tcIsTimeToProduceEB.Trace.RetVal.Data.DeserializeToBool();
+                return await _dPoSHelper.IsTimeToProduceExtraBlock();
             }
             catch (Exception e)
             {
@@ -1196,19 +1060,7 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                // ReSharper disable once InconsistentNaming
-                var tcAbleToProduceEB = new TransactionContext
-                {
-                    Transaction =
-                        _dPoS.GetAbleToProduceExtraBlockTx(
-                            // This tx won't be broadcasted
-                            await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash)
-                };
-                Executive.SetTransactionContext(tcAbleToProduceEB).Apply(true).Wait();
-
-                // ReSharper disable once InconsistentNaming
-                var res = tcAbleToProduceEB.Trace.RetVal.Data.DeserializeToBool();
-                return res;
+                return await _dPoSHelper.AbleToProduceExtraBlock();
             }
             catch (Exception e)
             {
