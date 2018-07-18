@@ -4,10 +4,10 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.ChainControllerImpl\AElf.ChainControllerImpl.csproj" />
-    <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
-    <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
-    <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+    <ProjectReference Include="..\AElf.Network\AElf.Network.csproj">
+      <Project>{5FEFB079-F6EB-48AF-97C7-6C582B9BDB8A}</Project>
+      <Name>AElf.Network</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />

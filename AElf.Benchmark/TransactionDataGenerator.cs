@@ -124,13 +124,13 @@ namespace AElf.Benchmark
 
         public void PersistAddrsToFile(string path)
         {
-            var fullDirPath = System.IO.Path.GetFullPath(path);
+            var fullDirPath = Path.GetFullPath(path);
             if (!Directory.Exists(fullDirPath))
             {
                 Console.WriteLine("Dir " + fullDirPath + " not exist");
             }
 
-            var sw = new StreamWriter(System.IO.Path.Combine(fullDirPath, "Account.dat"), false);
+            var sw = new StreamWriter(Path.Combine(fullDirPath, "Account.dat"), false);
             
             sw.WriteLine(_maxTxNumber);
             sw.WriteLine(_maxGroupNumber);
@@ -142,7 +142,7 @@ namespace AElf.Benchmark
             
             sw.Flush();
 
-            Console.WriteLine($"Data file with {_maxTxNumber + _maxGroupNumber} addr is written into file {System.IO.Path.Combine(fullDirPath, "Account.dat")}");
+            Console.WriteLine($"Data file with {_maxTxNumber + _maxGroupNumber} addr is written into file {Path.Combine(fullDirPath, "Account.dat")}");
         }
 
         public bool ReadFromFile(string path)
@@ -151,7 +151,7 @@ namespace AElf.Benchmark
             {
                 return false;
             }
-            var filePath = System.IO.Path.Combine(path, "Account.dat");
+            var filePath = Path.Combine(path, "Account.dat");
             try
             {
                 if (!File.Exists(filePath))

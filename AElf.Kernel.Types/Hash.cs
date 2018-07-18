@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography.ECDSA;
-
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace

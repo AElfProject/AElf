@@ -56,8 +56,9 @@ namespace AElf.SmartContract
             return successful;
         }
 
-        public async Task CommitChangesAsync(IWorldStateDictator worldStateDictator, Hash chainId)
+        public async Task<Dictionary<Hash, StateCache>> CommitChangesAsync(IWorldStateDictator worldStateDictator, Hash chainId)
         {
+            Dictionary<Hash, StateCache> changedDict = new Dictionary<Hash, StateCache>();
             if (!IsSuccessful())
             {
                 throw new InvalidOperationException("Attempting to commit an unsuccessful trace.");
@@ -68,14 +69,27 @@ namespace AElf.SmartContract
                 foreach (var vc in ValueChanges)
                 {
                     await worldStateDictator.ApplyStateValueChangeAsync(vc, chainId);
+                    
+                    //add changes into 
+                    var valueCache = new StateCache(vc.BeforeValue.ToByteArray());
+                    valueCache.CurrentValue = vc.AfterValue.ToByteArray();
+                    changedDict[vc.Path] = valueCache;
+                    
                 }
+                
+                //TODO: Question: should inline trace commit to tentative cache once the calling func return? In other word, does inlineTraces overwrite the original content in changeDict?
                 foreach (var trc in InlineTraces)
                 {
-                    await trc.CommitChangesAsync(worldStateDictator, chainId);
+                    var inlineCacheDict = await trc.CommitChangesAsync(worldStateDictator, chainId);
+                    foreach (var kv in inlineCacheDict)
+                    {
+                        changedDict[kv.Key] = kv.Value;
+                    }
                 }
             }
 
             _alreadyCommited = true;
+            return changedDict;
         }
     }
 }
