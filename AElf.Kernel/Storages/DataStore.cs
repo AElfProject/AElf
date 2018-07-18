@@ -1,6 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Database;
-using AElf.Kernel.Types;
+using System.Linq;
 
 namespace AElf.Kernel.Storages
 {
@@ -25,6 +26,11 @@ namespace AElf.Kernel.Storages
                 return null;
             }
             return await _keyValueDatabase.GetAsync(pointerHash.ToHex(), typeof(byte[]));
+        }
+
+        public async Task<bool> PipelineSetDataAsync(Dictionary<Hash, byte[]> pipelineSet)
+        {
+            return await _keyValueDatabase.PipelineSetAsync(pipelineSet.ToDictionary(kv=> kv.Key.ToHex(), kv=>kv.Value));
         }
     }
 }

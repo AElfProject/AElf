@@ -143,7 +143,7 @@ namespace AElf.Execution.Scheduling
                 }
                 
                 _logger?.Info(string.Format(
-                    "Grouper on chainId [{0}] merge {1} groups into {2} groups with sizes [{3}]", chainId,
+                    "Grouper on chainId [{0}] merge {1} groups into {2} groups with sizes [{3}]", chainId.ToHex(),
                     groups.Count, mergedGroups.Count, string.Join(", ", mergedGroups.Select(a=>a.Count))));
 
                 return mergedGroups;
