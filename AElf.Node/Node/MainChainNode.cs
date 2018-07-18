@@ -794,7 +794,7 @@ namespace AElf.Kernel.Node
                         if (doLogsAboutConsensus)
                         {
                             // ReSharper disable once InconsistentNaming
-                            var currentDPoSInfo = await GetDPoSInfo();
+                            var currentDPoSInfo = await GetDPoSInfo(currentHeightOfThisNode);
                             if (dPoSInfo != currentDPoSInfo)
                             {
                                 dPoSInfo = currentDPoSInfo;
@@ -1001,9 +1001,9 @@ namespace AElf.Kernel.Node
         }
 
         // ReSharper disable once InconsistentNaming
-        private async Task<string> GetDPoSInfo()
+        private async Task<string> GetDPoSInfo(long height)
         {
-            return await _dPoSHelper.GetDPoSInfoToStringOfLatestRounds(3);
+            return await _dPoSHelper.GetDPoSInfoToStringOfLatestRounds(3) + $". Current height: {height}";
         }
         
         // ReSharper disable once MemberCanBeMadeStatic.Local

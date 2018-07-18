@@ -23,7 +23,7 @@ namespace AElf.Kernel.Consensus
             get
             {
                 var bytes = _dataProvider.GetAsync("RoundsCount".CalculateHash()).Result;
-                return UInt64Value.Parser.ParseFrom(bytes);
+                return bytes == null ? new UInt64Value {Value = 0} : UInt64Value.Parser.ParseFrom(bytes);
             }
         }
 
@@ -93,8 +93,11 @@ namespace AElf.Kernel.Consensus
 
             var afterTime = (offset - timeDiff) / 1000;
 
-            if (meAddress == StringValue.Parser
-                    .ParseFrom(await _dataProvider.GetDataProvider("EBP").GetAsync(RoundsCount.CalculateHash())).Value)
+            // ReSharper disable once InconsistentNaming
+            var isEBP = meAddress == StringValue.Parser
+                            .ParseFrom(await _dataProvider.GetDataProvider("EBP").GetAsync(RoundsCount.CalculateHash()))
+                            .Value;
+            if (isEBP)
             {
                 _logger?.Trace($"I am the EBP of this round - RoundCount:{RoundsCount}");
                 afterTime = (assignedExtraBlockProducingTimeOfNextRound - now).Seconds;
@@ -120,6 +123,11 @@ namespace AElf.Kernel.Consensus
                 ? $"Will publish In Value after {(assignedExtraBlockProducingTime - now).Seconds}s"
                 : $"Will (help to) produce extra block after {afterTime}s");
 
+            if (afterTime % 17000 == 0 && isEBP)
+            {
+                return true;
+            }
+            
             if (afterTime > 0)
             {
                 return false;
@@ -243,6 +251,274 @@ namespace AElf.Kernel.Consensus
             return AddressHashToString(accountHash) == eBP;
         }
 
+
+        public async Task<RoundInfo> SupplyPreviousRoundInfo()
+        {
+            try
+            {
+                var roundInfo =
+                    RoundInfo.Parser.ParseFrom(await _dataProvider.GetDataProvider("DPoSInfo")
+                        .GetAsync(RoundsCount.CalculateHash()));
+
+                foreach (var info in roundInfo.Info)
+                {
+                    if (info.Value.InValue != null && info.Value.OutValue != null) continue;
+
+                    var inValue = Hash.Generate();
+                    var outValue = inValue.CalculateHash();
+
+                    info.Value.OutValue = outValue;
+                    info.Value.InValue = inValue;
+
+                    //For the first round, the sig value is auto generated
+                    if (info.Value.Signature == null && RoundsCount.Value != 1)
+                    {
+                        var signature = await CalculateSignature(inValue);
+                        info.Value.Signature = signature;
+                    }
+
+                    roundInfo.Info[info.Key] = info.Value;
+                }
+
+                return roundInfo;
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Failed to supply previous round info");
+                return new RoundInfo();
+            }
+        }
+        
+        public async Task<Hash> CalculateSignature(Hash inValue)
+        {
+            try
+            {
+                var add = Hash.Default;
+                foreach (var node in _blockProducer.Nodes)
+                {
+                    var bpInfo = await GetBlockProducerInfoOfSpecificRound(node, RoundsCountMinusOne(RoundsCount));
+                    var lastSignature = bpInfo.Signature;
+                    add = add.CalculateHashWith(lastSignature);
+                }
+
+                Hash sig = inValue.CalculateHashWith(add);
+                return sig;
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Failed to calculate signature");
+                return Hash.Default;
+            }
+        }
+
+        public async Task<RoundInfo> GenerateNextRoundOrder()
+        {
+            try
+            {
+                var infosOfNextRound = new RoundInfo();
+                var signatureDict = new Dictionary<Hash, string>();
+                var orderDict = new Dictionary<int, string>();
+
+                var blockProducerCount = _blockProducer.Nodes.Count;
+
+                foreach (var node in _blockProducer.Nodes)
+                {
+                    var s = (await GetBlockProducerInfoOfCurrentRound(node)).Signature;
+                    if (s == null)
+                    {
+                        s = Hash.Generate();
+                    }
+
+                    signatureDict[s] = node;
+                }
+
+                foreach (var sig in signatureDict.Keys)
+                {
+                    var sigNum = BitConverter.ToUInt64(
+                        BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
+                    var order = Math.Abs(GetModulus(sigNum, blockProducerCount));
+
+                    if (orderDict.ContainsKey(order))
+                    {
+                        for (var i = 0; i < blockProducerCount; i++)
+                        {
+                            if (!orderDict.ContainsKey(i))
+                            {
+                                order = i;
+                            }
+                        }
+                    }
+
+                    orderDict.Add(order, signatureDict[sig]);
+                }
+
+                for (var i = 0; i < orderDict.Count; i++)
+                {
+                    var bpInfoNew = new BPInfo
+                    {
+                        TimeSlot = GetTimestampOfUtcNow(i * Globals.MiningTime + Globals.MiningTime),
+                        Order = i + 1
+                    };
+
+                    infosOfNextRound.Info[orderDict[i]] = bpInfoNew;
+                }
+
+                return infosOfNextRound;
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Failed to generate info of next round");
+                return new RoundInfo();
+            }
+        }
+
+        public async Task<StringValue> SetNextExtraBlockProducer()
+        {
+            try
+            {
+                var firstPlace = StringValue.Parser.ParseFrom(await _dataProvider.GetDataProvider("FirstPlaceOfEachRound")
+                    .GetAsync(RoundsCount.CalculateHash()));
+                var firstPlaceInfo = await GetBlockProducerInfoOfCurrentRound(firstPlace.Value);
+                var sig = firstPlaceInfo.Signature;
+                if (sig == null)
+                {
+                    sig = Hash.Generate();
+                }
+            
+                var sigNum = BitConverter.ToUInt64(
+                    BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
+                var blockProducerCount = _blockProducer.Nodes.Count;
+                var order = GetModulus(sigNum, blockProducerCount);
+
+                // ReSharper disable once InconsistentNaming
+                var nextEBP = _blockProducer.Nodes[order];
+            
+                return new StringValue {Value = nextEBP};
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Failed to set next extra block producer");
+                return new StringValue {Value = ""};
+            }
+        }
+        
+        // ReSharper disable once InconsistentNaming
+        // ReSharper disable once UnusedMember.Global
+        public async Task<StringValue> GetDPoSInfoToString()
+        {
+            ulong count = 1;
+
+            if (RoundsCount.Value != 0)
+            {
+                count = RoundsCount.Value;
+            }
+            var infoOfOneRound = "";
+
+            ulong i = 1;
+            while (i <= count)
+            {
+                var roundInfoStr = await GetRoundInfoToString(new UInt64Value {Value = i});
+                infoOfOneRound += $"\n[Round {i}]\n" + roundInfoStr;
+                i++;
+            }
+
+            // ReSharper disable once InconsistentNaming
+            var eBPTimeslot = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync("EBTime".CalculateHash()));
+
+            var res = new StringValue
+            {
+                Value
+                    = infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
+                             + "Current Round : " + RoundsCount?.Value
+            };
+            
+            return res;
+        }
+
+        // ReSharper disable once InconsistentNaming
+        public async Task<string> GetDPoSInfoToStringOfLatestRounds(ulong countOfRounds)
+        {
+            try
+            {
+                if (RoundsCount.Value == 0)
+                {
+                    return "No DPoS Information, maybe failed to sync blocks";
+                }
+            
+                var currentRoundsCount = RoundsCount.Value;
+                ulong startRound;
+                if (countOfRounds >= currentRoundsCount)
+                {
+                    startRound = 1;
+                }
+                else
+                {
+                    startRound = currentRoundsCount - countOfRounds + 1;
+                }
+
+                var infoOfOneRound = "";
+                var i = startRound;
+                while (i <= currentRoundsCount)
+                {
+                    if (i <= 0)
+                    {
+                        continue;
+                    }
+
+                    var roundInfoStr = await GetRoundInfoToString(new UInt64Value {Value = i});
+                    infoOfOneRound += $"\n[Round {i}]\n" + roundInfoStr;
+                    i++;
+                }
+            
+                // ReSharper disable once InconsistentNaming
+                var eBPTimeslot = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync("EBTime".CalculateHash()));
+
+                return infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
+                                      + $"Current Round : {RoundsCount.Value}";
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Failed to get dpos info");
+                return "";
+            }
+        }
+
+        private async Task<string> GetRoundInfoToString(UInt64Value roundsCount)
+        {
+            try
+            {
+                var info = RoundInfo.Parser.ParseFrom(await _dataProvider.GetDataProvider("DPoSInfo")
+                    .GetAsync(roundsCount.CalculateHash()));
+                var result = "";
+
+                foreach (var bpInfo in info.Info)
+                {
+                    result += bpInfo.Key + ":\n";
+                    result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";
+                    result += "Order:\t\t" + bpInfo.Value.Order + "\n";
+                    result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
+                    result += "Signature:\t" + bpInfo.Value.Signature?.Value.ToByteArray().ToHex().Remove(0, 2) + "\n";
+                    result += "Out Value:\t" + bpInfo.Value.OutValue?.Value.ToByteArray().ToHex().Remove(0, 2) + "\n";
+                    result += "In Value:\t" + bpInfo.Value.InValue?.Value.ToByteArray().ToHex().Remove(0, 2) + "\n";
+                }
+
+                return result + "\n";
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, $"Failed to get dpos info of round {roundsCount.Value}");
+                return "";
+            }
+        }
+        
+        // ReSharper disable once MemberCanBeMadeStatic.Local
+        private UInt64Value RoundsCountMinusOne(UInt64Value currentCount)
+        {
+            var current = currentCount.Value;
+            current--;
+            return new UInt64Value {Value = current};
+        }
+        
         private async Task<Timestamp> GetTimeSlot(string accountAddress)
         {
             return (await GetBlockProducerInfoOfCurrentRound(accountAddress)).TimeSlot;
@@ -308,225 +584,6 @@ namespace AElf.Kernel.Consensus
         private int GetModulus(ulong uLongVal, int intVal)
         {
             return Math.Abs((int) (uLongVal % (ulong) intVal));
-        }
-
-
-        public async Task<RoundInfo> SupplyPreviousRoundInfo()
-        {
-            var roundInfo =
-                RoundInfo.Parser.ParseFrom(await _dataProvider.GetDataProvider("DPoSInfo")
-                    .GetAsync(RoundsCount.CalculateHash()));
-
-            foreach (var info in roundInfo.Info)
-            {
-                if (info.Value.InValue != null && info.Value.OutValue != null) continue;
-
-                var inValue = Hash.Generate();
-                var outValue = inValue.CalculateHash();
-
-                info.Value.OutValue = outValue;
-                info.Value.InValue = inValue;
-
-                //For the first round, the sig value is auto generated
-                if (info.Value.Signature == null && RoundsCount.Value != 1)
-                {
-                    var signature = await CalculateSignature(inValue);
-                    info.Value.Signature = signature;
-                }
-
-                roundInfo.Info[info.Key] = info.Value;
-            }
-
-            return roundInfo;
-        }
-        
-        public async Task<Hash> CalculateSignature(Hash inValue)
-        {
-            var add = Hash.Default;
-            foreach (var node in _blockProducer.Nodes)
-            {
-                var bpInfo = await GetBlockProducerInfoOfSpecificRound(node, RoundsCountMinusOne(RoundsCount));
-                var lastSignature = bpInfo.Signature;
-                add = add.CalculateHashWith(lastSignature);
-            }
-
-            Hash sig = inValue.CalculateHashWith(add);
-            return sig;
-        }
-
-        public async Task<RoundInfo> GenerateNextRoundOrder()
-        {
-            var infosOfNextRound = new RoundInfo();
-            var signatureDict = new Dictionary<Hash, string>();
-            var orderDict = new Dictionary<int, string>();
-
-            var blockProducerCount = _blockProducer.Nodes.Count;
-
-            foreach (var node in _blockProducer.Nodes)
-            {
-                var s = (await GetBlockProducerInfoOfCurrentRound(node)).Signature;
-                if (s == null)
-                {
-                    s = Hash.Generate();
-                }
-
-                signatureDict[s] = node;
-            }
-
-            foreach (var sig in signatureDict.Keys)
-            {
-                var sigNum = BitConverter.ToUInt64(
-                    BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
-                var order = Math.Abs(GetModulus(sigNum, blockProducerCount));
-
-                if (orderDict.ContainsKey(order))
-                {
-                    for (var i = 0; i < blockProducerCount; i++)
-                    {
-                        if (!orderDict.ContainsKey(i))
-                        {
-                            order = i;
-                        }
-                    }
-                }
-
-                orderDict.Add(order, signatureDict[sig]);
-            }
-
-            for (var i = 0; i < orderDict.Count; i++)
-            {
-                var bpInfoNew = new BPInfo
-                {
-                    TimeSlot = GetTimestampOfUtcNow(i * Globals.MiningTime + Globals.MiningTime),
-                    Order = i + 1
-                };
-
-                infosOfNextRound.Info[orderDict[i]] = bpInfoNew;
-            }
-
-            return infosOfNextRound;
-        }
-
-        public async Task<StringValue> SetNextExtraBlockProducer()
-        {
-            var firstPlace = StringValue.Parser.ParseFrom(await _dataProvider.GetDataProvider("FirstPlaceOfEachRound")
-                .GetAsync(RoundsCount.CalculateHash()));
-            var firstPlaceInfo = await GetBlockProducerInfoOfCurrentRound(firstPlace.Value);
-            var sig = firstPlaceInfo.Signature;
-            if (sig == null)
-            {
-                sig = Hash.Generate();
-            }
-            
-            var sigNum = BitConverter.ToUInt64(
-                BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
-            var blockProducerCount = _blockProducer.Nodes.Count;
-            var order = GetModulus(sigNum, blockProducerCount);
-
-            // ReSharper disable once InconsistentNaming
-            var nextEBP = _blockProducer.Nodes[order];
-            
-            return new StringValue {Value = nextEBP};
-        }
-        
-        // ReSharper disable once InconsistentNaming
-        public async Task<StringValue> GetDPoSInfoToString()
-        {
-            ulong count = 1;
-
-            if (RoundsCount.Value != 0)
-            {
-                count = RoundsCount.Value;
-            }
-            var infoOfOneRound = "";
-
-            ulong i = 1;
-            while (i <= count)
-            {
-                var roundInfoStr = await GetRoundInfoToString(new UInt64Value {Value = i});
-                infoOfOneRound += $"\n[Round {i}]\n" + roundInfoStr;
-                i++;
-            }
-
-            // ReSharper disable once InconsistentNaming
-            var eBPTimeslot = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync("EBTime".CalculateHash()));
-
-            var res = new StringValue
-            {
-                Value
-                    = infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
-                             + "Current Round : " + RoundsCount?.Value
-            };
-            
-            return res;
-        }
-
-        // ReSharper disable once InconsistentNaming
-        public async Task<string> GetDPoSInfoToStringOfLatestRounds(ulong countOfRounds)
-        {
-            if (RoundsCount.Value == 0)
-            {
-                return "No DPoS Information, maybe failed to sync blocks";
-            }
-            
-            var currentRoundsCount = RoundsCount.Value;
-            ulong startRound;
-            if (countOfRounds >= currentRoundsCount)
-            {
-                startRound = 1;
-            }
-            else
-            {
-                startRound = currentRoundsCount - countOfRounds + 1;
-            }
-
-            var infoOfOneRound = "";
-            var i = startRound;
-            while (i <= currentRoundsCount)
-            {
-                if (i <= 0)
-                {
-                    continue;
-                }
-
-                var roundInfoStr = await GetRoundInfoToString(new UInt64Value {Value = i});
-                infoOfOneRound += $"\n[Round {i}]\n" + roundInfoStr;
-                i++;
-            }
-            
-            // ReSharper disable once InconsistentNaming
-            var eBPTimeslot = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync("EBTime".CalculateHash()));
-
-            return infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
-                                  + $"Current Round : {RoundsCount.Value}";
-        }
-
-        public async Task<string> GetRoundInfoToString(UInt64Value roundsCount)
-        {
-            var info = RoundInfo.Parser.ParseFrom(await _dataProvider.GetDataProvider("DPoSInfo")
-                .GetAsync(roundsCount.CalculateHash()));
-            var result = "";
-
-            foreach (var bpInfo in info.Info)
-            {
-                result += bpInfo.Key + ":\n";
-                result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";
-                result += "Order:\t\t" + bpInfo.Value.Order + "\n";
-                result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
-                result += "Signature:\t" + bpInfo.Value.Signature?.Value.ToByteArray().ToHex().Remove(0, 2) + "\n";
-                result += "Out Value:\t" + bpInfo.Value.OutValue?.Value.ToByteArray().ToHex().Remove(0, 2) + "\n";
-                result += "In Value:\t" + bpInfo.Value.InValue?.Value.ToByteArray().ToHex().Remove(0, 2) + "\n";
-            }
-
-            return result + "\n";
-        }
-        
-        // ReSharper disable once MemberCanBeMadeStatic.Local
-        private UInt64Value RoundsCountMinusOne(UInt64Value currentCount)
-        {
-            var current = currentCount.Value;
-            current--;
-            return new UInt64Value {Value = current};
         }
     }
 }
