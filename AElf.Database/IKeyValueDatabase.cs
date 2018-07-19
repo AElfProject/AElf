@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Resources;
 using System.Threading.Tasks;
 
 namespace AElf.Database
@@ -10,5 +11,6 @@ namespace AElf.Database
         Task SetAsync(string key, byte[] bytes);
         Task<bool> PipelineSetAsync(IEnumerable<KeyValuePair<string, byte[]>> queue);
         bool IsConnected();
+        void ReSet(string host, int port);
     }
 }

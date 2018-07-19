@@ -156,14 +156,14 @@ namespace AElf.Kernel.Concurrency.Execution.Messages
 
     public sealed class TransactionTraceMessage
     {
-        public TransactionTraceMessage(long requestId, TransactionTrace transactionTrace)
+        public TransactionTraceMessage(long requestId, List<TransactionTrace> transactionTraces)
         {
             RequestId = requestId;
-            TransactionTrace = transactionTrace;
+            TransactionTraces = transactionTraces;
         }
 
         public long RequestId { get; set; }
-        public TransactionTrace TransactionTrace { get; set; }
+        public List<TransactionTrace> TransactionTraces { get; set; }
     }
 
     #region Singleton Messages

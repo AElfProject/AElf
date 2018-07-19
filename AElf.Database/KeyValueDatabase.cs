@@ -37,5 +37,10 @@ namespace AElf.Database
         {
             return true;
         }
+
+        public void ReSet(string host, int port)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

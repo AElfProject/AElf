@@ -53,13 +53,15 @@ namespace AElf.Kernel.Concurrency.Execution
                         _cancellationTokenSource?.Dispose();
                         _cancellationTokenSource = new CancellationTokenSource();
                         var receiver = Self;
-                        Task.Run(() =>
-                            RunJob(req).ContinueWith(
-                                task => task.Result,
-                                TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
-                            ).PipeTo(receiver)
-                        );
-                        Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Running));
+//                        Task.Run(() =>
+//                            RunJob(req).ContinueWith(
+//                                task => task.Result,
+//                                TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
+//                            ).PipeTo(receiver)
+//                        );
+
+                        RunJob(req);
+                        //Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Running));
                     }
                     else if (_state == State.PendingSetSericePack)
                     {
@@ -96,7 +98,7 @@ namespace AElf.Kernel.Concurrency.Execution
             Console.WriteLine("RunJob RequestID:{0},Transaction:{1}",request.RequestId,request.Transactions.Count);
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            _state = State.Running;
+            //_state = State.Running;
 
             IChainContext chainContext = null;
 
@@ -114,6 +116,8 @@ namespace AElf.Kernel.Concurrency.Execution
                 chainContextException = e;
             }
 
+            var i = 0;
+            var result = new List<TransactionTrace>(request.Transactions.Count);
             foreach (var tx in request.Transactions)
             {
                 TransactionTrace trace;
@@ -180,8 +184,10 @@ namespace AElf.Kernel.Concurrency.Execution
                         }
                     }
                 }
-                request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, trace));
+                result.Add(trace);
+                //request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, trace));
             }
+            request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, result));
 
             if (chainContext != null)
             {
@@ -192,10 +198,10 @@ namespace AElf.Kernel.Concurrency.Execution
             // TODO: What if actor died in the middle
 
             var retMsg = new JobExecutionStatus(request.RequestId, JobExecutionStatus.RequestStatus.Completed);
-            request.ResultCollector?.Tell(retMsg);
-            request.Router?.Tell(retMsg);
+//            request.ResultCollector?.Tell(retMsg);
+//            request.Router?.Tell(retMsg);
             _servingRequestId = -1;
-            _state = State.Idle;
+            //_state = State.Idle;
             sw.Stop();
             Console.WriteLine("RunJob RequestID:{0},Time:{1}",request.RequestId,sw.ElapsedMilliseconds);
             return retMsg;

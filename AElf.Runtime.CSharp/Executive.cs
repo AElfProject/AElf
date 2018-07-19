@@ -202,8 +202,11 @@ namespace AElf.Runtime.CSharp
                         .GetValueChanges());
                     if (autoCommit)
                     {
-                        await _currentTransactionContext.Trace.CommitChangesAsync(_worldStateDictator,
+                        var changeDict = await _currentTransactionContext.Trace.CommitChangesAsync(_worldStateDictator,
                             _currentSmartContractContext.ChainId);
+                        await _worldStateDictator.ApplyQueuedDataSet(changeDict,
+                            _currentSmartContractContext.ChainId);
+                        _currentSmartContractContext.DataProvider.StateCache.Clear(); //clear state cache for special tx that called with "autoCommit = true"
                     }
                 }
             }

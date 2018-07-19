@@ -15,14 +15,14 @@ namespace AElf.Kernel.Concurrency.Metadata
     public class FunctionMetadataService : IFunctionMetadataService
     {
         private IDataStore _dataStore;
-        private readonly ConcurrentDictionary<Hash, ChainFunctionMetadata> _metadatas;
+        public ConcurrentDictionary<Hash, ChainFunctionMetadata> Metadatas { get; }
         private ILogger _logger;
 
         public FunctionMetadataService(IDataStore dataStore, ILogger logger)
         {
             _dataStore = dataStore;
             _logger = logger;
-            _metadatas = new ConcurrentDictionary<Hash, ChainFunctionMetadata>();
+            Metadatas = new ConcurrentDictionary<Hash, ChainFunctionMetadata>();
         }
 
         public async Task DeployContract(Hash chainId, Type contractType, Hash address, Dictionary<string, Hash> contractReferences)
@@ -30,10 +30,10 @@ namespace AElf.Kernel.Concurrency.Metadata
             //For each chain, ChainFunctionMetadata should be used singlethreaded
             //which means transactions that deploy contracts need to execute serially
             //TODO: find a way to mark these transaction as a same group (maybe by using "r/w account sharing data"?)
-            if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
+            if (!Metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
                 
-                chainFuncMetadata = _metadatas.GetOrAdd(chainId,
+                chainFuncMetadata = Metadatas.GetOrAdd(chainId,
                     new ChainFunctionMetadata(new ChainFunctionMetadataTemplate(_dataStore, chainId, _logger), _dataStore, _logger));
             }
             
@@ -50,7 +50,7 @@ namespace AElf.Kernel.Concurrency.Metadata
 
         public FunctionMetadata GetFunctionMetadata(Hash chainId, string addrFunctionName)
         {
-            if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
+            if (!Metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
                 throw new InvalidParameterException("No chainFunctionMetadata with chainId: " + chainId.Value.ToByteArray().ToHex());
             }

@@ -4,12 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Database.Config;
 using NServiceKit.Redis;
+using StackExchange.Redis;
 
 namespace AElf.Database
 {
     public class RedisDatabase : IKeyValueDatabase
     {
-        private readonly PooledRedisClientManager _client;
+        private PooledRedisClientManager _client;
 
         public RedisDatabase()
         {
@@ -33,9 +34,14 @@ namespace AElf.Database
             {
                 var keyValuePairs = queue as KeyValuePair<string, byte[]>[] ?? queue.ToArray();
                 _client.GetCacheClient().SetAll(keyValuePairs.ToDictionary(x => x.Key, x => x.Value));
-                Console.WriteLine("PipelineSetAsync::" + keyValuePairs.ToArray().Length);
+                //Console.WriteLine("PipelineSetAsync::" + keyValuePairs.ToArray().Length);
                 return true;
             });
+        }
+
+        public void ReSet(string host, int port)
+        {
+            _client = new PooledRedisClientManager(0, $"{host}:{port}");
         }
 
         public bool IsConnected()
