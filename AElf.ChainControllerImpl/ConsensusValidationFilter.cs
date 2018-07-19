@@ -77,7 +77,7 @@ namespace AElf.ChainController
                 From = keyPair.GetAddress(),
                 To = contractAccountHash,
                 IncrementId = 0,
-                MethodName = "BlockProducerVerification",
+                MethodName = "Validation",
                 P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(new StringValue {Value = recepientAddress}, timestamp))
             };

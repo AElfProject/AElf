@@ -50,7 +50,7 @@ namespace AElf.Kernel.Consensus
             }
             
             var assignedTimeSlot = await GetTimeSlot(accountAddress);
-            var timeSlotEnd = GetTimestamp(assignedTimeSlot, Globals.MiningTime);
+            var timeSlotEnd = GetTimestamp(assignedTimeSlot, Globals.AElfMiningTime);
             
             return CompareTimestamp(now, assignedTimeSlot) && CompareTimestamp(timeSlotEnd, now);
         }
@@ -74,16 +74,16 @@ namespace AElf.Kernel.Consensus
                 orderDiff = blockProducerCount + orderDiff;
             }
 
-            var timeOfARound = Globals.MiningTime * blockProducerCount + Globals.CheckTime + Globals.MiningTime;
+            var timeOfARound = Globals.AElfMiningTime * blockProducerCount + Globals.AElfCheckTime + Globals.AElfMiningTime;
 
             var assignedExtraBlockProducingTime = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync("EBTime".CalculateHash()));
             var assignedExtraBlockProducingTimeOfNextRound = GetTimestamp(assignedExtraBlockProducingTime, timeOfARound);
             var assigendExtraBlockProducingTimeOfNextRoundEnd =
-                GetTimestamp(assignedExtraBlockProducingTimeOfNextRound, Globals.CheckTime + Globals.MiningTime);
+                GetTimestamp(assignedExtraBlockProducingTimeOfNextRound, Globals.AElfCheckTime + Globals.AElfMiningTime);
             
             var now = GetTimestampOfUtcNow();
 
-            var offset = Globals.MiningTime * orderDiff - Globals.MiningTime;
+            var offset = Globals.AElfMiningTime * orderDiff - Globals.AElfMiningTime;
             
             var assigendExtraBlockProducingTimeEndWithOffset = GetTimestamp(assigendExtraBlockProducingTimeOfNextRoundEnd, offset);
 
@@ -107,7 +107,7 @@ namespace AElf.Kernel.Consensus
             {
                 //The only reason to come here is checking ability after expected timeslot
                 //So the abs of afterTime should not greater than CheckTime
-                if (afterTime < -Globals.MiningTime)
+                if (afterTime < -Globals.AElfMiningTime)
                 {
                     _logger?.Trace($"Something weird happened to ready-for-help checking");
                 }
@@ -133,7 +133,7 @@ namespace AElf.Kernel.Consensus
                 return false;
             }
             
-            if (currentTimeslot > offset && currentTimeslot < offset + Globals.MiningTime)
+            if (currentTimeslot > offset && currentTimeslot < offset + Globals.AElfMiningTime)
             {
                 return true;
             }
@@ -144,7 +144,7 @@ namespace AElf.Kernel.Consensus
             }
 
             return CompareTimestamp(now, assigendExtraBlockProducingTimeEndWithOffset)
-                   && CompareTimestamp(GetTimestamp(assigendExtraBlockProducingTimeEndWithOffset, Globals.MiningTime), now);
+                   && CompareTimestamp(GetTimestamp(assigendExtraBlockProducingTimeEndWithOffset, Globals.AElfMiningTime), now);
         }
         
         public DPoSInfo GenerateInfoForFirstTwoRounds()
@@ -179,7 +179,7 @@ namespace AElf.Kernel.Consensus
 
                 bpInfo.Order = i + 1;
                 bpInfo.Signature = Hash.Generate();
-                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * Globals.MiningTime + Globals.WaitFirstRoundTime);
+                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * Globals.AElfMiningTime + Globals.AElfWaitFirstRoundTime);
 
                 infosOfRound1.Info.Add(enumerable[i], bpInfo);
             }
@@ -201,7 +201,7 @@ namespace AElf.Kernel.Consensus
             
             var infosOfRound2 = new RoundInfo();
 
-            var addition = enumerable.Count * Globals.MiningTime + Globals.MiningTime;
+            var addition = enumerable.Count * Globals.AElfMiningTime + Globals.AElfMiningTime;
 
             selected = _blockProducer.Nodes.Count / 2;
             for (var i = 0; i < enumerable.Count; i++)
@@ -213,7 +213,7 @@ namespace AElf.Kernel.Consensus
                     bpInfo.IsEBP = true;
                 }
 
-                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * Globals.MiningTime + addition + Globals.WaitFirstRoundTime);
+                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * Globals.AElfMiningTime + addition + Globals.AElfWaitFirstRoundTime);
                 bpInfo.Order = i + 1;
 
                 infosOfRound2.Info.Add(enumerable[i], bpInfo);
@@ -237,7 +237,7 @@ namespace AElf.Kernel.Consensus
             var expectedTime = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync("EBTime".CalculateHash()));
             var now = GetTimestampOfUtcNow();
             return CompareTimestamp(now, expectedTime)
-                   && CompareTimestamp(GetTimestamp(expectedTime, Globals.MiningTime), now);
+                   && CompareTimestamp(GetTimestamp(expectedTime, Globals.AElfMiningTime), now);
         }
         
         public async Task<bool> AbleToProduceExtraBlock()
@@ -356,7 +356,7 @@ namespace AElf.Kernel.Consensus
                 {
                     var bpInfoNew = new BPInfo
                     {
-                        TimeSlot = GetTimestampOfUtcNow(i * Globals.MiningTime + Globals.MiningTime),
+                        TimeSlot = GetTimestampOfUtcNow(i * Globals.AElfMiningTime + Globals.AElfMiningTime),
                         Order = i + 1
                     };
 
@@ -372,7 +372,7 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public async Task<StringValue> SetNextExtraBlockProducer()
+        public async Task<StringValue> CalculateNextExtraBlockProducer()
         {
             try
             {

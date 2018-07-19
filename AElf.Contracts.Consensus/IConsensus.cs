@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Sdk.CSharp.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus
 {
@@ -15,13 +15,51 @@ namespace AElf.Contracts.Consensus
         ConsensusType Type { get; }
         
         /// <summary>
-        /// For DPoS, this value should increase 1 after each round,
-        /// for other consensus protocol, this should always be 1.
+        /// For DPoS, this value should start from 1, and will
+        /// increase 1 after each round.
+        /// For other consensus protocol, this should always be 1.
         /// </summary>
-        UInt64Field CurrentRoundNumber { get; set; }
+        ulong CurrentRoundNumber { get; }
 
-        Task InitializeConsensus();
+        /// <summary>
+        /// How soon to produce a block.
+        /// (Milisenconds)
+        /// </summary>
+        ulong Interval { get; }
         
-        
+        /// <summary>
+        /// Print logs or not.
+        /// </summary>
+        bool PrintLogs { get; }
+
+        /// <summary>
+        /// For AElf DPoS, this method is used for publishing the
+        /// information of first two rounds (by Chain Creator).
+        /// </summary>
+        /// <returns></returns>
+        Task Initialize(List<byte[]> args);
+
+        /// <summary>
+        /// For AElf DPoS, this method is used for publishing the
+        /// information of next round (by Extra Block Producer).
+        /// </summary>
+        /// <returns></returns>
+        Task Update(List<byte[]> args);
+
+        /// <summary>
+        /// For AElf DPoS, this method is used for publishing the
+        /// out value, signature or in value (by every Block Producer).
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        Task Publish(List<byte[]> args);
+
+        /// <summary>
+        /// Used by ConsensusValidationFilter,
+        /// to check the received block is produced correctly
+        /// or not.
+        /// </summary>
+        /// <returns></returns>
+        Task<bool> Validation(List<byte[]> args);
     }
 }

@@ -14,7 +14,7 @@ namespace AElf.Contracts.Genesis
             {
                 if (_address == null)
                 {
-                    _address =GetAddress();
+                    _address = GetAddress();
                 }
 
                 return _address;

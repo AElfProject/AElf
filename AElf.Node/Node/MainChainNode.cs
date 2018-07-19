@@ -995,7 +995,7 @@ namespace AElf.Kernel.Node
             var currentRoundInfo = await _dPoSHelper.SupplyPreviousRoundInfo();
             var nextRoundInfo = await _dPoSHelper.GenerateNextRoundOrder();
             // ReSharper disable once InconsistentNaming
-            var nextEBP = await _dPoSHelper.SetNextExtraBlockProducer();
+            var nextEBP = await _dPoSHelper.CalculateNextExtraBlockProducer();
             
             return Tuple.Create(currentRoundInfo, nextRoundInfo, nextEBP);
         }

@@ -6,25 +6,25 @@
         public static readonly string GenesisSmartContractLastName = ".ContractZeroWithDPoS";
         public static readonly string SmartContractZeroIdString = "__SmartContractZero__";
 
-        #region DPoS
+        #region AElf DPoS
 
-        public const int MiningTime = 4000;
-        public const int CheckTime = 1000;
-        public const int WaitFirstRoundTime = 6000;
+        public const int AElfMiningTime = 4000;
+        public const int AElfCheckTime = 1000;
+        public const int AElfWaitFirstRoundTime = 1000;
         // ReSharper disable once InconsistentNaming
-        public const string DPoSRoundsCountString = "RoundsCount";
+        public const string AElfDPoSCurrentRoundNumber = "AElfCurrentRoundNumber";
         // ReSharper disable once InconsistentNaming
-        public const string DPoSBlockProducerString = "BPs";
+        public const string AElfDPoSBlockProducerString = "AElfBlockProducer";
         // ReSharper disable once InconsistentNaming
-        public const string DPoSInfoString = "DPoSInfo";
+        public const string AElfDPoSInformationString = "AElfDPoSInformation";
         // ReSharper disable once InconsistentNaming
-        public const string DPoSExtraBlockProducerString = "EBP";
+        public const string AElfDPoSExtraBlockProducerString = "AElfExtraBlockProducer";
         // ReSharper disable once InconsistentNaming
-        public const string DPoSExtraBlockTimeslotString = "EBTime";
+        public const string AElfDPoSExtraBlockTimeslotString = "AElfExtraBlockTimeslot";
         // ReSharper disable once InconsistentNaming
-        public const string DPoSChainCreatorString = "ChainCreator";
+        public const string AElfDPoSChainCreatorString = "AElfChainCreator";
         // ReSharper disable once InconsistentNaming
-        public const string DPoSFirstPlaceOfEachRoundString = "FirstPlaceOfEachRound";
+        public const string AElfDPoSFirstPlaceOfEachRoundString = "AElfFirstPlaceOfEachRound";
 
         #endregion
     }
