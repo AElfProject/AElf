@@ -18,7 +18,7 @@ namespace AElf.Benchmark
         {
             _totalNumber = maxNumber;
             KeyDict = new List<Hash>();
-            for (int i = 0; i < maxNumber + 200; i++)
+            for (int i = 0; i < maxNumber + 10000; i++)
             {
                 KeyDict.Add(Hash.Generate().ToAccount());
             }

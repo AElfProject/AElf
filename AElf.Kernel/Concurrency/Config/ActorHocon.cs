@@ -41,8 +41,8 @@
                         bytes = ""Akka.Serialization.ByteArraySerializer""
                     }
                     serialization-bindings {
-                        ""System.Byte[]"" = bytes
                         ""System.Object"" = hyperion
+                        ""System.Byte[]"" = bytes
                     }
                 }
                 remote {
@@ -58,11 +58,6 @@
                 cluster {
                     seed-nodes = [""akka.tcp://AElfSystem@127.0.0.1:32551""]
                     roles = [""manager""]
-                    seed-node-timeout = 10s
-                    gossip-interval = 3s
-                    gossip-time-to-live = 5s
-                    leader-actions-interval = 3s
-                    unreachable-nodes-reaper-interval = 3s
                 }
             }
         ";
@@ -73,9 +68,11 @@
                     provider = cluster
                     serializers {
                         hyperion = ""Akka.Serialization.HyperionSerializer, Akka.Serialization.Hyperion""
+                        bytes = ""Akka.Serialization.ByteArraySerializer""
                     }
                     serialization-bindings {
                         ""System.Object"" = hyperion
+                        ""System.Byte[]"" = bytes
                     }
                 }
                 remote {
@@ -91,11 +88,6 @@
                 cluster {
                     seed-nodes = [""akka.tcp://AElfSystem@127.0.0.1:32551"",""akka.tcp://AElfSystem@127.0.0.1:32552""]
                     roles = [""worker""]
-                    seed-node-timeout = 10s
-                    gossip-interval = 3s
-                    gossip-time-to-live = 5s
-                    leader-actions-interval = 3s
-                    unreachable-nodes-reaper-interval = 3s
                 }
             }
         ";
