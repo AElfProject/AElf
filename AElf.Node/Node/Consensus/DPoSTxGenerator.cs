@@ -39,7 +39,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "InitializeAElfDPoS",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(blockProducer.ToByteString(), dPoSInfo.ToByteString()))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(blockProducer.ToByteArray(), dPoSInfo.ToByteArray()))
             };
             
             var signer = new ECSigner();
@@ -61,9 +61,9 @@ namespace AElf.Kernel.Consensus
                 From = AccountHash,
                 To = contractAccountHash,
                 IncrementId = incrementId,
-                MethodName = "SyncStateOfNextRound",
+                MethodName = "UpdateAElfDPoS",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(currentRoundInfo, nextRoundInfo, nextEBP))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(currentRoundInfo.ToByteArray(), nextRoundInfo.ToByteArray(), nextEBP.ToByteArray()))
             };
             
             var signer = new ECSigner();
@@ -89,7 +89,7 @@ namespace AElf.Kernel.Consensus
                     MethodName = "PublishOutValueAndSignature",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom(
-                        ParamsPacker.Pack(outValue, sig, new UInt64Value {Value = roundsCount}))
+                        ParamsPacker.Pack(outValue.ToByteArray(), sig.ToByteArray(), new UInt64Value {Value = roundsCount}.ToByteArray()))
                 }
             };
 
@@ -113,9 +113,9 @@ namespace AElf.Kernel.Consensus
                 From = AccountHash,
                 To = contractAccountHash,
                 IncrementId = incrementId,
-                MethodName = "TryToPublishInValue",
+                MethodName = "PublishInValue",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(inValue, roundsCount))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(inValue.ToByteArray(), roundsCount.ToByteArray()))
             };
             
             var signer = new ECSigner();

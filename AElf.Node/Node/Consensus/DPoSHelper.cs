@@ -22,8 +22,8 @@ namespace AElf.Kernel.Consensus
         {
             get
             {
-                var bytes = _dataProvider.GetAsync("RoundsCount".CalculateHash()).Result;
-                return bytes == null ? new UInt64Value {Value = 0} : UInt64Value.Parser.ParseFrom(bytes);
+                var bytes = _dataProvider.GetAsync(Globals.AElfDPoSCurrentRoundNumber.CalculateHash()).Result;
+                return bytes == null ? new UInt64Value {Value = 1} : UInt64Value.Parser.ParseFrom(bytes);
             }
         }
 
@@ -62,7 +62,7 @@ namespace AElf.Kernel.Consensus
             
             // ReSharper disable once InconsistentNaming
             var currentEBP = StringValue.Parser
-                .ParseFrom(await _dataProvider.GetDataProvider("EBP").GetAsync(RoundsCount.CalculateHash()));
+                .ParseFrom(await _dataProvider.GetDataProvider(Globals.AElfDPoSExtraBlockProducerString).GetAsync(RoundsCount.CalculateHash()));
 
             var meOrder = (await GetBlockProducerInfoOfCurrentRound(meAddress)).Order;
             // ReSharper disable once InconsistentNaming
@@ -76,7 +76,7 @@ namespace AElf.Kernel.Consensus
 
             var timeOfARound = Globals.AElfMiningTime * blockProducerCount + Globals.AElfCheckTime + Globals.AElfMiningTime;
 
-            var assignedExtraBlockProducingTime = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync("EBTime".CalculateHash()));
+            var assignedExtraBlockProducingTime = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
             var assignedExtraBlockProducingTimeOfNextRound = GetTimestamp(assignedExtraBlockProducingTime, timeOfARound);
             var assigendExtraBlockProducingTimeOfNextRoundEnd =
                 GetTimestamp(assignedExtraBlockProducingTimeOfNextRound, Globals.AElfCheckTime + Globals.AElfMiningTime);
@@ -95,7 +95,7 @@ namespace AElf.Kernel.Consensus
 
             // ReSharper disable once InconsistentNaming
             var isEBP = meAddress == StringValue.Parser
-                            .ParseFrom(await _dataProvider.GetDataProvider("EBP").GetAsync(RoundsCount.CalculateHash()))
+                            .ParseFrom(await _dataProvider.GetDataProvider(Globals.AElfDPoSExtraBlockProducerString).GetAsync(RoundsCount.CalculateHash()))
                             .Value;
             if (isEBP)
             {
@@ -234,7 +234,7 @@ namespace AElf.Kernel.Consensus
                 return false;
             }
 
-            var expectedTime = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync("EBTime".CalculateHash()));
+            var expectedTime = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
             var now = GetTimestampOfUtcNow();
             return CompareTimestamp(now, expectedTime)
                    && CompareTimestamp(GetTimestamp(expectedTime, Globals.AElfMiningTime), now);
@@ -246,7 +246,7 @@ namespace AElf.Kernel.Consensus
 
             // ReSharper disable once InconsistentNaming
             var eBP = StringValue.Parser
-                .ParseFrom(await _dataProvider.GetDataProvider("EBP").GetAsync(RoundsCount.CalculateHash())).Value;
+                .ParseFrom(await _dataProvider.GetDataProvider(Globals.AElfDPoSExtraBlockProducerString).GetAsync(RoundsCount.CalculateHash())).Value;
             
             return AddressHashToString(accountHash) == eBP;
         }
@@ -257,7 +257,7 @@ namespace AElf.Kernel.Consensus
             try
             {
                 var roundInfo =
-                    RoundInfo.Parser.ParseFrom(await _dataProvider.GetDataProvider("DPoSInfo")
+                    RoundInfo.Parser.ParseFrom(await _dataProvider.GetDataProvider(Globals.AElfDPoSInformationString)
                         .GetAsync(RoundsCount.CalculateHash()));
 
                 foreach (var info in roundInfo.Info)
@@ -376,7 +376,7 @@ namespace AElf.Kernel.Consensus
         {
             try
             {
-                var firstPlace = StringValue.Parser.ParseFrom(await _dataProvider.GetDataProvider("FirstPlaceOfEachRound")
+                var firstPlace = StringValue.Parser.ParseFrom(await _dataProvider.GetDataProvider(Globals.AElfDPoSFirstPlaceOfEachRoundString)
                     .GetAsync(RoundsCount.CalculateHash()));
                 var firstPlaceInfo = await GetBlockProducerInfoOfCurrentRound(firstPlace.Value);
                 var sig = firstPlaceInfo.Signature;
@@ -423,7 +423,7 @@ namespace AElf.Kernel.Consensus
             }
 
             // ReSharper disable once InconsistentNaming
-            var eBPTimeslot = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync("EBTime".CalculateHash()));
+            var eBPTimeslot = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
 
             var res = new StringValue
             {
@@ -471,7 +471,7 @@ namespace AElf.Kernel.Consensus
                 }
             
                 // ReSharper disable once InconsistentNaming
-                var eBPTimeslot = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync("EBTime".CalculateHash()));
+                var eBPTimeslot = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
 
                 return infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
                                       + $"Current Round : {RoundsCount.Value}";
@@ -487,8 +487,9 @@ namespace AElf.Kernel.Consensus
         {
             try
             {
-                var info = RoundInfo.Parser.ParseFrom(await _dataProvider.GetDataProvider("DPoSInfo")
+                var info = RoundInfo.Parser.ParseFrom(await _dataProvider.GetDataProvider(Globals.AElfDPoSInformationString)
                     .GetAsync(roundsCount.CalculateHash()));
+                
                 var result = "";
 
                 foreach (var bpInfo in info.Info)
@@ -526,14 +527,14 @@ namespace AElf.Kernel.Consensus
 
         private async Task<BPInfo> GetBlockProducerInfoOfCurrentRound(string accountAddress)
         {
-            var bytes = await _dataProvider.GetDataProvider("DPoSInfo").GetAsync(RoundsCount.CalculateHash());
+            var bytes = await _dataProvider.GetDataProvider(Globals.AElfDPoSInformationString).GetAsync(RoundsCount.CalculateHash());
             var roundInfo = RoundInfo.Parser.ParseFrom(bytes);
             return roundInfo.Info[accountAddress];
         }
         
         private async Task<BPInfo> GetBlockProducerInfoOfSpecificRound(string accountAddress, UInt64Value roundsCount)
         {
-            var bytes = await _dataProvider.GetDataProvider("DPoSInfo").GetAsync(roundsCount.CalculateHash());
+            var bytes = await _dataProvider.GetDataProvider(Globals.AElfDPoSInformationString).GetAsync(roundsCount.CalculateHash());
             var roundInfo = RoundInfo.Parser.ParseFrom(bytes);
             return roundInfo.Info[accountAddress];
         }
