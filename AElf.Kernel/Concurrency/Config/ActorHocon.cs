@@ -29,7 +29,6 @@
                         /router {
                             router = round-robin-group
                             routees.paths = [""/user/worker""]
-                            virtual-nodes-factor = 8
                             cluster {
                                 enabled = on
                                 max-nr-of-instances-per-node = 1
@@ -59,6 +58,7 @@
                         send-buffer-size =  30000000b
                         receive-buffer-size =  30000000b
                         maximum-frame-size = 30000000b
+                        enable-pooling = false
                     }
                 }
                 cluster {
@@ -93,6 +93,7 @@
                         send-buffer-size =  30000000b
                         receive-buffer-size =  30000000b
                         maximum-frame-size = 30000000b
+                        enable-pooling = false
                     }
                 }
                 cluster {
