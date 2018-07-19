@@ -3,6 +3,8 @@ sudo: required
 mono: none
 dotnet: 2.0.2
 dist: trusty
+before_install:
+  - ./install_protobuf.sh
 install:
   - export DOTNET_CLI_TELEMETRY_OPTOUT=1
 before_script:
