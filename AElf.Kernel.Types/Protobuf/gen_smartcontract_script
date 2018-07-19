@@ -1,4 +1,10 @@
+#!/bin/sh
 # script for generating the cs classes associated with the proto definitions.
 # The generated code is placed in the Generated folder with a ".g.cs" extension
 
-protoc --proto_path=Proto --csharp_out=../../AElf.SmartContract/Protobuf/Generated --csharp_opt=file_extension=.g.cs Proto/smartcontract.proto
+
+folder="../../AElf.SmartContract/Protobuf/Generated"
+if [ ! -d "$folder" ]; then
+  mkdir "$folder"
+fi
+protoc --proto_path=Proto --csharp_out=$folder --csharp_opt=file_extension=.g.cs Proto/smartcontract.proto

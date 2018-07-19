@@ -9,6 +9,6 @@
     <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
   </ItemGroup>
   <Target Name="gen_proto" BeforeTargets="BeforeBuild">
-    <Exec Command="sh ../scripts/generate_protobuf.sh"/>
+    <Exec Command="sh ../scripts/generate_protobuf.sh" />
   </Target>
 </Project>
