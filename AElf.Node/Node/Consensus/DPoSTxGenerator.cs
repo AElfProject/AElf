@@ -37,7 +37,7 @@ namespace AElf.Kernel.Consensus
                 From = AccountHash,
                 To = contractAccountHash,
                 IncrementId = incrementId,
-                MethodName = "SyncStateOfFirstTwoRounds",
+                MethodName = "InitializeConsensus",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(dPoSInfo, blockProducer))
             };

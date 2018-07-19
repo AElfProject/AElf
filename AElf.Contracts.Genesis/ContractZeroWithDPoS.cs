@@ -12,12 +12,6 @@ namespace AElf.Contracts.Genesis
     // ReSharper disable once UnusedMember.Global
     public class ContractZeroWithDPoS : BasicContractZero
     {
-        // The length of one timeslot for a miner to produce block
-        private const int MiningTime = Globals.MiningTime;
-
-        // Block producers check interval
-        private const int CheckTime = Globals.CheckTime;
-
         #region Protobuf fields and maps
 
         private readonly UInt64Field _roundsCount = new UInt64Field(Globals.DPoSRoundsCountString);
@@ -50,7 +44,7 @@ namespace AElf.Contracts.Genesis
         #region Methods of Block Height 1
         
         // ReSharper disable once UnusedMember.Global
-        public async Task SyncStateOfFirstTwoRounds(DPoSInfo dPoSInfo, BlockProducer blockProducer)
+        public async Task InitializeConsensus(DPoSInfo dPoSInfo, BlockProducer blockProducer)
         {
             await _blockProducer.SetAsync(blockProducer);
             
@@ -75,7 +69,7 @@ namespace AElf.Contracts.Genesis
             await _eBPMap.SetValueAsync(secondRound, new StringValue {Value = eBPOfRound2.Key});
 
             await _timeForProducingExtraBlock.SetAsync(
-                GetTimestamp(dPoSInfo.RoundInfo[0].Info.Last().Value.TimeSlot, MiningTime));
+                GetTimestamp(dPoSInfo.RoundInfo[0].Info.Last().Value.TimeSlot, Globals.MiningTime));
 
             await _chainCreator.SetAsync(Api.GetTransaction().From);
         }
@@ -116,7 +110,7 @@ namespace AElf.Contracts.Genesis
             await _firstPlaceMap.SetValueAsync(RoundsCountAddOne(RoundsCount), new StringValue {Value = nextRoundInfo.Info.First().Key});
 
             await _timeForProducingExtraBlock.SetAsync(GetTimestamp(nextRoundInfo.Info.Last().Value.TimeSlot,
-                MiningTime + CheckTime));
+                Globals.MiningTime + Globals.CheckTime));
 
             //Update the rounds count at last
             await _roundsCount.SetAsync(RoundsCountAddOne(RoundsCount).Value);
@@ -177,7 +171,7 @@ namespace AElf.Contracts.Genesis
 
             var now = GetTimestampOfUtcNow();
             var timeslotOfBlockProducer = await GetTimeSlot(accountAddress.Value);
-            var endOfTimeslotOfBlockProducer = GetTimestamp(timeslotOfBlockProducer, MiningTime);
+            var endOfTimeslotOfBlockProducer = GetTimestamp(timeslotOfBlockProducer, Globals.MiningTime);
             // ReSharper disable once InconsistentNaming
             var timeslotOfEBP = await _timeForProducingExtraBlock.GetAsync();
             if (CompareTimestamp(now, timeslotOfBlockProducer) && CompareTimestamp(endOfTimeslotOfBlockProducer, now) ||
@@ -192,7 +186,7 @@ namespace AElf.Contracts.Genesis
                 var blockProducerInfo =
                     await GetBlockProducerInfoOfSpecificRound(accountAddress.Value, new UInt64Value {Value = i});
                 var timeslot = blockProducerInfo.TimeSlot;
-                var timeslotEnd = GetTimestamp(timeslot, MiningTime);
+                var timeslotEnd = GetTimestamp(timeslot, Globals.MiningTime);
                 if (CompareTimestamp(now, timeslot) && CompareTimestamp(timeslotEnd, now))
                 {
                     return new BoolValue {Value = true};
