@@ -18,10 +18,6 @@
         ";
 
         public const string ActorClusterHocon = @"
-            petabridge.cmd {
-                host = ""0.0.0.0""
-                port = 9110
-            }
             akka {
                 actor {
                     provider = cluster
@@ -50,14 +46,12 @@
                     }
                 }
                 remote {
-                    maximum-payload-bytes = 30000000 bytes
                     dot-netty.tcp {
                         hostname = ""127.0.0.1""
                         port = 0
-                        message-frame-size =  30000000b
-                        send-buffer-size =  30000000b
-                        receive-buffer-size =  30000000b
-                        maximum-frame-size = 30000000b
+                        maximum-frame-size = 300000000b
+                        send-buffer-size = 300000000b
+                        receive-buffer-size = 300000000b
                         enable-pooling = false
                     }
                 }
@@ -85,14 +79,12 @@
                     }
                 }
                 remote {
-                    maximum-payload-bytes = 30000000 bytes
                     dot-netty.tcp {
                         hostname = ""127.0.0.1""
                         port = 32551
-                        message-frame-size =  30000000b
-                        send-buffer-size =  30000000b
-                        receive-buffer-size =  30000000b
-                        maximum-frame-size = 30000000b
+                        maximum-frame-size = 300000000b
+                        send-buffer-size = 300000000b
+                        receive-buffer-size = 300000000b
                         enable-pooling = false
                     }
                 }
