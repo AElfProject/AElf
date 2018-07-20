@@ -5,6 +5,6 @@
 
 folder="../../AElf.SmartContract/Protobuf/Generated"
 if [ ! -d "$folder" ]; then
-  mkdir "$folder"
+  mkdir -p "$folder"
 fi
 protoc --proto_path=Proto --csharp_out=$folder --csharp_opt=file_extension=.g.cs Proto/smartcontract.proto
