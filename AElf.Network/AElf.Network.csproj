@@ -9,4 +9,12 @@
   <ItemGroup>
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
   </ItemGroup>
+  <Target BeforeTargets="BeforeBuild" Name="Gen_proto">
+    <Exec Command="sh ../scripts/generate_protobuf.sh" />
+  </Target>
+  <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+      <Compile Include="./Data/Protobuf/*.g.cs" />
+    </ItemGroup>
+  </Target>
 </Project>
