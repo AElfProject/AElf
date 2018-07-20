@@ -68,11 +68,7 @@ namespace AElf.Runtime.CSharp.Tests
                                     DataAccessMode.ReadOnlyAccountSharing)
                             })))
                 });
-
-            var localGraphC = new AdjacencyGraph<string, Edge<string>>();
-            var vertexC = new[] {"${this}.Func0", "${this}.Func1"};
-            localGraphC.AddVertexRange(vertexC);
-
+            
             var groundTruthTemplateC = new ContractMetadataTemplate(typeof(TestContractC).FullName, groundTruthResC,
                 new Dictionary<string, Hash>());
             

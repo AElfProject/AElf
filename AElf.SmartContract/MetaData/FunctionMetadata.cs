@@ -48,7 +48,7 @@ namespace AElf.SmartContract
         }
     }
 
-    public class FunctionMetadataTemplate
+    public class FunctionMetadataTemplate : IEquatable<FunctionMetadataTemplate>
     {
         public readonly bool TemplateContainsMetadata;
 
@@ -76,13 +76,17 @@ namespace AElf.SmartContract
         public HashSet<string> CallingSet { get; }
         public HashSet<Resource> LocalResourceSet { get; }
         
-        
+        bool IEquatable<FunctionMetadataTemplate>.Equals(FunctionMetadataTemplate other)
+        {
+            return HashSet<string>.CreateSetComparer().Equals(CallingSet, other.CallingSet) &&
+                   HashSet<Resource>.CreateSetComparer().Equals(LocalResourceSet, other.LocalResourceSet);
+        }
     }
 
     public class ContractMetadataTemplate
     {
         public List<string> ProcessFunctionOrder;
-        public AdjacencyGraph<string, Edge<string>> LocalCallingGraph;
+        public CallGraph LocalCallingGraph;
         public Dictionary<string, FunctionMetadataTemplate> MethodMetadataTemplates;
         public string FullName;
         public Dictionary<string, Hash> ContractReferences;
@@ -109,9 +113,9 @@ namespace AElf.SmartContract
         /// </summary>
         /// <param name="callGraph"></param>
         /// <param name="topologicRes"></param>
-        private void TrySetLocalCallingGraph(out AdjacencyGraph<string, Edge<string>> callGraph, out IEnumerable<string> topologicRes)
+        private void TrySetLocalCallingGraph(out CallGraph callGraph, out IEnumerable<string> topologicRes)
         {
-            callGraph = new AdjacencyGraph<string, Edge<string>>();
+            callGraph = new CallGraph();
             foreach (var kvPair in MethodMetadataTemplates)
             {
                 callGraph.AddVertex(kvPair.Key);
