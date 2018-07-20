@@ -142,7 +142,7 @@ namespace AElf.SmartContract
                 callGraph.Clear();
                 callGraph = null;
                 topologicRes = null;
-                throw new FunctionMetadataException($"Calling graph of contract {FullName} us Non-DAG thus nothing take effect");
+                throw new FunctionMetadataException($"Calling graph of contract {FullName} is Non-DAG thus nothing take effect");
             }
         }
     }

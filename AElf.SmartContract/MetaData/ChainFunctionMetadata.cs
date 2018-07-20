@@ -60,6 +60,8 @@ namespace AElf.SmartContract
                 
                 foreach (var functionMetadata in tempMap)
                 {
+                    FunctionMetadataMap.Add(functionMetadata.Key, functionMetadata.Value);
+                    
                     await _dataStore.SetDataAsync(
                         ResourcePath.CalculatePointerForMetadata(chainId, functionMetadata.Key),
                         functionMetadata.Value.ToByteArray());

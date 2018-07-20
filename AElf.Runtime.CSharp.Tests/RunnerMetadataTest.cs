@@ -72,13 +72,11 @@ namespace AElf.Runtime.CSharp.Tests
             var localGraphC = new AdjacencyGraph<string, Edge<string>>();
             var vertexC = new[] {"${this}.Func0", "${this}.Func1"};
             localGraphC.AddVertexRange(vertexC);
+
+            var groundTruthTemplateC = new ContractMetadataTemplate(typeof(TestContractC).FullName, groundTruthResC,
+                new Dictionary<string, Hash>());
             
-            Assert.Equal("AElf.Runtime.CSharp.Tests.TestContractC", resC.FullName);
-            Assert.Equal(groundTruthResC, resC.MethodMetadataTemplates);
-            Assert.Equal(new Dictionary<string, Hash>(), resC.ContractReferences);
-            Assert.Equal(localGraphC.Edges, resC.LocalCallingGraph.Edges);
-            Assert.Equal(localGraphC.Vertices, resC.LocalCallingGraph.Vertices);
-            Assert.Equal(new Dictionary<string, List<string>>(), resC.ExternalFuncCall);
+            Assert.Equal(groundTruthTemplateC, resC, new ContractMetadataTemplateEqualityComparer());
 
             var resB = runner.ExtractMetadata(typeof(TestContractB));
 
@@ -99,24 +97,15 @@ namespace AElf.Runtime.CSharp.Tests
                             {new Resource("${this}.resource3", DataAccessMode.ReadOnlyAccountSharing)})))
             });
             
-            var localGraphB = new AdjacencyGraph<string, Edge<string>>();
-            var vertexB = new[] {"${this}.Func0", "${this}.Func1"};
-            localGraphB.AddVertexRange(vertexB);
             var refB = new Dictionary<string, Hash>(new []
             {
                 new KeyValuePair<string, Hash>("ContractC", ByteArrayHelpers.FromHexString("0x4567")), 
             });
-            var externalB = new Dictionary<string, List<string>>(new []
-            {
-                new KeyValuePair<string, List<string>>("${this}.Func0", new List<string>(new []{"${ContractC}.Func1"})), 
-            });
             
-            Assert.Equal("AElf.Runtime.CSharp.Tests.TestContractB", resB.FullName);
-            Assert.Equal(groundTruthResB.OrderBy(a=>a.Key), resB.MethodMetadataTemplates.OrderBy(a=>a.Key));
-            Assert.Equal(refB.OrderBy(a=>a.Key), resB.ContractReferences.OrderBy(a=>a.Key));
-            Assert.Equal(localGraphB, resB.LocalCallingGraph);
-            Assert.Equal(externalB.OrderBy(a=>a.Key), resB.ExternalFuncCall.OrderBy(a=>a.Key));
+            var groundTruthTemplateB = new ContractMetadataTemplate(typeof(TestContractB).FullName, groundTruthResB,
+                refB);
             
+            Assert.Equal(groundTruthTemplateB, resB, new ContractMetadataTemplateEqualityComparer());
             
             var resA = runner.ExtractMetadata(typeof(TestContractA));
 
@@ -177,71 +166,21 @@ namespace AElf.Runtime.CSharp.Tests
                         new HashSet<Resource>())),
             });
             
-            var localGraphA = new AdjacencyGraph<string, Edge<string>>();
-            var vertexA = new[] {"${this}.Func0(int)", "${this}.Func0", "${this}.Func1" ,"${this}.Func2","${this}.Func3","${this}.Func4","${this}.Func5",};
-            var edgeA = new Edge<string>[]
-            {
-                new Edge<string>("${this}.Func0", "${this}.Func1"),
-                new Edge<string>("${this}.Func1", "${this}.Func2"),
-                new Edge<string>("${this}.Func3", "${this}.Func0"),
-                new Edge<string>("${this}.Func4", "${this}.Func2"),
-                new Edge<string>("${this}.Func5", "${this}.Func3"),
-            };
-            localGraphA.AddVertexRange(vertexA);
-            localGraphA.AddEdgeRange(edgeA);
             var refA = new Dictionary<string, Hash>(new []
             {
                 new KeyValuePair<string, Hash>("ContractC", ByteArrayHelpers.FromHexString("0x4567")), 
                 new KeyValuePair<string, Hash>("_contractB", ByteArrayHelpers.FromHexString("0x1234")), 
             });
-            var externalA = new Dictionary<string, List<string>>(new []
-            {
-                new KeyValuePair<string, List<string>>("${this}.Func3", new List<string>(new []{"${_contractB}.Func0", "${ContractC}.Func0"})), 
-                new KeyValuePair<string, List<string>>("${this}.Func5", new List<string>(new []{"${_contractB}.Func0"})), 
-            });
             
-            Assert.Equal("AElf.Runtime.CSharp.Tests.TestContractA", resA.FullName);
-            Assert.Equal(groundTruthResA.OrderBy(a=>a.Key), resA.MethodMetadataTemplates.OrderBy(a=>a.Key));
-            Assert.Equal(refA, resA.ContractReferences);
-            Assert.Equal(localGraphA, resA.LocalCallingGraph);
-            Assert.Equal(externalA, resA.ExternalFuncCall);
+            var groundTruthTemplateA = new ContractMetadataTemplate(typeof(TestContractA).FullName, groundTruthResA,
+                refA);
+            
+            Assert.Equal(groundTruthTemplateA, resA, new ContractMetadataTemplateEqualityComparer());
 
             //test fail cases
             await TestFailCases(runner);
         }
         
-        public string FunctionMetadataTemplateMapToString(Dictionary<string, FunctionMetadataTemplate> map)
-        {
-            
-            return string.Join(
-                " ",
-                map.OrderBy(a => a.Key)
-                    .Select(item => String.Format("[{0},({1}),({2})]", 
-                        item.Key,
-                        CallingSetToString(item.Value.CallingSet), 
-                        PathSetToString(item.Value.LocalResourceSet))));
-        }
-
-        public string ContractMetadataTemplateMapToString(
-            Dictionary<string, Dictionary<string, FunctionMetadataTemplate>> map)
-        {
-            return string.Join(
-                " | ",
-                map.OrderBy(a => a.Key)
-                    .Select(item =>
-                        String.Format("({0} - {1})", item.Key, FunctionMetadataTemplateMapToString(item.Value))));
-        }
-        
-        public string PathSetToString(HashSet<Resource> resourceSet)
-        {
-            return string.Join(", ",
-                resourceSet.OrderBy(a =>a.Name));
-        }
-
-        public string CallingSetToString(HashSet<string> callingSet)
-        {
-            return string.Join(", ", callingSet.OrderBy(a => a));
-        }
 
 
         public async Task TestFailCases(SmartContractRunner runner)
@@ -278,11 +217,81 @@ namespace AElf.Runtime.CSharp.Tests
             exception = await Assert
                 .ThrowsAsync<FunctionMetadataException>(() => Task.FromResult(runner.ExtractMetadata(typeof(TestContractJ))));
             Assert.True(exception.Message.Contains("is Non-DAG thus nothing take effect"));
+        }
+    }
 
-            exception = await Assert
-                .ThrowsAsync<FunctionMetadataException>(() => Task.FromResult(runner.ExtractMetadata(typeof(TestContractK))));
-            Assert.True(
-                exception.Message.Contains("consider the target function does not exist in the foreign contract"));
+    internal sealed class ContractMetadataTemplateEqualityComparer : IEqualityComparer<ContractMetadataTemplate>
+    {
+        public bool Equals(ContractMetadataTemplate x, ContractMetadataTemplate y)
+        {
+            if (ReferenceEquals(x, y)) return true;
+            if (ReferenceEquals(x, null)) return false;
+            if (ReferenceEquals(y, null)) return false;
+            if (x.GetType() != y.GetType()) return false;
+
+            return CallingGraphToString(x.LocalCallingGraph) == CallingGraphToString(y.LocalCallingGraph) &&
+                   FunctionMetadataTemplateMapToString(x.MethodMetadataTemplates) ==
+                   FunctionMetadataTemplateMapToString(y.MethodMetadataTemplates) &&
+                   string.Equals(x.FullName, y.FullName) &&
+                   ContractReferencesToString(x.ContractReferences) ==
+                   ContractReferencesToString(y.ContractReferences) &&
+                   ExternalFunctionCallToString(x.ExternalFuncCall) == ExternalFunctionCallToString(y.ExternalFuncCall);
+        }
+
+        public int GetHashCode(ContractMetadataTemplate obj)
+        {
+            unchecked
+            {
+                var hashCode = (obj.LocalCallingGraph != null ? obj.LocalCallingGraph.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^
+                           (obj.MethodMetadataTemplates != null ? obj.MethodMetadataTemplates.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (obj.FullName != null ? obj.FullName.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^
+                           (obj.ContractReferences != null ? obj.ContractReferences.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (obj.ExternalFuncCall != null ? obj.ExternalFuncCall.GetHashCode() : 0);
+                return hashCode;
+            }
+        }
+
+        private string CallingGraphToString(AdjacencyGraph<string, Edge<string>> callGraph)
+        {
+            return string.Join(", ", callGraph.Edges?.OrderBy(a => a.Source).ThenBy(a => a.Target).Select(a => a.ToString())) +
+                   string.Join(", ", callGraph.Vertices?.OrderBy(a => a));
+        }
+
+        private string ContractReferencesToString(Dictionary<string, Hash> references)
+        {
+            return string.Join(", ", references.OrderBy(kv => kv.Key).Select(kv => $"[{kv.Key}, {kv.Value.ToHex()}]"));
+        }
+
+        private string ExternalFunctionCallToString(Dictionary<string, List<string>> externalFuncCall)
+        {
+            return string.Join(", ",
+                externalFuncCall.OrderBy(kv => kv.Key)
+                    .Select(kv => $"[{kv.Key}, ({string.Join(", ", kv.Value)})]"));
+        }
+
+        private string FunctionMetadataTemplateMapToString(Dictionary<string, FunctionMetadataTemplate> map)
+        {
+
+            return string.Join(
+                " ",
+                map.OrderBy(a => a.Key)
+                    .Select(item => String.Format("[{0},({1}),({2})]",
+                        item.Key,
+                        CallingSetToString(item.Value.CallingSet),
+                        PathSetToString(item.Value.LocalResourceSet))));
+        }
+
+        private string PathSetToString(HashSet<Resource> resourceSet)
+        {
+            return string.Join(", ",
+                resourceSet.OrderBy(a => a.Name));
+        }
+
+        private string CallingSetToString(HashSet<string> callingSet)
+        {
+            return string.Join(", ", callingSet.OrderBy(a => a));
         }
     }
 

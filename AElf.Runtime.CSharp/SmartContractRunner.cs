@@ -206,11 +206,13 @@ namespace AElf.Runtime.CSharp
                         throw new FunctionMetadataException("Duplicate name of smart contract reference attributes in contract " + contractType.FullName);
                     }
                 }
-                catch (Exception)
+                catch(Exception e) when ( !(e is FunctionMetadataException) )
                 {
                     throw new FunctionMetadataException(
                         $"When deploy contract {contractType.FullName}, error occurs where the address {smartContractRefAttr.ContractAddress} of contract reference {smartContractRefAttr.FieldName} is not a valid hex format address ");
                 }
+                
+                
                 
             }
             
