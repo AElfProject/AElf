@@ -13,9 +13,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Protobuf\Generated" />
+    <Folder Include="Protobuf" />
   </ItemGroup>
-  <Target Name="gen_proto" BeforeTargets="BeforeBuild">
-    <Exec Command="sh ../scripts/generate_protobuf.sh"/>
-  </Target>
 </Project>
