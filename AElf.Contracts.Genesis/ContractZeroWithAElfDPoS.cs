@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus;
 using AElf.Contracts.Genesis.ConsensusContract;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -29,6 +28,7 @@ namespace AElf.Contracts.Genesis
         public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo)
         {
             await _consensus.Initialize(new List<byte[]> {blockProducer, dPoSInfo});
+
         }
 
         // ReSharper disable once InconsistentNaming

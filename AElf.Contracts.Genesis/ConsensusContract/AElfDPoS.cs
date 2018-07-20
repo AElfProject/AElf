@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -20,7 +19,9 @@ namespace AElf.Contracts.Genesis.ConsensusContract
         public ulong Interval => Globals.AElfMiningTime;
 
         public bool PrintLogs => true;
-        
+
+        public Hash Nonce { get; set; } = Hash.Default;
+
         #region Protobuf fields and maps
         
         private readonly UInt64Field _currentRoundNumberField;

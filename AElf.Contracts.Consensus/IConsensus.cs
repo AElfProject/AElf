@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus
@@ -31,6 +32,11 @@ namespace AElf.Contracts.Consensus
         /// Print logs or not.
         /// </summary>
         bool PrintLogs { get; }
+
+        /// <summary>
+        /// To adjust the difficult of PoW mining.
+        /// </summary>
+        Hash Nonce { get; set; }
         
         /// <summary>
         /// For AElf DPoS, this method is used for publishing the
