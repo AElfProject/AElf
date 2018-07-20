@@ -39,7 +39,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "InitializeAElfDPoS",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(blockProducer.ToByteArray(), dPoSInfo.ToByteArray()))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(blockProducer, dPoSInfo))
             };
             
             var signer = new ECSigner();
@@ -76,7 +76,7 @@ namespace AElf.Kernel.Consensus
             return tx;
         }
 
-        public List<ITransaction> GetTxsForNormalBlock(ulong incrementId, Hash contractAccountHash, ulong roundsCount,
+        public IEnumerable<ITransaction> GetTxsForNormalBlock(ulong incrementId, Hash contractAccountHash, ulong roundsCount,
             Hash outValue, Hash sig)
         {
             var txs = new List<ITransaction>

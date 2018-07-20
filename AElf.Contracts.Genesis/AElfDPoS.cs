@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus
+namespace AElf.Contracts.Genesis
 {
     // ReSharper disable once InconsistentNaming
     public class AElfDPoS : IConsensus
@@ -18,6 +19,33 @@ namespace AElf.Contracts.Consensus
         public ulong Interval => Globals.AElfMiningTime;
 
         public bool PrintLogs => true;
+        
+        #region Protobuf fields and maps
+        
+        private readonly UInt64Field _currentRoundNumberField;
+
+        private readonly PbField<BlockProducer> _blockProducerField;
+
+        private readonly Map<UInt64Value, RoundInfo> _dPoSInfoMap;
+        
+        // ReSharper disable once InconsistentNaming
+        private readonly Map<UInt64Value, StringValue> _eBPMap;
+
+        private readonly PbField<Timestamp> _timeForProducingExtraBlock;
+
+        private readonly Map<UInt64Value, StringValue> _firstPlaceMap;
+
+        #endregion
+
+        public AElfDPoS(ContractZeroWithAElfDPoS contract)
+        {
+            _currentRoundNumberField = contract.CurrentRoundNumberField;
+            _blockProducerField = contract.BlockProducerField;
+            _dPoSInfoMap = contract.DPoSInfoMap;
+            _eBPMap = contract.EBPMap;
+            _timeForProducingExtraBlock = contract.TimeForProducingExtraBlock;
+            _firstPlaceMap = contract.FirstPlaceMap;
+        }
 
         /// <inheritdoc />
         /// <summary>
@@ -278,36 +306,16 @@ namespace AElf.Contracts.Consensus
                    CompareTimestamp(timestamp, timeslotOfEBP);
         }
 
-
-
-        #region Protobuf fields and maps
-        
-        private readonly UInt64Field _currentRoundNumberField = new UInt64Field(Globals.AElfDPoSCurrentRoundNumber);
-
-        private readonly PbField<BlockProducer> _blockProducerField =
-            new PbField<BlockProducer>(Globals.AElfDPoSBlockProducerString);
-
-        private readonly Map<UInt64Value, RoundInfo> _dPoSInfoMap =
-            new Map<UInt64Value, RoundInfo>(Globals.AElfDPoSInformationString);
-        
-        // ReSharper disable once InconsistentNaming
-        private readonly Map<UInt64Value, StringValue> _eBPMap =
-            new Map<UInt64Value, StringValue>(Globals.AElfDPoSExtraBlockProducerString);
-
-        private readonly PbField<Timestamp> _timeForProducingExtraBlock =
-            new PbField<Timestamp>(Globals.AElfDPoSExtraBlockTimeslotString);
-
-        private readonly Map<UInt64Value, StringValue> _firstPlaceMap
-            = new Map<UInt64Value, StringValue>(Globals.AElfDPoSFirstPlaceOfEachRoundString);
-
-        #endregion
-
         #region Private Methods
 
         #region Important Privite Methods
 
         private async Task InitializeBlockProducer(BlockProducer blockProducer)
         {
+            foreach (var bp in blockProducer.Nodes)
+            {
+                ConsoleWriteLine(nameof(Initialize), $"Set Block Producer: {bp}");
+            }
             await _blockProducerField.SetAsync(blockProducer);
         }
 

@@ -31,7 +31,7 @@ namespace AElf.Contracts.Consensus
         /// Print logs or not.
         /// </summary>
         bool PrintLogs { get; }
-
+        
         /// <summary>
         /// For AElf DPoS, this method is used for publishing the
         /// information of first two rounds (by Chain Creator).

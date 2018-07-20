@@ -77,11 +77,9 @@ namespace AElf.Kernel.Node
             {
                 var dict = MinersInfo.Instance.Producers;
                 var blockProducers = new BlockProducer();
-                _logger?.Trace("Block producers of your config:");
                 foreach (var bp in dict.Values)
                 {
                     var b = ConvertToNormalHexString(bp["address"]);
-                    _logger?.Trace(b);
                     blockProducers.Nodes.Add(b);
                 }
 

@@ -35,6 +35,7 @@ namespace AElf.Kernel.Consensus
             _logger = logger;
 
             _dataProvider = worldStateDictator.GetAccountDataProvider(contractAddressHash).Result.GetDataProvider();
+            Console.WriteLine("DPoSHelp: " + contractAddressHash.ToHex());
 
         }
 
@@ -487,8 +488,9 @@ namespace AElf.Kernel.Consensus
         {
             try
             {
-                var info = RoundInfo.Parser.ParseFrom(await _dataProvider.GetDataProvider(Globals.AElfDPoSInformationString)
-                    .GetAsync(roundsCount.CalculateHash()));
+                var bytes = await _dataProvider.GetDataProvider(Globals.AElfDPoSInformationString)
+                    .GetAsync(roundsCount.CalculateHash());
+                var info = RoundInfo.Parser.ParseFrom(bytes);
                 
                 var result = "";
 

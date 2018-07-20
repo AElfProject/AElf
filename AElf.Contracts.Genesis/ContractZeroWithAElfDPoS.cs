@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus;
+using AElf.Kernel;
+using AElf.Sdk.CSharp.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -9,15 +12,36 @@ namespace AElf.Contracts.Genesis
 {
     // ReSharper disable once InconsistentNaming
     // ReSharper disable once UnusedMember.Global
-    public class ContractZeroWithDPoS : BasicContractZero
+    // ReSharper disable once ClassNeverInstantiated.Global
+    public class ContractZeroWithAElfDPoS : BasicContractZero
     {
-        private readonly IConsensus _consensus = new AElfDPoS();
+        public readonly UInt64Field CurrentRoundNumberField = new UInt64Field(Globals.AElfDPoSCurrentRoundNumber);
+
+        public readonly PbField<BlockProducer> BlockProducerField =
+            new PbField<BlockProducer>(Globals.AElfDPoSBlockProducerString);
+
+        // ReSharper disable once InconsistentNaming
+        public readonly Map<UInt64Value, RoundInfo> DPoSInfoMap =
+            new Map<UInt64Value, RoundInfo>(Globals.AElfDPoSInformationString);
+        
+        // ReSharper disable once InconsistentNaming
+        public readonly Map<UInt64Value, StringValue> EBPMap =
+            new Map<UInt64Value, StringValue>(Globals.AElfDPoSExtraBlockProducerString);
+
+        public readonly PbField<Timestamp> TimeForProducingExtraBlock =
+            new PbField<Timestamp>(Globals.AElfDPoSExtraBlockTimeslotString);
+
+        public readonly Map<UInt64Value, StringValue> FirstPlaceMap
+            = new Map<UInt64Value, StringValue>(Globals.AElfDPoSFirstPlaceOfEachRoundString);
+        
+        private IConsensus _consensus;
         
         // ReSharper disable once UnusedMember.Global
         // ReSharper disable once InconsistentNaming
-        public async Task InitializeAElfDPoS(ByteString blockProducer, ByteString dPoSInfo)
+        public async Task InitializeAElfDPoS(BlockProducer blockProducer, DPoSInfo dPoSInfo)
         {
-            await _consensus.Initialize(new List<byte[]> {blockProducer.ToArray(), dPoSInfo.ToArray()});
+            _consensus = new AElfDPoS(this);
+            await _consensus.Initialize(new List<byte[]> {blockProducer.ToByteArray(), dPoSInfo.ToByteArray()});
         }
 
         // ReSharper disable once InconsistentNaming
