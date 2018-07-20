@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using AElf.Network.Data;
 using AElf.Network.Peers.Exceptions;
@@ -15,13 +16,13 @@ namespace AElf.Network.Peers
         event EventHandler PeerRemoved;
         
         void Start();
-        bool AddPeer(IPeer peer);
+        IPeer CreatePeerFromConnection(TcpClient client);
         
         bool NoPeers { get; }
 
         List<IPeer> GetPeers();
         List<NodeData> GetPeers(ushort? numPeers, bool includeBootnodes = true);
 
-        Task<int> BroadcastMessage(MessageTypes messageType, byte[] payload, int requestId);
+        Task<int> BroadcastMessage(MessageType messageType, byte[] payload, int requestId);
     }
 }

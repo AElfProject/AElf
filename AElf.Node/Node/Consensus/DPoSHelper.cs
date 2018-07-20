@@ -33,6 +33,7 @@ namespace AElf.Kernel.Consensus
             _keyPair = keyPair;
             _blockProducer = blockProducer;
             _logger = logger;
+            _logger = null;
 
             _dataProvider = worldStateDictator.GetAccountDataProvider(contractAddressHash).Result.GetDataProvider();
 

@@ -19,10 +19,10 @@ namespace AElf.Network.Peers
         
         bool IsBootnode { get; }
         
-        Task StartListeningAsync();
-        Task SendAsync(byte[] data);
-        
-        Task<bool> DoConnectAsync();
-        Task<bool> WriteConnectInfoAsync();
+        //Task StartListeningAsync();
+        void EnqueueOutgoing(Message msg);
+
+        //Task<bool> DoConnectAsync();
+        //Task<bool> SendAuthInfo();
     }
 }

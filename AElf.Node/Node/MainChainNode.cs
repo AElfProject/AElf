@@ -77,11 +77,11 @@ namespace AElf.Kernel.Node
             {
                 var dict = MinersInfo.Instance.Producers;
                 var blockProducers = new BlockProducer();
-                _logger?.Trace("Block producers of your config:");
+                //_logger?.Trace("Block producers of your config:");
                 foreach (var bp in dict.Values)
                 {
                     var b = ConvertToNormalHexString(bp["address"]);
-                    _logger?.Trace(b);
+                    //_logger?.Trace(b);
                     blockProducers.Nodes.Add(b);
                 }
 
@@ -196,7 +196,7 @@ namespace AElf.Kernel.Node
 
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
-            _protocolDirector.SetCommandContext(this, true); // If not miner do sync
+            _protocolDirector.SetCommandContext(this, _nodeConfig.ConsensusInfoGenerater); // If not miner do sync
             
             // akka env 
             
@@ -309,7 +309,7 @@ namespace AElf.Kernel.Node
         /// <param name="messagePayload"></param>
         /// <param name="isFromSend"></param>
         /// <returns></returns>
-        public async Task ReceiveTransaction(ByteString messagePayload, bool isFromSend)
+        public async Task ReceiveTransaction(byte[] messagePayload, bool isFromSend)
         {
             try
             {
@@ -707,7 +707,7 @@ namespace AElf.Kernel.Node
         #region Private Methods for DPoS
 
         // ReSharper disable once InconsistentNaming
-        private void DoDPoSMining(bool doLogsAboutConsensus = true)
+        private void DoDPoSMining(bool doLogsAboutConsensus = false)
         {
             new EventLoopScheduler().Schedule(() =>
             {
@@ -738,7 +738,7 @@ namespace AElf.Kernel.Node
                 (
                     async x =>
                     {
-                        _logger?.Debug("---- DPoS checking start");
+                        //_logger?.Debug("---- DPoS checking start");
                         var currentHeightOfThisNode = (long) await _chainManager.GetChainCurrentHeight(ChainId);
                         var currentHeightOfOtherNodes = _protocolDirector.GetLatestIndexOfOtherNode();
                         if (currentHeightOfThisNode < currentHeightOfOtherNodes && currentHeightOfOtherNodes != -1)
@@ -746,7 +746,7 @@ namespace AElf.Kernel.Node
                             _logger?.Debug("Current height of me: " + currentHeightOfThisNode);
                             _logger?.Debug("Current height of others: " + currentHeightOfOtherNodes);
                             _logger?.Debug("Having more blocks to sync, so the dpos mining won't start");
-                            _logger?.Debug("---- DPoS checking end");
+                            //_logger?.Debug("---- DPoS checking end");
                             return;
                         }
 
@@ -766,7 +766,7 @@ namespace AElf.Kernel.Node
                         {
                             if (!_nodeConfig.ConsensusInfoGenerater)
                             {
-                                _logger?.Debug("---- DPoS checking end");
+                                //_logger?.Debug("---- DPoS checking end");
                                 return;
                             }
                             
@@ -783,7 +783,7 @@ namespace AElf.Kernel.Node
                                 "Generate first extra block: \"{0}\", with [{1}] transactions",
                                 firstBlock.GetHash().ToHex(),
                                 firstBlock.Body.Transactions.Count);
-                            _logger?.Debug("---- DPoS checking end");
+                            //_logger?.Debug("---- DPoS checking end");
                             return;
                         }
 
@@ -826,7 +826,7 @@ namespace AElf.Kernel.Node
 
                                 if (!await BroadcastBlock(block))
                                 {
-                                    _logger?.Debug("---- DPoS checking end");
+                                    //_logger?.Debug("---- DPoS checking end");
                                     return;
                                 }
 
@@ -839,7 +839,7 @@ namespace AElf.Kernel.Node
                                     outValue.Value.ToByteArray().ToHex().Remove(0, 2),
                                     signature.Value.ToByteArray().ToHex().Remove(0, 2));
                                 
-                                _logger?.Debug("---- DPoS checking end");
+                                //_logger?.Debug("---- DPoS checking end");
 
                                 return;
                             }
@@ -861,7 +861,7 @@ namespace AElf.Kernel.Node
 
                                 lastTryToPublishInValueRoundsCount = roundsCount;
 
-                                _logger?.Debug("---- DPoS checking end");
+                                //_logger?.Debug("---- DPoS checking end");
 
                                 return;
                             }
@@ -882,7 +882,7 @@ namespace AElf.Kernel.Node
                                     _logger?.Debug(extraBlock == null
                                         ? $"Block broadcast failed: failed to mine extra block"
                                         : $"Block broadcast failed: height {extraBlock?.Header.Index}");
-                                    _logger?.Debug("---- DPoS checking end");
+                                    //_logger?.Debug("---- DPoS checking end");
                                     return;
                                 }
 
@@ -893,7 +893,7 @@ namespace AElf.Kernel.Node
                                     extraBlock.GetHash().Value.ToByteArray().ToHex(), 
                                     extraBlock.Body.Transactions.Count);
 
-                                _logger?.Debug("---- DPoS checking end");
+                                //_logger?.Debug("---- DPoS checking end");
 
                                 return;
                             }
@@ -920,7 +920,7 @@ namespace AElf.Kernel.Node
                                 _logger?.Debug(extraBlock == null
                                     ? $"Block broadcast failed: failed to mine extra block"
                                     : $"Block broadcast failed: height {extraBlock?.Header.Index}");
-                                _logger?.Debug("---- DPoS checking end");
+                                //_logger?.Debug("---- DPoS checking end");
                                 return;
                             }
                             
@@ -933,7 +933,7 @@ namespace AElf.Kernel.Node
                             
                         }
                         
-                        _logger?.Debug("---- DPoS checking end");
+                        //_logger?.Debug("---- DPoS checking end");
 
                         #endregion
                     },

@@ -12,7 +12,7 @@ namespace AElf.Kernel.Node.Protocol
         Task<int> BroadcastBlock(Block block);
         Task<int> BroadcastTransaction(ITransaction transaction);
         
-        void SetCommandContext(MainChainNode node, bool doSync = false);
+        void SetCommandContext(MainChainNode node, bool isGenerator = false);
 
         List<NodeData> GetPeers(ushort? numPeers);
         void AddTransaction(Transaction tx);

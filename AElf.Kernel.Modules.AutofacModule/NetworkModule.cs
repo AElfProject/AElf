@@ -21,7 +21,7 @@ using Autofac;
          {
              builder.RegisterInstance(NetConfig).As<IAElfNetworkConfig>();
              
-             builder.RegisterType<AElfTcpServer>().As<IAElfServer>();
+             //builder.RegisterType<AElfTcpServer>().As<IAElfServer>();
              
              /*if(IsMiner)
                  builder.RegisterType<BootnodePeerManager>().As<IPeerManager>();
@@ -35,8 +35,8 @@ using Autofac;
 
              //NodeData nd = NodeData.FromString(NetConfig.Host + ":" + NetConfig.Port);
              
-             NodeDialer dialer = new NodeDialer(NetConfig.Port);
-             builder.RegisterInstance(dialer).As<INodeDialer>();
+             //NodeDialer dialer = new NodeDialer(NetConfig.Port);
+             //builder.RegisterInstance(dialer).As<INodeDialer>();
 
          }
      }

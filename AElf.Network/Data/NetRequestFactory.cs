@@ -5,28 +5,28 @@ namespace AElf.Network.Data
 {
     public static class NetRequestFactory
     {
-        public static AElfPacketData CreateMissingPeersReq(int peersMissing)
+        public static Message CreateMissingPeersReq(int peersMissing)
         {
             var reqPeerListData = new ReqPeerListData { NumPeers = peersMissing };
+            var payload = reqPeerListData.ToByteString().ToByteArray();
 
-            var request = new AElfPacketData
+            var request = new Message
             {
-                MsgType = (int) MessageTypes.RequestPeers,
-                Length = 1,
-                Payload = reqPeerListData.ToByteString()
+                Type = (int) MessageType.RequestPeers,
+                Length = payload.Length,
+                Payload = payload
             };
 
             return request;
         }
 
-        public static AElfPacketData CreateRequest(MessageTypes messageType, byte[] payload, int? messageId)
+        public static Message CreateMessage(MessageType messageType, byte[] payload, int? messageId)
         {
-            AElfPacketData packetData = new AElfPacketData
+            Message packetData = new Message
             {
-                Id = messageId ?? 0,
-                MsgType = (int)messageType,
+                Type = (int)messageType,
                 Length = payload.Length,
-                Payload = ByteString.CopyFrom(payload)
+                Payload = payload
             };
 
             return packetData;

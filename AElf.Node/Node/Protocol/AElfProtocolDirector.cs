@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Network;
 using AElf.Network.Data;
 using AElf.Network.Peers;
 using Google.Protobuf;
@@ -23,8 +25,11 @@ namespace AElf.Kernel.Node.Protocol
 
         private ILogger _logger;
 
+        private BlockingCollection<Message> _messages;
+
         public AElfProtocolDirector(IPeerManager peerManager)
         {
+            _messages = new BlockingCollection<Message>();
             _peerManager = peerManager;
             _logger = LogManager.GetLogger("ProtocolDirector");
         }
@@ -34,32 +39,41 @@ namespace AElf.Kernel.Node.Protocol
             _peerManager.Start();
             _peerManager.MessageReceived += ProcessPeerMessage;
         }
-        
+
         /// <summary>
         /// Temporary solution, this is used for injecting a
         /// reference to the node.
         /// todo : remove dependency on the node
         /// </summary>
         /// <param name="node"></param>
-        public void SetCommandContext(MainChainNode node, bool doSync = false)
+        /// <param name="isGenerator"></param>
+        public void SetCommandContext(MainChainNode node, bool isGenerator = false)
         {
             _node = node;
-
-            if (doSync)
-            {
-                ulong height = _node.GetCurrentChainHeight().Result;
-                _blockSynchronizer = new BlockSynchronizer(_node, _peerManager); // todo move
-                _blockSynchronizer.SetNodeHeight((int)height);
-                _blockSynchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
-
-                if (!_blockSynchronizer.IsInitialSync)
-                    BlockSynchronizerOnSyncFinished(this, EventArgs.Empty);
+            
+            ulong height = _node.GetCurrentChainHeight().Result;
                 
-                Task.Run(() => _blockSynchronizer.Start());
+            _blockSynchronizer = new BlockSynchronizer(_node, _peerManager); // todo move
+            _blockSynchronizer.SetNodeHeight((int)height);
+
+            if (!isGenerator)
+            {
+                _blockSynchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
             }
+            else
+            {
+                StartMining();
+            }
+            
+            Task.Run(() => _blockSynchronizer.Start(!isGenerator));
         }
 
         private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
+        {
+            StartMining();
+        }
+
+        private void StartMining()
         {
             if (_node.IsMiner() && !_node.IsMining)
             {
@@ -84,7 +98,7 @@ namespace AElf.Kernel.Node.Protocol
             var pendingRequest = BuildRequest();
             
             int broadcastCount 
-                = await _peerManager.BroadcastMessage(MessageTypes.BroadcastTx, transaction, pendingRequest.Id);
+                = await _peerManager.BroadcastMessage(MessageType.BroadcastTx, transaction, pendingRequest.Id);
 
             return broadcastCount;
 
@@ -97,7 +111,7 @@ namespace AElf.Kernel.Node.Protocol
         public async Task<int> BroadcastBlock(Block block)
         {
             byte[] serializedBlock = block.ToByteArray();
-            return await _peerManager.BroadcastMessage(MessageTypes.BroadcastBlock, serializedBlock, 0);
+            return await _peerManager.BroadcastMessage(MessageType.BroadcastBlock, serializedBlock, 0);
         }
         
         public long GetLatestIndexOfOtherNode()
@@ -120,6 +134,8 @@ namespace AElf.Kernel.Node.Protocol
 
         #region Response handling
         
+        
+        
         /// <summary>
         /// Dispatch callback that is executed when a peer receives a message.
         /// </summary>
@@ -127,45 +143,41 @@ namespace AElf.Kernel.Node.Protocol
         /// <param name="e"></param>
         private async void ProcessPeerMessage(object sender, EventArgs e)
         {
-            if (sender != null && e is MessageReceivedArgs args && args.Message != null)
+            if (sender != null && e is PeerMessageReceivedArgs args && args.Message != null)
             {
-                AElfPacketData message = args.Message;
-                MessageTypes msgType = (MessageTypes)message.MsgType;
+                Message message = args.Message;
+                MessageType msgType = (MessageType)message.Type;
 
-                if (msgType == MessageTypes.BroadcastTx || msgType == MessageTypes.Tx)
+                if (msgType == MessageType.BroadcastTx || msgType == MessageType.Tx)
                 {
                     await  HandleTransactionReception(message);
                 }
-                else if (msgType == MessageTypes.BroadcastBlock || message.MsgType == (int)MessageTypes.Block)
+                else if (msgType == MessageType.BroadcastBlock || message.Type == (int)MessageType.Block)
                 {
                     // todo maybe merge the above types
                     await HandleBlockReception(message, msgType);
                 }
-                else if (msgType == MessageTypes.RequestBlock)
+                else if (msgType == MessageType.RequestBlock)
                 {
                     await HandleBlockRequest(message, args);
 
                 }
-                else if (msgType == MessageTypes.Height)
+                else if (msgType == MessageType.Height)
                 {
                     HandlePeerHeightReception(message, args);
                 }
-                else if (msgType == MessageTypes.HeightRequest)
+                else if (msgType == MessageType.HeightRequest)
                 {
                     await HandleHeightRequest(message, args);
                 }
-                else if (msgType == MessageTypes.TxRequest)
+                else if (msgType == MessageType.TxRequest)
                 {
                     await HandleTxRequest(message, args);
                 }
-                
-                // Process any messages
-                
-                ClearResetEvent(message.Id);
             }
         }
         
-        private async Task HandleTxRequest(AElfPacketData message, MessageReceivedArgs args)
+        private async Task HandleTxRequest(Message message, PeerMessageReceivedArgs args)
         {
             string hash = null;
             
@@ -183,8 +195,8 @@ namespace AElf.Kernel.Node.Protocol
                     return;
                 }
                 
-                var req = NetRequestFactory.CreateRequest(MessageTypes.Tx, t.ToByteArray(), 0);
-                await args.Peer.SendAsync(req.ToByteArray());
+                var req = NetRequestFactory.CreateMessage(MessageType.Tx, t.ToByteArray(), 0);
+                args.Peer.EnqueueOutgoing(req);
 
                 _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + t.ToByteArray().Length +
                                " bytes)");
@@ -195,15 +207,15 @@ namespace AElf.Kernel.Node.Protocol
             }
         }
 
-        internal async Task HandleBlockRequest(AElfPacketData message, MessageReceivedArgs args)
+        internal async Task HandleBlockRequest(Message message, PeerMessageReceivedArgs args)
         {
             try
             {
                 BlockRequest breq = BlockRequest.Parser.ParseFrom(message.Payload);
                 Block block = await _node.GetBlockAtHeight(breq.Height);
 
-                var req = NetRequestFactory.CreateRequest(MessageTypes.Block, block.ToByteArray(), 0);
-                await args.Peer.SendAsync(req.ToByteArray());
+                var req = NetRequestFactory.CreateMessage(MessageType.Block, block.ToByteArray(), 0);
+                args.Peer.EnqueueOutgoing(req);
                 _logger?.Trace("Send block " + block.GetHash().ToHex() + " to " + args.Peer);
             }
             catch (Exception e)
@@ -212,14 +224,14 @@ namespace AElf.Kernel.Node.Protocol
             }
         }
 
-        internal async Task HandleHeightRequest(AElfPacketData message, MessageReceivedArgs args)
+        internal async Task HandleHeightRequest(Message message, PeerMessageReceivedArgs args)
         {
             try
             {
                 ulong height = await _node.GetCurrentChainHeight();
                 HeightData data = new HeightData { Height = (int)height };
-                var req = NetRequestFactory.CreateRequest(MessageTypes.Height, data.ToByteArray(), 0);
-                await args.Peer.SendAsync(req.ToByteArray());
+                var req = NetRequestFactory.CreateMessage(MessageType.Height, data.ToByteArray(), 0);
+                args.Peer.EnqueueOutgoing(req);
             }
             catch (Exception e)
             {
@@ -227,7 +239,7 @@ namespace AElf.Kernel.Node.Protocol
             }
         }
 
-        internal void HandlePeerHeightReception(AElfPacketData message, MessageReceivedArgs args)
+        internal void HandlePeerHeightReception(Message message, PeerMessageReceivedArgs args)
         {
             try
             {
@@ -240,11 +252,11 @@ namespace AElf.Kernel.Node.Protocol
             }
         }
 
-        internal async Task HandleTransactionReception(AElfPacketData message)
+        internal async Task HandleTransactionReception(Message message)
         {
             try
             {
-                var fromSend = message.MsgType == (int) MessageTypes.Tx;
+                var fromSend = message.Type == (int) MessageType.Tx;
                 
                 await _node.ReceiveTransaction(message.Payload, fromSend);
             }
@@ -254,7 +266,7 @@ namespace AElf.Kernel.Node.Protocol
             }
         }
 
-        internal async Task HandleBlockReception(AElfPacketData message, MessageTypes types)
+        internal async Task HandleBlockReception(Message message, MessageType type)
         {
             try
             {

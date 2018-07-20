@@ -73,7 +73,8 @@ namespace AElf.Kernel.Node.Protocol
 
         public List<PendingBlock> PendingBlocks { get; }
 
-        public bool IsInitialSync { get; set; } = true;
+        public bool ShouldDoInitialSync { get; private set; } = false;
+        public bool IsInitialSyncInProgress { get; private set; } = false;
 
         // The height of the chain, this gets incremented each time a 
         // block is successfully removed.
@@ -104,45 +105,21 @@ namespace AElf.Kernel.Node.Protocol
             
             _mainChainNode = node;
             _peerManager = peerManager;
+            
             _logger = LogManager.GetLogger("BlockSync");
             
-            if (_peerManager.NoPeers)
-            {
-                FinishSync();
-                _logger?.Trace("Finished sync : no peers.");
-            }
-            
-            _peerManager.PeerListEmpty += OnPeerListEmpty;
+            //_peerManager.PeerListEmpty += OnPeerListEmpty;
         }
         
-        public async Task Start()
+        public async Task Start(bool doInitialSync)
         {
-            if (IsInitialSync)
-            {
-                // Initialy connected nodes 
-                List<IPeer> peers = _peerManager.GetPeers();
-                
-                peers.ForEach(p => _syncPeers.Add(new SyncPeer { Peer = p}));
-
-                foreach (var syncPeer in _syncPeers)
-                {
-                    IPeer p = syncPeer.Peer;
-                    
-                    var req = NetRequestFactory.CreateRequest(MessageTypes.HeightRequest, new byte[] {}, 0);
-                    await p.SendAsync(req.ToByteArray());
-
-                    syncPeer.RequestCount++;
-                    
-                    Console.WriteLine(DateTime.Now.TimeOfDay + " [BlockSynchronizer] Broadcasting height request to " + p);
-                }
-            }
+            ShouldDoInitialSync = doInitialSync;
+            IsInitialSyncInProgress = false;
             
             _peerManager.PeerAdded += PeerManagerOnPeerAdded;
             _peerManager.PeerRemoved += PeerManagerOnPeerRemoved;
             
             _cycleTimer = new Timer(DoCycle, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(3));
-            
-            DoSync();
         }
 
         private void PeerManagerOnPeerRemoved(object sender, EventArgs eventArgs)
@@ -166,28 +143,33 @@ namespace AElf.Kernel.Node.Protocol
                     SyncPeer syncPeer = new SyncPeer { Peer = args.Peer, LastKnownHight = 0 };
                     _syncPeers.Add(syncPeer);
                     _logger?.Trace($"Added a peer to sync list : {args.Peer}." );
+                    
+                    var req = NetRequestFactory.CreateMessage(MessageType.HeightRequest, new byte[] {}, 0);
+                    syncPeer.Peer.EnqueueOutgoing(req);
+
+                    syncPeer.RequestCount++;
                 }
             }
         }
 
         private void FinishSync()
         {
-            IsInitialSync = false;
+            ShouldDoInitialSync = false;
             //SyncFinished?.Invoke(this, EventArgs.Empty);
         }
         
-        private void OnPeerListEmpty(object sender, EventArgs eventArgs)
-        {
-            if (_peerManager.NoPeers && IsInitialSync)
-            {
-                FinishSync();
-                _logger?.Trace("Finished sync : no peers.");
-            }
-        }
+//        private void OnPeerListEmpty(object sender, EventArgs eventArgs)
+//        {
+//            if (_peerManager.NoPeers && IsInitialSync)
+//            {
+//                FinishSync();
+//                _logger?.Trace("Finished sync : no peers.");
+//            }
+//        }
         
         public bool SetPeerHeight(IPeer peer, int height)
         {
-            if (!IsInitialSync)
+            if (!ShouldDoInitialSync)
                 return false;
 
             if (height <= CurrentExecHeight)
@@ -207,18 +189,18 @@ namespace AElf.Kernel.Node.Protocol
             
             _logger?.Trace("Set peer height :: Peer " + peer + ", heigh " + height);
 
-            if (SyncTargetHeight < height)
-            {
-                SyncTargetHeight = height;
-                _logger?.Trace("New sync target height: " + height);
-            }
+//            if (SyncTargetHeight < height)
+//            {
+//                SyncTargetHeight = height;
+//                _logger?.Trace("New sync target height: " + height);
+//            }
             
             return true;
         }
 
         internal async void DoCycle(object state)
         {
-            if (IsInitialSync)
+            if (ShouldDoInitialSync)
             {
                 //RemoveLowerHeightPeers();
                 await ManagePeers();
@@ -271,9 +253,9 @@ namespace AElf.Kernel.Node.Protocol
             {
                 // Request the current block we're trying to sync
                 BlockRequest br = new BlockRequest { Height = CurrentExecHeight };
-                var req = NetRequestFactory.CreateRequest(MessageTypes.RequestBlock, br.ToByteArray(), null); 
+                var req = NetRequestFactory.CreateMessage(MessageType.RequestBlock, br.ToByteArray(), null); 
                     
-                await peer.SendAsync(req.ToByteArray());
+                peer.EnqueueOutgoing(req);
                 
                 _logger?.Trace("Block request for height " + CurrentExecHeight + " to " + peer);
             }
@@ -291,10 +273,19 @@ namespace AElf.Kernel.Node.Protocol
         {
             try
             {
-                Task.Run(() =>
+                if (job?.Block?.Header != null && ShouldDoInitialSync && !IsInitialSyncInProgress)
                 {
-                    _jobQueue.Add(job);
-                });
+                    // The first block we receive when a node should synchronize will determine the 
+                    // target height
+                    SyncTargetHeight = (int) job.Block.Header.Index;
+                    IsInitialSyncInProgress = true;
+                    
+                    Task.Run(() => DoSync());
+                    
+                    _logger?.Trace($"Initial synchronisation has started at target height {SyncTargetHeight}.");
+                }
+                
+                Task.Run(() => { _jobQueue.Add(job); });
             }
             catch (Exception e)
             {
@@ -426,9 +417,9 @@ namespace AElf.Kernel.Node.Protocol
             foreach (var tx in listOfMissingTxToRequest)
             {
                 TxRequest br = new TxRequest { TxHash = ByteString.CopyFrom(tx) };
-                var req = NetRequestFactory.CreateRequest(MessageTypes.TxRequest, br.ToByteArray(), null);
+                var req = NetRequestFactory.CreateMessage(MessageType.TxRequest, br.ToByteArray(), null);
                 
-                await peer.SendAsync(req.ToByteArray());
+                peer.EnqueueOutgoing(req);
                 
                 _logger?.Trace("Request tx:" + br.TxHash.ToByteArray().ToHex());
             }
@@ -448,7 +439,7 @@ namespace AElf.Kernel.Node.Protocol
 
             int currentIndex = (int)ordered[0].Block.Header.Index;
 
-            if (IsInitialSync && currentIndex > CurrentExecHeight)
+            if (ShouldDoInitialSync && currentIndex > CurrentExecHeight)
                 return null;
             
             for (int i = 0; i < ordered.Count; i++)
@@ -558,7 +549,7 @@ namespace AElf.Kernel.Node.Protocol
                     else if (res.ValidationError == ValidationError.Pending)
                     {
                         // The current blocks index is higher than the current height so we're missing
-                        if (!IsInitialSync && (int) block.Header.Index > CurrentExecHeight)
+                        if (!ShouldDoInitialSync && (int) block.Header.Index > CurrentExecHeight)
                         {
                             if (_syncPeers.Count > 0)
                             {
@@ -596,9 +587,10 @@ namespace AElf.Kernel.Node.Protocol
                 }
             }
 
-            if (IsInitialSync && CurrentExecHeight >= SyncTargetHeight)
+            if (ShouldDoInitialSync && CurrentExecHeight >= SyncTargetHeight)
             {
-                IsInitialSync = false;
+                ShouldDoInitialSync = false;
+                IsInitialSyncInProgress = false;
                 _logger?.Trace("-- Initial sync is finished at height: " + CurrentExecHeight);
                 SyncFinished?.Invoke(this, EventArgs.Empty);
             }

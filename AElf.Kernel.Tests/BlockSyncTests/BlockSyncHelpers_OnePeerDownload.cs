@@ -43,7 +43,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             
             // Verify that the height as been queried 
             mockPeerManager.Verify(p => p.BroadcastMessage(
-                    It.Is<MessageTypes>(i => i == MessageTypes.HeightRequest), 
+                    It.Is<MessageType>(i => i == MessageType.HeightRequest), 
                     It.IsAny<byte[]>(),
                     It.IsAny<int>()), 
                 Times.Exactly(1));
@@ -54,11 +54,11 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             synchronizer.SetPeerHeight(peer, distantPeerHeight);
             
             List<byte[]> sendRequests = new List<byte[]>();
-            mockPeer.Setup(p => p.SendAsync(It.IsAny<byte[]>())).Callback<byte[]>(b => sendRequests.Add(b));
+            mockPeer.Setup(p => p.EnqueueOutgoing(It.IsAny<byte[]>())).Callback<byte[]>(b => sendRequests.Add(b));
             
             synchronizer.DoCycle(null);
             
-            mockPeer.Verify(p => p.SendAsync(It.IsAny<byte[]>()), Times.Exactly(1));
+            mockPeer.Verify(p => p.EnqueueOutgoing(It.IsAny<byte[]>()), Times.Exactly(1));
             AElfPacketData pd = AElfPacketData.Parser.ParseFrom(sendRequests[0]);
             BlockRequest req = BlockRequest.Parser.ParseFrom(pd.Payload);
             
@@ -85,7 +85,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             
             synchronizer.DoCycle(null);
             
-            mockPeer.Verify(p => p.SendAsync(It.IsAny<byte[]>()), Times.Exactly(1));
+            mockPeer.Verify(p => p.EnqueueOutgoing(It.IsAny<byte[]>()), Times.Exactly(1));
             AElfPacketData pd2 = AElfPacketData.Parser.ParseFrom(sendRequests[1]);
             BlockRequest req2 = BlockRequest.Parser.ParseFrom(pd2.Payload);
             
