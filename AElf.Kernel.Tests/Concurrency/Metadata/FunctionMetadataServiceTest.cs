@@ -20,6 +20,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             _functionMetadataService = functionMetadataService;
         }
 
+        /*
         [Fact]
         public async Task TestDepolyContract()
         {   
@@ -492,17 +493,126 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                 Assert.Equal(kv.Value, _functionMetadataService.GetFunctionMetadata(chainId, kv.Key));
             }
         }
+    
+    */
+    }
+        
+    public class TestContractC
+    {
+        [SmartContractFieldData("${this}.resource4", DataAccessMode.AccountSpecific)]
+        public int resource4;
+
+        [SmartContractFieldData("${this}.resource5", DataAccessMode.ReadOnlyAccountSharing)]
+        private int resource5;
+
+        [SmartContractFunction("${this}.Func0", new string[] { }, new[] {"${this}.resource4"})]
+        public void Func0()
+        {
+        }
+
+        [SmartContractFunction("${this}.Func1", new string[] { }, new[] {"${this}.resource5"})]
+        public void Func1()
+        {
+        }
+    }
+
+    internal class TestContractB
+    {
+        [SmartContractFieldData("${this}.resource2", DataAccessMode.AccountSpecific)]
+        public int resource2;
+
+        [SmartContractFieldData("${this}.resource3", DataAccessMode.ReadOnlyAccountSharing)]
+        private int resource3;
+
+        [SmartContractReference("ContractC", "0x123")]
+        public TestContractC ContractC;
+
+        [SmartContractFunction("${this}.Func0", new[] {"${ContractC}.Func1"}, new[] {"${this}.resource2"})]
+        public void Func0()
+        {
+        }
+
+        [SmartContractFunction("${this}.Func1", new string[] { }, new[] {"${this}.resource3"})]
+        public void Func1()
+        {
+        }
+    }
+
+    internal class TestContractA
+    {
+        //test for different accessibility
+        [SmartContractFieldData("${this}.resource0", DataAccessMode.AccountSpecific)]
+        public int resource0;
+
+        [SmartContractFieldData("${this}.resource1", DataAccessMode.ReadOnlyAccountSharing)]
+        private int resource1;
+
+        [SmartContractFieldData("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)]
+        protected int resource2;
+
+        [SmartContractReference("_contractB", "0x123")]
+        private TestContractB _contractB;
+
+        [SmartContractReference("ContractC", "0x456")]
+        public TestContractC ContractC;
+
+
+        //test for empty calling set and resource set
+        [SmartContractFunction("${this}.Func0(int)", new string[] { }, new string[] { })]
+        private void Func0(int a)
+        {
+        }
+
+
+        //test for same func name but different parameter
+        //test for local function references recursive (resource completation)
+        [SmartContractFunction("${this}.Func0", new[] {"${this}.Func1"}, new string[] {"${this}.resource0"})]
+        public void Func0()
+        {
+        }
+
+        //test for local function reference non-recursive and test for overlap resource set
+        [SmartContractFunction("${this}.Func1", new[] {"${this}.Func2"}, new[] {"${this}.resource1"})]
+        public void Func1()
+        {
+        }
+
+        //test for foreign contract, test for duplicate local resource
+        //when deploy: test for recursive foreign resource collect
+        [SmartContractFunction("${this}.Func2", new string[] { }, new[] {"${this}.resource1", "${this}.resource2"})]
+        protected void Func2()
+        {
+        }
+
+        //test for foreign calling set only
+        [SmartContractFunction("${this}.Func3", new[] {"${_contractB}.Func0", "${this}.Func0", "${ContractC}.Func0"},
+            new[] {"${this}.resource1"})]
+        public void Func3()
+        {
+        }
+
+        //test for duplication in calling set
+        [SmartContractFunction("${this}.Func4", new[] {"${this}.Func2", "${this}.Func2"}, new string[] { })]
+        public void Func4()
+        {
+        }
+
+        //test for duplicate foreign call
+        [SmartContractFunction("${this}.Func5", new[] {"${_contractB}.Func1", "${this}.Func3"}, new string[] { })]
+        public void Func5()
+        {
+        }
     }
 
     public class TestRefNonAttrContract : CSharpSmartContract
     {
-        [SmartContractReference("ref1", typeof(TestNonAttrContract1))]
+        [SmartContractReference("ref1", "0x123")]
         public TestNonAttrContract1 ref1;
         
-        [SmartContractReference("ref2", typeof(TestNonAttrContract2))]
+        [SmartContractReference("ref2", "0x456")]
         public TestNonAttrContract2 ref2;
 
-        [SmartContractReference("refc", typeof(TestContractC))]
+        [SmartContractReference("refc", "0x789")]
         public TestContractC refc;
 
         [SmartContractFieldData("${this}.localRes", DataAccessMode.AccountSpecific)]

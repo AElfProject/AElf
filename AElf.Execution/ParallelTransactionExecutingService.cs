@@ -43,7 +43,9 @@ namespace AElf.Execution
                 //disable parallel module by default because it doesn't finish yet (don't support contract call)
                 if (ParallelConfig.Instance.IsParallelEnable)
                 {
-                    groups = _grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins, ActorConfig.Instance.ConcurrencyLevel, chainId, transactions, out failedTxs);
+                    var groupRes = await _grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins, ActorConfig.Instance.ConcurrencyLevel, chainId, transactions);
+                    groups = groupRes.Item1;
+                    failedTxs = groupRes.Item2;
                 }
                 else
                 {

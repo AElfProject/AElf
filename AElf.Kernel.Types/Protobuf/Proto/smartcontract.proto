@@ -4,21 +4,6 @@ option csharp_namespace = "AElf.SmartContract";
 
 import "kernel.proto";
 
-message SerializeContractMetadataTemplateMap {
-    map<string, SerializeFunctionMetadataTemplateMap> MetadataTemplateMapForContract = 2;
-}
-
-message SerializeFunctionMetadataTemplateMap {
-    map<string, FunctionMetadataTemplate> TemplateMap = 2;
-}
-
-
-message FunctionMetadataTemplate {
-    repeated string SerializeCallingSet = 1;
-    repeated Resource SerializeLocalResourceSet = 2;
-    bool TemplateContainsMetadata = 3;
-}
-
 message Resource {
     string Name = 1;
     DataAccessMode DataAccessMode  = 2;
@@ -33,10 +18,6 @@ message FunctionMetadata {
     
     // All data members except other contracts are recorded by this field.
     repeated Resource SerializeFullResourceSet = 2;
-}
-
-message SerializeFunctionMetadataMap {
-    map<string, FunctionMetadata> MetadataMap = 1;
 }
 
 message CallingGraphEdges {

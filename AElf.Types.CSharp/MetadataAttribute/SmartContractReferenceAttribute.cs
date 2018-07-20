@@ -1,17 +1,18 @@
 ﻿using System;
+using AElf.Kernel;
 
 namespace AElf.Types.CSharp.MetadataAttribute
 {
     [AttributeUsage(AttributeTargets.Field)]
     public class SmartContractReferenceAttribute : Attribute
     {
-        public SmartContractReferenceAttribute(string fieldName, Type contractType)
+        public SmartContractReferenceAttribute(string fieldName, string contractAddr)
         {
             FieldName = fieldName;
-            ContractType = contractType;
+            ContractAddress = contractAddr;
         }
 
         public string FieldName { get; }
-        public Type ContractType { get; }
+        public string ContractAddress { get; } //TODO: check whether there is right contract in the target address
     }
 }

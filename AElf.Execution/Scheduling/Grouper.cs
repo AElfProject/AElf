@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel.Types;
 using Akka.Util.Internal;
 using NLog;
@@ -26,13 +27,13 @@ namespace AElf.Execution.Scheduling
         }
 
         //TODO: for testnet we only have a single chain, thus grouper only take care of txList in one chain (hence Process has chainId as parameter)
-        public List<List<ITransaction>> ProcessNaive(Hash chainId, List<ITransaction> transactions, out Dictionary<ITransaction, Exception> failedTxs)
+        public async Task<Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>> ProcessNaive(Hash chainId, List<ITransaction> transactions)
         {
             var txResourceHandle = new Dictionary<ITransaction, string>();
-            failedTxs = new Dictionary<ITransaction, Exception>();
+            var failedTxs = new Dictionary<ITransaction, Exception>();
             if (transactions.Count == 0)
             {
-                return new List<List<ITransaction>>();
+                return new Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>(new List<List<ITransaction>>(), failedTxs);
             }
 
             Dictionary<string, UnionFindNode> resourceUnionSet = new Dictionary<string, UnionFindNode>();
@@ -44,7 +45,7 @@ namespace AElf.Execution.Scheduling
                 List<string> resources;
                 try
                 {
-                    resources = _resourceUsageDetectionService.GetResources(chainId, tx).ToList();
+                    resources = (await _resourceUsageDetectionService.GetResources(chainId, tx)).ToList();
                 }
                 catch (Exception e)
                 {
@@ -99,24 +100,23 @@ namespace AElf.Execution.Scheduling
             result.AddRange(grouped.Values);
 
             _logger?.Info(string.Format(
-                "Grouper on chainId \"{0}\" group [{1}] transactions into [{2}] groups with sizes [{3}]", chainId.ToHex(),
-                transactions.Count, result.Count, string.Join(", ", result.Select(a=>a.Count))));
+                "Grouper on chainId \"{0}\" group [{1}] transactions into [{2}] groups with sizes [{3}], There are also {4} transactions failed retriving resource", chainId.ToHex(),
+                transactions.Count, result.Count, string.Join(", ", result.Select(a=>a.Count)), failedTxs.Count));
             
-            return result;
+            return new Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>(result, failedTxs);;
         }
 
-        public List<List<ITransaction>> ProcessWithCoreCount(GroupStrategy strategy, int totalCores, Hash chainId, List<ITransaction> transactions, out Dictionary<ITransaction, Exception> failedTxs)
+        public async Task<Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>> ProcessWithCoreCount(GroupStrategy strategy, int totalCores, Hash chainId, List<ITransaction> transactions)
         {
             if (strategy == GroupStrategy.NaiveGroup)
             {
-                return ProcessNaive(chainId, transactions, out failedTxs);
+                return await ProcessNaive(chainId, transactions);
             }
             else
             {
                 if (transactions.Count == 0)
                 {
-                    failedTxs = new Dictionary<ITransaction, Exception>();
-                    return new List<List<ITransaction>>();
+                    return new Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>(new List<List<ITransaction>>(), new Dictionary<ITransaction, Exception>());
                 }
 
                 if (totalCores <= 0)
@@ -124,34 +124,30 @@ namespace AElf.Execution.Scheduling
                     throw new InvalidParameterException("Total core count " + totalCores + " is invalid");
                 }
                 
-                var groups = ProcessNaive(chainId, transactions, out failedTxs);
+                var groupResults = await ProcessNaive(chainId, transactions);
 
                 List<List<ITransaction>> mergedGroups;
 
                 if (strategy == GroupStrategy.Limited_MaxAddMins)
                 {
-                    mergedGroups = ProcessWithCoreCount_MaxAddMins(totalCores, groups);
+                    mergedGroups = ProcessWithCoreCount_MaxAddMins(totalCores, groupResults.Item1);
                 }
                 else if(strategy == GroupStrategy.Limited_MinsAddUp)
                 {
-                    mergedGroups = ProcessWithCoreCount_MinsAddUp(totalCores, groups);
+                    mergedGroups = ProcessWithCoreCount_MinsAddUp(totalCores, groupResults.Item1);
                 }
                 else
                 {
-                    mergedGroups = groups;
+                    mergedGroups = groupResults.Item1;
                     _logger?.Error("Grouper: unsupported strategy: " + strategy);
                 }
                 
                 _logger?.Info(string.Format(
                     "Grouper on chainId [{0}] merge {1} groups into {2} groups with sizes [{3}]", chainId,
-                    groups.Count, mergedGroups.Count, string.Join(", ", mergedGroups.Select(a=>a.Count))));
+                    groupResults.Item1.Count, mergedGroups.Count, string.Join(", ", mergedGroups.Select(a=>a.Count))));
 
-                return mergedGroups;
+                return new Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>(mergedGroups, groupResults.Item2);
             }
-            
-            //return ProcessWithCoreCount_MaxAddMins(totalCores, chainId, groups);
-
-
         }
 
         /// <summary>
