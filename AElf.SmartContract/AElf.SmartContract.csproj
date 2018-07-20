@@ -12,7 +12,4 @@
       <Name>AElf.Types.CSharp</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Protobuf" />
-  </ItemGroup>
 </Project>
