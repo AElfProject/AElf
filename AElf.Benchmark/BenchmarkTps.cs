@@ -312,13 +312,6 @@ namespace AElf.Benchmark
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(addr))
                 };
                 
-                var txnInitCtxt = new TransactionContext()
-                {
-                    Transaction = txnBalInit
-                };
-                var executiveUser = await _smartContractService.GetExecutiveAsync(contractAddr, ChainId);
-                await executiveUser.SetTransactionContext(txnInitCtxt).Apply(true);
-
                 initTxList.Add(txnBalInit);
             }
             

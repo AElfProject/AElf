@@ -7,11 +7,9 @@
                 actor {
                     deployment {
                         /router {
-                            router = tracked-group
+                            router = round-robin-group
+                            routees.paths = [""/user/worker""]
                         }
-                    }
-                    router.type-mapping {
-                        tracked-group = ""AElf.Kernel.Concurrency.Execution.TrackedGroup, AElf.Kernel""
                     }
                 }
             }

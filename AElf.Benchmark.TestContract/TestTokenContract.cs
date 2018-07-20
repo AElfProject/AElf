@@ -39,8 +39,8 @@ namespace AElf.Benchmark.TestContract
             //Console.WriteLine("from pass");
             var toBal = Balances.GetValue(to);
             //Console.WriteLine("to pass");
-            var newFromBal = fromBal + 1;
-            //Api.Assert(fromBal > qty);
+            var newFromBal = fromBal - qty;
+            Api.Assert(fromBal > qty);
             
             var newToBal = toBal + qty;
             

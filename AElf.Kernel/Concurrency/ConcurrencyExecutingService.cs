@@ -87,14 +87,27 @@ namespace AElf.Kernel.Concurrency
             }
             else
             {
-                _actorSystem = ActorSystem.Create(SystemName);
-                var workers = new List<string>();
+                var config = InitActorConfig(ActorHocon.ActorSingleHocon);
+                
+                var workerConfigs = new StringBuilder();
+                workerConfigs.Append("akka.actor.deployment./router.routees.paths = [");
                 for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
                 {
-                    workers.Add("/user/worker" + i);
+                    workerConfigs.Append("\"/user/worker" + i).Append("\"").Append(",");
                 }
+                workerConfigs.Remove(workerConfigs.Length - 1, 1);
+                workerConfigs.Append("]");
+                
+                config = ConfigurationFactory.ParseString(workerConfigs.ToString()).WithFallback(config);
+                
+                _actorSystem = ActorSystem.Create(SystemName,config);
+//                var workers = new List<string>();
+//                for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
+//                {
+//                    workers.Add("/user/worker" + i);
+//                }
 
-                _router = _actorSystem.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
+                _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");
                 for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
                 {
                     var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker" + i);
