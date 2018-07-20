@@ -39,7 +39,7 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "InitializeAElfDPoS",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(blockProducer, dPoSInfo))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(blockProducer.ToByteArray(), dPoSInfo.ToByteArray()))
             };
             
             var signer = new ECSigner();
@@ -63,7 +63,10 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "UpdateAElfDPoS",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(currentRoundInfo.ToByteArray(), nextRoundInfo.ToByteArray(), nextEBP.ToByteArray()))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(
+                    currentRoundInfo.ToByteArray(),
+                    nextRoundInfo.ToByteArray(), 
+                    nextEBP.ToByteArray()))
             };
             
             var signer = new ECSigner();
@@ -76,7 +79,7 @@ namespace AElf.Kernel.Consensus
             return tx;
         }
 
-        public IEnumerable<ITransaction> GetTxsForNormalBlock(ulong incrementId, Hash contractAccountHash, ulong roundsCount,
+        public IEnumerable<ITransaction> GetTxsForNormalBlock(ulong incrementId, Hash contractAccountHash, ulong roundNumber,
             Hash outValue, Hash sig)
         {
             var txs = new List<ITransaction>
@@ -89,7 +92,11 @@ namespace AElf.Kernel.Consensus
                     MethodName = "PublishOutValueAndSignature",
                     P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
                     Params = ByteString.CopyFrom(
-                        ParamsPacker.Pack(outValue.ToByteArray(), sig.ToByteArray(), new UInt64Value {Value = roundsCount}.ToByteArray()))
+                        ParamsPacker.Pack(
+                            new UInt64Value {Value = roundNumber}.ToByteArray(),
+                            new StringValue {Value = _keyPair.GetAddress().ToHex().RemoveHexPrefix()}.ToByteArray(),
+                            outValue.ToByteArray(), 
+                            sig.ToByteArray()))
                 }
             };
 
@@ -106,7 +113,7 @@ namespace AElf.Kernel.Consensus
         }
         
         public Transaction GetTxToPublishInValueTx(ulong incrementId, Hash contractAccountHash,
-            Hash inValue, UInt64Value roundsCount)
+            Hash inValue, UInt64Value roundNumber)
         {
             var tx = new Transaction
             {
@@ -115,7 +122,10 @@ namespace AElf.Kernel.Consensus
                 IncrementId = incrementId,
                 MethodName = "PublishInValue",
                 P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(inValue.ToByteArray(), roundsCount.ToByteArray()))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(
+                    roundNumber.ToByteArray(),
+                    new StringValue {Value = _keyPair.GetAddress().ToHex().RemoveHexPrefix()}.ToByteArray(),
+                    inValue.ToByteArray()))
             };
             
             var signer = new ECSigner();

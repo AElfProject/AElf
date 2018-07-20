@@ -13,12 +13,6 @@ namespace AElf.Kernel
             return RoundInfo[(int) roundNumber - 1];
         }
 
-        // ReSharper disable once InconsistentNaming
-        public BPInfo GetBPInfoOfSpecificRound(ulong roundNumber, string accountAddress)
-        {
-            return RoundInfo[(int) roundNumber - 1].Info[accountAddress];
-        }
-
         public StringValue GetExtraBlockProducerOfSpecificRound(ulong roundNumber)
         {
             return new StringValue {Value = RoundInfo[(int) roundNumber - 1].Info.First(bp => bp.Value.IsEBP).Key};

@@ -1,90 +1,77 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus;
+using AElf.Contracts.Genesis.ConsensusContract;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Genesis
 {
     // ReSharper disable once InconsistentNaming
-    // ReSharper disable once UnusedMember.Global
     // ReSharper disable once ClassNeverInstantiated.Global
     public class ContractZeroWithAElfDPoS : BasicContractZero
     {
-        public readonly UInt64Field CurrentRoundNumberField = new UInt64Field(Globals.AElfDPoSCurrentRoundNumber);
-
-        public readonly PbField<BlockProducer> BlockProducerField =
-            new PbField<BlockProducer>(Globals.AElfDPoSBlockProducerString);
-
-        // ReSharper disable once InconsistentNaming
-        public readonly Map<UInt64Value, RoundInfo> DPoSInfoMap =
-            new Map<UInt64Value, RoundInfo>(Globals.AElfDPoSInformationString);
-        
-        // ReSharper disable once InconsistentNaming
-        public readonly Map<UInt64Value, StringValue> EBPMap =
-            new Map<UInt64Value, StringValue>(Globals.AElfDPoSExtraBlockProducerString);
-
-        public readonly PbField<Timestamp> TimeForProducingExtraBlock =
-            new PbField<Timestamp>(Globals.AElfDPoSExtraBlockTimeslotString);
-
-        public readonly Map<UInt64Value, StringValue> FirstPlaceMap
-            = new Map<UInt64Value, StringValue>(Globals.AElfDPoSFirstPlaceOfEachRoundString);
-        
-        private IConsensus _consensus;
+        private readonly IConsensus _consensus = new AElfDPoS(new AElfDPoSFiledMapCollection
+        {
+            CurrentRoundNumberField = new UInt64Field(Globals.AElfDPoSCurrentRoundNumber),
+            BlockProducerField = new PbField<BlockProducer>(Globals.AElfDPoSBlockProducerString),
+            DPoSInfoMap = new Map<UInt64Value, RoundInfo>(Globals.AElfDPoSInformationString),
+            EBPMap = new Map<UInt64Value, StringValue>(Globals.AElfDPoSExtraBlockProducerString),
+            TimeForProducingExtraBlockField = new PbField<Timestamp>(Globals.AElfDPoSExtraBlockTimeslotString),
+            FirstPlaceMap = new Map<UInt64Value, StringValue>(Globals.AElfDPoSFirstPlaceOfEachRoundString)
+        });
         
         // ReSharper disable once UnusedMember.Global
         // ReSharper disable once InconsistentNaming
-        public async Task InitializeAElfDPoS(BlockProducer blockProducer, DPoSInfo dPoSInfo)
+        public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo)
         {
-            _consensus = new AElfDPoS(this);
-            await _consensus.Initialize(new List<byte[]> {blockProducer.ToByteArray(), dPoSInfo.ToByteArray()});
+            await _consensus.Initialize(new List<byte[]> {blockProducer, dPoSInfo});
         }
 
         // ReSharper disable once InconsistentNaming
         // ReSharper disable once UnusedMember.Global
-        public async Task UpdateAElfDPoS(ByteString currentRoundInfo, ByteString nextRoundInfo, ByteString nextExtraBlockProducer)
+        public async Task UpdateAElfDPoS(byte[] currentRoundInfo, byte[] nextRoundInfo, byte[] nextExtraBlockProducer)
         {
             await _consensus.Update(new List<byte[]>
             {
-                currentRoundInfo.ToArray(),
-                nextRoundInfo.ToArray(),
-                nextExtraBlockProducer.ToArray()
+                currentRoundInfo,
+                nextRoundInfo,
+                nextExtraBlockProducer
             });
         }
 
         // ReSharper disable once UnusedMember.Global
-        public async Task<BoolValue> Validation(ByteString accountAddress, ByteString timestamp)
+        public async Task<BoolValue> Validation(byte[] accountAddress, byte[] timestamp)
         {
             return new BoolValue
             {
-                Value = await _consensus.Validation(new List<byte[]> {accountAddress.ToArray(), timestamp.ToArray()})
+                Value = await _consensus.Validation(new List<byte[]> {accountAddress, timestamp})
             };
         }
 
         // ReSharper disable once UnusedMember.Global
-        public async Task PublishOutValueAndSignature(ByteString roundNumber, ByteString accountAddress, ByteString outValue, ByteString signature)
+        public async Task PublishOutValueAndSignature(byte[] roundNumber, byte[] accountAddress, byte[] outValue, byte[] signature)
         {
             await _consensus.Publish(new List<byte[]>
             {
-                roundNumber.ToArray(),
-                accountAddress.ToArray(),
-                outValue.ToArray(),
-                signature.ToArray()
+                roundNumber,
+                accountAddress,
+                outValue,
+                signature
             });
         }
         
         // ReSharper disable once UnusedMember.Global
-        public async Task PublishInValue(ByteString roundNumber, ByteString accountAddress, ByteString inValue)
+        public async Task PublishInValue(byte[] roundNumber, byte[] accountAddress, byte[] inValue)
         {
             await _consensus.Publish(new List<byte[]>
             {
-                roundNumber.ToArray(),
-                accountAddress.ToArray(),
-                inValue.ToArray()
+                roundNumber,
+                accountAddress,
+                inValue
             });
         }
     }

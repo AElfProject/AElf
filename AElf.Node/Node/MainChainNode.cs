@@ -79,7 +79,7 @@ namespace AElf.Kernel.Node
                 var blockProducers = new BlockProducer();
                 foreach (var bp in dict.Values)
                 {
-                    var b = ConvertToNormalHexString(bp["address"]);
+                    var b = bp["address"].RemoveHexPrefix();
                     blockProducers.Nodes.Add(b);
                 }
 
@@ -715,19 +715,19 @@ namespace AElf.Kernel.Node
                 _dPoSHelper = new DPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers, ContractAccountHash, _logger);
 
                 //Record the rounds count in local memory
-                ulong roundsCount = 0;
+                ulong roundNumber = 0;
                 
                 //In Value of the BP in one round, will update in every round
                 var inValue = Hash.Generate();
                 
                 //Use this value to make sure every BP produce one block in one timeslot
-                ulong latestMinedNormalBlockRoundsCount = 0;
+                ulong latestMinedNormalBlockRoundNumber = 0;
                 //Use thisvalue to make sure every EBP produce one block in one timeslot
-                ulong latestMinedExtraBlockRoundsCount = 0;
+                ulong latestMinedExtraBlockRoundNumber = 0;
                 //Use this value to make sure every BP try once in one timeslot
-                ulong latestTriedToHelpProducingExtraBlockRoundsCount = 0;
+                ulong latestTriedToHelpProducingExtraBlockRoundNumber = 0;
                 //Use this value to make sure every BP try to publish its in value onece in one timeslot
-                ulong lastTryToPublishInValueRoundsCount = 0;
+                ulong lastTryToPublishInValueRoundNumber = 0;
 
                 var dPoSInfo = "";
 
@@ -748,11 +748,11 @@ namespace AElf.Kernel.Node
                             return;
                         }
 
-                        var actualRoundsCount = x == 0 ? 0 : _dPoSHelper.RoundsCount.Value;
-                        if (roundsCount != actualRoundsCount)
+                        var actualRoundNumber = x == 0 ? 0 : _dPoSHelper.CurrentRoundNumber.Value;
+                        if (roundNumber != actualRoundNumber)
                         {
                             //Update the rounds count
-                            roundsCount = actualRoundsCount;
+                            roundNumber = actualRoundNumber;
 
                             //Update the In Value
                             inValue = Hash.Generate();
@@ -804,12 +804,12 @@ namespace AElf.Kernel.Node
 
                         #region Try to mine normal block
 
-                        if (latestMinedNormalBlockRoundsCount != roundsCount)
+                        if (latestMinedNormalBlockRoundNumber != roundNumber)
                         {
                             if (await CheckAbleToMineNormalBlock())
                             {
                                 var signature = Hash.Default;
-                                if (roundsCount > 1)
+                                if (roundNumber > 1)
                                 {
                                     signature = await CalculateSignature(inValue);
                                 }
@@ -817,7 +817,7 @@ namespace AElf.Kernel.Node
                                 // out = hash(in)
                                 Hash outValue = inValue.CalculateHash();
 
-                                await BroadcastTxsForNormalBlock(roundsCount, outValue, signature,
+                                await BroadcastTxsForNormalBlock(roundNumber, outValue, signature,
                                     await GetIncrementId(_nodeKeyPair.GetAddress()));
 
                                 var block = await Mine();
@@ -828,7 +828,7 @@ namespace AElf.Kernel.Node
                                     return;
                                 }
 
-                                latestMinedNormalBlockRoundsCount = roundsCount;
+                                latestMinedNormalBlockRoundNumber = roundNumber;
 
                                 _logger?.Log(LogLevel.Debug,
                                     "Generate block: \"{0}\", with [{1}] transactions\n Published out value: {2}\n signature: \"{3}\"",
@@ -850,21 +850,21 @@ namespace AElf.Kernel.Node
                         if (await CheckIsTimeToMineExtraBlock())
                         {
                             //TODO: move this out
-                            if (lastTryToPublishInValueRoundsCount != roundsCount)
+                            if (lastTryToPublishInValueRoundNumber != roundNumber)
                             {
                                 //Try to publish in value (every BP can do this)
                                 await BroadcastTransaction(_dPoSTxGenerator.GetTxToPublishInValueTx(
                                     await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash, inValue,
-                                    new UInt64Value {Value = roundsCount}));
+                                    new UInt64Value {Value = roundNumber}));
 
-                                lastTryToPublishInValueRoundsCount = roundsCount;
+                                lastTryToPublishInValueRoundNumber = roundNumber;
 
                                 _logger?.Debug("---- DPoS checking end");
 
                                 return;
                             }
 
-                            if (latestMinedExtraBlockRoundsCount != roundsCount && await CheckAbleToMineExtraBlock())
+                            if (latestMinedExtraBlockRoundNumber != roundNumber && await CheckAbleToMineExtraBlock())
                             {
                                 var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
 
@@ -884,7 +884,7 @@ namespace AElf.Kernel.Node
                                     return;
                                 }
 
-                                latestMinedExtraBlockRoundsCount = roundsCount;
+                                latestMinedExtraBlockRoundNumber = roundNumber;
 
                                 _logger?.Log(LogLevel.Debug,
                                     "Generate extra block: {0}, with {1} transactions",
@@ -902,7 +902,7 @@ namespace AElf.Kernel.Node
                         #region Try to help mining extra block
 
                         if (await CheckAbleToHelpMiningExtraBlock() && 
-                            latestTriedToHelpProducingExtraBlockRoundsCount != roundsCount)
+                            latestTriedToHelpProducingExtraBlockRoundNumber != roundNumber)
                         {
                             var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
 
@@ -922,7 +922,7 @@ namespace AElf.Kernel.Node
                                 return;
                             }
                             
-                            latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
+                            latestTriedToHelpProducingExtraBlockRoundNumber = roundNumber;
 
                             _logger?.Log(LogLevel.Debug,
                                 "Help to generate extra block: {0}, with {1} transactions",
@@ -960,10 +960,10 @@ namespace AElf.Kernel.Node
             await BroadcastTransaction(txToSyncFirstExtraBlock);
         }
 
-        private async Task BroadcastTxsForNormalBlock(ulong roundsCount, Hash outValue, Hash signature, ulong incrementId)
+        private async Task BroadcastTxsForNormalBlock(ulong roundNumber, Hash outValue, Hash signature, ulong incrementId)
         {
             var txForNormalBlock = _dPoSTxGenerator.GetTxsForNormalBlock(
-                incrementId, ContractAccountHash, roundsCount,
+                incrementId, ContractAccountHash, roundNumber,
                 outValue, signature);
             foreach (var tx in txForNormalBlock)
             {
@@ -1066,12 +1066,6 @@ namespace AElf.Kernel.Node
                 return false;
             }
         }
-
-        private string ConvertToNormalHexString(string hexStr)
-        {
-            return hexStr.StartsWith("0x") ? hexStr.Remove(0, 2) : hexStr;
-        }
-        
         #endregion
     }
 }
