@@ -163,6 +163,73 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource1", DataAccessMode.ReadOnlyAccountSharing),
                     new Resource(addrA.Value.ToByteArray().ToHex() + ".resource2", DataAccessMode.ReadWriteAccountSharing)
                 })), FunctionMetadata.Parser.ParseFrom(await _templateStore.GetDataAsync(ResourcePath.CalculatePointerForMetadata(chainId, addrA.ToHex() + ".Func5"))));
+
+            var callGraph = new SerializedCallGraph
+            {
+                Vertices =
+                {
+                    addrC.ToHex() + ".Func0",
+                    addrC.ToHex() + ".Func1",
+                    addrB.ToHex() + ".Func0",
+                    addrB.ToHex() + ".Func1",
+                    addrA.ToHex() + ".Func0(int)",
+                    addrA.ToHex() + ".Func0",
+                    addrA.ToHex() + ".Func1",
+                    addrA.ToHex() + ".Func2",
+                    addrA.ToHex() + ".Func3",
+                    addrA.ToHex() + ".Func4",
+                    addrA.ToHex() + ".Func5"
+                },
+                Edges =
+                {
+                    new GraphEdge
+                    {
+                        Source = addrB.ToHex() + ".Func0",
+                        Target = addrC.ToHex() + ".Func1"
+                    },
+                    new GraphEdge
+                    {
+                        Source = addrA.ToHex() + ".Func0",
+                        Target = addrA.ToHex() + ".Func1"
+                    },
+                    new GraphEdge
+                    {
+                        Source = addrA.ToHex() + ".Func1",
+                        Target = addrA.ToHex() + ".Func2"
+                    },
+                    new GraphEdge
+                    {
+                        Source = addrA.ToHex() + ".Func3",
+                        Target = addrB.ToHex() + ".Func0"
+                    },
+                    new GraphEdge
+                    {
+                        Source = addrA.ToHex() + ".Func3",
+                        Target = addrA.ToHex() + ".Func0"
+                    },
+                    new GraphEdge
+                    {
+                        Source = addrA.ToHex() + ".Func3",
+                        Target = addrC.ToHex() + ".Func0"
+                    },
+                    new GraphEdge
+                    {
+                        Source = addrA.ToHex() + ".Func4",
+                        Target = addrA.ToHex() + ".Func2"
+                    },
+                    new GraphEdge
+                    {
+                        Source = addrA.ToHex() + ".Func5",
+                        Target = addrB.ToHex() + ".Func1"
+                    },
+                    new GraphEdge
+                    {
+                        Source = addrA.ToHex() + ".Func5",
+                        Target = addrA.ToHex() + ".Func3"
+                    }
+                }
+            };
+            Assert.Equal(callGraph, SerializedCallGraph.Parser.ParseFrom(await _templateStore.GetDataAsync(ResourcePath.CalculatePointerForMetadataTemplateCallingGraph(chainId))));
         }
     }
 }
