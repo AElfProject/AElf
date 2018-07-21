@@ -30,7 +30,7 @@ namespace AElf.Network
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error while starting listener.");
+                // todo log exception in higher level
             }
         }
         

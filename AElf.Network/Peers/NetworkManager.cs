@@ -417,7 +417,7 @@ namespace AElf.Network.Peers
 //        {
 //            if (eventArgs is PeerMessageReceivedArgs p && p.Peer != null)
 //            {
-//                //Console.WriteLine("NetManager : Fireing on thread : " + Thread.CurrentThread.ManagedThreadId);
+//                //_logger.Trace("NetManager : Fireing on thread : " + Thread.CurrentThread.ManagedThreadId);
 //                MessageReceived?.Invoke(this, new NetMessageReceivedArgs { Message = p.Message});
 //            }
 //        }
@@ -568,7 +568,7 @@ namespace AElf.Network.Peers
                     }
                     catch (Exception exception)
                     {
-                        Console.WriteLine(exception);
+                        _logger.Trace(exception);
                     }
 
                     // todo

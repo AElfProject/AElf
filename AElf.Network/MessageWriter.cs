@@ -5,11 +5,14 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Network.Data;
+using NLog;
 
 namespace AElf.Network
 {
     public class MessageWriter
     {
+        private ILogger _logger;
+        
         private readonly NetworkStream _stream;
 
         private readonly BlockingCollection<Message> _outboundMessages;
@@ -20,6 +23,8 @@ namespace AElf.Network
         {
             _outboundMessages = new BlockingCollection<Message>();
             _stream = stream;
+            
+            _logger = LogManager.GetLogger(nameof(MessageReader));
         }
         
         public void Start()
@@ -35,7 +40,7 @@ namespace AElf.Network
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.Trace(e);
             }
         }
         
@@ -87,7 +92,7 @@ namespace AElf.Network
                             
                             partials.Add(endPartial);
 
-                            Console.WriteLine($"Message split into {partials.Count} packets.");
+                            _logger.Trace($"Message split into {partials.Count} packets.");
 
                             foreach (var msg in partials)
                             {
@@ -106,17 +111,17 @@ namespace AElf.Network
                             
                         }
                         
-                        //Console.WriteLine($"[Connection] Wrote packets : {typeLength}, {lengthLength}:{p.Length}, {dataLength}, cnt: " + Interlocked.Increment(ref cnt_out));
+                        //_logger.Trace($"[Connection] Wrote packets : {typeLength}, {lengthLength}:{p.Length}, {dataLength}, cnt: " + Interlocked.Increment(ref cnt_out));
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("EX : DeQ error");
+                        _logger.Trace("EX : DeQ error");
                     }
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.Trace(e);
             }
         }
 

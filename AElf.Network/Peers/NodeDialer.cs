@@ -2,12 +2,14 @@
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using NLog;
 
 namespace AElf.Network.Peers
 {
-    [LoggerName("NodeDialer")]
     public class NodeDialer : INodeDialer
     {
+        private ILogger _logger;
+        
         public const int DefaultConnectionTimeout = 3000;
         
         public int ReconnectInterval { get; set; } = 3000;
@@ -20,6 +22,8 @@ namespace AElf.Network.Peers
         {
             _ipAddress = ipAddress;
             _port = port;
+            
+            _logger = LogManager.GetLogger("");
         }
 
         public async Task<TcpClient> DialAsync(int timeout = DefaultConnectionTimeout)
@@ -35,10 +39,10 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception during connection");
+                _logger.Trace("Exception during connection");
             }
             
-            Console.WriteLine("Could not connect, operation timed out.");
+            _logger.Trace("Could not connect, operation timed out.");
             
             return null;
         }
@@ -47,7 +51,7 @@ namespace AElf.Network.Peers
         {
             for (int i = 0; i < ReconnectInterval; i++)
             {
-                Console.WriteLine($"Reconnect attempt number {i+1}.");
+                _logger.Trace($"Reconnect attempt number {i+1}.");
                 
                 TcpClient client;
                 
@@ -61,7 +65,7 @@ namespace AElf.Network.Peers
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Error dialing the peer.");
+                    _logger.Trace("Error dialing the peer.");
                 }
                 
                 await Task.Delay(TimeSpan.FromMilliseconds(ReconnectInterval)); // retry wait

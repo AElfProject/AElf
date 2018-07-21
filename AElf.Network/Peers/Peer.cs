@@ -173,7 +173,7 @@ namespace AElf.Network.Peers
         {
             if (_messageReader != null || _messageWriter != null || _client != null)
             {
-                Console.WriteLine("Could not initialize, some components aren't cleared.");
+                _logger.Trace("Could not initialize, some components aren't cleared.");
             }
             
             try
@@ -200,7 +200,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error while initializing the connection");
+                _logger.Trace("Error while initializing the connection");
             }
         }
 
@@ -295,7 +295,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.Trace(e);
             }
         }
 
@@ -334,7 +334,7 @@ namespace AElf.Network.Peers
 //            }
 //            catch (Exception e)
 //            {
-//                Console.WriteLine(e);
+//                _logger.Trace(e);
 //            }
 //        }
 
@@ -429,7 +429,7 @@ namespace AElf.Network.Peers
 //            {
 //                // Deserialize
 //                packet = AElfPacketData.Parser.ParseFrom(bytes, 0, bytesRead);
-//                //Console.WriteLine("Packet received: " + ((MessageTypes)packet.MsgType) + ", bytes read: " + bytesRead);
+//                //_logger.Trace("Packet received: " + ((MessageTypes)packet.MsgType) + ", bytes read: " + bytesRead);
 //            }
 //            else
 //            {

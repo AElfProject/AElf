@@ -244,7 +244,7 @@ namespace AElf.Kernel.Node.Protocol
             try
             {
                 HeightData height = HeightData.Parser.ParseFrom(message.Payload);
-                _blockSynchronizer.SetPeerHeight(args.Peer, height.Height);
+                //_blockSynchronizer.SetPeerHeight(args.Peer, height.Height);
             }
             catch (Exception e)
             {

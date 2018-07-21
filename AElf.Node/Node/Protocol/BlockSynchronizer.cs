@@ -167,36 +167,36 @@ namespace AElf.Kernel.Node.Protocol
 //            }
 //        }
         
-        public bool SetPeerHeight(IPeer peer, int height)
-        {
-            if (!ShouldDoInitialSync)
-                return false;
-
-            if (height <= CurrentExecHeight)
-            {
-                if (_syncPeers.Count == 1)
-                    FinishSync();
-                    
-                return false;
-            }
-
-            SyncPeer p = _syncPeers.FirstOrDefault(s => s.Peer.Equals(peer));
-
-            if (p == null)
-                return false;
-
-            p.LastKnownHight = height;
-            
-            _logger?.Trace("Set peer height :: Peer " + peer + ", heigh " + height);
-
+//        public bool SetPeerHeight(IPeer peer, int height)
+//        {
+//            if (!ShouldDoInitialSync)
+//                return false;
+//
+//            if (height <= CurrentExecHeight)
+//            {
+//                if (_syncPeers.Count == 1)
+//                    FinishSync();
+//                    
+//                return false;
+//            }
+//
+//            SyncPeer p = _syncPeers.FirstOrDefault(s => s.Peer.Equals(peer));
+//
+//            if (p == null)
+//                return false;
+//
+//            p.LastKnownHight = height;
+//            
+//            _logger?.Trace("Set peer height :: Peer " + peer + ", heigh " + height);
+//
 //            if (SyncTargetHeight < height)
 //            {
 //                SyncTargetHeight = height;
 //                _logger?.Trace("New sync target height: " + height);
 //            }
-            
-            return true;
-        }
+//            
+//            return true;
+//        }
 
         internal async void DoCycle(object state)
         {

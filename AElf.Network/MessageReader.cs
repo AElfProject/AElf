@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Network.Data;
 using AElf.Network.Exceptions;
+using NLog;
 
 namespace AElf.Network
 {
@@ -18,6 +19,8 @@ namespace AElf.Network
     public class MessageReader
     {
         private const int IntLength = 4;
+
+        private ILogger _logger;
         
         private readonly NetworkStream _stream;
 
@@ -39,6 +42,8 @@ namespace AElf.Network
         {
             Task.Run(Read).ConfigureAwait(false);
             IsConnected = true;
+
+            _logger = LogManager.GetLogger(nameof(MessageReader));
         }
         
         /// <summary>
@@ -69,8 +74,7 @@ namespace AElf.Network
                         if (!partialPacket.IsEnd)
                         {
                             _partialPacketBuffer.Add(partialPacket);
-                            Console.WriteLine(
-                                $"[Packet reception] partial - type : {(MessageType)type}, isBuffered : {isBuffered}, length : {length}");
+                            _logger.Trace($"Received packet : {(MessageType)type}, length : {length}");
                         }
                         else
                         {
@@ -82,8 +86,7 @@ namespace AElf.Network
                             byte[] allData =
                                 ByteArrayHelpers.Combine(_partialPacketBuffer.Select(pp => pp.Data).ToArray());
 
-                            Console.WriteLine(
-                                $"[Packet reception] partial - partials : {_partialPacketBuffer.Count}, total length : {allData.Length}");
+                            _logger.Trace($"Received last packet : {_partialPacketBuffer.Count}, total length : {allData.Length}");
 
                             // Clear the buffer for the next partial to receive 
                             _partialPacketBuffer.Clear();
@@ -99,9 +102,6 @@ namespace AElf.Network
 
                         byte[] packetData = await ReadBytesAsync(length);
 
-                        Console.WriteLine(
-                            $"[Packet reception] normal - type : {(MessageType)type}, isBuffered : {isBuffered}, length : {length}");
-
                         Message message = new Message {Type = type, Length = length, Payload = packetData};
                         FireMessageReceivedEvent(message);
                     }
@@ -109,7 +109,7 @@ namespace AElf.Network
             }
             catch (PeerDisconnectedException e)
             {
-                Console.WriteLine("[Message reader] Connection was aborted\n");
+                _logger.Trace("[Message reader] Connection was aborted\n");
                 StreamClosed?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception e)
@@ -124,7 +124,7 @@ namespace AElf.Network
                 IsConnected = false;
                 _stream?.Close();
                 
-                Console.WriteLine("[Message reader] Connection was aborted\n" + e);
+                _logger.Trace("[Message reader] Connection was aborted\n" + e);
                 StreamClosed?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -178,7 +178,7 @@ namespace AElf.Network
         {
             if (amount == 0)
             {
-                Console.WriteLine("Read amount is 0");
+                _logger.Trace("Read amount is 0");
                 return new byte[0];
             }
             
