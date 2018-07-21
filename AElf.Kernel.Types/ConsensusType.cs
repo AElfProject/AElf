@@ -1,4 +1,4 @@
-﻿namespace AElf.Contracts.Consensus
+﻿namespace AElf.Kernel.Types
 {
     public enum ConsensusType
     {

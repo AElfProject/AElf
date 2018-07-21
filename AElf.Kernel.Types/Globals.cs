@@ -1,10 +1,14 @@
-﻿namespace AElf.Kernel
+﻿using AElf.Kernel.Types;
+
+namespace AElf.Kernel
 {
     public static class Globals
     {
         public static readonly string GenesisSmartContractZeroAssemblyName = "AElf.Contracts.Genesis";
         public static readonly string GenesisSmartContractLastName = ".ContractZeroWithAElfDPoS";
         public static readonly string SmartContractZeroIdString = "__SmartContractZero__";
+        
+        public static readonly ConsensusType ConsensusType = ConsensusType.AElfDPoS;
 
         #region AElf DPoS
 

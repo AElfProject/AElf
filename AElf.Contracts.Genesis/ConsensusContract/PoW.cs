@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus;
 using AElf.Kernel;
+using AElf.Kernel.Types;
 
 namespace AElf.Contracts.Genesis.ConsensusContract
 {

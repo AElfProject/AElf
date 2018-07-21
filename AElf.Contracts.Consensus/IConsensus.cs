@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus

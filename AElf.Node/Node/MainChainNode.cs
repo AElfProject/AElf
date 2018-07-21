@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
@@ -764,7 +766,7 @@ namespace AElf.Kernel.Node
                             
                             var dpoSInfo = ExecuteTxsForFirstExtraBlock();
 
-                            await BroadcastSyncTxForFirstExtraBlock(dpoSInfo);
+                            await BroadcastInitializeAElfDPoSTx(BlockProducers, dpoSInfo);
 
                             var firstBlock =
                                 await Mine(); //Which is the first extra block (which can produce DPoS information)
@@ -811,8 +813,11 @@ namespace AElf.Kernel.Node
                                 // out = hash(in)
                                 Hash outValue = inValue.CalculateHash();
 
-                                await BroadcastTxsForNormalBlock(roundNumber, outValue, signature,
-                                    await GetIncrementId(_nodeKeyPair.GetAddress()));
+                                await BroadcastPublishOutValueAndSignatureTx(
+                                    new UInt64Value {Value = roundNumber},
+                                    new StringValue {Value = _nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()},
+                                    outValue,
+                                    signature);
 
                                 var block = await Mine();
 
@@ -847,9 +852,10 @@ namespace AElf.Kernel.Node
                             if (lastTryToPublishInValueRoundNumber != roundNumber)
                             {
                                 //Try to publish in value (every BP can do this)
-                                await BroadcastTransaction(_dPoSTxGenerator.GetTxToPublishInValueTx(
-                                    await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash, inValue,
-                                    new UInt64Value {Value = roundNumber}));
+                                await BroadcastPublishInValueTx(
+                                    new UInt64Value {Value = roundNumber},
+                                    new StringValue {Value = _nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()},
+                                    inValue);
 
                                 lastTryToPublishInValueRoundNumber = roundNumber;
 
@@ -864,8 +870,8 @@ namespace AElf.Kernel.Node
 
                                 var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId);
 
-                                await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1,
-                                    extraBlockResult.Item2, extraBlockResult.Item3);
+                                await BroadcastUpdateAElfDPoSTx(new UInt64Value {Value = roundNumber},
+                                    extraBlockResult.Item1, extraBlockResult.Item2, extraBlockResult.Item3);
 
                                 var extraBlock = await Mine(); //Which is an extra block
 
@@ -902,8 +908,8 @@ namespace AElf.Kernel.Node
 
                             var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId);
 
-                            await BroadcastTxsToSyncExtraBlock(incrementId + 1, extraBlockResult.Item1,
-                                extraBlockResult.Item2, extraBlockResult.Item3);
+                            await BroadcastUpdateAElfDPoSTx(new UInt64Value {Value = roundNumber},
+                                extraBlockResult.Item1, extraBlockResult.Item2, extraBlockResult.Item3);
 
                             var extraBlock = await Mine(); //Which is an extra block
 
@@ -943,34 +949,102 @@ namespace AElf.Kernel.Node
                 
             });
         }
+        
+        private async Task<ITransaction> GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters)
+        {
+            var tx = new Transaction
+            {
+                From = _nodeKeyPair.GetAddress(),
+                To = ContractAccountHash,
+                IncrementId = await GetIncrementId(_nodeKeyPair.GetAddress()),
+                MethodName = methodName,
+                P = ByteString.CopyFrom(_nodeKeyPair.PublicKey.Q.GetEncoded())
+            };
+            
+            switch (parameters.Count)
+            {
+                case 2:
+                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1]));
+                    break;
+                case 3:
+                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2]));
+                    break;
+                case 4:
+                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2],
+                        parameters[3]));
+                    break;
+            }
+            
+            var signer = new ECSigner();
+            var signature = signer.Sign(_nodeKeyPair, tx.GetHash().GetHashBytes());
+
+            // Update the signature
+            tx.R = ByteString.CopyFrom(signature.R);
+            tx.S = ByteString.CopyFrom(signature.S);
+
+            return tx;
+        }
 
         #region Broadcast Txs
 
-        private async Task BroadcastSyncTxForFirstExtraBlock(DPoSInfo dPoSInfo)
-        {
-            var txToSyncFirstExtraBlock = _dPoSTxGenerator.GetTxToSyncFirstExtraBlock(
-                await GetIncrementId(_nodeKeyPair.GetAddress()), ContractAccountHash, dPoSInfo, BlockProducers);
-
-            await BroadcastTransaction(txToSyncFirstExtraBlock);
-        }
-
-        private async Task BroadcastTxsForNormalBlock(ulong roundNumber, Hash outValue, Hash signature, ulong incrementId)
-        {
-            var txForNormalBlock = _dPoSTxGenerator.GetTxsForNormalBlock(
-                incrementId, ContractAccountHash, roundNumber,
-                outValue, signature);
-            foreach (var tx in txForNormalBlock)
-            {
-                await BroadcastTransaction(tx);
-            }
-        }
-        
         // ReSharper disable once InconsistentNaming
-        private async Task BroadcastTxsToSyncExtraBlock(ulong incrementId,
-            RoundInfo currentRoundInfo, RoundInfo nextRoundInfo, StringValue nextEBP)
+        private async Task BroadcastInitializeAElfDPoSTx(IMessage blockProducer, IMessage dPoSInfo)
         {
-            var txForExtraBlock = _dPoSTxGenerator.GetTxToSyncExtraBlock(
-                incrementId, ContractAccountHash, currentRoundInfo, nextRoundInfo, nextEBP);
+            var parameters = new List<byte[]> {blockProducer.ToByteArray(), dPoSInfo.ToByteArray()};
+            // ReSharper disable once InconsistentNaming
+            var txToInitializeAElfDPoS = await GenerateTransaction(
+                "InitializeAElfDPoS",
+                parameters);
+            
+            await BroadcastTransaction(txToInitializeAElfDPoS);
+        }
+
+        private async Task BroadcastPublishOutValueAndSignatureTx(IMessage roundNumber, IMessage accountAddress, IMessage outValue,
+            IMessage signature)
+        {
+            var parameters = new List<byte[]>
+            {
+                roundNumber.ToByteArray(),
+                accountAddress.ToByteArray(),
+                outValue.ToByteArray(),
+                signature.ToByteArray()
+            };
+            var txToPublishOutValueAndSignature = await GenerateTransaction(
+                "PublishOutValueAndSignature",
+                parameters);
+
+            await BroadcastTransaction(txToPublishOutValueAndSignature);
+        }
+
+        private async Task BroadcastPublishInValueTx(IMessage roundNumber, IMessage accountAddress, IMessage inValue)
+        {
+            var parameters = new List<byte[]>
+            {
+                roundNumber.ToByteArray(),
+                accountAddress.ToByteArray(),
+                inValue.ToByteArray()
+            };
+            var txToPublishInValue = await GenerateTransaction(
+                "PublishInValue",
+                parameters);
+
+            await BroadcastTransaction(txToPublishInValue);
+        }
+
+        // ReSharper disable once InconsistentNaming
+        private async Task BroadcastUpdateAElfDPoSTx(IMessage roundNumber, IMessage currentRoundInfo,
+            IMessage nextRoundInfo, IMessage nextExtraBlockProducer)
+        {
+            var parameters = new List<byte[]>
+            {
+                roundNumber.ToByteArray(),
+                currentRoundInfo.ToByteArray(),
+                nextRoundInfo.ToByteArray(),
+                nextExtraBlockProducer.ToByteArray()
+            };
+            var txForExtraBlock = await GenerateTransaction(
+                "UpdateAElfDPoS",
+                parameters);
 
             await BroadcastTransaction(txForExtraBlock);
         }
@@ -1060,6 +1134,7 @@ namespace AElf.Kernel.Node
                 return false;
             }
         }
+        
         #endregion
     }
 }

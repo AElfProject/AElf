@@ -109,6 +109,7 @@ namespace AElf.ChainController
                     {
                         res.Status = Status.Failed;
                         res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
+                        Console.WriteLine("Failed to execute tx:\n" + trace.StdErr);
                     }
                     results.Add(res);
                 }
