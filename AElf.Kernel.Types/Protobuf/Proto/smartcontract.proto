@@ -20,12 +20,12 @@ message FunctionMetadata {
     repeated Resource SerializeFullResourceSet = 2;
 }
 
-message CallingGraphEdges {
+message SerializedCallGraph {
     repeated GraphEdge Edges = 1;
+    repeated string Vertices = 2;
 }
 
 message GraphEdge {
     string Source = 1;
     string Target = 2;
 }
-

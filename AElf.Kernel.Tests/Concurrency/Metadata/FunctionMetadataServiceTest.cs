@@ -524,7 +524,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [SmartContractFieldData("${this}.resource3", DataAccessMode.ReadOnlyAccountSharing)]
         private int resource3;
 
-        [SmartContractReference("ContractC", "0x123")]
+        [SmartContractReference("ContractC", "0x38f3a6b010cadfa690cc1900241c053f751c35f7c681be14bcee03085dc8a309")]
         public TestContractC ContractC;
 
         [SmartContractFunction("${this}.Func0", new[] {"${ContractC}.Func1"}, new[] {"${this}.resource2"})]
@@ -550,10 +550,10 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [SmartContractFieldData("${this}.resource2", DataAccessMode.ReadWriteAccountSharing)]
         protected int resource2;
 
-        [SmartContractReference("_contractB", "0x123")]
+        [SmartContractReference("_contractB", "0x22e7340eb68c9a01804aabeb10c2ea0e38633e550dc4b7914010c2d7c95086ee")]
         private TestContractB _contractB;
 
-        [SmartContractReference("ContractC", "0x456")]
+        [SmartContractReference("ContractC", "0x38f3a6b010cadfa690cc1900241c053f751c35f7c681be14bcee03085dc8a309")]
         public TestContractC ContractC;
 
 

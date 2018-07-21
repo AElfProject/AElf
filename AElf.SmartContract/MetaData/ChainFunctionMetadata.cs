@@ -18,7 +18,7 @@ namespace AElf.SmartContract
         private readonly ILogger _logger;
         private readonly IDataStore _dataStore;
 
-        public Dictionary<string, FunctionMetadata> FunctionMetadataMap;
+        public Dictionary<string, FunctionMetadata> FunctionMetadataMap = new Dictionary<string, FunctionMetadata>();
         
         
         public ChainFunctionMetadata(IDataStore dataStore,  ILogger logger)
@@ -39,7 +39,7 @@ namespace AElf.SmartContract
             Dictionary<string, FunctionMetadata> tempMap = new Dictionary<string, FunctionMetadata>();
             try
             {
-                var globalCallGraph = await GetCallingGraphForChain(chainId);
+                var globalCallGraph = await GetCallingGraphForChain(chainId); 
                 var newCallGraph = TryUpdateAndGetCallingGraph(chainId, contractAddr, globalCallGraph, contractMetadataTemplate);
                 
                 foreach (var localFuncName in contractMetadataTemplate.ProcessFunctionOrder)
@@ -241,7 +241,7 @@ namespace AElf.SmartContract
         /// <param name="contractMetadataTemplate"></param>
         /// <returns>The new calling graph</returns>
         /// <exception cref="FunctionMetadataException"></exception>
-        public AdjacencyGraph<string, Edge<string>> TryUpdateAndGetCallingGraph(Hash chainId, Hash contractAddress, AdjacencyGraph<string, Edge<string>> callingGraph, ContractMetadataTemplate contractMetadataTemplate)
+        public CallGraph TryUpdateAndGetCallingGraph(Hash chainId, Hash contractAddress, CallGraph callingGraph, ContractMetadataTemplate contractMetadataTemplate)
         {
             List<Edge<string>> outEdgesToAdd = new List<Edge<string>>();
             //check for unknown reference
@@ -286,18 +286,23 @@ namespace AElf.SmartContract
         
         
         #region Serialize
-        private async Task<AdjacencyGraph<string, Edge<string>>> GetCallingGraphForChain(Hash chainId)
+        private async Task<CallGraph> GetCallingGraphForChain(Hash chainId)
         {
             var graphCache = await _dataStore.GetDataAsync(ResourcePath.CalculatePointerForMetadataTemplateCallingGraph(chainId));
-            return BuildCallingGraph(CallingGraphEdges.Parser.ParseFrom(graphCache));
+            if (graphCache == null)
+            {
+                return new CallGraph();
+            }
+            return BuildCallingGraph(SerializedCallGraph.Parser.ParseFrom(graphCache));
         }
         
-        private CallingGraphEdges SerializeCallingGraph(AdjacencyGraph<string, Edge<string>> graph)
+        private SerializedCallGraph SerializeCallingGraph(CallGraph graph)
         {
-            var serializeCallingGraph = new CallingGraphEdges();
-            serializeCallingGraph.Edges.AddRange(graph.Edges.Select(edge =>
+            var serializedCallGraph = new SerializedCallGraph();
+            serializedCallGraph.Edges.AddRange(graph.Edges.Select(edge =>
                 new GraphEdge {Source = edge.Source, Target = edge.Target}));
-            return serializeCallingGraph;
+            serializedCallGraph.Vertices.AddRange(graph.Vertices);
+            return serializedCallGraph;
         }
 
         /// <summary>
@@ -306,10 +311,12 @@ namespace AElf.SmartContract
         /// <param name="edges"></param>
         /// <returns></returns>
         /// <exception cref="FunctionMetadataException"></exception>
-        private AdjacencyGraph<string, Edge<string>> BuildCallingGraph(CallingGraphEdges edges)
+        private CallGraph BuildCallingGraph(SerializedCallGraph callGraph)
         {
-            AdjacencyGraph<string, Edge<string>> graph = new AdjacencyGraph<string, Edge<string>>();
-            graph.AddVerticesAndEdgeRange(edges.Edges.Select(kv => new Edge<string>(kv.Source, kv.Target)));
+            CallGraph graph = new CallGraph();
+            graph.AddVertexRange(callGraph.Vertices);
+            graph.AddEdgeRange(callGraph.Edges.Select(serializedEdge =>
+                new Edge<string>(serializedEdge.Source, serializedEdge.Target)));
             try
             {
                 graph.TopologicalSort();

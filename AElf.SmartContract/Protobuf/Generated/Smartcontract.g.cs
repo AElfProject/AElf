@@ -28,16 +28,16 @@ namespace AElf.SmartContract {
             "Y2USDAoETmFtZRgBIAEoCRInCg5EYXRhQWNjZXNzTW9kZRgCIAEoDjIPLkRh",
             "dGFBY2Nlc3NNb2RlIlwKEEZ1bmN0aW9uTWV0YWRhdGESGwoTU2VyaWFsaXpl",
             "Q2FsbGluZ1NldBgBIAMoCRIrChhTZXJpYWxpemVGdWxsUmVzb3VyY2VTZXQY",
-            "AiADKAsyCS5SZXNvdXJjZSIuChFDYWxsaW5nR3JhcGhFZGdlcxIZCgVFZGdl",
-            "cxgBIAMoCzIKLkdyYXBoRWRnZSIrCglHcmFwaEVkZ2USDgoGU291cmNlGAEg",
-            "ASgJEg4KBlRhcmdldBgCIAEoCUIVqgISQUVsZi5TbWFydENvbnRyYWN0YgZw",
-            "cm90bzM="));
+            "AiADKAsyCS5SZXNvdXJjZSJCChNTZXJpYWxpemVkQ2FsbEdyYXBoEhkKBUVk",
+            "Z2VzGAEgAygLMgouR3JhcGhFZGdlEhAKCFZlcnRpY2VzGAIgAygJIisKCUdy",
+            "YXBoRWRnZRIOCgZTb3VyY2UYASABKAkSDgoGVGFyZ2V0GAIgASgJQhWqAhJB",
+            "RWxmLlNtYXJ0Q29udHJhY3RiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::AElf.Kernel.KernelReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.Resource), global::AElf.SmartContract.Resource.Parser, new[]{ "Name", "DataAccessMode" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.FunctionMetadata), global::AElf.SmartContract.FunctionMetadata.Parser, new[]{ "SerializeCallingSet", "SerializeFullResourceSet" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.CallingGraphEdges), global::AElf.SmartContract.CallingGraphEdges.Parser, new[]{ "Edges" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.SerializedCallGraph), global::AElf.SmartContract.SerializedCallGraph.Parser, new[]{ "Edges", "Vertices" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.GraphEdge), global::AElf.SmartContract.GraphEdge.Parser, new[]{ "Source", "Target" }, null, null, null)
           }));
     }
@@ -353,11 +353,11 @@ namespace AElf.SmartContract {
 
   }
 
-  public sealed partial class CallingGraphEdges : pb::IMessage<CallingGraphEdges> {
-    private static readonly pb::MessageParser<CallingGraphEdges> _parser = new pb::MessageParser<CallingGraphEdges>(() => new CallingGraphEdges());
+  public sealed partial class SerializedCallGraph : pb::IMessage<SerializedCallGraph> {
+    private static readonly pb::MessageParser<SerializedCallGraph> _parser = new pb::MessageParser<SerializedCallGraph>(() => new SerializedCallGraph());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<CallingGraphEdges> Parser { get { return _parser; } }
+    public static pb::MessageParser<SerializedCallGraph> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
@@ -370,21 +370,22 @@ namespace AElf.SmartContract {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public CallingGraphEdges() {
+    public SerializedCallGraph() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public CallingGraphEdges(CallingGraphEdges other) : this() {
+    public SerializedCallGraph(SerializedCallGraph other) : this() {
       edges_ = other.edges_.Clone();
+      vertices_ = other.vertices_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public CallingGraphEdges Clone() {
-      return new CallingGraphEdges(this);
+    public SerializedCallGraph Clone() {
+      return new SerializedCallGraph(this);
     }
 
     /// <summary>Field number for the "Edges" field.</summary>
@@ -397,13 +398,23 @@ namespace AElf.SmartContract {
       get { return edges_; }
     }
 
+    /// <summary>Field number for the "Vertices" field.</summary>
+    public const int VerticesFieldNumber = 2;
+    private static readonly pb::FieldCodec<string> _repeated_vertices_codec
+        = pb::FieldCodec.ForString(18);
+    private readonly pbc::RepeatedField<string> vertices_ = new pbc::RepeatedField<string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as CallingGraphEdges);
+    public pbc::RepeatedField<string> Vertices {
+      get { return vertices_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(CallingGraphEdges other) {
+    public override bool Equals(object other) {
+      return Equals(other as SerializedCallGraph);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SerializedCallGraph other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -411,6 +422,7 @@ namespace AElf.SmartContract {
         return true;
       }
       if(!edges_.Equals(other.edges_)) return false;
+      if(!vertices_.Equals(other.vertices_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -418,6 +430,7 @@ namespace AElf.SmartContract {
     public override int GetHashCode() {
       int hash = 1;
       hash ^= edges_.GetHashCode();
+      hash ^= vertices_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -432,6 +445,7 @@ namespace AElf.SmartContract {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
       edges_.WriteTo(output, _repeated_edges_codec);
+      vertices_.WriteTo(output, _repeated_vertices_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -441,6 +455,7 @@ namespace AElf.SmartContract {
     public int CalculateSize() {
       int size = 0;
       size += edges_.CalculateSize(_repeated_edges_codec);
+      size += vertices_.CalculateSize(_repeated_vertices_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -448,11 +463,12 @@ namespace AElf.SmartContract {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(CallingGraphEdges other) {
+    public void MergeFrom(SerializedCallGraph other) {
       if (other == null) {
         return;
       }
       edges_.Add(other.edges_);
+      vertices_.Add(other.vertices_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -466,6 +482,10 @@ namespace AElf.SmartContract {
             break;
           case 10: {
             edges_.AddEntriesFrom(input, _repeated_edges_codec);
+            break;
+          }
+          case 18: {
+            vertices_.AddEntriesFrom(input, _repeated_vertices_codec);
             break;
           }
         }
