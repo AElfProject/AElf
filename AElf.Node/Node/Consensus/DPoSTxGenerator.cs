@@ -137,7 +137,6 @@ namespace AElf.Kernel.Consensus
 
             return tx;
         }
-
         
         #endregion
 

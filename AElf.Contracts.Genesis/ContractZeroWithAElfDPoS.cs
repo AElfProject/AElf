@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus;
 using AElf.Contracts.Genesis.ConsensusContract;
@@ -11,6 +10,7 @@ namespace AElf.Contracts.Genesis
 {
     // ReSharper disable once InconsistentNaming
     // ReSharper disable once ClassNeverInstantiated.Global
+    // ReSharper disable once UnusedMember.Global
     public class ContractZeroWithAElfDPoS : BasicContractZero
     {
         private readonly IConsensus _consensus = new AElfDPoS(new AElfDPoSFiledMapCollection
@@ -28,7 +28,6 @@ namespace AElf.Contracts.Genesis
         public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo)
         {
             await _consensus.Initialize(new List<byte[]> {blockProducer, dPoSInfo});
-
         }
 
         // ReSharper disable once InconsistentNaming

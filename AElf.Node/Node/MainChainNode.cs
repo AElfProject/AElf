@@ -58,11 +58,7 @@ namespace AElf.Kernel.Node
         private DPoSTxGenerator _dPoSTxGenerator;
         private DPoSHelper _dPoSHelper;
 
-        public Hash ContractAccountHash =>
-            _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
-
-        public IExecutive Executive =>
-            _smartContractService.GetExecutiveAsync(ContractAccountHash, _nodeConfig.ChainId).Result;
+        public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
 
         private const int CheckTime = 1000;
 
@@ -234,7 +230,7 @@ namespace AElf.Kernel.Node
             try
             {
                 string appFolder = _nodeConfig.DataDir;
-                var fullPath = System.IO.Path.Combine(appFolder, "tests", initFileName);
+                var fullPath = Path.Combine(appFolder, "tests", initFileName);
 
                 /*Block b = null;
                 using (StreamReader r = new StreamReader(fullPath))
@@ -512,8 +508,6 @@ namespace AElf.Kernel.Node
             return txDep;
         }
 
-        
-        
         private ITransaction InvokTxDemo(ECKeyPair keyPair, Hash hash, string methodName, byte[] param, ulong index)
         {
             ECSigner signer = new ECSigner();
