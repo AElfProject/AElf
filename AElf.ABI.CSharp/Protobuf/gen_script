@@ -1,8 +1,0 @@
-# script for generating the cs classes associated with the proto definitions.
-# The generated code is with a ".g.cs" extension.
-
-folder="Generated"
-if [ ! -d "$folder" ]; then
-  mkdir -p "$folder"
-fi
-protoc --proto_path=. --csharp_out=$folder --csharp_opt=file_extension=.g.cs *.proto
