@@ -3,6 +3,7 @@
     // ReSharper disable once InconsistentNaming
     public enum ConsensusBehavior
     {
+        DoNothing = 0,
         // ReSharper disable once InconsistentNaming
         InitializeAElfDPoS = 1,
         // ReSharper disable once InconsistentNaming

@@ -55,16 +55,18 @@ namespace AElf.Kernel.Node
 
         private readonly IBlockExecutor _blockExecutor;
 
-        private AElfDPoSHelper _dPoSHelper;
+        private readonly AElfDPoSHelper _dPoSHelper;
 
         public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
+
+        public IObservable<ConsensusBehavior> ConsensusObservable;
 
         private const int CheckTime = 1000;
 
         private int _flag;
         public bool IsMining { get; private set; }
 
-        private Stack<Hash> _consensusData = new Stack<Hash>();
+        private readonly Stack<Hash> _consensusData = new Stack<Hash>();
 
         public int IsMiningInProcess => _flag;
 
@@ -80,12 +82,14 @@ namespace AElf.Kernel.Node
                     blockProducers.Nodes.Add(b);
                 }
 
+                Globals.BlockProducerNumber = blockProducers.Nodes.Count;
+
                 return blockProducers;
             }
         }
 
         public IObserver<ConsensusBehavior> ConsensusSequence => new AElfDPoSObservable(_logger, MiningWithInitializingAElfDPoSInformation,
-            MiningWithPublishingOutValueAndSignature, MiningWithPublishingInValue, MiningWithUpdatingAElfDPoSInformation);
+            MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
         public Hash ChainId => _nodeConfig.ChainId;
 
@@ -585,7 +589,7 @@ namespace AElf.Kernel.Node
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
-        public void StartConsensusProcess()
+        public async Task StartConsensusProcess()
         {
             if (IsMining)
                 return;
@@ -594,11 +598,15 @@ namespace AElf.Kernel.Node
 
             if (_dPoSHelper.CurrentRoundNumber.Value == 0)
             {
-                // ReSharper disable once InconsistentNaming
-                var initialDPoS = new List<ConsensusBehavior> {ConsensusBehavior.InitializeAElfDPoS}.ToObservable();
-                initialDPoS.Subscribe(ConsensusSequence);
+                AElfDPoSObservable.Initialization(ConsensusSequence);
             }
-            //DoDPoSMining(_nodeConfig.IsMiner);
+            else
+            {
+                var infoOfMe =
+                    await _dPoSHelper.GetBPInfoOfCurrentRound(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix());
+                var extraBlockTimeslot = await _dPoSHelper.GetExtraBlockTimeslotOfCurrentRound();
+                AElfDPoSObservable.NormalMiningProcess(infoOfMe, extraBlockTimeslot, ConsensusSequence);
+            }
         }
 
         public async Task<IBlock> Mine()
@@ -854,7 +862,7 @@ namespace AElf.Kernel.Node
                             if (lastTryToPublishInValueRoundNumber != roundNumber)
                             {
                                 //Try to publish in value (every BP can do this)
-                                await MiningWithPublishingInValue();
+                                await PublishInValue();
 
                                 lastTryToPublishInValueRoundNumber = roundNumber;
 
@@ -979,6 +987,7 @@ namespace AElf.Kernel.Node
         // ReSharper disable once InconsistentNaming
         public async Task MiningWithInitializingAElfDPoSInformation()
         {
+            Console.WriteLine(111111111111);
             var parameters = new List<byte[]>
             {
                 BlockProducers.ToByteArray(), 
@@ -1030,7 +1039,7 @@ namespace AElf.Kernel.Node
             await BroadcastBlock(block);
         }
 
-        public async Task MiningWithPublishingInValue()
+        public async Task PublishInValue()
         {
             var currentRoundNumber = _dPoSHelper.CurrentRoundNumber;
 
@@ -1046,9 +1055,6 @@ namespace AElf.Kernel.Node
                 parameters);
 
             await BroadcastTransaction(txToPublishInValue);
-            
-            var block = await Mine();
-            await BroadcastBlock(block);
         }
 
         // ReSharper disable once InconsistentNaming

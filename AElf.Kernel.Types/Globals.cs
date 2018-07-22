@@ -9,6 +9,7 @@ namespace AElf.Kernel
         public static readonly string SmartContractZeroIdString = "__SmartContractZero__";
         
         public static readonly ConsensusType ConsensusType = ConsensusType.AElfDPoS;
+        public static int BlockProducerNumber = 3;
 
         #region AElf DPoS
 

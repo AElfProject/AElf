@@ -49,6 +49,18 @@ namespace AElf.Kernel.Consensus
             return BlockProducer.Parser.ParseFrom(await _dataProvider.GetAsync(Globals.AElfDPoSBlockProducerString.CalculateHash()));
         }
 
+        // ReSharper disable once InconsistentNaming
+        public async Task<BPInfo> GetBPInfoOfCurrentRound(string accountAddress)
+        {
+            return RoundInfo.Parser.ParseFrom(await _dataProvider.GetDataProvider(Globals.AElfDPoSInformationString)
+                .GetAsync(CurrentRoundNumber.CalculateHash())).Info[accountAddress];
+        }
+
+        public async Task<Timestamp> GetExtraBlockTimeslotOfCurrentRound()
+        {
+            return Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
+        }
+        
         public async Task<bool> AbleToMine()
         {
             var accountHash = _keyPair.GetAddress();
@@ -87,7 +99,9 @@ namespace AElf.Kernel.Consensus
 
             var timeOfARound = Globals.AElfMiningTime * blockProducerCount + Globals.AElfCheckTime + Globals.AElfMiningTime;
 
-            var assignedExtraBlockProducingTime = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
+            var assignedExtraBlockProducingTime =
+                Timestamp.Parser.ParseFrom(
+                    await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
             var assignedExtraBlockProducingTimeOfNextRound = GetTimestamp(assignedExtraBlockProducingTime, timeOfARound);
             var assigendExtraBlockProducingTimeOfNextRoundEnd =
                 GetTimestamp(assignedExtraBlockProducingTimeOfNextRound, Globals.AElfCheckTime + Globals.AElfMiningTime);
@@ -106,7 +120,8 @@ namespace AElf.Kernel.Consensus
 
             // ReSharper disable once InconsistentNaming
             var isEBP = meAddress == StringValue.Parser
-                            .ParseFrom(await _dataProvider.GetDataProvider(Globals.AElfDPoSExtraBlockProducerString).GetAsync(CurrentRoundNumber.CalculateHash()))
+                            .ParseFrom(await _dataProvider.GetDataProvider(Globals.AElfDPoSExtraBlockProducerString)
+                                .GetAsync(CurrentRoundNumber.CalculateHash()))
                             .Value;
             if (isEBP)
             {
