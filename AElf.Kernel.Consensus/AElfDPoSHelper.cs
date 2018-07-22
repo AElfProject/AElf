@@ -22,8 +22,15 @@ namespace AElf.Kernel.Consensus
         {
             get
             {
-                var bytes = _dataProvider.GetAsync(Globals.AElfDPoSCurrentRoundNumber.CalculateHash()).Result;
-                return bytes == null ? new UInt64Value {Value = 1} : UInt64Value.Parser.ParseFrom(bytes);
+                try
+                {
+                    var bytes = _dataProvider.GetAsync(Globals.AElfDPoSCurrentRoundNumber.CalculateHash()).Result;
+                    return UInt64Value.Parser.ParseFrom(bytes);
+                }
+                catch (Exception)
+                {
+                    return new UInt64Value {Value = 0};
+                }
             }
         }
 

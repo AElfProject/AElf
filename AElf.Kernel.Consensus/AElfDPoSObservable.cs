@@ -11,25 +11,25 @@ namespace AElf.Kernel.Consensus
         private readonly ILogger _logger;
         
         // ReSharper disable once InconsistentNaming
-        private readonly Func<Task> _broadcastInitializeAElfDPoSTx;
-        private readonly Func<Task> _broadcastPublishOutValueAndSignatureTx;
-        private readonly Func<Task> _broadcastPublishInValueTx;
+        private readonly Func<Task> _miningWithInitializingAElfDPoSInformation;
+        private readonly Func<Task> _miningWithPublishingOutValueAndSignature;
+        private readonly Func<Task> _miningWithPublishingInValue;
         // ReSharper disable once InconsistentNaming
-        private readonly Func<Task> _broadcastUpdateAElfDPoSTx;
+        private readonly Func<Task> _miningWithUpdatingAElfDPoSInformation;
 
-        public AElfDPoSObservable(ILogger logger, params Func<Task>[] broadcasts)
+        public AElfDPoSObservable(ILogger logger, params Func<Task>[] minings)
         {
-            if (broadcasts.Length < 4)
+            if (minings.Length < 4)
             {
-                throw new ArgumentException("broadcasts count incorrect.", nameof(broadcasts));
+                throw new ArgumentException("broadcasts count incorrect.", nameof(minings));
             }
 
             _logger = logger;
 
-            _broadcastInitializeAElfDPoSTx = broadcasts[0]; 
-            _broadcastPublishOutValueAndSignatureTx = broadcasts[1];
-            _broadcastPublishInValueTx = broadcasts[2];
-            _broadcastUpdateAElfDPoSTx = broadcasts[3];
+            _miningWithInitializingAElfDPoSInformation = minings[0]; 
+            _miningWithPublishingOutValueAndSignature = minings[1];
+            _miningWithPublishingInValue = minings[2];
+            _miningWithUpdatingAElfDPoSInformation = minings[3];
         }
 
         public void OnCompleted()
@@ -44,20 +44,19 @@ namespace AElf.Kernel.Consensus
 
         public void OnNext(ConsensusBehavior value)
         {
-            var behavior = nameof(value);
-            switch (behavior)
+            switch (value)
             {
-                case nameof(ConsensusBehavior.InitializeAElfDPoS):
-                    _broadcastInitializeAElfDPoSTx.Invoke();
+                case ConsensusBehavior.InitializeAElfDPoS:
+                    _miningWithInitializingAElfDPoSInformation();
                     break;
-                case nameof(ConsensusBehavior.PublishOutValueAndSignature):
-                    _broadcastPublishOutValueAndSignatureTx();
+                case ConsensusBehavior.PublishOutValueAndSignature:
+                    _miningWithPublishingOutValueAndSignature();
                     break;
-                case nameof(ConsensusBehavior.PublishInValue):
-                    _broadcastPublishInValueTx();
+                case ConsensusBehavior.PublishInValue:
+                    _miningWithPublishingInValue();
                     break;
-                case nameof(ConsensusBehavior.UpdateAElfDPoS):
-                    _broadcastUpdateAElfDPoSTx();
+                case ConsensusBehavior.UpdateAElfDPoS:
+                    _miningWithUpdatingAElfDPoSInformation();
                     break;
             }
         }

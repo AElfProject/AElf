@@ -63,7 +63,7 @@ namespace AElf.Kernel.Node.Protocol
         {
             if (_node.IsMiner() && !_node.IsMining)
             {
-                _node.DoDPos();
+                _node.StartConsensusProcess();
             }
         }
 

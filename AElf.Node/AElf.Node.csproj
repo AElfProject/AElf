@@ -4,7 +4,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.ChainControllerImpl\AElf.ChainControllerImpl.csproj" />
-    <ProjectReference Include="..\AElf.Contracts.Consensus\AElf.Contracts.Consensus.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
     <ProjectReference Include="..\AElf.Network\AElf.Network.csproj">
       <Project>{5FEFB079-F6EB-48AF-97C7-6C582B9BDB8A}</Project>
