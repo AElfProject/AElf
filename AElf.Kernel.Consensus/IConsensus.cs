@@ -4,7 +4,7 @@ using AElf.Kernel;
 using AElf.Kernel.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus
+namespace AElf.Kernel.Consensus
 {
     /// <summary>
     /// This is a common interface of all consensus protocols.

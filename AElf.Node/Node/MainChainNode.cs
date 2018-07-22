@@ -1,22 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node.Config;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.Node.RPC.DTO;
 using AElf.ChainController;
+using AElf.Kernel.Consensus;
 using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
@@ -57,8 +55,7 @@ namespace AElf.Kernel.Node
 
         private readonly IBlockExecutor _blockExecutor;
 
-        private DPoSTxGenerator _dPoSTxGenerator;
-        private DPoSHelper _dPoSHelper;
+        private AElfDPoSHelper _dPoSHelper;
 
         public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
 
@@ -66,6 +63,8 @@ namespace AElf.Kernel.Node
 
         private int _flag;
         public bool IsMining { get; private set; }
+
+        private Stack<Hash> _consensusData = new Stack<Hash>();
 
         public int IsMiningInProcess => _flag;
 
@@ -84,6 +83,9 @@ namespace AElf.Kernel.Node
                 return blockProducers;
             }
         }
+
+        public IObserver<ConsensusBehavior> ConsensusSequence => new AElfDPoSObservable(_logger, BroadcastInitializeAElfDPoSTx,
+            BroadcastPublishOutValueAndSignatureTx, BroadcastPublishInValueTx, BroadcastUpdateAElfDPoSTx);
 
         public Hash ChainId => _nodeConfig.ChainId;
 
@@ -707,8 +709,7 @@ namespace AElf.Kernel.Node
             {
                 _logger?.Debug("-- DPoS Mining Has been fired!");
                 
-                _dPoSTxGenerator = new DPoSTxGenerator(_nodeKeyPair);
-                _dPoSHelper = new DPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers, ContractAccountHash, _logger);
+                _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers, ContractAccountHash, _logger);
 
                 //Record the rounds count in local memory
                 ulong roundNumber = 0;
@@ -764,9 +765,7 @@ namespace AElf.Kernel.Node
                                 return;
                             }
                             
-                            var dpoSInfo = ExecuteTxsForFirstExtraBlock();
-
-                            await BroadcastInitializeAElfDPoSTx(BlockProducers, dpoSInfo);
+                            await BroadcastInitializeAElfDPoSTx();
 
                             var firstBlock =
                                 await Mine(); //Which is the first extra block (which can produce DPoS information)
@@ -813,11 +812,7 @@ namespace AElf.Kernel.Node
                                 // out = hash(in)
                                 Hash outValue = inValue.CalculateHash();
 
-                                await BroadcastPublishOutValueAndSignatureTx(
-                                    new UInt64Value {Value = roundNumber},
-                                    new StringValue {Value = _nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()},
-                                    outValue,
-                                    signature);
+                                await BroadcastPublishOutValueAndSignatureTx();
 
                                 var block = await Mine();
 
@@ -852,10 +847,7 @@ namespace AElf.Kernel.Node
                             if (lastTryToPublishInValueRoundNumber != roundNumber)
                             {
                                 //Try to publish in value (every BP can do this)
-                                await BroadcastPublishInValueTx(
-                                    new UInt64Value {Value = roundNumber},
-                                    new StringValue {Value = _nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()},
-                                    inValue);
+                                await BroadcastPublishInValueTx();
 
                                 lastTryToPublishInValueRoundNumber = roundNumber;
 
@@ -866,12 +858,7 @@ namespace AElf.Kernel.Node
 
                             if (latestMinedExtraBlockRoundNumber != roundNumber && await CheckAbleToMineExtraBlock())
                             {
-                                var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
-
-                                var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId);
-
-                                await BroadcastUpdateAElfDPoSTx(new UInt64Value {Value = roundNumber},
-                                    extraBlockResult.Item1, extraBlockResult.Item2, extraBlockResult.Item3);
+                                await BroadcastUpdateAElfDPoSTx();
 
                                 var extraBlock = await Mine(); //Which is an extra block
 
@@ -904,12 +891,7 @@ namespace AElf.Kernel.Node
                         if (await CheckAbleToHelpMiningExtraBlock() && 
                             latestTriedToHelpProducingExtraBlockRoundNumber != roundNumber)
                         {
-                            var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
-
-                            var extraBlockResult = await ExecuteTxsForExtraBlock(incrementId);
-
-                            await BroadcastUpdateAElfDPoSTx(new UInt64Value {Value = roundNumber},
-                                extraBlockResult.Item1, extraBlockResult.Item2, extraBlockResult.Item3);
+                            await BroadcastUpdateAElfDPoSTx();
 
                             var extraBlock = await Mine(); //Which is an extra block
 
@@ -988,9 +970,14 @@ namespace AElf.Kernel.Node
         #region Broadcast Txs
 
         // ReSharper disable once InconsistentNaming
-        private async Task BroadcastInitializeAElfDPoSTx(IMessage blockProducer, IMessage dPoSInfo)
+        public async Task BroadcastInitializeAElfDPoSTx()
         {
-            var parameters = new List<byte[]> {blockProducer.ToByteArray(), dPoSInfo.ToByteArray()};
+            var parameters = new List<byte[]>
+            {
+                (await _dPoSHelper.GetBlockProducer()).ToByteArray(), 
+                _dPoSHelper.GenerateInfoForFirstTwoRounds().ToByteArray()
+            };
+            
             // ReSharper disable once InconsistentNaming
             var txToInitializeAElfDPoS = await GenerateTransaction(
                 "InitializeAElfDPoS",
@@ -999,16 +986,32 @@ namespace AElf.Kernel.Node
             await BroadcastTransaction(txToInitializeAElfDPoS);
         }
 
-        private async Task BroadcastPublishOutValueAndSignatureTx(IMessage roundNumber, IMessage accountAddress, IMessage outValue,
-            IMessage signature)
+        public async Task BroadcastPublishOutValueAndSignatureTx()
         {
+            var inValue = Hash.Generate();
+
+            if (_consensusData.Count <= 0)
+            {
+                _consensusData.Push(inValue.CalculateHash());
+                _consensusData.Push(inValue);
+            }
+
+            var currentRoundNumber = _dPoSHelper.CurrentRoundNumber;
+            
+            var signature = Hash.Default;
+            if (currentRoundNumber.Value > 1)
+            {
+                signature = await CalculateSignature(inValue);
+            }
+            
             var parameters = new List<byte[]>
             {
-                roundNumber.ToByteArray(),
-                accountAddress.ToByteArray(),
-                outValue.ToByteArray(),
+                _dPoSHelper.CurrentRoundNumber.ToByteArray(),
+                new StringValue {Value = _nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()}.ToByteArray(),
+                _consensusData.Pop().ToByteArray(),
                 signature.ToByteArray()
             };
+            
             var txToPublishOutValueAndSignature = await GenerateTransaction(
                 "PublishOutValueAndSignature",
                 parameters);
@@ -1016,14 +1019,17 @@ namespace AElf.Kernel.Node
             await BroadcastTransaction(txToPublishOutValueAndSignature);
         }
 
-        private async Task BroadcastPublishInValueTx(IMessage roundNumber, IMessage accountAddress, IMessage inValue)
+        public async Task BroadcastPublishInValueTx()
         {
+            var currentRoundNumber = _dPoSHelper.CurrentRoundNumber;
+
             var parameters = new List<byte[]>
             {
-                roundNumber.ToByteArray(),
-                accountAddress.ToByteArray(),
-                inValue.ToByteArray()
+                currentRoundNumber.ToByteArray(),
+                new StringValue {Value = _nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()}.ToByteArray(),
+                _consensusData.Pop().ToByteArray()
             };
+            
             var txToPublishInValue = await GenerateTransaction(
                 "PublishInValue",
                 parameters);
@@ -1032,16 +1038,20 @@ namespace AElf.Kernel.Node
         }
 
         // ReSharper disable once InconsistentNaming
-        private async Task BroadcastUpdateAElfDPoSTx(IMessage roundNumber, IMessage currentRoundInfo,
-            IMessage nextRoundInfo, IMessage nextExtraBlockProducer)
+        public async Task BroadcastUpdateAElfDPoSTx()
         {
+            var currentRoundNumber = _dPoSHelper.CurrentRoundNumber;
+
+            var extraBlockResult = await ExecuteTxsForExtraBlock(await GetIncrementId(_nodeKeyPair.GetAddress()));
+
             var parameters = new List<byte[]>
             {
-                roundNumber.ToByteArray(),
-                currentRoundInfo.ToByteArray(),
-                nextRoundInfo.ToByteArray(),
-                nextExtraBlockProducer.ToByteArray()
+                currentRoundNumber.ToByteArray(),
+                extraBlockResult.Item1.ToByteArray(),
+                extraBlockResult.Item2.ToByteArray(),
+                extraBlockResult.Item3.ToByteArray()
             };
+            
             var txForExtraBlock = await GenerateTransaction(
                 "UpdateAElfDPoS",
                 parameters);
@@ -1050,12 +1060,6 @@ namespace AElf.Kernel.Node
         }
 
         #endregion
-        
-        private DPoSInfo ExecuteTxsForFirstExtraBlock()
-        {
-            return _dPoSHelper.GenerateInfoForFirstTwoRounds();
-        }
-        
         private async Task<Tuple<RoundInfo, RoundInfo, StringValue>> ExecuteTxsForExtraBlock(ulong incrementId)
         {
             var currentRoundInfo = await _dPoSHelper.SupplyPreviousRoundInfo();

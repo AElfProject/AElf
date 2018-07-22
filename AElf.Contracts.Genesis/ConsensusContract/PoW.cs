@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus;
+using AElf.Kernel.Consensus;
 using AElf.Kernel;
 using AElf.Kernel.Types;
 
