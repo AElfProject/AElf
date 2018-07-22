@@ -16,29 +16,29 @@ namespace AElf.CLI2.JS.IO
             _logger = logger;
         }
 
-        public void Log(JavaScriptValue args)
+        public void Log(IEnumerable<JavaScriptValue> args)
         {
             Log(LogLevel.Info, args);
         }
 
-        public void Debug(JavaScriptValue args)
+        public void Debug(IEnumerable<JavaScriptValue> args)
         {
             Log(LogLevel.Debug, args);
         }
 
-        public void Warn(JavaScriptValue args)
+        public void Warn(IEnumerable<JavaScriptValue> args)
         {
             Log(LogLevel.Warn, args);
         }
 
-        public void Error(JavaScriptValue args)
+        public void Error(IEnumerable<JavaScriptValue> args)
         {
             Log(LogLevel.Error, args);
         }
 
-        private void Log(LogLevel level, JavaScriptValue args)
+        private void Log(LogLevel level, IEnumerable<JavaScriptValue> args)
         {
-            _logger.Log(level, args.ToString());
+            _logger.Log(level, string.Join(" ", args.Select(x=>x.ToString())));
         }
     }
 }
