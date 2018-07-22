@@ -1,7 +1,14 @@
-﻿namespace AElf.CLI2.JS
+﻿using ChakraCore.NET.API;
+
+namespace AElf.CLI2.JS
 {
-    public interface IJSEngine
+    public interface IJSObject
     {
-        void RunScriptFile(string filename);
+        IJSObject Get(string name);
+        TResult Invoke<T, TResult>(string methodName, T arg);
+        TResult Invoke<TResult>(string methodName);
+    }
+    public interface IJSEngine: IJSObject
+    {
     }
 }

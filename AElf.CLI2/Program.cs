@@ -1,31 +1,23 @@
-﻿using System;
-using System.IO;
-using System.Runtime.InteropServices;
+﻿using AElf.CLI2.Commands;
 using AElf.CLI2.JS;
-using AElf.Kernel.Modules.AutofacModule;
 using Autofac;
-using ChakraCore.NET.Hosting;
-using ChakraCore.NET.API;
+using CommandLine;
+
 namespace AElf.CLI2
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            var builder = new ContainerBuilder();
-            builder.RegisterModule(new LoggerModule("aelf-cli"));
-            builder.RegisterModule(new JSModule());
-            var container = builder.Build();
-            var jsEngine = container.Resolve<IJSEngine>();
-            try
-            {
-                jsEngine.RunScriptFile("./Scripts/bridge.js");
-            }
-            catch (InvalidOperationException e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+            return Parser.Default.ParseArguments<AccountNewOption>(args)
+                .MapResult(
+                    (AccountNewOption opt) =>
+                    {
+                        var cmd = IoCContainerBuilder.Build(opt).Resolve<ICommand>();
+                        cmd.Execute();
+                        return 0;
+                    },
+                    errs => 1);
         }
     }
 }

@@ -3,26 +3,69 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using AElf.CLI2.Commands;
 using AElf.CLI2.JS.IO;
 using ChakraCore.NET;
 using ChakraCore.NET.API;
 using ChakraCore.NET.Hosting;
+using ServiceStack;
+using Console = System.Console;
 
 namespace AElf.CLI2.JS
 {
     public class JSEngine : IJSEngine
     {
-        private IConsole _console;
-        private ChakraContext _context;
+        private class JSObj : IJSObject
+        {
+            private JSValue _value;
+
+            public JSObj(JSValue value)
+            {
+                _value = value;
+            }
+
+            public IJSObject Get(string name)
+            {
+                return new JSObj(_value.ReadProperty<JSValue>(name));
+            }
 
 
-        public JSEngine(IConsole console)
+            public TResult Invoke<T, TResult>(string methodName, T arg)
+            {
+                return _value.CallFunction<T, TResult>(methodName, arg);
+            }
+
+            public TResult Invoke<TResult>(string methodName)
+            {
+                return _value.CallFunction<TResult>(methodName);
+            }
+        }
+
+        private readonly IConsole _console;
+        private readonly ChakraContext _context;
+        private readonly BaseOption _option;
+
+        public JSEngine(IConsole console, BaseOption option)
         {
             _console = console;
             _context = JavaScriptHosting.Default.CreateContext(new JavaScriptHostingConfig());
+            _option = option;
             ExposeConsoleToContext();
+            ExposeAElfOption();
+            LoadBridgeJS();
         }
 
+        private void LoadBridgeJS()
+        {
+            RunScriptFile("./Scripts/bridge.js");
+        }
+
+        private void ExposeAElfOption()
+        {
+            _context.RunScript("var aelf_config = new Object()");
+            var config = _context.GlobalObject.ReadProperty<JSValue>("aelf_config");
+            config.WriteProperty<string>("server_addr", _option.ServerAddr);
+        }
 
         private static JavaScriptValue ToJSMethod(IServiceNode node, Action<IEnumerable<JavaScriptValue>> a)
         {
@@ -63,9 +106,24 @@ namespace AElf.CLI2.JS
             _context.GlobalObject.WriteProperty<IConsole>("console", _console);
         }
 
-        public void RunScriptFile(string filename)
+        private void RunScriptFile(string filename)
         {
             _context.RunScript(File.ReadAllText(filename));
+        }
+
+        public IJSObject Get(string name)
+        {
+            return new JSObj(_context.GlobalObject).Get(name);
+        }
+
+        public TResult Invoke<T, TResult>(string methodName, T arg)
+        {
+            return new JSObj(_context.GlobalObject).Invoke<T, TResult>(methodName, arg);
+        }
+
+        public TResult Invoke<TResult>(string methodName)
+        {
+            return new JSObj(_context.GlobalObject).Invoke<TResult>(methodName);
         }
     }
 }

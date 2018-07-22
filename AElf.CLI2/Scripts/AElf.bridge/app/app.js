@@ -1,5 +1,6 @@
 var AElf = require("aelf-sdk");
-var aelf_config = {
-    "endpoint": "http://127.0.0.1:5500"
-};
-var aelf = new AElf(new AElf.providers.HttpProvider(aelf_config["endpoint"]));
+// This field will be injected from C#
+// var aelf_config = new Object()
+// aelf_config.server_addr = "http://localhost:5432"
+
+aelf = new AElf(new AElf.providers.HttpProvider(aelf_config.server_addr));
