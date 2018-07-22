@@ -19,7 +19,7 @@ namespace AElf.CLI2
             var jsEngine = container.Resolve<IJSEngine>();
             try
             {
-                jsEngine.RunScriptFile("./Scripts/entry.js");
+                jsEngine.RunScriptFile("./Scripts/bridge.js");
             }
             catch (InvalidOperationException e)
             {

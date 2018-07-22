@@ -1,0 +1,14 @@
+{
+  "name": "AElf.bridge",
+  "version": "0.0.1",
+  "dependencies": {
+    "aelf-sdk": "github:AElfProject/aelf-sdk.js#master"
+  },
+  "scripts": {
+    "start": "server.js"
+  },
+  "engines": {
+    "node": "10.7.0",
+    "npm": "1.1.x"
+  }
+}

@@ -13,4 +13,7 @@
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
   </ItemGroup>
+  <Target Name="GenerateBridgeJS" BeforeTargets="BeforeBuild">
+    <Exec Command="bash ./Scripts/create_bridge_js.sh" />
+  </Target>
 </Project>
