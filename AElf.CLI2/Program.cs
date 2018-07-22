@@ -1,4 +1,6 @@
-﻿using AElf.CLI2.Commands;
+﻿using System;
+using System.Reflection;
+using AElf.CLI2.Commands;
 using AElf.CLI2.JS;
 using Autofac;
 using CommandLine;

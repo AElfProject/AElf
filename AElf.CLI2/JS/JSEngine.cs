@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using AElf.CLI2.Commands;
 using AElf.CLI2.JS.IO;
 using ChakraCore.NET;
@@ -57,7 +58,12 @@ namespace AElf.CLI2.JS
 
         private void LoadBridgeJS()
         {
-            RunScriptFile("./Scripts/bridge.js");
+            using (var reader = new StreamReader(
+                Assembly.GetEntryAssembly().GetManifestResourceStream("AElf.CLI2.Scripts.bridge.js"),
+                Encoding.UTF8))
+            {
+                _context.RunScript(reader.ReadToEnd());
+            }
         }
 
         private void ExposeAElfOption()
@@ -104,11 +110,6 @@ namespace AElf.CLI2.JS
                         }
                     });
             _context.GlobalObject.WriteProperty<IConsole>("console", _console);
-        }
-
-        private void RunScriptFile(string filename)
-        {
-            _context.RunScript(File.ReadAllText(filename));
         }
 
         public IJSObject Get(string name)
