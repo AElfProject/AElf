@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
@@ -17,7 +18,14 @@ namespace AElf.Kernel.Node
         
         BlockProducer BlockProducers { get; }
         Hash ContractAccountHash { get; }
-        
+
+        IDisposable ConsensusDisposable { get; set; }
+
+        ulong CurrentRoundNumber { get; set; }
+
+        // ReSharper disable once InconsistentNaming
+        Task CheckUpdatingDPoSProcess();
+
         int IsMiningInProcess { get; }
     }
 }

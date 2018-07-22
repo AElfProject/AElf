@@ -59,7 +59,9 @@ namespace AElf.Kernel.Node
 
         public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
 
-        public IObservable<ConsensusBehavior> ConsensusObservable;
+        public IDisposable ConsensusDisposable { get; set; }
+
+        public ulong CurrentRoundNumber { get; set; } = 0;
 
         private const int CheckTime = 1000;
 
@@ -485,6 +487,11 @@ namespace AElf.Kernel.Node
             return chainContext.BlockHeight;
         }
 
+        public ulong GetCurrentRoundNumber()
+        {
+            return _dPoSHelper.CurrentRoundNumber.Value;
+        }
+
         /// <summary>
         /// add tx
         /// </summary>
@@ -598,14 +605,35 @@ namespace AElf.Kernel.Node
 
             if (_dPoSHelper.CurrentRoundNumber.Value == 0)
             {
-                AElfDPoSObservable.Initialization(ConsensusSequence);
+                ConsensusDisposable = AElfDPoSObservable.Initialization(ConsensusSequence);
             }
-            else
+//            else
+//            {
+//                ConsensusDisposable = AElfDPoSObservable.NormalMiningProcess(await GetBPInfoOfCurrentRound(),
+//                        await GetExtraBlockTimeslot(), ConsensusSequence);
+//            }
+        }
+
+        // ReSharper disable once InconsistentNaming
+        private async Task<BPInfo> GetBPInfoOfCurrentRound()
+        {
+            return await _dPoSHelper.GetBPInfoOfCurrentRound(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix());
+        }
+
+        private async Task<Timestamp> GetExtraBlockTimeslot()
+        {
+            return await _dPoSHelper.GetExtraBlockTimeslotOfCurrentRound();
+        }
+
+        // ReSharper disable once InconsistentNaming
+        public async Task CheckUpdatingDPoSProcess()
+        {
+            if (CurrentRoundNumber != _dPoSHelper.CurrentRoundNumber.Value)
             {
-                var infoOfMe =
-                    await _dPoSHelper.GetBPInfoOfCurrentRound(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix());
-                var extraBlockTimeslot = await _dPoSHelper.GetExtraBlockTimeslotOfCurrentRound();
-                AElfDPoSObservable.NormalMiningProcess(infoOfMe, extraBlockTimeslot, ConsensusSequence);
+                ConsensusDisposable.Dispose();
+                ConsensusDisposable =  AElfDPoSObservable.NormalMiningProcess(await GetBPInfoOfCurrentRound(),
+                    await GetExtraBlockTimeslot(), ConsensusSequence);
+                CurrentRoundNumber = _dPoSHelper.CurrentRoundNumber.Value;
             }
         }
 
@@ -987,7 +1015,6 @@ namespace AElf.Kernel.Node
         // ReSharper disable once InconsistentNaming
         public async Task MiningWithInitializingAElfDPoSInformation()
         {
-            Console.WriteLine(111111111111);
             var parameters = new List<byte[]>
             {
                 BlockProducers.ToByteArray(), 

@@ -67,9 +67,9 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public static void Initialization(IObserver<ConsensusBehavior> observer)
+        public static IDisposable Initialization(IObserver<ConsensusBehavior> observer)
         {
-            new List<ConsensusBehavior>
+            return new List<ConsensusBehavior>
                 {
                     ConsensusBehavior.InitializeAElfDPoS
                 }
@@ -77,7 +77,7 @@ namespace AElf.Kernel.Consensus
                 .Subscribe(observer);
         }
 
-        public static void NormalMiningProcess(BPInfo infoOfMe, Timestamp extraBlockTimeslot, IObserver<ConsensusBehavior> observer)
+        public static IDisposable NormalMiningProcess(BPInfo infoOfMe, Timestamp extraBlockTimeslot, IObserver<ConsensusBehavior> observer)
         {
             var doNothingObservable = Observable
                 .Timer(TimeSpan.FromSeconds(0))
@@ -137,7 +137,7 @@ namespace AElf.Kernel.Consensus
                 Console.WriteLine("concat: help to update dpos information");
             }
 
-            Observable.Return(ConsensusBehavior.DoNothing)
+            return Observable.Return(ConsensusBehavior.DoNothing)
                 .Concat(produceNormalBlock)
                 .Concat(publishInValue)
                 .Concat(produceExtraBlock)

@@ -14,6 +14,7 @@ using AElf.Network.Peers;
 using Google.Protobuf;
 using NLog;
 using AElf.ChainController;
+using AElf.Kernel.Consensus;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
 namespace AElf.Kernel.Node.Protocol
@@ -603,6 +604,8 @@ namespace AElf.Kernel.Node.Protocol
                 SyncFinished?.Invoke(this, EventArgs.Empty);
             }
 
+            await _mainChainNode.CheckUpdatingDPoSProcess();
+            
             return executed;
         }
 
