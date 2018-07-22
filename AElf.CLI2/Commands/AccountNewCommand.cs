@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using AElf.CLI2.JS;
 using ChakraCore.NET.API;
 using CommandLine;
@@ -22,7 +22,6 @@ namespace AElf.CLI2.Commands
             _engine = engine;
             _option = (AccountNewOption) option;
         }
-
 
         public void Execute()
         {

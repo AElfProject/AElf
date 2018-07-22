@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using ChakraCore.NET;
 using ChakraCore.NET.API;
 
@@ -9,6 +9,7 @@ namespace AElf.CLI2.JS.IO
         void Log(IEnumerable<JavaScriptValue> args);
         void Debug(IEnumerable<JavaScriptValue> args);
         void Warn(IEnumerable<JavaScriptValue> args);
+
         void Error(IEnumerable<JavaScriptValue> args);
     }
 }

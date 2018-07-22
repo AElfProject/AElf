@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Autofac;
 using Microsoft.AspNetCore.Server.Kestrel.Transport.Libuv.Internal.Networking;
@@ -15,12 +15,12 @@ namespace AElf.CLI2.Commands
         {
             _option = option;
         }
-        
+
         static CMDModule()
         {
             _commands = new Dictionary<Type, Type> {[typeof(AccountNewOption)] = typeof(AccountNewCommand)};
         }
-        
+
         protected override void Load(ContainerBuilder builder)
         {
             _option.ParseEnvVars();

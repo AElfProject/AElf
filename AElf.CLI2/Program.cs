@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using AElf.CLI2.Commands;
 using AElf.CLI2.JS;

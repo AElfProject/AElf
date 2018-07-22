@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using CommandLine;
 
 namespace AElf.CLI2.Commands
@@ -7,12 +7,11 @@ namespace AElf.CLI2.Commands
     {
         void Execute();
     }
-    
+
     public class BaseOption
     {
         [Option("server_addr", HelpText = "AElf jsonrpc server address.", Default = "")]
         public string ServerAddr { get; set; }
-
 
         public void ParseEnvVars()
         {

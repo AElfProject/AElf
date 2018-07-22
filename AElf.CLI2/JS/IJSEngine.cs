@@ -1,4 +1,4 @@
-﻿using ChakraCore.NET.API;
+using ChakraCore.NET.API;
 
 namespace AElf.CLI2.JS
 {
@@ -8,7 +8,8 @@ namespace AElf.CLI2.JS
         TResult Invoke<T, TResult>(string methodName, T arg);
         TResult Invoke<TResult>(string methodName);
     }
-    public interface IJSEngine: IJSObject
+
+    public interface IJSEngine : IJSObject
     {
     }
 }

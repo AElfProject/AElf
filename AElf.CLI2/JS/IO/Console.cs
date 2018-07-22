@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Common.Attributes;
 using ChakraCore.NET.API;
@@ -38,7 +38,7 @@ namespace AElf.CLI2.JS.IO
 
         private void Log(LogLevel level, IEnumerable<JavaScriptValue> args)
         {
-            _logger.Log(level, string.Join(" ", args.Select(x=>x.ToString())));
+            _logger.Log(level, string.Join(" ", args.Select(x => x.ToString())));
         }
     }
 }

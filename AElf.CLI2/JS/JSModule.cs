@@ -1,4 +1,4 @@
-﻿using AElf.CLI2.JS.IO;
+using AElf.CLI2.JS.IO;
 using Autofac;
 
 namespace AElf.CLI2.JS

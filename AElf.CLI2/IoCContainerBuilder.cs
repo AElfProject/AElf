@@ -1,4 +1,4 @@
-﻿using AElf.CLI2.Commands;
+using AElf.CLI2.Commands;
 using AElf.CLI2.JS;
 using AElf.Kernel.Modules.AutofacModule;
 using Autofac;
