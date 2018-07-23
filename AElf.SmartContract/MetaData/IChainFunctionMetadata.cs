@@ -17,15 +17,15 @@ namespace AElf.SmartContract
         /// <param name="contractReferences">the map where smart contract member reference to its acutal address</param>
         /// <exception cref="InvalidOperationException">Throw when FunctionMetadataMap already contains a function with same fullname</exception>
         /// <returns>True when success, false when something is wrong (usually is cannot find record with respect to functionName in the parameter otherFunctionsCallByThis)</returns>
-        Task DeployNewContract(string contractClassName, Hash contractAddr,
-            Dictionary<string, Hash> contractReferences);
-        
+        Task DeployNewContract(Hash chainID, Hash contractAddr, ContractMetadataTemplate contractMetadataTemplate);
+
         /// <summary>
         /// Get a function's metadata, throw  if this function is not found in the map.
         /// TODO: need to be async when this access datastore
         /// </summary>
+        /// <param name="chainId"></param>
         /// <param name="functionFullName"></param>
-        FunctionMetadata GetFunctionMetadata(string functionFullName);
+        Task<FunctionMetadata> GetFunctionMetadata(Hash chainId, string functionFullName);
         
         /// <summary>
         /// Update metadata of an existing function.

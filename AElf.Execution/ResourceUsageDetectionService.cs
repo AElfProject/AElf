@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Google.Protobuf;
 using AElf.Kernel;
 using AElf.SmartContract;
@@ -16,14 +17,14 @@ namespace AElf.Execution
             _functionMetadataService = functionMetadataService;
         }
 
-        public IEnumerable<string> GetResources(Hash chainId, ITransaction transaction)
+        public async Task<IEnumerable<string>> GetResources(Hash chainId, ITransaction transaction)
         {
 
             var addrs = GetRelatedAccount(transaction).ToImmutableHashSet()
                 .Select(addr => addr.ToHex()).ToList();
 
             var results = new List<string>();
-            var functionMetadata = _functionMetadataService.GetFunctionMetadata(chainId, GetFunctionName(transaction));
+            var functionMetadata = await _functionMetadataService.GetFunctionMetadata(chainId, GetFunctionName(transaction));
             foreach (var resource in functionMetadata.FullResourceSet)
             {
                 switch (resource.DataAccessMode)

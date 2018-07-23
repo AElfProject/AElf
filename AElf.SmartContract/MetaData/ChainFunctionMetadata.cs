@@ -7,96 +7,65 @@ using Google.Protobuf;
 using NLog;
 using Org.BouncyCastle.Security;
 using AElf.Kernel;
+using AElf.SmartContract.MetaData;
+using QuickGraph;
+using QuickGraph.Algorithms;
 
 namespace AElf.SmartContract
 {
     public class ChainFunctionMetadata : IChainFunctionMetadata
     {
-        public readonly IChainFunctionMetadataTemplate Template;
         private readonly ILogger _logger;
         private readonly IDataStore _dataStore;
-        private Hash ChainId => Template.ChainId;
+
+        public Dictionary<string, FunctionMetadata> FunctionMetadataMap = new Dictionary<string, FunctionMetadata>();
         
-        public Dictionary<string, FunctionMetadata> FunctionMetadataMap { get; }
         
-        public ChainFunctionMetadata(IChainFunctionMetadataTemplate template, IDataStore dataStore,  ILogger logger)
+        public ChainFunctionMetadata(IDataStore dataStore,  ILogger logger)
         {
-            Template = template;
             _dataStore = dataStore;
             _logger = logger;
-
-            var mapCache = _dataStore.GetDataAsync(ResourcePath.CalculatePointerForMetadata(ChainId)).Result;
-            if (mapCache != null)
-            {
-                FunctionMetadataMap = RestoreFunctionMetadata(SerializeFunctionMetadataMap.Parser.ParseFrom(mapCache));
-            }
-            else
-            {
-                FunctionMetadataMap = new Dictionary<string, FunctionMetadata>();
-            }
         }
 
         /// <summary>
         /// //TODO: in fact, only public interface of contact need to be added into FunctionMetadataMap
         /// </summary>
-        /// <param name="contractClassName"></param>
+        /// <param name="chainId"></param>
         /// <param name="contractAddr"></param>
-        /// <param name="contractReferences"></param>
+        /// <param name="contractMetadataTemplate"></param>
         /// <exception cref="FunctionMetadataException"></exception>
-        public async Task DeployNewContract(string contractClassName, Hash contractAddr, Dictionary<string, Hash> contractReferences)
+        public async Task DeployNewContract(Hash chainId, Hash contractAddr, ContractMetadataTemplate contractMetadataTemplate)
         {
             Dictionary<string, FunctionMetadata> tempMap = new Dictionary<string, FunctionMetadata>();
             try
             {
-                if (!Template.ContractMetadataTemplateMap.TryGetValue(contractClassName, out var classTemplate))
+                var globalCallGraph = await GetCallingGraphForChain(chainId); 
+                var newCallGraph = TryUpdateAndGetCallingGraph(chainId, contractAddr, globalCallGraph, contractMetadataTemplate);
+                
+                foreach (var localFuncName in contractMetadataTemplate.ProcessFunctionOrder)
                 {
-                    throw new FunctionMetadataException("Cannot find contract named " + contractClassName +
-                                                        " in the template storage");
+                    var funcNameWithAddr =
+                        Replacement.ReplaceValueIntoReplacement(localFuncName, Replacement.This,
+                            contractAddr.ToHex());
+                    var funcMetadata = await GetMetadataForNewFunction(chainId, funcNameWithAddr,
+                        contractMetadataTemplate.MethodMetadataTemplates[localFuncName],
+                        contractAddr, contractMetadataTemplate.ContractReferences, tempMap);
+
+                    tempMap.Add(funcNameWithAddr, funcMetadata);
                 }
 
-                if (classTemplate.Count == 0 || classTemplate.First().Value.TemplateContainsMetadata == false)
-                {
-                    foreach (var functionMetadataTemplate in classTemplate)
-                    {
-                        //TODO: this if is aim to support contracts that contains no metadata for now
-                        var funcNameWithAddr =
-                            Replacement.ReplaceValueIntoReplacement(functionMetadataTemplate.Key, Replacement.This,
-                                contractAddr.Value.ToByteArray().ToHex());
-
-                        var fullResourceSet = new HashSet<Resource>()
-                        {
-                            new Resource(contractAddr.Value.ToByteArray().ToHex() + "._lock",
-                                DataAccessMode.ReadWriteAccountSharing)
-                        };
-                        var metadata = new FunctionMetadata(new HashSet<string>(), fullResourceSet);
-                        FunctionMetadataMap.Add(funcNameWithAddr, metadata);
-                    }
-                }
-                else
-                {
-                    //local calling graph in template map of template must be topological, so ignore the callGraph
-                    Template.TryGetLocalCallingGraph(classTemplate, out var callGraph, out var topologicRes);
-
-                    foreach (var localFuncName in topologicRes.Reverse())
-                    {
-                        var funcNameWithAddr =
-                            Replacement.ReplaceValueIntoReplacement(localFuncName, Replacement.This,
-                                contractAddr.Value.ToByteArray().ToHex());
-                        var funcMetadata = GetMetadataForNewFunction(funcNameWithAddr, classTemplate[localFuncName],
-                            contractAddr, contractReferences, tempMap);
-
-                        tempMap.Add(funcNameWithAddr, funcMetadata);
-                    }
-                }
-
-                //if no exception is thrown, merge the tempMap into FunctionMetadataMap
+                //if no exception is thrown, merge the tempMap into FunctionMetadataMap and update call graph in database
+                await _dataStore.SetDataAsync(ResourcePath.CalculatePointerForMetadataTemplateCallingGraph(chainId),
+                    SerializeCallingGraph(newCallGraph).ToByteArray());
+                
                 foreach (var functionMetadata in tempMap)
                 {
                     FunctionMetadataMap.Add(functionMetadata.Key, functionMetadata.Value);
+                    
+                    await _dataStore.SetDataAsync(
+                        ResourcePath.CalculatePointerForMetadata(chainId, functionMetadata.Key),
+                        functionMetadata.Value.ToByteArray());
                 }
-
-                await _dataStore.SetDataAsync(ResourcePath.CalculatePointerForMetadata(ChainId),
-                    GenerateSerializeFunctionMetadataMap().ToByteArray());
             }
             catch (FunctionMetadataException e)
             {
@@ -115,11 +84,11 @@ namespace AElf.SmartContract
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         /// <exception cref="FunctionMetadataException"></exception>
-        private FunctionMetadata GetMetadataForNewFunction(string functionFullName, FunctionMetadataTemplate functionTemplate, Hash contractAddr, Dictionary<string, Hash> contractReferences, Dictionary<string, FunctionMetadata> localMetadataMap)
+        private async Task<FunctionMetadata> GetMetadataForNewFunction(Hash chainId, string functionFullName, FunctionMetadataTemplate functionTemplate, Hash contractAddr, Dictionary<string, Hash> contractReferences, Dictionary<string, FunctionMetadata> localMetadataMap)
         {
             var resourceSet = new HashSet<Resource>(functionTemplate.LocalResourceSet.Select(resource =>
                 {
-                    var resName = Replacement.ReplaceValueIntoReplacement(resource.Name, Replacement.This, contractAddr.Value.ToByteArray().ToHex());
+                    var resName = Replacement.ReplaceValueIntoReplacement(resource.Name, Replacement.This, contractAddr.ToHex());
                     return new Resource(resName, resource.DataAccessMode);
                 }));
             
@@ -139,7 +108,7 @@ namespace AElf.SmartContract
                 if (locationReplacement.Equals(Replacement.This))
                 {
                     var replacedCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, Replacement.This,
-                        contractAddr.Value.ToByteArray().ToHex());
+                        contractAddr.ToHex());
                     if (!localMetadataMap.TryGetValue(replacedCalledFunc, out var localCalledFuncMetadata))
                     {
                         throw new FunctionMetadataException("There are no local function " + replacedCalledFunc + " in the given local function map, consider wrong reference cause wrong topological order");
@@ -154,9 +123,9 @@ namespace AElf.SmartContract
                         throw new FunctionMetadataException("There are no member reference " + Replacement.Value(locationReplacement) + " in the given contractReferences map");
                     }
                     var replacedCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, locationReplacement,
-                        referenceAddr.Value.ToByteArray().ToHex());
+                        referenceAddr.ToHex());
                     
-                    var metadataOfCalledFunc = GetFunctionMetadata(replacedCalledFunc); //could throw exception
+                    var metadataOfCalledFunc = await GetFunctionMetadata(chainId, replacedCalledFunc); //could throw exception
                     
                     resourceSet.UnionWith(metadataOfCalledFunc.FullResourceSet);
                     callingSet.Add(replacedCalledFunc);
@@ -170,19 +139,33 @@ namespace AElf.SmartContract
         
         
 
-        public FunctionMetadata GetFunctionMetadata(string functionFullName)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="functionFullName"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidParameterException"></exception>
+        public async Task<FunctionMetadata> GetFunctionMetadata(Hash chainId, string functionFullName)
         {
-            if (FunctionMetadataMap.TryGetValue(functionFullName, out var txMetadata))
+            //BUG: if the smart contract can be updated, then somehow this in-memory cache FunctionMetadataMap need to be updated too. Currently the ChainFunctionMetadata has no way to know some metadata is updated; current thought is to request current "previous block hash" every time the ChainFunctionMetadata public interface got executed, that is "only use cache when in the same block, can clear the cache per block"
+            if (!FunctionMetadataMap.TryGetValue(functionFullName, out var txMetadata))
             {
-                return txMetadata;
+                var data = await _dataStore.GetDataAsync(ResourcePath.CalculatePointerForMetadata(chainId, functionFullName));
+                if (data != null)
+                {
+                    txMetadata = FunctionMetadata.Parser.ParseFrom(data);
+                    FunctionMetadataMap.Add(functionFullName, txMetadata);
+                }
+                else
+                {
+                    throw new InvalidParameterException("There are no function named " + functionFullName +
+                                                        " in the FunctionMetadataMap");
+                }
             }
-            else
-            {
-                throw new InvalidParameterException("There are no function named " + functionFullName +
-                                                    " in the FunctionMetadataMap");
-            }
+            
+            return txMetadata;
         }
-        
         
         public bool UpdataExistingMetadata(string functionFullName, HashSet<string> newOtherFunctionsCallByThis, HashSet<string> newNonRecursivePathSet)
         {
@@ -230,7 +213,7 @@ namespace AElf.SmartContract
             }
             */
         }
-
+        
         /// <summary>
         /// Find the functions in the calling graph that call this func
         /// </summary>
@@ -245,28 +228,104 @@ namespace AElf.SmartContract
             return callerFunctions.Count != 0;
         }
 
-        #region Serialize
-
-        public SerializeFunctionMetadataMap GenerateSerializeFunctionMetadataMap()
+        #region Calling graph related
+        
+        
+        /// <summary>
+        /// Try to update the calling graph when updating the function.
+        /// If some functions have unknow reference of foreign edge(call other contract's function), the update will not be approved and nothing will take effect
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="contractAddress"></param>
+        /// <param name="callingGraph"></param>
+        /// <param name="contractMetadataTemplate"></param>
+        /// <returns>The new calling graph</returns>
+        /// <exception cref="FunctionMetadataException"></exception>
+        public CallGraph TryUpdateAndGetCallingGraph(Hash chainId, Hash contractAddress, CallGraph callingGraph, ContractMetadataTemplate contractMetadataTemplate)
         {
-            var serializeMap = new SerializeFunctionMetadataMap();
-            foreach (var metadata in FunctionMetadataMap)
+            List<Edge<string>> outEdgesToAdd = new List<Edge<string>>();
+            //check for unknown reference
+            foreach (var kvPair in contractMetadataTemplate.MethodMetadataTemplates)
             {
-                serializeMap.MetadataMap.Add(metadata.Key, metadata.Value);
+                var sourceFunc = Replacement.ReplaceValueIntoReplacement(kvPair.Key, Replacement.This, contractAddress.ToHex());
+                
+                foreach (var calledFunc in kvPair.Value.CallingSet)
+                {
+                    if (!calledFunc.Contains(Replacement.This))
+                    {
+                        Replacement.TryGetReplacementWithIndex(calledFunc, 0, out var memberReplacement);
+                        Hash referenceAddress = contractMetadataTemplate.ContractReferences[Replacement.Value(memberReplacement)]; //FunctionMetadataTemplate itself ensure this value exist
+                        var globalCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, memberReplacement, referenceAddress.ToHex());
+                        if (!callingGraph.ContainsVertex(globalCalledFunc))
+                        {
+                            throw new FunctionMetadataException("ChainId [" + chainId.ToHex() + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractMetadataTemplate.FullName + " into calling graph, consider the target function does not exist in the metadata");
+                        }
+                        outEdgesToAdd.Add(new Edge<string>(sourceFunc, globalCalledFunc));
+                    }
+                }
             }
+            
+            //Merge local calling graph, mind that there are functions that call nothing, they also need to appear in the call graph (to be called in future)
+            foreach (var localVertex in contractMetadataTemplate.LocalCallingGraph.Vertices)
+            {
+                var globalVertex = Replacement.ReplaceValueIntoReplacement(localVertex, Replacement.This, contractAddress.ToHex());
+                callingGraph.AddVertex(globalVertex);
+                foreach (var outEdge in contractMetadataTemplate.LocalCallingGraph.OutEdges(localVertex))
+                {
+                    var toVertex = Replacement.ReplaceValueIntoReplacement(outEdge.Target, Replacement.This, contractAddress.ToHex());
+                    callingGraph.AddVerticesAndEdge(new Edge<string>(globalVertex, toVertex));
+                }
+            }
+            //add foreign edges
+            callingGraph.AddEdgeRange(outEdgesToAdd);
 
-            return serializeMap;
+            return callingGraph;
         }
 
-        public Dictionary<string, FunctionMetadata> RestoreFunctionMetadata(SerializeFunctionMetadataMap serializeMap)
+        #endregion
+        
+        
+        #region Serialize
+        private async Task<CallGraph> GetCallingGraphForChain(Hash chainId)
         {
-            var metadataMap = new Dictionary<string, FunctionMetadata>();
-            foreach (var kv in serializeMap.MetadataMap)
+            var graphCache = await _dataStore.GetDataAsync(ResourcePath.CalculatePointerForMetadataTemplateCallingGraph(chainId));
+            if (graphCache == null)
             {
-                metadataMap.Add(kv.Key, kv.Value);
+                return new CallGraph();
             }
+            return BuildCallingGraph(SerializedCallGraph.Parser.ParseFrom(graphCache));
+        }
+        
+        private SerializedCallGraph SerializeCallingGraph(CallGraph graph)
+        {
+            var serializedCallGraph = new SerializedCallGraph();
+            serializedCallGraph.Edges.AddRange(graph.Edges.Select(edge =>
+                new GraphEdge {Source = edge.Source, Target = edge.Target}));
+            serializedCallGraph.Vertices.AddRange(graph.Vertices);
+            return serializedCallGraph;
+        }
 
-            return metadataMap;
+        /// <summary>
+        /// calling graph is prepared for update contract code (check for DAG at that time)
+        /// </summary>
+        /// <param name="edges"></param>
+        /// <returns></returns>
+        /// <exception cref="FunctionMetadataException"></exception>
+        private CallGraph BuildCallingGraph(SerializedCallGraph callGraph)
+        {
+            CallGraph graph = new CallGraph();
+            graph.AddVertexRange(callGraph.Vertices);
+            graph.AddEdgeRange(callGraph.Edges.Select(serializedEdge =>
+                new Edge<string>(serializedEdge.Source, serializedEdge.Target)));
+            try
+            {
+                graph.TopologicalSort();
+            }
+            catch (NonAcyclicGraphException)
+            {
+                throw new FunctionMetadataException("The calling graph ISNOT DAG when restoring the calling graph according to the ContractMetadataTemplateMap from the database");
+            }
+            return graph;
         }
         
 
