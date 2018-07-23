@@ -8,7 +8,7 @@ namespace AElf.SmartContract
 {
     public interface IFunctionMetadataService
     {
-        Task DeployContract(Hash chainId, Type contractType, Hash address, Dictionary<string, Hash> contractReferences);
-        FunctionMetadata GetFunctionMetadata(Hash chainId, string addrFunctionName);
+        Task DeployContract(Hash chainId, Hash address, ContractMetadataTemplate contractMetadataTemplate);
+        Task<FunctionMetadata> GetFunctionMetadata(Hash chainId, string addrFunctionName);
     }
 }
