@@ -53,11 +53,7 @@ namespace AElf.Execution
             var config = InitActorConfig(ActorConfig.Instance.WorkerHoconConfig);
 
             _actorSystem = ActorSystem.Create(SystemName, config);
-            for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
-            {
-                var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker" + i);
-                worker.Tell(new LocalSerivcePack(_servicePack));
-            }
+            InitWorkerServicePack();
         }
 
         public void InitActorSystem()
@@ -66,19 +62,7 @@ namespace AElf.Execution
             {
                 var config = InitActorConfig(ActorConfig.Instance.MasterHoconConfig);
                 
-                var workerConfigs = new StringBuilder();
-                workerConfigs.Append("akka.actor.deployment./router.routees.paths = [");
-                for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
-                {
-                    workerConfigs.Append("\"/user/worker" + i).Append("\"").Append(",");
-                }
-                workerConfigs.Remove(workerConfigs.Length - 1, 1);
-                workerConfigs.Append("]");
-
-                config = ConfigurationFactory.ParseString(workerConfigs.ToString()).WithFallback(config);
-                
                 _actorSystem = ActorSystem.Create(SystemName, config);
-                
                 //Todo waiting for join cluster. we should get the status here.
                 Thread.Sleep(8000);
                 _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");
@@ -86,29 +70,22 @@ namespace AElf.Execution
             else
             {
                 var config = InitActorConfig(ActorConfig.Instance.SingleHoconConfig);
-                
-                var workerConfigs = new StringBuilder();
-                workerConfigs.Append("akka.actor.deployment./router.routees.paths = [");
-                for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
-                {
-                    workerConfigs.Append("\"/user/worker" + i).Append("\"").Append(",");
-                }
-                workerConfigs.Remove(workerConfigs.Length - 1, 1);
-                workerConfigs.Append("]");
-                
-                config = ConfigurationFactory.ParseString(workerConfigs.ToString()).WithFallback(config);
-                
-                _actorSystem = ActorSystem.Create(SystemName,config);
 
+                _actorSystem = ActorSystem.Create(SystemName,config);
                 _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");
-                for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
-                {
-                    var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker" + i);
-                    worker.Tell(new LocalSerivcePack(_servicePack));
-                }
+                InitWorkerServicePack();
             }
 
             _isInit = true;
+        }
+
+        private void InitWorkerServicePack()
+        {
+            for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
+            {
+                var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker" + i);
+                worker.Tell(new LocalSerivcePack(_servicePack));
+            }
         }
 
         private Config InitActorConfig(string content)
@@ -127,10 +104,20 @@ namespace AElf.Execution
             seedNodes.Remove(seedNodes.Length - 1, 1);
             seedNodes.Append("]");
             
+            var workerPaths = new StringBuilder();
+            workerPaths.Append("akka.actor.deployment./router.routees.paths = [");
+            for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
+            {
+                workerPaths.Append("\"/user/worker" + i).Append("\"").Append(",");
+            }
+            workerPaths.Remove(workerPaths.Length - 1, 1);
+            workerPaths.Append("]");
+            
             
             var config = ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.hostname=" + ActorConfig.Instance.HostName)
                 .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.port=" + ActorConfig.Instance.Port))
                 .WithFallback(ConfigurationFactory.ParseString(seedNodes.ToString()))
+                .WithFallback(ConfigurationFactory.ParseString(workerPaths.ToString()))
                 .WithFallback(content);
 
             return config;
