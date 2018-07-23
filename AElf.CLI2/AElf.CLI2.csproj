@@ -15,10 +15,10 @@
     <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Content Remove="Scripts\bridge.js"/>
+    <Content Remove="Scripts\bridge.js" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Scripts\bridge.js"/>
+    <EmbeddedResource Include="Scripts\bridge.js" />
   </ItemGroup>
   <Target Name="GenerateBridgeJS" BeforeTargets="BeforeBuild">
     <Exec Command="bash ./Scripts/create_bridge_js.sh" />

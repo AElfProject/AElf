@@ -40,27 +40,27 @@ namespace AElf.CLI2.JS
             {
                 return _value.CallFunction<TResult>(methodName);
             }
+
+            public JavaScriptValue Value => _value.ReferenceValue;
         }
 
         private readonly IConsole _console;
         private readonly ChakraContext _context;
         private readonly BaseOption _option;
 
-        public JSEngine(IConsole console, BaseOption option)
+        public JSEngine(IConsole console, BaseOption option, IBridgeJSProvider bridgeJSProvider)
         {
             _console = console;
             _context = JavaScriptHosting.Default.CreateContext(new JavaScriptHostingConfig());
             _option = option;
             ExposeConsoleToContext();
             ExposeAElfOption();
-            LoadBridgeJS();
+            LoadBridgeJS(bridgeJSProvider);
         }
 
-        private void LoadBridgeJS()
+        private void LoadBridgeJS(IBridgeJSProvider provider)
         {
-            using (var reader = new StreamReader(
-                Assembly.GetEntryAssembly().GetManifestResourceStream("AElf.CLI2.Scripts.bridge.js"),
-                Encoding.UTF8))
+            using (var reader = new StreamReader(provider.GetBridgeJSStream(), Encoding.UTF8))
             {
                 _context.RunScript(reader.ReadToEnd());
             }
@@ -125,6 +125,13 @@ namespace AElf.CLI2.JS
         public TResult Invoke<TResult>(string methodName)
         {
             return new JSObj(_context.GlobalObject).Invoke<TResult>(methodName);
+        }
+
+        public JavaScriptValue Value => new JSObj(_context.GlobalObject).Value;
+
+        public void RunScript(string jsContent)
+        {
+            _context.RunScript(jsContent);
         }
     }
 }
