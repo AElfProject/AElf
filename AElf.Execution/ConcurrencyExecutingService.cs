@@ -32,7 +32,7 @@ namespace AElf.Execution
                 WorldStateDictator = worldStateDictator,
                 AccountContextService = accountContextService,
             };
-            worldStateDictator.DeleteChangeBeforesImmidiately = true;
+            _servicePack.WorldStateDictator.DeleteChangeBeforesImmidiately = ActorConfig.Instance.Benchmark;
             _isInit = false;
         }
 
@@ -53,8 +53,11 @@ namespace AElf.Execution
             var config = InitActorConfig(ActorConfig.Instance.WorkerHoconConfig);
 
             _actorSystem = ActorSystem.Create(SystemName, config);
-            var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker");
-            worker.Tell(new LocalSerivcePack(_servicePack));
+            for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
+            {
+                var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker" + i);
+                worker.Tell(new LocalSerivcePack(_servicePack));
+            }
         }
 
         public void InitActorSystem()
@@ -62,21 +65,42 @@ namespace AElf.Execution
             if (ActorConfig.Instance.IsCluster)
             {
                 var config = InitActorConfig(ActorConfig.Instance.MasterHoconConfig);
+                
+                var workerConfigs = new StringBuilder();
+                workerConfigs.Append("akka.actor.deployment./router.routees.paths = [");
+                for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
+                {
+                    workerConfigs.Append("\"/user/worker" + i).Append("\"").Append(",");
+                }
+                workerConfigs.Remove(workerConfigs.Length - 1, 1);
+                workerConfigs.Append("]");
+
+                config = ConfigurationFactory.ParseString(workerConfigs.ToString()).WithFallback(config);
+                
                 _actorSystem = ActorSystem.Create(SystemName, config);
+                
                 //Todo waiting for join cluster. we should get the status here.
-                Thread.Sleep(2000);
+                Thread.Sleep(8000);
                 _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");
             }
             else
             {
-                _actorSystem = ActorSystem.Create(SystemName);
-                var workers = new List<string>();
+                var config = InitActorConfig(ActorConfig.Instance.SingleHoconConfig);
+                
+                var workerConfigs = new StringBuilder();
+                workerConfigs.Append("akka.actor.deployment./router.routees.paths = [");
                 for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
                 {
-                    workers.Add("/user/worker" + i);
+                    workerConfigs.Append("\"/user/worker" + i).Append("\"").Append(",");
                 }
+                workerConfigs.Remove(workerConfigs.Length - 1, 1);
+                workerConfigs.Append("]");
+                
+                config = ConfigurationFactory.ParseString(workerConfigs.ToString()).WithFallback(config);
+                
+                _actorSystem = ActorSystem.Create(SystemName,config);
 
-                _router = _actorSystem.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
+                _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");
                 for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
                 {
                     var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker" + i);
@@ -87,7 +111,7 @@ namespace AElf.Execution
             _isInit = true;
         }
 
-        private Akka.Configuration.Config InitActorConfig(string content)
+        private Config InitActorConfig(string content)
         {
             if (ActorConfig.Instance.Seeds == null || ActorConfig.Instance.Seeds.Count == 0)
             {

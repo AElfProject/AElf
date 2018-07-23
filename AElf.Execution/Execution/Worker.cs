@@ -23,7 +23,6 @@ namespace AElf.Execution
 
         private State _state = State.PendingSetSericePack;
         private long _servingRequestId = -1;
-
         private ServicePack _servicePack;
 
         // TODO: Add cancellation
@@ -46,48 +45,45 @@ namespace AElf.Execution
                     {
                         _cancellationTokenSource?.Dispose();
                         _cancellationTokenSource = new CancellationTokenSource();
-                        var receiver = Self;
-                        Task.Run(() =>
-                            RunJob(req).ContinueWith(
-                                task => task.Result,
-                                TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
-                            ).PipeTo(receiver)
+
+                        RunJob(req).ContinueWith(
+                            task => task.Result,
+                            TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
                         );
-                        Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Running));
+                        //Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Running));
                     }
-                    else if (_state == State.PendingSetSericePack)
-                    {
-                        Sender.Tell(new JobExecutionStatus(req.RequestId,
-                            JobExecutionStatus.RequestStatus.FailedDueToWorkerNotReady));
-                    }
-                    else
-                    {
-                        Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Rejected));
-                    }
+//                    else if (_state == State.PendingSetSericePack)
+//                    {
+//                        Sender.Tell(new JobExecutionStatus(req.RequestId,
+//                            JobExecutionStatus.RequestStatus.FailedDueToWorkerNotReady));
+//                    }
+//                    else
+//                    {
+//                        Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Rejected));
+//                    }
 
                     break;
-                case JobExecutionCancelMessage c:
-                    _cancellationTokenSource?.Cancel();
-                    Sender.Tell(JobExecutionCancelAckMessage.Instance);
-                    break;
-                case JobExecutionStatusQuery query:
-                    if (query.RequestId != _servingRequestId)
-                    {
-                        Sender.Tell(new JobExecutionStatus(query.RequestId,
-                            JobExecutionStatus.RequestStatus.InvalidRequestId));
-                    }
-                    else
-                    {
-                        Sender.Tell(new JobExecutionStatus(query.RequestId, JobExecutionStatus.RequestStatus.Running));
-                    }
-
-                    break;
+//                case JobExecutionCancelMessage c:
+//                    _cancellationTokenSource?.Cancel();
+//                    Sender.Tell(JobExecutionCancelAckMessage.Instance);
+//                    break;
+//                case JobExecutionStatusQuery query:
+//                    if (query.RequestId != _servingRequestId)
+//                    {
+//                        Sender.Tell(new JobExecutionStatus(query.RequestId,
+//                            JobExecutionStatus.RequestStatus.InvalidRequestId));
+//                    }
+//                    else
+//                    {
+//                        Sender.Tell(new JobExecutionStatus(query.RequestId, JobExecutionStatus.RequestStatus.Running));
+//                    }
+//                    break;
             }
         }
 
         private async Task<JobExecutionStatus> RunJob(JobExecutionRequest request)
         {
-            _state = State.Running;
+            //_state = State.Running;
 
             IChainContext chainContext = null;
 
@@ -105,6 +101,7 @@ namespace AElf.Execution
                 chainContextException = e;
             }
 
+            var result = new List<TransactionTrace>(request.Transactions.Count);
             foreach (var tx in request.Transactions)
             {
                 TransactionTrace trace;
@@ -172,9 +169,10 @@ namespace AElf.Execution
                         }
                     }
                 }
-
-                request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, trace));
+                result.Add(trace);
             }
+            request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, result));
+
 
             if (chainContext != null)
             {
@@ -185,10 +183,11 @@ namespace AElf.Execution
             // TODO: What if actor died in the middle
 
             var retMsg = new JobExecutionStatus(request.RequestId, JobExecutionStatus.RequestStatus.Completed);
-            request.ResultCollector?.Tell(retMsg);
-            request.Router?.Tell(retMsg);
+//            request.ResultCollector?.Tell(retMsg);
+//            request.Router?.Tell(retMsg);
             _servingRequestId = -1;
-            _state = State.Idle;
+            //_state = State.Idle;
+
             return retMsg;
         }
 

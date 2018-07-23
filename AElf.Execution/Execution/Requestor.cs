@@ -20,12 +20,9 @@ namespace AElf.Execution
 
     public class Requestor : UntypedActor
     {
-        private long _currentRequestId = 0;
+        private long _currentRequestId;
 
-        private long NextRequestId
-        {
-            get => Interlocked.Increment(ref _currentRequestId);
-        }
+        private long NextRequestId => Interlocked.Increment(ref _currentRequestId);
 
         private Dictionary<long, TaskCompletionSource<List<TransactionTrace>>> _requestIdToTaskCompleteSource =
             new Dictionary<long, TaskCompletionSource<List<TransactionTrace>>>();
@@ -67,10 +64,11 @@ namespace AElf.Execution
                 case TransactionTraceMessage msg:
                     if (!_requestIdToTraces.TryGetValue(msg.RequestId, out var traces))
                     {
+                        Console.WriteLine("###Debug:{0}, {1}",  msg.RequestId, _requestIdToTraces.Keys);
                         throw new TaskNotCompletedProperlyException("TransactionTrace is received after the task has completed.");
                     }
 
-                    traces.Add(msg.TransactionTrace);
+                    traces = msg.TransactionTraces;
 //                    _requestIdToPendingTransactionIds[msg.RequestId].Remove(msg.TransactionTrace.TransactionId);
                     if (traces.Count == _requesteIdTransactionCounts[msg.RequestId])
                     {
@@ -79,7 +77,6 @@ namespace AElf.Execution
                         _requestIdToTaskCompleteSource.Remove(msg.RequestId);
                         _requestIdToTraces.Remove(msg.RequestId);
                     }
-
                     break;
                 case JobExecutionStatus status:
                     HandleExecutionStatus(status);

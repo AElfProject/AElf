@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,7 +38,7 @@ namespace AElf.Execution
         private ReaderWriterLock _lock = new ReaderWriterLock();
         private HashSet<int> _runningRouteeIndexes = new HashSet<int>();
         private HashSet<int> _idleRouteeIndexes = new HashSet<int>();
-        private Dictionary<long, int> _requestIdToRouteeIndex = new Dictionary<long, int>();
+        private ConcurrentDictionary<long, int> _requestIdToRouteeIndex = new ConcurrentDictionary<long, int>();
 
         public override Routee Select(object message, Routee[] routees)
         {
@@ -59,7 +60,7 @@ namespace AElf.Execution
                             {
                                 _runningRouteeIndexes.Remove(ind);
                                 _idleRouteeIndexes.Add(ind);
-                                _requestIdToRouteeIndex.Remove(status.RequestId);
+                                _requestIdToRouteeIndex.TryRemove(status.RequestId,out _);
                             }
 
                             return IgnoreMessageRoutee;
@@ -76,7 +77,7 @@ namespace AElf.Execution
 
                         _idleRouteeIndexes.Remove(ind);
                         _runningRouteeIndexes.Add(ind);
-                        _requestIdToRouteeIndex.Add(req.RequestId, ind);
+                        _requestIdToRouteeIndex.TryAdd(req.RequestId, ind);
                         return routees[ind];
                     }
 

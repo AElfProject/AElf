@@ -11,6 +11,7 @@ namespace AElf.Configuration
         public string HostName { get; set; }
         public int Port { get; set; }
         public int WorkerCount { get; set; }
+        public bool Benchmark { get; set; }
         public List<SeedNode> Seeds { get; set; }
 
         public string SingleHoconFile { get; set; } = "";
@@ -79,15 +80,6 @@ namespace AElf.Configuration
         /// see <see cref="AElf.Kernel.Concurrency.Scheduling.Grouper"/> for more details
         /// </summary>
         public int ConcurrencyLevel { get; set; }
-
-        public ActorConfig()
-        {
-            IsCluster = false;
-            HostName = "127.0.0.1";
-            Port = 32550;
-            WorkerCount = 8;
-            ConcurrencyLevel = 8;
-        }
     }
 
     public class SeedNode
