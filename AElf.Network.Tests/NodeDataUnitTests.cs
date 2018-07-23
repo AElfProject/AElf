@@ -1,5 +1,6 @@
 ﻿using AElf.Network.Data;
 using Xunit;
+using NodeData = AElf.Network.Data.Protobuf.NodeData;
 
 namespace AElf.Network.Tests
 {

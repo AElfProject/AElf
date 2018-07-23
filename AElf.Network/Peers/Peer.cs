@@ -4,11 +4,13 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Helpers;
 using AElf.Network.Peers.Exceptions;
 using Google.Protobuf;
 using NLog;
+using NodeData = AElf.Network.Data.Protobuf.NodeData;
 
 namespace AElf.Network.Peers
 {
@@ -135,11 +137,6 @@ namespace AElf.Network.Peers
         /// The data received after the initial connection.
         /// </summary>
         public NodeData DistantNodeData { get; private set; }
-
-        public bool IsBootnode
-        {
-            get { return DistantNodeData?.IsBootnode ?? false; }
-        }
 
         public bool IsConnected
         {

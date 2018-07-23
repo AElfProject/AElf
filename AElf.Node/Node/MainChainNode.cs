@@ -27,6 +27,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 using ServiceStack;
+using NodeData = AElf.Network.Data.Protobuf.NodeData;
 
 namespace AElf.Kernel.Node
 {

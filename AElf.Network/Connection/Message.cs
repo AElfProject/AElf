@@ -1,6 +1,6 @@
 ﻿using AElf.Network.Data;
 
-namespace AElf.Network
+namespace AElf.Network.Connection
 {
     public class Message
     {

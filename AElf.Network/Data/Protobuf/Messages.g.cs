@@ -8,8 +8,8 @@
 using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
-using scg = global::System.Collections.Generic;
-namespace AElf.Network.Data {
+
+namespace AElf.Network.Data.Protobuf {
 
   /// <summary>Holder for reflection information generated from messages.proto</summary>
   public static partial class MessagesReflection {
@@ -33,12 +33,12 @@ namespace AElf.Network.Data {
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.NodeData), global::AElf.Network.Data.NodeData.Parser, new[]{ "IpAddress", "Port" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.PeerListData), global::AElf.Network.Data.PeerListData.Parser, new[]{ "NodeData" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.ReqPeerListData), global::AElf.Network.Data.ReqPeerListData.Parser, new[]{ "NumPeers" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.BlockRequest), global::AElf.Network.Data.BlockRequest.Parser, new[]{ "Height" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.TxRequest), global::AElf.Network.Data.TxRequest.Parser, new[]{ "TxHash" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.HeightData), global::AElf.Network.Data.HeightData.Parser, new[]{ "Height" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.Protobuf.NodeData), global::AElf.Network.Data.Protobuf.NodeData.Parser, new[]{ "IpAddress", "Port" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.Protobuf.PeerListData), global::AElf.Network.Data.Protobuf.PeerListData.Parser, new[]{ "NodeData" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.Protobuf.ReqPeerListData), global::AElf.Network.Data.Protobuf.ReqPeerListData.Parser, new[]{ "NumPeers" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.Protobuf.BlockRequest), global::AElf.Network.Data.Protobuf.BlockRequest.Parser, new[]{ "Height" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.Protobuf.TxRequest), global::AElf.Network.Data.Protobuf.TxRequest.Parser, new[]{ "TxHash" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.Network.Data.Protobuf.HeightData), global::AElf.Network.Data.Protobuf.HeightData.Parser, new[]{ "Height" }, null, null, null)
           }));
     }
     #endregion
@@ -53,7 +53,7 @@ namespace AElf.Network.Data {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Network.Data.MessagesReflection.Descriptor.MessageTypes[0]; }
+      get { return global::AElf.Network.Data.Protobuf.MessagesReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -210,7 +210,7 @@ namespace AElf.Network.Data {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Network.Data.MessagesReflection.Descriptor.MessageTypes[1]; }
+      get { return global::AElf.Network.Data.Protobuf.MessagesReflection.Descriptor.MessageTypes[1]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -238,11 +238,11 @@ namespace AElf.Network.Data {
 
     /// <summary>Field number for the "nodeData" field.</summary>
     public const int NodeDataFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::AElf.Network.Data.NodeData> _repeated_nodeData_codec
-        = pb::FieldCodec.ForMessage(10, global::AElf.Network.Data.NodeData.Parser);
-    private readonly pbc::RepeatedField<global::AElf.Network.Data.NodeData> nodeData_ = new pbc::RepeatedField<global::AElf.Network.Data.NodeData>();
+    private static readonly pb::FieldCodec<global::AElf.Network.Data.Protobuf.NodeData> _repeated_nodeData_codec
+        = pb::FieldCodec.ForMessage(10, global::AElf.Network.Data.Protobuf.NodeData.Parser);
+    private readonly pbc::RepeatedField<global::AElf.Network.Data.Protobuf.NodeData> nodeData_ = new pbc::RepeatedField<global::AElf.Network.Data.Protobuf.NodeData>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.Network.Data.NodeData> NodeData {
+    public pbc::RepeatedField<global::AElf.Network.Data.Protobuf.NodeData> NodeData {
       get { return nodeData_; }
     }
 
@@ -331,7 +331,7 @@ namespace AElf.Network.Data {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Network.Data.MessagesReflection.Descriptor.MessageTypes[2]; }
+      get { return global::AElf.Network.Data.Protobuf.MessagesReflection.Descriptor.MessageTypes[2]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -460,7 +460,7 @@ namespace AElf.Network.Data {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Network.Data.MessagesReflection.Descriptor.MessageTypes[3]; }
+      get { return global::AElf.Network.Data.Protobuf.MessagesReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -589,7 +589,7 @@ namespace AElf.Network.Data {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Network.Data.MessagesReflection.Descriptor.MessageTypes[4]; }
+      get { return global::AElf.Network.Data.Protobuf.MessagesReflection.Descriptor.MessageTypes[4]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -718,7 +718,7 @@ namespace AElf.Network.Data {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.Network.Data.MessagesReflection.Descriptor.MessageTypes[5]; }
+      get { return global::AElf.Network.Data.Protobuf.MessagesReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

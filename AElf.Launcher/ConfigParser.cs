@@ -20,6 +20,7 @@ using CommandLine;
 using Google.Protobuf;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NodeData = AElf.Network.Data.Protobuf.NodeData;
 using Path = System.IO.Path;
 
 namespace AElf.Launcher

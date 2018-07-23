@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Network.Data;
+using NodeData = AElf.Network.Data.Protobuf.NodeData;
 
 namespace AElf.Network.Config
 {

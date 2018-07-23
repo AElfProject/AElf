@@ -4,6 +4,7 @@ using AElf.Network.Data;
 using AElf.Node.RPC.DTO;
 using Google.Protobuf;
 using Newtonsoft.Json.Linq;
+using NodeData = AElf.Network.Data.Protobuf.NodeData;
 
 namespace AElf.Kernel.Node.RPC.DTO
 {

@@ -4,20 +4,26 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
-using AElf.Network.Data;
 using NLog;
 
-namespace AElf.Network
+namespace AElf.Network.Connection
 {
+    /// <summary>
+    /// This class performs writes to the underlying tcp stream.
+    /// </summary>
     public class MessageWriter
     {
-        private ILogger _logger;
-        
+        private readonly ILogger _logger;
         private readonly NetworkStream _stream;
-
         private readonly BlockingCollection<Message> _outboundMessages;
         
-        public int MaxOutboundPacketSize { get; set; } = 1024;
+        /// <summary>
+        /// This configuration property determines the maximum size an
+        /// outgoing messages payload. If the payloads size is larger
+        /// than this value, this message will be send in multiple sub
+        /// packets.
+        /// </summary>
+        public int MaxOutboundPacketSize { get; private set; } = 1024;
         
         public MessageWriter(NetworkStream stream)
         {
@@ -27,9 +33,12 @@ namespace AElf.Network
             _logger = LogManager.GetLogger(nameof(MessageReader));
         }
         
+        /// <summary>
+        /// Starts the dequing of outgoing messages.
+        /// </summary>
         public void Start()
         {
-            Task.Run(() => DequeueOutgoing()).ConfigureAwait(false);
+            Task.Run(() => DequeueOutgoingLoop()).ConfigureAwait(false);
         }
         
         public void EnqueueWork(Message p)
@@ -44,7 +53,10 @@ namespace AElf.Network
             }
         }
         
-        public void DequeueOutgoing()
+        /// <summary>
+        /// The main loop that sends queud up messages from the message queue.
+        /// </summary>
+        internal void DequeueOutgoingLoop()
         {
             try
             {
@@ -104,14 +116,6 @@ namespace AElf.Network
                             // Send without splitting
                             SendPacketFromMessage(p);
                         }
-
-                        
-                        if (MaxOutboundPacketSize > p.Payload.Length)
-                        {
-                            
-                        }
-                        
-                        //_logger.Trace($"[Connection] Wrote packets : {typeLength}, {lengthLength}:{p.Length}, {dataLength}, cnt: " + Interlocked.Increment(ref cnt_out));
                     }
                     catch (Exception e)
                     {

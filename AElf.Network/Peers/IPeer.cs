@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AElf.Network.Connection;
 using AElf.Network.Data;
+using NodeData = AElf.Network.Data.Protobuf.NodeData;
 
 namespace AElf.Network.Peers
 {
@@ -17,12 +19,6 @@ namespace AElf.Network.Peers
         bool IsConnected { get; }
         bool IsListening { get; }
         
-        bool IsBootnode { get; }
-        
-        //Task StartListeningAsync();
         void EnqueueOutgoing(Message msg);
-
-        //Task<bool> DoConnectAsync();
-        //Task<bool> SendAuthInfo();
     }
 }

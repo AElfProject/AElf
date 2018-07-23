@@ -3,6 +3,7 @@ using AElf.Kernel.Node.Protocol;
 using AElf.Network.Data;
 using AElf.Network.Peers;
 using Xunit;
+using NodeData = AElf.Network.Data.Protobuf.NodeData;
 
 namespace AElf.Kernel.Tests.BlockSyncTests
 {

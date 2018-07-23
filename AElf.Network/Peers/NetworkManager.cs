@@ -6,10 +6,13 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Network.Config;
+using AElf.Network.Connection;
 using AElf.Network.Data;
+using AElf.Network.Data.Protobuf;
 using AElf.Network.Peers.Exceptions;
 using Google.Protobuf;
 using NLog;
+using NodeData = AElf.Network.Data.Protobuf.NodeData;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Network.Peers
@@ -35,8 +38,6 @@ namespace AElf.Network.Peers
         public event EventHandler PeerRemoved;
         
         private readonly IAElfNetworkConfig _networkConfig;
-        //private readonly INodeDialer _nodeDialer;
-        //private readonly IAElfServer _server;
         private readonly IPeerDatabase _peerDatabase;
         private readonly ILogger _logger;
 
@@ -64,14 +65,12 @@ namespace AElf.Network.Peers
         
         private ConnectionListner _connectionListener;
 
-        public PeerManager(/*IAElfServer server,*/ IAElfNetworkConfig config, ILogger logger) //INodeDialer nodeDialer,
+        public PeerManager(IAElfNetworkConfig config, ILogger logger)
         {
             _connectionListener = new ConnectionListner(); // todo DI
             
-            //_nodeDialer = nodeDialer;
             _networkConfig = config;
             _logger = logger;
-            //_server = server;
 
             if (_networkConfig != null)
             {
@@ -82,7 +81,6 @@ namespace AElf.Network.Peers
                 {
                     foreach (var node in _networkConfig.Bootnodes)
                     {
-                        node.IsBootnode = true;
                         _bootnodes.Add(node);
                     }
                 }
@@ -92,14 +90,6 @@ namespace AElf.Network.Peers
                 }
             }
         }
-        
-//        private void HandleConnection(object sender, EventArgs e)
-//        {
-//            if (sender != null && e is ClientConnectedArgs args)
-//            {
-//                AddPeer(args.NewPeer);
-//            }
-//        }
 
         /// <summary>
         /// This method start the server that listens for incoming
@@ -296,8 +286,7 @@ namespace AElf.Network.Peers
                     NodeData p = new NodeData
                     {
                         IpAddress = peer.IpAddress, 
-                        Port = peer.Port,
-                        IsBootnode = peer.IsBootnode
+                        Port = peer.Port
                     };
                     
                     IPeer newPeer = await CreateAndAddPeer(p);
@@ -451,9 +440,6 @@ namespace AElf.Network.Peers
         public List<NodeData> GetPeers(ushort? numPeers, bool includeBootnodes = true)
         {
             IQueryable<IPeer> peers = _peers.AsQueryable();
-            
-            if (!includeBootnodes)
-                peers = peers.Where(p => !p.IsBootnode);
                 
             peers = peers.OrderBy(p => p.Port);
 
@@ -464,8 +450,7 @@ namespace AElf.Network.Peers
                 .Select(peer => new NodeData
                     {
                         IpAddress = peer.IpAddress,
-                        Port = peer.Port,
-                        IsBootnode = peer.IsBootnode
+                        Port = peer.Port
                     })
                 .ToList();
 
@@ -503,8 +488,7 @@ namespace AElf.Network.Peers
                 NodeData peer = new NodeData
                 {
                     IpAddress = p.IpAddress,
-                    Port = p.Port,
-                    IsBootnode = p.IsBootnode
+                    Port = p.Port
                 };
                 peers.Add(peer);
             }
@@ -551,12 +535,9 @@ namespace AElf.Network.Peers
 
                         foreach (var peer in peers.Where(p => !p.DistantNodeData.Equals(args.Peer.DistantNodeData)))
                         {
-                            if (!peer.IsBootnode)
-                            {
-                                pListData.NodeData.Add(peer.DistantNodeData);
-                                if (pListData.NodeData.Count == numPeers)
-                                    break;
-                            }
+                            pListData.NodeData.Add(peer.DistantNodeData);
+                            if (pListData.NodeData.Count == numPeers)
+                                break;
                         }
 
                         var resp = new Message

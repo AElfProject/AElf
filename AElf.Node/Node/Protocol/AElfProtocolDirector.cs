@@ -7,10 +7,13 @@ using System.Threading.Tasks;
 using System.Xml;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Network;
+using AElf.Network.Connection;
 using AElf.Network.Data;
+using AElf.Network.Data.Protobuf;
 using AElf.Network.Peers;
 using Google.Protobuf;
 using NLog;
+using NodeData = AElf.Network.Data.Protobuf.NodeData;
 
 namespace AElf.Kernel.Node.Protocol
 {

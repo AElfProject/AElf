@@ -9,7 +9,7 @@ using AElf.Network.Data;
 using AElf.Network.Exceptions;
 using NLog;
 
-namespace AElf.Network
+namespace AElf.Network.Connection
 {
     public class PacketReceivedEventArgs : EventArgs
     {

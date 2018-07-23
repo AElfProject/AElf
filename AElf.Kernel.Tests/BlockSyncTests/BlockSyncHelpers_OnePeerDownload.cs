@@ -4,6 +4,7 @@ using AElf.ChainController;
 using AElf.Kernel.Node;
 using AElf.Kernel.Node.Protocol;
 using AElf.Network.Data;
+using AElf.Network.Data.Protobuf;
 using AElf.Network.Peers;
 using Moq;
 using Xunit;
