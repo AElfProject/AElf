@@ -265,3 +265,6 @@ __pycache__/
 slnx.sqlite
 /AElf.Kernel/MerkleTree.cs
 /AElf.Kernel/MerkleNode.cs
+
+# Generated Protobuf classes
+*.g.cs

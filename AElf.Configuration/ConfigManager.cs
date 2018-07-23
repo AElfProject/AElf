@@ -13,8 +13,8 @@ namespace AElf.Configuration
     {
         public static readonly List<string> ConfigFilePaths = new List<string>
         {
-            Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "config"),
-            Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config")
+            Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config"),
+            Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "config")
         };
 
         private static readonly Dictionary<string, ConfigInfo> ConfigInfos = new Dictionary<string, ConfigInfo>();

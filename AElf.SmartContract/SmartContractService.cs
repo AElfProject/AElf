@@ -56,7 +56,7 @@ namespace AElf.SmartContract
 
             // get account dataprovider
             var dataProvider =
-                new CachedDataProvider((await _worldStateDictator.SetChainId(chainId).GetAccountDataProvider(account)).GetDataProvider());
+                new TentativeDataProvider((await _worldStateDictator.SetChainId(chainId).GetAccountDataProvider(account)).GetDataProvider());
 
             // run smartcontract executive info and return executive
 

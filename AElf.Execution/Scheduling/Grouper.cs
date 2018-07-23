@@ -146,6 +146,7 @@ namespace AElf.Execution.Scheduling
                     "Grouper on chainId [{0}] merge {1} groups into {2} groups with sizes [{3}]", chainId,
                     groupResults.Item1.Count, mergedGroups.Count, string.Join(", ", mergedGroups.Select(a=>a.Count))));
 
+
                 return new Tuple<List<List<ITransaction>>, Dictionary<ITransaction, Exception>>(mergedGroups, groupResults.Item2);
             }
         }
