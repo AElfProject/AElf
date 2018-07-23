@@ -73,7 +73,7 @@ namespace AElf.Network.Peers
             string newline;
             foreach (var peer in peerList)
             {
-                newline = string.Format($"{peer.IpAddress},{peer.Port},{peer.IsBootnode}");
+                newline = string.Format($"{peer.IpAddress},{peer.Port}");
                 sb.AppendLine(newline);
             }
 

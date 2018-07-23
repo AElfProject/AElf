@@ -3,14 +3,14 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
-namespace AElf.Network
+namespace AElf.Network.Connection
 {
     public class IncomingConnectionArgs : EventArgs
     {
         public TcpClient Client { get; set; }
     }
     
-    public class ConnectionListner
+    public class ConnectionListner : IConnectionListener
     {
         // Events have to be handled
         public event EventHandler IncomingConnection;

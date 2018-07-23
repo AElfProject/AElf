@@ -12,7 +12,6 @@ using AElf.Network.Data.Protobuf;
 using AElf.Network.Peers.Exceptions;
 using Google.Protobuf;
 using NLog;
-using NodeData = AElf.Network.Data.Protobuf.NodeData;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
 namespace AElf.Network.Peers
@@ -27,7 +26,7 @@ namespace AElf.Network.Peers
         public IPeer Peer { get; set; }
     }
     
-    public class PeerManager : IPeerManager, IDisposable
+    public class NetworkManager : IPeerManager, IDisposable
     {
         public const int TargetPeerCount = 8; 
         
@@ -55,17 +54,15 @@ namespace AElf.Network.Peers
         public bool UndergoingPm { get; private set; } = false;
         public bool ReceivingPeers { get; private set; } = false;
 
-        //public int BootnodeDropThreshold = TargetPeerCount / 2;
-
         private Timer _maintenanceTimer = null;
         private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(5);
         private readonly TimeSpan _maintenancePeriod = TimeSpan.FromMinutes(1);
         
         public bool NoPeers { get; set; } = true;
         
-        private ConnectionListner _connectionListener;
+        private readonly IConnectionListener _connectionListener;
 
-        public PeerManager(IAElfNetworkConfig config, ILogger logger)
+        public NetworkManager(IAElfNetworkConfig config, ILogger logger)
         {
             _connectionListener = new ConnectionListner(); // todo DI
             

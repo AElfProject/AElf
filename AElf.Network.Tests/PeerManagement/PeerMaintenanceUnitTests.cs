@@ -80,21 +80,21 @@ namespace AElf.Network.Tests.PeerManagement
         [Fact(Skip = "todo")]
         public void AddPeer_ShouldReturnTrue_NotBootnode_NotInList()
         {
-            PeerManager peerManager = new PeerManager(null, null, null, null);
+            NetworkManager networkManager = new NetworkManager(null, null, null, null);
             IPeer peer = CreateMockPeer();
 
-            Assert.True(peerManager.AddPeer(peer));
+            Assert.True(networkManager.AddPeer(peer));
         }
         
         [Fact(Skip = "todo")]
         public void AddPeer_ShouldReturnFalse_NotBootnode_InList()
         {
-            PeerManager peerManager = new PeerManager(null, null, null, null);
+            NetworkManager networkManager = new NetworkManager(null, null, null, null);
             IPeer peer = CreateMockPeer();
 
-            peerManager.AddPeer(peer);
+            networkManager.AddPeer(peer);
 
-            Assert.False(peerManager.AddPeer(peer));
+            Assert.False(networkManager.AddPeer(peer));
         }
         
         [Fact(Skip = "todo")]
@@ -110,20 +110,20 @@ namespace AElf.Network.Tests.PeerManagement
         [Fact(Skip = "todo")]
         public void AddPeer_ShouldReturnFalse_Bootnode_InList()
         {
-            PeerManager peerManager = new PeerManager(null, null, null, null);
+            NetworkManager networkManager = new NetworkManager(null, null, null, null);
             IPeer peer = CreateMockPeer(true);
-            peerManager.AddPeer(peer);
+            networkManager.AddPeer(peer);
 
-            Assert.False(peerManager.AddPeer(peer));
+            Assert.False(networkManager.AddPeer(peer));
         }
         
         [Fact]
         public void AddPeer_ShouldReturnFalse_NullParam()
         {
-            PeerManager peerManager = new PeerManager(null, null, null, null);
+            NetworkManager networkManager = new NetworkManager(null, null, null, null);
             IPeer peer = null;
 
-            Assert.False(peerManager.AddPeer(peer));
+            Assert.False(networkManager.AddPeer(peer));
         }
     }
 }
