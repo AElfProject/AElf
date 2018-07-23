@@ -185,7 +185,7 @@ namespace AElf.Contracts.Genesis.ConsensusContract
                 ConsoleWriteLine(nameof(Update), "Failed to parse from byte array.", e);
                 return;
             }
-            
+
             await SupplyDPoSInformationOfCurrentRound(currentRoundInfo);
             await SetDPoSInformationOfNextRound(nextRoundInfo, nextExtraBlockProducer);
         }
@@ -385,21 +385,35 @@ namespace AElf.Contracts.Genesis.ConsensusContract
             {
                 ConsoleWriteLine(nameof(Update), "Failed to get current RoundInfo.", e);
             }
-            
-            foreach (var infoPair in currentRoundInfoFromDPoSMap.Info)
+
+            try
             {
-                //If one Block Producer failed to pulish his in value (with a tx),
-                //it means maybe something wrong happened to him.
-                if (infoPair.Value.InValue != null && infoPair.Value.OutValue != null) 
-                    continue;
+                foreach (var infoPair in currentRoundInfoFromDPoSMap.Info)
+                {
+                    //If one Block Producer failed to pulish his in value (with a tx),
+                    //it means maybe something wrong happened to him.
+                    if (infoPair.Value.InValue != null && infoPair.Value.OutValue != null) 
+                        continue;
                 
-                //So the Extra Block Producer of this round will help him to supply all the needed information
-                //which contains in value, out value, signature.
-                var supplyValue = currentRoundInfo.Info.First(info => info.Key == infoPair.Key)
-                    .Value;
-                infoPair.Value.InValue = supplyValue.InValue;
-                infoPair.Value.OutValue = supplyValue.OutValue;
-                infoPair.Value.Signature = supplyValue.Signature;
+                    //So the Extra Block Producer of this round will help him to supply all the needed information
+                    //which contains in value, out value, signature.
+                    var supplyValue = currentRoundInfo.Info.First(info => info.Key == infoPair.Key)
+                        .Value;
+                    infoPair.Value.InValue = supplyValue.InValue;
+                    infoPair.Value.OutValue = supplyValue.OutValue;
+                    infoPair.Value.Signature = supplyValue.Signature;
+                }
+            }
+            catch (Exception e)
+            {
+                ConsoleWriteLine(nameof(Update), "Failed to supply current RoundInfo", e);
+                
+                ConsoleWriteLine(nameof(Update), "Current RoundInfo:");
+
+                foreach (var key in currentRoundInfo.Info.Keys)
+                {
+                    ConsoleWriteLine(nameof(Update), key);
+                }
             }
 
             await SetCurrentRoundInfo(currentRoundInfoFromDPoSMap);
@@ -408,21 +422,23 @@ namespace AElf.Contracts.Genesis.ConsensusContract
         // ReSharper disable once InconsistentNaming
         private async Task SetDPoSInformationOfNextRound(RoundInfo nextRoundInfo, StringValue nextExtraBlockProducer)
         {
-            var nextRoundNumber = new UInt64Value {Value = CurrentRoundNumber + 1};
             //Update Current Round Number.
             await UpdateCurrentRoundNumber();
 
-            await SetExtraBlockProducerOfSpecificRound(nextRoundNumber, nextExtraBlockProducer);
+            var newRoundNumber = new UInt64Value {Value = CurrentRoundNumber};
+            
+            //Update ExtraBlockProducer.
+            await SetExtraBlockProducerOfSpecificRound(newRoundNumber, nextExtraBlockProducer);
 
             //Update RoundInfo.
             nextRoundInfo.Info.First(info => info.Key == nextExtraBlockProducer.Value).Value.IsEBP = true;
 
             //Update DPoSInfo.
-            await SetDPoSInfoToMap(nextRoundNumber, nextRoundInfo);
+            await SetDPoSInfoToMap(newRoundNumber, nextRoundInfo);
 
             //Update First Place.
-            await SetFirstPlaceOfSpecificRound(nextRoundNumber, new StringValue {Value = nextRoundInfo.Info.First().Key});
-
+            await SetFirstPlaceOfSpecificRound(newRoundNumber, new StringValue {Value = nextRoundInfo.Info.First().Key});
+            
             //Update Extra Block Timeslot.
             await SetExtraBlockMiningTimeslotOfSpecificRound(GetTimestampWithOffset(
                 nextRoundInfo.Info.Last().Value.TimeSlot, Globals.AElfMiningTime + Globals.AElfCheckTime));

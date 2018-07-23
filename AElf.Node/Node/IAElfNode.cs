@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
-using AElf.SmartContract;
 
 namespace AElf.Kernel.Node
 {
@@ -17,6 +16,7 @@ namespace AElf.Kernel.Node
         Task<ulong> GetCurrentChainHeight();
         
         BlockProducer BlockProducers { get; }
+        
         Hash ContractAccountHash { get; }
 
         IDisposable ConsensusDisposable { get; set; }

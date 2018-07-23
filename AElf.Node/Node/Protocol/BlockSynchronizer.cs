@@ -604,8 +604,6 @@ namespace AElf.Kernel.Node.Protocol
                 SyncFinished?.Invoke(this, EventArgs.Empty);
             }
 
-            await _mainChainNode.CheckUpdatingDPoSProcess();
-            
             return executed;
         }
 
