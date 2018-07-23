@@ -1,3 +1,4 @@
+using AElf.CLI2.JS.Crypto;
 using AElf.CLI2.JS.IO;
 using Autofac;
 
@@ -18,6 +19,7 @@ namespace AElf.CLI2.JS
             builder.RegisterType<Console>().As<IConsole>();
             builder.RegisterType<JSEngine>().As<IJSEngine>();
             builder.RegisterInstance(_bridgeJSProvider).As<IBridgeJSProvider>();
+            builder.RegisterType<PseudoRandomGenerator>().As<IRandomGenerator>();
             base.Load(builder);
         }
     }

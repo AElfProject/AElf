@@ -28,7 +28,7 @@ namespace AElf.CLI2.Tests
         }
 
         [Fact]
-        public void TestJSConsole()
+        public void TestConsole()
         {
             var jsEngine = GetJSEngine();
             Assert.NotNull(jsEngine);
@@ -36,6 +36,24 @@ namespace AElf.CLI2.Tests
             jsEngine.RunScript(@"console.log(1, 1.2);");
             jsEngine.RunScript(@"ok = true");
             Assert.True(jsEngine.Get("ok").Value.ToBoolean());
+        }
+
+        [Fact]
+        public void TestCrypto()
+        {
+            var jsEngine = GetJSEngine();
+            jsEngine.RunScript(@"
+var i8 = new Uint8Array(3);
+crypto.getRandomValues(i8);
+var i8_0 = i8[0];
+var i8_1 = i8[1];
+var i8_2 = i8[2];
+");
+            // TODO: Inject a mock random generator.
+            for (var i = 0; i < 3; ++i)
+            {
+                Assert.True(jsEngine.Get($"i8_{i}").Value.ToInt32() < 256);
+            }
         }
     }
 }

@@ -5,12 +5,12 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using AElf.CLI2.Commands;
+using AElf.CLI2.JS.Crypto;
 using AElf.CLI2.JS.IO;
 using ChakraCore.NET;
 using ChakraCore.NET.API;
 using ChakraCore.NET.Hosting;
-using ServiceStack;
-using Console = System.Console;
+using ServiceStack.Configuration;
 
 namespace AElf.CLI2.JS
 {
@@ -18,7 +18,7 @@ namespace AElf.CLI2.JS
     {
         private class JSObj : IJSObject
         {
-            private JSValue _value;
+            private readonly JSValue _value;
 
             public JSObj(JSValue value)
             {
@@ -47,20 +47,42 @@ namespace AElf.CLI2.JS
         private readonly IConsole _console;
         private readonly ChakraContext _context;
         private readonly BaseOption _option;
+        private readonly IRandomGenerator _randomGenerator;
 
-        public JSEngine(IConsole console, BaseOption option, IBridgeJSProvider bridgeJSProvider)
+        public JSEngine(IConsole console, BaseOption option, IBridgeJSProvider bridgeJSProvider,
+            IRandomGenerator randomGenerator)
         {
             _console = console;
             _context = JavaScriptHosting.Default.CreateContext(new JavaScriptHostingConfig());
             _option = option;
+            _randomGenerator = randomGenerator;
             ExposeConsoleToContext();
+            ExposeRandomGenerator();
             ExposeAElfOption();
+            LoadCryptoJS();
             LoadBridgeJS(bridgeJSProvider);
+        }
+
+        private void LoadCryptoJS()
+        {
+            RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
+                .GetManifestResourceStream("AElf.CLI2.Scripts.crypto.js"));
+        }
+
+        private void ExposeRandomGenerator()
+        {
+            _context.GlobalObject.Binding.SetFunction<int>("_randomNextInt", _randomGenerator.NextInt);
         }
 
         private void LoadBridgeJS(IBridgeJSProvider provider)
         {
-            using (var reader = new StreamReader(provider.GetBridgeJSStream(), Encoding.UTF8))
+            var stream = provider.GetBridgeJSStream();
+            RunScript(stream);
+        }
+
+        private void RunScript(Stream stream)
+        {
+            using (var reader = new StreamReader(stream, Encoding.UTF8))
             {
                 _context.RunScript(reader.ReadToEnd());
             }

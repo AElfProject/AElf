@@ -16,9 +16,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Remove="Scripts\bridge.js" />
+    <Content Remove="Scripts\crypto.js" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Scripts\bridge.js" />
+    <EmbeddedResource Include="Scripts\crypto.js" />
   </ItemGroup>
   <Target Name="GenerateBridgeJS" BeforeTargets="BeforeBuild">
     <Exec Command="bash ./Scripts/create_bridge_js.sh" />
