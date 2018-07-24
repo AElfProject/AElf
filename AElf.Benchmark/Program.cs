@@ -3,13 +3,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Database;
-using AElf.Database.Config;
 using AElf.Configuration;
-using AElf.SmartContract;
+using AElf.Database;
 using AElf.Execution;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
+using AElf.SmartContract;
 using Autofac;
 using CommandLine;
 
@@ -22,11 +21,7 @@ namespace AElf.Benchmark
             BenchmarkOptions opts = null;
             Parser.Default.ParseArguments<BenchmarkOptions>(args)
                 .WithParsed(o => { opts = o; })
-                .WithNotParsed(errs =>
-                {
-                    //Valid = false;
-                    //error
-                });
+                .WithNotParsed(errs => {});
 
             if (opts == null)
             {
@@ -57,7 +52,7 @@ namespace AElf.Benchmark
                 {
                     Console.WriteLine(
                         Path.GetFullPath(Path.Combine(opts.DllDir, opts.ContractDll) +
-                                                   " not exist"));
+                                         " not exist"));
                     return;
                 }
 
@@ -65,7 +60,7 @@ namespace AElf.Benchmark
                 {
                     Console.WriteLine(
                         Path.GetFullPath(Path.Combine(opts.DllDir, opts.ZeroContractDll) +
-                                                   " not exist"));
+                                         " not exist"));
                     return;
                 }
 
@@ -76,7 +71,7 @@ namespace AElf.Benchmark
                     return;
                 }
 
-                if (!string.IsNullOrWhiteSpace(opts.Database) || DatabaseConfig.Instance.Type == DatabaseType.KeyValue)
+                if (!string.IsNullOrWhiteSpace(opts.Database) || DatabaseConfig.Instance.Type == DatabaseType.InMemory)
                 {
                     try
                     {
@@ -146,14 +141,14 @@ namespace AElf.Benchmark
                     concurrencySercice.InitActorSystem();
 
                     var benchmarkTps = scope.Resolve<Benchmarks>();
-                    
+
                     Thread.Sleep(200); //sleep 200 ms to let async console print in order 
                     await benchmarkTps.BenchmarkEvenGroup();
                 }
             }
             else if (opts.BenchmarkMethod == BenchmarkMethod.GenerateAccounts)
             {
-                TransactionDataGenerator dataGenerator = new TransactionDataGenerator(opts);
+                var dataGenerator = new TransactionDataGenerator(opts);
                 dataGenerator.PersistAddrsToFile(opts.AccountFileDir);
             }
 
@@ -161,7 +156,7 @@ namespace AElf.Benchmark
             Console.ReadKey();
         }
 
-        private static bool CheckDbConnect(IContainer container)
+        private static bool CheckDbConnect(IComponentContext container)
         {
             var db = container.Resolve<IKeyValueDatabase>();
             return db.IsConnected();

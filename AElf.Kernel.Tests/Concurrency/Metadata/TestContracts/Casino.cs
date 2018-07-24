@@ -18,9 +18,9 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
 
         #region Smart contract reference
         
-        [SmartContractReference("_tokenContractA", typeof(SimpleTokenContract))]
+        [SmartContractReference("_tokenContractA", "0x123")]
         private TestTokenContract _tokenContractA;
-        [SmartContractReference("_tokenContractB", typeof(SimpleTokenContract))]
+        [SmartContractReference("_tokenContractB", "0X456")]
         private TestTokenContract _tokenContractB;
         
         #endregion

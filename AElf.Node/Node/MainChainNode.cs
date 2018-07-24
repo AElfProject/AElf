@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution;
+using AElf.Execution.Scheduling;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node.Config;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.Node.RPC.DTO;
-using AElf.ChainController;
-using AElf.Kernel.Consensus;
 using AElf.SmartContract;
-using AElf.Execution;
-using AElf.Execution.Scheduling;
 using AElf.Network.Data;
 using AElf.Types.CSharp;
 using Akka.Actor;
@@ -76,7 +77,8 @@ namespace AElf.Kernel.Node
         {
             get
             {
-                var dict = MinersInfo.Instance.Producers;
+                var dict = MinersConfig.Instance.Producers;
+
                 var blockProducers = new BlockProducer();
                 foreach (var bp in dict.Values)
                 {
@@ -128,14 +130,15 @@ namespace AElf.Kernel.Node
                 ContractAccountHash, _chainManager, _logger);
         }
 
-        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData, byte[] code)
+        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData,
+            byte[] code)
         {
             if (_nodeConfig == null)
             {
                 _logger?.Log(LogLevel.Error, "No node configuration.");
                 return false;
             }
-            
+
             if (_nodeConfig.ChainId?.Value == null || _nodeConfig.ChainId.Value.Length <= 0)
             {
                 _logger?.Log(LogLevel.Error, "No chain id.");
@@ -145,31 +148,30 @@ namespace AElf.Kernel.Node
             try
             {
                 bool chainExists = _chainManager.Exists(_nodeConfig.ChainId).Result;
-            
+
                 if (!chainExists)
                 {
                     // Creation of the chain if it doesn't already exist
                     var smartContractZeroReg = new SmartContractRegistration
                     {
-                        Category = 0, 
+                        Category = 0,
                         ContractBytes = ByteString.CopyFrom(code),
                         ContractHash = code.CalculateHash()
                     };
                     var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg)
                         .Result;
-                    
+
                     _logger?.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToHex());
                     _logger?.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.ToHex());
                     var contractAddress = GetGenesisContractHash();
                     _logger?.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
                         contractAddress.ToAccount().ToHex());
-                    
                 }
                 else
                 {
                     var preBlockHash = GetLastValidBlockHash().Result;
                     _worldStateDictator.SetWorldStateAsync(preBlockHash);
-                    
+
                     _worldStateDictator.PreBlockHash = preBlockHash;
                     _worldStateDictator.RollbackCurrentChangesAsync();
                 }
@@ -179,22 +181,17 @@ namespace AElf.Kernel.Node
                 _logger?.Log(LogLevel.Error,
                     "Could not create the chain : " + _nodeConfig.ChainId.ToHex());
             }
-            
-            
+
+
             if (!string.IsNullOrWhiteSpace(initData))
             {
-                /*if (!InitialDebugSync(initdata).Result)
-                {
-                    //todo log 
-                    return false;
-                }*/
             }
-            
+
             // set world state
             _worldStateDictator.SetChainId(_nodeConfig.ChainId);
-            
+
             _nodeKeyPair = nodeKeyPair;
-            
+
             if (startRpc)
                 _rpcServer.Start(rpcHost, rpcPort);
 
@@ -204,9 +201,6 @@ namespace AElf.Kernel.Node
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
             _protocolDirector.SetCommandContext(this, true); // If not miner do sync
-            
-            // akka env 
-            
 
             var servicePack = new ServicePack
             {
@@ -215,20 +209,20 @@ namespace AElf.Kernel.Node
                 ResourceDetectionService = new ResourceUsageDetectionService(_functionMetadataService),
                 WorldStateDictator = _worldStateDictator
             };
-            
+
             var grouper = new Grouper(servicePack.ResourceDetectionService, _logger);
             _blockExecutor.Start(grouper);
-            
+
             if (_nodeConfig.IsMiner)
             {
                 _miner.Start(nodeKeyPair, grouper);
-                
+
                 //DoDPos();
                 _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.ToHex());
             }
-            
+
             _logger?.Log(LogLevel.Debug, "AElf node started.");
-            
+
             return true;
         }
 
@@ -236,38 +230,28 @@ namespace AElf.Kernel.Node
         {
             return _nodeConfig.IsMiner;
         }
-        
+
         private async Task<bool> InitialDebugSync(string initFileName)
         {
             try
             {
-                string appFolder = _nodeConfig.DataDir;
-                var fullPath = Path.Combine(appFolder, "tests", initFileName);
+                var fullPath = Path.Combine(_nodeConfig.DataDir, "tests", initFileName);
 
-                /*Block b = null;
-                using (StreamReader r = new StreamReader(fullPath))
+                using (var file = File.OpenText(fullPath))
+                using (var reader = new JsonTextReader(file))
                 {
-                    string jsonChain = r.ReadToEnd();
-                    b = JsonParser.Default.Parse<Block>(jsonChain);
-                }*/
-                
-                using (StreamReader file = File.OpenText(fullPath))
-                using (JsonTextReader reader = new JsonTextReader(file))
-                {
-                    JObject balances = (JObject)JToken.ReadFrom(reader);
-                    
+                    var balances = (JObject) JToken.ReadFrom(reader);
                     foreach (var kv in balances)
                     {
                         var address = ByteArrayHelpers.FromHexString(kv.Key);
                         var balance = kv.Value.ToObject<ulong>();
-                        
+
                         var accountDataProvider = await _worldStateDictator.GetAccountDataProvider(address);
                         var dataProvider = accountDataProvider.GetDataProvider();
-                        
+
                         // set balance
                         await dataProvider.SetAsync("Balance".CalculateHash(),
                             new UInt64Value {Value = balance}.ToByteArray());
-                        var str = $"Initial balance {balance} in Address \"{kv.Key}\""; 
                         _logger?.Log(LogLevel.Debug, "Initial balance {0} in Address \"{1}\"", balance, kv.Key);
                     }
                 }
@@ -320,22 +304,24 @@ namespace AElf.Kernel.Node
             try
             {
                 var tx = Transaction.Parser.ParseFrom(messagePayload);
-                
+
                 var success = await _txPoolService.AddTxAsync(tx);
-                
+
                 if (isFromSend)
                 {
-                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " + tx.IncrementId);
+                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " +
+                                   tx.IncrementId);
                     _protocolDirector.AddTransaction(tx);
                 }
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger?.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ", tx.GetTransactionInfo() ,
+                    _logger?.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ",
+                        tx.GetTransactionInfo(),
                         tx.IncrementId, success);
                     return;
                 }
-                
+
                 _logger?.Trace("Successfully added tx : " + tx.GetHash().Value.ToByteArray().ToHex());
             }
             catch (Exception e)
@@ -633,7 +619,7 @@ namespace AElf.Kernel.Node
 
         public async Task<Block> GetBlockAtHeight(int height)
         {
-            return await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, (ulong)height);
+            return await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, (ulong) height);
         }
 
         /// <summary>

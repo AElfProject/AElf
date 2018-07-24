@@ -4,5 +4,9 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
+    <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj">
+      <Project>{A52F1E94-2805-4B6E-BFC5-CD0063A78ACC}</Project>
+      <Name>AElf.Types.CSharp</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>

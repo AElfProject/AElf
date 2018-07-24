@@ -1,8 +1,6 @@
-﻿using AElf.Configuration;
-
-namespace AElf.Database.Config
+﻿namespace AElf.Configuration
 {
-    [ConfigFile(FileName = "databaseconfig.json")]
+    [ConfigFile(FileName = "database.json")]
     public class DatabaseConfig : ConfigBase<DatabaseConfig>
     {
         public DatabaseType Type { get; set; }
@@ -12,7 +10,7 @@ namespace AElf.Database.Config
 
         public DatabaseConfig()
         {
-            Type = DatabaseType.KeyValue;
+            Type = DatabaseType.InMemory;
             Host = "127.0.0.1";
             Port = 8888;
         }
