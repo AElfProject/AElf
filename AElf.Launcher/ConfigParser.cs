@@ -1,18 +1,14 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using AElf.ChainController;
 using AElf.Common.Application;
 using AElf.Common.ByteArrayHelpers;
-using AElf.Database;
-using AElf.Database.Config;
-using AElf.Kernel;
-//using AElf.Kernel.Concurrency.Config;
-//using AElf.Kernel.Concurrency.Execution.Config;
-//using AElf.Kernel.Miner;
-using AElf.Kernel.Node.Config;
-using AElf.ChainController;
 using AElf.Configuration;
+using AElf.Kernel;
+using AElf.Kernel.Node;
+using AElf.Kernel.Node.Config;
 using AElf.Network.Config;
 using AElf.Network.Data;
 using AElf.Runtime.CSharp;
@@ -20,7 +16,6 @@ using CommandLine;
 using Google.Protobuf;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Path = System.IO.Path;
 
 namespace AElf.Launcher
 {
@@ -78,11 +73,9 @@ namespace AElf.Launcher
 
             // Network
             var netConfig = new AElfNetworkConfig();
-
             if (opts.Bootnodes != null && opts.Bootnodes.Any())
             {
                 netConfig.Bootnodes = new List<NodeData>();
-
                 foreach (var strNodeData in opts.Bootnodes)
                 {
                     var nd = NodeData.FromString(strNodeData);
@@ -105,13 +98,10 @@ namespace AElf.Launcher
             if (opts.Port.HasValue)
                 netConfig.Port = opts.Port.Value;
 
-            /*if (!string.IsNullOrEmpty(opts.Host))
-                netConfig.Host = opts.Host;*/
-
             NetConfig = netConfig;
 
             // Database
-            if (!string.IsNullOrWhiteSpace(opts.DBType) || DatabaseConfig.Instance.Type == DatabaseType.KeyValue)
+            if (!string.IsNullOrWhiteSpace(opts.DBType) || DatabaseConfig.Instance.Type == DatabaseType.InMemory)
             {
                 DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
             }
@@ -195,7 +185,7 @@ namespace AElf.Launcher
             // runner config
             RunnerConfig = new RunnerConfig
             {
-                SdkDir = Path.GetDirectoryName(typeof(AElf.Kernel.Node.MainChainNode).Assembly.Location)
+                SdkDir = Path.GetDirectoryName(typeof(MainChainNode).Assembly.Location)
             };
 
             if (opts.RunnerConfig != null)

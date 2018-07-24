@@ -8,8 +8,7 @@ akka {
         deployment {
             /router {
                 router = round-robin-group
-                routees.paths = ["/user/worker"]
-                virtual-nodes-factor = 8
+                routees.paths = [""/user/worker""]
                 cluster {
                     enabled = on
                     max-nr-of-instances-per-node = 1
@@ -19,35 +18,29 @@ akka {
             }
         }
         router.type-mapping {
-            tracked-group = "AElf.Kernel.Concurrency.Execution.TrackedGroup, AElf.Kernel"
+            tracked-group = ""AElf.Kernel.Concurrency.Execution.TrackedGroup, AElf.Kernel""
         }
         serializers {
-            hyperion = "Akka.Serialization.HyperionSerializer, Akka.Serialization.Hyperion"
-            bytes = "Akka.Serialization.ByteArraySerializer"
+            hyperion = ""Akka.Serialization.HyperionSerializer, Akka.Serialization.Hyperion""
+            bytes = ""Akka.Serialization.ByteArraySerializer""
         }
         serialization-bindings {
-            "System.Byte[]" = bytes
-            "System.Object" = hyperion
+            ""System.Object"" = hyperion
+            ""System.Byte[]"" = bytes
         }
     }
     remote {
-        maximum-payload-bytes = 30000000 bytes
         dot-netty.tcp {
-            hostname = "127.0.0.1"
+            hostname = ""127.0.0.1""
             port = 0
-            message-frame-size =  30000000b
-            send-buffer-size =  30000000b
-            receive-buffer-size =  30000000b
-            maximum-frame-size = 30000000b
+            maximum-frame-size = 300000000b
+            send-buffer-size = 300000000b
+            receive-buffer-size = 300000000b
+            enable-pooling = false
         }
     }
     cluster {
-        seed-nodes = ["akka.tcp://AElfSystem@127.0.0.1:32551"]
-        roles = ["master"]
-        seed-node-timeout = 10s
-        gossip-interval = 3s
-        gossip-time-to-live = 5s
-        leader-actions-interval = 3s
-        unreachable-nodes-reaper-interval = 3s
+        seed-nodes = [""akka.tcp://AElfSystem@127.0.0.1:32551""]
+        roles = [""manager""]
     }
 }

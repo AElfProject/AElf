@@ -1,5 +1,5 @@
-﻿﻿using AElf.Database;
-using AElf.Database.Config;
+﻿using AElf.Configuration;
+using AElf.Database;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
@@ -10,7 +10,7 @@ namespace AElf.Kernel.Modules.AutofacModule
         {
             switch (DatabaseConfig.Instance.Type)
             {
-                case DatabaseType.KeyValue:
+                case DatabaseType.InMemory:
                     builder.RegisterType<KeyValueDatabase>().As<IKeyValueDatabase>().SingleInstance();
                     break;
                 case DatabaseType.Redis:
