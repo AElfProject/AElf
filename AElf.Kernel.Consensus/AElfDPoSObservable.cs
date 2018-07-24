@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using Google.Protobuf.WellKnownTypes;
@@ -52,7 +50,7 @@ namespace AElf.Kernel.Consensus
             switch (value)
             {
                 case ConsensusBehavior.DoNothing:
-                    _logger?.Trace("Start a new round.");
+                    _logger?.Trace("Start a new round though this behavior doing nothing.");
                     break;
                 case ConsensusBehavior.InitializeAElfDPoS:
                     _miningWithInitializingAElfDPoSInformation();
@@ -141,10 +139,19 @@ namespace AElf.Kernel.Consensus
                 _logger?.Trace($"Will help to produce extra block after {after} seconds");
             }
 
+            var moreExtraBlock = distanceToPublishInValue + (Globals.AElfMiningTime * 2 +
+                                                             Globals.AElfMiningTime * Globals.BlockProducerNumber +
+                                                             Globals.AElfMiningTime * infoOfMe.Order) / 1000;
+            var produceMoreExtraBlock = Observable
+                .Timer(TimeSpan.FromSeconds(Globals.AElfMiningTime + Globals.AElfMiningTime * infoOfMe.Order))
+                .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
+            _logger?.Trace($"Will help to produce more extra block after {moreExtraBlock} seconds");
+
             return Observable.Return(ConsensusBehavior.DoNothing)
                 .Concat(produceNormalBlock)
                 .Concat(publishInValue)
                 .Concat(produceExtraBlock)
+                .Concat(produceMoreExtraBlock)
                 .Subscribe(this);
         }
     }

@@ -252,11 +252,19 @@ namespace AElf.Kernel.Consensus
                 var extraBlockTimeslotOfCurrentRound = Timestamp.Parser.ParseFrom(
                     await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
 
+                //Maybe because something happened with setting extra block timeslot.
+                if (extraBlockTimeslotOfCurrentRound.ToDateTime() < GetTimestampOfUtcNow().ToDateTime())
+                {
+                    extraBlockTimeslotOfCurrentRound = GetTimestampWithOffset(extraBlockTimeslotOfCurrentRound,
+                        Globals.AElfMiningTime + Globals.AElfMiningTime * Globals.BlockProducerNumber);
+                }
+
                 for (var i = 0; i < orderDict.Count; i++)
                 {
                     var bpInfoNew = new BPInfo
                     {
-                        TimeSlot = GetTimestampWithOffset(extraBlockTimeslotOfCurrentRound, i * Globals.AElfMiningTime + Globals.AElfMiningTime),
+                        TimeSlot = GetTimestampWithOffset(extraBlockTimeslotOfCurrentRound,
+                            i * Globals.AElfMiningTime + Globals.AElfMiningTime),
                         Order = i + 1
                     };
 
