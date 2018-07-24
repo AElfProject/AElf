@@ -64,7 +64,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var txDic = GetTestData();
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
-            var grouped = grouper.ProcessNaive(Hash.Generate(), txDic.Values.SelectMany(x => x).ToList(), out var failedTxs);
+            var grouped = (await grouper.ProcessNaive(Hash.Generate(), txDic.Values.SelectMany(x => x).ToList())).Item1;
             var s = grouped.Select(
                 x =>
                 String.Join(" ", x.OrderBy(y => _accountList.IndexOf(y.From)).ThenBy(z => _accountList.IndexOf(z.To)).Select(
@@ -87,7 +87,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var txList = _dataUtil.GetFullTxList();
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
-            var grouped = grouper.ProcessNaive(Hash.Generate(), txList.Select(x => x).ToList(), out var failedTxs);
+            var grouped = (await grouper.ProcessNaive(Hash.Generate(), txList.Select(x => x).ToList())).Item1;
             var s = grouped.Select(
                 x => _dataUtil.StringRepresentation(x)
             ).ToList();
@@ -102,7 +102,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
 
             var testCasesCount = 4;
-            var coreCountList = new int[] {7, 10, 1, 5, 100, 1000, 5, 3};
+            var coreCountList = new[] {7, 10, 1, 5, 100, 1000, 5, 3};
             var testCaseSizesList = new List<List<int>>(new []
             {
                 new List<int>(){100, 20, 30, 1, 2, 4, 5, 1, 50, 70, 90}, //normal cases
@@ -134,7 +134,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                 var unmergedGroup = ProduceFakeTxGroup(testCaseSizesList[i]);
                 var txList = new List<ITransaction>();
                 unmergedGroup.ForEach(a => txList.AddRange(a));
-                var actualRes = grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins, coreCountList[i], Hash.Zero, txList, out var failedTxs);
+                var actualRes = (await grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins, coreCountList[i], Hash.Zero, txList)).Item1;
                 var acutalSizes = actualRes.Select(a => a.Count).ToList();
                 Assert.Equal(expectedSizesList[i].OrderBy(a=>a), acutalSizes.OrderBy(a=>a));
             }
@@ -147,7 +147,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
 
             var testCasesCount = 4;
-            var coreCountList = new int[] {7, 10, 1, 5, 100, 1000, 5, 3};
+            var coreCountList = new[] {7, 10, 1, 5, 100, 1000, 5, 3};
             var testCaseSizesList = new List<List<int>>(new []
             {
                 new List<int>(){100, 20, 30, 1, 2, 4, 5, 1, 50, 70, 90}, //normal cases
@@ -188,7 +188,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                 var unmergedGroup = ProduceFakeTxGroup(testCaseSizesList[i]);
                 var txList = new List<ITransaction>();
                 unmergedGroup.ForEach(a => txList.AddRange(a));
-                var actualRes = grouper.ProcessWithCoreCount(GroupStrategy.Limited_MinsAddUp, coreCountList[i], Hash.Zero, txList, out var failedTxs);
+                var actualRes = (await grouper.ProcessWithCoreCount(GroupStrategy.Limited_MinsAddUp, coreCountList[i], Hash.Zero, txList)).Item1;
                 var acutalSizes = actualRes.Select(a => a.Count).ToList();
                 Assert.Equal(expectedSizesList[i].OrderBy(a=>a), acutalSizes.OrderBy(a=>a));
             }

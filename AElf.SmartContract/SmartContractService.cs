@@ -101,9 +101,9 @@ namespace AElf.SmartContract
 
             if (ParallelConfig.Instance.IsParallelEnable)
             {
-                var contractType = GetContractType(registration);
-                //TODO: due to (1) unclear with how to get the contract reference info and (2) function metadata service don't have update logic, we pass empty reference map as parameter and don't support contract call each other for now 
-                await _functionMetadataService.DeployContract(chainId, contractType, account, new Dictionary<string, Hash>());
+                var contractType = runner.GetContractType(registration);
+                var contractTemplate = runner.ExtractMetadata(contractType);
+                await _functionMetadataService.DeployContract(chainId, account, contractTemplate);
             }
             
             await _smartContractManager.InsertAsync(account, registration);
