@@ -6,6 +6,12 @@ using Akka.Actor;
 using AElf.Kernel;
 using AElf.SmartContract;
 
+/*
+    Todo:
+    There are stability issues about TrackedRouter, so we use the Akka default router temporarily.
+    Some of the code is annotated, marked with "todo" and optimized later.
+ */
+
 namespace AElf.Execution
 {
     /// <summary>
@@ -50,8 +56,10 @@ namespace AElf.Execution
                             task => task.Result,
                             TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
                         );
+                        // TODO: tell requestor about the worker is running.
                         //Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Running));
                     }
+                    // TODO: if the state is not idle state,tell requestor
 //                    else if (_state == State.PendingSetSericePack)
 //                    {
 //                        Sender.Tell(new JobExecutionStatus(req.RequestId,
@@ -63,10 +71,12 @@ namespace AElf.Execution
 //                    }
 
                     break;
+                // TODO: receive cancel message
 //                case JobExecutionCancelMessage c:
 //                    _cancellationTokenSource?.Cancel();
 //                    Sender.Tell(JobExecutionCancelAckMessage.Instance);
 //                    break;
+                // TODO: receive status query message
 //                case JobExecutionStatusQuery query:
 //                    if (query.RequestId != _servingRequestId)
 //                    {
@@ -83,6 +93,7 @@ namespace AElf.Execution
 
         private async Task<JobExecutionStatus> RunJob(JobExecutionRequest request)
         {
+            // TODO: when worker running job,set to running state.
             //_state = State.Running;
 
             IChainContext chainContext = null;
@@ -183,6 +194,7 @@ namespace AElf.Execution
             // TODO: What if actor died in the middle
 
             var retMsg = new JobExecutionStatus(request.RequestId, JobExecutionStatus.RequestStatus.Completed);
+            // TODO: tell requestor and router about the worker complete job,and set to idle state.
 //            request.ResultCollector?.Tell(retMsg);
 //            request.Router?.Tell(retMsg);
             _servingRequestId = -1;
