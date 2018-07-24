@@ -470,7 +470,7 @@ namespace AElf.SmartContract
                 .ToDictionary(kv => new Hash(kv.Key.CalculateHashWith(prevBlockHash)), kv => kv.Value.CurrentValue);
             if (pipelineSet.Count > 0)
             {
-                _logger?.Debug($"Pipeline set {pipelineSet.Count} data item");
+                //_logger?.Debug($"Pipeline set {pipelineSet.Count} data item");
                 return await _dataStore.PipelineSetDataAsync(pipelineSet);
             }
 

@@ -6,6 +6,12 @@ using Akka.Actor;
 using AElf.Kernel;
 using AElf.SmartContract;
 
+/*
+    Todo: #338
+    There are stability issues about TrackedRouter, so we use the Akka default router temporarily.
+    Some of the code is annotated, marked with "todo" and optimized later.
+ */
+
 namespace AElf.Execution
 {
     /// <summary>
@@ -23,7 +29,6 @@ namespace AElf.Execution
 
         private State _state = State.PendingSetSericePack;
         private long _servingRequestId = -1;
-
         private ServicePack _servicePack;
 
         // TODO: Add cancellation
@@ -46,15 +51,20 @@ namespace AElf.Execution
                     {
                         _cancellationTokenSource?.Dispose();
                         _cancellationTokenSource = new CancellationTokenSource();
-                        var receiver = Self;
-                        Task.Run(() =>
-                            RunJob(req).ContinueWith(
-                                task => task.Result,
-                                TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
-                            ).PipeTo(receiver)
+
+                        RunJob(req).ContinueWith(
+                            task => task.Result,
+                            TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
                         );
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
                         Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Running));
+*/
                     }
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
                     else if (_state == State.PendingSetSericePack)
                     {
                         Sender.Tell(new JobExecutionStatus(req.RequestId,
@@ -64,12 +74,16 @@ namespace AElf.Execution
                     {
                         Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Rejected));
                     }
-
+*/
                     break;
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
                 case JobExecutionCancelMessage c:
                     _cancellationTokenSource?.Cancel();
                     Sender.Tell(JobExecutionCancelAckMessage.Instance);
                     break;
+
                 case JobExecutionStatusQuery query:
                     if (query.RequestId != _servingRequestId)
                     {
@@ -80,14 +94,18 @@ namespace AElf.Execution
                     {
                         Sender.Tell(new JobExecutionStatus(query.RequestId, JobExecutionStatus.RequestStatus.Running));
                     }
-
                     break;
+*/
             }
         }
 
         private async Task<JobExecutionStatus> RunJob(JobExecutionRequest request)
         {
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
             _state = State.Running;
+*/
 
             IChainContext chainContext = null;
 
@@ -105,6 +123,7 @@ namespace AElf.Execution
                 chainContextException = e;
             }
 
+            var result = new List<TransactionTrace>(request.Transactions.Count);
             foreach (var tx in request.Transactions)
             {
                 TransactionTrace trace;
@@ -172,9 +191,10 @@ namespace AElf.Execution
                         }
                     }
                 }
-
-                request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, trace));
+                result.Add(trace);
             }
+            request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, result));
+
 
             if (chainContext != null)
             {
@@ -185,10 +205,19 @@ namespace AElf.Execution
             // TODO: What if actor died in the middle
 
             var retMsg = new JobExecutionStatus(request.RequestId, JobExecutionStatus.RequestStatus.Completed);
+            // TODO: tell requestor and router about the worker complete job,and set to idle state.
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
             request.ResultCollector?.Tell(retMsg);
             request.Router?.Tell(retMsg);
+*/
             _servingRequestId = -1;
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
             _state = State.Idle;
+*/
             return retMsg;
         }
 

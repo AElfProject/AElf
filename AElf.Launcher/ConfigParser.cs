@@ -178,6 +178,11 @@ namespace AElf.Launcher
                 ParallelConfig.Instance.IsParallelEnable = opts.IsParallelEnable.Value;
             }
 
+            if (opts.Benchmark.HasValue)
+            {
+                ActorConfig.Instance.Benchmark = opts.Benchmark.Value;
+            }
+
             NodeConfig.DataDir = string.IsNullOrEmpty(opts.DataDir)
                 ? ApplicationHelpers.GetDefaultDataDir()
                 : opts.DataDir;

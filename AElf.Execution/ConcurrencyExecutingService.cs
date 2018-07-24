@@ -32,7 +32,7 @@ namespace AElf.Execution
                 WorldStateDictator = worldStateDictator,
                 AccountContextService = accountContextService,
             };
-            worldStateDictator.DeleteChangeBeforesImmidiately = true;
+            _servicePack.WorldStateDictator.DeleteChangeBeforesImmidiately = ActorConfig.Instance.Benchmark;
             _isInit = false;
         }
 
@@ -53,8 +53,7 @@ namespace AElf.Execution
             var config = InitActorConfig(ActorConfig.Instance.WorkerHoconConfig);
 
             _actorSystem = ActorSystem.Create(SystemName, config);
-            var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker");
-            worker.Tell(new LocalSerivcePack(_servicePack));
+            InitWorkerServicePack();
         }
 
         public void InitActorSystem()
@@ -62,32 +61,34 @@ namespace AElf.Execution
             if (ActorConfig.Instance.IsCluster)
             {
                 var config = InitActorConfig(ActorConfig.Instance.MasterHoconConfig);
+                
                 _actorSystem = ActorSystem.Create(SystemName, config);
                 //Todo waiting for join cluster. we should get the status here.
-                Thread.Sleep(2000);
+                Thread.Sleep(8000);
                 _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");
             }
             else
             {
-                _actorSystem = ActorSystem.Create(SystemName);
-                var workers = new List<string>();
-                for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
-                {
-                    workers.Add("/user/worker" + i);
-                }
+                var config = InitActorConfig(ActorConfig.Instance.SingleHoconConfig);
 
-                _router = _actorSystem.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
-                for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
-                {
-                    var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker" + i);
-                    worker.Tell(new LocalSerivcePack(_servicePack));
-                }
+                _actorSystem = ActorSystem.Create(SystemName,config);
+                _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");
+                InitWorkerServicePack();
             }
 
             _isInit = true;
         }
 
-        private Akka.Configuration.Config InitActorConfig(string content)
+        private void InitWorkerServicePack()
+        {
+            for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
+            {
+                var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker" + i);
+                worker.Tell(new LocalSerivcePack(_servicePack));
+            }
+        }
+
+        private Config InitActorConfig(string content)
         {
             if (ActorConfig.Instance.Seeds == null || ActorConfig.Instance.Seeds.Count == 0)
             {
@@ -103,10 +104,20 @@ namespace AElf.Execution
             seedNodes.Remove(seedNodes.Length - 1, 1);
             seedNodes.Append("]");
             
+            var workerPaths = new StringBuilder();
+            workerPaths.Append("akka.actor.deployment./router.routees.paths = [");
+            for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
+            {
+                workerPaths.Append("\"/user/worker" + i).Append("\"").Append(",");
+            }
+            workerPaths.Remove(workerPaths.Length - 1, 1);
+            workerPaths.Append("]");
+            
             
             var config = ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.hostname=" + ActorConfig.Instance.HostName)
                 .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.port=" + ActorConfig.Instance.Port))
                 .WithFallback(ConfigurationFactory.ParseString(seedNodes.ToString()))
+                .WithFallback(ConfigurationFactory.ParseString(workerPaths.ToString()))
                 .WithFallback(content);
 
             return config;
