@@ -438,7 +438,10 @@ namespace AElf.Kernel.Node
                 var executed = await _blockExecutor.ExecuteBlock(block);
                 Interlocked.CompareExchange(ref _flag, 0, 1);
 
-                await CheckUpdatingDPoSProcess();
+                if (_protocolDirector.GetLatestIndexOfOtherNode() != -1)
+                {
+                    await CheckUpdatingDPoSProcess();
+                }
 
                 return new BlockExecutionResult(executed, error);
                 //return new BlockExecutionResult(true, error);
@@ -496,14 +499,15 @@ namespace AElf.Kernel.Node
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
-        public async Task StartConsensusProcess()
+        public void StartConsensusProcess()
         {
             if (IsMining)
                 return;
 
             IsMining = true;
 
-            if (_dPoSHelper.CurrentRoundNumber.Value == 0)
+            if (_dPoSHelper.CurrentRoundNumber.Value == 0 &&
+                BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
             {
                 ConsensusSequence.Initialization();
             }
@@ -659,40 +663,18 @@ namespace AElf.Kernel.Node
                     async x =>
                     {
                         var currentHeightOfThisNode = (long) await _chainManager.GetChainCurrentHeight(ChainId);
-                        var currentHeightOfOtherNodes = _protocolDirector.GetLatestIndexOfOtherNode();
-                        if (currentHeightOfThisNode < currentHeightOfOtherNodes && currentHeightOfOtherNodes != -1)
-                        {
-                            _logger?.Debug("Current height of me: " + currentHeightOfThisNode);
-                            _logger?.Debug("Current height of others: " + currentHeightOfOtherNodes);
-                            _logger?.Debug("Having more blocks to sync, so the dpos mining won't start");
-                            _logger?.Debug("---- DPoS checking end");
+
+                        if (!doLogsAboutConsensus) 
                             return;
-                        }
+                        
+                        // ReSharper disable once InconsistentNaming
+                        var currentDPoSInfo = await GetDPoSInfo(currentHeightOfThisNode);
+                        if (dPoSInfo == currentDPoSInfo)
+                            return;
+                            
+                        dPoSInfo = currentDPoSInfo;
+                        _logger?.Log(LogLevel.Debug, dPoSInfo);
 
-                        #region Log DPoS Info
-
-                        if (doLogsAboutConsensus)
-                        {
-                            // ReSharper disable once InconsistentNaming
-                            var currentDPoSInfo = await GetDPoSInfo(currentHeightOfThisNode);
-                            if (dPoSInfo != currentDPoSInfo)
-                            {
-                                dPoSInfo = currentDPoSInfo;
-                                _logger?.Log(LogLevel.Debug, dPoSInfo);
-                            }
-                        }
-
-                        #endregion
-                    },
-
-                    ex =>
-                    {
-                        _logger?.Error("Error occurs to dpos part");
-                    },
-
-                    () =>
-                    {
-                        _logger?.Debug("Complete dpos");
                     }
                 );
                 

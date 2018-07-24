@@ -69,9 +69,9 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public IDisposable Initialization()
+        public void Initialization()
         {
-            return Observable.Return(ConsensusBehavior.InitializeAElfDPoS).Subscribe(this);
+            Observable.Return(ConsensusBehavior.InitializeAElfDPoS).Subscribe(this);
         }
 
         public IDisposable NormalMiningProcess(BPInfo infoOfMe, Timestamp extraBlockTimeslot)

@@ -35,7 +35,7 @@ namespace AElf.Kernel.Consensus
         bool PrintLogs { get; }
 
         /// <summary>
-        /// To adjust the difficult of PoW mining.
+        /// To adjust the difficulty of PoW mining.
         /// </summary>
         Hash Nonce { get; set; }
         
