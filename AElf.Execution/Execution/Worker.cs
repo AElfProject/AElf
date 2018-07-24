@@ -7,7 +7,7 @@ using AElf.Kernel;
 using AElf.SmartContract;
 
 /*
-    Todo:
+    Todo: #338
     There are stability issues about TrackedRouter, so we use the Akka default router temporarily.
     Some of the code is annotated, marked with "todo" and optimized later.
  */
@@ -56,45 +56,56 @@ namespace AElf.Execution
                             task => task.Result,
                             TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
                         );
-                        // TODO: tell requestor about the worker is running.
-                        //Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Running));
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
+                        Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Running));
+*/
                     }
-                    // TODO: if the state is not idle state,tell requestor
-//                    else if (_state == State.PendingSetSericePack)
-//                    {
-//                        Sender.Tell(new JobExecutionStatus(req.RequestId,
-//                            JobExecutionStatus.RequestStatus.FailedDueToWorkerNotReady));
-//                    }
-//                    else
-//                    {
-//                        Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Rejected));
-//                    }
-
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
+                    else if (_state == State.PendingSetSericePack)
+                    {
+                        Sender.Tell(new JobExecutionStatus(req.RequestId,
+                            JobExecutionStatus.RequestStatus.FailedDueToWorkerNotReady));
+                    }
+                    else
+                    {
+                        Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Rejected));
+                    }
+*/
                     break;
-                // TODO: receive cancel message
-//                case JobExecutionCancelMessage c:
-//                    _cancellationTokenSource?.Cancel();
-//                    Sender.Tell(JobExecutionCancelAckMessage.Instance);
-//                    break;
-                // TODO: receive status query message
-//                case JobExecutionStatusQuery query:
-//                    if (query.RequestId != _servingRequestId)
-//                    {
-//                        Sender.Tell(new JobExecutionStatus(query.RequestId,
-//                            JobExecutionStatus.RequestStatus.InvalidRequestId));
-//                    }
-//                    else
-//                    {
-//                        Sender.Tell(new JobExecutionStatus(query.RequestId, JobExecutionStatus.RequestStatus.Running));
-//                    }
-//                    break;
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
+                case JobExecutionCancelMessage c:
+                    _cancellationTokenSource?.Cancel();
+                    Sender.Tell(JobExecutionCancelAckMessage.Instance);
+                    break;
+
+                case JobExecutionStatusQuery query:
+                    if (query.RequestId != _servingRequestId)
+                    {
+                        Sender.Tell(new JobExecutionStatus(query.RequestId,
+                            JobExecutionStatus.RequestStatus.InvalidRequestId));
+                    }
+                    else
+                    {
+                        Sender.Tell(new JobExecutionStatus(query.RequestId, JobExecutionStatus.RequestStatus.Running));
+                    }
+                    break;
+*/
             }
         }
 
         private async Task<JobExecutionStatus> RunJob(JobExecutionRequest request)
         {
-            // TODO: when worker running job,set to running state.
-            //_state = State.Running;
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
+            _state = State.Running;
+*/
 
             IChainContext chainContext = null;
 
@@ -195,11 +206,18 @@ namespace AElf.Execution
 
             var retMsg = new JobExecutionStatus(request.RequestId, JobExecutionStatus.RequestStatus.Completed);
             // TODO: tell requestor and router about the worker complete job,and set to idle state.
-//            request.ResultCollector?.Tell(retMsg);
-//            request.Router?.Tell(retMsg);
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
+            request.ResultCollector?.Tell(retMsg);
+            request.Router?.Tell(retMsg);
+*/
             _servingRequestId = -1;
-            //_state = State.Idle;
-
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
+            _state = State.Idle;
+*/
             return retMsg;
         }
 

@@ -36,19 +36,25 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, new List<ITransaction>() {tx1}, TestActor,
                 TestActor));
 
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
             // Start processing
-//            var js1 = ExpectMsg<JobExecutionStatus>();
-//            Assert.Equal(JobExecutionStatus.RequestStatus.Running, js1.Status);
-
+            var js1 = ExpectMsg<JobExecutionStatus>();
+            Assert.Equal(JobExecutionStatus.RequestStatus.Running, js1.Status);
+*/
             // Return result
             var trace = ExpectMsg<TransactionTraceMessage>().TransactionTraces.FirstOrDefault();
 
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
             // Completed, two messages will be received
             // 1 for sender, 1 for router (in this test both are TestActor)
-//            ExpectMsg<JobExecutionStatus>();
-//            var js2 = ExpectMsg<JobExecutionStatus>();
-//            Assert.Equal(JobExecutionStatus.RequestStatus.Completed, js2.Status);
-
+            ExpectMsg<JobExecutionStatus>();
+            var js2 = ExpectMsg<JobExecutionStatus>();
+            Assert.Equal(JobExecutionStatus.RequestStatus.Completed, js2.Status);
+*/
             Assert.Equal(tx1.GetHash(), trace.TransactionId);
             if (!string.IsNullOrEmpty(trace.StdErr))
             {
@@ -58,12 +64,16 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Assert.Equal((ulong) 90, _mock.GetBalance1(from));
             Assert.Equal((ulong) 10, _mock.GetBalance1(to));
 
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
             // Query status
-//            _mock.Worker1.Tell(new JobExecutionStatusQuery(0));
-//
-//            // Invalid request id as it has already completed
-//            var js3 = ExpectMsg<JobExecutionStatus>();
-//            Assert.Equal(JobExecutionStatus.RequestStatus.InvalidRequestId, js3.Status);
+            _mock.Worker1.Tell(new JobExecutionStatusQuery(0));
+
+            // Invalid request id as it has already completed
+            var js3 = ExpectMsg<JobExecutionStatus>();
+            Assert.Equal(JobExecutionStatus.RequestStatus.InvalidRequestId, js3.Status);
+*/
         }
 
         [Fact]
@@ -93,18 +103,26 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 TestActor));
 
             // Start processing
-//            var js1 = ExpectMsg<JobExecutionStatus>();
-//            Assert.Equal(JobExecutionStatus.RequestStatus.Running, js1.Status);
 
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
+            var js1 = ExpectMsg<JobExecutionStatus>();
+            Assert.Equal(JobExecutionStatus.RequestStatus.Running, js1.Status);
+*/
             // Return result
             var trace = ExpectMsg<TransactionTraceMessage>().TransactionTraces;
             var trace1 = trace[0];
             var trace2 = trace[1];
 
             // Completed
-//            var js2 = ExpectMsg<JobExecutionStatus>();
-//            Assert.Equal(JobExecutionStatus.RequestStatus.Completed, js2.Status);
 
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
+            var js2 = ExpectMsg<JobExecutionStatus>();
+            Assert.Equal(JobExecutionStatus.RequestStatus.Completed, js2.Status);
+*/
             Assert.Equal(tx1.GetHash(), trace1.TransactionId);
             Assert.Equal(tx2.GetHash(), trace2.TransactionId);
             if (!string.IsNullOrEmpty(trace1.StdErr))
@@ -126,33 +144,37 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Assert.True(end1 < start2);
         }
 
-//        [Fact]
-//        public void JobCancelTest()
-//        {
-//            var job = new List<ITransaction>()
-//            {
-//                _mock.GetSleepTxn1(1000),
-//                _mock.GetSleepTxn1(1000),
-//                _mock.GetNoActionTxn1()
-//            };
-//
-//            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor,
-//                TestActor));
-//
-//            Thread.Sleep(1500);
-//            _mock.Worker1.Tell(JobExecutionCancelMessage.Instance);
-//
-//            var traces = new List<TransactionTrace>()
-//            {
-//                ((TransactionTraceMessage) FishForMessage(msg => msg is TransactionTraceMessage))
-//                .TransactionTrace,
-//                ((TransactionTraceMessage) FishForMessage(msg => msg is TransactionTraceMessage))
-//                .TransactionTrace,
-//                ((TransactionTraceMessage) FishForMessage(msg => msg is TransactionTraceMessage))
-//                .TransactionTrace
-//            };
-//
-//            Assert.Equal("Execution Cancelled", traces[2].StdErr);
-//        }
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
+        [Fact]
+        public void JobCancelTest()
+        {
+            var job = new List<ITransaction>()
+            {
+                _mock.GetSleepTxn1(1000),
+                _mock.GetSleepTxn1(1000),
+                _mock.GetNoActionTxn1()
+            };
+
+            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, job, TestActor,
+                TestActor));
+
+            Thread.Sleep(1500);
+            _mock.Worker1.Tell(JobExecutionCancelMessage.Instance);
+
+            var traces = new List<TransactionTrace>()
+            {
+                ((TransactionTraceMessage) FishForMessage(msg => msg is TransactionTraceMessage))
+                .TransactionTrace,
+                ((TransactionTraceMessage) FishForMessage(msg => msg is TransactionTraceMessage))
+                .TransactionTrace,
+                ((TransactionTraceMessage) FishForMessage(msg => msg is TransactionTraceMessage))
+                .TransactionTrace
+            };
+
+            Assert.Equal("Execution Cancelled", traces[2].StdErr);
+        }
+*/
     }
 }
