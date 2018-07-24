@@ -18,6 +18,7 @@ using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
+using AElf.Network;
 using AElf.Network.Data;
 using AElf.Types.CSharp;
 using Akka.Actor;
@@ -41,7 +42,6 @@ namespace AElf.Kernel.Node
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
-        private readonly IProtocolDirector _protocolDirector;
         private readonly INodeConfig _nodeConfig;
         private readonly IMiner _miner;
         private readonly IAccountContextService _accountContextService;
@@ -53,6 +53,8 @@ namespace AElf.Kernel.Node
         private readonly ISmartContractService _smartContractService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly IFunctionMetadataService _functionMetadataService;
+        private readonly INetworkManager _netManager;
+        private readonly IBlockSynchronizer _synchronizer;
 
         private readonly IBlockExecutor _blockExecutor;
 
@@ -99,7 +101,7 @@ namespace AElf.Kernel.Node
             IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator, 
             IChainManager chainManager, ISmartContractService smartContractService,
             ITransactionResultService transactionResultService, IBlockManager blockManager, 
-            IFunctionMetadataService functionMetadataService)
+            IFunctionMetadataService functionMetadataService, INetworkManager netManager, IBlockSynchronizer synchronizer)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
@@ -109,7 +111,6 @@ namespace AElf.Kernel.Node
             _blockManager = blockManager;
             _functionMetadataService = functionMetadataService;
             _txPoolService = poolService;
-            _protocolDirector = protocolDirector;
             _transactionManager = txManager;
             _rpcServer = rpcServer;
             _logger = logger;
@@ -120,6 +121,9 @@ namespace AElf.Kernel.Node
             _chainContextService = chainContextService;
             _worldStateDictator = worldStateDictator;
             _blockExecutor = blockExecutor;
+            
+            _netManager = netManager;
+            _synchronizer = synchronizer;
         }
 
         public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData, byte[] code)
@@ -193,15 +197,22 @@ namespace AElf.Kernel.Node
                 _rpcServer.Start(rpcHost, rpcPort);
 
             _txPoolService.Start();
-            _protocolDirector.Start();
-
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
-            _protocolDirector.SetCommandContext(this, _nodeConfig.ConsensusInfoGenerater); // If not miner do sync
+            
+            //_protocolDirector.SetCommandContext(this, _nodeConfig.ConsensusInfoGenerater); // If not miner do sync
+            if (!_nodeConfig.ConsensusInfoGenerater)
+            {
+                _synchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
+            }
+            else
+            {
+                StartMining();
+            }
+            
+            Task.Run(() => _synchronizer.Start(!_nodeConfig.ConsensusInfoGenerater));
             
             // akka env 
-            
-
             var servicePack = new ServicePack
             {
                 ChainContextService = _chainContextService,
@@ -225,7 +236,19 @@ namespace AElf.Kernel.Node
             
             return true;
         }
+        
+        private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
+        {
+            StartMining();
+        }
 
+        private void StartMining()
+        {
+            if (IsMiner() && !IsMining)
+            {
+                DoDPos();
+            }
+        }
 
         public bool IsMiner()
         {
@@ -321,7 +344,7 @@ namespace AElf.Kernel.Node
                 if (isFromSend)
                 {
                     _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " + tx.IncrementId);
-                    _protocolDirector.AddTransaction(tx);
+                    //_protocolDirector.AddTransaction(tx);
                 }
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
@@ -347,7 +370,8 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         public async Task<List<NodeData>> GetPeers(ushort? numPeers)
         {
-            return _protocolDirector.GetPeers(numPeers);
+            return new List<NodeData>();
+            //return _protocolDirector.GetPeers(numPeers);
         }
 
         /// <summary>
@@ -630,16 +654,17 @@ namespace AElf.Kernel.Node
 
         public async Task<bool> BroadcastBlock(IBlock block)
         {
-            if (block == null)
+            if (!(block is Block b))
             {
                 return false;
             }
-
-            var count = await _protocolDirector.BroadcastBlock(block as Block);
+            
+            byte[] serializedBlock = b.ToByteArray();
+            
+            await _netManager.BroadcastMessage(MessageType.BroadcastBlock, serializedBlock);
 
             var bh = block.GetHash().ToHex();
-            _logger?.Trace($"Broadcasted block \"{bh}\"  to [" +
-                          count + $"] peers. Block height: [{block.Header.Index}]");
+            _logger?.Trace($"Broadcasted block \"{bh}\" to peers. Block height: [{block.Header.Index}]");
 
             return true;
         }
@@ -672,7 +697,9 @@ namespace AElf.Kernel.Node
             {
                 try
                 {
-                    await _protocolDirector.BroadcastTransaction(tx);
+                    byte[] transaction = tx.Serialize();
+            
+                    await _netManager.BroadcastMessage(MessageType.BroadcastTx, transaction);
                 }
                 catch (Exception e)
                 {

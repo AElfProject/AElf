@@ -6,7 +6,7 @@ using AElf.SmartContract;
 
 namespace AElf.Kernel.Node
 {
-    public interface IAElfNode
+    public interface IAElfNode : IBlockExecutor
     {
         bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData, byte[] code);
 
