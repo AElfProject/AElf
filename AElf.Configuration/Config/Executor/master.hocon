@@ -8,7 +8,7 @@ akka {
         deployment {
             /router {
                 router = round-robin-group
-                routees.paths = [""/user/worker""]
+                routees.paths = ["/user/worker"]
                 cluster {
                     enabled = on
                     max-nr-of-instances-per-node = 1
@@ -18,20 +18,20 @@ akka {
             }
         }
         router.type-mapping {
-            tracked-group = ""AElf.Kernel.Concurrency.Execution.TrackedGroup, AElf.Kernel""
+            tracked-group = "AElf.Kernel.Concurrency.Execution.TrackedGroup, AElf.Kernel"
         }
         serializers {
-            hyperion = ""Akka.Serialization.HyperionSerializer, Akka.Serialization.Hyperion""
-            bytes = ""Akka.Serialization.ByteArraySerializer""
+            hyperion = "Akka.Serialization.HyperionSerializer, Akka.Serialization.Hyperion"
+            bytes = "Akka.Serialization.ByteArraySerializer"
         }
         serialization-bindings {
-            ""System.Object"" = hyperion
-            ""System.Byte[]"" = bytes
+            "System.Object" = hyperion
+            "System.Byte[]" = bytes
         }
     }
     remote {
         dot-netty.tcp {
-            hostname = ""127.0.0.1""
+            hostname = "127.0.0.1"
             port = 0
             maximum-frame-size = 300000000b
             send-buffer-size = 300000000b
@@ -40,7 +40,7 @@ akka {
         }
     }
     cluster {
-        seed-nodes = [""akka.tcp://AElfSystem@127.0.0.1:32551""]
-        roles = [""manager""]
+        seed-nodes = ["akka.tcp://AElfSystem@127.0.0.1:32551"]
+        roles = ["manager"]
     }
 }
