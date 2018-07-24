@@ -181,3 +181,25 @@ enum DataAccessMode {
     ReadWriteAccountSharing = 1;
     AccountSpecific = 2;
 }
+
+message Key{
+    bytes Value = 1;
+    TypeName type = 2;
+}
+
+enum TypeName{
+    Bytes = 0;
+    UInt64Value=1;
+    Ulong=2;
+    TnHash=3;
+    TnBlockBody = 4;
+    TnBlockHeader = 5;
+    TnChain = 6;
+    TnChange = 7;
+    TnSmartContractRegistration = 8;
+    TnTransactionResult = 9;
+    TnTransaction = 10;
+    TnChangesDict = 11;
+    TnFunctionMetadata=12;
+    TnSerializedCallGraph=13;
+}

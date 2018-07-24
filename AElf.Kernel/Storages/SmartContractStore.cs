@@ -15,12 +15,14 @@ namespace AElf.Kernel.Storages
 
         public async Task InsertAsync(Hash hash, SmartContractRegistration registration)
         {
-            await _keyValueDatabase.SetAsync(hash.ToHex(), registration.Serialize());
+            var key = hash.GetKeyString(TypeName.TnSmartContractRegistration);
+            await _keyValueDatabase.SetAsync(key, registration.Serialize());
         }
 
         public async Task<SmartContractRegistration> GetAsync(Hash hash)
         {
-            var bytes = await _keyValueDatabase.GetAsync(hash.ToHex(), typeof(SmartContractRegistration));
+            var key = hash.GetKeyString(TypeName.TnSmartContractRegistration);
+            var bytes = await _keyValueDatabase.GetAsync(key, typeof(SmartContractRegistration));
             return SmartContractRegistration.Parser.ParseFrom(bytes);
         }
     }

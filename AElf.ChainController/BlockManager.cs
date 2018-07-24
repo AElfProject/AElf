@@ -58,7 +58,7 @@ namespace AElf.Kernel.Managers
         {
             var nextBlockHeight = (await GetBlockAsync(blockHash)).Header.Index + 1;
             var nextBlockHashBytes = await _dataStore.GetDataAsync(
-                ResourcePath.CalculatePointerForGettingBlockHashByHeight(chainId, nextBlockHeight));
+                ResourcePath.CalculatePointerForGettingBlockHashByHeight(chainId, nextBlockHeight),TypeName.TnHash);
             var nextBlockHash = Hash.Parser.ParseFrom(nextBlockHashBytes);
             return await GetBlockAsync(nextBlockHash);
         }
@@ -68,7 +68,7 @@ namespace AElf.Kernel.Managers
             _logger?.Trace($"Trying to get block by height {height}");
 
             var keyQuote = await _dataStore.GetDataAsync(
-                ResourcePath.CalculatePointerForGettingBlockHashByHeight(chainId, height));
+                ResourcePath.CalculatePointerForGettingBlockHashByHeight(chainId, height),TypeName.TnHash);
             if (keyQuote == null)
             {
                 _logger?.Error($"Invalid block height - {height}");
