@@ -5,7 +5,7 @@
 
 crypto = {
     getRandomValues: function (array) {
-        if (array.constructor == Uint8Array) {
+        if (array.constructor === Uint8Array) {
             for (var i = 0; i < array.length; ++i) {
                 array[i] = _randomNextInt() % (1<<8);
             }
@@ -14,6 +14,8 @@ crypto = {
         }
     }
 };
-global = {
-    crypto: crypto
+
+global= {
+    crypto:crypto,
+    Uint8Array:Uint8Array
 };

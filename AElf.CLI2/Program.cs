@@ -9,10 +9,15 @@ using CommandLine;
 namespace AElf.CLI2
 {
     class Program
-    {
+    { 
+        [Verb("another", HelpText = "...")]
+        class AnotherVerb : BaseOption
+        {
+            
+        }
         static int Main(string[] args)
         {
-            return Parser.Default.ParseArguments<AccountNewOption>(args)
+            return Parser.Default.ParseArguments<AccountNewOption, AnotherVerb>(args)
                 .MapResult(
                     (AccountNewOption opt) =>
                     {
@@ -20,6 +25,7 @@ namespace AElf.CLI2
                         cmd.Execute();
                         return 0;
                     },
+                    (AnotherVerb opt) => 0,
                     errs => 1);
         }
     }

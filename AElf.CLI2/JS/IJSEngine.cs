@@ -8,7 +8,8 @@ namespace AElf.CLI2.JS
         IJSObject Get(string name);
         TResult Invoke<T, TResult>(string methodName, T arg);
         TResult Invoke<TResult>(string methodName);
-
+        IJSObject InvokeAndGetJSObject(string methodName);
+        
         JavaScriptValue Value { get; }
     }
 

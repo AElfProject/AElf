@@ -9,51 +9,58 @@ using AElf.CLI2.JS.Crypto;
 using AElf.CLI2.JS.IO;
 using ChakraCore.NET;
 using ChakraCore.NET.API;
+using ChakraCore.NET.Debug;
 using ChakraCore.NET.Hosting;
 using ServiceStack.Configuration;
 
 namespace AElf.CLI2.JS
 {
-    public class JSEngine : IJSEngine
+    public class JSObj : IJSObject
     {
-        private class JSObj : IJSObject
+        private readonly JSValue _value;
+
+        public JSObj(JSValue value)
         {
-            private readonly JSValue _value;
-
-            public JSObj(JSValue value)
-            {
-                _value = value;
-            }
-
-            public IJSObject Get(string name)
-            {
-                return new JSObj(_value.ReadProperty<JSValue>(name));
-            }
-
-
-            public TResult Invoke<T, TResult>(string methodName, T arg)
-            {
-                return _value.CallFunction<T, TResult>(methodName, arg);
-            }
-
-            public TResult Invoke<TResult>(string methodName)
-            {
-                return _value.CallFunction<TResult>(methodName);
-            }
-
-            public JavaScriptValue Value => _value.ReferenceValue;
+            _value = value;
         }
 
+        public IJSObject Get(string name)
+        {
+            return new JSObj(_value.ReadProperty<JSValue>(name));
+        }
+
+
+        public TResult Invoke<T, TResult>(string methodName, T arg)
+        {
+            return _value.CallFunction<T, TResult>(methodName, arg);
+        }
+
+        public TResult Invoke<TResult>(string methodName)
+        {
+            return _value.CallFunction<TResult>(methodName);
+        }
+
+        public IJSObject InvokeAndGetJSObject(string methodName)
+        {
+            return new JSObj(_value.CallFunction<JSValue>(methodName));
+        }
+
+        public JavaScriptValue Value => _value.ReferenceValue;
+    }
+
+    public class JSEngine : IJSEngine
+    {
         private readonly IConsole _console;
         private readonly ChakraContext _context;
         private readonly BaseOption _option;
         private readonly IRandomGenerator _randomGenerator;
 
         public JSEngine(IConsole console, BaseOption option, IBridgeJSProvider bridgeJSProvider,
-            IRandomGenerator randomGenerator)
+            IRandomGenerator randomGenerator, IDebugAdapter debugAdapter)
         {
             _console = console;
-            _context = JavaScriptHosting.Default.CreateContext(new JavaScriptHostingConfig());
+            var config = new JavaScriptHostingConfig {DebugAdapter = debugAdapter};
+            _context = JavaScriptHosting.Default.CreateContext(config);
             _option = option;
             _randomGenerator = randomGenerator;
             ExposeConsoleToContext();
@@ -147,6 +154,11 @@ namespace AElf.CLI2.JS
         public TResult Invoke<TResult>(string methodName)
         {
             return new JSObj(_context.GlobalObject).Invoke<TResult>(methodName);
+        }
+
+        public IJSObject InvokeAndGetJSObject(string methodName)
+        {
+            return new JSObj(_context.GlobalObject).InvokeAndGetJSObject(methodName);
         }
 
         public JavaScriptValue Value => new JSObj(_context.GlobalObject).Value;
