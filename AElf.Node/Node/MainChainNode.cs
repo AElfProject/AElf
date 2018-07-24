@@ -5,20 +5,21 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution;
+using AElf.Execution.Scheduling;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node.Config;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.Node.RPC.DTO;
-using AElf.ChainController;
-using AElf.SmartContract;
-using AElf.Execution;
-using AElf.Execution.Scheduling;
 using AElf.Network.Data;
+using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Akka.Actor;
 using Google.Protobuf;
@@ -34,7 +35,6 @@ namespace AElf.Kernel.Node
     public class MainChainNode : IAElfNode
     {
         private ECKeyPair _nodeKeyPair;
-        private ActorSystem _sys = ActorSystem.Create("AElf");
         private readonly IBlockManager _blockManager;
         private readonly ITxPoolService _txPoolService;
         private readonly ITransactionManager _transactionManager;
@@ -75,7 +75,7 @@ namespace AElf.Kernel.Node
         {
             get
             {
-                var dict = MinersInfo.Instance.Producers;
+                var dict = MinersConfig.Instance.Producers;
                 var blockProducers = new BlockProducer();
                 _logger?.Trace("Block producers of your config:");
                 foreach (var bp in dict.Values)
@@ -95,9 +95,9 @@ namespace AElf.Kernel.Node
             IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner,
             IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
-            IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator, 
+            IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator,
             IChainManager chainManager, ISmartContractService smartContractService,
-            ITransactionResultService transactionResultService, IBlockManager blockManager, 
+            ITransactionResultService transactionResultService, IBlockManager blockManager,
             IFunctionMetadataService functionMetadataService)
         {
             _chainCreationService = chainCreationService;
@@ -121,14 +121,15 @@ namespace AElf.Kernel.Node
             _blockExecutor = blockExecutor;
         }
 
-        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData, byte[] code)
+        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData,
+            byte[] code)
         {
             if (_nodeConfig == null)
             {
                 _logger?.Log(LogLevel.Error, "No node configuration.");
                 return false;
             }
-            
+
             if (_nodeConfig.ChainId?.Value == null || _nodeConfig.ChainId.Value.Length <= 0)
             {
                 _logger?.Log(LogLevel.Error, "No chain id.");
@@ -138,31 +139,30 @@ namespace AElf.Kernel.Node
             try
             {
                 bool chainExists = _chainManager.Exists(_nodeConfig.ChainId).Result;
-            
+
                 if (!chainExists)
                 {
                     // Creation of the chain if it doesn't already exist
                     var smartContractZeroReg = new SmartContractRegistration
                     {
-                        Category = 0, 
+                        Category = 0,
                         ContractBytes = ByteString.CopyFrom(code),
                         ContractHash = code.CalculateHash()
                     };
                     var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg)
                         .Result;
-                    
+
                     _logger?.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToHex());
                     _logger?.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.ToHex());
                     var contractAddress = GetGenesisContractHash();
                     _logger?.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
                         contractAddress.ToAccount().ToHex());
-                    
                 }
                 else
                 {
                     var preBlockHash = GetLastValidBlockHash().Result;
                     _worldStateDictator.SetWorldStateAsync(preBlockHash);
-                    
+
                     _worldStateDictator.PreBlockHash = preBlockHash;
                     _worldStateDictator.RollbackCurrentChangesAsync();
                 }
@@ -172,22 +172,17 @@ namespace AElf.Kernel.Node
                 _logger?.Log(LogLevel.Error,
                     "Could not create the chain : " + _nodeConfig.ChainId.ToHex());
             }
-            
-            
+
+
             if (!string.IsNullOrWhiteSpace(initData))
             {
-                /*if (!InitialDebugSync(initdata).Result)
-                {
-                    //todo log 
-                    return false;
-                }*/
             }
-            
+
             // set world state
             _worldStateDictator.SetChainId(_nodeConfig.ChainId);
-            
+
             _nodeKeyPair = nodeKeyPair;
-            
+
             if (startRpc)
                 _rpcServer.Start(rpcHost, rpcPort);
 
@@ -197,9 +192,6 @@ namespace AElf.Kernel.Node
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
             _protocolDirector.SetCommandContext(this, true); // If not miner do sync
-            
-            // akka env 
-            
 
             var servicePack = new ServicePack
             {
@@ -208,60 +200,49 @@ namespace AElf.Kernel.Node
                 ResourceDetectionService = new ResourceUsageDetectionService(_functionMetadataService),
                 WorldStateDictator = _worldStateDictator
             };
-            
+
             var grouper = new Grouper(servicePack.ResourceDetectionService, _logger);
             _blockExecutor.Start(grouper);
-            
+
             if (_nodeConfig.IsMiner)
             {
                 _miner.Start(nodeKeyPair, grouper);
-                
+
                 //DoDPos();
                 _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.ToHex());
             }
-            
+
             _logger?.Log(LogLevel.Debug, "AElf node started.");
-            
+
             return true;
         }
-
 
         public bool IsMiner()
         {
             return _nodeConfig.IsMiner;
         }
-        
+
         private async Task<bool> InitialDebugSync(string initFileName)
         {
             try
             {
-                string appFolder = _nodeConfig.DataDir;
-                var fullPath = System.IO.Path.Combine(appFolder, "tests", initFileName);
+                var fullPath = Path.Combine(_nodeConfig.DataDir, "tests", initFileName);
 
-                /*Block b = null;
-                using (StreamReader r = new StreamReader(fullPath))
+                using (var file = File.OpenText(fullPath))
+                using (var reader = new JsonTextReader(file))
                 {
-                    string jsonChain = r.ReadToEnd();
-                    b = JsonParser.Default.Parse<Block>(jsonChain);
-                }*/
-                
-                using (StreamReader file = File.OpenText(fullPath))
-                using (JsonTextReader reader = new JsonTextReader(file))
-                {
-                    JObject balances = (JObject)JToken.ReadFrom(reader);
-                    
+                    var balances = (JObject) JToken.ReadFrom(reader);
                     foreach (var kv in balances)
                     {
                         var address = ByteArrayHelpers.FromHexString(kv.Key);
                         var balance = kv.Value.ToObject<ulong>();
-                        
+
                         var accountDataProvider = await _worldStateDictator.GetAccountDataProvider(address);
                         var dataProvider = accountDataProvider.GetDataProvider();
-                        
+
                         // set balance
                         await dataProvider.SetAsync("Balance".CalculateHash(),
                             new UInt64Value {Value = balance}.ToByteArray());
-                        var str = $"Initial balance {balance} in Address \"{kv.Key}\""; 
                         _logger?.Log(LogLevel.Debug, "Initial balance {0} in Address \"{1}\"", balance, kv.Key);
                     }
                 }
@@ -314,22 +295,24 @@ namespace AElf.Kernel.Node
             try
             {
                 var tx = Transaction.Parser.ParseFrom(messagePayload);
-                
+
                 var success = await _txPoolService.AddTxAsync(tx);
-                
+
                 if (isFromSend)
                 {
-                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " + tx.IncrementId);
+                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " +
+                                   tx.IncrementId);
                     _protocolDirector.AddTransaction(tx);
                 }
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger?.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ", tx.GetTransactionInfo() ,
+                    _logger?.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ",
+                        tx.GetTransactionInfo(),
                         tx.IncrementId, success);
                     return;
                 }
-                
+
                 _logger?.Trace("Successfully added tx : " + tx.GetHash().Value.ToByteArray().ToHex());
             }
             catch (Exception e)
@@ -387,18 +370,18 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                int res = Interlocked.CompareExchange(ref _flag, 1, 0);
-                
+                var res = Interlocked.CompareExchange(ref _flag, 1, 0);
                 if (res == 1)
                     return new BlockExecutionResult(false, ValidationError.Mining);
-                
+
                 var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
                 var error = await _blockVaildationService.ValidateBlockAsync(block, context, _nodeKeyPair);
-                
+
                 if (error != ValidationError.Success)
                 {
-                    var localCorrespondingBlock = await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, block.Header.Index);
-                    if (error == ValidationError.OrphanBlock) 
+                    var localCorrespondingBlock =
+                        await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, block.Header.Index);
+                    if (error == ValidationError.OrphanBlock)
                     {
                         //TODO: limit the count of blocks to rollback
                         if (block.Header.Time.ToDateTime() < localCorrespondingBlock.Header.Time.ToDateTime())
@@ -406,13 +389,14 @@ namespace AElf.Kernel.Node
                             _logger?.Trace("Ready to rollback");
                             //Rollback world state
                             var txs = await _worldStateDictator.RollbackToSpecificHeight(block.Header.Index);
-                        
+
                             await _txPoolService.RollBack(txs);
                             _worldStateDictator.PreBlockHash = block.Header.PreviousBlockHash;
                             await _worldStateDictator.RollbackCurrentChangesAsync();
 
                             var ws = await _worldStateDictator.GetWorldStateAsync(block.GetHash());
-                            _logger?.Trace($"Current world state {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
+                            _logger?.Trace(
+                                $"Current world state {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
 
                             error = ValidationError.Success;
                         }
@@ -435,7 +419,6 @@ namespace AElf.Kernel.Node
                 Interlocked.CompareExchange(ref _flag, 0, 1);
 
                 return new BlockExecutionResult(executed, error);
-                //return new BlockExecutionResult(true, error);
             }
             catch (Exception e)
             {
@@ -477,7 +460,7 @@ namespace AElf.Kernel.Node
 
         public async Task<ulong> GetCurrentChainHeight()
         {
-            IChainContext chainContext = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
+            var chainContext = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
             return chainContext.BlockHeight;
         }
 
@@ -490,100 +473,34 @@ namespace AElf.Kernel.Node
         {
             return await _txPoolService.AddTxAsync(tx);
         }
-        
-        private static int currentIncr = 0;
-        
+
+        private static int _currentIncr;
+
         private Transaction GetFakeTx()
         {
-            ECKeyPair keyPair = new KeyPairGenerator().Generate();
-            ECSigner signer = new ECSigner();
+            var keyPair = new KeyPairGenerator().Generate();
+            var signer = new ECSigner();
             var txDep = new Transaction
             {
                 From = keyPair.GetAddress(),
                 To = GetGenesisContractHash(),
-                IncrementId = (ulong)currentIncr++,
+                IncrementId = (ulong) _currentIncr++,
             };
-            
-            Hash hash = txDep.GetHash();
 
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
+            var hash = txDep.GetHash();
+            var signature = signer.Sign(keyPair, hash.GetHashBytes());
             txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txDep.R = ByteString.CopyFrom(signature.R); 
+            txDep.R = ByteString.CopyFrom(signature.R);
             txDep.S = ByteString.CopyFrom(signature.S);
 
             return txDep;
         }
 
-        
-        
-        private ITransaction InvokTxDemo(ECKeyPair keyPair, Hash hash, string methodName, byte[] param, ulong index)
-        {
-            ECSigner signer = new ECSigner();
-            var txInv = new Transaction
-            {
-                From = keyPair.GetAddress(),
-                To = hash,
-                IncrementId = index,
-                MethodName = methodName,
-                Params = ByteString.CopyFrom(param),
-                
-                Fee = TxPoolConfig.Default.FeeThreshold + 1
-            };
-            
-            Hash txhash = txInv.GetHash();
-
-            ECSignature signature = signer.Sign(keyPair, txhash.GetHashBytes());
-            txInv.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txInv.R = ByteString.CopyFrom(signature.R); 
-            txInv.S = ByteString.CopyFrom(signature.S);
-
-            var res = BroadcastTransaction(txInv).Result;
-            return txInv;
-        }
-        
-        
-        
-        private ITransaction DeployTxDemo(ECKeyPair keyPair)
-        {
-            var ContractName = "AElf.Kernel.Tests.TestContract";
-            var contractZeroDllPath = $"../{ContractName}/bin/Debug/netstandard2.0/{ContractName}.dll";
-            
-            byte[] code = null;
-            using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(contractZeroDllPath)))
-            {
-                code = file.ReadFully();
-            }
-            
-            ECSigner signer = new ECSigner();
-            var txDep = new Transaction
-            {
-                From = keyPair.GetAddress(),
-                To = GetGenesisContractHash(),
-                IncrementId = 0,
-                MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code)),
-                
-                Fee = TxPoolConfig.Default.FeeThreshold + 1
-            };
-            
-            Hash hash = txDep.GetHash();
-
-            ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
-            txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txDep.R = ByteString.CopyFrom(signature.R); 
-            txDep.S = ByteString.CopyFrom(signature.S);
-            var res = BroadcastTransaction(txDep).Result;
-
-            return txDep;
-        }
-        
-        
         public Hash GetGenesisContractHash()
         {
             return _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
         }
-        
-        
+
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
@@ -593,30 +510,30 @@ namespace AElf.Kernel.Node
                 return;
 
             IsMining = true;
-            
+
             DoDPoSMining(_nodeConfig.IsMiner);
         }
 
         public async Task<IBlock> Mine()
         {
-            int res = Interlocked.CompareExchange(ref _flag, 1, 0);
+            var res = Interlocked.CompareExchange(ref _flag, 1, 0);
 
             if (res == 1)
                 return null;
             try
             {
                 _logger?.Trace($"Mine - Entered mining {res}");
-            
+
                 _worldStateDictator.BlockProducerAccountAddress = _nodeKeyPair.GetAddress();
 
-                var block =  await _miner.Mine();
-            
-                int b = Interlocked.CompareExchange(ref _flag, 0, 1);
+                var block = await _miner.Mine();
+
+                var b = Interlocked.CompareExchange(ref _flag, 0, 1);
 
                 _protocolDirector.IncrementChainHeight();
-            
+
                 _logger?.Trace($"Mine - Leaving mining {b}");
-            
+
                 return block;
             }
             catch (Exception e)
@@ -638,7 +555,7 @@ namespace AElf.Kernel.Node
 
             var bh = block.GetHash().ToHex();
             _logger?.Trace($"Broadcasted block \"{bh}\"  to [" +
-                          count + $"] peers. Block height: [{block.Header.Index}]");
+                           count + $"] peers. Block height: [{block.Header.Index}]");
 
             return true;
         }
@@ -690,7 +607,7 @@ namespace AElf.Kernel.Node
 
         public async Task<Block> GetBlockAtHeight(int height)
         {
-            return await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, (ulong)height);
+            return await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, (ulong) height);
         }
 
         /// <summary>
@@ -712,16 +629,17 @@ namespace AElf.Kernel.Node
             new EventLoopScheduler().Schedule(() =>
             {
                 _logger?.Debug("-- DPoS Mining Has been fired!");
-                
+
                 _dPoSTxGenerator = new DPoSTxGenerator(_nodeKeyPair);
-                _dPoSHelper = new DPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers, ContractAccountHash, _logger);
+                _dPoSHelper = new DPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
+                    ContractAccountHash, _logger);
 
                 //Record the rounds count in local memory
                 ulong roundsCount = 0;
-                
+
                 //In Value of the BP in one round, will update in every round
                 var inValue = Hash.Generate();
-                
+
                 //Use this value to make sure every BP produce one block in one timeslot
                 ulong latestMinedNormalBlockRoundsCount = 0;
                 //Use thisvalue to make sure every EBP produce one block in one timeslot
@@ -769,7 +687,7 @@ namespace AElf.Kernel.Node
                                 _logger?.Debug("---- DPoS checking end");
                                 return;
                             }
-                            
+
                             var dpoSInfo = ExecuteTxsForFirstExtraBlock();
 
                             await BroadcastSyncTxForFirstExtraBlock(dpoSInfo);
@@ -834,11 +752,11 @@ namespace AElf.Kernel.Node
 
                                 _logger?.Log(LogLevel.Debug,
                                     "Generate block: \"{0}\", with [{1}] transactions\n Published out value: {2}\n signature: \"{3}\"",
-                                    block.GetHash().Value.ToByteArray().ToHex(), 
+                                    block.GetHash().Value.ToByteArray().ToHex(),
                                     block.Body.Transactions.Count,
                                     outValue.Value.ToByteArray().ToHex().Remove(0, 2),
                                     signature.Value.ToByteArray().ToHex().Remove(0, 2));
-                                
+
                                 _logger?.Debug("---- DPoS checking end");
 
                                 return;
@@ -890,7 +808,7 @@ namespace AElf.Kernel.Node
 
                                 _logger?.Log(LogLevel.Debug,
                                     "Generate extra block: {0}, with {1} transactions",
-                                    extraBlock.GetHash().Value.ToByteArray().ToHex(), 
+                                    extraBlock.GetHash().Value.ToByteArray().ToHex(),
                                     extraBlock.Body.Transactions.Count);
 
                                 _logger?.Debug("---- DPoS checking end");
@@ -903,7 +821,7 @@ namespace AElf.Kernel.Node
 
                         #region Try to help mining extra block
 
-                        if (await CheckAbleToHelpMiningExtraBlock() && 
+                        if (await CheckAbleToHelpMiningExtraBlock() &&
                             latestTriedToHelpProducingExtraBlockRoundsCount != roundsCount)
                         {
                             var incrementId = await GetIncrementId(_nodeKeyPair.GetAddress());
@@ -923,32 +841,22 @@ namespace AElf.Kernel.Node
                                 _logger?.Debug("---- DPoS checking end");
                                 return;
                             }
-                            
+
                             latestTriedToHelpProducingExtraBlockRoundsCount = roundsCount;
 
                             _logger?.Log(LogLevel.Debug,
                                 "Help to generate extra block: {0}, with {1} transactions",
                                 extraBlock.GetHash().Value.ToByteArray().ToHex(),
                                 extraBlock.Body.Transactions.Count);
-                            
                         }
-                        
+
                         _logger?.Debug("---- DPoS checking end");
 
                         #endregion
                     },
-
-                    ex =>
-                    {
-                        _logger?.Error("Error occurs to dpos part");
-                    },
-
-                    () =>
-                    {
-                        _logger?.Debug("Complete dpos");
-                    }
+                    ex => { _logger?.Error("Error occurs to dpos part"); },
+                    () => { _logger?.Debug("Complete dpos"); }
                 );
-                
             });
         }
 
@@ -962,7 +870,8 @@ namespace AElf.Kernel.Node
             await BroadcastTransaction(txToSyncFirstExtraBlock);
         }
 
-        private async Task BroadcastTxsForNormalBlock(ulong roundsCount, Hash outValue, Hash signature, ulong incrementId)
+        private async Task BroadcastTxsForNormalBlock(ulong roundsCount, Hash outValue, Hash signature,
+            ulong incrementId)
         {
             var txForNormalBlock = _dPoSTxGenerator.GetTxsForNormalBlock(
                 incrementId, ContractAccountHash, roundsCount,
@@ -972,7 +881,7 @@ namespace AElf.Kernel.Node
                 await BroadcastTransaction(tx);
             }
         }
-        
+
         // ReSharper disable once InconsistentNaming
         private async Task BroadcastTxsToSyncExtraBlock(ulong incrementId,
             RoundInfo currentRoundInfo, RoundInfo nextRoundInfo, StringValue nextEBP)
@@ -984,19 +893,19 @@ namespace AElf.Kernel.Node
         }
 
         #endregion
-        
+
         private DPoSInfo ExecuteTxsForFirstExtraBlock()
         {
             return _dPoSHelper.GenerateInfoForFirstTwoRounds();
         }
-        
+
         private async Task<Tuple<RoundInfo, RoundInfo, StringValue>> ExecuteTxsForExtraBlock(ulong incrementId)
         {
             var currentRoundInfo = await _dPoSHelper.SupplyPreviousRoundInfo();
             var nextRoundInfo = await _dPoSHelper.GenerateNextRoundOrder();
             // ReSharper disable once InconsistentNaming
             var nextEBP = await _dPoSHelper.SetNextExtraBlockProducer();
-            
+
             return Tuple.Create(currentRoundInfo, nextRoundInfo, nextEBP);
         }
 
@@ -1005,7 +914,7 @@ namespace AElf.Kernel.Node
         {
             return await _dPoSHelper.GetDPoSInfoToStringOfLatestRounds(3) + $". Current height: {height}";
         }
-        
+
         // ReSharper disable once MemberCanBeMadeStatic.Local
         private IObservable<long> GetIntervalObservable()
         {
@@ -1073,7 +982,7 @@ namespace AElf.Kernel.Node
         {
             return hexStr.StartsWith("0x") ? hexStr.Remove(0, 2) : hexStr;
         }
-        
+
         #endregion
     }
 }
