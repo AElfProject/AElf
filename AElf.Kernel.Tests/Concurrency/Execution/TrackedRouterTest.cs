@@ -11,6 +11,9 @@ using AElf.Execution;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
     [UseAutofacTestFramework]
     public class TrackedRouterTest : TestKitBase
     {
@@ -85,4 +88,5 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             );
         }
     }
+*/
 }
