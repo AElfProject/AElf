@@ -5,6 +5,7 @@ using AElf.CLI2.JS;
 using AElf.CLI2.JS.IO;
 using Autofac;
 using CommandLine;
+using Console = System.Console;
 
 namespace AElf.CLI2
 {
@@ -16,10 +17,10 @@ namespace AElf.CLI2
             
         }
         static int Main(string[] args)
-        {
-            return Parser.Default.ParseArguments<AccountNewOption, AnotherVerb>(args)
+        {   
+            return Parser.Default.ParseArguments<AccountOption, AnotherVerb>(args)
                 .MapResult(
-                    (AccountNewOption opt) =>
+                    (AccountOption opt) =>
                     {
                         var cmd = IoCContainerBuilder.Build(opt, new BridgeJSProvider()).Resolve<ICommand>();
                         cmd.Execute();

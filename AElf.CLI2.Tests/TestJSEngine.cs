@@ -23,7 +23,13 @@ namespace AElf.CLI2.Tests
 
         private static IJSEngine GetJSEngine()
         {
-            var option = new AccountNewOption {ServerAddr = "", Password = ""};
+            var option = new AccountOption
+            {
+                ServerAddr = "",
+                Password = "",
+                Action = AccountAction.create,
+                AccountFileName = "a.account"
+            };
             return IoCContainerBuilder.Build(option, new UnittestBridgeJSProvider()).Resolve<IJSEngine>();
         }
 

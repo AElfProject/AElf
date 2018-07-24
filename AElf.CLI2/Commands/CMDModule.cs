@@ -18,7 +18,7 @@ namespace AElf.CLI2.Commands
 
         static CMDModule()
         {
-            _commands = new Dictionary<Type, Type> {[typeof(AccountNewOption)] = typeof(AccountNewCommand)};
+            _commands = new Dictionary<Type, Type> {[typeof(AccountOption)] = typeof(AccountCommand)};
         }
 
         protected override void Load(ContainerBuilder builder)
