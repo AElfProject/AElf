@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mono.Cecil;
 
 namespace AElf.ABI.CSharp
@@ -52,33 +53,29 @@ namespace AElf.ABI.CSharp
             AddOneType(type);
             if (!includingNested)
                 return;
-            if (type.HasNestedTypes)
+            if (!type.HasNestedTypes)
+                return;
+            foreach (var nt in type.NestedTypes)
             {
-                foreach (var nt in type.NestedTypes)
-                {
-                    AddType(nt, true);
-                }
+                AddType(nt);
             }
         }
 
         public IEnumerable<TypeDefinition> GetSmartContractTypePath()
         {
-            List<TypeDefinition> types = new List<TypeDefinition>();
+            var types = new List<TypeDefinition>();
             if (_contractBaseFullName == null)
                 return null;
-            string curName = _contractBaseFullName;
-            List<TypeDefinition> children;
-            if (!_baseChildrenMap.TryGetValue(curName, out children))
+            var curName = _contractBaseFullName;
+            if (!_baseChildrenMap.TryGetValue(curName, out var children))
             {
                 throw new Exception("No valid smart contract found.");
             }
             while (true)
             {
-                if (children.Count > 1)
-                {
-                    throw new Exception("More than one smart contract found.");
-                }
-                var contractType = children[0];
+                var contractType = children.Count > 1
+                    ? children.First(c => c.FullName.Contains(Kernel.Globals.ConsensusType.ToString())) //To select the specific consensus contract
+                    : children[0];
                 types.Add(contractType);
                 curName = contractType.FullName;
                 if (!_baseChildrenMap.TryGetValue(curName, out children))

@@ -36,7 +36,7 @@ namespace AElf.ChainController
             var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             
             //Calculate the address of smart contract zero
-            var contractAccountHash = new Hash(context.ChainId.CalculateHashWith("__SmartContractZero__")).ToAccount();
+            var contractAccountHash = new Hash(context.ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
 
             var timestampOfBlock = block.Header.Time;
             
@@ -77,9 +77,11 @@ namespace AElf.ChainController
                 From = keyPair.GetAddress(),
                 To = contractAccountHash,
                 IncrementId = 0,
-                MethodName = "BlockProducerVerification",
+                MethodName = "Validation",
                 P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(new StringValue {Value = recepientAddress}, timestamp))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(
+                    new StringValue {Value = recepientAddress.RemoveHexPrefix()}.ToByteArray(), 
+                    timestamp.ToByteArray()))
             };
             
             var signer = new ECSigner();

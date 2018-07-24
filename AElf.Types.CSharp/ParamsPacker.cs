@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Google.Protobuf;
@@ -33,6 +34,8 @@ namespace AElf.Types.CSharp
                 return mm.ToArray();
             }
         }
+
+        public static byte[] Pack(List<object> objs) => Pack(objs.ToArray());
 
         public static object[] Unpack(byte[] bytes, Type[] types)
         {

@@ -63,7 +63,7 @@ namespace AElf.Kernel.Node.Protocol
         {
             if (_node.IsMiner() && !_node.IsMining)
             {
-                _node.DoDPos();
+                _node.StartConsensusProcess();
             }
         }
 
@@ -103,7 +103,7 @@ namespace AElf.Kernel.Node.Protocol
         public long GetLatestIndexOfOtherNode()
         {
             var currentPendingBlocks = _blockSynchronizer.PendingBlocks.ToList();
-            if (currentPendingBlocks == null || currentPendingBlocks.Count <= 0)
+            if (currentPendingBlocks.Count <= 0)
             {
                 return -1;
             }

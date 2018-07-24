@@ -29,7 +29,6 @@ namespace AElf.ChainController
         private ITransactionManager _transactionManager;
         private ITransactionResultManager _transactionResultManager;
 
-
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
         private MinerLock Lock { get; } = new MinerLock();
@@ -40,7 +39,6 @@ namespace AElf.ChainController
         public CancellationTokenSource Cts { get; private set; }
 
         private IGrouper _grouper;
-      
         
         public IMinerConfig Config { get; }
 
@@ -64,7 +62,6 @@ namespace AElf.ChainController
         
         public async Task<IBlock> Mine()
         {
-
             try
             {
                 if (Cts == null || Cts.IsCancellationRequested)
@@ -112,6 +109,7 @@ namespace AElf.ChainController
                     {
                         res.Status = Status.Failed;
                         res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
+                        Console.WriteLine("Failed to execute tx:\n" + trace.StdErr);
                     }
                     results.Add(res);
                 }
@@ -139,7 +137,7 @@ namespace AElf.ChainController
                 // append block
                 await _blockManager.AddBlockAsync(block);
                 await _chainManager.AppendBlockToChainAsync(block);
-            
+  
                 return block;
             }
             catch (Exception e)
