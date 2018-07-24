@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace AElf.Kernel
 {
@@ -19,6 +20,15 @@ namespace AElf.Kernel
                     bytes.Reverse().ToArray() : 
                     bytes, 0);
         }
-        
+
+        public static string RemoveHexPrefix(this string hexStr)
+        {
+            return hexStr.StartsWith("0x") ? hexStr.Remove(0, 2) : hexStr;
+        }
+
+        public static string AppendHexPrefix(this string str)
+        {
+            return str.StartsWith("0x") ? str : "0x" + str;
+        }
     }
 }

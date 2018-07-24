@@ -30,7 +30,8 @@ namespace AElf.ChainController
 
         public BlockExecutor(ITxPoolService txPoolService, IChainManager chainManager,
             IBlockManager blockManager, IWorldStateDictator worldStateDictator,
-            IConcurrencyExecutingService concurrencyExecutingService, ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
+            IConcurrencyExecutingService concurrencyExecutingService, 
+            ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             _txPoolService = txPoolService;
             _chainManager = chainManager;
@@ -126,7 +127,6 @@ namespace AElf.ChainController
                     ? new List<TransactionTrace>()
                     : await _concurrencyExecutingService.ExecuteAsync(readyTxs, block.Header.ChainId, _grouper);
                 
-
                 foreach (var trace in traces)
                 {
                     _logger?.Trace($"Trace {trace.TransactionId.ToHex()}, {trace.StdErr}");
