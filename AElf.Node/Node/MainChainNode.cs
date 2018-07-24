@@ -64,6 +64,8 @@ namespace AElf.Kernel.Node
         public ulong CurrentRoundNumber { get; set; }
 
         private int _flag;
+
+        private int _incrementIdOffset;
         
         public bool IsMining { get; private set; }
 
@@ -438,10 +440,7 @@ namespace AElf.Kernel.Node
                 var executed = await _blockExecutor.ExecuteBlock(block);
                 Interlocked.CompareExchange(ref _flag, 0, 1);
 
-                if (_protocolDirector.GetLatestIndexOfOtherNode() != -1)
-                {
-                    await CheckUpdatingDPoSProcess();
-                }
+                await CheckUpdatingDPoSProcess();
 
                 return new BlockExecutionResult(executed, error);
                 //return new BlockExecutionResult(true, error);
@@ -529,7 +528,7 @@ namespace AElf.Kernel.Node
         // ReSharper disable once InconsistentNaming
         public async Task CheckUpdatingDPoSProcess()
         {
-            if (CurrentRoundNumber != _dPoSHelper.CurrentRoundNumber.Value)
+            if (CurrentRoundNumber != _dPoSHelper.CurrentRoundNumber.Value/* && _protocolDirector.GetLatestIndexOfOtherNode() == -1*/)
             {
                 ConsensusDisposable?.Dispose();
                 ConsensusDisposable = ConsensusSequence.NormalMiningProcess(await GetBPInfoOfCurrentRound(),
@@ -581,11 +580,11 @@ namespace AElf.Kernel.Node
             var count = await _protocolDirector.BroadcastBlock(block as Block);
 
             var bh = block.GetHash().ToHex();
-            _logger?.Trace($"Broadcasted block \"{bh}\"  to [" +
-                          count + $"] peers. Block height: [{block.Header.Index}]");
+            _logger?.Trace($"Broadcasted block \"{bh}\"  to [{count}] peers with {block.Body.TransactionsCount} txs. " +
+                           $"Block height: [{block.Header.Index}]");
 
-            return true;
-        }
+        return true;
+    }
 
         public async Task<IMessage> GetContractAbi(Hash address)
         {
@@ -774,6 +773,13 @@ namespace AElf.Kernel.Node
 
         public async Task PublishInValue()
         {
+            if (_consensusData.Count <= 0)
+            {
+                return;
+            }
+
+            Interlocked.Increment(ref _incrementIdOffset);
+            
             var currentRoundNumber = _dPoSHelper.CurrentRoundNumber;
 
             var parameters = new List<byte[]>
@@ -801,11 +807,13 @@ namespace AElf.Kernel.Node
                 extraBlockResult.Item2.ToByteArray(),
                 extraBlockResult.Item3.ToByteArray()
             };
-            
+
             var txForExtraBlock = await GenerateTransaction(
                 "UpdateAElfDPoS",
                 parameters,
-                1);
+                (ulong) _incrementIdOffset);
+
+            Interlocked.Decrement(ref _incrementIdOffset);
 
             await BroadcastTransaction(txForExtraBlock);
 

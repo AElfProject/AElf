@@ -241,11 +241,14 @@ namespace AElf.Kernel.Consensus
                     orderDict.Add(order, signatureDict[sig]);
                 }
 
+                var extraBlockTimeslotOfCurrentRound = Timestamp.Parser.ParseFrom(
+                    await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
+
                 for (var i = 0; i < orderDict.Count; i++)
                 {
                     var bpInfoNew = new BPInfo
                     {
-                        TimeSlot = GetTimestampOfUtcNow(i * Globals.AElfMiningTime + Globals.AElfMiningTime),
+                        TimeSlot = GetTimestampWithOffset(extraBlockTimeslotOfCurrentRound, i * Globals.AElfMiningTime + Globals.AElfMiningTime),
                         Order = i + 1
                     };
 
@@ -446,7 +449,7 @@ namespace AElf.Kernel.Consensus
             return Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
         }
 
-        private Timestamp GetTimestamp(Timestamp origin, int offset)
+        private Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
         {
             return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
         }
