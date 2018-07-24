@@ -65,7 +65,7 @@ namespace AElf.Kernel.Node
 
         private int _flag;
 
-        private int _incrementIdOffset;
+        private bool _incrementIdNeedToAddOne;
         
         public bool IsMining { get; private set; }
 
@@ -528,7 +528,7 @@ namespace AElf.Kernel.Node
         // ReSharper disable once InconsistentNaming
         public async Task CheckUpdatingDPoSProcess()
         {
-            if (CurrentRoundNumber != _dPoSHelper.CurrentRoundNumber.Value/* && _protocolDirector.GetLatestIndexOfOtherNode() == -1*/)
+            if (CurrentRoundNumber != _dPoSHelper.CurrentRoundNumber.Value)
             {
                 ConsensusDisposable?.Dispose();
                 ConsensusDisposable = ConsensusSequence.NormalMiningProcess(await GetBPInfoOfCurrentRound(),
@@ -775,11 +775,12 @@ namespace AElf.Kernel.Node
         {
             if (_consensusData.Count <= 0)
             {
+                _incrementIdNeedToAddOne = false;
                 return;
             }
 
-            Interlocked.Increment(ref _incrementIdOffset);
-            
+            _incrementIdNeedToAddOne = true;
+
             var currentRoundNumber = _dPoSHelper.CurrentRoundNumber;
 
             var parameters = new List<byte[]>
@@ -811,9 +812,7 @@ namespace AElf.Kernel.Node
             var txForExtraBlock = await GenerateTransaction(
                 "UpdateAElfDPoS",
                 parameters,
-                (ulong) _incrementIdOffset);
-
-            Interlocked.Decrement(ref _incrementIdOffset);
+                _incrementIdNeedToAddOne ? (ulong) 1 : 0);
 
             await BroadcastTransaction(txForExtraBlock);
 
