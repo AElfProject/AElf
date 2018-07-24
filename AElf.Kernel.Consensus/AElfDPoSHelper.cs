@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
 using AElf.SmartContract;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
@@ -16,7 +19,9 @@ namespace AElf.Kernel.Consensus
         private readonly ECKeyPair _keyPair;
         private readonly IDataProvider _dataProvider;
         private readonly BlockProducer _blockProducer;
+        private readonly IChainManager _chainManager;
         private readonly ILogger _logger;
+        private readonly Hash _chainId;
         
         public UInt64Value CurrentRoundNumber
         {
@@ -34,12 +39,15 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public AElfDPoSHelper(IWorldStateDictator worldStateDictator, ECKeyPair keyPair, Hash chainId, BlockProducer blockProducer, Hash contractAddressHash, ILogger logger)
+        public AElfDPoSHelper(IWorldStateDictator worldStateDictator, ECKeyPair keyPair, Hash chainId,
+            BlockProducer blockProducer, Hash contractAddressHash, IChainManager chainManager, ILogger logger)
         {
             worldStateDictator.SetChainId(chainId);
             _keyPair = keyPair;
             _blockProducer = blockProducer;
             _logger = logger;
+            _chainManager = chainManager;
+            _chainId = chainId;
 
             _dataProvider = worldStateDictator.GetAccountDataProvider(contractAddressHash).Result.GetDataProvider();
         }
@@ -328,7 +336,7 @@ namespace AElf.Kernel.Consensus
         }
 
         // ReSharper disable once InconsistentNaming
-        public async Task<string> GetDPoSInfoToStringOfLatestRounds(ulong countOfRounds)
+        private async Task<string> GetDPoSInfoToStringOfLatestRounds(ulong countOfRounds)
         {
             try
             {
@@ -373,6 +381,59 @@ namespace AElf.Kernel.Consensus
                 _logger?.Error(e, "Failed to get dpos info");
                 return "";
             }
+        }
+        
+        public async Task<Tuple<RoundInfo, RoundInfo, StringValue>> ExecuteTxsForExtraBlock()
+        {
+            var currentRoundInfo = await SupplyPreviousRoundInfo();
+            var nextRoundInfo = await GenerateNextRoundOrder();
+            // ReSharper disable once InconsistentNaming
+            var nextEBP = await CalculateNextExtraBlockProducer();
+            
+            return Tuple.Create(currentRoundInfo, nextRoundInfo, nextEBP);
+        }
+        
+        // ReSharper disable once InconsistentNaming
+        public void DPoSLog(bool doLogsAboutConsensus = true)
+        {
+            new EventLoopScheduler().Schedule(() =>
+            {
+                var dPoSInfo = "";
+
+                var intervalSequnce = GetIntervalObservable();
+                intervalSequnce.Subscribe
+                (
+                    async x =>
+                    {
+                        var currentHeightOfThisNode = (long) await _chainManager.GetChainCurrentHeight(_chainId);
+
+                        if (!doLogsAboutConsensus) 
+                            return;
+                        
+                        // ReSharper disable once InconsistentNaming
+                        var currentDPoSInfo = await GetDPoSInfo(currentHeightOfThisNode);
+                        if (dPoSInfo == currentDPoSInfo)
+                            return;
+                            
+                        dPoSInfo = currentDPoSInfo;
+                        _logger?.Log(LogLevel.Debug, dPoSInfo);
+
+                    }
+                );
+                
+            });
+        }
+        
+        // ReSharper disable once InconsistentNaming
+        private async Task<string> GetDPoSInfo(long height)
+        {
+            return await GetDPoSInfoToStringOfLatestRounds(3) + $". Current height: {height}";
+        }
+        
+        // ReSharper disable once MemberCanBeMadeStatic.Local
+        private IObservable<long> GetIntervalObservable()
+        {
+            return Observable.Interval(TimeSpan.FromMilliseconds(Globals.AElfCheckTime));
         }
 
         private async Task<string> GetRoundInfoToString(UInt64Value roundNumber)

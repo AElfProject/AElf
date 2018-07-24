@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
@@ -28,6 +26,7 @@ using Newtonsoft.Json.Linq;
 using NLog;
 using ServiceStack;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
 {
     [LoggerName("Node")]
@@ -124,8 +123,9 @@ namespace AElf.Kernel.Node
             _chainContextService = chainContextService;
             _worldStateDictator = worldStateDictator;
             _blockExecutor = blockExecutor;
-            
-            _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers, ContractAccountHash, _logger);
+
+            _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
+                ContractAccountHash, _chainManager, _logger);
         }
 
         public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData, byte[] code)
@@ -468,7 +468,7 @@ namespace AElf.Kernel.Node
                 var txs = block.Body.Transactions;
                 foreach (var id in txs)
                 {
-                    if (!_txPoolService.TryGetTx(id, out var _))
+                    if (!_txPoolService.TryGetTx(id, out _))
                     {
                         res.Add(id);
                     }
@@ -511,7 +511,7 @@ namespace AElf.Kernel.Node
                 ConsensusSequence.Initialization();
             }
 
-            DPoSLog();
+            _dPoSHelper.DPoSLog();
         }
 
         // ReSharper disable once InconsistentNaming
@@ -650,35 +650,6 @@ namespace AElf.Kernel.Node
         #region Private Methods for DPoS
 
         // ReSharper disable once InconsistentNaming
-        private void DPoSLog(bool doLogsAboutConsensus = true)
-        {
-            new EventLoopScheduler().Schedule(() =>
-            {
-                var dPoSInfo = "";
-
-                var intervalSequnce = GetIntervalObservable();
-                intervalSequnce.Subscribe
-                (
-                    async x =>
-                    {
-                        var currentHeightOfThisNode = (long) await _chainManager.GetChainCurrentHeight(ChainId);
-
-                        if (!doLogsAboutConsensus) 
-                            return;
-                        
-                        // ReSharper disable once InconsistentNaming
-                        var currentDPoSInfo = await GetDPoSInfo(currentHeightOfThisNode);
-                        if (dPoSInfo == currentDPoSInfo)
-                            return;
-                            
-                        dPoSInfo = currentDPoSInfo;
-                        _logger?.Log(LogLevel.Debug, dPoSInfo);
-
-                    }
-                );
-                
-            });
-        }
             
         private async Task<ITransaction> GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters, ulong incrementIdOffset = 0)
         {
@@ -800,7 +771,7 @@ namespace AElf.Kernel.Node
         // ReSharper disable once InconsistentNaming
         public async Task MiningWithUpdatingAElfDPoSInformation()
         {
-            var extraBlockResult = await ExecuteTxsForExtraBlock();
+            var extraBlockResult = await _dPoSHelper.ExecuteTxsForExtraBlock();
 
             var parameters = new List<byte[]>
             {
@@ -822,28 +793,7 @@ namespace AElf.Kernel.Node
 
         #endregion
         
-        private async Task<Tuple<RoundInfo, RoundInfo, StringValue>> ExecuteTxsForExtraBlock()
-        {
-            var currentRoundInfo = await _dPoSHelper.SupplyPreviousRoundInfo();
-            var nextRoundInfo = await _dPoSHelper.GenerateNextRoundOrder();
-            // ReSharper disable once InconsistentNaming
-            var nextEBP = await _dPoSHelper.CalculateNextExtraBlockProducer();
-            
-            return Tuple.Create(currentRoundInfo, nextRoundInfo, nextEBP);
-        }
 
-        // ReSharper disable once InconsistentNaming
-        private async Task<string> GetDPoSInfo(long height)
-        {
-            return await _dPoSHelper.GetDPoSInfoToStringOfLatestRounds(3) + $". Current height: {height}";
-        }
-        
-        // ReSharper disable once MemberCanBeMadeStatic.Local
-        private IObservable<long> GetIntervalObservable()
-        {
-            return Observable.Interval(TimeSpan.FromMilliseconds(Globals.AElfCheckTime));
-        }
-        
         #endregion
         
         
