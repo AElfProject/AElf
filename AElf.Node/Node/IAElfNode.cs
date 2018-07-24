@@ -13,6 +13,8 @@ namespace AElf.Kernel.Node
         List<Hash> GetMissingTransactions(IBlock block);
         Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block);
 
+        Task ReceiveTransaction(byte[] messagePayload, bool isFromSend);
+
         Task<ulong> GetCurrentChainHeight();
         
         BlockProducer BlockProducers { get; }

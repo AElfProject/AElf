@@ -19,7 +19,7 @@ namespace AElf.Kernel.Node.Protocol
 {
     public class AElfProtocolDirector : IProtocolDirector
     {
-        private IPeerManager _peerManager;
+        private INetworkManager _netManager;
         private List<PendingRequest> _resetEvents = new List<PendingRequest>();
 
         private BlockSynchronizer _blockSynchronizer;
@@ -30,17 +30,17 @@ namespace AElf.Kernel.Node.Protocol
 
         private BlockingCollection<Message> _messages;
 
-        public AElfProtocolDirector(IPeerManager peerManager)
+        public AElfProtocolDirector(INetworkManager netManager)
         {
             _messages = new BlockingCollection<Message>();
-            _peerManager = peerManager;
+            _netManager = netManager;
             _logger = LogManager.GetLogger("ProtocolDirector");
         }
         
         public void Start()
         {
-            _peerManager.Start();
-            _peerManager.MessageReceived += ProcessPeerMessage;
+            _netManager.Start();
+            _netManager.MessageReceived += ProcessPeerMessage;
         }
 
         /// <summary>
@@ -56,9 +56,8 @@ namespace AElf.Kernel.Node.Protocol
             
             ulong height = _node.GetCurrentChainHeight().Result;
                 
-            _blockSynchronizer = new BlockSynchronizer(_node, _peerManager); // todo move
-            _blockSynchronizer.SetNodeHeight((int)height);
-
+            _blockSynchronizer = new BlockSynchronizer(_netManager, _node); // todo move
+            
             if (!isGenerator)
             {
                 _blockSynchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
@@ -86,12 +85,12 @@ namespace AElf.Kernel.Node.Protocol
 
         public void AddTransaction(Transaction tx)
         {
-            _blockSynchronizer.EnqueueJob(new Job { Transaction = tx });
+            //_blockSynchronizer.EnqueueJob(new Job { Transaction = tx });
         }
 
         public List<NodeData> GetPeers(ushort? numPeers)
         {
-            return _peerManager.GetPeers(numPeers);
+            return new List<NodeData>();
         }
         
         public async Task<int> BroadcastTransaction(ITransaction tx)
@@ -101,7 +100,7 @@ namespace AElf.Kernel.Node.Protocol
             var pendingRequest = BuildRequest();
             
             int broadcastCount 
-                = await _peerManager.BroadcastMessage(MessageType.BroadcastTx, transaction, pendingRequest.Id);
+                = await _netManager.BroadcastMessage(MessageType.BroadcastTx, transaction);
 
             return broadcastCount;
 
@@ -114,7 +113,7 @@ namespace AElf.Kernel.Node.Protocol
         public async Task<int> BroadcastBlock(Block block)
         {
             byte[] serializedBlock = block.ToByteArray();
-            return await _peerManager.BroadcastMessage(MessageType.BroadcastBlock, serializedBlock, 0);
+            return await _netManager.BroadcastMessage(MessageType.BroadcastBlock, serializedBlock);
         }
         
         public long GetLatestIndexOfOtherNode()
@@ -145,37 +144,36 @@ namespace AElf.Kernel.Node.Protocol
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private async void ProcessPeerMessage(object sender, EventArgs e)
-        {
-            if (sender != null && e is PeerMessageReceivedArgs args && args.Message != null)
+        {   
+            if (sender != null && e is NetMessageReceived args  && args.Message != null)
             {
                 Message message = args.Message;
                 MessageType msgType = (MessageType)message.Type;
 
-                if (msgType == MessageType.BroadcastTx || msgType == MessageType.Tx)
+                if (msgType == MessageType.BroadcastTx) // || msgType == MessageType.Tx)
                 {
                     await  HandleTransactionReception(message);
                 }
-                else if (msgType == MessageType.BroadcastBlock || message.Type == (int)MessageType.Block)
+                else if (msgType == MessageType.BroadcastBlock) // || message.Type == (int)MessageType.Block)
                 {
                     // todo maybe merge the above types
-                    await HandleBlockReception(message, msgType);
+                    //await HandleBlockReception(message, msgType);
                 }
                 else if (msgType == MessageType.RequestBlock)
                 {
-                    await HandleBlockRequest(message, args);
-
+                    await HandleBlockRequest(message, args.PeerMessage);
                 }
                 else if (msgType == MessageType.Height)
                 {
-                    HandlePeerHeightReception(message, args);
+                    HandlePeerHeightReception(message, args.PeerMessage);
                 }
                 else if (msgType == MessageType.HeightRequest)
                 {
-                    await HandleHeightRequest(message, args);
+                    await HandleHeightRequest(message, args.PeerMessage);
                 }
                 else if (msgType == MessageType.TxRequest)
                 {
-                    await HandleTxRequest(message, args);
+                    await HandleTxRequest(message, args.PeerMessage);
                 }
             }
         }
@@ -198,7 +196,7 @@ namespace AElf.Kernel.Node.Protocol
                     return;
                 }
                 
-                var req = NetRequestFactory.CreateMessage(MessageType.Tx, t.ToByteArray(), 0);
+                var req = NetRequestFactory.CreateMessage(MessageType.Tx, t.ToByteArray());
                 args.Peer.EnqueueOutgoing(req);
 
                 _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + t.ToByteArray().Length +
@@ -217,7 +215,7 @@ namespace AElf.Kernel.Node.Protocol
                 BlockRequest breq = BlockRequest.Parser.ParseFrom(message.Payload);
                 Block block = await _node.GetBlockAtHeight(breq.Height);
 
-                var req = NetRequestFactory.CreateMessage(MessageType.Block, block.ToByteArray(), 0);
+                var req = NetRequestFactory.CreateMessage(MessageType.Block, block.ToByteArray());
                 args.Peer.EnqueueOutgoing(req);
                 _logger?.Trace("Send block " + block.GetHash().ToHex() + " to " + args.Peer);
             }
@@ -233,7 +231,7 @@ namespace AElf.Kernel.Node.Protocol
             {
                 ulong height = await _node.GetCurrentChainHeight();
                 HeightData data = new HeightData { Height = (int)height };
-                var req = NetRequestFactory.CreateMessage(MessageType.Height, data.ToByteArray(), 0);
+                var req = NetRequestFactory.CreateMessage(MessageType.Height, data.ToByteArray());
                 args.Peer.EnqueueOutgoing(req);
             }
             catch (Exception e)
@@ -269,31 +267,31 @@ namespace AElf.Kernel.Node.Protocol
             }
         }
 
-        internal async Task HandleBlockReception(Message message, MessageType type)
-        {
-            try
-            {
-                Block b = Block.Parser.ParseFrom(message.Payload);
-                
-                _logger?.Trace("Block received: " + b.GetHash().ToHex());
-                _blockSynchronizer.EnqueueJob(new Job { Block = b });
-
-                /*if (types == MessageTypes.BroadcastBlock)
-                {
-                    
-                    await _blockSynchronizer.AddBlockToSync(b);
-                }
-                else
-                {
-                    // Block sent to answer a request
-                    await _blockSynchronizer.AddRequestedBlock(b);
-                }*/
-            }
-            catch (Exception e)
-            {
-                _logger?.Trace(e, "Error while receiving HandleBlockReception.");
-            }
-        }
+//        internal async Task HandleBlockReception(Message message, MessageType type)
+//        {
+//            try
+//            {
+//                Block b = Block.Parser.ParseFrom(message.Payload);
+//                
+//                _logger?.Trace("Block received: " + b.GetHash().ToHex());
+//                _blockSynchronizer.EnqueueJob(new Job { Block = b });
+//
+//                /*if (types == MessageTypes.BroadcastBlock)
+//                {
+//                    
+//                    await _blockSynchronizer.AddBlockToSync(b);
+//                }
+//                else
+//                {
+//                    // Block sent to answer a request
+//                    await _blockSynchronizer.AddRequestedBlock(b);
+//                }*/
+//            }
+//            catch (Exception e)
+//            {
+//                _logger?.Trace(e, "Error while receiving HandleBlockReception.");
+//            }
+//        }
 
         private void ClearResetEvent(int eventId)
         {

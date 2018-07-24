@@ -28,7 +28,7 @@ using Autofac;
              else
                  builder.RegisterType<PeerManager>().As<IPeerManager>();*/
              
-             builder.RegisterType<NetworkManager>().As<IPeerManager>();
+             builder.RegisterType<NetworkManager>().As<INetworkManager>();
 
              PeerDataStore peerDb = new PeerDataStore(NetConfig.PeersDbPath);
              builder.RegisterInstance(peerDb).As<IPeerDatabase>();

@@ -319,7 +319,6 @@ namespace AElf.Network.Peers
 
         private void FireMessageReceived(Message p)
         {
-            _logger.Trace("Listeners count " + MessageReceived?.GetInvocationList().Length);
             MessageReceived?.Invoke(this, new PeerMessageReceivedArgs { Peer = this, Message = p });
         }
 

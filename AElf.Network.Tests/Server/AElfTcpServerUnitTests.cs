@@ -10,15 +10,15 @@ namespace AElf.Network.Tests.Server
     {
         /* Testing Start method */
 
-        [Fact]
-        public async Task Start_ShouldThrow_NullConf()
-        {
-            AElfTcpServer server = new AElfTcpServer(null, null);
-
-            Exception ex =
-                await Assert.ThrowsAsync<ServerConfigurationException>(async () => await server.StartAsync());
-            Assert.Equal("Could not start the server, config object is null.", ex.Message);
-        }
+//        [Fact]
+//        public async Task Start_ShouldThrow_NullConf()
+//        {
+//            AElfTcpServer server = new AElfTcpServer(null, null);
+//
+//            Exception ex =
+//                await Assert.ThrowsAsync<ServerConfigurationException>(async () => await server.StartAsync());
+//            Assert.Equal("Could not start the server, config object is null.", ex.Message);
+//        }
 
         /*[Theory]
         [InlineData("")]

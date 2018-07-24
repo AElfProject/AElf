@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
+using AElf.Common.ByteArrayHelpers;
+using AElf.Kernel;
 using AElf.Network.Config;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -25,8 +27,73 @@ namespace AElf.Network.Peers
     {
         public IPeer Peer { get; set; }
     }
+
+    public class NetMessageReceived : EventArgs
+    {
+        public TimeoutRequest Request { get; set; }
+        public Message Message { get; set; }
+        public PeerMessageReceivedArgs PeerMessage { get; set; }
+    }
+
+    public class TimeoutRequest
+    {
+        public EventHandler RequestTimedOut;
+        
+        private volatile bool _requestCanceled = false;
+        
+        private System.Timers.Timer _timeoutTimer { get; set; }
+        
+        public Peer Peer { get; private set; }
+        public Message RequestMessage { get; private set; }
+        
+        public byte[] ItemHash { get; private set; }
+        public int BlockIndex { get; private set; }
+
+        private TimeoutRequest(Peer peer, Message msg, double initialTimeout)
+        {
+            Peer = peer;
+            RequestMessage = msg;
+            
+            _timeoutTimer = new Timer();
+            _timeoutTimer.Interval = initialTimeout;
+            _timeoutTimer.Elapsed += TimerTimeoutElapsed;
+            _timeoutTimer.AutoReset = false;
+        }
+
+        public TimeoutRequest(byte[] itemHash, Peer peer, Message msg, double initialTimeout)
+            : this(peer, msg, initialTimeout)
+        {
+            ItemHash = itemHash;
+        }
+        
+        public TimeoutRequest(int index, Peer peer, Message msg, double initialTimeout)
+            : this(peer, msg, initialTimeout)
+        {
+            BlockIndex = index;
+        }
+
+        public void StartRequesting()
+        {
+            _timeoutTimer.Start();
+        }
+
+        private void TimerTimeoutElapsed(object sender, ElapsedEventArgs e)
+        {
+            if (!_requestCanceled)
+            {
+                Peer.EnqueueOutgoing(RequestMessage);
+                Cancel();
+            }
+        }
+        
+        public void Cancel()
+        {
+            _requestCanceled = true;
+            _timeoutTimer.Stop();
+        }
+    }
     
-    public class NetworkManager : IPeerManager, IDisposable
+    public class NetworkManager : INetworkManager, IPeerManager, IDisposable
     {
         public const int TargetPeerCount = 8; 
         
@@ -54,7 +121,7 @@ namespace AElf.Network.Peers
         public bool UndergoingPm { get; private set; } = false;
         public bool ReceivingPeers { get; private set; } = false;
 
-        private Timer _maintenanceTimer = null;
+        private System.Threading.Timer _maintenanceTimer = null;
         private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(5);
         private readonly TimeSpan _maintenancePeriod = TimeSpan.FromMinutes(1);
         
@@ -62,8 +129,13 @@ namespace AElf.Network.Peers
         
         private readonly IConnectionListener _connectionListener;
 
+        private Object _pendingRequestsLock = new Object();  
+        public List<TimeoutRequest> _pendingRequests;
+
         public NetworkManager(IAElfNetworkConfig config, ILogger logger)
         {
+            _pendingRequests = new List<TimeoutRequest>();
+            
             _connectionListener = new ConnectionListner(); // todo DI
             
             _networkConfig = config;
@@ -146,7 +218,7 @@ namespace AElf.Network.Peers
                 NoPeers = false;
             }
 
-            _maintenanceTimer = new Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
+            _maintenanceTimer = new System.Threading.Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
         }
         
         private void ConnectionListenerOnIncomingConnection(object sender, EventArgs eventArgs)
@@ -155,6 +227,47 @@ namespace AElf.Network.Peers
             {
                 CreatePeerFromConnection(args.Client);
             }
+        }
+        
+        public void QueueTransactionRequest(byte[] transactionHash)
+        {
+            Peer selectedPeer = (Peer)_peers.FirstOrDefault();
+            
+            if(selectedPeer == null)
+                return;
+            
+            TxRequest br = new TxRequest { TxHash = ByteString.CopyFrom(transactionHash) };
+            var msg = NetRequestFactory.CreateMessage(MessageType.TxRequest, br.ToByteArray());
+            
+            // Select peer for request
+            TimeoutRequest request = new TimeoutRequest(transactionHash, selectedPeer, msg, 2000);
+            
+            lock (_pendingRequestsLock)
+            {
+                _pendingRequests.Add(request);
+            }
+            
+            request.StartRequesting();
+        }
+
+        public void QueueBlockRequestByIndex(int index)
+        {
+            Peer selectedPeer = (Peer)_peers.FirstOrDefault();
+            
+            if(selectedPeer == null)
+                return;
+            
+            BlockRequest br = new BlockRequest { Height = index };
+            Message message = NetRequestFactory.CreateMessage(MessageType.RequestBlock, br.ToByteArray()); 
+            
+            // Select peer for request
+            TimeoutRequest request = new TimeoutRequest(index, selectedPeer, message, 2000);
+            lock (_pendingRequestsLock)
+            {
+                _pendingRequests.Add(request);
+            }
+
+            request.StartRequesting();
         }
         
         internal void DoPeerMaintenance()
@@ -558,9 +671,116 @@ namespace AElf.Network.Peers
                 }
                 else
                 {
+                    TimeoutRequest originalRequest = null;
+                    
+                    if (args.Message.Type == (int) MessageType.Tx)
+                    {
+                        originalRequest = HandleTransactionMessage(args.Peer, args.Message);
+                    }
+                    else if (args.Message.Type == (int) MessageType.Block)
+                    {
+                        originalRequest = HandleBlockMessage(args.Peer, args.Message);
+                    }
+                    
+                    var evt = new NetMessageReceived {
+                        Message = args.Message,
+                        PeerMessage = args,
+                        Request = originalRequest
+                    };
+
                     // raise the event so the higher levels can process it.
-                    MessageReceived?.Invoke(this, e);
+                    MessageReceived?.Invoke(this, evt);
                 }
+            }
+        }
+
+        internal TimeoutRequest HandleBlockMessage(Peer peer, Message msg)
+        {
+            if (peer == null || msg == null)
+            {
+                _logger?.Trace("HandleBlockMessage : peer or message null.");
+                return null;
+            }
+            
+            try
+            {
+                Block block = Block.Parser.ParseFrom(msg.Payload);
+
+                if (block?.Header == null)
+                    return null;
+
+                TimeoutRequest request;
+                lock (_pendingRequestsLock)
+                {
+                    request = _pendingRequests.FirstOrDefault(r => r.BlockIndex == (int)block.Header.Index);
+                }
+
+                if (request != null)
+                {
+                    request.Cancel();
+                    
+                    lock (_pendingRequestsLock)
+                    {
+                        _pendingRequests.Remove(request);
+                    }
+                    
+                    _logger?.Trace($"Block request matched and removed. Index : { block.Header.Index }");
+                }
+                else
+                {
+                    _logger?.Trace($"Block request not found. Index : { block.Header.Index }");
+                }
+
+                return request;
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "HandleBlockMessage : exception while handling block.");
+                return null;
+            }
+        }
+
+        internal TimeoutRequest HandleTransactionMessage(Peer peer, Message msg)
+        {
+            if (peer == null || msg == null)
+            {
+                _logger?.Trace("HandleTransactionMessage : peer or message null.");
+                return null;
+            }
+            
+            try
+            {
+                Transaction tx = Transaction.Parser.ParseFrom(msg.Payload);
+                byte[] txHash = tx.GetHash().Value.ToByteArray();
+
+                TimeoutRequest request;
+                lock (_pendingRequestsLock)
+                {
+                    request = _pendingRequests.FirstOrDefault(r => r.ItemHash.BytesEqual(txHash));
+                }
+
+                if (request != null)
+                {
+                    request.Cancel();
+
+                    lock (_pendingRequestsLock)
+                    {
+                        _pendingRequests.Remove(request);
+                    }
+                    
+                    _logger?.Trace($"Transaction request matched and removed. Hash : {txHash.ToHex()}");
+                }
+                else
+                {
+                    _logger?.Trace($"Transaction request not found. Hash : {txHash.ToHex()}");
+                }
+
+                return request;
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "HandleTransactionMessage : exception while handling transaction.");
+                return null;
             }
         }
 
@@ -573,14 +793,14 @@ namespace AElf.Network.Peers
         /// <param name="payload"></param>
         /// <param name="messageId"></param>
         /// <returns></returns>
-        public async Task<int> BroadcastMessage(MessageType messageType, byte[] payload, int messageId)
+        public async Task<int> BroadcastMessage(MessageType messageType, byte[] payload)
         {
             if (_peers == null || !_peers.Any())
                 return 0;
 
             try
             {
-                Message packet = NetRequestFactory.CreateMessage(messageType, payload, messageId);
+                Message packet = NetRequestFactory.CreateMessage(messageType, payload);
                 return BroadcastMessage(packet);
             }
             catch (Exception e)

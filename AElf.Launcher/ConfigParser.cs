@@ -88,7 +88,7 @@ namespace AElf.Launcher
                 {
                     var nd = NodeData.FromString(strNodeData);
                     if (nd == null) continue;
-                    nd.IsBootnode = true;
+                    //nd.IsBootnode = true;
                     netConfig.Bootnodes.Add(nd);
                 }
             }
