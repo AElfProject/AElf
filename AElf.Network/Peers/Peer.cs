@@ -43,8 +43,6 @@ namespace AElf.Network.Peers
         private const int DefaultReadTimeOut = 3000;
         private const int BufferSize = 20000;
 
-        private byte[] _receptionBuffer;
-
         private ILogger _logger;
         
         /// <summary>
