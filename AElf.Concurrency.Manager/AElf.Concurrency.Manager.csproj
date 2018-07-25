@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
+    <ProjectReference Include="..\AElf.Launcher\AElf.Launcher.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="ManagerDockerfile">
