@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using NLog;
 
 namespace AElf.Network.Connection
 {
@@ -12,8 +13,14 @@ namespace AElf.Network.Connection
     
     public class ConnectionListener : IConnectionListener
     {
+        private readonly ILogger _logger;
         public event EventHandler IncomingConnection;
-        public event EventHandler ListeningStopped;  
+        public event EventHandler ListeningStopped;
+
+        public ConnectionListener(ILogger logger)
+        {
+            _logger = logger;
+        }
 
         public async Task StartListening(int port)
         {
@@ -29,6 +36,8 @@ namespace AElf.Network.Connection
             }
             catch (Exception ex)
             {
+                _logger.Trace(ex, "Connection listening stopped, no new connections can be made.");
+                ListeningStopped?.Invoke(this, EventArgs.Empty);
             }
         }
         

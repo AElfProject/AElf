@@ -167,10 +167,16 @@ namespace AElf.Network.Peers
         {
             Task.Run(() => _connectionListener.StartListening(_port));
             _connectionListener.IncomingConnection += ConnectionListenerOnIncomingConnection;
+            _connectionListener.ListeningStopped += ConnectionListenerOnListeningStopped;
             
             Setup().GetAwaiter().GetResult();
         }
-        
+
+        private void ConnectionListenerOnListeningStopped(object sender, EventArgs eventArgs)
+        {
+            _logger.Trace("Listening stopped"); // todo
+        }
+
         /// <summary>
         /// Sets up the server according to the configuration that was
         /// provided.
