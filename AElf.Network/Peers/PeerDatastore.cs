@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using NodeData = AElf.Network.Data.NodeData;
+using AElf.Network.Data;
 
 namespace AElf.Network.Peers
 {
@@ -53,8 +53,7 @@ namespace AElf.Network.Peers
                     NodeData peer = new NodeData
                     {
                         IpAddress = sPeer[0],
-                        Port = Convert.ToUInt16(sPeer[1]),
-                        IsBootnode = Convert.ToBoolean(sPeer[2])
+                        Port = Convert.ToUInt16(sPeer[1])
                     };
 
                     peerList.Add(peer);
@@ -74,7 +73,7 @@ namespace AElf.Network.Peers
             string newline;
             foreach (var peer in peerList)
             {
-                newline = string.Format($"{peer.IpAddress},{peer.Port},{peer.IsBootnode}");
+                newline = string.Format($"{peer.IpAddress},{peer.Port}");
                 sb.AppendLine(newline);
             }
 

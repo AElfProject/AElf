@@ -53,6 +53,14 @@ namespace AElf.ChainController
         bool TryGetTx(Hash txHash, out ITransaction tx);
 
         /// <summary>
+        /// Given a block this method will return the blocks transactions
+        /// that are not currently in the pool.
+        /// </summary>
+        /// <param name="block"></param>
+        /// <returns></returns>
+        List<Hash> GetMissingTransactions(IBlock block);
+
+        /// <summary>
         /// clear tx pool
         /// </summary>
         /// <returns></returns>

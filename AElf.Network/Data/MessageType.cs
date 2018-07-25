@@ -1,7 +1,12 @@
 ﻿namespace AElf.Network.Data
 {
-    public enum MessageTypes
+    public enum MessageType
     {
+        Auth,
+        Ping,
+        Pong,
+        Disconnect,
+        
         TxRequest,
         Tx,
         

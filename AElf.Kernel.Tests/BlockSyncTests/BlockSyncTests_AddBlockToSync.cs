@@ -10,21 +10,21 @@ namespace AElf.Kernel.Tests.BlockSyncTests
     public class BlockSyncTests_AddBlockToSync
     {
 
-        [Fact(Skip = "todo")]
-        public void Test()
-        {
-            byte[] byte01 = ByteArrayHelpers.RandomFill(10);
-            byte[] byte02 = new byte[10];
-            
-            byte[] byte03 = ByteArrayHelpers.RandomFill(10);
-            
-            Array.Copy(byte01, byte02, 10);
-            
-            SyncPeer s = new SyncPeer();
-            s.AlreadyRequested.Enqueue(byte01);
-            
-            Assert.True(s.AlreadyRequested.Contains(byte03));
-        }
+//        [Fact(Skip = "todo")]
+//        public void Test()
+//        {
+//            byte[] byte01 = ByteArrayHelpers.RandomFill(10);
+//            byte[] byte02 = new byte[10];
+//            
+//            byte[] byte03 = ByteArrayHelpers.RandomFill(10);
+//            
+//            Array.Copy(byte01, byte02, 10);
+//            
+//            SyncPeer s = new SyncPeer();
+//            s.AlreadyRequested.Enqueue(byte01);
+//            
+//            Assert.True(s.AlreadyRequested.Contains(byte03));
+//        }
         
         [Fact(Skip = "todo")]
         public void Test2()
