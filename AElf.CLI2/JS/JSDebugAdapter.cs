@@ -22,6 +22,13 @@ namespace AElf.CLI2.JS
                 _logger.Fatal(
                     $"Javascript side raise an uncaught exception.\n${exception.ToString()}\n");
             };
+            debuggingService.OnAsyncBreak += (sender, point) => { };
+            debuggingService.OnBreakPoint += (sender, point) => { };
+            debuggingService.OnDebugEvent += (sender, arguments) => { };
+            debuggingService.OnEngineReady += (sender, args) => { };
+            debuggingService.OnScriptLoad += (sender, code) => { };
+            debuggingService.OnStepComplete += (sender, point) => { };
+            debuggingService.StartDebug();
         }
     }
 }

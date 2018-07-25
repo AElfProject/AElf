@@ -5,7 +5,6 @@ using AElf.CLI2.JS;
 using AElf.CLI2.JS.IO;
 using Autofac;
 using Xunit;
-using Console = System.Console;
 
 namespace AElf.CLI2.Tests
 {

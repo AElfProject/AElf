@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using AElf.Common.Attributes;
+using AElf.Kernel.Consensus;
 using ChakraCore.NET.API;
+using ChakraCore.NET.Debug;
 using NLog;
 using NServiceKit.Common.Extensions;
 
@@ -43,7 +46,7 @@ namespace AElf.CLI2.JS.IO
             _logger.Log(level, string.Join(" ", args.Select(JSValueToString)));
         }
 
-        private static string JSValueToString(JavaScriptValue val)
+        private string JSValueToString(JavaScriptValue val)
         {
             switch (val.ValueType)
             {
@@ -58,8 +61,11 @@ namespace AElf.CLI2.JS.IO
                     {
                         return val.ToDouble().ToString(CultureInfo.InvariantCulture);
                     }
+                case JavaScriptValueType.Error:
+                    throw new Exception("Error in js");
                 default:
-                    return val.ToString();
+                    _logger.Debug(val.ValueType);
+                    return val.ValueType.ToString();
             }
         }
     }
