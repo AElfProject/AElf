@@ -68,7 +68,6 @@ namespace AElf.Network.Peers
         private int _port;
         
         private TcpClient _client;
-        //private NetworkStream _stream;
 
         private bool _isListening = false;
         
@@ -76,43 +75,7 @@ namespace AElf.Network.Peers
 
         private MessageReader _messageReader;
         private MessageWriter _messageWriter;
-
-        /// <summary>
-        /// Constructor used for creating a peer that is not
-        /// connected to any client. The next logical step
-        /// would be to call <see cref="DoConnectAsync"/>.
-        /// </summary>
-        /// <param name="nodeData"></param>
-        /// ///
-        /// <param name="localPort"></param>
-        /// <param name="peerData"></param>
-//        public Peer(int localPort, NodeData peerData)
-//        {
-//            _port = localPort;
-//            
-//            DistantNodeData = peerData;
-//            _receptionBuffer = new byte[BufferSize];
-//
-//            _logger = LogManager.GetLogger("Peer");
-//        }
-
-        /// <summary>
-        /// Constructor used for creating a peer from an
-        /// already established connection. The next logical
-        /// step is to call <see cref="StartListeningAsync"/>.
-        /// </summary>
-        /// <param name="nodeData"></param>
-        /// <param name="localPort"></param>
-        /// <param name="distantNodeData"></param>
-        /// <param name="client"></param>
-//        public Peer(int localPort, NodeData distantNodeData, TcpClient client)
-//        {
-//            _port = localPort;
-//            DistantNodeData = distantNodeData;
-//            
-//            _client = client;
-//        }
-
+        
         public Peer(int port)
         {
             _port = port;
@@ -193,6 +156,11 @@ namespace AElf.Network.Peers
             }
         }
 
+        /// <summary>
+        /// This method writes the initial connection information on the peers stream.
+        /// Note: for now only the listening port is sent.
+        /// </summary>
+        /// <returns></returns>
         private void SendAuthentification()
         {
             var nd = new NodeData {Port = _port};
@@ -200,29 +168,6 @@ namespace AElf.Network.Peers
             
             _messageWriter.EnqueueWork(new Message { Type = (int)MessageType.Auth, Length = packet.Length, Payload = packet});
         }
-        
-        /// <summary>
-        /// This method writes the initial connection information on the peers stream.
-        /// Note: for now only the listening port is sent.
-        /// </summary>
-        /// <returns></returns>
-//        public void SendAuthInfo()
-//        {
-//            try
-//            {
-//                Message m = new Message();
-//                m.Type = (int)MessageTypes.Auth; 
-//                    
-//                var nd = new NodeData { Port = _port };
-//                
-//                byte[] packet = nd.ToByteArray();
-//                _messageWriter.EnqueueWork(m);
-//            }
-//            catch (Exception e)
-//            {
-//                return;
-//            }
-//        }
 
         private async void MessageReaderOnStreamClosed(object sender, EventArgs eventArgs)
         {
@@ -312,18 +257,6 @@ namespace AElf.Network.Peers
             MessageReceived?.Invoke(this, new PeerMessageReceivedArgs { Peer = this, Message = p });
         }
 
-//        public void SendMessage(Message data)
-//        {
-//            try
-//            {
-//                _messageWriter.EnqueueWork(data);
-//            }
-//            catch (Exception e)
-//            {
-//                _logger.Trace(e);
-//            }
-//        }
-
         public void Disconnect()
         {
             Reset();
@@ -351,143 +284,6 @@ namespace AElf.Network.Peers
                 _logger.Trace(e, $"Exception while sending data.");
             }
         }
-        
-        /// <summary>
-        /// This method listens for incoming messages from the peer
-        /// and raises the corresponding event. This method sets the
-        /// <see cref="_isListening"/> field to true.
-        /// </summary>
-        /// <returns></returns>
-//        public async Task StartListeningAsync()
-//        {
-//            // If the peer is not connected or is already in 
-//            // a listening state.
-//            if (!IsConnected || IsListening) 
-//                return; // todo error
-//
-//            try
-//            {
-//                _isListening = true;
-//
-//                while (true)
-//                {
-//                    try
-//                    {
-//                        AElfPacketData packet = await ListenForPacketAsync();
-//                        
-//                        // raise the event so the higher levels can process it.
-//                        var args = new MessageReceivedArgs { Message = packet, Peer = this };
-//                        MessageReceived?.Invoke(this, args);
-//                    }
-//                    catch (InvalidProtocolBufferException invalidProtocol)
-//                    {
-//                        _logger?.Trace("Received an invalid message", invalidProtocol);
-//                    }
-//                }
-//            }
-//            catch (Exception e)
-//            {
-//                _client?.Close();
-//                _isListening = false;
-//                
-//                var args = new PeerDisconnectedArgs { Peer = this };
-//                PeerDisconnected?.Invoke(this, args);
-//            }
-//            finally
-//            {
-//                _client?.Close();
-//                _isListening = false;
-//            }
-//        }
-
-//        private async Task<AElfPacketData> ListenForPacketAsync()
-//        {
-//            byte[] bytes = new byte[20000];
-//            int bytesRead = await _stream.ReadAsync(bytes, 0, BufferSize);
-//
-//            /*byte[] readBytes = new byte[bytesRead];
-//            Array.Copy(bytes, readBytes, bytesRead);*/
-//            
-//            //int bytesRead = await _stream.ReadAsync(_receptionBuffer, 0, BufferSize);
-//
-//            AElfPacketData packet = null;
-//            if (bytesRead > 0)
-//            {
-//                // Deserialize
-//                packet = AElfPacketData.Parser.ParseFrom(bytes, 0, bytesRead);
-//                //_logger.Trace("Packet received: " + ((MessageTypes)packet.MsgType) + ", bytes read: " + bytesRead);
-//            }
-//            else
-//            {
-//                _client?.Close();
-//                _logger?.Trace("Stream closed");
-//                throw new Exception("Stream closed");
-//            }
-//
-//            return packet;
-//        }
-
-
-
-        /// <summary>
-        /// This method connects to the peer according
-        /// to the information contained in the <see cref="_node"/>
-        /// instance.
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="OperationCanceledException">Distant peer timeout</exception>
-//        public async Task<bool> DoConnectAsync()
-//        {
-//            if (DistantNodeData == null)
-//                return false;
-//
-//            try
-//            {
-//                _client = new TcpClient(DistantNodeData.IpAddress, DistantNodeData.Port);
-//                _logger?.Trace("Local endpoint:" + ((IPEndPoint)_client?.Client?.LocalEndPoint)?.Address + ":" + ((IPEndPoint)_client?.Client?.LocalEndPoint)?.Port);
-//                
-//                _stream = _client?.GetStream();
-//
-//                await WriteConnectInfoAsync();
-//                await AwaitForConnectionInfoAsync();
-//            }
-//            catch (OperationCanceledException e)
-//            {
-//                _client?.Close();
-//                throw new ResponseTimeOutException(e);
-//            }
-//            catch (Exception e)
-//            {
-//                return false;
-//            }
-//
-//            return true;
-//        }
-
-        /// <summary>
-        /// Receives the initial data from the other node
-        /// </summary>
-        /// <returns></returns>
-//        public async Task<NodeData> AwaitForConnectionInfoAsync()
-//        {
-//            // read the initial data
-//            byte[] bytes = new byte[1024]; // todo not every call
-//
-//            int bytesRead;
-//            using (var cancellationTokenSource = new CancellationTokenSource(DefaultReadTimeOut))
-//            {
-//                Task<int> t = _stream.ReadAsync(bytes, 0, 1024);
-//                bytesRead = await t.WithCancellation(cancellationTokenSource.Token);
-//            }
-//
-//            if (bytesRead > 0)
-//            {
-//                NodeData n = NodeData.Parser.ParseFrom(bytes, 0, bytesRead);
-//                return n;
-//            }
-//
-//            return null;
-//        }
 
         public override string ToString()
         {
