@@ -518,27 +518,6 @@ namespace AElf.Network.Peers
             return null;
         }
         
-//        private Peer CreatePeerFromConnection(TcpClient client)
-//        {
-//            Peer netPeer = new Peer();
-//            netPeer.Initialize(client);
-//                
-//            netPeer.MessageReceived += NetPeerOnMessageReceived;
-//                
-//            _peers.Add(netPeer);
-//
-//            return netPeer;
-//        }
-        
-//        private void NetPeerOnMessageReceived(object sender, EventArgs eventArgs)
-//        {
-//            if (eventArgs is PeerMessageReceivedArgs p && p.Peer != null)
-//            {
-//                //_logger.Trace("NetManager : Fireing on thread : " + Thread.CurrentThread.ManagedThreadId);
-//                MessageReceived?.Invoke(this, new NetMessageReceivedArgs { Message = p.Message});
-//            }
-//        }
-        
         /// <summary>
         /// Removes a peer from the list of peers.
         /// </summary>
