@@ -8,7 +8,7 @@ namespace AElf.Kernel.Node.Protocol
 {
     public interface IProtocolDirector
     {
-        void Start();
+        //void Start();
 
 //        Task<int> BroadcastBlock(Block block);
 //        Task<int> BroadcastTransaction(ITransaction transaction);

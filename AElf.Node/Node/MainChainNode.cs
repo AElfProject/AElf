@@ -203,6 +203,8 @@ namespace AElf.Kernel.Node
             _txPoolService.Start();
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
+
+            Task.Run(() => _netManager.Start());
             
             //_protocolDirector.SetCommandContext(this, _nodeConfig.ConsensusInfoGenerater); // If not miner do sync
             if (!_nodeConfig.ConsensusInfoGenerater)

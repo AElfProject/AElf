@@ -27,11 +27,11 @@ namespace AElf.Kernel.Node.Protocol
             _logger = LogManager.GetLogger("ProtocolDirector");
         }
         
-        public void Start()
-        {
-            _netManager.Start();
-            _netManager.MessageReceived += ProcessPeerMessage;
-        }
+//        public void Start()
+//        {
+//            _netManager.Start();
+//            _netManager.MessageReceived += ProcessPeerMessage;
+//        }
 
         /// <summary>
         /// Temporary solution, this is used for injecting a
