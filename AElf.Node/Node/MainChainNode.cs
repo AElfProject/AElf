@@ -18,7 +18,9 @@ using AElf.Kernel.Node.RPC;
 using AElf.Kernel.Node.RPC.DTO;
 using AElf.SmartContract;
 using AElf.Network;
+using AElf.Network.Connection;
 using AElf.Network.Data;
+using AElf.Network.Peers;
 using AElf.Types.CSharp;
 using Akka.Actor;
 using Google.Protobuf;
@@ -206,6 +208,8 @@ namespace AElf.Kernel.Node
 
             Task.Run(() => _netManager.Start());
             
+            _netManager.MessageReceived += ProcessPeerMessage;
+            
             //_protocolDirector.SetCommandContext(this, _nodeConfig.ConsensusInfoGenerater); // If not miner do sync
             if (!_nodeConfig.ConsensusInfoGenerater)
             {
@@ -242,7 +246,72 @@ namespace AElf.Kernel.Node
 
             return true;
         }
+
+        private async void ProcessPeerMessage(object sender, EventArgs e)
+        {
+            if (sender != null && e is NetMessageReceived args && args.Message != null)
+            {
+                Message message = args.Message;
+                MessageType msgType = (MessageType) message.Type;
+
+                if (msgType == MessageType.RequestBlock)
+                {
+                    await HandleBlockRequest(message, args.PeerMessage);
+                }
+                else if (msgType == MessageType.TxRequest)
+                {
+                    await HandleTxRequest(message, args.PeerMessage);
+                }
+            }
+        }
         
+        internal async Task HandleBlockRequest(Message message, PeerMessageReceivedArgs args)
+        {
+            try
+            {
+                BlockRequest breq = BlockRequest.Parser.ParseFrom(message.Payload);
+                Block block = await GetBlockAtHeight(breq.Height);
+
+                var req = NetRequestFactory.CreateMessage(MessageType.Block, block.ToByteArray());
+                args.Peer.EnqueueOutgoing(req);
+                _logger?.Trace("Send block " + block.GetHash().ToHex() + " to " + args.Peer);
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "Error while during HandleBlockRequest.");
+            }
+        }
+        
+        private async Task HandleTxRequest(Message message, PeerMessageReceivedArgs args)
+        {
+            string hash = null;
+            
+            try
+            {
+                TxRequest breq = TxRequest.Parser.ParseFrom(message.Payload);
+
+                hash = breq.TxHash.ToByteArray().ToHex();
+                
+                ITransaction tx = await GetTransaction(breq.TxHash);
+
+                if (!(tx is Transaction t))
+                {
+                    _logger?.Trace("Could not find transaction: ", hash);
+                    return;
+                }
+                
+                var req = NetRequestFactory.CreateMessage(MessageType.Tx, t.ToByteArray());
+                args.Peer.EnqueueOutgoing(req);
+
+                _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + t.ToByteArray().Length +
+                               " bytes)");
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, $"Transaction request failed. Hash : {hash}");
+            }
+        }
+
         private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
         {
             StartMining();
