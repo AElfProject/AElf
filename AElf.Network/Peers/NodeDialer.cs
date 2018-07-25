@@ -49,7 +49,7 @@ namespace AElf.Network.Peers
 
         public async Task<TcpClient> DialWithRetryAsync()
         {
-            for (int i = 0; i < ReconnectInterval; i++)
+            for (int i = 0; i < ReconnectTryCount; i++)
             {
                 _logger.Trace($"Reconnect attempt number {i+1}.");
                 

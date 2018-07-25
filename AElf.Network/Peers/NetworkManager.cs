@@ -231,45 +231,61 @@ namespace AElf.Network.Peers
             }
         }
         
-        public void QueueTransactionRequest(byte[] transactionHash)
+        public void QueueTransactionRequest(byte[] transactionHash, Peer hint)
         {
-            Peer selectedPeer = (Peer)_peers.FirstOrDefault();
-            
-            if(selectedPeer == null)
-                return;
-            
-            TxRequest br = new TxRequest { TxHash = ByteString.CopyFrom(transactionHash) };
-            var msg = NetRequestFactory.CreateMessage(MessageType.TxRequest, br.ToByteArray());
-            
-            // Select peer for request
-            TimeoutRequest request = new TimeoutRequest(transactionHash, selectedPeer, msg, 2000);
-            
-            lock (_pendingRequestsLock)
+            try
             {
-                _pendingRequests.Add(request);
-            }
+                Peer selectedPeer = hint ?? (Peer)_peers.FirstOrDefault();
             
-            request.StartRequesting();
+                if(selectedPeer == null)
+                    return;
+            
+                TxRequest br = new TxRequest { TxHash = ByteString.CopyFrom(transactionHash) };
+                var msg = NetRequestFactory.CreateMessage(MessageType.TxRequest, br.ToByteArray());
+            
+                // Select peer for request
+                TimeoutRequest request = new TimeoutRequest(transactionHash, selectedPeer, msg, 2000);
+            
+                lock (_pendingRequestsLock)
+                {
+                    _pendingRequests.Add(request);
+                }
+            
+                request.StartRequesting();
+                
+                _logger?.Trace($"Request for transaction {transactionHash?.ToHex()} send to {selectedPeer}");
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, $"Error while requesting transaction for index {transactionHash?.ToHex()}.");
+            }
         }
 
         public void QueueBlockRequestByIndex(int index)
         {
-            Peer selectedPeer = (Peer)_peers.FirstOrDefault();
-            
-            if(selectedPeer == null)
-                return;
-            
-            BlockRequest br = new BlockRequest { Height = index };
-            Message message = NetRequestFactory.CreateMessage(MessageType.RequestBlock, br.ToByteArray()); 
-            
-            // Select peer for request
-            TimeoutRequest request = new TimeoutRequest(index, selectedPeer, message, 2000);
-            lock (_pendingRequestsLock)
+            try
             {
-                _pendingRequests.Add(request);
-            }
+                Peer selectedPeer = (Peer)_peers.FirstOrDefault();
+            
+                if(selectedPeer == null)
+                    return;
+            
+                BlockRequest br = new BlockRequest { Height = index };
+                Message message = NetRequestFactory.CreateMessage(MessageType.RequestBlock, br.ToByteArray()); 
+            
+                // Select peer for request
+                TimeoutRequest request = new TimeoutRequest(index, selectedPeer, message, 500);
+                lock (_pendingRequestsLock)
+                {
+                    _pendingRequests.Add(request);
+                }
 
-            request.StartRequesting();
+                request.StartRequesting();
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, $"Error while requesting block for index {index}.");
+            }
         }
         
         internal void DoPeerMaintenance()

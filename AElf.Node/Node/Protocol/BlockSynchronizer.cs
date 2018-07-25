@@ -24,6 +24,8 @@ namespace AElf.Kernel.Node.Protocol
         //public bool IsWakeUp { get; set; }
         public Block Block { get; set; }
         public Transaction Transaction { get; set; }
+        
+        public Peer Peer { get; set; }
     }
     
     public interface IBlockSynchronizer
@@ -123,7 +125,7 @@ namespace AElf.Kernel.Node.Protocol
                     {
                         Block b = Block.Parser.ParseFrom(message.Payload);
                         
-                        EnqueueJob(new Job { Block = b });
+                        EnqueueJob(new Job { Block = b, Peer = args.PeerMessage?.Peer });
                         _logger?.Trace("Block enqueued: " + b.GetHash().ToHex());
                     }
                     catch (Exception ex)
@@ -227,7 +229,7 @@ namespace AElf.Kernel.Node.Protocol
                         // Process block
                         _logger?.Trace("Dequed block : " + j.Block.GetHash().ToHex());
 
-                        var b = AddBlockToSync(j.Block).Result;
+                        var b = AddBlockToSync(j.Block, j.Peer).Result;
 
                         /* print candidates */
 
@@ -292,7 +294,7 @@ namespace AElf.Kernel.Node.Protocol
         
         private void RequestMissingTxs()
         {
-            List<byte[]> listOfMissingTxToRequest = new List<byte[]>();
+            List<KeyValuePair<byte[], Peer>> listOfMissingTxToRequest = new List<KeyValuePair<byte[], Peer>>();
             
             foreach (var pdBlock in PendingBlocks)
             {
@@ -303,15 +305,17 @@ namespace AElf.Kernel.Node.Protocol
                         if (listOfMissingTxToRequest.Count >= 5) // only 5 at a time
                             break;
                         
-                        listOfMissingTxToRequest.Add(tx.Hash);
+                        listOfMissingTxToRequest.Add(new KeyValuePair<byte[], Peer>(tx.Hash, pdBlock.Peer));
                         tx.IsRequestInProgress = true;
                     }
                 }
             }
 
+            _logger?.Trace($"Requesting {listOfMissingTxToRequest.Count} transactions.");
+            
             foreach (var tx in listOfMissingTxToRequest)
             {
-                _networkManager.QueueTransactionRequest(tx);
+                _networkManager.QueueTransactionRequest(tx.Key, tx.Value);
             }
         }
 
@@ -349,7 +353,7 @@ namespace AElf.Kernel.Node.Protocol
         /// network, it will be placed here to sync.
         /// </summary>
         /// <param name="block"></param>
-        private async Task<bool> AddBlockToSync(Block block)
+        private async Task<bool> AddBlockToSync(Block block, Peer peer)
         {
             if (block?.Header == null || block.Body == null)
                 throw new InvalidBlockException("The block, blockheader or body is null");
@@ -385,6 +389,8 @@ namespace AElf.Kernel.Node.Protocol
             
             // todo check that the returned txs are actually in the block
             PendingBlock newPendingBlock = new PendingBlock(h, block, missingTxs);
+            newPendingBlock.Peer = peer;
+            
             PendingBlocks.Add(newPendingBlock);
             
             _logger?.Trace("Added block to sync : " + h.ToHex());
@@ -534,7 +540,8 @@ namespace AElf.Kernel.Node.Protocol
 
     public class PendingBlock
     {
-        public Block Block;
+        public Block Block { get; }
+        public Peer Peer { get; set; }
         
         public List<PendingTx> MissingTxs { get; private set; }
             

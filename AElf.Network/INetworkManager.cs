@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.Network.Data;
+using AElf.Network.Peers;
 
 namespace AElf.Network
 {
@@ -10,7 +11,7 @@ namespace AElf.Network
         
         void Start();
         
-        void QueueTransactionRequest(byte[] transaction);
+        void QueueTransactionRequest(byte[] transaction, Peer hint);
         void QueueBlockRequestByIndex(int index);
 
         Task<int> BroadcastMessage(MessageType messageType, byte[] payload);
