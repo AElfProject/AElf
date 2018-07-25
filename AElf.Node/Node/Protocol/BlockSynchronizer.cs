@@ -103,7 +103,7 @@ namespace AElf.Kernel.Node.Protocol
                 Message message = args.Message;
                 MessageType msgType = (MessageType)message.Type;
 
-                if (msgType == MessageType.Tx)
+                if (msgType == MessageType.Tx || msgType == MessageType.BroadcastTx)
                 {
                     try
                     {
