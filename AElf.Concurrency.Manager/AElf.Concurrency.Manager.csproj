@@ -13,4 +13,9 @@
   <ItemGroup>
     <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="ManagerDockerfile">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
