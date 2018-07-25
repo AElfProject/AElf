@@ -86,10 +86,12 @@ namespace AElf.Kernel.Node.Protocol
             _mainChainNode = node;
             
             ShouldDoInitialSync = doInitialSync;
-            IsInitialSyncInProgress = false;
+            IsInitialSyncInProgress = false; // started by first block
             
             if (doInitialSync)
                 _logger?.Trace("Initial sync started.");
+            else
+                Task.Run(() => DoSync());
         }
 
         private void ProcessPeerMessage(object sender, EventArgs e)
@@ -165,6 +167,7 @@ namespace AElf.Kernel.Node.Protocol
         public void IncrementChainHeight()
         {
             Interlocked.Increment(ref CurrentExecHeight);
+            _logger?.Trace("Height has been incremented, new value: " + CurrentExecHeight);
         }
 
         public void EnqueueJob(Job job)
@@ -188,7 +191,7 @@ namespace AElf.Kernel.Node.Protocol
                     _logger?.Trace($"Initial synchronisation has started at target height {SyncTargetHeight}.");
                 }
                 
-                Task.Run(() => { _jobQueue.Add(job); });
+                Task.Run(() => { _jobQueue.Add(job); }).ConfigureAwait(false);
             }
             catch (Exception e)
             {
