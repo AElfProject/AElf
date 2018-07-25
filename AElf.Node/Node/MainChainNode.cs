@@ -17,7 +17,10 @@ using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.Node.RPC.DTO;
 using AElf.SmartContract;
+using AElf.Network;
+using AElf.Network.Connection;
 using AElf.Network.Data;
+using AElf.Network.Peers;
 using AElf.Types.CSharp;
 using Akka.Actor;
 using Google.Protobuf;
@@ -26,6 +29,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 using ServiceStack;
+
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -40,7 +44,6 @@ namespace AElf.Kernel.Node
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
-        private readonly IProtocolDirector _protocolDirector;
         private readonly INodeConfig _nodeConfig;
         private readonly IMiner _miner;
         private readonly IAccountContextService _accountContextService;
@@ -52,6 +55,8 @@ namespace AElf.Kernel.Node
         private readonly ISmartContractService _smartContractService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly IFunctionMetadataService _functionMetadataService;
+        private readonly INetworkManager _netManager;
+        private readonly IBlockSynchronizer _synchronizer;
 
         private readonly IBlockExecutor _blockExecutor;
 
@@ -80,6 +85,7 @@ namespace AElf.Kernel.Node
                 var dict = MinersConfig.Instance.Producers;
 
                 var blockProducers = new BlockProducer();
+
                 foreach (var bp in dict.Values)
                 {
                     var b = bp["address"].RemoveHexPrefix();
@@ -97,14 +103,13 @@ namespace AElf.Kernel.Node
 
         public Hash ChainId => _nodeConfig.ChainId;
 
-        public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer,
-            IProtocolDirector protocolDirector, ILogger logger, INodeConfig nodeConfig, IMiner miner,
-            IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
+        public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, ILogger logger, 
+            INodeConfig nodeConfig, IMiner miner, IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
             IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator, 
             IChainManager chainManager, ISmartContractService smartContractService,
             ITransactionResultService transactionResultService, IBlockManager blockManager, 
-            IFunctionMetadataService functionMetadataService)
+            IFunctionMetadataService functionMetadataService, INetworkManager netManager, IBlockSynchronizer synchronizer)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
@@ -114,7 +119,6 @@ namespace AElf.Kernel.Node
             _blockManager = blockManager;
             _functionMetadataService = functionMetadataService;
             _txPoolService = poolService;
-            _protocolDirector = protocolDirector;
             _transactionManager = txManager;
             _rpcServer = rpcServer;
             _logger = logger;
@@ -125,9 +129,12 @@ namespace AElf.Kernel.Node
             _chainContextService = chainContextService;
             _worldStateDictator = worldStateDictator;
             _blockExecutor = blockExecutor;
+            _netManager = netManager;
+            _synchronizer = synchronizer;
 
             _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
                 ContractAccountHash, _chainManager, _logger);
+
         }
 
         public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData,
@@ -196,12 +203,26 @@ namespace AElf.Kernel.Node
                 _rpcServer.Start(rpcHost, rpcPort);
 
             _txPoolService.Start();
-            _protocolDirector.Start();
-
             // todo : avoid circular dependency
             _rpcServer.SetCommandContext(this);
-            _protocolDirector.SetCommandContext(this, true); // If not miner do sync
 
+            Task.Run(() => _netManager.Start());
+            
+            _netManager.MessageReceived += ProcessPeerMessage;
+            
+            //_protocolDirector.SetCommandContext(this, _nodeConfig.ConsensusInfoGenerater); // If not miner do sync
+            if (!_nodeConfig.ConsensusInfoGenerater)
+            {
+                _synchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
+            }
+            else
+            {
+                StartMining();
+            }
+            
+            Task.Run(() => _synchronizer.Start(this, !_nodeConfig.ConsensusInfoGenerater));
+            
+            // akka env 
             var servicePack = new ServicePack
             {
                 ChainContextService = _chainContextService,
@@ -226,6 +247,84 @@ namespace AElf.Kernel.Node
             return true;
         }
 
+        private async void ProcessPeerMessage(object sender, EventArgs e)
+        {
+            if (sender != null && e is NetMessageReceived args && args.Message != null)
+            {
+                Message message = args.Message;
+                MessageType msgType = (MessageType) message.Type;
+
+                if (msgType == MessageType.RequestBlock)
+                {
+                    await HandleBlockRequest(message, args.PeerMessage);
+                }
+                else if (msgType == MessageType.TxRequest)
+                {
+                    await HandleTxRequest(message, args.PeerMessage);
+                }
+            }
+        }
+        
+        internal async Task HandleBlockRequest(Message message, PeerMessageReceivedArgs args)
+        {
+            try
+            {
+                BlockRequest breq = BlockRequest.Parser.ParseFrom(message.Payload);
+                Block block = await GetBlockAtHeight(breq.Height);
+
+                var req = NetRequestFactory.CreateMessage(MessageType.Block, block.ToByteArray());
+                args.Peer.EnqueueOutgoing(req);
+                _logger?.Trace("Send block " + block.GetHash().ToHex() + " to " + args.Peer);
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "Error while during HandleBlockRequest.");
+            }
+        }
+        
+        private async Task HandleTxRequest(Message message, PeerMessageReceivedArgs args)
+        {
+            string hash = null;
+            
+            try
+            {
+                TxRequest breq = TxRequest.Parser.ParseFrom(message.Payload);
+
+                hash = breq.TxHash.ToByteArray().ToHex();
+                
+                ITransaction tx = await GetTransaction(breq.TxHash);
+
+                if (!(tx is Transaction t))
+                {
+                    _logger?.Trace("Could not find transaction: ", hash);
+                    return;
+                }
+                
+                var req = NetRequestFactory.CreateMessage(MessageType.Tx, t.ToByteArray());
+                args.Peer.EnqueueOutgoing(req);
+
+                _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + t.ToByteArray().Length +
+                               " bytes)");
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, $"Transaction request failed. Hash : {hash}");
+            }
+        }
+
+        private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
+        {
+            StartMining();
+        }
+
+        private void StartMining()
+        {
+            if (IsMiner() && !IsMining)
+            {
+                StartConsensusProcess();
+            }
+        }
+        
         public bool IsMiner()
         {
             return _nodeConfig.IsMiner;
@@ -299,7 +398,7 @@ namespace AElf.Kernel.Node
         /// <param name="messagePayload"></param>
         /// <param name="isFromSend"></param>
         /// <returns></returns>
-        public async Task ReceiveTransaction(ByteString messagePayload, bool isFromSend)
+        public async Task ReceiveTransaction(byte[] messagePayload, bool isFromSend)
         {
             try
             {
@@ -309,9 +408,8 @@ namespace AElf.Kernel.Node
 
                 if (isFromSend)
                 {
-                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " +
-                                   tx.IncrementId);
-                    _protocolDirector.AddTransaction(tx);
+                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " + tx.IncrementId);
+                    //_protocolDirector.AddTransaction(tx);
                 }
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
@@ -338,7 +436,8 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         public async Task<List<NodeData>> GetPeers(ushort? numPeers)
         {
-            return _protocolDirector.GetPeers(numPeers);
+            return new List<NodeData>();
+            //return _protocolDirector.GetPeers(numPeers);
         }
 
         /// <summary>
@@ -439,36 +538,6 @@ namespace AElf.Kernel.Node
             }
         }
 
-        /// <summary>
-        /// get missing tx hashes for the block. If an exception occured it return
-        /// null. If there's simply no transaction from this block in the pool it
-        /// returns an empty list.
-        /// </summary>
-        /// <param name="block"></param>
-        /// <returns></returns>
-        public List<Hash> GetMissingTransactions(IBlock block)
-        {
-            try
-            {
-                var res = new List<Hash>();
-                var txs = block.Body.Transactions;
-                foreach (var id in txs)
-                {
-                    if (!_txPoolService.TryGetTx(id, out _))
-                    {
-                        res.Add(id);
-                    }
-                }
-
-                return res;
-            }
-            catch (Exception e)
-            {
-                _logger?.Trace("Error while getting missing transactions");
-                return null;
-            }
-        }
-
         public async Task<ulong> GetCurrentChainHeight()
         {
             IChainContext chainContext = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
@@ -539,7 +608,7 @@ namespace AElf.Kernel.Node
             
                 int b = Interlocked.CompareExchange(ref _flag, 0, 1);
 
-                _protocolDirector.IncrementChainHeight();
+                _synchronizer.IncrementChainHeight();
             
                 _logger?.Trace($"Mine - Leaving mining {b}");
                 
@@ -558,16 +627,17 @@ namespace AElf.Kernel.Node
 
         public async Task<bool> BroadcastBlock(IBlock block)
         {
-            if (block == null)
+            if (!(block is Block b))
             {
                 return false;
             }
-
-            var count = await _protocolDirector.BroadcastBlock(block as Block);
+            
+            byte[] serializedBlock = b.ToByteArray();
+            
+            await _netManager.BroadcastMessage(MessageType.BroadcastBlock, serializedBlock);
 
             var bh = block.GetHash().ToHex();
-            _logger?.Trace($"Broadcasted block \"{bh}\"  to [{count}] peers with {block.Body.TransactionsCount} txs. " +
-                           $"Block height: [{block.Header.Index}]");
+            _logger?.Trace($"Broadcasted block \"{bh}\" to peers. Block height: [{block.Header.Index}]");
 
         return true;
     }
@@ -600,7 +670,9 @@ namespace AElf.Kernel.Node
             {
                 try
                 {
-                    await _protocolDirector.BroadcastTransaction(tx);
+                    byte[] transaction = tx.Serialize();
+            
+                    await _netManager.BroadcastMessage(MessageType.BroadcastTx, transaction);
                 }
                 catch (Exception e)
                 {
@@ -641,6 +713,7 @@ namespace AElf.Kernel.Node
         {
             var tx = new Transaction
             {
+
                 From = _nodeKeyPair.GetAddress(),
                 To = ContractAccountHash,
                 IncrementId = await GetIncrementId(_nodeKeyPair.GetAddress()) + incrementIdOffset,

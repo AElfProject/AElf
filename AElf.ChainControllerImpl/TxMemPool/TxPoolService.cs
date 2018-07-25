@@ -18,12 +18,14 @@ namespace AElf.Kernel.TxMemPool
     {
         private readonly ITxPool _txPool;
         private readonly IAccountContextService _accountContextService;
+        private readonly ILogger _logger;
 
         public TxPoolService(ITxPool txPool, IAccountContextService accountContextService,
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, ILogger logger)
         {
             _txPool = txPool;
             _accountContextService = accountContextService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -178,6 +180,29 @@ namespace AElf.Kernel.TxMemPool
         public bool TryGetTx(Hash txHash, out ITransaction tx)
         {
             return _txs.TryGetValue(txHash, out tx);
+        }
+        
+        public List<Hash> GetMissingTransactions(IBlock block)
+        {
+            try
+            {
+                var res = new List<Hash>();
+                var txs = block.Body.Transactions;
+                foreach (var id in txs)
+                {
+                    if (!TryGetTx(id, out _))
+                    {
+                        res.Add(id);
+                    }
+                }
+
+                return res;
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace("Error while getting missing transactions");
+                return null;
+            }
         }
 
         /// <inheritdoc/>

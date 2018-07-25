@@ -5,6 +5,7 @@ using AElf.Node.RPC.DTO;
 using Google.Protobuf;
 using Newtonsoft.Json.Linq;
 
+
 namespace AElf.Kernel.Node.RPC.DTO
 {
     public static class DtoHelper

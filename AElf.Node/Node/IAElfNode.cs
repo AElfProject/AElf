@@ -9,9 +9,10 @@ namespace AElf.Kernel.Node
     public interface IAElfNode
     {
         bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData, byte[] code);
-
-        List<Hash> GetMissingTransactions(IBlock block);
+        
         Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block);
+
+        Task ReceiveTransaction(byte[] messagePayload, bool isFromSend);
 
         Task<ulong> GetCurrentChainHeight();
         
@@ -25,7 +26,7 @@ namespace AElf.Kernel.Node
 
         // ReSharper disable once InconsistentNaming
         Task CheckUpdatingDPoSProcess();
-
+        
         int IsMiningInProcess { get; }
     }
 }
