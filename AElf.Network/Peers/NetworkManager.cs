@@ -131,11 +131,11 @@ namespace AElf.Network.Peers
         private Object _pendingRequestsLock = new Object();  
         public List<TimeoutRequest> _pendingRequests;
 
-        public NetworkManager(IAElfNetworkConfig config, ILogger logger)
+        public NetworkManager(IAElfNetworkConfig config, IConnectionListener connectionListener, ILogger logger)
         {
             _pendingRequests = new List<TimeoutRequest>();
             
-            _connectionListener = new ConnectionListner(); // todo DI
+            _connectionListener = connectionListener;
             
             _networkConfig = config;
             _logger = logger;
@@ -168,10 +168,7 @@ namespace AElf.Network.Peers
             Task.Run(() => _connectionListener.StartListening(_port));
             _connectionListener.IncomingConnection += ConnectionListenerOnIncomingConnection;
             
-            
             Setup().GetAwaiter().GetResult();
-            
-            //_server.ClientConnected += HandleConnection;
         }
         
         /// <summary>
@@ -463,7 +460,7 @@ namespace AElf.Network.Peers
             if (sender is Peer peer)
             {
                 peer.MessageReceived += ProcessPeerMessage;
-                _logger?.Trace("Peer added : " + peer);
+                _logger?.Trace("Peer authentified and added : " + peer);
                 
                 PeerAdded?.Invoke(this, new PeerAddedEventArgs { Peer = peer });
             }

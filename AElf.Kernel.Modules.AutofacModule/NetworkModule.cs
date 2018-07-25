@@ -1,5 +1,6 @@
 ﻿using AElf.Network;
 using AElf.Network.Config;
+using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Peers;
 using Autofac;
@@ -21,15 +22,14 @@ using Autofac;
          {
              builder.RegisterInstance(NetConfig).As<IAElfNetworkConfig>();
              
-             //builder.RegisterType<AElfTcpServer>().As<IAElfServer>();
-             
              /*if(IsMiner)
                  builder.RegisterType<BootnodePeerManager>().As<IPeerManager>();
              else
                  builder.RegisterType<PeerManager>().As<IPeerManager>();*/
              
              builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
-
+             builder.RegisterType<ConnectionListener>().As<IConnectionListener>();
+                 
              PeerDataStore peerDb = new PeerDataStore(NetConfig.PeersDbPath);
              builder.RegisterInstance(peerDb).As<IPeerDatabase>();
 

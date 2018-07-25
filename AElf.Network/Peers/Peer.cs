@@ -307,8 +307,6 @@ namespace AElf.Network.Peers
             IsAuthentified = true;
             
             PeerAuthentified?.Invoke(this, EventArgs.Empty);
-            
-            _logger?.Trace("Peer authentified");
         }
 
         private void FireMessageReceived(Message p)

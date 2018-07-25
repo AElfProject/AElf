@@ -10,9 +10,8 @@ namespace AElf.Network.Connection
         public TcpClient Client { get; set; }
     }
     
-    public class ConnectionListner : IConnectionListener
+    public class ConnectionListener : IConnectionListener
     {
-        // Events have to be handled
         public event EventHandler IncomingConnection;
         public event EventHandler ListeningStopped;  
 
@@ -28,9 +27,8 @@ namespace AElf.Network.Connection
                     await AwaitConnection(tcpListener);
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                // todo log exception in higher level
             }
         }
         
