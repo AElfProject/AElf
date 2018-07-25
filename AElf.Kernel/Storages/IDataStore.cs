@@ -7,6 +7,6 @@ namespace AElf.Kernel.Storages
     {
         Task SetDataAsync(Hash pointerHash, TypeName typeName, byte[] data);
         Task<byte[]> GetDataAsync(Hash pointerHash, TypeName typeName);
-        Task<bool> PipelineSetDataAsync(Dictionary<Hash, byte[]> pipelineSet);
+        Task<bool> PipelineSetDataAsync(Dictionary<Hash, byte[]> pipelineSet,TypeName typeName);
     }
 }

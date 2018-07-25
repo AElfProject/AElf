@@ -30,9 +30,11 @@ namespace AElf.Kernel.Storages
             return await _keyValueDatabase.GetAsync(key, typeof(byte[]));
         }
 
-        public async Task<bool> PipelineSetDataAsync(Dictionary<Hash, byte[]> pipelineSet)
+        public async Task<bool> PipelineSetDataAsync(Dictionary<Hash, byte[]> pipelineSet, TypeName typeName)
         {
-            return await _keyValueDatabase.PipelineSetAsync(pipelineSet.ToDictionary(kv=> kv.Key.ToHex(), kv=>kv.Value));
+
+            return await _keyValueDatabase.PipelineSetAsync(
+                pipelineSet.ToDictionary(kv => kv.Key.GetKeyString(typeName), kv => kv.Value));
         }
     }
 }

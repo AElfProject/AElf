@@ -472,7 +472,7 @@ namespace AElf.SmartContract
             if (pipelineSet.Count > 0)
             {
                 //_logger?.Debug($"Pipeline set {pipelineSet.Count} data item");
-                return await _dataStore.PipelineSetDataAsync(pipelineSet);
+                return await _dataStore.PipelineSetDataAsync(pipelineSet,TypeName.TnHash);
             }
 
             //return true for read-only 
