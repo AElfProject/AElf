@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using AElf.Network.Data;
-using AElf.Network.Peers.Exceptions;
-using NodeData = AElf.Network.Data.Protobuf.NodeData;
 
 namespace AElf.Network.Peers
 {

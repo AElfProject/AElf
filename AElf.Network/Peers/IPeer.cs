@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Threading.Tasks;
 using AElf.Network.Connection;
 using AElf.Network.Data;
-using NodeData = AElf.Network.Data.Protobuf.NodeData;
 
 namespace AElf.Network.Peers
 {

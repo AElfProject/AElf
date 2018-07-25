@@ -1,6 +1,4 @@
-﻿using System.Net;
-using AElf.Network.Connection;
-using AElf.Network.Data.Protobuf;
+﻿using AElf.Network.Connection;
 using Google.Protobuf;
 
 namespace AElf.Network.Data

@@ -1,19 +1,15 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
-using AElf.Common.ByteArrayHelpers;
 using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
-using AElf.Network.Data.Protobuf;
 using AElf.Network.Peers;
 using Google.Protobuf;
 using NLog;
-using NodeData = AElf.Network.Data.Protobuf.NodeData;
+
 
 namespace AElf.Kernel.Node.Protocol
 {
@@ -50,7 +46,7 @@ namespace AElf.Kernel.Node.Protocol
             
             //ulong height = _node.GetCurrentChainHeight().Result;
                 
-            _blockSynchronizer = new BlockSynchronizer(_netManager, _node); // todo move
+            //_blockSynchronizer = new BlockSynchronizer(_netManager, _node); // todo move
             
             if (!isGenerator)
             {
@@ -61,7 +57,7 @@ namespace AElf.Kernel.Node.Protocol
                 StartMining();
             }
             
-            Task.Run(() => _blockSynchronizer.Start(!isGenerator));
+            //Task.Run(() => _blockSynchronizer.Start(!isGenerator));
         }
 
         private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
@@ -73,7 +69,7 @@ namespace AElf.Kernel.Node.Protocol
         {
             if (_node.IsMiner() && !_node.IsMining)
             {
-                _node.DoDPos();
+                _node.StartConsensusProcess();
             }
         }
 
@@ -106,7 +102,7 @@ namespace AElf.Kernel.Node.Protocol
         public long GetLatestIndexOfOtherNode()
         {
             var currentPendingBlocks = _blockSynchronizer.PendingBlocks.ToList();
-            if (currentPendingBlocks == null || currentPendingBlocks.Count <= 0)
+            if (currentPendingBlocks.Count <= 0)
             {
                 return -1;
             }

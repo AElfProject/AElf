@@ -1,13 +1,11 @@
-﻿using System;
-using System.Security.Cryptography;
-
-namespace AElf.Network.Data.Protobuf
+﻿
+namespace AElf.Network.Data
 {
     public partial class NodeData
     {
      //   public bool IsBootnode { get; set; } = false;
 
-        public static Protobuf.NodeData FromString(string nodeDataStr)
+        public static NodeData FromString(string nodeDataStr)
         {
             if (string.IsNullOrEmpty(nodeDataStr))
                 return null;
@@ -19,7 +17,7 @@ namespace AElf.Network.Data.Protobuf
                     
             ushort port = ushort.Parse(split[1]);
                     
-            Protobuf.NodeData peer = new Protobuf.NodeData();
+            NodeData peer = new NodeData();
             peer.IpAddress = split[0];
             peer.Port = port;
 

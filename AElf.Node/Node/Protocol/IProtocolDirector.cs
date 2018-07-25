@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Types;
 using AElf.Network.Data;
-using NodeData = AElf.Network.Data.Protobuf.NodeData;
+
 
 namespace AElf.Kernel.Node.Protocol
 {

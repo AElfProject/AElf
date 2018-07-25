@@ -10,7 +10,6 @@ using AElf.Kernel;
 using AElf.Network.Config;
 using AElf.Network.Connection;
 using AElf.Network.Data;
-using AElf.Network.Data.Protobuf;
 using AElf.Network.Peers.Exceptions;
 using Google.Protobuf;
 using NLog;

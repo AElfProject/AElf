@@ -1,7 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Managers
 {

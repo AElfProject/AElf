@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace AElf.Network.Data.Protobuf
+namespace AElf.Network.Data
 {
     public partial class PeerListData
     {

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Types;
 using Google.Protobuf;
@@ -10,7 +11,7 @@ namespace AElf.Execution
 {
     public class MockResourceUsageDetectionService : IResourceUsageDetectionService
     {
-        public IEnumerable<string> GetResources(Hash chainId, ITransaction transaction)
+        public async Task<IEnumerable<string>> GetResources(Hash chainId, ITransaction transaction)
         {
             //var hashes = Parameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
             List<Hash> hashes = new List<Hash>();
@@ -41,7 +42,7 @@ namespace AElf.Execution
 
             hashes.Add(transaction.From);
 
-            return hashes.Select(a=>a.ToHex());
+            return await Task.FromResult(hashes.Select(a=>a.ToHex()));
         }
     }
 }

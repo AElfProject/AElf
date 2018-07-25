@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using NodeData = AElf.Network.Data.Protobuf.NodeData;
+using AElf.Network.Data;
 
 namespace AElf.Network.Peers
 {

@@ -13,4 +13,15 @@
       <Name>AElf.Kernel.Types</Name>
     </ProjectReference>
   </ItemGroup>
+  <Target BeforeTargets="BeforeBuild" Name="Gen_proto">
+    <Exec Command="protoc --proto_path=./Data/Protobuf/Definitions
+                          --csharp_out=./Data/Protobuf
+                          --csharp_opt=file_extension=.g.cs
+                         ./Data/Protobuf/Definitions/messages.proto" />
+  </Target>
+  <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+      <Compile Include="./Data/Protobuf/*.g.cs" />
+    </ItemGroup>
+  </Target>
 </Project>

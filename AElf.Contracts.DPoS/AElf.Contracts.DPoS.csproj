@@ -12,9 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="MiningNodes.txt" />
-    <Content Include="MiningNodes.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ServiceStack" Version="5.1.0" />

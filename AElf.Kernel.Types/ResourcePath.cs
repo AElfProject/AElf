@@ -197,15 +197,16 @@ namespace AElf.Kernel
         {
             return chainId.CalculateHashWith((Hash) "MetadataTemplateCallingGraph".CalculateHash());
         }
-        
+
         /// <summary>
         /// Calculate pointer hash for metadata of a chain
         /// </summary>
         /// <param name="chainId"></param>
+        /// <param name="addrFuncSig">should be the key of the function metadata, which is [contract address].[function name]</param>
         /// <returns></returns>
-        public static Hash CalculatePointerForMetadata(Hash chainId)
+        public static Hash CalculatePointerForMetadata(Hash chainId, string addrFuncSig)
         {
-            return chainId.CalculateHashWith((Hash) "Metadata".CalculateHash());
+            return chainId.CalculateHashWith((Hash) ("Metadata" + addrFuncSig).CalculateHash());
         }
 
         /// <summary>

@@ -24,43 +24,20 @@ namespace AElf.SmartContract {
     static SmartcontractReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChNzbWFydGNvbnRyYWN0LnByb3RvGgxrZXJuZWwucHJvdG8ihwIKJFNlcmlh",
-            "bGl6ZUNvbnRyYWN0TWV0YWRhdGFUZW1wbGF0ZU1hcBJxCh5NZXRhZGF0YVRl",
-            "bXBsYXRlTWFwRm9yQ29udHJhY3QYAiADKAsySS5TZXJpYWxpemVDb250cmFj",
-            "dE1ldGFkYXRhVGVtcGxhdGVNYXAuTWV0YWRhdGFUZW1wbGF0ZU1hcEZvckNv",
-            "bnRyYWN0RW50cnkabAojTWV0YWRhdGFUZW1wbGF0ZU1hcEZvckNvbnRyYWN0",
-            "RW50cnkSCwoDa2V5GAEgASgJEjQKBXZhbHVlGAIgASgLMiUuU2VyaWFsaXpl",
-            "RnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlTWFwOgI4ASLCAQokU2VyaWFsaXpl",
-            "RnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlTWFwEksKC1RlbXBsYXRlTWFwGAIg",
-            "AygLMjYuU2VyaWFsaXplRnVuY3Rpb25NZXRhZGF0YVRlbXBsYXRlTWFwLlRl",
-            "bXBsYXRlTWFwRW50cnkaTQoQVGVtcGxhdGVNYXBFbnRyeRILCgNrZXkYASAB",
-            "KAkSKAoFdmFsdWUYAiABKAsyGS5GdW5jdGlvbk1ldGFkYXRhVGVtcGxhdGU6",
-            "AjgBIocBChhGdW5jdGlvbk1ldGFkYXRhVGVtcGxhdGUSGwoTU2VyaWFsaXpl",
-            "Q2FsbGluZ1NldBgBIAMoCRIsChlTZXJpYWxpemVMb2NhbFJlc291cmNlU2V0",
-            "GAIgAygLMgkuUmVzb3VyY2USIAoYVGVtcGxhdGVDb250YWluc01ldGFkYXRh",
-            "GAMgASgIIkEKCFJlc291cmNlEgwKBE5hbWUYASABKAkSJwoORGF0YUFjY2Vz",
-            "c01vZGUYAiABKA4yDy5EYXRhQWNjZXNzTW9kZSKsAQoQRnVuY3Rpb25NZXRh",
-            "ZGF0YRIbChNTZXJpYWxpemVDYWxsaW5nU2V0GAEgAygJEisKGFNlcmlhbGl6",
-            "ZUZ1bGxSZXNvdXJjZVNldBgCIAMoCzIJLlJlc291cmNlEiwKGVNlcmlhbGl6",
-            "ZUxvY2FsUmVzb3VyY2VTZXQYAyADKAsyCS5SZXNvdXJjZRIgChhDb250cmFj",
-            "dENvbnRhaW5zTWV0YWRhdGEYBCABKAgiqgEKHFNlcmlhbGl6ZUZ1bmN0aW9u",
-            "TWV0YWRhdGFNYXASQwoLTWV0YWRhdGFNYXAYASADKAsyLi5TZXJpYWxpemVG",
-            "dW5jdGlvbk1ldGFkYXRhTWFwLk1ldGFkYXRhTWFwRW50cnkaRQoQTWV0YWRh",
-            "dGFNYXBFbnRyeRILCgNrZXkYASABKAkSIAoFdmFsdWUYAiABKAsyES5GdW5j",
-            "dGlvbk1ldGFkYXRhOgI4ASIuChFDYWxsaW5nR3JhcGhFZGdlcxIZCgVFZGdl",
-            "cxgBIAMoCzIKLkdyYXBoRWRnZSIrCglHcmFwaEVkZ2USDgoGU291cmNlGAEg",
-            "ASgJEg4KBlRhcmdldBgCIAEoCUIVqgISQUVsZi5TbWFydENvbnRyYWN0YgZw",
-            "cm90bzM="));
+            "ChNzbWFydGNvbnRyYWN0LnByb3RvGgxrZXJuZWwucHJvdG8iQQoIUmVzb3Vy",
+            "Y2USDAoETmFtZRgBIAEoCRInCg5EYXRhQWNjZXNzTW9kZRgCIAEoDjIPLkRh",
+            "dGFBY2Nlc3NNb2RlIlwKEEZ1bmN0aW9uTWV0YWRhdGESGwoTU2VyaWFsaXpl",
+            "Q2FsbGluZ1NldBgBIAMoCRIrChhTZXJpYWxpemVGdWxsUmVzb3VyY2VTZXQY",
+            "AiADKAsyCS5SZXNvdXJjZSJCChNTZXJpYWxpemVkQ2FsbEdyYXBoEhkKBUVk",
+            "Z2VzGAEgAygLMgouR3JhcGhFZGdlEhAKCFZlcnRpY2VzGAIgAygJIisKCUdy",
+            "YXBoRWRnZRIOCgZTb3VyY2UYASABKAkSDgoGVGFyZ2V0GAIgASgJQhWqAhJB",
+            "RWxmLlNtYXJ0Q29udHJhY3RiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::AElf.Kernel.KernelReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.SerializeContractMetadataTemplateMap), global::AElf.SmartContract.SerializeContractMetadataTemplateMap.Parser, new[]{ "MetadataTemplateMapForContract" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.SerializeFunctionMetadataTemplateMap), global::AElf.SmartContract.SerializeFunctionMetadataTemplateMap.Parser, new[]{ "TemplateMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.FunctionMetadataTemplate), global::AElf.SmartContract.FunctionMetadataTemplate.Parser, new[]{ "SerializeCallingSet", "SerializeLocalResourceSet", "TemplateContainsMetadata" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.Resource), global::AElf.SmartContract.Resource.Parser, new[]{ "Name", "DataAccessMode" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.FunctionMetadata), global::AElf.SmartContract.FunctionMetadata.Parser, new[]{ "SerializeCallingSet", "SerializeFullResourceSet", "SerializeLocalResourceSet", "ContractContainsMetadata" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.SerializeFunctionMetadataMap), global::AElf.SmartContract.SerializeFunctionMetadataMap.Parser, new[]{ "MetadataMap" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.CallingGraphEdges), global::AElf.SmartContract.CallingGraphEdges.Parser, new[]{ "Edges" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.FunctionMetadata), global::AElf.SmartContract.FunctionMetadata.Parser, new[]{ "SerializeCallingSet", "SerializeFullResourceSet" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.SerializedCallGraph), global::AElf.SmartContract.SerializedCallGraph.Parser, new[]{ "Edges", "Vertices" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::AElf.SmartContract.GraphEdge), global::AElf.SmartContract.GraphEdge.Parser, new[]{ "Source", "Target" }, null, null, null)
           }));
     }
@@ -68,417 +45,6 @@ namespace AElf.SmartContract {
 
   }
   #region Messages
-  public sealed partial class SerializeContractMetadataTemplateMap : pb::IMessage<SerializeContractMetadataTemplateMap> {
-    private static readonly pb::MessageParser<SerializeContractMetadataTemplateMap> _parser = new pb::MessageParser<SerializeContractMetadataTemplateMap>(() => new SerializeContractMetadataTemplateMap());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SerializeContractMetadataTemplateMap> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.SmartContract.SmartcontractReflection.Descriptor.MessageTypes[0]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SerializeContractMetadataTemplateMap() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SerializeContractMetadataTemplateMap(SerializeContractMetadataTemplateMap other) : this() {
-      metadataTemplateMapForContract_ = other.metadataTemplateMapForContract_.Clone();
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SerializeContractMetadataTemplateMap Clone() {
-      return new SerializeContractMetadataTemplateMap(this);
-    }
-
-    /// <summary>Field number for the "MetadataTemplateMapForContract" field.</summary>
-    public const int MetadataTemplateMapForContractFieldNumber = 2;
-    private static readonly pbc::MapField<string, global::AElf.SmartContract.SerializeFunctionMetadataTemplateMap>.Codec _map_metadataTemplateMapForContract_codec
-        = new pbc::MapField<string, global::AElf.SmartContract.SerializeFunctionMetadataTemplateMap>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::AElf.SmartContract.SerializeFunctionMetadataTemplateMap.Parser), 18);
-    private readonly pbc::MapField<string, global::AElf.SmartContract.SerializeFunctionMetadataTemplateMap> metadataTemplateMapForContract_ = new pbc::MapField<string, global::AElf.SmartContract.SerializeFunctionMetadataTemplateMap>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::MapField<string, global::AElf.SmartContract.SerializeFunctionMetadataTemplateMap> MetadataTemplateMapForContract {
-      get { return metadataTemplateMapForContract_; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SerializeContractMetadataTemplateMap);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SerializeContractMetadataTemplateMap other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (!MetadataTemplateMapForContract.Equals(other.MetadataTemplateMapForContract)) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      hash ^= MetadataTemplateMapForContract.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      metadataTemplateMapForContract_.WriteTo(output, _map_metadataTemplateMapForContract_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      size += metadataTemplateMapForContract_.CalculateSize(_map_metadataTemplateMapForContract_codec);
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SerializeContractMetadataTemplateMap other) {
-      if (other == null) {
-        return;
-      }
-      metadataTemplateMapForContract_.Add(other.metadataTemplateMapForContract_);
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 18: {
-            metadataTemplateMapForContract_.AddEntriesFrom(input, _map_metadataTemplateMapForContract_codec);
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class SerializeFunctionMetadataTemplateMap : pb::IMessage<SerializeFunctionMetadataTemplateMap> {
-    private static readonly pb::MessageParser<SerializeFunctionMetadataTemplateMap> _parser = new pb::MessageParser<SerializeFunctionMetadataTemplateMap>(() => new SerializeFunctionMetadataTemplateMap());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SerializeFunctionMetadataTemplateMap> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.SmartContract.SmartcontractReflection.Descriptor.MessageTypes[1]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SerializeFunctionMetadataTemplateMap() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SerializeFunctionMetadataTemplateMap(SerializeFunctionMetadataTemplateMap other) : this() {
-      templateMap_ = other.templateMap_.Clone();
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SerializeFunctionMetadataTemplateMap Clone() {
-      return new SerializeFunctionMetadataTemplateMap(this);
-    }
-
-    /// <summary>Field number for the "TemplateMap" field.</summary>
-    public const int TemplateMapFieldNumber = 2;
-    private static readonly pbc::MapField<string, global::AElf.SmartContract.FunctionMetadataTemplate>.Codec _map_templateMap_codec
-        = new pbc::MapField<string, global::AElf.SmartContract.FunctionMetadataTemplate>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::AElf.SmartContract.FunctionMetadataTemplate.Parser), 18);
-    private readonly pbc::MapField<string, global::AElf.SmartContract.FunctionMetadataTemplate> templateMap_ = new pbc::MapField<string, global::AElf.SmartContract.FunctionMetadataTemplate>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::MapField<string, global::AElf.SmartContract.FunctionMetadataTemplate> TemplateMap {
-      get { return templateMap_; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SerializeFunctionMetadataTemplateMap);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SerializeFunctionMetadataTemplateMap other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (!TemplateMap.Equals(other.TemplateMap)) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      hash ^= TemplateMap.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      templateMap_.WriteTo(output, _map_templateMap_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      size += templateMap_.CalculateSize(_map_templateMap_codec);
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SerializeFunctionMetadataTemplateMap other) {
-      if (other == null) {
-        return;
-      }
-      templateMap_.Add(other.templateMap_);
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 18: {
-            templateMap_.AddEntriesFrom(input, _map_templateMap_codec);
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class FunctionMetadataTemplate : pb::IMessage<FunctionMetadataTemplate> {
-    private static readonly pb::MessageParser<FunctionMetadataTemplate> _parser = new pb::MessageParser<FunctionMetadataTemplate>(() => new FunctionMetadataTemplate());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<FunctionMetadataTemplate> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.SmartContract.SmartcontractReflection.Descriptor.MessageTypes[2]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public FunctionMetadataTemplate() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public FunctionMetadataTemplate(FunctionMetadataTemplate other) : this() {
-      serializeCallingSet_ = other.serializeCallingSet_.Clone();
-      serializeLocalResourceSet_ = other.serializeLocalResourceSet_.Clone();
-      templateContainsMetadata_ = other.templateContainsMetadata_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public FunctionMetadataTemplate Clone() {
-      return new FunctionMetadataTemplate(this);
-    }
-
-    /// <summary>Field number for the "SerializeCallingSet" field.</summary>
-    public const int SerializeCallingSetFieldNumber = 1;
-    private static readonly pb::FieldCodec<string> _repeated_serializeCallingSet_codec
-        = pb::FieldCodec.ForString(10);
-    private readonly pbc::RepeatedField<string> serializeCallingSet_ = new pbc::RepeatedField<string>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<string> SerializeCallingSet {
-      get { return serializeCallingSet_; }
-    }
-
-    /// <summary>Field number for the "SerializeLocalResourceSet" field.</summary>
-    public const int SerializeLocalResourceSetFieldNumber = 2;
-    private static readonly pb::FieldCodec<global::AElf.SmartContract.Resource> _repeated_serializeLocalResourceSet_codec
-        = pb::FieldCodec.ForMessage(18, global::AElf.SmartContract.Resource.Parser);
-    private readonly pbc::RepeatedField<global::AElf.SmartContract.Resource> serializeLocalResourceSet_ = new pbc::RepeatedField<global::AElf.SmartContract.Resource>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.SmartContract.Resource> SerializeLocalResourceSet {
-      get { return serializeLocalResourceSet_; }
-    }
-
-    /// <summary>Field number for the "TemplateContainsMetadata" field.</summary>
-    public const int TemplateContainsMetadataFieldNumber = 3;
-    private bool templateContainsMetadata_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool TemplateContainsMetadata {
-      get { return templateContainsMetadata_; }
-      set {
-        templateContainsMetadata_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as FunctionMetadataTemplate);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(FunctionMetadataTemplate other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if(!serializeCallingSet_.Equals(other.serializeCallingSet_)) return false;
-      if(!serializeLocalResourceSet_.Equals(other.serializeLocalResourceSet_)) return false;
-      if (TemplateContainsMetadata != other.TemplateContainsMetadata) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      hash ^= serializeCallingSet_.GetHashCode();
-      hash ^= serializeLocalResourceSet_.GetHashCode();
-      if (TemplateContainsMetadata != false) hash ^= TemplateContainsMetadata.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      serializeCallingSet_.WriteTo(output, _repeated_serializeCallingSet_codec);
-      serializeLocalResourceSet_.WriteTo(output, _repeated_serializeLocalResourceSet_codec);
-      if (TemplateContainsMetadata != false) {
-        output.WriteRawTag(24);
-        output.WriteBool(TemplateContainsMetadata);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      size += serializeCallingSet_.CalculateSize(_repeated_serializeCallingSet_codec);
-      size += serializeLocalResourceSet_.CalculateSize(_repeated_serializeLocalResourceSet_codec);
-      if (TemplateContainsMetadata != false) {
-        size += 1 + 1;
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(FunctionMetadataTemplate other) {
-      if (other == null) {
-        return;
-      }
-      serializeCallingSet_.Add(other.serializeCallingSet_);
-      serializeLocalResourceSet_.Add(other.serializeLocalResourceSet_);
-      if (other.TemplateContainsMetadata != false) {
-        TemplateContainsMetadata = other.TemplateContainsMetadata;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            serializeCallingSet_.AddEntriesFrom(input, _repeated_serializeCallingSet_codec);
-            break;
-          }
-          case 18: {
-            serializeLocalResourceSet_.AddEntriesFrom(input, _repeated_serializeLocalResourceSet_codec);
-            break;
-          }
-          case 24: {
-            TemplateContainsMetadata = input.ReadBool();
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
   public sealed partial class Resource : pb::IMessage<Resource> {
     private static readonly pb::MessageParser<Resource> _parser = new pb::MessageParser<Resource>(() => new Resource());
     private pb::UnknownFieldSet _unknownFields;
@@ -487,7 +53,7 @@ namespace AElf.SmartContract {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.SmartContract.SmartcontractReflection.Descriptor.MessageTypes[3]; }
+      get { return global::AElf.SmartContract.SmartcontractReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -636,6 +202,9 @@ namespace AElf.SmartContract {
 
   }
 
+  /// <summary>
+  /// The function meta data describes the data members of contract object.
+  /// </summary>
   public sealed partial class FunctionMetadata : pb::IMessage<FunctionMetadata> {
     private static readonly pb::MessageParser<FunctionMetadata> _parser = new pb::MessageParser<FunctionMetadata>(() => new FunctionMetadata());
     private pb::UnknownFieldSet _unknownFields;
@@ -644,7 +213,7 @@ namespace AElf.SmartContract {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.SmartContract.SmartcontractReflection.Descriptor.MessageTypes[4]; }
+      get { return global::AElf.SmartContract.SmartcontractReflection.Descriptor.MessageTypes[1]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -663,8 +232,6 @@ namespace AElf.SmartContract {
     public FunctionMetadata(FunctionMetadata other) : this() {
       serializeCallingSet_ = other.serializeCallingSet_.Clone();
       serializeFullResourceSet_ = other.serializeFullResourceSet_.Clone();
-      serializeLocalResourceSet_ = other.serializeLocalResourceSet_.Clone();
-      contractContainsMetadata_ = other.contractContainsMetadata_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -678,6 +245,10 @@ namespace AElf.SmartContract {
     private static readonly pb::FieldCodec<string> _repeated_serializeCallingSet_codec
         = pb::FieldCodec.ForString(10);
     private readonly pbc::RepeatedField<string> serializeCallingSet_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// AElf allows one contracts to invoke others. This field record
+    /// which contracts are invoked by the current contract.
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<string> SerializeCallingSet {
       get { return serializeCallingSet_; }
@@ -688,30 +259,12 @@ namespace AElf.SmartContract {
     private static readonly pb::FieldCodec<global::AElf.SmartContract.Resource> _repeated_serializeFullResourceSet_codec
         = pb::FieldCodec.ForMessage(18, global::AElf.SmartContract.Resource.Parser);
     private readonly pbc::RepeatedField<global::AElf.SmartContract.Resource> serializeFullResourceSet_ = new pbc::RepeatedField<global::AElf.SmartContract.Resource>();
+    /// <summary>
+    /// All data members except other contracts are recorded by this field.
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<global::AElf.SmartContract.Resource> SerializeFullResourceSet {
       get { return serializeFullResourceSet_; }
-    }
-
-    /// <summary>Field number for the "SerializeLocalResourceSet" field.</summary>
-    public const int SerializeLocalResourceSetFieldNumber = 3;
-    private static readonly pb::FieldCodec<global::AElf.SmartContract.Resource> _repeated_serializeLocalResourceSet_codec
-        = pb::FieldCodec.ForMessage(26, global::AElf.SmartContract.Resource.Parser);
-    private readonly pbc::RepeatedField<global::AElf.SmartContract.Resource> serializeLocalResourceSet_ = new pbc::RepeatedField<global::AElf.SmartContract.Resource>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::AElf.SmartContract.Resource> SerializeLocalResourceSet {
-      get { return serializeLocalResourceSet_; }
-    }
-
-    /// <summary>Field number for the "ContractContainsMetadata" field.</summary>
-    public const int ContractContainsMetadataFieldNumber = 4;
-    private bool contractContainsMetadata_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool ContractContainsMetadata {
-      get { return contractContainsMetadata_; }
-      set {
-        contractContainsMetadata_ = value;
-      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -729,8 +282,6 @@ namespace AElf.SmartContract {
       }
       if(!serializeCallingSet_.Equals(other.serializeCallingSet_)) return false;
       if(!serializeFullResourceSet_.Equals(other.serializeFullResourceSet_)) return false;
-      if(!serializeLocalResourceSet_.Equals(other.serializeLocalResourceSet_)) return false;
-      if (ContractContainsMetadata != other.ContractContainsMetadata) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -739,8 +290,6 @@ namespace AElf.SmartContract {
       int hash = 1;
       hash ^= serializeCallingSet_.GetHashCode();
       hash ^= serializeFullResourceSet_.GetHashCode();
-      hash ^= serializeLocalResourceSet_.GetHashCode();
-      if (ContractContainsMetadata != false) hash ^= ContractContainsMetadata.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -756,11 +305,6 @@ namespace AElf.SmartContract {
     public void WriteTo(pb::CodedOutputStream output) {
       serializeCallingSet_.WriteTo(output, _repeated_serializeCallingSet_codec);
       serializeFullResourceSet_.WriteTo(output, _repeated_serializeFullResourceSet_codec);
-      serializeLocalResourceSet_.WriteTo(output, _repeated_serializeLocalResourceSet_codec);
-      if (ContractContainsMetadata != false) {
-        output.WriteRawTag(32);
-        output.WriteBool(ContractContainsMetadata);
-      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -771,10 +315,6 @@ namespace AElf.SmartContract {
       int size = 0;
       size += serializeCallingSet_.CalculateSize(_repeated_serializeCallingSet_codec);
       size += serializeFullResourceSet_.CalculateSize(_repeated_serializeFullResourceSet_codec);
-      size += serializeLocalResourceSet_.CalculateSize(_repeated_serializeLocalResourceSet_codec);
-      if (ContractContainsMetadata != false) {
-        size += 1 + 1;
-      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -788,10 +328,6 @@ namespace AElf.SmartContract {
       }
       serializeCallingSet_.Add(other.serializeCallingSet_);
       serializeFullResourceSet_.Add(other.serializeFullResourceSet_);
-      serializeLocalResourceSet_.Add(other.serializeLocalResourceSet_);
-      if (other.ContractContainsMetadata != false) {
-        ContractContainsMetadata = other.ContractContainsMetadata;
-      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -811,29 +347,21 @@ namespace AElf.SmartContract {
             serializeFullResourceSet_.AddEntriesFrom(input, _repeated_serializeFullResourceSet_codec);
             break;
           }
-          case 26: {
-            serializeLocalResourceSet_.AddEntriesFrom(input, _repeated_serializeLocalResourceSet_codec);
-            break;
-          }
-          case 32: {
-            ContractContainsMetadata = input.ReadBool();
-            break;
-          }
         }
       }
     }
 
   }
 
-  public sealed partial class SerializeFunctionMetadataMap : pb::IMessage<SerializeFunctionMetadataMap> {
-    private static readonly pb::MessageParser<SerializeFunctionMetadataMap> _parser = new pb::MessageParser<SerializeFunctionMetadataMap>(() => new SerializeFunctionMetadataMap());
+  public sealed partial class SerializedCallGraph : pb::IMessage<SerializedCallGraph> {
+    private static readonly pb::MessageParser<SerializedCallGraph> _parser = new pb::MessageParser<SerializedCallGraph>(() => new SerializedCallGraph());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<SerializeFunctionMetadataMap> Parser { get { return _parser; } }
+    public static pb::MessageParser<SerializedCallGraph> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.SmartContract.SmartcontractReflection.Descriptor.MessageTypes[5]; }
+      get { return global::AElf.SmartContract.SmartcontractReflection.Descriptor.MessageTypes[2]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -842,142 +370,22 @@ namespace AElf.SmartContract {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SerializeFunctionMetadataMap() {
+    public SerializedCallGraph() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SerializeFunctionMetadataMap(SerializeFunctionMetadataMap other) : this() {
-      metadataMap_ = other.metadataMap_.Clone();
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public SerializeFunctionMetadataMap Clone() {
-      return new SerializeFunctionMetadataMap(this);
-    }
-
-    /// <summary>Field number for the "MetadataMap" field.</summary>
-    public const int MetadataMapFieldNumber = 1;
-    private static readonly pbc::MapField<string, global::AElf.SmartContract.FunctionMetadata>.Codec _map_metadataMap_codec
-        = new pbc::MapField<string, global::AElf.SmartContract.FunctionMetadata>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::AElf.SmartContract.FunctionMetadata.Parser), 10);
-    private readonly pbc::MapField<string, global::AElf.SmartContract.FunctionMetadata> metadataMap_ = new pbc::MapField<string, global::AElf.SmartContract.FunctionMetadata>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::MapField<string, global::AElf.SmartContract.FunctionMetadata> MetadataMap {
-      get { return metadataMap_; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as SerializeFunctionMetadataMap);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(SerializeFunctionMetadataMap other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (!MetadataMap.Equals(other.MetadataMap)) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      hash ^= MetadataMap.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      metadataMap_.WriteTo(output, _map_metadataMap_codec);
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      size += metadataMap_.CalculateSize(_map_metadataMap_codec);
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(SerializeFunctionMetadataMap other) {
-      if (other == null) {
-        return;
-      }
-      metadataMap_.Add(other.metadataMap_);
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            metadataMap_.AddEntriesFrom(input, _map_metadataMap_codec);
-            break;
-          }
-        }
-      }
-    }
-
-  }
-
-  public sealed partial class CallingGraphEdges : pb::IMessage<CallingGraphEdges> {
-    private static readonly pb::MessageParser<CallingGraphEdges> _parser = new pb::MessageParser<CallingGraphEdges>(() => new CallingGraphEdges());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<CallingGraphEdges> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.SmartContract.SmartcontractReflection.Descriptor.MessageTypes[6]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public CallingGraphEdges() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public CallingGraphEdges(CallingGraphEdges other) : this() {
+    public SerializedCallGraph(SerializedCallGraph other) : this() {
       edges_ = other.edges_.Clone();
+      vertices_ = other.vertices_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public CallingGraphEdges Clone() {
-      return new CallingGraphEdges(this);
+    public SerializedCallGraph Clone() {
+      return new SerializedCallGraph(this);
     }
 
     /// <summary>Field number for the "Edges" field.</summary>
@@ -990,13 +398,23 @@ namespace AElf.SmartContract {
       get { return edges_; }
     }
 
+    /// <summary>Field number for the "Vertices" field.</summary>
+    public const int VerticesFieldNumber = 2;
+    private static readonly pb::FieldCodec<string> _repeated_vertices_codec
+        = pb::FieldCodec.ForString(18);
+    private readonly pbc::RepeatedField<string> vertices_ = new pbc::RepeatedField<string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as CallingGraphEdges);
+    public pbc::RepeatedField<string> Vertices {
+      get { return vertices_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(CallingGraphEdges other) {
+    public override bool Equals(object other) {
+      return Equals(other as SerializedCallGraph);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SerializedCallGraph other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -1004,6 +422,7 @@ namespace AElf.SmartContract {
         return true;
       }
       if(!edges_.Equals(other.edges_)) return false;
+      if(!vertices_.Equals(other.vertices_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1011,6 +430,7 @@ namespace AElf.SmartContract {
     public override int GetHashCode() {
       int hash = 1;
       hash ^= edges_.GetHashCode();
+      hash ^= vertices_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1025,6 +445,7 @@ namespace AElf.SmartContract {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
       edges_.WriteTo(output, _repeated_edges_codec);
+      vertices_.WriteTo(output, _repeated_vertices_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1034,6 +455,7 @@ namespace AElf.SmartContract {
     public int CalculateSize() {
       int size = 0;
       size += edges_.CalculateSize(_repeated_edges_codec);
+      size += vertices_.CalculateSize(_repeated_vertices_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -1041,11 +463,12 @@ namespace AElf.SmartContract {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(CallingGraphEdges other) {
+    public void MergeFrom(SerializedCallGraph other) {
       if (other == null) {
         return;
       }
       edges_.Add(other.edges_);
+      vertices_.Add(other.vertices_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -1059,6 +482,10 @@ namespace AElf.SmartContract {
             break;
           case 10: {
             edges_.AddEntriesFrom(input, _repeated_edges_codec);
+            break;
+          }
+          case 18: {
+            vertices_.AddEntriesFrom(input, _repeated_vertices_codec);
             break;
           }
         }
@@ -1075,7 +502,7 @@ namespace AElf.SmartContract {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::AElf.SmartContract.SmartcontractReflection.Descriptor.MessageTypes[7]; }
+      get { return global::AElf.SmartContract.SmartcontractReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

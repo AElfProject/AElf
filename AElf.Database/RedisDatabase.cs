@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Database.Config;
+using AElf.Configuration;
 using NServiceKit.Redis;
 
 namespace AElf.Database

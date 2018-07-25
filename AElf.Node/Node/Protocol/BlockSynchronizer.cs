@@ -30,7 +30,10 @@ namespace AElf.Kernel.Node.Protocol
     {
         event EventHandler SyncFinished;
         
-        Task Start(bool doInitialSync);
+        // todo remove The node property : autofac circular dependency problem.
+        Task Start(IAElfNode node, bool doInitialSync);
+
+        void IncrementChainHeight();
     }
     
     /// <summary>
@@ -64,12 +67,11 @@ namespace AElf.Kernel.Node.Protocol
 
         private BlockingCollection<Job> _jobQueue;
 
-        public BlockSynchronizer(INetworkManager networkManager, IAElfNode node, ITxPoolService poolService)
+        public BlockSynchronizer(INetworkManager networkManager, ITxPoolService poolService)
         {
             PendingBlocks = new List<PendingBlock>();
             _jobQueue = new BlockingCollection<Job>();
             
-            _mainChainNode = node;
             _poolService = poolService;
             _networkManager = networkManager;
             
@@ -78,8 +80,11 @@ namespace AElf.Kernel.Node.Protocol
             _networkManager.MessageReceived += ProcessPeerMessage;
         }
         
-        public async Task Start(bool doInitialSync)
+        // todo remove The node property : autofac circular dependency problem.
+        public async Task Start(IAElfNode node, bool doInitialSync)
         {
+            _mainChainNode = node;
+            
             ShouldDoInitialSync = doInitialSync;
             IsInitialSyncInProgress = false;
             
@@ -155,6 +160,11 @@ namespace AElf.Kernel.Node.Protocol
             {
                 _logger?.Error(e, "Invalid tx - Could not receive transaction from the network", null);
             }
+        }
+        
+        public void IncrementChainHeight()
+        {
+            Interlocked.Increment(ref CurrentExecHeight);
         }
 
         public void EnqueueJob(Job job)
@@ -361,7 +371,7 @@ namespace AElf.Kernel.Node.Protocol
                 return false;
             }
 
-            List<Hash> missingTxs = _mainChainNode.GetMissingTransactions(block);
+            List<Hash> missingTxs = _poolService.GetMissingTransactions(block);
 
             if (missingTxs == null)
             {
