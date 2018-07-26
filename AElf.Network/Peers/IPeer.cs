@@ -4,7 +4,7 @@ using AElf.Network.Data;
 
 namespace AElf.Network.Peers
 {
-    public interface IPeer
+    public interface IPeer : IDisposable
     {
         event EventHandler MessageReceived;
         event EventHandler PeerDisconnected;
@@ -18,5 +18,7 @@ namespace AElf.Network.Peers
         bool IsListening { get; }
         
         void EnqueueOutgoing(Message msg);
+
+        void Disconnect();
     }
 }

@@ -17,6 +17,8 @@ namespace AElf.Network.Connection
         public event EventHandler IncomingConnection;
         public event EventHandler ListeningStopped;
 
+        private TcpListener _tcpListener;
+
         public ConnectionListener(ILogger logger)
         {
             _logger = logger;
@@ -26,12 +28,12 @@ namespace AElf.Network.Connection
         {
             try
             {
-                TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
-                tcpListener.Start();
+                _tcpListener = new TcpListener(IPAddress.Any, port);
+                _tcpListener.Start();
             
                 while (true)
                 {
-                    await AwaitConnection(tcpListener);
+                    await AwaitConnection(_tcpListener);
                 }
             }
             catch (Exception ex)
@@ -46,5 +48,22 @@ namespace AElf.Network.Connection
             TcpClient client = await tcpListener.AcceptTcpClientAsync();
             IncomingConnection?.Invoke(this, new IncomingConnectionArgs { Client = client});
         }
+
+        #region Closing and disposing
+
+        public void Close()
+        {
+            Dispose();
+        }
+        
+        public void Dispose()
+        {
+            // This will cause an IOException in the read loop
+            // but since IsConnected is switched to false, it 
+            // will not fire the disconnection exception.
+            _tcpListener.Stop();
+        }
+
+        #endregion
     }
 }
