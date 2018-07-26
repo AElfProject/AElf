@@ -20,6 +20,8 @@ using NLog;
 using AElf.ChainController;
 using AElf.SmartContract;
 using Google.Protobuf.WellKnownTypes;
+using ServiceStack.Text.Common;
+using Type = System.Type;
 
 namespace AElf.Kernel.Node.RPC
 {
@@ -265,106 +267,29 @@ namespace AElf.Kernel.Node.RPC
         
         private JObject ProGetDeserializedInfo(JObject reqParams)
         {
-            var sKey = reqParams["key"].ToString();
-            var sValue = reqParams["value"].ToString();
-
-            var byteValue = new byte[sValue.Length / 2];
-            for (var x = 0; x < byteValue.Length; x++)
-            {
-                var i = Convert.ToInt32(sValue.Substring(x * 2, 2), 16);
-                byteValue[x] = (byte)i;
-            }
-
-            var byteKey = ByteArrayHelpers.FromHexString(sKey);
-            var key = Key.Parser.ParseFrom(byteKey);
-            var keyType = key.Type;
-            var obj = new JObject();
-
             try
             {
-                switch (keyType)
+                var sKey = reqParams["key"].ToString();
+
+                var byteKey = ByteArrayHelpers.FromHexString(sKey);
+                var key = Key.Parser.ParseFrom(byteKey);
+                var keyType = key.Type;
+                return new JObject
                 {
-                    case TypeName.Bytes:
-                        return JObject.FromObject(new JObject
-                        {
-                            ["TypeName"] = keyType.ToString(),
-                            ["Value"] = byteValue
-                        });
-                    case TypeName.Ulong:
-                        return JObject.FromObject(new JObject
-                        {
-                            ["TypeName"] = keyType.ToString(),
-                            ["Value"] = byteValue?.ToUInt64() ?? 0
-                        });
-                    case TypeName.Uint64Value:
-                        obj = JObject.FromObject(UInt64Value.Parser.ParseFrom(byteValue));
-                        break;
-                    case TypeName.TnHash:
-                        try
-                        {
-                            obj = JObject.FromObject(Hash.Parser.ParseFrom(byteValue));
-                        }
-                        catch (Exception)
-                        {
-                            return JObject.FromObject(new JObject
-                            {
-                                ["TypeName"] = $"{keyType.ToString()}-ToHex",
-                                ["Value"] = byteValue.ToHex()
-                            });
-                        }
-                        break;
-                    case TypeName.TnBlockHeader:
-                        obj = JObject.FromObject(BlockHeader.Parser.ParseFrom(byteValue));
-                        break;
-                    case TypeName.TnBlockBody:
-                        obj = JObject.FromObject(BlockBody.Parser.ParseFrom(byteValue));
-                        break;
-                    case TypeName.TnChain:
-                        obj = JObject.FromObject(Chain.Parser.ParseFrom(byteValue));
-                        break;
-                    case TypeName.TnChange:
-                        obj = JObject.FromObject(Change.Parser.ParseFrom(byteValue));
-                        break;
-                    case TypeName.TnSmartContractRegistration:
-                        obj = JObject.FromObject(SmartContractRegistration.Parser.ParseFrom(byteValue));
-                        break;
-                    case TypeName.TnTransactionResult:
-                        obj = JObject.FromObject(TransactionResult.Parser.ParseFrom(byteValue));
-                        break;
-                    case TypeName.TnTransaction:
-                        obj = JObject.FromObject(Transaction.Parser.ParseFrom(byteValue));
-                        break;
-                    case TypeName.TnChangesDict:
-                        obj = JObject.FromObject(ChangesDict.Parser.ParseFrom(byteValue));
-                        break;
-                    case TypeName.TnFunctionMetadata:
-                        obj = JObject.FromObject(FunctionMetadata.Parser.ParseFrom(byteValue));
-                        break;                    
-                    case TypeName.TnSerializedCallGraph:
-                        obj = JObject.FromObject(SerializedCallGraph.Parser.ParseFrom(byteValue));
-                        break;
-                    default:
-                        return JObject.FromObject(new JObject
-                        {
-                            ["TypeName"] = keyType.ToString(),
-                            ["Value"] = "Type name not found"
-                        });
-                }
-                return JObject.FromObject(new JObject
-                {
-                    ["TypeName"] = keyType.ToString(),
-                    ["Value"] = obj
-                });
+                    ["type"] = keyType
+                };
             }
             catch (Exception e)
             {
-                return JObject.FromObject(new JObject
+                Console.WriteLine(e);
+                return new JObject
                 {
-                    ["TypeName"] = keyType.ToString(),
-                    ["Value"] = e.ToString()
-                }); ;
+                    ["error"] = "Unknown key"
+                };
             }
+            
         }
+
 
 
         private async Task<JObject> ProGetBlockInfo(JObject reqParams)
