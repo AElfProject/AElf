@@ -53,6 +53,7 @@ namespace AElf.CLI
             program.RegisterCommand(new GetGenesisContractAddressCmd());
             program.RegisterCommand(new GetDeserializedResultCmd());
             program.RegisterCommand(new GetBlockHeightCmd());
+            program.RegisterCommand(new CallReadOnlyCmd());
 
             // Start the CLI
             program.StartRepl();

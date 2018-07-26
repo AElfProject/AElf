@@ -66,6 +66,7 @@ namespace AElf.ABI.CSharp
 
                 var rt = m.ReturnType.FullName;
                 method.IsAsync = rt.StartsWith("System.Threading.Tasks.Task");
+                method.IsView = m.CustomAttributes.Any(x => x.AttributeType.Name == "ViewAttribute");
                 method.ReturnType = rt == "System.Threading.Tasks.Task"
                     ? "void"
                     : rt.Replace("System.Threading.Tasks.Task`1<", "").Replace(">", "");

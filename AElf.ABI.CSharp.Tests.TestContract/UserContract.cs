@@ -38,6 +38,7 @@ namespace AElf.ABI.CSharp.Tests
             return true;
         }
 
+        [View]
         public async Task<string> GetAccountName()
         {
             var account = await _account.GetAsync();
