@@ -90,16 +90,5 @@ namespace AElf.Kernel
         {
             return GetHashBytes().ToHex();
         }
-        
-        public string GetKeyString(TypeName type)
-        {
-            var key=new Key
-            {
-                Type = type,
-                Value = ByteString.CopyFrom(GetHashBytes())
-            }.ToByteArray().ToHex();
-
-            return key;
-        }
     }
 }

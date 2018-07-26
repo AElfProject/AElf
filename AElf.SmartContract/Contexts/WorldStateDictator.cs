@@ -73,15 +73,15 @@ namespace AElf.SmartContract
             var count = new UInt64Value {Value = 0};
 
             var keyToGetCount = ResourcePath.CalculatePointerForPathsCount(_chainId, PreBlockHash);
-            if (await _dataStore.GetDataAsync(keyToGetCount, TypeName.Uint64Value) == null)
+            if (await _dataStore.GetDataAsync<UInt64Value>(keyToGetCount) == null)
             {
-                await _dataStore.SetDataAsync(keyToGetCount, TypeName.Uint64Value, new UInt64Value {Value = 0}.ToByteArray());
+                await _dataStore.SetDataAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
             }
             
-            var result = await _dataStore.GetDataAsync(keyToGetCount,TypeName.Uint64Value);
+            var result = await _dataStore.GetDataAsync<UInt64Value>(keyToGetCount);
             if (result == null)
             {
-                await _dataStore.SetDataAsync(keyToGetCount, TypeName.Uint64Value, new UInt64Value {Value = 0}.ToByteArray());
+                await _dataStore.SetDataAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
             }
             else
             {
@@ -90,11 +90,11 @@ namespace AElf.SmartContract
             
             // make a path related to its order
             var key = CalculateKeyForPath(PreBlockHash, count);
-            await _dataStore.SetDataAsync(key, TypeName.TnHash, pathHash.GetHashBytes());
+            await _dataStore.SetDataAsync<Hash>(key, pathHash.GetHashBytes());
 
             // update the count of changes
             count = new UInt64Value {Value = count.Value + 1};
-            await _dataStore.SetDataAsync(keyToGetCount, TypeName.Uint64Value, count.ToByteArray());
+            await _dataStore.SetDataAsync<UInt64Value>(keyToGetCount, count.ToByteArray());
         }
 
         public async Task<Change> GetChangeAsync(Hash pathHash)
@@ -119,7 +119,7 @@ namespace AElf.SmartContract
             }
             
             var keyToGetCount = ResourcePath.CalculatePointerForPathsCount(_chainId, PreBlockHash);
-            await _dataStore.SetDataAsync(keyToGetCount, TypeName.Uint64Value, new UInt64Value {Value = 0}.ToByteArray());
+            await _dataStore.SetDataAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
         }
         
         /// <summary>
@@ -147,8 +147,8 @@ namespace AElf.SmartContract
             await SetChainCurrentHeight(_chainId, specificHeight);
 
             //Update last block hash of curent chain
-            var lastBlockHash = Hash.Parser.ParseFrom(await _dataStore.GetDataAsync(
-                ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, specificHeight - 1), TypeName.TnHash));
+            var lastBlockHash = Hash.Parser.ParseFrom(await _dataStore.GetDataAsync<Hash>(
+                ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, specificHeight - 1)));
             await SetChainLastBlockHash(_chainId, lastBlockHash);
             PreBlockHash = lastBlockHash;
 
@@ -159,8 +159,8 @@ namespace AElf.SmartContract
             {
                 var rollBackBlockHash =
                     Hash.Parser.ParseFrom(
-                        await _dataStore.GetDataAsync(
-                            ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, i), TypeName.TnHash));
+                        await _dataStore.GetDataAsync<Hash>(
+                            ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, i)));
                 var header = await _blockHeaderStore.GetAsync(rollBackBlockHash);
                 var body = await _blockBodyStore.GetAsync(header.GetHash().CalculateHashWith(header.MerkleTreeRootOfTransactions));
                 foreach (var txId in body.Transactions)
@@ -189,27 +189,30 @@ namespace AElf.SmartContract
         private async Task<ulong> GetChainCurrentHeight(Hash chainId)
         {
             var key = ResourcePath.CalculatePointerForCurrentBlockHeight(chainId);
-            var heightBytes = await _dataStore.GetDataAsync(key, TypeName.Ulong);
-            return heightBytes?.ToUInt64() ?? 0;
+            var heightBytes = await _dataStore.GetDataAsync<UInt64Value>(key);
+            return UInt64Value.Parser.ParseFrom(heightBytes).Value;
         }
         
         public async Task SetChainCurrentHeight(Hash chainId, ulong height)
         {
             var key = ResourcePath.CalculatePointerForCurrentBlockHeight(chainId);
-            await _dataStore.SetDataAsync(key, TypeName.Ulong, height.ToBytes());
+            await _dataStore.SetDataAsync<UInt64Value>(key, new UInt64Value
+            {
+                Value = height
+            }.ToByteArray());
         }
         
         public async Task<Hash> GetChainLastBlockHash(Hash chainId)
         {
             var key = ResourcePath.CalculatePointerForLastBlockHash(chainId);
-            return await _dataStore.GetDataAsync(key, TypeName.TnHash);
+            return await _dataStore.GetDataAsync<Hash>(key);
         }
         
         public async Task SetChainLastBlockHash(Hash chainId, Hash blockHash)
         {
             var key = ResourcePath.CalculatePointerForLastBlockHash(chainId);
             PreBlockHash = blockHash;
-            await _dataStore.SetDataAsync(key, TypeName.TnHash, blockHash.GetHashBytes());
+            await _dataStore.SetDataAsync<Hash>(key, blockHash.GetHashBytes());
         }
 
         /// <summary>
@@ -299,7 +302,7 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task SetDataAsync(Hash pointerHash, byte[] data)
         {
-            await _dataStore.SetDataAsync(pointerHash, TypeName.TnHash, data);
+            await _dataStore.SetDataAsync<Hash>(pointerHash, data);
         }
 
         /// <summary>
@@ -309,7 +312,7 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task<byte[]> GetDataAsync(Hash pointerHash)
         {
-            return await _dataStore.GetDataAsync(pointerHash, TypeName.TnHash);
+            return await _dataStore.GetDataAsync<Hash>(pointerHash);
         }
         
         /// <summary>
@@ -331,7 +334,7 @@ namespace AElf.SmartContract
             for (ulong i = 0; i < changedPathsCount; i++)
             {
                 var key = CalculateKeyForPath(blockHash, new UInt64Value {Value = i});
-                var path = await _dataStore.GetDataAsync(key, TypeName.TnHash);
+                var path = await _dataStore.GetDataAsync<Hash>(key);
                 paths.Add(path);
             }
 
@@ -421,7 +424,7 @@ namespace AElf.SmartContract
         {
             // The code chunk is copied from DataProvider
 
-            Hash prevBlockHash = await _dataStore.GetDataAsync(ResourcePath.CalculatePointerForLastBlockHash(chainId),TypeName.TnHash);
+            Hash prevBlockHash = await _dataStore.GetDataAsync<Hash>(ResourcePath.CalculatePointerForLastBlockHash(chainId));
             
             //Generate the new pointer hash (using previous block hash)
             var pointerHashAfter = stateValueChange.Path.CalculateHashWith(prevBlockHash);
@@ -463,8 +466,7 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task<bool> ApplyCachedDataAction(Dictionary<Hash, StateCache> cachedActions, Hash chainId)
         {
-            Hash prevBlockHash = await _dataStore.GetDataAsync(ResourcePath.CalculatePointerForLastBlockHash(chainId),
-                TypeName.TnHash);
+            Hash prevBlockHash = await _dataStore.GetDataAsync<Hash>(ResourcePath.CalculatePointerForLastBlockHash(chainId));
             
             //Only dirty, i.e., changed data item, will be applied to database
             var pipelineSet = cachedActions.Where(kv => kv.Value.Dirty)
@@ -472,7 +474,7 @@ namespace AElf.SmartContract
             if (pipelineSet.Count > 0)
             {
                 //_logger?.Debug($"Pipeline set {pipelineSet.Count} data item");
-                return await _dataStore.PipelineSetDataAsync(pipelineSet,TypeName.TnHash);
+                return await _dataStore.PipelineSetDataAsync<Hash>(pipelineSet);
             }
 
             //return true for read-only 
@@ -483,11 +485,10 @@ namespace AElf.SmartContract
         {
             var blockHash = header.GetHash();
             _logger?.Trace($"Set height {height} block hash: {blockHash.Value.ToByteArray().ToHex()}");
-            await _dataStore.SetDataAsync(
+            await _dataStore.SetDataAsync<Hash>(
                 ResourcePath.CalculatePointerForGettingBlockHashByHeight(
                     header.ChainId,
                     height),
-                TypeName.TnHash,
                 blockHash.ToByteArray());
         }
 
@@ -505,15 +506,15 @@ namespace AElf.SmartContract
             var changedPathsCount = new UInt64Value {Value = 0};
             
             var keyToGetCount = ResourcePath.CalculatePointerForPathsCount(_chainId, blockHash);
-            if (await _dataStore.GetDataAsync(keyToGetCount,TypeName.Uint64Value) == null)
+            if (await _dataStore.GetDataAsync<UInt64Value>(keyToGetCount) == null)
             {
-                await _dataStore.SetDataAsync(keyToGetCount, TypeName.Uint64Value, new UInt64Value {Value = 0}.ToByteArray());
+                await _dataStore.SetDataAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
             }
             
-            var result = await _dataStore.GetDataAsync(keyToGetCount,TypeName.Uint64Value);
+            var result = await _dataStore.GetDataAsync<UInt64Value>(keyToGetCount);
             if (result == null)
             {
-                await _dataStore.SetDataAsync(keyToGetCount, TypeName.Uint64Value, new UInt64Value {Value = 0}.ToByteArray());
+                await _dataStore.SetDataAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
             }
             else
             {
@@ -544,7 +545,7 @@ namespace AElf.SmartContract
 
             if (PreBlockHash == null)
             {
-                var hash = await _dataStore.GetDataAsync(ResourcePath.CalculatePointerForLastBlockHash(_chainId),TypeName.TnHash);
+                var hash = await _dataStore.GetDataAsync<Hash>(ResourcePath.CalculatePointerForLastBlockHash(_chainId));
                 PreBlockHash = hash ?? Hash.Genesis;
             }
         }

@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Database;
 using System.Linq;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Storages
 {
@@ -14,27 +16,76 @@ namespace AElf.Kernel.Storages
             _keyValueDatabase = keyValueDatabase;
         }
                
-        public async Task SetDataAsync(Hash pointerHash, TypeName typeName, byte[] data)
+        public async Task SetDataAsync<T>(Hash pointerHash, byte[] data) where T : IMessage
         {
-            var key = pointerHash.GetKeyString(typeName);
-            await _keyValueDatabase.SetAsync(key, data);
+            try
+            {
+                if(!typeof(T).GetInterfaces().Contains(typeof(IMessage)))
+                {
+                    throw new Exception("Wrong Data Type");
+                }
+
+                if (!Enum.TryParse<Types>(typeof(T).Name, out var result))
+                {
+                    throw new Exception($"Not Supported Data Type {typeof(T).Name}");
+                }
+                
+                var key = pointerHash.GetKeyString((uint)result);
+                await _keyValueDatabase.SetAsync(key, data);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
-        public async Task<byte[]> GetDataAsync(Hash pointerHash, TypeName typeName)
+        public async Task<byte[]> GetDataAsync<T>(Hash pointerHash) where T : IMessage
         {
-            if (pointerHash == null)
+            try
             {
+                if(!typeof(T).GetInterfaces().Contains(typeof(IMessage)))
+                {
+                    throw new Exception("Wrong Data Type");
+                }
+                if (pointerHash == null)
+                {
+                    return null;
+                }
+                if (!Enum.TryParse<Types>(typeof(T).Name, out var result))
+                {
+                    throw new Exception($"Not Supported Data Type {typeof(T).Name}");
+                }
+                
+                var key = pointerHash.GetKeyString((uint)result);
+                return await _keyValueDatabase.GetAsync(key, typeof(byte[]));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
                 return null;
             }
-            var key = pointerHash.GetKeyString(typeName);
-            return await _keyValueDatabase.GetAsync(key, typeof(byte[]));
         }
 
-        public async Task<bool> PipelineSetDataAsync(Dictionary<Hash, byte[]> pipelineSet, TypeName typeName)
+        public async Task<bool> PipelineSetDataAsync<T>(Dictionary<Hash, byte[]> pipelineSet) where T : IMessage
         {
-
-            return await _keyValueDatabase.PipelineSetAsync(
-                pipelineSet.ToDictionary(kv => kv.Key.GetKeyString(typeName), kv => kv.Value));
+            try
+            {
+                if(!typeof(T).GetInterfaces().Contains(typeof(IMessage)))
+                {
+                    throw new Exception("Wrong Data Type");
+                }
+                if (!Enum.TryParse<Types>(typeof(T).Name, out var result))
+                {
+                    throw new Exception($"Not Supported Data Type {typeof(T).Name}");
+                }
+                return await _keyValueDatabase.PipelineSetAsync(
+                    pipelineSet.ToDictionary(kv => kv.Key.GetKeyString((uint)result), kv => kv.Value));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
         }
     }
 }
