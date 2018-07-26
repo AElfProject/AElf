@@ -7,6 +7,7 @@ namespace AElf.Kernel.Storages
      public class TransactionResultStore : ITransactionResultStore
      {
          private readonly IKeyValueDatabase _keyValueDatabase;
+         private static uint TypeIndex => (uint) Types.TransactionResult;
  
          public TransactionResultStore(IKeyValueDatabase keyValueDatabase)
          {
@@ -15,13 +16,13 @@ namespace AElf.Kernel.Storages
  
          public async Task InsertAsync(Hash trKey, TransactionResult result)
          {
-             var key = trKey.GetKeyString(TypeName.TnTransactionResult);
+             var key = trKey.GetKeyString(TypeIndex);
              await _keyValueDatabase.SetAsync(key, result.Serialize());
          }
  
          public async Task<TransactionResult> GetAsync(Hash trKey)
          {
-             var key = trKey.GetKeyString(TypeName.TnTransactionResult);
+             var key = trKey.GetKeyString(TypeIndex);
              var txResultBytes = await _keyValueDatabase.GetAsync(key, typeof(TransactionResult));
              return txResultBytes == null ? null : TransactionResult.Parser.ParseFrom(txResultBytes);
          }
