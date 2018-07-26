@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace AElf.Database
 {
-    public class KeyValueDatabase : IKeyValueDatabase
+    public class InMemoryDatabase : IKeyValueDatabase
     {
         private readonly ConcurrentDictionary<string, byte[]> _dictionary = new ConcurrentDictionary<string, byte[]>();
         
