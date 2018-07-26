@@ -191,7 +191,7 @@ namespace AElf.Runtime.CSharp
                     }
                 }
 
-                if (_currentTransactionContext.Trace.IsSuccessful())
+                if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful())
                 {
                     _currentTransactionContext.Trace.ValueChanges.AddRange(_currentSmartContractContext.DataProvider
                         .GetValueChanges());

@@ -689,6 +689,27 @@ namespace AElf.Kernel.Node
             return res;
         }
 
+        public async Task<byte[]> CallReadOnly(ITransaction tx)
+        {
+                var trace = new TransactionTrace()
+                {
+                    TransactionId = tx.GetHash()
+                };
+
+                var chainContext = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
+
+                var txCtxt = new TransactionContext()
+                {
+                    PreviousBlockHash = chainContext.BlockHash,
+                    Transaction = tx,
+                    Trace = trace
+                };
+
+                var executive = await _smartContractService.GetExecutiveAsync(tx.To, _nodeConfig.ChainId);
+                await executive.SetTransactionContext(txCtxt).Apply(false);
+                return trace.RetVal.ToFriendlyBytes();
+        }
+        
         public async Task<Block> GetBlockAtHeight(int height)
         {
             return await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, (ulong) height);
