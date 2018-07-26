@@ -282,6 +282,10 @@ namespace AElf.Kernel.Node.RPC
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
                         ["ChainId"] = blockinfo.Header.ChainId.ToHex()
+                    },
+                    ["Body"] = new JObject
+                    {
+                        ["TransactionsCount"] = blockinfo.Body.TransactionsCount 
                     }
                 }
             };
