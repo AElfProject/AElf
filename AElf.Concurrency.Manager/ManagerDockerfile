@@ -1,0 +1,6 @@
+FROM microsoft/dotnet
+
+WORKDIR /app
+COPY . .
+
+ENTRYPOINT ["dotnet", "AElf.Concurrency.Manager.dll"]

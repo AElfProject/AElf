@@ -15,4 +15,9 @@
   <ItemGroup>
     <ProjectReference Include="..\AElf.Launcher\AElf.Launcher.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="WorkerDockerfile">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

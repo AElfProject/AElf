@@ -13,5 +13,9 @@ namespace AElf.Execution
         void InitWorkActorSystem();
 
         void InitActorSystem();
+
+        Task StopAsync();
+
+        Task TerminationHandle { get; }
     }
 }
