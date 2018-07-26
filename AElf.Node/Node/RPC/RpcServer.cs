@@ -37,6 +37,7 @@ namespace AElf.Kernel.Node.RPC
         private const string GetDeserializedData = "get_deserialized_result";
         private const string GetBlockHeight = "get_block_height";
         private const string GetBlockInfo = "get_block_info";
+        private const string CallReadOnly = "call";
         /// <summary>
         /// The names of the exposed RPC methods and also the
         /// names used in the JSON to perform a call.
@@ -55,7 +56,8 @@ namespace AElf.Kernel.Node.RPC
             GetGenesisiAddress,
             GetDeserializedData,
             GetBlockHeight,
-            GetBlockInfo
+            GetBlockInfo,
+            CallReadOnly
         };
 
         /// <summary>
@@ -234,6 +236,9 @@ namespace AElf.Kernel.Node.RPC
                         break;
                     case GetBlockInfo:
                         responseData = await ProGetBlockInfo(reqParams);
+                        break;
+                    case CallReadOnly:
+                        responseData = await ProcessCallReadOnly(reqParams);
                         break;
                     default:
                         Console.WriteLine("Method name not found"); // todo log
@@ -453,6 +458,35 @@ namespace AElf.Kernel.Node.RPC
             return JObject.FromObject(j);
         }
 
+        private async Task<JObject> ProcessCallReadOnly(JObject reqParams)
+        {
+            string raw64 = reqParams["rawtx"].ToString();
+
+            byte[] b = ByteArrayHelpers.FromHexString(raw64);
+            Transaction t = Transaction.Parser.ParseFrom(b);
+
+            JObject jobj;
+            byte[] res;
+            try
+            {
+                res = await _node.CallReadOnly(t);
+                
+                jobj = new JObject
+                {
+                    ["return"] = res.ToHex(),
+                };
+            }
+            catch (Exception e)
+            {
+                jobj = new JObject
+                {
+                    ["error"] = e.ToString()
+                };            
+            }
+
+            return JObject.FromObject(jobj);
+        }
+        
         /// <summary>
         /// This method processes the request for a specified
         /// number of transactions
