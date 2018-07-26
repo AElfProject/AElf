@@ -16,8 +16,8 @@ namespace AElf.Network.Connection
         public Message Message { get; set; }
     }
     
-    public class MessageReader
-    {
+    public class MessageReader : IDisposable
+    {   
         private const int IntLength = 4;
 
         private ILogger _logger;
@@ -29,7 +29,7 @@ namespace AElf.Network.Connection
 
         private readonly List<PartialPacket> _partialPacketBuffer;
 
-        public bool IsConnected { get; private set; } = false;
+        public bool IsConnected { get; private set; }
         
         public MessageReader(NetworkStream stream)
         {
@@ -109,8 +109,10 @@ namespace AElf.Network.Connection
             }
             catch (PeerDisconnectedException e)
             {
-                _logger.Trace("[Message reader] Connection was aborted\n");
+                _logger.Trace("[Message reader] Connection was aborted.\n");
                 StreamClosed?.Invoke(this, EventArgs.Empty);
+                
+                Close();
             }
             catch (Exception e)
             {
@@ -121,10 +123,10 @@ namespace AElf.Network.Connection
                     return;
                 }
 
-                IsConnected = false;
-                _stream?.Close();
+                Close();
                 
-                _logger.Trace("[Message reader] Connection was aborted\n" + e);
+                _logger.Trace(e, "[Message reader] Connection was aborted.\n");
+                
                 StreamClosed?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -198,7 +200,14 @@ namespace AElf.Network.Connection
             return requestedBytes;
         }
 
+        #region Closing and disposing
+
         public void Close()
+        {
+            Dispose();
+        }
+        
+        public void Dispose()
         {
             // Change logical connection state
             IsConnected = false;
@@ -208,5 +217,7 @@ namespace AElf.Network.Connection
             // will not fire the disconnection exception.
             _stream?.Close();
         }
+
+        #endregion
     }
 }
