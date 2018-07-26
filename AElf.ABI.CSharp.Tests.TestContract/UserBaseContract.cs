@@ -14,11 +14,13 @@ namespace AElf.ABI.CSharp.Tests
         private UInt32Field _totalSupply = new UInt32Field("_totalSupply");
         private MapToUInt32<Hash> _balances = new MapToUInt32<Hash>("_balances");
 
+        [View]
         public uint GetTotalSupply()
         {
             return 100;
         }
 
+        [View]
         public uint GetBalanceOf(Hash account)
         {
             var task = _balances.GetValueAsync(account);
