@@ -82,22 +82,25 @@ namespace AElf.Kernel.Managers
         public async Task<ulong> GetChainCurrentHeight(Hash chainId)
         {
             var key = ResourcePath.CalculatePointerForCurrentBlockHeight(chainId);
-            var heightBytes = await _dataStore.GetDataAsync(key, TypeName.Ulong);
-            return heightBytes?.ToUInt64() ?? 0;
+            var heightBytes = await _dataStore.GetDataAsync<UInt64Value>(key);
+            return heightBytes == null? 0 : UInt64Value.Parser.ParseFrom(heightBytes).Value;
         }
 
         /// <inheritdoc/>
         public async Task SetChainCurrentHeight(Hash chainId, ulong height)
         {
             var key = ResourcePath.CalculatePointerForCurrentBlockHeight(chainId);
-            await _dataStore.SetDataAsync(key, TypeName.Ulong, height.ToBytes());
+            await _dataStore.SetDataAsync<UInt64Value>(key, new UInt64Value
+            {
+                Value = height
+            }.ToByteArray());
         }
 
         /// <inheritdoc/>
         public async Task<Hash> GetChainLastBlockHash(Hash chainId)
         {
             var key = ResourcePath.CalculatePointerForLastBlockHash(chainId);
-            return await _dataStore.GetDataAsync(key, TypeName.TnHash);
+            return await _dataStore.GetDataAsync<Hash>(key);
         }
 
         /// <inheritdoc/>
@@ -105,7 +108,7 @@ namespace AElf.Kernel.Managers
         {
             var key = ResourcePath.CalculatePointerForLastBlockHash(chainId);
             _worldStateDictator.PreBlockHash = blockHash;
-            await _dataStore.SetDataAsync(key, TypeName.TnHash, blockHash.GetHashBytes());
+            await _dataStore.SetDataAsync<Hash>(key, blockHash.GetHashBytes());
         }
     }
 }
