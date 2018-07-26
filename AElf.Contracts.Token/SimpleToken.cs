@@ -44,31 +44,37 @@ namespace AElf.Contracts.Token
 
         #region View Only Methods
 
+        [View]
         public string Symbol()
         {
             return _symbol.GetValue();
         }
 
+        [View]
         public string TokenName()
         {
             return _tokenName.GetValue();
         }
 
+        [View]
         public ulong TotalSupply()
         {
             return _totalSupply.GetValue();
         }
 
+        [View]
         public uint Decimals()
         {
             return _decimals.GetValue();
         }
 
+        [View]
         public ulong BalanceOf(Hash owner)
         {
             return _balances[owner];
         }
 
+        [View]
         public ulong Allowance(Hash owner, Hash spender)
         {
             return Allowances.GetAllowance(owner, spender);

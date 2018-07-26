@@ -26,7 +26,8 @@ message Method
     string Name = 1;
     repeated Field Params = 2;
     string ReturnType = 3;
-    bool IsAsync = 4;
+    bool IsView = 4;
+    bool IsAsync = 5;
 }
 
 message Module

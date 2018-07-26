@@ -18,7 +18,7 @@ akka {
             transport-class = "Akka.Remote.Transport.DotNetty.TcpTransport, Akka.Remote"
             applied-adapters = []
             transport-protocol = tcp
-            hostname = "192.168.199.112"
+            hostname = "127.0.0.1"
             port = 4053
         }
     }

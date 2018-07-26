@@ -431,6 +431,53 @@ namespace AElf.CLI
                             }
                         }
                     }
+                    else if (def is CallReadOnlyCmd)
+                    {
+                            JObject j = JObject.Parse(parsedCmd.Args.ElementAt(0));
+                            
+                            Transaction tr ;
+
+                            tr = ConvertFromJson(j);
+                            string hex = tr.To.Value.ToHex();
+
+                            Module m = null;
+                            if (!_loadedModules.TryGetValue(hex.Replace("0x", ""), out m))
+                            {
+                                if (!_loadedModules.TryGetValue("0x"+hex.Replace("0x", ""), out m))
+                                {
+                                    _screenManager.PrintError(AbiNotLoaded);
+                                    return;
+                                }
+                            }
+
+                            Method method = m.Methods?.FirstOrDefault(mt => mt.Name.Equals(tr.MethodName));
+
+                            if (method == null)
+                            {
+                                _screenManager.PrintError(MethodNotFound);
+                                return;
+                            }
+                            
+                            JArray p = j["params"] == null ? null : JArray.Parse(j["params"].ToString());
+                            tr.Params = j["params"] == null ? null : method.SerializeParams(p.ToObject<string[]>());
+
+                            var resp = CallTransaction(tr);
+                            
+                            if (resp == null)
+                            { 
+                                _screenManager.PrintError(ServerConnError);
+                                return;
+                            }
+                            if (resp.IsEmpty())
+                            {
+                                _screenManager.PrintError(NoReplyContentError);
+                                return;
+                            }
+                            JObject jObj = JObject.Parse(resp);
+
+                            string toPrint = def.GetPrintString(JObject.FromObject(jObj["result"]));
+                            _screenManager.PrintLine(toPrint);
+                    }
                     else
                     {
                         _accountManager.ProcessCommand(parsedCmd);
@@ -517,6 +564,23 @@ namespace AElf.CLI
             string payload = b.ToHex();
             var reqParams = new JObject { ["rawtx"] = payload };
             var req = JsonRpcHelpers.CreateRequest(reqParams, "broadcast_tx", 1);
+                        
+            // todo send raw tx
+            HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
+            string resp = reqhttp.DoRequest(req.ToString());
+
+            return resp;
+        }
+        
+        private string CallTransaction(Transaction tx)
+        {
+            MemoryStream ms = new MemoryStream();
+            Serializer.Serialize(ms, tx);
+                        
+            byte[] b = ms.ToArray();
+            string payload = b.ToHex();
+            var reqParams = new JObject { ["rawtx"] = payload };
+            var req = JsonRpcHelpers.CreateRequest(reqParams, "call", 1);
                         
             // todo send raw tx
             HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);

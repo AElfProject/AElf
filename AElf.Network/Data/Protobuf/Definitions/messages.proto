@@ -7,12 +7,12 @@ message NodeData {
     int32 Port = 2;
 }
 
-message AElfPacketData {
-    int32 msgType = 1;
-    int32 Id = 2;
-    int32 length = 3;
-    bytes payload = 4;
-}
+//message Message {
+//    int32 msgType = 1;
+//    int32 Id = 2;
+//    int32 length = 3;
+//    bytes payload = 4;
+//}
 
 // Payloads
 

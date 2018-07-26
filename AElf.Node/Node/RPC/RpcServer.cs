@@ -43,6 +43,7 @@ namespace AElf.Kernel.Node.RPC
         private const string GetBlockInfo = "get_block_info";
         private const string GetDeserializedInfo = "get_deserialized_info";
         
+        private const string CallReadOnly = "call";
         /// <summary>
         /// The names of the exposed RPC methods and also the
         /// names used in the JSON to perform a call.
@@ -62,7 +63,8 @@ namespace AElf.Kernel.Node.RPC
             GetDeserializedData,
             GetBlockHeight,
             GetBlockInfo,
-            GetDeserializedInfo
+            GetDeserializedInfo,
+            CallReadOnly
         };
 
         /// <summary>
@@ -245,6 +247,9 @@ namespace AElf.Kernel.Node.RPC
                     case GetDeserializedInfo:
                         responseData = ProGetDeserializedInfo(reqParams);
                         break;
+                    case CallReadOnly:
+                        responseData = await ProcessCallReadOnly(reqParams);
+                        break;
                     default:
                         Console.WriteLine("Method name not found"); // todo log
                         break;
@@ -319,6 +324,10 @@ namespace AElf.Kernel.Node.RPC
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
                         ["ChainId"] = blockinfo.Header.ChainId.ToHex()
+                    },
+                    ["Body"] = new JObject
+                    {
+                        ["TransactionsCount"] = blockinfo.Body.TransactionsCount 
                     }
                 }
             };
@@ -490,6 +499,35 @@ namespace AElf.Kernel.Node.RPC
             return JObject.FromObject(j);
         }
 
+        private async Task<JObject> ProcessCallReadOnly(JObject reqParams)
+        {
+            string raw64 = reqParams["rawtx"].ToString();
+
+            byte[] b = ByteArrayHelpers.FromHexString(raw64);
+            Transaction t = Transaction.Parser.ParseFrom(b);
+
+            JObject jobj;
+            byte[] res;
+            try
+            {
+                res = await _node.CallReadOnly(t);
+                
+                jobj = new JObject
+                {
+                    ["return"] = res.ToHex(),
+                };
+            }
+            catch (Exception e)
+            {
+                jobj = new JObject
+                {
+                    ["error"] = e.ToString()
+                };            
+            }
+
+            return JObject.FromObject(jobj);
+        }
+        
         /// <summary>
         /// This method processes the request for a specified
         /// number of transactions

@@ -1,10 +1,10 @@
-﻿using System.Threading.Tasks;
-using AElf.Network.Data;
+﻿using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace AElf.Network.Peers
 {
     public interface INodeDialer
     {
-        Task<IPeer> DialAsync(NodeData distantNode);
+        Task<TcpClient> DialAsync(int timeout);
     }
 }
