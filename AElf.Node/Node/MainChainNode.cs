@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -244,24 +245,47 @@ namespace AElf.Kernel.Node
 
             _logger?.Log(LogLevel.Debug, "AElf node started.");
 
+            Task.Run(async () => await ProcessLoop()).ConfigureAwait(false);
+
             return true;
+        }
+        
+        private BlockingCollection<NetMessageReceived> _messageQueue = new BlockingCollection<NetMessageReceived>();
+
+        private async Task ProcessLoop()
+        {
+            try
+            {
+                while (true)
+                {
+                    NetMessageReceived args = _messageQueue.Take();
+                
+                    _logger?.Trace("Message dequeued !");
+                
+                    Message message = args.Message;
+                    MessageType msgType = (MessageType) message.Type;
+
+                    if (msgType == MessageType.RequestBlock)
+                    {
+                        await HandleBlockRequest(message, args.PeerMessage);
+                    }
+                    else if (msgType == MessageType.TxRequest)
+                    {
+                        await HandleTxRequest(message, args.PeerMessage);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "Error while dequeuing.");
+            }
         }
 
         private async void ProcessPeerMessage(object sender, EventArgs e)
         {
             if (sender != null && e is NetMessageReceived args && args.Message != null)
             {
-                Message message = args.Message;
-                MessageType msgType = (MessageType) message.Type;
-
-                if (msgType == MessageType.RequestBlock)
-                {
-                    await HandleBlockRequest(message, args.PeerMessage);
-                }
-                else if (msgType == MessageType.TxRequest)
-                {
-                    await HandleTxRequest(message, args.PeerMessage);
-                }
+                _messageQueue.Add(args);
             }
         }
         
@@ -691,23 +715,23 @@ namespace AElf.Kernel.Node
 
         public async Task<byte[]> CallReadOnly(ITransaction tx)
         {
-                var trace = new TransactionTrace()
-                {
-                    TransactionId = tx.GetHash()
-                };
+            var trace = new TransactionTrace()
+            {
+                TransactionId = tx.GetHash()
+            };
 
-                var chainContext = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
+            var chainContext = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
 
-                var txCtxt = new TransactionContext()
-                {
-                    PreviousBlockHash = chainContext.BlockHash,
-                    Transaction = tx,
-                    Trace = trace
-                };
+            var txCtxt = new TransactionContext()
+            {
+                PreviousBlockHash = chainContext.BlockHash,
+                Transaction = tx,
+                Trace = trace
+            };
 
-                var executive = await _smartContractService.GetExecutiveAsync(tx.To, _nodeConfig.ChainId);
-                await executive.SetTransactionContext(txCtxt).Apply(false);
-                return trace.RetVal.ToFriendlyBytes();
+            var executive = await _smartContractService.GetExecutiveAsync(tx.To, _nodeConfig.ChainId);
+            await executive.SetTransactionContext(txCtxt).Apply(false);
+            return trace.RetVal.ToFriendlyBytes();
         }
         
         public async Task<Block> GetBlockAtHeight(int height)
