@@ -36,6 +36,8 @@ namespace AElf.Network.Peers
 
     public class TimeoutRequest
     {
+        public const int DefaultMaxRetry = 2;
+        
         public event EventHandler RequestTimedOut;
         
         private volatile bool _requestCanceled;
@@ -54,6 +56,11 @@ namespace AElf.Network.Peers
         
         public byte[] ItemHash { get; private set; }
         public int BlockIndex { get; private set; }
+        
+        public List<IPeer> TriedPeers = new List<IPeer>();
+
+        public int MaxRetryCount { get; set; } = DefaultMaxRetry;
+        public int RetryCount { get; private set; } = 0;
 
         private TimeoutRequest(Message msg, double timeout)
         {
@@ -88,12 +95,17 @@ namespace AElf.Network.Peers
                 throw new InvalidOperationException($"RequestMessage cannot be null." );
             
             if (!HasTimedOut)
-                throw new InvalidOperationException($"Cannot switch peer while before timeout.");
+                throw new InvalidOperationException($"Cannot switch peer before timeout.");
             
+            if (RetryCount >= MaxRetryCount)
+                throw new InvalidOperationException($"Cannot retry : max retry count reached.");
+            
+            TriedPeers.Add(peer);
             Peer.EnqueueOutgoing(RequestMessage);
             
             _timeoutTimer.Start();
             HasTimedOut = false;
+            RetryCount++;
         }
 
         private void TimerTimeoutElapsed(object sender, ElapsedEventArgs e)
