@@ -36,7 +36,7 @@ namespace AElf.Network.Peers
 
     public class TimeoutRequest
     {
-        public EventHandler RequestTimedOut;
+        public event EventHandler RequestTimedOut;
         
         private volatile bool _requestCanceled;
 
@@ -78,6 +78,12 @@ namespace AElf.Network.Peers
 
         public void FireRequest()
         {
+            if (Peer == null)
+                throw new InvalidOperationException($"Peer cannot be null." );
+            
+            if (RequestMessage == null)
+                throw new InvalidOperationException($"RequestMessage cannot be null." );
+            
             Peer.EnqueueOutgoing(RequestMessage);
             _timeoutTimer.Start();
         }
@@ -88,7 +94,7 @@ namespace AElf.Network.Peers
                 return;
             
             Cancel();
-            RequestTimedOut.Invoke(this, EventArgs.Empty);
+            RequestTimedOut?.Invoke(this, EventArgs.Empty);
         }
         
         public void Cancel()
