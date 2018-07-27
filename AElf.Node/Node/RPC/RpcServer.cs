@@ -102,6 +102,10 @@ namespace AElf.Kernel.Node.RPC
                 string url = "http://" + rpcHost + ":" + rpcPort;
                 var host = new WebHostBuilder()
                     .UseKestrel()
+                    .UseLibuv(opts =>
+                    {
+                        opts.ThreadCount = 24;
+                    })
                     .UseUrls(url)
                     .ConfigureLogging((hostingContext, logging) =>
                     {
