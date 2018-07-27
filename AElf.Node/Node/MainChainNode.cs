@@ -707,6 +707,7 @@ namespace AElf.Kernel.Node
 
                 var executive = await _smartContractService.GetExecutiveAsync(tx.To, _nodeConfig.ChainId);
                 await executive.SetTransactionContext(txCtxt).Apply(false);
+                await _smartContractService.PutExecutiveAsync(tx.To, executive);
                 return trace.RetVal.ToFriendlyBytes();
         }
         
