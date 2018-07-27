@@ -181,3 +181,9 @@ enum DataAccessMode {
     ReadWriteAccountSharing = 1;
     AccountSpecific = 2;
 }
+
+message Key{
+    bytes Value = 1;
+    uint32 type = 2;
+}
+
