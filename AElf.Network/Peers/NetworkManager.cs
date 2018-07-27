@@ -45,17 +45,18 @@ namespace AElf.Network.Peers
             get { return _requestCanceled; }
         }
 
+        public bool HasTimedOut { get; private set; } = true;
+
         private readonly Timer _timeoutTimer;
         
         public IPeer Peer { get; private set; }
-        public Message RequestMessage { get; private set; }
+        public Message RequestMessage { get; }
         
         public byte[] ItemHash { get; private set; }
         public int BlockIndex { get; private set; }
 
-        private TimeoutRequest(IPeer peer, Message msg, double timeout)
+        private TimeoutRequest(Message msg, double timeout)
         {
-            Peer = peer;
             RequestMessage = msg;
             
             _timeoutTimer = new Timer();
@@ -64,42 +65,56 @@ namespace AElf.Network.Peers
             _timeoutTimer.AutoReset = false;
         }
 
-        public TimeoutRequest(byte[] itemHash, IPeer peer, Message msg, double timeout)
-            : this(peer, msg, timeout)
+        public TimeoutRequest(byte[] itemHash, Message msg, double timeout)
+            : this(msg, timeout)
         {
             ItemHash = itemHash;
         }
         
-        public TimeoutRequest(int index, IPeer peer, Message msg, double timeout)
-            : this(peer, msg, timeout)
+        public TimeoutRequest(int index, Message msg, double timeout)
+            : this(msg, timeout)
         {
             BlockIndex = index;
         }
 
-        public void FireRequest()
+        public void TryPeer(IPeer peer)
         {
+            Peer = peer;
+            
             if (Peer == null)
                 throw new InvalidOperationException($"Peer cannot be null." );
             
             if (RequestMessage == null)
                 throw new InvalidOperationException($"RequestMessage cannot be null." );
             
+            if (!HasTimedOut)
+                throw new InvalidOperationException($"Cannot switch peer while before timeout.");
+            
             Peer.EnqueueOutgoing(RequestMessage);
+            
             _timeoutTimer.Start();
+            HasTimedOut = false;
         }
 
         private void TimerTimeoutElapsed(object sender, ElapsedEventArgs e)
         {
             if (_requestCanceled) 
                 return;
+
+            // set this to true so the request can be used with another 
+            // peer if needed.
+            HasTimedOut = true;
             
-            Cancel();
+            Stop();
             RequestTimedOut?.Invoke(this, EventArgs.Empty);
         }
         
-        public void Cancel()
+        /// <summary>
+        /// This method is used to cancel the request and cleanup. Once this
+        /// has been called, you can't use this instance.
+        /// </summary>
+        public void Stop()
         {
-            _requestCanceled = true;
             _timeoutTimer.Stop();
         }
     }
@@ -256,20 +271,48 @@ namespace AElf.Network.Peers
                 var msg = NetRequestFactory.CreateMessage(MessageType.TxRequest, br.ToByteArray());
             
                 // Select peer for request
-                TimeoutRequest request = new TimeoutRequest(transactionHash, selectedPeer, msg, 2000);
+                TimeoutRequest request = new TimeoutRequest(transactionHash, msg, 2000);
             
                 lock (_pendingRequestsLock)
                 {
                     _pendingRequests.Add(request);
                 }
             
-                request.FireRequest();
+                request.TryPeer(selectedPeer);
+                request.RequestTimedOut += RequestOnRequestTimedOut;
                 
                 _logger?.Trace($"Request for transaction {transactionHash?.ToHex()} send to {selectedPeer}");
             }
             catch (Exception e)
             {
                 _logger?.Trace(e, $"Error while requesting transaction for index {transactionHash?.ToHex()}.");
+            }
+        }
+
+        /// <summary>
+        /// Callback called when the requests internal timer has executed.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="eventArgs"></param>
+        private void RequestOnRequestTimedOut(object sender, EventArgs eventArgs)
+        {
+            if (sender == null)
+            {
+                _logger?.Trace("Request timeout - sender null.");
+                return;
+            }
+
+            if (sender is TimeoutRequest req)
+            {
+                IPeer nextPeer = _peers.FirstOrDefault(p => !p.Equals(req.Peer));
+                if (nextPeer != null)
+                {
+                    req.TryPeer(nextPeer);
+                }
+            }
+            else
+            {
+                _logger?.Trace("Request timeout - sender wrong type.");
             }
         }
 
@@ -286,13 +329,13 @@ namespace AElf.Network.Peers
                 Message message = NetRequestFactory.CreateMessage(MessageType.RequestBlock, br.ToByteArray()); 
             
                 // Select peer for request
-                TimeoutRequest request = new TimeoutRequest(index, selectedPeer, message, 500);
+                TimeoutRequest request = new TimeoutRequest(index, message, 2000);
                 lock (_pendingRequestsLock)
                 {
                     _pendingRequests.Add(request);
                 }
 
-                request.FireRequest();
+                request.TryPeer(selectedPeer);
             }
             catch (Exception e)
             {
@@ -726,7 +769,8 @@ namespace AElf.Network.Peers
 
                 if (request != null)
                 {
-                    request.Cancel();
+                    request.RequestTimedOut -= RequestOnRequestTimedOut;
+                    request.Stop();
                     
                     lock (_pendingRequestsLock)
                     {
@@ -770,7 +814,7 @@ namespace AElf.Network.Peers
 
                 if (request != null)
                 {
-                    request.Cancel();
+                    request.Stop();
 
                     lock (_pendingRequestsLock)
                     {
