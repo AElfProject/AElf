@@ -72,7 +72,7 @@ namespace AElf.Kernel.Node
         private int _flag;
 
         private bool _incrementIdNeedToAddOne;
-        
+
         public bool IsMining { get; private set; }
 
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
@@ -99,18 +99,22 @@ namespace AElf.Kernel.Node
             }
         }
 
-        public AElfDPoSObservable ConsensusSequence => new AElfDPoSObservable(_logger, MiningWithInitializingAElfDPoSInformation,
+        public AElfDPoSObservable ConsensusSequence => new AElfDPoSObservable(_logger,
+            MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
         public Hash ChainId => _nodeConfig.ChainId;
 
-        public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer, ILogger logger, 
-            INodeConfig nodeConfig, IMiner miner, IAccountContextService accountContextService, IBlockVaildationService blockVaildationService,
+        public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer,
+            ILogger logger,
+            INodeConfig nodeConfig, IMiner miner, IAccountContextService accountContextService,
+            IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
-            IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator, 
+            IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator,
             IChainManager chainManager, ISmartContractService smartContractService,
-            ITransactionResultService transactionResultService, IBlockManager blockManager, 
-            IFunctionMetadataService functionMetadataService, INetworkManager netManager, IBlockSynchronizer synchronizer)
+            ITransactionResultService transactionResultService, IBlockManager blockManager,
+            IFunctionMetadataService functionMetadataService, INetworkManager netManager,
+            IBlockSynchronizer synchronizer)
         {
             _chainCreationService = chainCreationService;
             _chainManager = chainManager;
@@ -135,7 +139,6 @@ namespace AElf.Kernel.Node
 
             _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
                 ContractAccountHash, _chainManager, _logger);
-
         }
 
         public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData,
@@ -208,9 +211,9 @@ namespace AElf.Kernel.Node
             _rpcServer.SetCommandContext(this);
 
             Task.Run(() => _netManager.Start());
-            
+
             _netManager.MessageReceived += ProcessPeerMessage;
-            
+
             //_protocolDirector.SetCommandContext(this, _nodeConfig.ConsensusInfoGenerater); // If not miner do sync
             if (!_nodeConfig.ConsensusInfoGenerater)
             {
@@ -220,9 +223,9 @@ namespace AElf.Kernel.Node
             {
                 StartMining();
             }
-            
+
             Task.Run(() => _synchronizer.Start(this, !_nodeConfig.ConsensusInfoGenerater));
-            
+
             // akka env 
             var servicePack = new ServicePack
             {
@@ -288,7 +291,7 @@ namespace AElf.Kernel.Node
                 _messageQueue.Add(args);
             }
         }
-        
+
         internal async Task HandleBlockRequest(Message message, PeerMessageReceivedArgs args)
         {
             try
@@ -305,17 +308,17 @@ namespace AElf.Kernel.Node
                 _logger?.Trace(e, "Error while during HandleBlockRequest.");
             }
         }
-        
+
         private async Task HandleTxRequest(Message message, PeerMessageReceivedArgs args)
         {
             string hash = null;
-            
+
             try
             {
                 TxRequest breq = TxRequest.Parser.ParseFrom(message.Payload);
 
                 hash = breq.TxHash.ToByteArray().ToHex();
-                
+
                 ITransaction tx = await GetTransaction(breq.TxHash);
 
                 if (!(tx is Transaction t))
@@ -323,7 +326,7 @@ namespace AElf.Kernel.Node
                     _logger?.Trace("Could not find transaction: ", hash);
                     return;
                 }
-                
+
                 var req = NetRequestFactory.CreateMessage(MessageType.Tx, t.ToByteArray());
                 args.Peer.EnqueueOutgoing(req);
 
@@ -348,7 +351,7 @@ namespace AElf.Kernel.Node
                 StartConsensusProcess();
             }
         }
-        
+
         public bool IsMiner()
         {
             return _nodeConfig.IsMiner;
@@ -432,7 +435,8 @@ namespace AElf.Kernel.Node
 
                 if (isFromSend)
                 {
-                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " + tx.IncrementId);
+                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " +
+                                   tx.IncrementId);
                     //_protocolDirector.AddTransaction(tx);
                 }
 
@@ -503,17 +507,18 @@ namespace AElf.Kernel.Node
             try
             {
                 int res = Interlocked.CompareExchange(ref _flag, 1, 0);
-                
+
                 if (res == 1)
                     return new BlockExecutionResult(false, ValidationError.Mining);
-                
+
                 var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
                 var error = await _blockVaildationService.ValidateBlockAsync(block, context, _nodeKeyPair);
-                
+
                 if (error != ValidationError.Success)
                 {
-                    var localCorrespondingBlock = await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, block.Header.Index);
-                    if (error == ValidationError.OrphanBlock) 
+                    var localCorrespondingBlock =
+                        await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, block.Header.Index);
+                    if (error == ValidationError.OrphanBlock)
                     {
                         //TODO: limit the count of blocks to rollback
                         if (block.Header.Time.ToDateTime() < localCorrespondingBlock.Header.Time.ToDateTime())
@@ -521,13 +526,14 @@ namespace AElf.Kernel.Node
                             _logger?.Trace("Ready to rollback");
                             //Rollback world state
                             var txs = await _worldStateDictator.RollbackToSpecificHeight(block.Header.Index);
-                        
+
                             await _txPoolService.RollBack(txs);
                             _worldStateDictator.PreBlockHash = block.Header.PreviousBlockHash;
                             await _worldStateDictator.RollbackCurrentChangesAsync();
 
                             var ws = await _worldStateDictator.GetWorldStateAsync(block.GetHash());
-                            _logger?.Trace($"Current world state {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
+                            _logger?.Trace(
+                                $"Current world state {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
 
                             error = ValidationError.Success;
                         }
@@ -568,12 +574,12 @@ namespace AElf.Kernel.Node
             return chainContext.BlockHeight;
         }
 
-        
+
         public Hash GetGenesisContractHash()
         {
             return _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
         }
-        
+
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
@@ -625,20 +631,20 @@ namespace AElf.Kernel.Node
             try
             {
                 _logger?.Trace($"Mine - Entered mining {res}");
-            
+
                 _worldStateDictator.BlockProducerAccountAddress = _nodeKeyPair.GetAddress();
 
-                var block =  await _miner.Mine();
-            
+                var block = await _miner.Mine();
+
                 int b = Interlocked.CompareExchange(ref _flag, 0, 1);
 
                 _synchronizer.IncrementChainHeight();
-            
+
                 _logger?.Trace($"Mine - Leaving mining {b}");
-                
+
                 //Update DPoS observables.
                 await CheckUpdatingDPoSProcess();
-                
+
                 return block;
             }
             catch (Exception e)
@@ -655,16 +661,16 @@ namespace AElf.Kernel.Node
             {
                 return false;
             }
-            
+
             byte[] serializedBlock = b.ToByteArray();
-            
+
             await _netManager.BroadcastMessage(MessageType.BroadcastBlock, serializedBlock);
 
             var bh = block.GetHash().ToHex();
             _logger?.Trace($"Broadcasted block \"{bh}\" to peers. Block height: [{block.Header.Index}]");
 
-        return true;
-    }
+            return true;
+        }
 
         public async Task<IMessage> GetContractAbi(Hash address)
         {
@@ -695,7 +701,7 @@ namespace AElf.Kernel.Node
                 try
                 {
                     byte[] transaction = tx.Serialize();
-            
+
                     await _netManager.BroadcastMessage(MessageType.BroadcastTx, transaction);
                 }
                 catch (Exception e)
@@ -730,10 +736,19 @@ namespace AElf.Kernel.Node
             };
 
             var executive = await _smartContractService.GetExecutiveAsync(tx.To, _nodeConfig.ChainId);
-            await executive.SetTransactionContext(txCtxt).Apply(false);
+
+            try
+            {
+                await executive.SetTransactionContext(txCtxt).Apply(false);
+            }
+            finally
+            {
+                await _smartContractService.PutExecutiveAsync(tx.To, executive);
+            }
+
             return trace.RetVal.ToFriendlyBytes();
         }
-        
+
         public async Task<Block> GetBlockAtHeight(int height)
         {
             return await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, (ulong) height);
@@ -753,19 +768,19 @@ namespace AElf.Kernel.Node
         #region Private Methods for DPoS
 
         // ReSharper disable once InconsistentNaming
-            
-        private async Task<ITransaction> GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters, ulong incrementIdOffset = 0)
+
+        private async Task<ITransaction> GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters,
+            ulong incrementIdOffset = 0)
         {
             var tx = new Transaction
             {
-
                 From = _nodeKeyPair.GetAddress(),
                 To = ContractAccountHash,
                 IncrementId = await GetIncrementId(_nodeKeyPair.GetAddress()) + incrementIdOffset,
                 MethodName = methodName,
                 P = ByteString.CopyFrom(_nodeKeyPair.PublicKey.Q.GetEncoded())
             };
-            
+
             switch (parameters.Count)
             {
                 case 2:
@@ -779,7 +794,7 @@ namespace AElf.Kernel.Node
                         parameters[3]));
                     break;
             }
-            
+
             var signer = new ECSigner();
             var signature = signer.Sign(_nodeKeyPair, tx.GetHash().GetHashBytes());
 
@@ -797,7 +812,7 @@ namespace AElf.Kernel.Node
         {
             var parameters = new List<byte[]>
             {
-                BlockProducers.ToByteArray(), 
+                BlockProducers.ToByteArray(),
                 _dPoSHelper.GenerateInfoForFirstTwoRounds().ToByteArray()
             };
             // ReSharper disable once InconsistentNaming
@@ -805,7 +820,7 @@ namespace AElf.Kernel.Node
                 "InitializeAElfDPoS",
                 parameters);
             await BroadcastTransaction(txToInitializeAElfDPoS);
-            
+
             var block = await Mine();
             await BroadcastBlock(block);
         }
@@ -821,13 +836,13 @@ namespace AElf.Kernel.Node
             }
 
             var currentRoundNumber = _dPoSHelper.CurrentRoundNumber;
-            
+
             var signature = Hash.Default;
             if (currentRoundNumber.Value > 1)
             {
                 signature = await _dPoSHelper.CalculateSignature(inValue);
             }
-            
+
             var parameters = new List<byte[]>
             {
                 _dPoSHelper.CurrentRoundNumber.ToByteArray(),
@@ -835,7 +850,7 @@ namespace AElf.Kernel.Node
                 _consensusData.Pop().ToByteArray(),
                 signature.ToByteArray()
             };
-            
+
             var txToPublishOutValueAndSignature = await GenerateTransaction(
                 "PublishOutValueAndSignature",
                 parameters);
@@ -864,7 +879,7 @@ namespace AElf.Kernel.Node
                 new StringValue {Value = _nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()}.ToByteArray(),
                 _consensusData.Pop().ToByteArray()
             };
-            
+
             var txToPublishInValue = await GenerateTransaction(
                 "PublishInValue",
                 parameters);
@@ -896,11 +911,10 @@ namespace AElf.Kernel.Node
         }
 
         #endregion
-        
 
         #endregion
-        
-        
+
+
         /// <summary>
         /// add tx
         /// </summary>
@@ -912,7 +926,7 @@ namespace AElf.Kernel.Node
         }
 
         private static int _currentIncr;
-        
+
         private Transaction GetFakeTx()
         {
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
@@ -921,14 +935,14 @@ namespace AElf.Kernel.Node
             {
                 From = keyPair.GetAddress(),
                 To = GetGenesisContractHash(),
-                IncrementId = (ulong)_currentIncr++,
+                IncrementId = (ulong) _currentIncr++,
             };
-            
+
             Hash hash = txDep.GetHash();
 
             ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
             txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txDep.R = ByteString.CopyFrom(signature.R); 
+            txDep.R = ByteString.CopyFrom(signature.R);
             txDep.S = ByteString.CopyFrom(signature.S);
 
             return txDep;
@@ -944,32 +958,32 @@ namespace AElf.Kernel.Node
                 IncrementId = index,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(param),
-                
+
                 Fee = TxPoolConfig.Default.FeeThreshold + 1
             };
-            
+
             Hash txhash = txInv.GetHash();
 
             ECSignature signature = signer.Sign(keyPair, txhash.GetHashBytes());
             txInv.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txInv.R = ByteString.CopyFrom(signature.R); 
+            txInv.R = ByteString.CopyFrom(signature.R);
             txInv.S = ByteString.CopyFrom(signature.S);
 
             var res = BroadcastTransaction(txInv).Result;
             return txInv;
         }
-        
+
         private ITransaction DeployTxDemo(ECKeyPair keyPair)
         {
             var ContractName = "AElf.Kernel.Tests.TestContract";
             var contractZeroDllPath = $"../{ContractName}/bin/Debug/netstandard2.0/{ContractName}.dll";
-            
+
             byte[] code = null;
             using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath(contractZeroDllPath)))
             {
                 code = file.ReadFully();
             }
-            
+
             ECSigner signer = new ECSigner();
             var txDep = new Transaction
             {
@@ -978,15 +992,15 @@ namespace AElf.Kernel.Node
                 IncrementId = 0,
                 MethodName = "DeploySmartContract",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code)),
-                
+
                 Fee = TxPoolConfig.Default.FeeThreshold + 1
             };
-            
+
             Hash hash = txDep.GetHash();
 
             ECSignature signature = signer.Sign(keyPair, hash.GetHashBytes());
             txDep.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
-            txDep.R = ByteString.CopyFrom(signature.R); 
+            txDep.R = ByteString.CopyFrom(signature.R);
             txDep.S = ByteString.CopyFrom(signature.S);
             var res = BroadcastTransaction(txDep).Result;
 
