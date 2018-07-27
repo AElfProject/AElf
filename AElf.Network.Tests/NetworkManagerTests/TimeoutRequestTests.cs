@@ -5,7 +5,7 @@ using AElf.Network.Peers;
 using Moq;
 using Xunit;
 
-namespace AElf.Network.Tests.NetworkManager
+namespace AElf.Network.Tests.NetworkManagerTests
 {
     public class TimeoutRequestTests
     {

@@ -133,7 +133,8 @@ namespace AElf.Network.Peers
     
     public class NetworkManager : INetworkManager, IPeerManager, IDisposable
     {
-        public const int TargetPeerCount = 8; 
+        public const int TargetPeerCount = 8;
+        public const int DefaultRequestTimeout = 2000;
         
         public event EventHandler MessageReceived;
         public event EventHandler PeerListEmpty;
@@ -167,6 +168,8 @@ namespace AElf.Network.Peers
         
         private readonly IConnectionListener _connectionListener;
 
+        public int RequestTimeout { get; set; } = DefaultRequestTimeout;
+
         private Object _pendingRequestsLock = new Object();  
         public List<TimeoutRequest> _pendingRequests;
 
@@ -195,6 +198,22 @@ namespace AElf.Network.Peers
                 {
                     _logger?.Trace("Warning : bootnode list is empty.");
                 }
+            }
+        }
+
+        internal TimeoutRequest HasRequestWithHash(byte[] hash)
+        {
+            lock (_pendingRequestsLock)
+            {
+                return _pendingRequests.FirstOrDefault(r => r.ItemHash.BytesEqual(hash));
+            }
+        }
+        
+        internal TimeoutRequest HasRequestWithIndex(int index)
+        {
+            lock (_pendingRequestsLock)
+            {
+                return _pendingRequests.FirstOrDefault(r => r.BlockIndex == index);
             }
         }
 
@@ -270,11 +289,11 @@ namespace AElf.Network.Peers
             }
         }
         
-        public void QueueTransactionRequest(byte[] transactionHash, Peer hint)
+        public void QueueTransactionRequest(byte[] transactionHash, IPeer hint)
         {
             try
             {
-                Peer selectedPeer = hint ?? (Peer)_peers.FirstOrDefault();
+                IPeer selectedPeer = hint ?? _peers.FirstOrDefault();
             
                 if(selectedPeer == null)
                     return;
@@ -283,7 +302,7 @@ namespace AElf.Network.Peers
                 var msg = NetRequestFactory.CreateMessage(MessageType.TxRequest, br.ToByteArray());
             
                 // Select peer for request
-                TimeoutRequest request = new TimeoutRequest(transactionHash, msg, 2000);
+                TimeoutRequest request = new TimeoutRequest(transactionHash, msg, RequestTimeout);
             
                 lock (_pendingRequestsLock)
                 {
@@ -341,7 +360,7 @@ namespace AElf.Network.Peers
                 Message message = NetRequestFactory.CreateMessage(MessageType.RequestBlock, br.ToByteArray()); 
             
                 // Select peer for request
-                TimeoutRequest request = new TimeoutRequest(index, message, 2000);
+                TimeoutRequest request = new TimeoutRequest(index, message, RequestTimeout);
                 lock (_pendingRequestsLock)
                 {
                     _pendingRequests.Add(request);
@@ -525,7 +544,7 @@ namespace AElf.Network.Peers
             // Don't add a peer already in the list
             if (GetPeer(peer) != null)
             {
-                _logger.Trace($"[AddPeer] Peer already included - {peer.IpAddress} : {peer.Port}");
+                _logger?.Trace($"[AddPeer] Peer already included - {peer.IpAddress} : {peer.Port}");
                 return null;
             }
 
@@ -534,14 +553,20 @@ namespace AElf.Network.Peers
             if (peer.DistantNodeData.IsBootnode)
                 _bootnodePeers.Add(peer);*/
             
-            _peers.Add(peer);
+            AddPeer(peer);
             
-            peer.PeerAuthentified += PeerOnPeerAuthentified;
-            peer.PeerDisconnected += ProcessClientDisconnection;
             
             //PeerAdded?.Invoke(this, new PeerAddedEventArgs { Peer = peer });
 
             return peer;
+        }
+
+        internal void AddPeer(IPeer peer)
+        {
+            _peers.Add(peer);
+            
+            peer.PeerAuthentified += PeerOnPeerAuthentified;
+            peer.PeerDisconnected += ProcessClientDisconnection;
         }
 
         private void PeerOnPeerAuthentified(object sender, EventArgs eventArgs)
