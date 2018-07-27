@@ -132,7 +132,14 @@ namespace AElf.Sdk.CSharp
             {
                 var executive = await svc.GetExecutiveAsync(contractAddress, chainId);
                 // Inline calls are not auto-committed.
-                await executive.SetTransactionContext(ctxt).Apply(false);
+                try
+                {
+                    await executive.SetTransactionContext(ctxt).Apply(false);
+                }
+                finally
+                {
+                    await svc.PutExecutiveAsync(contractAddress, executive);    
+                }
             }).Unwrap().Wait();
 
             _transactionContext.Trace.Logs.AddRange(_lastInlineCallContext.Trace.Logs);

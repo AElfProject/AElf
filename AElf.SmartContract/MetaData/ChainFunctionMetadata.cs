@@ -55,14 +55,14 @@ namespace AElf.SmartContract
                 }
 
                 //if no exception is thrown, merge the tempMap into FunctionMetadataMap and update call graph in database
-                await _dataStore.SetDataAsync(ResourcePath.CalculatePointerForMetadataTemplateCallingGraph(chainId),
+                await _dataStore.SetDataAsync<SerializedCallGraph>(ResourcePath.CalculatePointerForMetadataTemplateCallingGraph(chainId),
                     SerializeCallingGraph(newCallGraph).ToByteArray());
                 
                 foreach (var functionMetadata in tempMap)
                 {
                     FunctionMetadataMap.Add(functionMetadata.Key, functionMetadata.Value);
                     
-                    await _dataStore.SetDataAsync(
+                    await _dataStore.SetDataAsync<FunctionMetadata>(
                         ResourcePath.CalculatePointerForMetadata(chainId, functionMetadata.Key),
                         functionMetadata.Value.ToByteArray());
                 }
@@ -151,7 +151,7 @@ namespace AElf.SmartContract
             //BUG: if the smart contract can be updated, then somehow this in-memory cache FunctionMetadataMap need to be updated too. Currently the ChainFunctionMetadata has no way to know some metadata is updated; current thought is to request current "previous block hash" every time the ChainFunctionMetadata public interface got executed, that is "only use cache when in the same block, can clear the cache per block"
             if (!FunctionMetadataMap.TryGetValue(functionFullName, out var txMetadata))
             {
-                var data = await _dataStore.GetDataAsync(ResourcePath.CalculatePointerForMetadata(chainId, functionFullName));
+                var data = await _dataStore.GetDataAsync<FunctionMetadata>(ResourcePath.CalculatePointerForMetadata(chainId, functionFullName));
                 if (data != null)
                 {
                     txMetadata = FunctionMetadata.Parser.ParseFrom(data);
@@ -288,7 +288,7 @@ namespace AElf.SmartContract
         #region Serialize
         private async Task<CallGraph> GetCallingGraphForChain(Hash chainId)
         {
-            var graphCache = await _dataStore.GetDataAsync(ResourcePath.CalculatePointerForMetadataTemplateCallingGraph(chainId));
+            var graphCache = await _dataStore.GetDataAsync<SerializedCallGraph>(ResourcePath.CalculatePointerForMetadataTemplateCallingGraph(chainId));
             if (graphCache == null)
             {
                 return new CallGraph();

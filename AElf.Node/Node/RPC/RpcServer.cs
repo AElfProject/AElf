@@ -18,6 +18,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 using AElf.ChainController;
+using AElf.SmartContract;
+using Google.Protobuf.WellKnownTypes;
+using ServiceStack.Text.Common;
+using Type = System.Type;
 
 namespace AElf.Kernel.Node.RPC
 {
@@ -37,6 +41,8 @@ namespace AElf.Kernel.Node.RPC
         private const string GetDeserializedData = "get_deserialized_result";
         private const string GetBlockHeight = "get_block_height";
         private const string GetBlockInfo = "get_block_info";
+        private const string GetDeserializedInfo = "get_deserialized_info";
+        
         private const string CallReadOnly = "call";
         /// <summary>
         /// The names of the exposed RPC methods and also the
@@ -57,6 +63,7 @@ namespace AElf.Kernel.Node.RPC
             GetDeserializedData,
             GetBlockHeight,
             GetBlockInfo,
+            GetDeserializedInfo,
             CallReadOnly
         };
 
@@ -237,6 +244,9 @@ namespace AElf.Kernel.Node.RPC
                     case GetBlockInfo:
                         responseData = await ProGetBlockInfo(reqParams);
                         break;
+                    case GetDeserializedInfo:
+                        responseData = ProGetDeserializedInfo(reqParams);
+                        break;
                     case CallReadOnly:
                         responseData = await ProcessCallReadOnly(reqParams);
                         break;
@@ -259,6 +269,33 @@ namespace AElf.Kernel.Node.RPC
                 Console.WriteLine(e);
             }
         }
+        
+        private JObject ProGetDeserializedInfo(JObject reqParams)
+        {
+            try
+            {
+                var sKey = reqParams["key"].ToString();
+
+                var byteKey = ByteArrayHelpers.FromHexString(sKey);
+                var key = Key.Parser.ParseFrom(byteKey);
+                var keyType = key.Type;
+                return new JObject
+                {
+                    ["type"] = keyType
+                };
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return new JObject
+                {
+                    ["error"] = "Unknown key"
+                };
+            }
+            
+        }
+
+
 
         private async Task<JObject> ProGetBlockInfo(JObject reqParams)
         {
