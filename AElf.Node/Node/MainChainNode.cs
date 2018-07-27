@@ -710,11 +710,11 @@ namespace AElf.Kernel.Node
                     return TxValidation.TxInsertionAndBroadcastingError.BroadCastFailed;
                 }
 
-                _logger?.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
+                //_logger?.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return TxValidation.TxInsertionAndBroadcastingError.Success;
             }
 
-            _logger?.Trace("Transaction insertion failed:{0}, [{1}]", res, tx.GetTransactionInfo());
+            //_logger?.Trace("Transaction insertion failed:{0}, [{1}]", res, tx.GetTransactionInfo());
             //await _poolService.RemoveAsync(tx.GetHash());
             return res;
         }
