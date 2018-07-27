@@ -38,51 +38,57 @@ namespace AElf.Network.Peers
     {
         public EventHandler RequestTimedOut;
         
-        private volatile bool _requestCanceled = false;
+        private volatile bool _requestCanceled;
+
+        public bool IsCanceled 
+        {
+            get { return _requestCanceled; }
+        }
+
+        private readonly Timer _timeoutTimer;
         
-        private System.Timers.Timer _timeoutTimer { get; set; }
-        
-        public Peer Peer { get; private set; }
+        public IPeer Peer { get; private set; }
         public Message RequestMessage { get; private set; }
         
         public byte[] ItemHash { get; private set; }
         public int BlockIndex { get; private set; }
 
-        private TimeoutRequest(Peer peer, Message msg, double initialTimeout)
+        private TimeoutRequest(IPeer peer, Message msg, double timeout)
         {
             Peer = peer;
             RequestMessage = msg;
             
             _timeoutTimer = new Timer();
-            _timeoutTimer.Interval = initialTimeout;
+            _timeoutTimer.Interval = timeout;
             _timeoutTimer.Elapsed += TimerTimeoutElapsed;
             _timeoutTimer.AutoReset = false;
         }
 
-        public TimeoutRequest(byte[] itemHash, Peer peer, Message msg, double initialTimeout)
-            : this(peer, msg, initialTimeout)
+        public TimeoutRequest(byte[] itemHash, IPeer peer, Message msg, double timeout)
+            : this(peer, msg, timeout)
         {
             ItemHash = itemHash;
         }
         
-        public TimeoutRequest(int index, Peer peer, Message msg, double initialTimeout)
-            : this(peer, msg, initialTimeout)
+        public TimeoutRequest(int index, IPeer peer, Message msg, double timeout)
+            : this(peer, msg, timeout)
         {
             BlockIndex = index;
         }
 
-        public void StartRequesting()
+        public void FireRequest()
         {
+            Peer.EnqueueOutgoing(RequestMessage);
             _timeoutTimer.Start();
         }
 
         private void TimerTimeoutElapsed(object sender, ElapsedEventArgs e)
         {
-            if (!_requestCanceled)
-            {
-                Peer.EnqueueOutgoing(RequestMessage);
-                Cancel();
-            }
+            if (_requestCanceled) 
+                return;
+            
+            Cancel();
+            RequestTimedOut.Invoke(this, EventArgs.Empty);
         }
         
         public void Cancel()
@@ -251,7 +257,7 @@ namespace AElf.Network.Peers
                     _pendingRequests.Add(request);
                 }
             
-                request.StartRequesting();
+                request.FireRequest();
                 
                 _logger?.Trace($"Request for transaction {transactionHash?.ToHex()} send to {selectedPeer}");
             }
@@ -280,7 +286,7 @@ namespace AElf.Network.Peers
                     _pendingRequests.Add(request);
                 }
 
-                request.StartRequesting();
+                request.FireRequest();
             }
             catch (Exception e)
             {
