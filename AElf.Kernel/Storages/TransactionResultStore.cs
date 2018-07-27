@@ -23,7 +23,7 @@ namespace AElf.Kernel.Storages
          public async Task<TransactionResult> GetAsync(Hash trKey)
          {
              var key = trKey.GetKeyString(TypeIndex);
-             var txResultBytes = await _keyValueDatabase.GetAsync(key, typeof(TransactionResult));
+             var txResultBytes = await _keyValueDatabase.GetAsync(key);
              return txResultBytes == null ? null : TransactionResult.Parser.ParseFrom(txResultBytes);
          }
      }

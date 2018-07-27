@@ -23,7 +23,7 @@ namespace AElf.Kernel.Storages
         public async Task<BlockBody> GetAsync(Hash bodyHash)
         {
             var key = bodyHash.GetKeyString(TypeIndex);
-            var blockBody =  await _keyValueDatabase.GetAsync(key, typeof(BlockBody));
+            var blockBody =  await _keyValueDatabase.GetAsync(key);
             return BlockBody.Parser.ParseFrom(blockBody);
         }
     }

@@ -27,7 +27,7 @@ namespace AElf.Kernel.Storages
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
             var key = wsKey.GetKeyString(TypeIndex); 
-            var changes = await _keyValueDatabase.GetAsync(key, typeof(ChangesDict));
+            var changes = await _keyValueDatabase.GetAsync(key);
             var changesDict = changes == null ?  new ChangesDict() : ChangesDict.Parser.ParseFrom(changes);
             return new WorldState(changesDict);
         }

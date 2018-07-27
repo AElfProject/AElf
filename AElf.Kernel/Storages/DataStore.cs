@@ -57,7 +57,7 @@ namespace AElf.Kernel.Storages
                 }
                 
                 var key = pointerHash.GetKeyString((uint)result);
-                return await _keyValueDatabase.GetAsync(key, typeof(byte[]));
+                return await _keyValueDatabase.GetAsync(key);
             }
             catch (Exception e)
             {

@@ -23,7 +23,7 @@ namespace AElf.Kernel.Storages
         public async Task<SmartContractRegistration> GetAsync(Hash hash)
         {
             var key = hash.GetKeyString(TypeIndex);
-            var bytes = await _keyValueDatabase.GetAsync(key, typeof(SmartContractRegistration));
+            var bytes = await _keyValueDatabase.GetAsync(key);
             return SmartContractRegistration.Parser.ParseFrom(bytes);
         }
     }
