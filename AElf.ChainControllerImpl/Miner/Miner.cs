@@ -84,11 +84,19 @@ namespace AElf.ChainController
                     foreach (var transaction in readyTxs)
                     {
                         var executive = await _smartContractService.GetExecutiveAsync(transaction.To, Config.ChainId);
-                        var txnInitCtxt = new TransactionContext()
+                        try
                         {
-                            Transaction = transaction
-                        };
-                        await executive.SetTransactionContext(txnInitCtxt).Apply(true);
+                            var txnInitCtxt = new TransactionContext()
+                            {
+                                Transaction = transaction
+                            };
+                            await executive.SetTransactionContext(txnInitCtxt).Apply(true);
+                        }
+                        finally
+                        {
+                            await _smartContractService.PutExecutiveAsync(transaction.To, executive);    
+                        }
+
                     }
                 }
                 

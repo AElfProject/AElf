@@ -1,13 +1,14 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Database;
-using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Storages
 {
     public class BlockHeaderStore : IBlockHeaderStore
     {
         private readonly IKeyValueDatabase _keyValueDatabase;
-        
+        private static uint TypeIndex => (uint) Types.BlockHeader;
+
         public BlockHeaderStore(IKeyValueDatabase keyValueDatabase)
         {
             _keyValueDatabase = keyValueDatabase;
@@ -15,13 +16,15 @@ namespace AElf.Kernel.Storages
 
         public async Task<BlockHeader> InsertAsync(BlockHeader header)
         {
-            await _keyValueDatabase.SetAsync(header.GetHash().ToHex(), header.Serialize());
+            var key = header.GetHash().GetKeyString(TypeIndex);
+            await _keyValueDatabase.SetAsync(key, header.Serialize());
             return header;
         }
 
         public async Task<BlockHeader> GetAsync(Hash blockHash)
         {
-            return BlockHeader.Parser.ParseFrom(await _keyValueDatabase.GetAsync(blockHash.ToHex(), typeof(BlockHeader)));
+            var key = blockHash.GetKeyString(TypeIndex);
+            return BlockHeader.Parser.ParseFrom(await _keyValueDatabase.GetAsync(key, typeof(BlockHeader)));
         }
     }
 }
