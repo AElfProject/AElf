@@ -75,8 +75,8 @@ namespace AElf.Network.Peers
         
         public event EventHandler PeerUnreachable;
 
-        private MessageReader _messageReader;
-        private MessageWriter _messageWriter;
+        private IMessageReader _messageReader;
+        private IMessageWriter _messageWriter;
         
         public Peer(int port)
         {
@@ -154,7 +154,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger.Trace("Error while initializing the connection");
+                _logger.Trace(e, "Error while initializing the connection");
             }
         }
 
@@ -168,7 +168,7 @@ namespace AElf.Network.Peers
             var nd = new NodeData {Port = _port};
             byte[] packet = nd.ToByteArray();
             
-            _messageWriter.EnqueueWork(new Message { Type = (int)MessageType.Auth, Length = packet.Length, Payload = packet});
+            _messageWriter.EnqueueMessage(new Message { Type = (int)MessageType.Auth, Length = packet.Length, Payload = packet});
         }
 
         private async void MessageReaderOnStreamClosed(object sender, EventArgs eventArgs)
@@ -255,7 +255,7 @@ namespace AElf.Network.Peers
 
             try
             {
-                _messageWriter.EnqueueWork(msg);
+                _messageWriter.EnqueueMessage(msg);
             }
             catch (Exception e)
             {
