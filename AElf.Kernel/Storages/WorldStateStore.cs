@@ -8,6 +8,8 @@ namespace AElf.Kernel.Storages
     public class WorldStateStore : IWorldStateStore
     {
         private readonly IKeyValueDatabase _keyValueDatabase;
+        private static uint TypeIndex => (uint) Types.ChangesDict;
+
         
         public WorldStateStore(IKeyValueDatabase keyValueDatabase)
         {
@@ -17,13 +19,15 @@ namespace AElf.Kernel.Storages
         public async Task InsertWorldStateAsync(Hash chainId, Hash blockHash, ChangesDict changes)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
-            await _keyValueDatabase.SetAsync(wsKey.ToHex(), changes.Serialize());
+            var key = wsKey.GetKeyString(TypeIndex);     
+            await _keyValueDatabase.SetAsync(key, changes.Serialize());
         }
 
         public async Task<WorldState> GetWorldStateAsync(Hash chainId, Hash blockHash)
         {
             Hash wsKey = chainId.CalculateHashWith(blockHash);
-            var changes = await _keyValueDatabase.GetAsync(wsKey.ToHex(), typeof(ChangesDict));
+            var key = wsKey.GetKeyString(TypeIndex); 
+            var changes = await _keyValueDatabase.GetAsync(key, typeof(ChangesDict));
             var changesDict = changes == null ?  new ChangesDict() : ChangesDict.Parser.ParseFrom(changes);
             return new WorldState(changesDict);
         }

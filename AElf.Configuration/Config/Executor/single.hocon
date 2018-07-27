@@ -7,7 +7,7 @@ akka {
         deployment {
             /router {
                   router = round-robin-group
-                  routees.paths = [""/user/worker""]
+                  routees.paths = ["/user/worker"]
             }
         }
     }

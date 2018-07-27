@@ -58,7 +58,9 @@ namespace AElf.Concurrency.Worker
             {
                 var service = scope.Resolve<IConcurrencyExecutingService>();
                 service.InitWorkActorSystem();
-                Console.ReadLine();
+                Console.WriteLine("Press Control + C to terminate.");
+                Console.CancelKeyPress += async (sender, eventArgs) => { await service.StopAsync(); };
+                service.TerminationHandle.Wait();
             }
         }
 

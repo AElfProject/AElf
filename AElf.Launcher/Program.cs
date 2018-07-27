@@ -119,8 +119,7 @@ namespace AElf.Launcher
         {
             get
             {
-                var contractZeroDllPath =
-                    Path.Combine(AssemblyDir, $"{Globals.GenesisSmartContractZeroAssemblyName}.dll");
+                var contractZeroDllPath = Path.Combine(AssemblyDir, $"{Globals.GenesisSmartContractZeroAssemblyName}.dll");
 
                 byte[] code;
                 using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))

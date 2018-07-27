@@ -9,7 +9,7 @@ namespace AElf.Database.Tests
 
         public DatabaseTest()
         {
-            _database = new KeyValueDatabase();
+            _database = new InMemoryDatabase();
         }
 
         [Fact]
