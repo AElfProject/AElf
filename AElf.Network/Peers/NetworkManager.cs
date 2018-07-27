@@ -27,11 +27,21 @@ namespace AElf.Network.Peers
         public IPeer Peer { get; set; }
     }
 
-    public class NetMessageReceived : EventArgs
+    public class NetMessageReceivedArgs : EventArgs
     {
         public TimeoutRequest Request { get; set; }
         public Message Message { get; set; }
         public PeerMessageReceivedArgs PeerMessage { get; set; }
+    }
+
+    public class RequestFailedArgs : EventArgs
+    {
+        public Message RequestMessage { get; set; }
+        
+        public byte[] ItemHash { get; set; }
+        public int BlockIndex { get; set; }
+        
+        public List<IPeer> TriedPeers = new List<IPeer>();
     }
 
     public class TimeoutRequest
@@ -61,6 +71,11 @@ namespace AElf.Network.Peers
 
         public int MaxRetryCount { get; set; } = DefaultMaxRetry;
         public int RetryCount { get; private set; } = 0;
+
+        public bool HasReachedMaxRetry
+        {
+            get { return RetryCount >= MaxRetryCount; }
+        }
 
         private TimeoutRequest(Message msg, double timeout)
         {
@@ -97,7 +112,7 @@ namespace AElf.Network.Peers
             if (!HasTimedOut)
                 throw new InvalidOperationException($"Cannot switch peer before timeout.");
             
-            if (RetryCount >= MaxRetryCount)
+            if (HasReachedMaxRetry)
                 throw new InvalidOperationException($"Cannot retry : max retry count reached.");
             
             TriedPeers.Add(peer);
@@ -135,12 +150,15 @@ namespace AElf.Network.Peers
     {
         public const int TargetPeerCount = 8;
         public const int DefaultRequestTimeout = 2000;
+        public const int DefaultRequestMaxRetry = TimeoutRequest.DefaultMaxRetry;
         
         public event EventHandler MessageReceived;
         public event EventHandler PeerListEmpty;
 
         public event EventHandler PeerAdded;
         public event EventHandler PeerRemoved;
+
+        public event EventHandler RequestFailed;
         
         private readonly IAElfNetworkConfig _networkConfig;
         private readonly IPeerDatabase _peerDatabase;
@@ -169,6 +187,7 @@ namespace AElf.Network.Peers
         private readonly IConnectionListener _connectionListener;
 
         public int RequestTimeout { get; set; } = DefaultRequestTimeout;
+        public int RequestMaxRetry { get; set; } = DefaultRequestMaxRetry;
 
         private Object _pendingRequestsLock = new Object();  
         public List<TimeoutRequest> _pendingRequests;
@@ -303,6 +322,7 @@ namespace AElf.Network.Peers
             
                 // Select peer for request
                 TimeoutRequest request = new TimeoutRequest(transactionHash, msg, RequestTimeout);
+                request.MaxRetryCount = RequestMaxRetry;
             
                 lock (_pendingRequestsLock)
                 {
@@ -335,6 +355,16 @@ namespace AElf.Network.Peers
 
             if (sender is TimeoutRequest req)
             {
+                if (req.HasReachedMaxRetry)
+                {
+                    lock (_pendingRequestsLock)
+                    {
+                        _pendingRequests.Remove(req);
+                    }
+                   
+                    FireRequestFailed(req);
+                }
+                
                 IPeer nextPeer = _peers.FirstOrDefault(p => !p.Equals(req.Peer));
                 if (nextPeer != null)
                 {
@@ -345,6 +375,19 @@ namespace AElf.Network.Peers
             {
                 _logger?.Trace("Request timeout - sender wrong type.");
             }
+        }
+
+        private void FireRequestFailed(TimeoutRequest req)
+        {
+            RequestFailedArgs reqFailedArgs = new RequestFailedArgs
+            {
+                RequestMessage = req.RequestMessage,
+                BlockIndex = req.BlockIndex,
+                ItemHash = req.ItemHash,
+                TriedPeers = req.TriedPeers.ToList()
+            };
+                    
+            RequestFailed?.Invoke(this, reqFailedArgs);
         }
 
         public void QueueBlockRequestByIndex(int index)
@@ -361,6 +404,8 @@ namespace AElf.Network.Peers
             
                 // Select peer for request
                 TimeoutRequest request = new TimeoutRequest(index, message, RequestTimeout);
+                request.MaxRetryCount = RequestMaxRetry;
+                
                 lock (_pendingRequestsLock)
                 {
                     _pendingRequests.Add(request);
@@ -449,7 +494,6 @@ namespace AElf.Network.Peers
             {
                 NoPeers = false;
             }
-
         }
 
         /// <summary>
@@ -771,7 +815,7 @@ namespace AElf.Network.Peers
                         originalRequest = HandleBlockMessage(args.Peer, args.Message);
                     }
                     
-                    var evt = new NetMessageReceived {
+                    var evt = new NetMessageReceivedArgs {
                         Message = args.Message,
                         PeerMessage = args,
                         Request = originalRequest

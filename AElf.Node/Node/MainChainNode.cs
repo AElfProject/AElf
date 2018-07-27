@@ -250,7 +250,7 @@ namespace AElf.Kernel.Node
             return true;
         }
         
-        private BlockingCollection<NetMessageReceived> _messageQueue = new BlockingCollection<NetMessageReceived>();
+        private BlockingCollection<NetMessageReceivedArgs> _messageQueue = new BlockingCollection<NetMessageReceivedArgs>();
 
         private async Task ProcessLoop()
         {
@@ -258,7 +258,7 @@ namespace AElf.Kernel.Node
             {
                 while (true)
                 {
-                    NetMessageReceived args = _messageQueue.Take();
+                    NetMessageReceivedArgs args = _messageQueue.Take();
                 
                     _logger?.Trace("Message dequeued !");
                 
@@ -283,7 +283,7 @@ namespace AElf.Kernel.Node
 
         private async void ProcessPeerMessage(object sender, EventArgs e)
         {
-            if (sender != null && e is NetMessageReceived args && args.Message != null)
+            if (sender != null && e is NetMessageReceivedArgs args && args.Message != null)
             {
                 _messageQueue.Add(args);
             }
