@@ -1006,5 +1006,10 @@ namespace AElf.Kernel.Node
 
             return txDep;
         }
+
+        public async Task<ulong> GetTransactionPoolSize()
+        {
+            return await _txPoolService.GetPoolSize();
+        }
     }
 }
