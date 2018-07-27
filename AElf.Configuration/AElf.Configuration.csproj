@@ -31,5 +31,8 @@
     <None Update="Config\Database\database.json" Link="config\database.hocon">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Config\miners.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
