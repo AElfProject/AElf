@@ -42,7 +42,7 @@ namespace AElf.Kernel.Node.RPC
         private const string GetBlockHeight = "get_block_height";
         private const string GetBlockInfo = "get_block_info";
         private const string GetDeserializedInfo = "get_deserialized_info";
-        
+
         private const string CallReadOnly = "call";
         /// <summary>
         /// The names of the exposed RPC methods and also the
@@ -101,7 +101,7 @@ namespace AElf.Kernel.Node.RPC
             {
                 string url = "http://" + rpcHost + ":" + rpcPort;
                 var host = new WebHostBuilder()
-                    .UseLibuv(opts => opts.ThreadCount = 20)
+                    .UseKestrel()
                     .UseUrls(url)
                     .ConfigureLogging((hostingContext, logging) =>
                     {
@@ -311,10 +311,12 @@ namespace AElf.Kernel.Node.RPC
             if (blockinfo == null)
                 return error;
 
+            var txPoolSize = await _node.GetTransactionPoolSize();
             JObject j = new JObject
             {
                 ["result"] = new JObject
                 {
+                    ["TxPoolSize"] = txPoolSize,
                     ["Blockhash"] = blockinfo.GetHash().ToHex(),
                     ["Header"] = new JObject
                     {

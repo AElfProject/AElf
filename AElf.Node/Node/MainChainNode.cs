@@ -37,7 +37,7 @@ namespace AElf.Kernel.Node
 {
     [LoggerName("Node")]
     public class MainChainNode : IAElfNode
-    {
+    { 
         private ECKeyPair _nodeKeyPair;
         private ActorSystem _sys = ActorSystem.Create("AElf");
         private readonly IBlockManager _blockManager;
@@ -1005,6 +1005,11 @@ namespace AElf.Kernel.Node
             var res = BroadcastTransaction(txDep).Result;
 
             return txDep;
+        }
+
+        public async Task<ulong> GetTransactionPoolSize()
+        {
+            return await _txPoolService.GetPoolSize();
         }
     }
 }
