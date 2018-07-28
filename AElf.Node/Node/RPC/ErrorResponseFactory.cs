@@ -10,7 +10,7 @@ namespace AElf.Kernel.Node.RPC
     {
         // Version of JSON RPC used
         public const string VERSION = "2.0";
-        
+
         // Simple description strings for the error.
         // Directly taken from the JSON-RPC website
         public static string PARSE_ERR_MSG = "Parse error";
@@ -18,7 +18,7 @@ namespace AElf.Kernel.Node.RPC
 
         public static int PARSE_ERR_CODE = -32700;
         public static int METH_NOT_FOUND_CODE = -32601;
-        
+
         /// <summary>
         /// Creates the error object associated with a parse error
         /// </summary>
@@ -38,10 +38,10 @@ namespace AElf.Kernel.Node.RPC
         {
             return CreateErrorObject(id, METH_NOT_FOUND_CODE, METH_NOT_FOUND_MSG);
         }
-        
+
         private static JObject CreateErrorObject(int id, int code, string msg)
         {
-            JObject response = new JObject
+            var response = new JObject
             {
                 ["jsonrpc"] = VERSION,
                 ["id"] = id,
@@ -51,7 +51,7 @@ namespace AElf.Kernel.Node.RPC
                     ["message"] = msg
                 }
             };
-            
+
             return response;
         }
     }
