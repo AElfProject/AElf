@@ -13,6 +13,8 @@ namespace AElf.Kernel
 
         #region AElf DPoS
 
+        // ReSharper disable once InconsistentNaming
+        public const int DPoSLogRoundsCount = 3;
         public const int AElfMiningTime = 4000;
         public const int AElfCheckTime = 1000;
         public const int AElfWaitFirstRoundTime = 1000;
@@ -26,8 +28,6 @@ namespace AElf.Kernel
         public const string AElfDPoSExtraBlockProducerString = "AElfExtraBlockProducer";
         // ReSharper disable once InconsistentNaming
         public const string AElfDPoSExtraBlockTimeslotString = "AElfExtraBlockTimeslot";
-        // ReSharper disable once InconsistentNaming
-        public const string AElfDPoSChainCreatorString = "AElfChainCreator";
         // ReSharper disable once InconsistentNaming
         public const string AElfDPoSFirstPlaceOfEachRoundString = "AElfFirstPlaceOfEachRound";
 

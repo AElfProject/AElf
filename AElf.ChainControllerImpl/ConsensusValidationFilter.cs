@@ -1,3 +1,4 @@
+using System.ComponentModel.Design.Serialization;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
