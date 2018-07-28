@@ -1,4 +1,4 @@
-﻿using AElf.Kernel.Types;
+﻿﻿using AElf.Kernel.Types;
 
 namespace AElf.Kernel
 {
@@ -13,7 +13,9 @@ namespace AElf.Kernel
 
         #region AElf DPoS
 
-        public const int AElfMiningTime = 4000;
+        // ReSharper disable once InconsistentNaming
+        public const int DPoSLogRoundsCount = 3;
+        public const int AElfMiningTime = 8000;
         public const int AElfCheckTime = 1000;
         public const int AElfWaitFirstRoundTime = 1000;
         // ReSharper disable once InconsistentNaming
@@ -26,8 +28,6 @@ namespace AElf.Kernel
         public const string AElfDPoSExtraBlockProducerString = "AElfExtraBlockProducer";
         // ReSharper disable once InconsistentNaming
         public const string AElfDPoSExtraBlockTimeslotString = "AElfExtraBlockTimeslot";
-        // ReSharper disable once InconsistentNaming
-        public const string AElfDPoSChainCreatorString = "AElfChainCreator";
         // ReSharper disable once InconsistentNaming
         public const string AElfDPoSFirstPlaceOfEachRoundString = "AElfFirstPlaceOfEachRound";
 
