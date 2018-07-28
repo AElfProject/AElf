@@ -37,7 +37,7 @@ namespace AElf.Kernel.Node
 {
     [LoggerName("Node")]
     public class MainChainNode : IAElfNode
-    {
+    { 
         private ECKeyPair _nodeKeyPair;
         private ActorSystem _sys = ActorSystem.Create("AElf");
         private readonly IBlockManager _blockManager;
@@ -710,11 +710,11 @@ namespace AElf.Kernel.Node
                     return TxValidation.TxInsertionAndBroadcastingError.BroadCastFailed;
                 }
 
-                _logger?.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
+                //_logger?.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return TxValidation.TxInsertionAndBroadcastingError.Success;
             }
 
-            _logger?.Trace("Transaction insertion failed:{0}, [{1}]", res, tx.GetTransactionInfo());
+            //_logger?.Trace("Transaction insertion failed:{0}, [{1}]", res, tx.GetTransactionInfo());
             //await _poolService.RemoveAsync(tx.GetHash());
             return res;
         }
@@ -1005,6 +1005,11 @@ namespace AElf.Kernel.Node
             var res = BroadcastTransaction(txDep).Result;
 
             return txDep;
+        }
+
+        public async Task<ulong> GetTransactionPoolSize()
+        {
+            return await _txPoolService.GetPoolSize();
         }
     }
 }

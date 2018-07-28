@@ -1,4 +1,4 @@
-﻿using AElf.Kernel.Types;
+﻿﻿using AElf.Kernel.Types;
 
 namespace AElf.Kernel
 {

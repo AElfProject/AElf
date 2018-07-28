@@ -13,6 +13,7 @@ using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Kernel;
 using AElf.ChainController.Execution;
+ using NLog;
 
 namespace AElf.ChainController
 {
@@ -28,7 +29,7 @@ namespace AElf.ChainController
         private IConcurrencyExecutingService _concurrencyExecutingService;
         private ITransactionManager _transactionManager;
         private ITransactionResultManager _transactionResultManager;
-
+        private ILogger _logger;
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
         private MinerLock Lock { get; } = new MinerLock();
@@ -46,7 +47,7 @@ namespace AElf.ChainController
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, 
                 IChainManager chainManager, IBlockManager blockManager, IWorldStateDictator worldStateDictator, 
-            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
+            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, ILogger logger)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -57,6 +58,7 @@ namespace AElf.ChainController
             _concurrencyExecutingService = concurrencyExecutingService;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
+            _logger = logger;
         }
 
         
@@ -67,11 +69,14 @@ namespace AElf.ChainController
                 if (Cts == null || Cts.IsCancellationRequested)
                     return null;            
 
+                _logger?.Log(LogLevel.Debug, "Tring to get txs from tx pool");
                 var readyTxs = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
+                _logger?.Log(LogLevel.Debug, "Got {0} txs from tx pool", readyTxs.Count);
+
                 // TODO：dispatch txs with ISParallel, return list of tx results
 
                 // reset Promotable and update account context
-            
+                _logger?.Log(LogLevel.Debug, "Starting Mining...");
                 List<TransactionTrace> traces = null;
                 if(Config.IsParallel)
                 {  
@@ -122,6 +127,8 @@ namespace AElf.ChainController
                     results.Add(res);
                 }
                 
+                _logger?.Log(LogLevel.Debug, "Mining is done with {0} tx results", results.Count);
+
                 // insert txs to db
                 // update tx pool state
                 var addrs = await InsertTxs(readyTxs, results);
