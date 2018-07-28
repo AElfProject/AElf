@@ -70,7 +70,6 @@ namespace AElf.ChainController
                     {
                         return ValidationError.FailedToGetBlockByHeight;
                     }
-
                     return b.Header.GetHash().Equals(block.Header.GetHash())
                         ? ValidationError.AlreadyExecuted
                         : ValidationError.OrphanBlock;

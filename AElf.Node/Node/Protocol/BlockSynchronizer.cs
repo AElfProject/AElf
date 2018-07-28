@@ -429,8 +429,7 @@ namespace AElf.Kernel.Node.Protocol
                 else
                 {
                     // The block wasn't executed or validation failed
-                    if (res.ValidationError == ValidationError.AlreadyExecuted ||
-                        res.ValidationError == ValidationError.OrphanBlock)
+                    if (res.ValidationError == ValidationError.AlreadyExecuted || res.ValidationError == ValidationError.OrphanBlock)
                     {
                         // The block is an earlier block and one with the same
                         // height as already been executed so it can safely be
