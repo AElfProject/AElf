@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Network.Data;
 using AElf.Network.Exceptions;
+using Google.Protobuf;
 using NLog;
 
 namespace AElf.Network.Connection
@@ -16,7 +17,7 @@ namespace AElf.Network.Connection
         public Message Message { get; set; }
     }
     
-    public class MessageReader : IDisposable
+    public class MessageReader : IMessageReader
     {   
         private const int IntLength = 4;
 
@@ -49,7 +50,7 @@ namespace AElf.Network.Connection
         /// <summary>
         /// Reads the bytes from the stream.
         /// </summary>
-        public async Task Read()
+        private async Task Read()
         {
             try
             {
@@ -109,7 +110,7 @@ namespace AElf.Network.Connection
             }
             catch (PeerDisconnectedException e)
             {
-                _logger.Trace("[Message reader] Connection was aborted.\n");
+                _logger.Trace(e, "Connection was aborted.\n");
                 StreamClosed?.Invoke(this, EventArgs.Empty);
                 
                 Close();

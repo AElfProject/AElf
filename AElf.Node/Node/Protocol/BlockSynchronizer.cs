@@ -98,7 +98,7 @@ namespace AElf.Kernel.Node.Protocol
 
         private void ProcessPeerMessage(object sender, EventArgs e)
         {
-            if (sender != null && e is NetMessageReceived args && args.Message != null)
+            if (sender != null && e is NetMessageReceivedArgs args && args.Message != null)
             {
                 Message message = args.Message;
                 MessageType msgType = (MessageType)message.Type;

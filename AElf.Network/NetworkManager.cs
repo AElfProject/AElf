@@ -27,80 +27,36 @@ namespace AElf.Network.Peers
         public IPeer Peer { get; set; }
     }
 
-    public class NetMessageReceived : EventArgs
+    public class NetMessageReceivedArgs : EventArgs
     {
         public TimeoutRequest Request { get; set; }
         public Message Message { get; set; }
         public PeerMessageReceivedArgs PeerMessage { get; set; }
     }
 
-    public class TimeoutRequest
+    public class RequestFailedArgs : EventArgs
     {
-        public EventHandler RequestTimedOut;
+        public Message RequestMessage { get; set; }
         
-        private volatile bool _requestCanceled = false;
+        public byte[] ItemHash { get; set; }
+        public int BlockIndex { get; set; }
         
-        private System.Timers.Timer _timeoutTimer { get; set; }
-        
-        public Peer Peer { get; private set; }
-        public Message RequestMessage { get; private set; }
-        
-        public byte[] ItemHash { get; private set; }
-        public int BlockIndex { get; private set; }
-
-        private TimeoutRequest(Peer peer, Message msg, double initialTimeout)
-        {
-            Peer = peer;
-            RequestMessage = msg;
-            
-            _timeoutTimer = new Timer();
-            _timeoutTimer.Interval = initialTimeout;
-            _timeoutTimer.Elapsed += TimerTimeoutElapsed;
-            _timeoutTimer.AutoReset = false;
-        }
-
-        public TimeoutRequest(byte[] itemHash, Peer peer, Message msg, double initialTimeout)
-            : this(peer, msg, initialTimeout)
-        {
-            ItemHash = itemHash;
-        }
-        
-        public TimeoutRequest(int index, Peer peer, Message msg, double initialTimeout)
-            : this(peer, msg, initialTimeout)
-        {
-            BlockIndex = index;
-        }
-
-        public void StartRequesting()
-        {
-            _timeoutTimer.Start();
-        }
-
-        private void TimerTimeoutElapsed(object sender, ElapsedEventArgs e)
-        {
-            if (!_requestCanceled)
-            {
-                Peer.EnqueueOutgoing(RequestMessage);
-                Cancel();
-            }
-        }
-        
-        public void Cancel()
-        {
-            _requestCanceled = true;
-            _timeoutTimer.Stop();
-        }
+        public List<IPeer> TriedPeers = new List<IPeer>();
     }
     
     public class NetworkManager : INetworkManager, IPeerManager, IDisposable
     {
-        public const int TargetPeerCount = 8; 
+        public const int TargetPeerCount = 8;
+        public const int DefaultRequestTimeout = 2000;
+        public const int DefaultRequestMaxRetry = TimeoutRequest.DefaultMaxRetry;
         
         public event EventHandler MessageReceived;
         public event EventHandler PeerListEmpty;
 
         public event EventHandler PeerAdded;
         public event EventHandler PeerRemoved;
+
+        public event EventHandler RequestFailed;
         
         private readonly IAElfNetworkConfig _networkConfig;
         private readonly IPeerDatabase _peerDatabase;
@@ -127,6 +83,9 @@ namespace AElf.Network.Peers
         public bool NoPeers { get; set; } = true;
         
         private readonly IConnectionListener _connectionListener;
+
+        public int RequestTimeout { get; set; } = DefaultRequestTimeout;
+        public int RequestMaxRetry { get; set; } = DefaultRequestMaxRetry;
 
         private Object _pendingRequestsLock = new Object();  
         public List<TimeoutRequest> _pendingRequests;
@@ -156,6 +115,22 @@ namespace AElf.Network.Peers
                 {
                     _logger?.Trace("Warning : bootnode list is empty.");
                 }
+            }
+        }
+
+        internal TimeoutRequest HasRequestWithHash(byte[] hash)
+        {
+            lock (_pendingRequestsLock)
+            {
+                return _pendingRequests.FirstOrDefault(r => r.ItemHash.BytesEqual(hash));
+            }
+        }
+        
+        internal TimeoutRequest HasRequestWithIndex(int index)
+        {
+            lock (_pendingRequestsLock)
+            {
+                return _pendingRequests.FirstOrDefault(r => r.BlockIndex == index);
             }
         }
 
@@ -231,11 +206,11 @@ namespace AElf.Network.Peers
             }
         }
         
-        public void QueueTransactionRequest(byte[] transactionHash, Peer hint)
+        public void QueueTransactionRequest(byte[] transactionHash, IPeer hint)
         {
             try
             {
-                Peer selectedPeer = hint ?? (Peer)_peers.FirstOrDefault();
+                IPeer selectedPeer = hint ?? _peers.FirstOrDefault();
             
                 if(selectedPeer == null)
                     return;
@@ -244,14 +219,16 @@ namespace AElf.Network.Peers
                 var msg = NetRequestFactory.CreateMessage(MessageType.TxRequest, br.ToByteArray());
             
                 // Select peer for request
-                TimeoutRequest request = new TimeoutRequest(transactionHash, selectedPeer, msg, 2000);
+                TimeoutRequest request = new TimeoutRequest(transactionHash, msg, RequestTimeout);
+                request.MaxRetryCount = RequestMaxRetry;
             
                 lock (_pendingRequestsLock)
                 {
                     _pendingRequests.Add(request);
                 }
             
-                request.StartRequesting();
+                request.TryPeer(selectedPeer);
+                request.RequestTimedOut += RequestOnRequestTimedOut;
                 
                 _logger?.Trace($"Request for transaction {transactionHash?.ToHex()} send to {selectedPeer}");
             }
@@ -259,6 +236,56 @@ namespace AElf.Network.Peers
             {
                 _logger?.Trace(e, $"Error while requesting transaction for index {transactionHash?.ToHex()}.");
             }
+        }
+
+        /// <summary>
+        /// Callback called when the requests internal timer has executed.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="eventArgs"></param>
+        private void RequestOnRequestTimedOut(object sender, EventArgs eventArgs)
+        {
+            if (sender == null)
+            {
+                _logger?.Trace("Request timeout - sender null.");
+                return;
+            }
+
+            if (sender is TimeoutRequest req)
+            {
+                if (req.HasReachedMaxRetry)
+                {
+                    lock (_pendingRequestsLock)
+                    {
+                        _pendingRequests.Remove(req);
+                    }
+                   
+                    FireRequestFailed(req);
+                }
+                
+                IPeer nextPeer = _peers.FirstOrDefault(p => !p.Equals(req.Peer));
+                if (nextPeer != null)
+                {
+                    req.TryPeer(nextPeer);
+                }
+            }
+            else
+            {
+                _logger?.Trace("Request timeout - sender wrong type.");
+            }
+        }
+
+        private void FireRequestFailed(TimeoutRequest req)
+        {
+            RequestFailedArgs reqFailedArgs = new RequestFailedArgs
+            {
+                RequestMessage = req.RequestMessage,
+                BlockIndex = req.BlockIndex,
+                ItemHash = req.ItemHash,
+                TriedPeers = req.TriedPeers.ToList()
+            };
+                    
+            RequestFailed?.Invoke(this, reqFailedArgs);
         }
 
         public void QueueBlockRequestByIndex(int index)
@@ -274,13 +301,15 @@ namespace AElf.Network.Peers
                 Message message = NetRequestFactory.CreateMessage(MessageType.RequestBlock, br.ToByteArray()); 
             
                 // Select peer for request
-                TimeoutRequest request = new TimeoutRequest(index, selectedPeer, message, 500);
+                TimeoutRequest request = new TimeoutRequest(index, message, RequestTimeout);
+                request.MaxRetryCount = RequestMaxRetry;
+                
                 lock (_pendingRequestsLock)
                 {
                     _pendingRequests.Add(request);
                 }
 
-                request.StartRequesting();
+                request.TryPeer(selectedPeer);
             }
             catch (Exception e)
             {
@@ -363,7 +392,6 @@ namespace AElf.Network.Peers
             {
                 NoPeers = false;
             }
-
         }
 
         /// <summary>
@@ -458,7 +486,7 @@ namespace AElf.Network.Peers
             // Don't add a peer already in the list
             if (GetPeer(peer) != null)
             {
-                _logger.Trace($"[AddPeer] Peer already included - {peer.IpAddress} : {peer.Port}");
+                _logger?.Trace($"[AddPeer] Peer already included - {peer.IpAddress} : {peer.Port}");
                 return null;
             }
 
@@ -467,14 +495,20 @@ namespace AElf.Network.Peers
             if (peer.DistantNodeData.IsBootnode)
                 _bootnodePeers.Add(peer);*/
             
-            _peers.Add(peer);
+            AddPeer(peer);
             
-            peer.PeerAuthentified += PeerOnPeerAuthentified;
-            peer.PeerDisconnected += ProcessClientDisconnection;
             
             //PeerAdded?.Invoke(this, new PeerAddedEventArgs { Peer = peer });
 
             return peer;
+        }
+
+        internal void AddPeer(IPeer peer)
+        {
+            _peers.Add(peer);
+            
+            peer.PeerAuthentified += PeerOnPeerAuthentified;
+            peer.PeerDisconnected += ProcessClientDisconnection;
         }
 
         private void PeerOnPeerAuthentified(object sender, EventArgs eventArgs)
@@ -679,7 +713,7 @@ namespace AElf.Network.Peers
                         originalRequest = HandleBlockMessage(args.Peer, args.Message);
                     }
                     
-                    var evt = new NetMessageReceived {
+                    var evt = new NetMessageReceivedArgs {
                         Message = args.Message,
                         PeerMessage = args,
                         Request = originalRequest
@@ -714,7 +748,8 @@ namespace AElf.Network.Peers
 
                 if (request != null)
                 {
-                    request.Cancel();
+                    request.RequestTimedOut -= RequestOnRequestTimedOut;
+                    request.Stop();
                     
                     lock (_pendingRequestsLock)
                     {
@@ -758,7 +793,7 @@ namespace AElf.Network.Peers
 
                 if (request != null)
                 {
-                    request.Cancel();
+                    request.Stop();
 
                     lock (_pendingRequestsLock)
                     {

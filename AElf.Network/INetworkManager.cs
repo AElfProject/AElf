@@ -11,7 +11,7 @@ namespace AElf.Network
         
         void Start();
         
-        void QueueTransactionRequest(byte[] transaction, Peer hint);
+        void QueueTransactionRequest(byte[] transaction, IPeer hint);
         void QueueBlockRequestByIndex(int index);
 
         Task<int> BroadcastMessage(MessageType messageType, byte[] payload);
