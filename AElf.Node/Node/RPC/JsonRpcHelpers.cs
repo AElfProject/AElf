@@ -6,14 +6,13 @@ namespace AElf.Kernel.Node.RPC
     {
         public static JObject CreateResponse(JObject responseData, int id)
         {
-            JObject jObj = new JObject
+            var reponse = new JObject
             {
                 ["jsonrpc"] = "2.0",
                 ["id"] = id,
                 ["result"] = responseData
             };
-
-            return jObj;
+            return reponse;
         }
     }
 }

@@ -6,17 +6,18 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Node.Protocol.Exceptions;
-using AElf.Network.Data;
-using AElf.Network.Peers;
-using NLog;
-using AElf.ChainController;
 using AElf.Kernel.Node.RPC.DTO;
 using AElf.Network;
 using AElf.Network.Connection;
+using AElf.Network.Data;
+using AElf.Network.Peers;
+using NLog;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
+
 namespace AElf.Kernel.Node.Protocol
 {
     public class Job
@@ -24,20 +25,20 @@ namespace AElf.Kernel.Node.Protocol
         //public bool IsWakeUp { get; set; }
         public Block Block { get; set; }
         public Transaction Transaction { get; set; }
-        
+
         public Peer Peer { get; set; }
     }
-    
+
     public interface IBlockSynchronizer
     {
         event EventHandler SyncFinished;
-        
+
         // todo remove The node property : autofac circular dependency problem.
         Task Start(IAElfNode node, bool doInitialSync);
 
         void IncrementChainHeight();
     }
-    
+
     /// <summary>
     /// When a node starts it creates this BlockSynchroniser for two reasons: the first
     /// is that the node is very probably behind other nodes on the network and it needs
@@ -73,23 +74,23 @@ namespace AElf.Kernel.Node.Protocol
         {
             PendingBlocks = new List<PendingBlock>();
             _jobQueue = new BlockingCollection<Job>();
-            
+
             _poolService = poolService;
             _networkManager = networkManager;
-            
+
             _logger = LogManager.GetLogger("BlockSync");
-            
+
             _networkManager.MessageReceived += ProcessPeerMessage;
         }
-        
+
         // todo remove The node property : autofac circular dependency problem.
         public async Task Start(IAElfNode node, bool doInitialSync)
         {
             _mainChainNode = node;
-            
+
             ShouldDoInitialSync = doInitialSync;
             IsInitialSyncInProgress = false; // started by first block
-            
+
             if (doInitialSync)
                 _logger?.Trace("Initial sync started.");
             else
@@ -100,15 +101,14 @@ namespace AElf.Kernel.Node.Protocol
         {
             if (sender != null && e is NetMessageReceivedArgs args && args.Message != null)
             {
-                Message message = args.Message;
-                MessageType msgType = (MessageType)message.Type;
+                var message = args.Message;
+                var msgType = (MessageType) message.Type;
 
                 if (msgType == MessageType.Tx || msgType == MessageType.BroadcastTx)
                 {
                     try
                     {
                         var fromSend = message.Type == (int) MessageType.Tx;
-                
                         ReceiveTransaction(message.Payload, fromSend);
                     }
                     catch (Exception ex)
@@ -116,16 +116,15 @@ namespace AElf.Kernel.Node.Protocol
                         _logger?.Trace(ex, "Error while receiving transaction.");
                         return;
                     }
-                    
-                    EnqueueJob(new Job { Transaction = Transaction.Parser.ParseFrom(message.Payload) });
+
+                    EnqueueJob(new Job {Transaction = Transaction.Parser.ParseFrom(message.Payload)});
                 }
-                else if (message.Type == (int)MessageType.Block || message.Type == (int)MessageType.BroadcastBlock)
+                else if (message.Type == (int) MessageType.Block || message.Type == (int) MessageType.BroadcastBlock)
                 {
                     try
                     {
-                        Block b = Block.Parser.ParseFrom(message.Payload);
-                        
-                        EnqueueJob(new Job { Block = b, Peer = args.PeerMessage?.Peer });
+                        var b = Block.Parser.ParseFrom(message.Payload);
+                        EnqueueJob(new Job {Block = b, Peer = args.PeerMessage?.Peer});
                         _logger?.Trace("Block enqueued: " + b.GetHash().ToHex());
                     }
                     catch (Exception ex)
@@ -135,29 +134,28 @@ namespace AElf.Kernel.Node.Protocol
                 }
             }
         }
-        
+
         // todo isFromSend can be mapped more clearly to Broadcast and Send
         public async Task ReceiveTransaction(byte[] messagePayload, bool isFromSend)
         {
             try
             {
                 var tx = Transaction.Parser.ParseFrom(messagePayload);
-                
                 var success = await _poolService.AddTxAsync(tx);
-                
+
                 if (isFromSend)
                 {
                     _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " + tx.IncrementId);
-                    EnqueueJob(new Job { Transaction = tx });
+                    EnqueueJob(new Job {Transaction = tx});
                 }
 
                 if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
-                    _logger?.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ", 
+                    _logger?.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ",
                         tx.GetTransactionInfo(), tx.IncrementId, success);
                     return;
                 }
-                
+
                 _logger?.Trace("Successfully added tx : " + tx.GetHash().Value.ToByteArray().ToHex());
             }
             catch (Exception e)
@@ -165,7 +163,7 @@ namespace AElf.Kernel.Node.Protocol
                 _logger?.Error(e, "Invalid tx - Could not receive transaction from the network", null);
             }
         }
-        
+
         public void IncrementChainHeight()
         {
             Interlocked.Increment(ref CurrentExecHeight);
@@ -183,16 +181,16 @@ namespace AElf.Kernel.Node.Protocol
                     SyncTargetHeight = (int) job.Block.Header.Index;
                     IsInitialSyncInProgress = true;
 
-                    for (int i = 1; i < SyncTargetHeight; i++)
+                    for (var i = 1; i < SyncTargetHeight; i++)
                     {
                         _networkManager.QueueBlockRequestByIndex(i);
                     }
-                    
+
                     Task.Run(() => DoSync());
-                    
+
                     _logger?.Trace($"Initial synchronisation has started at target height {SyncTargetHeight}.");
                 }
-                
+
                 Task.Run(() => { _jobQueue.Add(job); }).ConfigureAwait(false);
             }
             catch (Exception e)
@@ -200,45 +198,45 @@ namespace AElf.Kernel.Node.Protocol
                 _logger?.Trace("Error while adding " + job?.Block?.GetHash().Value.ToByteArray().ToHex());
             }
         }
-        
+
         private void DoSync()
         {
             while (true)
             {
-                Job j = null;
+                Job job = null;
 
                 try
                 {
-                    j = _jobQueue.Take();
+                    job = _jobQueue.Take();
                 }
                 catch (Exception e)
                 {
-                    _logger?.Trace("Error while dequeuing " + j?.Block.GetHash().ToHex());
+                    _logger?.Trace("Error while dequeuing " + job?.Block.GetHash().ToHex());
                     continue;
                 }
 
                 try
                 {
-                    if (j.Transaction != null)
+                    if (job.Transaction != null)
                     {
                         // Process transaction
-                        SetTransaction(j.Transaction.GetHash().GetHashBytes());
+                        SetTransaction(job.Transaction.GetHash().GetHashBytes());
                     }
                     else
                     {
                         // Process block
-                        _logger?.Trace("Dequed block : " + j.Block.GetHash().ToHex());
+                        _logger?.Trace("Dequed block : " + job.Block.GetHash().ToHex());
 
-                        var b = AddBlockToSync(j.Block, j.Peer).Result;
+                        var succeed = AddBlockToSync(job.Block, job.Peer).Result;
 
                         /* print candidates */
 
-                        if (!b)
+                        if (!succeed)
                         {
                             _logger.Trace("Could not add block to sync");
                         }
                     }
-                    
+
                     if (PendingBlocks == null || PendingBlocks.Count <= 0)
                     {
                         _logger.Trace("No pending blocks");
@@ -247,41 +245,41 @@ namespace AElf.Kernel.Node.Protocol
 
                     var syncedCount = PendingBlocks.Count(pb => pb.IsSynced);
                     _logger?.Trace($"There's {PendingBlocks.Count} pending blocks, with synced : {syncedCount}, non-synced : {PendingBlocks.Count - syncedCount}");
-                
-                    List<PendingBlock> bte = GetBlocksToExecute();
-                    
-                    if (bte == null || bte.Count <= 0)
+
+                    var pendingBlocks = GetBlocksToExecute();
+
+                    if (pendingBlocks == null || pendingBlocks.Count <= 0)
                     {
                         _logger.Trace("No blocks to execute !");
                     }
                     else
                     {
-                        var str2 = bte.Select(bb => bb.ToString()).Aggregate((i, jf) => i + " || " + jf);
+                        var str2 = pendingBlocks.Select(bb => bb.ToString()).Aggregate((i, jf) => i + " || " + jf);
                         _logger?.Trace("Chosen for execution: " + str2);
-                
+
                         if (string.IsNullOrEmpty(str2))
                             _logger?.Trace("Nobody chosen for execution.");
 
-                        if (bte != null && bte.Count > 0)
+                        if (pendingBlocks != null && pendingBlocks.Count > 0)
                         {
                             // Execute and log
-                            List<PendingBlock> br = TryExecuteBlocks(bte).Result;
+                            var executedBlocks = TryExecuteBlocks(pendingBlocks).Result;
 
-                            if (br != null && br.Count > 0)
+                            if (executedBlocks != null && executedBlocks.Count > 0)
                             {
-                                StringBuilder brString = new StringBuilder();
-                                brString.Append(br.ElementAt(0).Block.Header.Index);
-                        
-                                for (int i = 1; i < br.Count; i++)
+                                var brString = new StringBuilder();
+                                brString.Append(executedBlocks.ElementAt(0).Block.Header.Index);
+
+                                for (var i = 1; i < executedBlocks.Count; i++)
                                 {
-                                    brString.Append(" - " + br.ElementAt(i).Block.Header.Index);
+                                    brString.Append(" - " + executedBlocks.ElementAt(i).Block.Header.Index);
                                 }
-                        
+
                                 _logger?.Trace("Executed the blocks with the following index(es) : " + brString);
                             }
                         }
                     }
-                    
+
                     // Get missing txs 
                     RequestMissingTxs();
                 }
@@ -291,11 +289,11 @@ namespace AElf.Kernel.Node.Protocol
                 }
             }
         }
-        
+
         private void RequestMissingTxs()
         {
-            List<KeyValuePair<byte[], Peer>> listOfMissingTxToRequest = new List<KeyValuePair<byte[], Peer>>();
-            
+            var listOfMissingTxToRequest = new List<KeyValuePair<byte[], Peer>>();
+
             foreach (var pdBlock in PendingBlocks)
             {
                 if (!pdBlock.IsSynced)
@@ -304,7 +302,7 @@ namespace AElf.Kernel.Node.Protocol
                     {
                         if (listOfMissingTxToRequest.Count >= 5) // only 5 at a time
                             break;
-                        
+
                         listOfMissingTxToRequest.Add(new KeyValuePair<byte[], Peer>(tx.Hash, pdBlock.Peer));
                         tx.IsRequestInProgress = true;
                     }
@@ -312,7 +310,7 @@ namespace AElf.Kernel.Node.Protocol
             }
 
             _logger?.Trace($"Requesting {listOfMissingTxToRequest.Count} transactions.");
-            
+
             foreach (var tx in listOfMissingTxToRequest)
             {
                 _networkManager.QueueTransactionRequest(tx.Key, tx.Value);
@@ -322,28 +320,28 @@ namespace AElf.Kernel.Node.Protocol
         internal List<PendingBlock> GetBlocksToExecute()
         {
             // Calculate the next batch to execute
-            List<PendingBlock> ordered = PendingBlocks.Where(p => p.IsSynced).OrderBy(p => p.Block.Header.Index).ToList();
-            
+            var ordered = PendingBlocks.Where(p => p.IsSynced).OrderBy(p => p.Block.Header.Index).ToList();
+
             if (ordered.Count <= 0)
                 return new List<PendingBlock>();
 
-            List<PendingBlock> pending = new List<PendingBlock>();
+            var pending = new List<PendingBlock>();
 
-            int currentIndex = (int)ordered[0].Block.Header.Index;
+            var currentIndex = (int) ordered[0].Block.Header.Index;
 
             if (ShouldDoInitialSync && currentIndex > CurrentExecHeight)
                 return null;
-            
-            for (int i = 0; i < ordered.Count; i++)
+
+            for (var i = 0; i < ordered.Count; i++)
             {
                 pending.Add(ordered[i]);
 
-                if (i+1 >= ordered.Count || (int) ordered[i+1].Block.Header.Index > currentIndex + 1)
+                if (i + 1 >= ordered.Count || (int) ordered[i + 1].Block.Header.Index > currentIndex + 1)
                     break;
-                
-                currentIndex = (int)ordered[i+1].Block.Header.Index;
+
+                currentIndex = (int) ordered[i + 1].Block.Header.Index;
             }
-            
+
             return pending;
         }
 
@@ -357,47 +355,45 @@ namespace AElf.Kernel.Node.Protocol
         {
             if (block?.Header == null || block.Body == null)
                 throw new InvalidBlockException("The block, blockheader or body is null");
-            
-//            if (block.Header.Index < (ulong)CurrentExecHeight)
-//                return false;
 
-            byte[] h = null;
+            // if (block.Header.Index < (ulong)CurrentExecHeight)
+            //    return false;
+
+            byte[] blockHash;
             try
             {
-                h = block.GetHash().GetHashBytes();
+                blockHash = block.GetHash().GetHashBytes();
             }
             catch (Exception e)
             {
                 //theEvent.WaitOne();
                 throw new InvalidBlockException("Invalid block hash");
             }
-            
-            if (GetBlock(h) != null)
+
+            if (GetBlock(blockHash) != null)
             {
                 _logger?.Trace("Block already in pending list.");
                 return false;
             }
 
-            List<Hash> missingTxs = _poolService.GetMissingTransactions(block);
-
+            var missingTxs = _poolService.GetMissingTransactions(block);
             if (missingTxs == null)
             {
                 //theEvent.WaitOne();
                 // todo what happend when the pool fails ?
                 return false;
             }
-            
+
             // todo check that the returned txs are actually in the block
-            PendingBlock newPendingBlock = new PendingBlock(h, block, missingTxs);
-            newPendingBlock.Peer = peer;
-            
+            var newPendingBlock = new PendingBlock(blockHash, block, missingTxs) {Peer = peer};
+
             PendingBlocks.Add(newPendingBlock);
-            
-            _logger?.Trace("Added block to sync : " + h.ToHex());
-            
+
+            _logger?.Trace("Added block to sync : " + blockHash.ToHex());
+
             return true;
         }
-        
+
         private object objLock = new object();
 
         /// <summary>
@@ -407,22 +403,22 @@ namespace AElf.Kernel.Node.Protocol
         /// <returns></returns>
         internal async Task<List<PendingBlock>> TryExecuteBlocks(List<PendingBlock> pendingBlocks)
         {
-            List<PendingBlock> toRemove = new List<PendingBlock>();
-            List<PendingBlock> executed = new List<PendingBlock>();
-            
+            var toRemove = new List<PendingBlock>();
+            var executed = new List<PendingBlock>();
+
             var blcks = pendingBlocks.ToList();
             foreach (var pendingBlock in blcks)
             {
-                Block block = pendingBlock.Block;
+                var block = pendingBlock.Block;
                 if (_mainChainNode.IsMiningInProcess == 1)
                 {
                     _logger?.Trace("----- MINING !!");
                     return toRemove;
                 }
 
-                BlockExecutionResult res = await _mainChainNode.ExecuteAndAddBlock(block);
-                _logger?.Trace(
-                    $"TryExecuteBlocks - Block execution result : {res.Executed}, {res.ValidationError} : {block.GetHash().Value.ToByteArray().ToHex()} - Index {block.Header.Index}");
+                var res = await _mainChainNode.ExecuteAndAddBlock(block);
+                _logger?.Trace($"TryExecuteBlocks - Block execution result : {res.Executed}, {res.ValidationError} : {block.GetHash().Value.ToByteArray().ToHex()} - Index {block.Header.Index}");
+
                 if (res.ValidationError == ValidationError.Success && res.Executed)
                 {
                     // The block was executed and validation was a success: remove the pending block.
@@ -466,8 +462,8 @@ namespace AElf.Kernel.Node.Protocol
 //                                    _logger?.Trace("All peers already tried for request.");
 //                                }
 //                            }
-                            
-                             _networkManager.QueueBlockRequestByIndex(CurrentExecHeight);
+
+                            _networkManager.QueueBlockRequestByIndex(CurrentExecHeight);
 
                             // At this point no need to execute more
                             break;
@@ -490,6 +486,7 @@ namespace AElf.Kernel.Node.Protocol
                 ShouldDoInitialSync = false;
                 IsInitialSyncInProgress = false;
                 _logger?.Trace("-- Initial sync is finished at height: " + CurrentExecHeight);
+
                 SyncFinished?.Invoke(this, EventArgs.Empty);
             }
 
@@ -505,13 +502,12 @@ namespace AElf.Kernel.Node.Protocol
         /// <param name="txHash"></param>
         private bool SetTransaction(byte[] txHash)
         {
-            var b = RemoveTxFromBlock(txHash);
-
-            if (b == null)
+            var block = RemoveTxFromBlock(txHash);
+            if (block == null)
                 return false;
-            
+
             _logger?.Trace("Transaction removed from sync: " + txHash.ToHex());
-            
+
             return true;
         }
 
@@ -519,7 +515,7 @@ namespace AElf.Kernel.Node.Protocol
         {
             return PendingBlocks?.FirstOrDefault(p => p.BlockHash.BytesEqual(hash));
         }
-        
+
         public PendingBlock RemoveTxFromBlock(byte[] hash)
         {
             foreach (var pdBlock in PendingBlocks)
@@ -542,24 +538,21 @@ namespace AElf.Kernel.Node.Protocol
     {
         public Block Block { get; }
         public Peer Peer { get; set; }
-        
+
         public List<PendingTx> MissingTxs { get; private set; }
-            
+
         public byte[] BlockHash { get; }
 
-        public bool IsSynced
-        {
-            get { return MissingTxs.Count == 0; }
-        }
+        public bool IsSynced => MissingTxs.Count == 0;
 
         public PendingBlock(byte[] blockHash, Block block, List<Hash> missing)
         {
             Block = block;
             BlockHash = blockHash;
-            
-            MissingTxs = missing == null ? new List<PendingTx>() : missing.Select(m => new PendingTx { Hash = m.Value.ToByteArray() }).ToList();
+
+            MissingTxs = missing == null ? new List<PendingTx>() : missing.Select(m => new PendingTx {Hash = m.Value.ToByteArray()}).ToList();
         }
-        
+
         public void RemoveTransaction(byte[] txid)
         {
             MissingTxs.RemoveAll(ptx => ptx.Hash.BytesEqual(txid));
