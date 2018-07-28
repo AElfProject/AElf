@@ -645,7 +645,8 @@ namespace AElf.Kernel.Node
             await _netManager.BroadcastMessage(MessageType.BroadcastBlock, serializedBlock);
 
             var bh = block.GetHash().ToHex();
-            _logger?.Trace($"Broadcasted block \"{bh}\" to peers. Block height: [{block.Header.Index}]");
+            _logger?.Trace(
+                $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}]");
 
             return true;
         }
