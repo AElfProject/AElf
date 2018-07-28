@@ -14,7 +14,7 @@ namespace AElf.ChainController
 
         public async Task<IChainContext> GetChainContextAsync(Hash chainId)
         {
-            IChainContext chainContext = new ChainContext
+            IChainContext chainContext = new ChainContext()
             {
                 ChainId = chainId,
                 BlockHeight = await _chainManager.GetChainCurrentHeight(chainId),

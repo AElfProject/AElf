@@ -253,10 +253,8 @@ namespace AElf.Kernel.Consensus
                     await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
 
                 //Maybe because something happened with setting extra block timeslot.
-                if (extraBlockTimeslotOfCurrentRound.ToDateTime().AddMilliseconds(Globals.AElfMiningTime * 2) < GetTimestampOfUtcNow().ToDateTime())
+                if (extraBlockTimeslotOfCurrentRound.ToDateTime() < GetTimestampOfUtcNow().ToDateTime())
                 {
-                    _logger?.Trace($"EB timeslot of current round: {extraBlockTimeslotOfCurrentRound}. " +
-                                   "Something wrong may happened to EB timeslot if you see this log.");
                     extraBlockTimeslotOfCurrentRound = GetTimestampWithOffset(extraBlockTimeslotOfCurrentRound,
                         Globals.AElfMiningTime + Globals.AElfMiningTime * Globals.BlockProducerNumber);
                 }
@@ -437,8 +435,7 @@ namespace AElf.Kernel.Consensus
         // ReSharper disable once InconsistentNaming
         private async Task<string> GetDPoSInfo(long height)
         {
-            return await GetDPoSInfoToStringOfLatestRounds((ulong) Globals.DPoSLogRoundsCount) +
-                   $". Current height: {height}";
+            return await GetDPoSInfoToStringOfLatestRounds(3) + $". Current height: {height}";
         }
         
         // ReSharper disable once MemberCanBeMadeStatic.Local
