@@ -12,7 +12,6 @@
         FailedToCheckConsensusInvalidation = 8,
         FailedToGetBlockByHeight = 9,
         FailedToCheckChainContextInvalidation = 10,
-        AlreadyRollback = 11,
-        DontKnowReason = 12
+        DontKnowReason = 11
     }
 }

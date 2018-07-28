@@ -70,12 +70,7 @@ namespace AElf.ChainController
                     {
                         return ValidationError.FailedToGetBlockByHeight;
                     }
-                    
-                    if (block.Header.Time.ToDateTime() < (await _blockManager.GetBlockAsync(context.BlockHash)).Header.Time.ToDateTime())
-                    {
-                        return ValidationError.AlreadyRollback;
-                    }
-                    
+
                     return b.Header.GetHash().Equals(block.Header.GetHash())
                         ? ValidationError.AlreadyExecuted
                         : ValidationError.OrphanBlock;
