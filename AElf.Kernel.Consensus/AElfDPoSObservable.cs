@@ -139,14 +139,15 @@ namespace AElf.Kernel.Consensus
                 _logger?.Trace($"Will help to produce extra block after {after} seconds");
             }
 
-            var moreExtraBlock = distanceToPublishInValue + (Globals.AElfMiningTime * 2 +
-                                                             Globals.AElfMiningTime * Globals.BlockProducerNumber +
-                                                             Globals.AElfMiningTime * infoOfMe.Order) / 1000;
-            var produceMoreExtraBlock = Observable
-                .Timer(TimeSpan.FromSeconds(Globals.AElfMiningTime + Globals.AElfMiningTime * infoOfMe.Order))
-                .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
-            _logger?.Trace($"Will help to produce more extra block after {moreExtraBlock} seconds");
+//            var moreExtraBlock = distanceToPublishInValue + (Globals.AElfMiningTime * 2 +
+//                                                             Globals.AElfMiningTime * Globals.BlockProducerNumber +
+//                                                             Globals.AElfMiningTime * infoOfMe.Order) / 1000;
+//            var produceMoreExtraBlock = Observable
+//                .Timer(TimeSpan.FromSeconds(Globals.AElfMiningTime + Globals.AElfMiningTime * infoOfMe.Order))
+//                .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
+//            _logger?.Trace($"Will help to produce more extra block after {moreExtraBlock} seconds");
 
+            var produceMoreExtraBlock = doNothingObservable;
             return Observable.Return(ConsensusBehavior.DoNothing)
                 .Concat(produceNormalBlock)
                 .Concat(publishInValue)
