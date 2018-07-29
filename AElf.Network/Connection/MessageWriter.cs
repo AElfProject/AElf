@@ -11,7 +11,7 @@ namespace AElf.Network.Connection
     /// <summary>
     /// This class performs writes to the underlying tcp stream.
     /// </summary>
-    public class MessageWriter
+    public class MessageWriter : IMessageWriter
     {
         private readonly ILogger _logger;
         private readonly NetworkStream _stream;
@@ -41,7 +41,7 @@ namespace AElf.Network.Connection
             Task.Run(() => DequeueOutgoingLoop()).ConfigureAwait(false);
         }
         
-        public void EnqueueWork(Message p)
+        public void EnqueueMessage(Message p)
         {
             try
             {
@@ -155,5 +155,22 @@ namespace AElf.Network.Connection
             byte[] b = ByteArrayHelpers.Combine(type, isbuffered, length, posBytes, isEndBytes, totalLengthBytes, arrData);
             _stream.Write(b, 0, b.Length);
         }
+        
+        #region Closing and disposing
+
+        public void Close()
+        {
+            Dispose();
+        }
+        
+        public void Dispose()
+        {
+            // This will cause an IOException in the read loop
+            // but since IsConnected is switched to false, it 
+            // will not fire the disconnection exception.
+            _stream?.Close();
+        }
+
+        #endregion
     }
 }

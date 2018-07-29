@@ -23,7 +23,7 @@ namespace AElf.Network.Peers
             _ipAddress = ipAddress;
             _port = port;
             
-            _logger = LogManager.GetLogger("");
+            _logger = LogManager.GetLogger(nameof(NodeDialer));
         }
 
         public async Task<TcpClient> DialAsync(int timeout = DefaultConnectionTimeout)
@@ -39,7 +39,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger.Trace("Exception during connection");
+                _logger.Trace(e, "Exception during connection");
             }
             
             _logger.Trace("Could not connect, operation timed out.");
@@ -65,7 +65,7 @@ namespace AElf.Network.Peers
                 }
                 catch (Exception e)
                 {
-                    _logger.Trace("Error dialing the peer.");
+                    _logger.Trace(e, "Error dialing the peer.");
                 }
                 
                 await Task.Delay(TimeSpan.FromMilliseconds(ReconnectInterval)); // retry wait

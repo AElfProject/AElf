@@ -11,7 +11,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             switch (DatabaseConfig.Instance.Type)
             {
                 case DatabaseType.InMemory:
-                    builder.RegisterType<KeyValueDatabase>().As<IKeyValueDatabase>().SingleInstance();
+                    builder.RegisterType<InMemoryDatabase>().As<IKeyValueDatabase>().SingleInstance();
                     break;
                 case DatabaseType.Redis:
                     builder.RegisterType<RedisDatabase>().As<IKeyValueDatabase>().SingleInstance();
@@ -20,7 +20,7 @@ namespace AElf.Kernel.Modules.AutofacModule
 #if DEBUG
                     if (!new SsdbDatabase().IsConnected())
                     {
-                        builder.RegisterType<KeyValueDatabase>().As<IKeyValueDatabase>().SingleInstance();
+                        builder.RegisterType<InMemoryDatabase>().As<IKeyValueDatabase>().SingleInstance();
                         break;
                     }
 #endif

@@ -13,6 +13,8 @@ namespace AElf.Kernel
 
         #region AElf DPoS
 
+        // ReSharper disable once InconsistentNaming
+        public const int AElfDPoSLogRoundCount = 3;
         public const int AElfMiningTime = 4000;
         public const int AElfCheckTime = 1000;
         public const int AElfWaitFirstRoundTime = 1000;

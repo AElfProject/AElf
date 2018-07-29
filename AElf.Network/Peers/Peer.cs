@@ -40,6 +40,8 @@ namespace AElf.Network.Peers
     /// </summary>
     public class Peer : IPeer
     {
+        public bool IsClosed { get; private set; }
+        
         private const int DefaultReadTimeOut = 3000;
         private const int BufferSize = 20000;
 
@@ -73,8 +75,8 @@ namespace AElf.Network.Peers
         
         public event EventHandler PeerUnreachable;
 
-        private MessageReader _messageReader;
-        private MessageWriter _messageWriter;
+        private IMessageReader _messageReader;
+        private IMessageWriter _messageWriter;
         
         public Peer(int port)
         {
@@ -152,7 +154,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger.Trace("Error while initializing the connection");
+                _logger.Trace(e, "Error while initializing the connection");
             }
         }
 
@@ -166,12 +168,12 @@ namespace AElf.Network.Peers
             var nd = new NodeData {Port = _port};
             byte[] packet = nd.ToByteArray();
             
-            _messageWriter.EnqueueWork(new Message { Type = (int)MessageType.Auth, Length = packet.Length, Payload = packet});
+            _messageWriter.EnqueueMessage(new Message { Type = (int)MessageType.Auth, Length = packet.Length, Payload = packet});
         }
 
         private async void MessageReaderOnStreamClosed(object sender, EventArgs eventArgs)
         {
-            Reset();
+            Disconnect();
             
             NodeDialer p = new NodeDialer(IPAddress.Loopback.ToString(), 6789);
             TcpClient client = await p.DialWithRetryAsync();
@@ -184,25 +186,6 @@ namespace AElf.Network.Peers
             {
                 PeerUnreachable?.Invoke(this, EventArgs.Empty);
             }
-        }
-
-        private void Reset()
-        {
-            if (_messageReader != null)
-            {
-                _messageReader.PacketReceived -= ClientOnPacketReceived;
-                _messageReader.StreamClosed -= MessageReaderOnStreamClosed;
-            }
-            
-            _messageReader?.Close();
-            _messageWriter = null;
-            
-            // todo handle the _message writer
-            //_messageWriter.Close();
-            _messageWriter = null;
-            
-            _client?.Close();
-            _client = null;
         }
 
         private void ClientOnPacketReceived(object sender, EventArgs eventArgs)
@@ -229,7 +212,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger.Trace(e);
+                _logger?.Trace(e);
             }
         }
 
@@ -256,11 +239,6 @@ namespace AElf.Network.Peers
         {
             MessageReceived?.Invoke(this, new PeerMessageReceivedArgs { Peer = this, Message = p });
         }
-
-        public void Disconnect()
-        {
-            Reset();
-        }
         
         /// <summary>
         /// Sends the provided bytes to the peer.
@@ -277,14 +255,14 @@ namespace AElf.Network.Peers
 
             try
             {
-                _messageWriter.EnqueueWork(msg);
+                _messageWriter.EnqueueMessage(msg);
             }
             catch (Exception e)
             {
                 _logger.Trace(e, $"Exception while sending data.");
             }
         }
-
+        
         public override string ToString()
         {
             return DistantNodeData?.IpAddress + ":" + DistantNodeData?.Port;
@@ -311,5 +289,27 @@ namespace AElf.Network.Peers
 
             return p.DistantNodeData.Equals(DistantNodeData);
         }
+
+        #region Closing and disposing
+        
+        public void Disconnect()
+        {
+            if (_messageReader != null)
+            {
+                _messageReader.PacketReceived -= ClientOnPacketReceived;
+                _messageReader.StreamClosed -= MessageReaderOnStreamClosed;
+            }
+
+            Dispose();
+        }
+        
+        public void Dispose()
+        {
+            _messageReader?.Close();
+            _messageWriter?.Close();
+            _client?.Close();
+        }
+        
+        #endregion
     }
 }

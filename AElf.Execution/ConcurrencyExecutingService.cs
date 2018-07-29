@@ -21,6 +21,8 @@ namespace AElf.Execution
         private bool _isInit;
         private const string SystemName = "AElfSystem";
         private readonly ServicePack _servicePack;
+        
+        public Task TerminationHandle => _actorSystem.WhenTerminated;
 
         public ConcurrencyExecutingService(IChainContextService chainContextService, ISmartContractService smartContractService, IFunctionMetadataService functionMetadataService, IWorldStateDictator worldStateDictator, IAccountContextService accountContextService)
         {
@@ -121,6 +123,11 @@ namespace AElf.Execution
                 .WithFallback(content);
 
             return config;
+        }
+        
+        public async Task StopAsync()
+        {
+            await CoordinatedShutdown.Get(_actorSystem).Run();
         }
     }
 }

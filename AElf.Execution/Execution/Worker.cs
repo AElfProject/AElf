@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using AElf.Kernel;
 using AElf.SmartContract;
+using Akka.Dispatch;
 
 /*
     Todo: #338
@@ -243,12 +244,19 @@ namespace AElf.Execution
             {
                 executive = await _servicePack.SmartContractService
                     .GetExecutiveAsync(transaction.To, chainContext.ChainId);
-                
-                executive.SetDataCache(stateCache);
+                try
+                {
+                    executive.SetDataCache(stateCache);
 
-                await executive.SetTransactionContext(txCtxt).Apply(false);
-                trace.Logs.AddRange(txCtxt.Trace.FlattenedLogs);
-                // TODO: Check run results / logs etc.
+                    await executive.SetTransactionContext(txCtxt).Apply(false);
+                    trace.Logs.AddRange(txCtxt.Trace.FlattenedLogs);
+                    // TODO: Check run results / logs etc.
+                }
+                finally
+                {
+                    await _servicePack.SmartContractService.PutExecutiveAsync(transaction.To, executive);    
+                }
+
             }
             catch (Exception ex)
             {

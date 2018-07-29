@@ -216,10 +216,18 @@ namespace AElf.Benchmark
                 {
                     Transaction = tx
                 };
-            
+
+
                 var executive = await _smartContractService.GetExecutiveAsync(tokenContractAddr, ChainId);
-                await executive.SetTransactionContext(txnCtxt).Apply(true);
-                
+                try
+                {
+                    await executive.SetTransactionContext(txnCtxt).Apply(true);
+                }
+                finally
+                {
+                    await _smartContractService.PutExecutiveAsync(tokenContractAddr, executive);    
+                }
+
                 res.Add(txnCtxt.Trace.RetVal.Data.DeserializeToUInt64());
             }
 
@@ -265,8 +273,14 @@ namespace AElf.Benchmark
             };
             
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
-            await executive.SetTransactionContext(txnCtxt).Apply(true);
-
+            try
+            {
+                await executive.SetTransactionContext(txnCtxt).Apply(true);
+            }
+            finally
+            {
+                await _smartContractService.PutExecutiveAsync(contractAddressZero, executive);    
+            }
             
             var contractAddr = txnCtxt.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
             return contractAddr;
@@ -290,8 +304,14 @@ namespace AElf.Benchmark
                 Transaction = txnInit
             };
             var executiveUser = await _smartContractService.GetExecutiveAsync(contractAddr, ChainId);
-            await executiveUser.SetTransactionContext(txnInitCtxt).Apply(true);
-            
+            try
+            {
+                await executiveUser.SetTransactionContext(txnInitCtxt).Apply(true);
+            }
+            finally
+            {
+                await _smartContractService.PutExecutiveAsync(contractAddr, executiveUser);    
+            }
             //init contract
             var initTxList = new List<ITransaction>();
             foreach (var addr in addrBook)

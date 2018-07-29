@@ -4,12 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Node.RPC.DTO;
-using AElf.Kernel.TxMemPool;
-using AElf.Network.Data;
-using AElf.Node.RPC.DTO;
 using Google.Protobuf;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -17,7 +15,6 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
-using AElf.ChainController;
 
 namespace AElf.Kernel.Node.RPC
 {
@@ -27,8 +24,10 @@ namespace AElf.Kernel.Node.RPC
         //private const string GetTxMethodName = "get_tx";
         //private const string InsertTxMethodName = "insert_tx";
         private const string BroadcastTxMethodName = "broadcast_tx";
+
         //private const string GetPeersMethodName = "get_peers";
         private const string GetIncrementIdMethodName = "get_increment";
+
         //private const string BroadcastBlockMethodName = "broadcast_block";
         private const string GetTxResultMethodName = "get_tx_result";
         private const string GetCommandsMethodName = "get_commands";
@@ -37,25 +36,27 @@ namespace AElf.Kernel.Node.RPC
         private const string GetDeserializedData = "get_deserialized_result";
         private const string GetBlockHeight = "get_block_height";
         private const string GetBlockInfo = "get_block_info";
+        private const string GetDeserializedInfo = "get_deserialized_info";
+
+        private const string CallReadOnly = "call";
+
         /// <summary>
         /// The names of the exposed RPC methods and also the
         /// names used in the JSON to perform a call.
         /// </summary>
-        private readonly List<string> _rpcCommands = new List<string>()
+        private readonly List<string> _rpcCommands = new List<string>
         {
-            //GetTxMethodName,
-            //InsertTxMethodName,
             BroadcastTxMethodName,
-            //GetPeersMethodName,
             GetCommandsMethodName,
             GetIncrementIdMethodName,
-            //BroadcastBlockMethodName,
             GetContractAbi,
             GetTxResultMethodName,
             GetGenesisiAddress,
             GetDeserializedData,
             GetBlockHeight,
-            GetBlockInfo
+            GetBlockInfo,
+            GetDeserializedInfo,
+            CallReadOnly
         };
 
         /// <summary>
@@ -90,14 +91,11 @@ namespace AElf.Kernel.Node.RPC
         {
             try
             {
-                string url = "http://" + rpcHost + ":" + rpcPort;
+                var url = "http://" + rpcHost + ":" + rpcPort;
                 var host = new WebHostBuilder()
                     .UseKestrel()
                     .UseUrls(url)
-                    .ConfigureLogging((hostingContext, logging) =>
-                    {
-                        //logging.ClearProviders(); 
-                    })
+                    .ConfigureLogging((hostingContext, logging) => { })
                     .Configure(a => a.Run(ProcessAsync))
                     .Build();
 
@@ -119,15 +117,13 @@ namespace AElf.Kernel.Node.RPC
 
             try
             {
-                string bodyAsString = null;
+                string bodyAsString;
                 using (var streamReader = new StreamReader(context.Request.Body, Encoding.UTF8))
                 {
                     bodyAsString = streamReader.ReadToEnd();
                 }
 
-                JObject req = JObject.Parse(bodyAsString);
-
-                return req;
+                return JObject.Parse(bodyAsString);
             }
             catch (Exception e)
             {
@@ -147,11 +143,10 @@ namespace AElf.Kernel.Node.RPC
             if (request == null)
                 return null;
 
-            JToken method = JToken.FromObject(request["method"]);
-
+            var method = JToken.FromObject(request["method"]);
             if (method != null)
             {
-                string methodName = method.ToObject<string>();
+                var methodName = method.ToObject<string>();
                 if (string.IsNullOrEmpty(methodName) || !_rpcCommands.Contains(methodName))
                 {
                     return ErrorResponseFactory.GetMethodNotFound(request["id"].ToObject<int>());
@@ -171,17 +166,15 @@ namespace AElf.Kernel.Node.RPC
             if (context?.Request?.Body == null)
                 return;
 
-            JObject request = ParseRequest(context);
-
+            var request = ParseRequest(context);
             if (request == null)
             {
-                JObject err = ErrorResponseFactory.GetParseError(0);
+                var err = ErrorResponseFactory.GetParseError(0);
                 await WriteResponse(context, err);
                 return;
             }
 
-            JObject validErr = ValidateRequest(request);
-
+            var validErr = ValidateRequest(request);
             if (validErr != null)
             {
                 await WriteResponse(context, validErr);
@@ -190,11 +183,9 @@ namespace AElf.Kernel.Node.RPC
 
             try
             {
-                // read id
-                int reqId = request["id"].ToObject<int>();
-
-                string methodName = JToken.FromObject(request["method"]).ToObject<string>();
-                JObject reqParams = JObject.FromObject(request["params"]);
+                var reqId = request["id"].ToObject<int>();
+                var methodName = JToken.FromObject(request["method"]).ToObject<string>();
+                var reqParams = JObject.FromObject(request["params"]);
 
                 JObject responseData = null;
                 switch (methodName)
@@ -235,6 +226,12 @@ namespace AElf.Kernel.Node.RPC
                     case GetBlockInfo:
                         responseData = await ProGetBlockInfo(reqParams);
                         break;
+                    case GetDeserializedInfo:
+                        responseData = ProGetDeserializedInfo(reqParams);
+                        break;
+                    case CallReadOnly:
+                        responseData = await ProcessCallReadOnly(reqParams);
+                        break;
                     default:
                         Console.WriteLine("Method name not found"); // todo log
                         break;
@@ -245,7 +242,7 @@ namespace AElf.Kernel.Node.RPC
                     // todo write error 
                 }
 
-                JObject resp = JsonRpcHelpers.CreateResponse(responseData, reqId);
+                var resp = JsonRpcHelpers.CreateResponse(responseData, reqId);
 
                 await WriteResponse(context, resp);
             }
@@ -255,21 +252,47 @@ namespace AElf.Kernel.Node.RPC
             }
         }
 
+        private JObject ProGetDeserializedInfo(JObject reqParams)
+        {
+            try
+            {
+                var sKey = reqParams["key"].ToString();
+                var byteKey = ByteArrayHelpers.FromHexString(sKey);
+                var key = Key.Parser.ParseFrom(byteKey);
+                var keyType = key.Type;
+
+                return new JObject
+                {
+                    ["type"] = keyType
+                };
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return new JObject
+                {
+                    ["error"] = "Unknown key"
+                };
+            }
+        }
+
         private async Task<JObject> ProGetBlockInfo(JObject reqParams)
         {
             var error = JObject.FromObject(new JObject
             {
                 ["error"] = "Invalid Block Height"
             });
-            var height = int.Parse(reqParams["block_height"].ToString());
 
+            var height = int.Parse(reqParams["block_height"].ToString());
             if (height < 0)
                 return error;
+
             var blockinfo = await _node.GetBlockAtHeight(height);
             if (blockinfo == null)
                 return error;
 
-            JObject j = new JObject
+            var transactionPoolSize = await _node.GetTransactionPoolSize();
+            var response = new JObject
             {
                 ["result"] = new JObject
                 {
@@ -282,32 +305,37 @@ namespace AElf.Kernel.Node.RPC
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
                         ["ChainId"] = blockinfo.Header.ChainId.ToHex()
-                    }
+                    },
+                    ["Body"] = new JObject
+                    {
+                        ["TransactionsCount"] = blockinfo.Body.TransactionsCount
+                    },
+                    ["CurrentTransactionPoolSize"] = transactionPoolSize
                 }
             };
 
-            return JObject.FromObject(j);
+            return JObject.FromObject(response);
         }
 
         private async Task<JObject> ProGetBlockHeight(JObject reqParams)
         {
             var height = await _node.GetCurrentChainHeight();
-            JObject j = new JObject
+            var response = new JObject
             {
                 ["result"] = new JObject
                 {
                     ["block_height"] = height.ToString()
                 }
             };
-            return JObject.FromObject(j);
+            return JObject.FromObject(response);
         }
-        
+
 
         private Task<JObject> ProGetGenesisAddress(JObject reqParams)
         {
             var genesisHash = _node.GetGenesisContractHash();
-            Hash chainId = _node.ChainId;  
-            JObject j = new JObject
+            var chainId = _node.ChainId;
+            var response = new JObject
             {
                 ["result"] = new JObject
                 {
@@ -315,18 +343,16 @@ namespace AElf.Kernel.Node.RPC
                     ["chain_id"] = chainId.ToHex()
                 }
             };
-            
-            return Task.FromResult(JObject.FromObject(j));
+
+            return Task.FromResult(JObject.FromObject(response));
         }
 
         private async Task<JObject> ProcGetTxResult(JObject reqParams)
         {
-            string adr = reqParams["txhash"].ToString();
             Hash txHash;
-            
             try
             {
-                txHash = ByteArrayHelpers.FromHexString(adr);
+                txHash = ByteArrayHelpers.FromHexString(reqParams["txhash"].ToString());
             }
             catch (Exception e)
             {
@@ -335,43 +361,34 @@ namespace AElf.Kernel.Node.RPC
                     ["error"] = "Invalid Address Format"
                 });
             }
-            
-            TransactionResult txResult = await _node.GetTransactionResult(txHash);
-            var jobj = new JObject
+
+            var txResult = await _node.GetTransactionResult(txHash);
+            var response = new JObject
             {
                 ["tx_id"] = txResult.TransactionId.ToHex(),
                 ["tx_status"] = txResult.Status.ToString()
             };
 
-            
             if (txResult.Status == Status.Failed)
             {
-                jobj["tx_error"] = txResult.RetVal.ToStringUtf8();
+                response["tx_error"] = txResult.RetVal.ToStringUtf8();
             }
 
             if (txResult.Status == Status.Mined)
             {
-                jobj["return"] = txResult.RetVal.ToByteArray().ToHex();
+                response["return"] = txResult.RetVal.ToByteArray().ToHex();
             }
             // Todo: it should be deserialized to obj ion cli, 
-            
-            
-            JObject j = new JObject
-            {
-                ["result"] = jobj
-            };
-            
-            return JObject.FromObject(j);
+
+            return JObject.FromObject(new JObject {["result"] = response});
         }
 
         private async Task<JObject> ProcessGetIncrementId(JObject reqParams)
         {
-            string adr = reqParams["address"].ToString();
-            
             Hash addr;
             try
             {
-                addr = new Hash(ByteArrayHelpers.FromHexString(adr));
+                addr = new Hash(ByteArrayHelpers.FromHexString(reqParams["address"].ToString()));
             }
             catch (Exception e)
             {
@@ -380,10 +397,9 @@ namespace AElf.Kernel.Node.RPC
                     ["error"] = "Invalid Address Format"
                 });
             }
-            
-            ulong current = await _node.GetIncrementId(addr);
 
-            JObject j = new JObject
+            var current = await _node.GetIncrementId(addr);
+            var response = new JObject
             {
                 ["result"] = new JObject
                 {
@@ -391,25 +407,25 @@ namespace AElf.Kernel.Node.RPC
                 }
             };
 
-            return JObject.FromObject(j);
+            return JObject.FromObject(response);
         }
 
         private async Task<JObject> ProcessGetContractAbi(JObject reqParams)
         {
-            string addr = reqParams["address"] == null
+            var addr = reqParams["address"] == null
                 ? _node.GetGenesisContractHash().ToHex()
                 : reqParams["address"].ToString();
-            JObject j = null;
 
+            JObject response;
             try
             {
-                Hash addrHash = new Hash()
+                var addrHash = new Hash
                 {
                     Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(addr))
                 };
- 
+
                 var abi = await _node.GetContractAbi(addrHash);
-                j = new JObject
+                response = new JObject
                 {
                     ["address"] = addr,
                     ["abi"] = abi.ToByteArray().ToHex(),
@@ -418,7 +434,7 @@ namespace AElf.Kernel.Node.RPC
             }
             catch (Exception e)
             {
-                j = new JObject
+                response = new JObject
                 {
                     ["address"] = addr,
                     ["abi"] = "",
@@ -426,31 +442,54 @@ namespace AElf.Kernel.Node.RPC
                 };
             }
 
-            return j;
+            return response;
         }
 
         private async Task<JObject> ProcessBroadcastTx(JObject reqParams)
         {
-            string raw64 = reqParams["rawtx"].ToString();
+            var raw64 = reqParams["rawtx"].ToString();
+            var hexString = ByteArrayHelpers.FromHexString(raw64);
+            var transaction = Transaction.Parser.ParseFrom(hexString);
+            var res = await _node.BroadcastTransaction(transaction);
 
-            byte[] b = ByteArrayHelpers.FromHexString(raw64);
-            Transaction t = Transaction.Parser.ParseFrom(b);
-
-            var res = await _node.BroadcastTransaction(t);
-
-            JObject j;
+            JObject response;
             if (res != TxValidation.TxInsertionAndBroadcastingError.Success)
             {
-                j = new JObject
+                response = new JObject
                 {
                     ["error"] = res.ToString()
                 };
-                return JObject.FromObject(j);
+                return JObject.FromObject(response);
             }
 
-            j = new JObject { ["hash"] = t.GetHash().ToHex() };
-            
-            return JObject.FromObject(j);
+            response = new JObject {["hash"] = transaction.GetHash().ToHex()};
+            return JObject.FromObject(response);
+        }
+
+        private async Task<JObject> ProcessCallReadOnly(JObject reqParams)
+        {
+            var raw64 = reqParams["rawtx"].ToString();
+            var hexString = ByteArrayHelpers.FromHexString(raw64);
+            var transaction = Transaction.Parser.ParseFrom(hexString);
+
+            JObject response;
+            try
+            {
+                var res = await _node.CallReadOnly(transaction);
+                response = new JObject
+                {
+                    ["return"] = res.ToHex()
+                };
+            }
+            catch (Exception e)
+            {
+                response = new JObject
+                {
+                    ["error"] = e.ToString()
+                };
+            }
+
+            return JObject.FromObject(response);
         }
 
         /// <summary>
@@ -461,10 +500,10 @@ namespace AElf.Kernel.Node.RPC
         /// <returns></returns>
         private async Task<JObject> ProcessGetTx(JObject reqParams)
         {
-            byte[] txid = reqParams["txid"].ToObject<byte[]>();
-            ITransaction tx = await _node.GetTransaction(txid);
+            var txid = reqParams["txid"].ToObject<byte[]>();
+            var transaction = await _node.GetTransaction(txid);
 
-            var txInfo = tx == null ? new JObject {["tx"] = "Not Found"} : tx.GetTransactionInfo();
+            var txInfo = transaction == null ? new JObject {["tx"] = "Not Found"} : transaction.GetTransactionInfo();
 
             return txInfo;
         }
@@ -476,19 +515,19 @@ namespace AElf.Kernel.Node.RPC
         /// <returns></returns>
         private JObject ProcessGetCommands()
         {
-            List<string> commands = _rpcCommands.Where(x => x != GetCommandsMethodName).ToList();
+            var commands = _rpcCommands.Where(x => x != GetCommandsMethodName).ToList();
             var json = JsonConvert.SerializeObject(commands);
-            JArray arrCommands = JArray.Parse(json);
+            var arrCommands = JArray.Parse(json);
 
-            JObject j = new JObject()
+            var response = new JObject
             {
                 ["result"] = new JObject
-                    {
-                        ["commands"] = arrCommands
-                    }
+                {
+                    ["commands"] = arrCommands
+                }
             };
 
-            return JObject.FromObject(j);
+            return JObject.FromObject(response);
         }
 
         private async Task<JObject> ProcessBroadcastBlock(JObject reqParams)
@@ -503,6 +542,5 @@ namespace AElf.Kernel.Node.RPC
 
             await context.Response.WriteAsync(response.ToString(), Encoding.UTF8);
         }
-        
     }
 }
