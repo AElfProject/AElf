@@ -62,9 +62,11 @@ namespace AElf.CLI2.JS.IO
                         return val.ToDouble().ToString(CultureInfo.InvariantCulture);
                     }
                 case JavaScriptValueType.Error:
+                    var keys = val.GetOwnPropertyNames();
                     throw new Exception("Error in js");
+                case JavaScriptValueType.String:
+                    return val.ToString();
                 default:
-                    _logger.Debug(val.ValueType);
                     return val.ValueType.ToString();
             }
         }

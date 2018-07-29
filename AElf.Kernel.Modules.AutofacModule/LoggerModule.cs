@@ -36,6 +36,7 @@ namespace AElf.Kernel.Modules.AutofacModule
                     target.FileName = "logs/" + _nodeName + "-log.txt";
                 }
                 
+                HookLogConfiguration(LogManager.Configuration);
                 LogManager.ReconfigExistingLoggers();
             }
             catch (Exception e)
@@ -49,6 +50,9 @@ namespace AElf.Kernel.Modules.AutofacModule
             // Handle constructor parameters.
             registration.Preparing += OnComponentPreparing;
         }
+        
+        
+        protected virtual void HookLogConfiguration(LoggingConfiguration configuration) {}
 
         private void OnComponentPreparing(object sender, PreparingEventArgs e)
         {
