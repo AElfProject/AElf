@@ -310,6 +310,7 @@ namespace AElf.Network.Peers
                 }
 
                 request.TryPeer(selectedPeer);
+                _logger?.Trace($"Request for block at index {index}");
             }
             catch (Exception e)
             {
