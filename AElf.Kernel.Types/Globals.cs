@@ -29,8 +29,6 @@ namespace AElf.Kernel
         // ReSharper disable once InconsistentNaming
         public const string AElfDPoSExtraBlockTimeslotString = "AElfExtraBlockTimeslot";
         // ReSharper disable once InconsistentNaming
-        public const string AElfDPoSChainCreatorString = "AElfChainCreator";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSFirstPlaceOfEachRoundString = "AElfFirstPlaceOfEachRound";
 
         #endregion

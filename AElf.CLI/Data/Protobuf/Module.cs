@@ -81,6 +81,9 @@ namespace AElf.CLI.Data.Protobuf
         public string ReturnType {get; set; }
         
         [ProtoMember(4)]
+        public bool IsView { get; set; }
+        
+        [ProtoMember(5)]
         public bool IsAsync { get; set; }
         
         public byte[] SerializeParams(IEnumerable<string> args)
