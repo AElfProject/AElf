@@ -434,26 +434,34 @@ namespace AElf.Kernel.Consensus
         
         // ReSharper disable once InconsistentNaming
         /// <summary>
-        /// This method should be called after all the BPs restarted.
+        /// This method should return true if all the BPs restarted (and missed their timeslots).
         /// </summary>
         /// <returns></returns>
-        public async Task TryToRegenerateDPoSInformation()
+        public bool CanRecoverDPoSInformation()
         {
-            //If DPoS information is already generated, do nothing.
-            //Because this method doesn't resposible to initialize DPoS information.
-            if (CurrentRoundNumber.Value == 0)
+            try
             {
-                return;
+                //If DPoS information is already generated, return false;
+                //Because this method doesn't resposible to initialize DPoS information.
+                if (CurrentRoundNumber.Value == 0)
+                {
+                    return false;
+                }
+
+                var extraBlockTimeslot = ExtraBlockTimeslot.ToDateTime();
+                var now = DateTime.UtcNow;
+                if (now < extraBlockTimeslot)
+                {
+                    return false;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Failed to check whether this node can recover DPoS mining.");
+                return false;
             }
 
-            var extraBlockTimeslot = ExtraBlockTimeslot.ToDateTime();
-            var now = DateTime.UtcNow;
-            if (now < extraBlockTimeslot)
-            {
-                return;
-            }
-            
-            
+            return true;
         }
         
         // ReSharper disable once InconsistentNaming

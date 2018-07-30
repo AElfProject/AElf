@@ -71,6 +71,11 @@ namespace AElf.Kernel.Consensus
         {
             Observable.Return(ConsensusBehavior.InitializeAElfDPoS).Subscribe(this);
         }
+
+        public void RecoverMining()
+        {
+            Observable.Return(ConsensusBehavior.UpdateAElfDPoS).Subscribe(this);
+        }
         
         public IDisposable SubscribeMiningProcess(BPInfo infoOfMe, Timestamp extraBlockTimeslot)
         {

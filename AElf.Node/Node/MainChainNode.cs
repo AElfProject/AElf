@@ -575,6 +575,12 @@ namespace AElf.Kernel.Node
                 ConsensusSequence.Initialization();
             }
 
+            if (_dPoSHelper.CanRecoverDPoSInformation() &&
+                BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
+            {
+                ConsensusSequence.RecoverMining();
+            }
+
             _dPoSHelper.StartConsensusLog();
         }
 
