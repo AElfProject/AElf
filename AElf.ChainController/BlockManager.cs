@@ -1,52 +1,57 @@
 ﻿using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Kernel;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using AElf.Kernel.Types;
 using NLog;
 
-namespace AElf.Kernel.Managers
+namespace AElf.ChainController
 {
     [LoggerName(nameof(BlockManager))]
     public class BlockManager : IBlockManager
     {
         private readonly IBlockHeaderStore _blockHeaderStore;
 
-        private readonly IBlockBodyStore _blockBodyStore;
 
         private readonly IDataStore _dataStore;
 
         private readonly ILogger _logger;
 
-        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
-            IDataStore dataStore, ILogger logger)
+        public BlockManager(IBlockHeaderStore blockHeaderStore, IDataStore dataStore, ILogger logger)
         {
             _blockHeaderStore = blockHeaderStore;
-            _blockBodyStore = blockBodyStore;
             _dataStore = dataStore;
             _logger = logger;
         }
 
         public async Task<IBlock> AddBlockAsync(IBlock block)
         {
+            //await _dataStore.InsertAsync<BlockHeader>(block.GetHash(), block.Header);
             await _blockHeaderStore.InsertAsync(block.Header);
-            await _blockBodyStore.InsertAsync(block.Body.GetHash(), block.Body);
+            await _dataStore.InsertAsync<BlockBody>(block.Body.GetHash(), block.Body);
 
             return block;
         }
 
         public async Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash)
         {
+            //return await _dataStore.GetAsync<BlockHeader>(blockHash);
             return await _blockHeaderStore.GetAsync(blockHash);
         }
 
         public async Task<BlockHeader> AddBlockHeaderAsync(BlockHeader header)
         {
-            return await _blockHeaderStore.InsertAsync(header);
+            //await _dataStore.InsertAsync<BlockHeader>(header.GetHash(), header);
+            await _blockHeaderStore.InsertAsync(header);
+            return header;
         }
 
         public async Task<Block> GetBlockAsync(Hash blockHash)
         {
+            //var header =  await _dataStore.GetAsync<BlockHeader>(blockHash);
             var header = await _blockHeaderStore.GetAsync(blockHash);
-            var body = await _blockBodyStore.GetAsync(header.GetHash().CalculateHashWith(header.MerkleTreeRootOfTransactions));
+            var body = await _dataStore.GetAsync<BlockBody>(header.GetHash().CalculateHashWith(header.MerkleTreeRootOfTransactions));
             return new Block
             {
                 Header = header,
@@ -57,9 +62,8 @@ namespace AElf.Kernel.Managers
         public async Task<Block> GetNextBlockOf(Hash chainId, Hash blockHash)
         {
             var nextBlockHeight = (await GetBlockAsync(blockHash)).Header.Index + 1;
-            var nextBlockHashBytes = await _dataStore.GetDataAsync<Hash>(
+            var nextBlockHash = await _dataStore.GetAsync<Hash>(
                 ResourcePath.CalculatePointerForGettingBlockHashByHeight(chainId, nextBlockHeight));
-            var nextBlockHash = Hash.Parser.ParseFrom(nextBlockHashBytes);
             return await GetBlockAsync(nextBlockHash);
         }
         
@@ -67,17 +71,18 @@ namespace AElf.Kernel.Managers
         {
             _logger?.Trace($"Trying to get block by height {height}");
 
-            var keyQuote = await _dataStore.GetDataAsync<Hash>(
+            var key = await _dataStore.GetAsync<Hash>(
                 ResourcePath.CalculatePointerForGettingBlockHashByHeight(chainId, height));
-            if (keyQuote == null)
+            if (key == null)
             {
                 _logger?.Error($"Invalid block height - {height}");
                 return null;
             }
-            var key = Hash.Parser.ParseFrom(keyQuote);
 
+            //var blockHeader = await _dataStore.GetAsync<BlockHeader>(key);
             var blockHeader = await _blockHeaderStore.GetAsync(key);
-            var blockBody = await _blockBodyStore.GetAsync(blockHeader.GetHash().CalculateHashWith(blockHeader.MerkleTreeRootOfTransactions));
+            var blockBody = await _dataStore.GetAsync<BlockBody>(blockHeader.GetHash()
+                .CalculateHashWith(blockHeader.MerkleTreeRootOfTransactions));
             return new Block
             {
                 Header = blockHeader,

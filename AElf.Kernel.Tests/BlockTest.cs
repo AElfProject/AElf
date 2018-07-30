@@ -61,7 +61,7 @@ namespace AElf.Kernel.Tests
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             await _chainManager.AppendBlockToChainAsync(block1);
             await _blockManager.AddBlockAsync(block1);
-            
+
             var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
             await _chainManager.AppendBlockToChainAsync(block2);
             await _blockManager.AddBlockAsync(block2);

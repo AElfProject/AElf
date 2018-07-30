@@ -54,9 +54,4 @@
       <Name>AElf.Kernel.Types</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="protobuf-net, Version=2.3.9.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67">
-      <HintPath>..\..\..\..\.nuget\packages\protobuf-net\2.3.9\lib\netstandard2.0\protobuf-net.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 </Project>

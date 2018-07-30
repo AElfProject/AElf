@@ -20,11 +20,10 @@ namespace AElf.Kernel.Tests
 
         public WorldStateDictatorTest(IWorldStateStore worldStateStore, IChangesStore changesStore,
             IDataStore dataStore, ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore,
-            IBlockBodyStore blockBodyStore,
             ITransactionStore transactionStore, BlockTest blockTest, ILogger logger)
         {
             _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore,
-                blockHeaderStore, blockBodyStore, transactionStore, _logger)
+                blockHeaderStore, transactionStore, _logger)
             {
                 BlockProducerAccountAddress = Hash.Generate()
             };

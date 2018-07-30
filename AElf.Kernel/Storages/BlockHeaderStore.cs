@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.Database;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Storages
 {
@@ -17,7 +18,7 @@ namespace AElf.Kernel.Storages
         public async Task<BlockHeader> InsertAsync(BlockHeader header)
         {
             var key = header.GetHash().GetKeyString(TypeIndex);
-            await _keyValueDatabase.SetAsync(key, header.Serialize());
+            await _keyValueDatabase.SetAsync(key, header.ToByteArray());
             return header;
         }
 

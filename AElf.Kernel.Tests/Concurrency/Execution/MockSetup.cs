@@ -61,7 +61,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
         public MockSetup(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
+            IDataStore dataStore, IBlockHeaderStore blockHeaderStore,
             ITransactionStore transactionStore, IChainCreationService chainCreationService,
             IBlockManager blockManager, ISmartContractStore smartContractStore,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
@@ -69,7 +69,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         {
             _logger = logger;
             _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore,
-                blockHeaderStore, blockBodyStore, transactionStore, _logger);
+                blockHeaderStore, transactionStore, _logger);
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             ChainContextService = chainContextService;

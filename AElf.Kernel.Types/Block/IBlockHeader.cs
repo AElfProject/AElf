@@ -4,7 +4,7 @@ using AElf.Kernel.Types;
 
 namespace AElf.Kernel
 {
-    public interface IBlockHeader : IHashProvider, ISerializable
+    public interface IBlockHeader : IHashProvider
     {
         int Version { get; set; }
         Hash MerkleTreeRootOfTransactions { get; set; }

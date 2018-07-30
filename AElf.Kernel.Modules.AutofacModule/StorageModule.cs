@@ -14,7 +14,6 @@ namespace AElf.Kernel.Modules.AutofacModule
             builder.RegisterType<ChainStore>().As<IChainStore>();
             builder.RegisterType<SmartContractStore>().As<ISmartContractStore>();
             builder.RegisterType<TransactionStore>().As<ITransactionStore>();
-            builder.RegisterType<BlockBodyStore>().As<IBlockBodyStore>();
             builder.RegisterType<BlockHeaderStore>().As<IBlockHeaderStore>();
             builder.RegisterType<TransactionResultStore>().As<ITransactionResultStore>();
         }

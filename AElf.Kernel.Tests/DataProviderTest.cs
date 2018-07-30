@@ -21,13 +21,12 @@ namespace AElf.Kernel.Tests
         private readonly ILogger _logger;
         private readonly ITxPoolService _txPoolService;
         private readonly IBlockHeaderStore _blockHeaderStore;
-        private readonly IBlockBodyStore _blockBodyStore;
         private readonly ITransactionStore _transactionStore;
 
         public DataProviderTest(IWorldStateStore worldStateStore,
             IChangesStore changesStore, IDataStore dataStore,
             BlockTest blockTest, ILogger logger,
-            ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
+            ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore,
             ITransactionStore transactionStore)
         {
             _worldStateStore = worldStateStore;
@@ -37,7 +36,6 @@ namespace AElf.Kernel.Tests
             _logger = logger;
             _txPoolService = txPoolService;
             _blockHeaderStore = blockHeaderStore;
-            _blockBodyStore = blockBodyStore;
             _transactionStore = transactionStore;
         }
 
@@ -53,7 +51,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
 
             var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                _blockHeaderStore, _blockBodyStore, _transactionStore, _logger).SetChainId(chain.Id);
+                _blockHeaderStore, _transactionStore, _logger).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
 
             await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);
