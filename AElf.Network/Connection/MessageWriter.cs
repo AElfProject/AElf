@@ -11,7 +11,7 @@ namespace AElf.Network.Connection
     /// <summary>
     /// This class performs writes to the underlying tcp stream.
     /// </summary>
-    public class MessageWriter : IDisposable
+    public class MessageWriter : IMessageWriter
     {
         private readonly ILogger _logger;
         private readonly NetworkStream _stream;
@@ -41,7 +41,7 @@ namespace AElf.Network.Connection
             Task.Run(() => DequeueOutgoingLoop()).ConfigureAwait(false);
         }
         
-        public void EnqueueWork(Message p)
+        public void EnqueueMessage(Message p)
         {
             try
             {
