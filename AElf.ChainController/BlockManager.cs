@@ -3,6 +3,7 @@ using AElf.Common.Attributes;
 using AElf.Kernel.Storages;
 using NLog;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Managers
 {
     [LoggerName(nameof(BlockManager))]

@@ -39,6 +39,10 @@ namespace AElf.Kernel.Consensus
             }
         }
 
+        public Timestamp ExtraBlockTimeslot =>
+            Timestamp.Parser.ParseFrom(_dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash())
+                .Result);
+        
         public AElfDPoSHelper(IWorldStateDictator worldStateDictator, ECKeyPair keyPair, Hash chainId,
             BlockProducer blockProducer, Hash contractAddressHash, IChainManager chainManager, ILogger logger)
         {
@@ -62,11 +66,6 @@ namespace AElf.Kernel.Consensus
         {
             return RoundInfo.Parser.ParseFrom(await _dataProvider.GetDataProvider(Globals.AElfDPoSInformationString)
                 .GetAsync(CurrentRoundNumber.CalculateHash())).Info[accountAddress];
-        }
-
-        public async Task<Timestamp> GetExtraBlockTimeslotOfCurrentRound()
-        {
-            return Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
         }
         
         public DPoSInfo GenerateInfoForFirstTwoRounds()
@@ -350,7 +349,9 @@ namespace AElf.Kernel.Consensus
             {
                 if (CurrentRoundNumber.Value == 0)
                 {
-                    return "No DPoS Information, maybe failed to sync blocks";
+                    return "No DPoS Information, maybe failed to generate related information or synchronize blocks.\n" +
+                           "Please check the account you config has the right to produce block if this node is the first" +
+                           "one to start.";
                 }
             
                 var currentRoundNumber = CurrentRoundNumber.Value;
@@ -402,7 +403,7 @@ namespace AElf.Kernel.Consensus
         }
         
         // ReSharper disable once InconsistentNaming
-        public void DPoSLog(bool doLogsAboutConsensus = true)
+        public void StartConsensusLog(bool doLogsAboutConsensus = true)
         {
             new EventLoopScheduler().Schedule(() =>
             {
@@ -428,8 +429,31 @@ namespace AElf.Kernel.Consensus
 
                     }
                 );
-                
             });
+        }
+        
+        // ReSharper disable once InconsistentNaming
+        /// <summary>
+        /// This method should be called after all the BPs restarted.
+        /// </summary>
+        /// <returns></returns>
+        public async Task TryToRegenerateDPoSInformation()
+        {
+            //If DPoS information is already generated, do nothing.
+            //Because this method doesn't resposible to initialize DPoS information.
+            if (CurrentRoundNumber.Value == 0)
+            {
+                return;
+            }
+
+            var extraBlockTimeslot = ExtraBlockTimeslot.ToDateTime();
+            var now = DateTime.UtcNow;
+            if (now < extraBlockTimeslot)
+            {
+                return;
+            }
+            
+            
         }
         
         // ReSharper disable once InconsistentNaming

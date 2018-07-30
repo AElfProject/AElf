@@ -103,7 +103,7 @@ namespace AElf.Kernel.Node.RPC
             }
             catch (Exception e)
             {
-                _logger.LogException(LogLevel.Error, "Error while starting the RPC server.", e);
+                _logger.Log(LogLevel.Error, e, "Error while starting the RPC server.");
                 return false;
             }
 
@@ -127,7 +127,7 @@ namespace AElf.Kernel.Node.RPC
             }
             catch (Exception e)
             {
-                _logger.LogException(LogLevel.Error, "Error while parsing the RPC request.", e);
+                _logger.Log(LogLevel.Error, e, "Error while parsing the RPC request.");
                 return null;
             }
         }

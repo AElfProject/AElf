@@ -29,7 +29,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 
-
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
 {
@@ -576,7 +575,7 @@ namespace AElf.Kernel.Node
                 ConsensusSequence.Initialization();
             }
 
-            _dPoSHelper.DPoSLog();
+            _dPoSHelper.StartConsensusLog();
         }
 
         // ReSharper disable once InconsistentNaming
@@ -585,19 +584,14 @@ namespace AElf.Kernel.Node
             return await _dPoSHelper.GetBPInfoOfCurrentRound(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix());
         }
 
-        private async Task<Timestamp> GetExtraBlockTimeslot()
-        {
-            return await _dPoSHelper.GetExtraBlockTimeslotOfCurrentRound();
-        }
-
         // ReSharper disable once InconsistentNaming
         public async Task CheckUpdatingDPoSProcess()
         {
             if (CurrentRoundNumber != _dPoSHelper.CurrentRoundNumber.Value)
             {
                 ConsensusDisposable?.Dispose();
-                ConsensusDisposable = ConsensusSequence.NormalMiningProcess(await GetBPInfoOfCurrentRound(),
-                    await GetExtraBlockTimeslot());
+                ConsensusDisposable = ConsensusSequence.SubscribeMiningProcess(await GetBPInfoOfCurrentRound(),
+                    _dPoSHelper.ExtraBlockTimeslot);
                 CurrentRoundNumber = _dPoSHelper.CurrentRoundNumber.Value;
             }
         }
