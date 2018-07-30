@@ -13,6 +13,8 @@ namespace AElf.Network.Connection
     /// </summary>
     public class MessageWriter : IMessageWriter
     {
+        private const int DefaultMaxOutboundPacketSize = 1024;
+        
         private readonly ILogger _logger;
         private readonly NetworkStream _stream;
         private readonly BlockingCollection<Message> _outboundMessages;
@@ -23,7 +25,7 @@ namespace AElf.Network.Connection
         /// than this value, this message will be send in multiple sub
         /// packets.
         /// </summary>
-        public int MaxOutboundPacketSize { get; private set; } = 1024;
+        public int MaxOutboundPacketSize { get; set; } = DefaultMaxOutboundPacketSize;
         
         public MessageWriter(NetworkStream stream)
         {
@@ -84,7 +86,7 @@ namespace AElf.Network.Connection
                             
                             var partial = new PartialPacket 
                             {
-                                Position = i, IsEnd = false, TotalDataSize = p.Payload.Length, Data = slice
+                                Type = p.Type, Position = i, IsEnd = false, TotalDataSize = p.Payload.Length, Data = slice
                             };
                             
                             partials.Add(partial);
@@ -97,7 +99,7 @@ namespace AElf.Network.Connection
                         
                         var endPartial = new PartialPacket 
                         {
-                            Position = packetCount-1, IsEnd = true, TotalDataSize = p.Payload.Length, Data = endSlice
+                            Type = p.Type, Position = packetCount-1, IsEnd = true, TotalDataSize = p.Payload.Length, Data = endSlice
                         };
                         
                         partials.Add(endPartial);
@@ -135,7 +137,7 @@ namespace AElf.Network.Connection
 
         internal void SendPartialPacket(PartialPacket p)
         {
-            byte[] type = { 1 }; // todo
+            byte[] type = { (byte)p.Type };
             byte[] isbuffered = { 1 };
             byte[] length = BitConverter.GetBytes(p.Data.Length);
 
