@@ -29,7 +29,7 @@ namespace AElf.ChainController
         {
             //await _dataStore.InsertAsync<BlockHeader>(block.GetHash(), block.Header);
             await _blockHeaderStore.InsertAsync(block.Header);
-            await _dataStore.InsertAsync<BlockBody>(block.Body.GetHash(), block.Body);
+            await _dataStore.InsertAsync(block.Body.GetHash(), block.Body);
 
             return block;
         }
@@ -71,16 +71,18 @@ namespace AElf.ChainController
         {
             _logger?.Trace($"Trying to get block by height {height}");
 
-            var key = await _dataStore.GetAsync<Hash>(
-                ResourcePath.CalculatePointerForGettingBlockHashByHeight(chainId, height));
+            var key = ResourcePath.CalculatePointerForGettingBlockHashByHeight(chainId, height);
             if (key == null)
             {
                 _logger?.Error($"Invalid block height - {height}");
                 return null;
             }
+            System.Diagnostics.Debug.WriteLine("get key for height {0}: {1}", height, key.ToHex());
 
+            var blockHash = await _dataStore.GetAsync<Hash>(key);
+            
             //var blockHeader = await _dataStore.GetAsync<BlockHeader>(key);
-            var blockHeader = await _blockHeaderStore.GetAsync(key);
+            var blockHeader = await _blockHeaderStore.GetAsync(blockHash);
             var blockBody = await _dataStore.GetAsync<BlockBody>(blockHeader.GetHash()
                 .CalculateHashWith(blockHeader.MerkleTreeRootOfTransactions));
             return new Block

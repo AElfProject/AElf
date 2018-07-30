@@ -50,7 +50,7 @@ namespace AElf.Kernel.Managers
             // chain height should not be 0 when appending a new block
             if (header.Index != height)
             {
-                throw new InvalidDataException("Invalid block");
+                throw new InvalidDataException("Invalid block, wrong eight");
             }
             if (height == 0)
             {
@@ -59,7 +59,7 @@ namespace AElf.Kernel.Managers
             }
             if ( lastBlockHash != header.PreviousBlockHash)
             {
-                throw new InvalidDataException("Invalid block");
+                throw new InvalidDataException("Invalid block, wrong previous hash");
                 //Block is not connected
             }
 
@@ -90,7 +90,7 @@ namespace AElf.Kernel.Managers
         public async Task SetChainCurrentHeight(Hash chainId, ulong height)
         {
             var key = ResourcePath.CalculatePointerForCurrentBlockHeight(chainId);
-            await _dataStore.InsertAsync<UInt64Value>(key, new UInt64Value
+            await _dataStore.InsertAsync(key, new UInt64Value
             {
                 Value = height
             });
@@ -109,7 +109,7 @@ namespace AElf.Kernel.Managers
         {
             var key = ResourcePath.CalculatePointerForLastBlockHash(chainId);
             _worldStateDictator.PreBlockHash = blockHash;
-            await _dataStore.InsertAsync<Hash>(key, blockHash.GetHashBytes());
+            await _dataStore.InsertAsync(key, blockHash);
         }
     }
 }

@@ -82,7 +82,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var tx = BuildTransaction();
             var tmp = new HashSet<ITransaction> {tx};
             var ctx = await _accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
-            pool.TrySetNonce(tx.From,ctx.IncrementId);
+            pool.TrySetNonce(tx.From, ctx.IncrementId);
             pool.EnQueueTxs(tmp);
             
             pool.GetPoolState(out var executable, out var waiting);

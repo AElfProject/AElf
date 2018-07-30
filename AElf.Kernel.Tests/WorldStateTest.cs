@@ -194,13 +194,16 @@ namespace AElf.Kernel.Tests
         public async Task RollbackCurrentChangesTest()
         {
             var chain = await _blockTest.CreateChain();
-            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
-            
             var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                    _blockHeaderStore, _transactionStore,  _logger)
-                .SetChainId(chain.Id);
+                _blockHeaderStore, _transactionStore, _logger).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
-            var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDictator);
+
+            var chainManager = new ChainManager(_chainStore, _dataStore, worldStateDictator);
+            worldStateDictator.PreBlockHash = chain.GenesisBlockHash;
+            
+            // block 1
+            var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
+            var blockManager = new BlockManager(_blockHeaderStore, _dataStore, _logger);
             
             var address = Hash.Generate();
             
@@ -215,59 +218,68 @@ namespace AElf.Kernel.Tests
             await subDataProvider.SetAsync(key1, data1);
             await subDataProvider.SetAsync(key2, data2);
             
-            await chainManger.AppendBlockToChainAsync(block1);
-            await worldStateDictator.SetWorldStateAsync(block1.GetHash());
+            var data1_1 = Hash.Generate().Value.ToArray();
+            await subDataProvider.SetAsync(key1, data1_1);
 
+            await worldStateDictator.SetWorldStateAsync(block1.GetHash());
+            await blockManager.AddBlockAsync(block1);
+            await chainManager.AppendBlockToChainAsync(block1);
+            
+            
+            // block 2
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
             var data3 = Hash.Generate().Value.ToArray();
             var data4 = Hash.Generate().Value.ToArray();
+            
             subDataProvider = dataProvider.GetDataProvider("test");
             await subDataProvider.SetAsync(key1, data3);
             await subDataProvider.SetAsync(key2, data4);
-
-            var getData3 = await subDataProvider.GetAsync(key1);
-            Assert.True(data3.SequenceEqual(getData3));
-            var getData4 = await subDataProvider.GetAsync(key2);
-            Assert.True(data4.SequenceEqual(getData4));
-
-            //Do the rollback
-            await worldStateDictator.RollbackCurrentChangesAsync();
-
-            //Now the "key"'s value of subDataProvider rollback to previous data.
-            var getData1 = await subDataProvider.GetAsync(key1);
-            var getData2 = await subDataProvider.GetAsync(key2);
-            Assert.False(data3.SequenceEqual(getData1));
-            Assert.False(data4.SequenceEqual(getData2));
-            Assert.True(data1.SequenceEqual(getData1));
-            Assert.True(data2.SequenceEqual(getData2));
-            
-            //Set again
-            await subDataProvider.SetAsync(key1, data3);
-            await subDataProvider.SetAsync(key2, data4);
-            
-            Assert.True((await subDataProvider.GetAsync(key1)).SequenceEqual(data3));
-            Assert.True((await subDataProvider.GetAsync(key2)).SequenceEqual(data4));
 
             var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
-            await chainManger.AppendBlockToChainAsync(block2);
             await worldStateDictator.SetWorldStateAsync(block2.GetHash());
-
-            accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
-            dataProvider = accountDataProvider.GetDataProvider();
+            await blockManager.AddBlockAsync(block2);
+            await chainManager.AppendBlockToChainAsync(block2);
+            var getData1 = await subDataProvider.GetAsync(key1);
+            Assert.True(data3.SequenceEqual(getData1));
+            var getData2 = await subDataProvider.GetAsync(key2);
+            Assert.True(data4.SequenceEqual(getData2));
+            
+            
+            // block 3
             var data5 = Hash.Generate().Value.ToArray();
             var data6 = Hash.Generate().Value.ToArray();
-            subDataProvider = dataProvider.GetDataProvider("test");
-            await subDataProvider.SetAsync(key1, data6);
+            //Set again
             await subDataProvider.SetAsync(key1, data5);
+            await subDataProvider.SetAsync(key2, data6);
+            getData1 = await subDataProvider.GetAsync(key1);
+            getData2 = await subDataProvider.GetAsync(key2);
+            Assert.True(data5.SequenceEqual(getData1));
+            Assert.True(data6.SequenceEqual(getData2));
+            // Do the rollback
+            // await worldStateDictator.RollbackCurrentChangesAsync();
+            /*Assert.True(data3.SequenceEqual(await subDataProvider.GetAsync(key1)));
+            Assert.True(data4.SequenceEqual(await subDataProvider.GetAsync(key2)));*/
+            
+            var block3 = CreateBlock(block2.GetHash(), chain.Id, 3);
+            await worldStateDictator.SetWorldStateAsync(block3.GetHash());
+            await blockManager.AddBlockAsync(block3);
+            await chainManager.AppendBlockToChainAsync(block3);
+            
+            accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
+            dataProvider = accountDataProvider.GetDataProvider();
+            
+            var data7 = Hash.Generate().Value.ToArray();
+            var data8 = Hash.Generate().Value.ToArray();
+            subDataProvider = dataProvider.GetDataProvider("test");
+            await subDataProvider.SetAsync(key1, data7);
+            await subDataProvider.SetAsync(key2, data8);
 
-            var getData5 = await subDataProvider.GetAsync(key1);
-            Assert.True(getData5.SequenceEqual(data5));
-
+            getData1 = await subDataProvider.GetAsync(key1);
+            Assert.True(getData1.SequenceEqual(data7));
             await worldStateDictator.RollbackCurrentChangesAsync();
-
-            getData3 = await subDataProvider.GetAsync(key1);
-            Assert.True(getData3.SequenceEqual(data3));
+            getData1 = await subDataProvider.GetAsync(key1);
+            Assert.Equal(data1, getData1);
         }
 
         [Fact]
@@ -276,8 +288,6 @@ namespace AElf.Kernel.Tests
             ulong index = 0;
             
             var chain = await _blockTest.CreateChain();
-            System.Diagnostics.Debug.WriteLine($"Hash of height 0: {chain.GenesisBlockHash.Value.ToByteArray().ToHex()}");
-            
             var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
                 _blockHeaderStore, _transactionStore,  _logger).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
@@ -398,7 +408,6 @@ namespace AElf.Kernel.Tests
         public async Task CheckoutTest()
         {
             var chain = await _blockTest.CreateChain();
-            System.Diagnostics.Debug.WriteLine($"Hash of height 0: {chain.GenesisBlockHash.Value.ToByteArray().ToHex()}");
             
             var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
                 _blockHeaderStore, _transactionStore,  _logger).SetChainId(chain.Id);
@@ -477,8 +486,6 @@ namespace AElf.Kernel.Tests
             block.Header.Index = index;
             block.Header.MerkleTreeRootOfWorldState = Hash.Generate();
             block.Body.BlockHeader = block.Header.GetHash();
-
-            System.Diagnostics.Debug.WriteLine($"Hash of height {index}: {block.GetHash().Value.ToByteArray().ToHex()}\twith previous hash {preBlockHash.Value.ToByteArray().ToHex()}");
 
             return block;
         }

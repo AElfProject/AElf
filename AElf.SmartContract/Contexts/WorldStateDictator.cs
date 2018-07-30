@@ -88,7 +88,7 @@ namespace AElf.SmartContract
             
             // make a path related to its order
             var key = CalculateKeyForPath(PreBlockHash, count);
-            await _dataStore.InsertAsync<Hash>(key, pathHash.GetHashBytes());
+            await _dataStore.InsertAsync(key, pathHash);
 
             // update the count of changes
             count = new UInt64Value {Value = count.Value + 1};
@@ -117,7 +117,7 @@ namespace AElf.SmartContract
             }
             
             var keyToGetCount = ResourcePath.CalculatePointerForPathsCount(_chainId, PreBlockHash);
-            await _dataStore.InsertAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0});
+            await _dataStore.InsertAsync(keyToGetCount, new UInt64Value {Value = 0});
         }
         
         /// <summary>
@@ -148,7 +148,7 @@ namespace AElf.SmartContract
             var lastBlockHash = await _dataStore.GetAsync<Hash>(
                 ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, specificHeight - 1));
             await SetChainLastBlockHash(_chainId, lastBlockHash);
-            PreBlockHash = lastBlockHash;
+            //PreBlockHash = lastBlockHash;
 
             var txs = new List<ITransaction>();
 
@@ -211,7 +211,7 @@ namespace AElf.SmartContract
         {
             var key = ResourcePath.CalculatePointerForLastBlockHash(chainId);
             PreBlockHash = blockHash;
-            await _dataStore.InsertAsync<Hash>(key, blockHash.GetHashBytes());
+            await _dataStore.InsertAsync(key, blockHash);
         }
 
         /// <summary>
@@ -301,7 +301,7 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task SetDataAsync(Hash pointerHash, byte[] data)
         {
-            await _dataStore.InsertAsync<Hash>(pointerHash, data);
+            await _dataStore.InsertAsync(pointerHash, data);
         }
 
         /// <summary>
@@ -311,9 +311,10 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task<byte[]> GetDataAsync(Hash pointerHash)
         {
-            return (await _dataStore.GetAsync<Hash>(pointerHash)).GetHashBytes();
+            return await _dataStore.GetAsync(pointerHash);
         }
-        
+
+
         /// <summary>
         /// blockHash + order = key.
         /// Using key to get path from DataSotre.
@@ -414,7 +415,8 @@ namespace AElf.SmartContract
         public async Task<Hash> CalculatePointerHashOfCurrentHeight(IResourcePath resourcePath)
         {
             await Check();
-            
+
+            Console.WriteLine("previous block hash:" + PreBlockHash.ToHex());
             return resourcePath.SetBlockProducerAddress(BlockProducerAccountAddress)
                 .SetBlockHash(PreBlockHash).GetPointerHash();
         }
@@ -473,7 +475,7 @@ namespace AElf.SmartContract
             if (pipelineSet.Count > 0)
             {
                 //_logger?.Debug($"Pipeline set {pipelineSet.Count} data item");
-                return await _dataStore.PipelineSetDataAsync<Hash>(pipelineSet);
+                return await _dataStore.PipelineSetDataAsync(pipelineSet);
             }
 
             //return true for read-only 
@@ -484,11 +486,11 @@ namespace AElf.SmartContract
         {
             var blockHash = header.GetHash();
             _logger?.Trace($"Set height {height} block hash: {blockHash.Value.ToByteArray().ToHex()}");
-            await _dataStore.InsertAsync<Hash>(
-                ResourcePath.CalculatePointerForGettingBlockHashByHeight(
-                    header.ChainId,
-                    height),
-                blockHash.ToByteArray());
+            var key = ResourcePath.CalculatePointerForGettingBlockHashByHeight(
+                header.ChainId,
+                height);
+
+            await _dataStore.InsertAsync(key, blockHash);
         }
 
         #region Private methods
