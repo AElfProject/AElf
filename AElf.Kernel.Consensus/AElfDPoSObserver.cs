@@ -8,8 +8,8 @@ using NLog;
 namespace AElf.Kernel.Consensus
 {
     // ReSharper disable once InconsistentNaming
-    [LoggerName(nameof(AElfDPoSObservable))]
-    public class AElfDPoSObservable : IObserver<ConsensusBehavior>
+    [LoggerName(nameof(AElfDPoSObserver))]
+    public class AElfDPoSObserver : IObserver<ConsensusBehavior>
     {
         private readonly ILogger _logger;
         
@@ -20,29 +20,29 @@ namespace AElf.Kernel.Consensus
         // ReSharper disable once InconsistentNaming
         private readonly Func<Task> _miningWithUpdatingAElfDPoSInformation;
 
-        public AElfDPoSObservable(ILogger logger, params Func<Task>[] minings)
+        public AElfDPoSObserver(ILogger logger, params Func<Task>[] miningFunctions)
         {
-            if (minings.Length < 4)
+            if (miningFunctions.Length < 4)
             {
-                throw new ArgumentException("broadcasts count incorrect.", nameof(minings));
+                throw new ArgumentException("Incorrect functions count.", nameof(miningFunctions));
             }
 
             _logger = logger;
 
-            _miningWithInitializingAElfDPoSInformation = minings[0]; 
-            _miningWithPublishingOutValueAndSignature = minings[1];
-            _publishInValue = minings[2];
-            _miningWithUpdatingAElfDPoSInformation = minings[3];
+            _miningWithInitializingAElfDPoSInformation = miningFunctions[0]; 
+            _miningWithPublishingOutValueAndSignature = miningFunctions[1];
+            _publishInValue = miningFunctions[2];
+            _miningWithUpdatingAElfDPoSInformation = miningFunctions[3];
         }
 
         public void OnCompleted()
         {
-            _logger?.Trace($"{nameof(AElfDPoSObservable)} completed.");
+            _logger?.Trace($"{nameof(AElfDPoSObserver)} completed.");
         }
 
         public void OnError(Exception error)
         {
-            _logger?.Error(error, $"{nameof(AElfDPoSObservable)} error.");
+            _logger?.Error(error, $"{nameof(AElfDPoSObserver)} error.");
         }
 
         public void OnNext(ConsensusBehavior value)
@@ -72,7 +72,12 @@ namespace AElf.Kernel.Consensus
             Observable.Return(ConsensusBehavior.InitializeAElfDPoS).Subscribe(this);
         }
 
-        public IDisposable NormalMiningProcess(BPInfo infoOfMe, Timestamp extraBlockTimeslot)
+        public void RecoverMining()
+        {
+            Observable.Return(ConsensusBehavior.UpdateAElfDPoS).Subscribe(this);
+        }
+        
+        public IDisposable SubscribeMiningProcess(BPInfo infoOfMe, Timestamp extraBlockTimeslot)
         {
             var doNothingObservable = Observable
                 .Timer(TimeSpan.FromSeconds(0))
@@ -139,20 +144,10 @@ namespace AElf.Kernel.Consensus
                 _logger?.Trace($"Will help to produce extra block after {after} seconds");
             }
 
-//            var moreExtraBlock = distanceToPublishInValue + (Globals.AElfMiningTime * 2 +
-//                                                             Globals.AElfMiningTime * Globals.BlockProducerNumber +
-//                                                             Globals.AElfMiningTime * infoOfMe.Order) / 1000;
-//            var produceMoreExtraBlock = Observable
-//                .Timer(TimeSpan.FromSeconds(Globals.AElfMiningTime + Globals.AElfMiningTime * infoOfMe.Order))
-//                .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
-//            _logger?.Trace($"Will help to produce more extra block after {moreExtraBlock} seconds");
-
-            var produceMoreExtraBlock = doNothingObservable;
             return Observable.Return(ConsensusBehavior.DoNothing)
                 .Concat(produceNormalBlock)
                 .Concat(publishInValue)
                 .Concat(produceExtraBlock)
-                .Concat(produceMoreExtraBlock)
                 .Subscribe(this);
         }
     }
