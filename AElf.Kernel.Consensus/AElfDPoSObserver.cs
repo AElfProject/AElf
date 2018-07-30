@@ -8,8 +8,8 @@ using NLog;
 namespace AElf.Kernel.Consensus
 {
     // ReSharper disable once InconsistentNaming
-    [LoggerName(nameof(AElfDPoSObservable))]
-    public class AElfDPoSObservable : IObserver<ConsensusBehavior>
+    [LoggerName(nameof(AElfDPoSObserver))]
+    public class AElfDPoSObserver : IObserver<ConsensusBehavior>
     {
         private readonly ILogger _logger;
         
@@ -20,7 +20,7 @@ namespace AElf.Kernel.Consensus
         // ReSharper disable once InconsistentNaming
         private readonly Func<Task> _miningWithUpdatingAElfDPoSInformation;
 
-        public AElfDPoSObservable(ILogger logger, params Func<Task>[] miningFunctions)
+        public AElfDPoSObserver(ILogger logger, params Func<Task>[] miningFunctions)
         {
             if (miningFunctions.Length < 4)
             {
@@ -37,12 +37,12 @@ namespace AElf.Kernel.Consensus
 
         public void OnCompleted()
         {
-            _logger?.Trace($"{nameof(AElfDPoSObservable)} completed.");
+            _logger?.Trace($"{nameof(AElfDPoSObserver)} completed.");
         }
 
         public void OnError(Exception error)
         {
-            _logger?.Error(error, $"{nameof(AElfDPoSObservable)} error.");
+            _logger?.Error(error, $"{nameof(AElfDPoSObserver)} error.");
         }
 
         public void OnNext(ConsensusBehavior value)

@@ -59,6 +59,9 @@ namespace AElf.Kernel.Node
 
         public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
 
+        /// <summary>
+        /// Just used to dispose previous consensus observer.
+        /// </summary>
         public IDisposable ConsensusDisposable { get; set; }
 
         public ulong CurrentRoundNumber { get; set; }
@@ -90,7 +93,7 @@ namespace AElf.Kernel.Node
             }
         }
 
-        public AElfDPoSObservable ConsensusSequence => new AElfDPoSObservable(_logger,
+        public AElfDPoSObserver ConsensusSequence => new AElfDPoSObserver(_logger,
             MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
@@ -535,7 +538,7 @@ namespace AElf.Kernel.Node
                 var executed = await _blockExecutor.ExecuteBlock(block);
                 Interlocked.CompareExchange(ref _flag, 0, 1);
 
-                await CheckUpdatingDPoSProcess();
+                CheckUpdatingDPoSProcess();
 
                 return new BlockExecutionResult(executed, error);
                 //return new BlockExecutionResult(true, error);
@@ -585,21 +588,22 @@ namespace AElf.Kernel.Node
         }
 
         // ReSharper disable once InconsistentNaming
-        private async Task<BPInfo> GetBPInfoOfCurrentRound()
+        public void CheckUpdatingDPoSProcess()
         {
-            return await _dPoSHelper.GetBPInfoOfCurrentRound(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix());
-        }
-
-        // ReSharper disable once InconsistentNaming
-        public async Task CheckUpdatingDPoSProcess()
-        {
-            if (CurrentRoundNumber != _dPoSHelper.CurrentRoundNumber.Value)
-            {
-                ConsensusDisposable?.Dispose();
-                ConsensusDisposable = ConsensusSequence.SubscribeMiningProcess(await GetBPInfoOfCurrentRound(),
+            if (CurrentRoundNumber == _dPoSHelper.CurrentRoundNumber.Value) 
+                return;
+            
+            //Dispose previous observer.
+            ConsensusDisposable?.Dispose();
+            
+            //Update observer.
+            var blockProducerInfoOfCurrentRound = _dPoSHelper[_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()];
+            ConsensusDisposable =
+                ConsensusSequence.SubscribeMiningProcess(blockProducerInfoOfCurrentRound,
                     _dPoSHelper.ExtraBlockTimeslot);
-                CurrentRoundNumber = _dPoSHelper.CurrentRoundNumber.Value;
-            }
+            
+            //Update current round number.
+            CurrentRoundNumber = _dPoSHelper.CurrentRoundNumber.Value;
         }
 
         public async Task<IBlock> Mine()
@@ -622,7 +626,16 @@ namespace AElf.Kernel.Node
                 _logger?.Trace($"Mine - Leaving mining {b}");
 
                 //Update DPoS observables.
-                await CheckUpdatingDPoSProcess();
+                //Sometimes failed to update this observables list (which is weird), just ignore this.
+                //Which means this node will do nothing in this round.
+                try
+                {
+                    CheckUpdatingDPoSProcess();
+                }
+                catch (Exception e)
+                {
+                    _logger?.Error(e, "Somehow failed to update DPoS observables. Just wait for another round.");
+                }
 
                 return block;
             }
