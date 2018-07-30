@@ -229,9 +229,9 @@ namespace AElf.Kernel.Tests
             await subDataProvider.SetAsync(key2, data4);
 
             var getData3 = await subDataProvider.GetAsync(key1);
-            Assert.True(data3.SequenceEqual(getData3));
+            Assert.Equal(data3, getData3);
             var getData4 = await subDataProvider.GetAsync(key2);
-            Assert.True(data4.SequenceEqual(getData4));
+            Assert.Equal(data4, getData4);
 
             //Do the rollback
             await worldStateDictator.RollbackCurrentChangesAsync();
@@ -239,17 +239,17 @@ namespace AElf.Kernel.Tests
             //Now the "key"'s value of subDataProvider rollback to previous data.
             var getData1 = await subDataProvider.GetAsync(key1);
             var getData2 = await subDataProvider.GetAsync(key2);
-            Assert.False(data3.SequenceEqual(getData1));
-            Assert.False(data4.SequenceEqual(getData2));
-            Assert.True(data1.SequenceEqual(getData1));
-            Assert.True(data2.SequenceEqual(getData2));
+            Assert.NotEqual(data3, getData1);
+            Assert.NotEqual(data4, getData2);
+            Assert.Equal(data1, getData1);
+            Assert.Equal(data2, getData2);
             
             //Set again
             await subDataProvider.SetAsync(key1, data3);
             await subDataProvider.SetAsync(key2, data4);
             
-            Assert.True((await subDataProvider.GetAsync(key1)).SequenceEqual(data3));
-            Assert.True((await subDataProvider.GetAsync(key2)).SequenceEqual(data4));
+            Assert.Equal(data3, await subDataProvider.GetAsync(key1));
+            Assert.Equal(data4, await subDataProvider.GetAsync(key2));
 
             var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
             await chainManger.AppendBlockToChainAsync(block2);
@@ -264,12 +264,12 @@ namespace AElf.Kernel.Tests
             await subDataProvider.SetAsync(key1, data5);
 
             var getData5 = await subDataProvider.GetAsync(key1);
-            Assert.True(getData5.SequenceEqual(data5));
+            Assert.Equal(data5, getData5);
 
             await worldStateDictator.RollbackCurrentChangesAsync();
 
             getData3 = await subDataProvider.GetAsync(key1);
-            Assert.True(getData3.SequenceEqual(data3));
+            Assert.Equal(data3, getData3);
         }
 
         [Fact]
@@ -383,7 +383,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(data5, await subDataProvider.GetAsync(key));
             
             //Check height before rollback
-            Assert.True(4 == await chainManager.GetChainCurrentHeight(chain.Id));
+            Assert.Equal("4", (await chainManager.GetChainCurrentHeight(chain.Id)).ToString());
 
             //Let's rollback to height 2
             await worldStateDictator.RollbackToSpecificHeight(2);

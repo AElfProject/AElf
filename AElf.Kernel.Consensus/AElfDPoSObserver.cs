@@ -74,7 +74,12 @@ namespace AElf.Kernel.Consensus
 
         public void RecoverMining()
         {
-            Observable.Return(ConsensusBehavior.UpdateAElfDPoS).Subscribe(this);
+            var recoverMining = Observable
+                .Timer(TimeSpan.FromMilliseconds(Globals.AElfMiningTime * Globals.BlockProducerNumber))
+                .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
+            Observable.Return(ConsensusBehavior.DoNothing)
+                .Concat(recoverMining)
+                .Subscribe(this);
         }
         
         public IDisposable SubscribeMiningProcess(BPInfo infoOfMe, Timestamp extraBlockTimeslot)
