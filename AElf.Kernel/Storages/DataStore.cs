@@ -16,7 +16,21 @@ namespace AElf.Kernel.Storages
         {
             _keyValueDatabase = keyValueDatabase;
         }
-               
+
+        public async Task InsertAsync(Hash pointerHash, byte[] obj)
+        {
+            if (pointerHash == null)
+                return;
+            await _keyValueDatabase.SetAsync(pointerHash.ToHex(), obj);
+        }
+
+        public async Task<byte[]> GetAsync(Hash pointerHash)
+        {
+            if (pointerHash == null)
+                return null;
+            return await _keyValueDatabase.GetAsync(pointerHash.ToHex());
+        }
+
         public async Task InsertAsync<T>(Hash pointerHash, T obj) where T : IMessage
         {
             try
@@ -36,6 +50,7 @@ namespace AElf.Kernel.Storages
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                throw;
             }
         }
 
@@ -53,29 +68,23 @@ namespace AElf.Kernel.Storages
                 }
                 
                 var key = pointerHash.GetKeyString((uint)result);
-                return (await _keyValueDatabase.GetAsync(key)).Deserialize<T>();
+                var res = await _keyValueDatabase.GetAsync(key);
+                return  res == null ? default(T): res.Deserialize<T>();
             }
             catch (Exception e)
-            {    
+            {
+                Console.WriteLine(typeof(T));
                 Console.WriteLine(e);
-                return default(T);
+                throw;
             }
         }
 
-        public async Task<bool> PipelineSetDataAsync<T>(Dictionary<Hash, byte[]> pipelineSet) where T : IMessage
+        public async Task<bool> PipelineSetDataAsync(Dictionary<Hash, byte[]> pipelineSet)
         {
             try
             {
-                if(!typeof(T).GetInterfaces().Contains(typeof(IMessage)))
-                {
-                    throw new Exception("Wrong Data Type");
-                }
-                if (!Enum.TryParse<Types>(typeof(T).Name, out var result))
-                {
-                    throw new Exception($"Not Supported Data Type {typeof(T).Name}");
-                }
                 return await _keyValueDatabase.PipelineSetAsync(
-                    pipelineSet.ToDictionary(kv => kv.Key.GetKeyString((uint)result), kv => kv.Value));
+                    pipelineSet.ToDictionary(kv => kv.Key.ToHex(), kv => kv.Value));
             }
             catch (Exception e)
             {
