@@ -1,1 +1,0 @@
-./AElf.bridge/bridge.js

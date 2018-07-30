@@ -3,6 +3,7 @@ using System.Reflection;
 using AElf.CLI2.Commands;
 using AElf.CLI2.JS;
 using AElf.CLI2.JS.IO;
+using AElf.CLI2.SDK;
 using Autofac;
 using CommandLine;
 using Console = System.Console;
@@ -22,8 +23,8 @@ namespace AElf.CLI2
                 .MapResult(
                     (AccountOption opt) =>
                     {
-                        var cmd = IoCContainerBuilder.Build(opt, new BridgeJSProvider()).Resolve<ICommand>();
-                        cmd.Execute();
+                        var sdk = IoCContainerBuilder.Build(opt, new BridgeJSProvider()).Resolve<IAElfSdk>();
+                        sdk.Chain().ConnectChain();
                         return 0;
                     },
                     (AnotherVerb opt) => 0,

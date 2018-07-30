@@ -5,7 +5,7 @@ namespace AElf.CLI2.JS.IO
 {
     public class BridgeJSProvider : IBridgeJSProvider
     {
-        public const string BridgeJSResourceName = "AElf.CLI2.Scripts.bridge.js";
+        public const string BridgeJSResourceName = "AElf.CLI2.Scripts.AElf.bridge.bridge.js";
         public Stream GetBridgeJSStream()
         {
             return Assembly.GetEntryAssembly().GetManifestResourceStream(BridgeJSResourceName);
