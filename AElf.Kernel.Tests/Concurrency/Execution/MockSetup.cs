@@ -62,8 +62,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public MockSetup(IWorldStateStore worldStateStore, IChangesStore changesStore,
             IDataStore dataStore, IChainCreationService chainCreationService,
-            IBlockManager blockManager, ISmartContractStore smartContractStore,
-            IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
+            IBlockManager blockManager, IChainContextService chainContextService, 
+            IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger, 
             ITransactionManager transactionManager)
         {
@@ -77,7 +77,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            SmartContractManager = new SmartContractManager(smartContractStore);
+            SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
                 new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator,

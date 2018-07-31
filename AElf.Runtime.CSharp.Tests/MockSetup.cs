@@ -43,18 +43,21 @@ namespace AElf.Runtime.CSharp.Tests
         public IWorldStateDictator WorldStateDictator;
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
+        private IDataStore _dataStore;
         private IFunctionMetadataService _functionMetadataService;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, IBlockManager blockManager, SmartContractStore smartContractStore, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, IBlockManager blockManager, 
+            IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory, IDataStore dataStore)
         {
             WorldStateDictator = worldStateDictator;
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _smartContractManager = new SmartContractManager(smartContractStore);
+            _dataStore = dataStore;
+            _smartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () =>
             {
                 await Init();

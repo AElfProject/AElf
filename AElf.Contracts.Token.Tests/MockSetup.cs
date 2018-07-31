@@ -37,10 +37,11 @@ namespace AElf.Contracts.Token.Tests
         private IWorldStateDictator _worldStateDictator;
         private IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
+        private IDataStore _dataStore;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, IBlockManager blockManager, ISmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, IBlockManager blockManager, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory, IDataStore dataStore)
         {
             _worldStateDictator = worldStateDictator;
             _chainCreationService = chainCreationService;
@@ -48,7 +49,8 @@ namespace AElf.Contracts.Token.Tests
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            SmartContractManager = new SmartContractManager(smartContractStore);
+            _dataStore = dataStore;
+            SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () =>
             {
                 await Init();
