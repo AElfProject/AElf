@@ -48,6 +48,7 @@ namespace AElf.Kernel.Node.RPC
         private readonly List<string> _rpcCommands = new List<string>
         {
             BroadcastTxMethodName,
+            BroadcastTxsMethodName,
             GetCommandsMethodName,
             GetIncrementIdMethodName,
             GetContractAbi,
