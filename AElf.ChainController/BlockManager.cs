@@ -36,6 +36,11 @@ namespace AElf.ChainController
             //return await _blockHeaderStore.GetAsync(blockHash);
         }
 
+        public async Task<BlockBody> GetBlockBodyAsync(Hash bodyHash)
+        {
+            return await _dataStore.GetAsync<BlockBody>(bodyHash);
+        }
+
         public async Task<BlockHeader> AddBlockHeaderAsync(BlockHeader header)
         {
             await _dataStore.InsertAsync(header.GetHash(), header);

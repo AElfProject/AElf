@@ -57,7 +57,7 @@ namespace AElf.Kernel.Tests.Miner
             _functionMetadataService = functionMetadataService;
             _concurrencyExecutingService = concurrencyExecutingService;
             _worldStateDictator =
-                new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, _transactionManager);
+                new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, _transactionManager, _blockManager);
             _smartContractManager = smartContractManager;
             _accountContextService = accountContextService;
 

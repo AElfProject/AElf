@@ -70,7 +70,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             _logger = logger;
             _transactionManager = transactionManager;
             _worldStateDictator =
-                new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, _transactionManager);
+                new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, _transactionManager,
+                    _blockManager);
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
             ChainContextService = chainContextService;

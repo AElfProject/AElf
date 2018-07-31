@@ -31,17 +31,19 @@ namespace AElf.SmartContract
 
         public bool DeleteChangeBeforesImmidiately { get; set; } = false;
         private readonly ITransactionManager _transactionManager;
+        private readonly IBlockManager _blockManager;
         public Hash PreBlockHash { get; set; }
         public Hash BlockProducerAccountAddress { get; set; }
 
         public WorldStateDictator(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, ILogger logger, ITransactionManager transactionManager)
+            IDataStore dataStore, ILogger logger, ITransactionManager transactionManager, IBlockManager blockManager)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _logger = logger;
             _transactionManager = transactionManager;
+            _blockManager = blockManager;
         }
 
         public IWorldStateDictator SetChainId(Hash chainId)
@@ -90,7 +92,7 @@ namespace AElf.SmartContract
 
             // update the count of changes
             count = new UInt64Value {Value = count.Value + 1};
-            await _dataStore.InsertAsync<UInt64Value>(keyToGetCount, count);
+            await _dataStore.InsertAsync(keyToGetCount, count);
         }
 
         public async Task<Change> GetChangeAsync(Hash pathHash)
@@ -156,10 +158,10 @@ namespace AElf.SmartContract
                 var rollBackBlockHash =
                         await _dataStore.GetAsync<Hash>(
                             ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, i));
-                var header = await _dataStore.GetAsync<BlockHeader>(rollBackBlockHash);
+                var header = await _blockManager.GetBlockHeaderAsync(rollBackBlockHash);
                 //var header = await _blockHeaderStore.GetAsync(rollBackBlockHash);
                 var body =
-                    await _dataStore.GetAsync<BlockBody>(header.GetHash()
+                    await _blockManager.GetBlockBodyAsync(header.GetHash()
                         .CalculateHashWith(header.MerkleTreeRootOfTransactions));
                 foreach (var txId in body.Transactions)
                 {
@@ -193,7 +195,7 @@ namespace AElf.SmartContract
         public async Task SetChainCurrentHeight(Hash chainId, ulong height)
         {
             var key = ResourcePath.CalculatePointerForCurrentBlockHeight(chainId);
-            await _dataStore.InsertAsync<UInt64Value>(key, new UInt64Value
+            await _dataStore.InsertAsync(key, new UInt64Value
             {
                 Value = height
             });

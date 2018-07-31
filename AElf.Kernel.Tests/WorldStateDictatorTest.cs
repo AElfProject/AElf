@@ -18,13 +18,14 @@ namespace AElf.Kernel.Tests
         private readonly ILogger _logger;
         private readonly ITransactionManager _transactionManager;
         private readonly BlockTest _blockTest;
+        private readonly IBlockManager _blockManager;
 
         public WorldStateDictatorTest(IWorldStateStore worldStateStore, IChangesStore changesStore,
             IDataStore dataStore, ITxPoolService txPoolService,  BlockTest blockTest, ILogger logger, 
             ITransactionManager transactionManager)
         {
             _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, 
-                transactionManager)
+                transactionManager, _blockManager)
             {
                 BlockProducerAccountAddress = Hash.Generate()
             };

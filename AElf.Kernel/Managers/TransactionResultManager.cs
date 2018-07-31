@@ -6,23 +6,22 @@ namespace AElf.Kernel.Managers
 {
     public class TransactionResultManager : ITransactionResultManager
     {
-        private readonly TransactionResultStore _transactionResultStore;
-
-        public TransactionResultManager(TransactionResultStore transactionResultStore)
+        private readonly IDataStore _dataStore;
+        public TransactionResultManager(IDataStore dataStore)
         {
-            _transactionResultStore = transactionResultStore;
+            _dataStore = dataStore;
         }
 
         public async Task AddTransactionResultAsync(TransactionResult tr)
         {
             var trKey = ResourcePath.CalculatePointerForTxResult(tr.TransactionId);
-            await _transactionResultStore.InsertAsync(trKey, tr);
+            await _dataStore.InsertAsync(trKey, tr);
         }
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash txId)
         {
             var trKey = ResourcePath.CalculatePointerForTxResult(txId);
-            return await _transactionResultStore.GetAsync(trKey);
+            return await _dataStore.GetAsync<TransactionResult>(trKey);
         }
     }
 }

@@ -12,7 +12,6 @@ namespace AElf.Kernel.Modules.AutofacModule
             builder.RegisterType<DataStore>().As<IDataStore>();
             builder.RegisterType<ChangesStore>().As<IChangesStore>();
             builder.RegisterType<SmartContractStore>().As<ISmartContractStore>();
-            builder.RegisterType<TransactionResultStore>().As<TransactionResultStore>();
         }
     }
 }
