@@ -1,10 +1,13 @@
+using System;
 using System.IO;
 using System.Reflection;
 using AElf.CLI2.Commands;
 using AElf.CLI2.JS;
 using AElf.CLI2.JS.IO;
+using AElf.CLI2.Tests.Utils;
 using Autofac;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace AElf.CLI2.Tests
 {
@@ -20,7 +23,7 @@ namespace AElf.CLI2.Tests
             }
         }
 
-        private static IJSEngine GetJSEngine()
+        private IJSEngine GetJSEngine()
         {
             var option = new AccountOption
             {
@@ -29,9 +32,17 @@ namespace AElf.CLI2.Tests
                 Action = AccountAction.create,
                 AccountFileName = "a.account"
             };
-            return IoCContainerBuilder.Build(option, new UnittestBridgeJSProvider()).Resolve<IJSEngine>();
+            return IoCContainerBuilder.Build(option, new UnittestBridgeJSProvider(),
+                new UTLogModule(_output)).Resolve<IJSEngine>();
         }
 
+        
+        private readonly ITestOutputHelper _output;
+
+        public TestJSEngine(ITestOutputHelper output)
+        {
+            this._output = output;
+        }        
         [Fact]
         public void TestConsole()
         {
@@ -59,6 +70,23 @@ var i8_2 = i8[2];
             {
                 Assert.True(jsEngine.Get($"i8_{i}").Value.ToInt32() < 256);
             }
+        }
+
+        [Fact]
+        public void TestXMLHttpRequest()
+        {
+            var jsEngine = GetJSEngine();
+            jsEngine.RunScript(@"
+var request = new XMLHttpRequest()
+request.open(""GET"", ""http://www.baidu.com"")
+");
+            Assert.Equal(jsEngine.Get("request").Get("readyState").Value.ToInt32(), 1);
+        }
+
+        [Fact]
+        public void TestURL()
+        {
+            this._output.WriteLine(new Uri("http://www.baidu.com/abc").GetLeftPart(UriPartial.Authority));
         }
     }
 }

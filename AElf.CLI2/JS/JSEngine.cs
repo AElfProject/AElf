@@ -67,7 +67,14 @@ namespace AElf.CLI2.JS
             ExposeRandomGenerator();
             ExposeAElfOption();
             LoadCryptoJS();
+            LoadXMLHttpRequestJS();
             LoadBridgeJS(bridgeJSProvider);
+        }
+
+        private void LoadXMLHttpRequestJS()
+        {
+            RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
+                .GetManifestResourceStream("AElf.CLI2.Scripts.XMLHttpRequest.js"));
         }
 
         private void LoadCryptoJS()
