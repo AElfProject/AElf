@@ -590,7 +590,7 @@ namespace AElf.Kernel.Node
         }
 
         // ReSharper disable once InconsistentNaming
-        public void CheckUpdatingConsensusProcess()
+        public async Task CheckUpdatingConsensusProcess()
         {
             switch (Globals.ConsensusType)
             {
@@ -599,7 +599,7 @@ namespace AElf.Kernel.Node
                     break;
                 
                 case ConsensusType.PoTC:
-                    PoTCProcess();
+                    await PoTCProcess();
                     break;
             }
         }
@@ -612,6 +612,7 @@ namespace AElf.Kernel.Node
 
             //Dispose previous observer.
             ConsensusDisposable?.Dispose();
+            _logger?.Trace("Disposed previous consensus observables list.");
 
             //Update observer.
             var blockProducerInfoOfCurrentRound =
@@ -632,7 +633,8 @@ namespace AElf.Kernel.Node
                 var count = await _txPoolService.GetPoolSize();
                 if (count >= Globals.ExpectedTransanctionCount)
                 {
-                    
+                    var block = await _miner.Mine();
+                    await BroadcastBlock(block);
                 }
             }
         }
@@ -661,7 +663,7 @@ namespace AElf.Kernel.Node
                 //Which means this node will do nothing in this round.
                 try
                 {
-                    CheckUpdatingConsensusProcess();
+                    await CheckUpdatingConsensusProcess();
                 }
                 catch (Exception e)
                 {

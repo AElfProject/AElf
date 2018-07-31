@@ -78,12 +78,17 @@ namespace AElf.Kernel.Consensus
                 .Timer(TimeSpan.FromMilliseconds(Globals.AElfMiningTime * Globals.BlockProducerNumber))
                 .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
             
+            _logger?.Trace("Block producer number:" + Globals.BlockProducerNumber);
             if (Globals.BlockProducerNumber != 1)
             {
                 Observable.Return(ConsensusBehavior.DoNothing)
                     .Concat(recoverMining)
                     .Subscribe(this);
             }
+            
+            _logger?.Trace($"Will produce normal block after {Globals.AElfMiningTime}s" +
+                           $"Will publish in value after {Globals.AElfMiningTime * 2}s" +
+                           $"Will produce extra block after {Globals.AElfMiningTime * 3}s");
 
             var produceNormalBlock = Observable
                 .Timer(TimeSpan.FromMilliseconds(Globals.AElfMiningTime))
