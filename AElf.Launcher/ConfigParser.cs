@@ -9,6 +9,7 @@ using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Node;
 using AElf.Kernel.Node.Config;
+using AElf.Kernel.Types;
 using AElf.Network.Config;
 using AElf.Network.Data;
 using AElf.Runtime.CSharp;
@@ -124,6 +125,13 @@ namespace AElf.Launcher
             if (opts.IsConsensusInfoGenerator)
             {
                 IsConsensusInfoGenerater = true;
+            }
+
+            Globals.ConsensusType = opts.ConsensusType;
+
+            if (opts.ConsensusType == ConsensusType.PoTC)
+            {
+                Globals.BlockProducerNumber = 1;
             }
 
             if (opts.NewChain)

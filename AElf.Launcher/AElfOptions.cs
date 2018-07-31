@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AElf.Kernel.Types;
 using CommandLine;
 
 namespace AElf.Launcher
@@ -91,10 +92,13 @@ namespace AElf.Launcher
 
         #endregion
 
-        #region DPOS
+        #region Consensus
 
         [Option('g', "dpos.generator", Default = false, HelpText = "Is the one who will generate DPoS information")]
         public bool IsConsensusInfoGenerator { get; set; }
+
+        [Option("consensus.type", Default = ConsensusType.AElfDPoS, HelpText = "Select the consensus type: 1, AElf DPoS; 2. PoTC")]
+        public ConsensusType ConsensusType { get; set; }
 
         #endregion
 

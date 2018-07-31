@@ -6,9 +6,8 @@
         // ReSharper disable once InconsistentNaming
         AElfDPoS = 1,
         // ReSharper disable once InconsistentNaming
-        BFTDPoS = 2,
+        PoTC = 2,//Proof of Transaction Count. Used for testing execution performance of single node.
         // ReSharper disable once InconsistentNaming
-        PoTC = 3,//Proof of Transaction Count. Used for testing execution performance of single node.
-        
+        BFTDPoS = 3
     }
 }

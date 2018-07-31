@@ -591,6 +591,7 @@ namespace AElf.Kernel.Node
 
                     _dPoSHelper.StartConsensusLog();
                     break;
+                
                 case ConsensusType.PoTC:
                     await Mine();
                     break;
@@ -650,6 +651,8 @@ namespace AElf.Kernel.Node
                     var block = await _miner.Mine();
                     await BroadcastBlock(block);
                 }
+
+                Console.WriteLine("1");
             }
         }
 
