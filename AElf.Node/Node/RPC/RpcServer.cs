@@ -478,10 +478,13 @@ namespace AElf.Kernel.Node.RPC
                 var result = await ProcessBroadcastTx(new JObject{["rawtx"] = rawtx});
                 if (result.ContainsKey("error"))
                     break;
-                response.Append(result["hash"]);
+                response.Add(result["hash"].ToString());
             }
 
-            return new JObject(response);
+            return new JObject
+            {
+                ["result"] = JToken.FromObject(response)
+            };
         }
 
         private async Task<JObject> ProcessCallReadOnly(JObject reqParams)
