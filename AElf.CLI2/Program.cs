@@ -23,7 +23,7 @@ namespace AElf.CLI2
                 .MapResult(
                     (AccountOption opt) =>
                     {
-                        var sdk = IoCContainerBuilder.Build(opt, new BridgeJSProvider()).Resolve<IAElfSdk>();
+                        var sdk = IoCContainerBuilder.Build(opt).Resolve<IAElfSdk>();
                         sdk.Chain().ConnectChain();
                         return 0;
                     },

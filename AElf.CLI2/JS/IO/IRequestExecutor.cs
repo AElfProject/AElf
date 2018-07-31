@@ -1,9 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace AElf.CLI2.JS.IO
 {
+    public interface IResponse
+    {
+    }
+
+    public class LocalFileResponse : IResponse
+    {
+        public string Content { get; set; }
+    }
+
+    public class HttpResponse : IResponse
+    {
+        public HttpResponseMessage Content { get; set; }
+    }
+    
     public interface IRequestExecutor
     {
         void ExecuteAsync(
@@ -11,9 +26,9 @@ namespace AElf.CLI2.JS.IO
             string url,
             IDictionary<string, string> headers,
             string body,
-            Action<string, string> callback
+            Action<string, IResponse> callback
         );
 
-        string Execute(string method, string url, IDictionary<string, string> headers, string body);
+        IResponse Execute(string method, string url, IDictionary<string, string> headers, string body);
     }
 }

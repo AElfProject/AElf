@@ -1,9 +1,6 @@
 using System;
-using System.IO;
-using System.Reflection;
 using AElf.CLI2.Commands;
 using AElf.CLI2.JS;
-using AElf.CLI2.JS.IO;
 using AElf.CLI2.Tests.Utils;
 using Autofac;
 using Xunit;
@@ -13,16 +10,6 @@ namespace AElf.CLI2.Tests
 {
     public class TestJSEngine
     {
-        private class UnittestBridgeJSProvider : IBridgeJSProvider
-        {
-            public Stream GetBridgeJSStream()
-            {
-                var location = Assembly.GetAssembly(typeof(IoCContainerBuilder)).Location;
-                // NOTE: here we could inject some unittest special javascript files.
-                return Assembly.LoadFrom(location).GetManifestResourceStream(BridgeJSProvider.BridgeJSResourceName);
-            }
-        }
-
         private IJSEngine GetJSEngine()
         {
             var option = new AccountOption
@@ -32,8 +19,7 @@ namespace AElf.CLI2.Tests
                 Action = AccountAction.create,
                 AccountFileName = "a.account"
             };
-            return IoCContainerBuilder.Build(option, new UnittestBridgeJSProvider(),
-                new UTLogModule(_output)).Resolve<IJSEngine>();
+            return IoCContainerBuilder.Build(option, new UTLogModule(_output)).Resolve<IJSEngine>();
         }
 
         
@@ -81,12 +67,6 @@ var request = new XMLHttpRequest()
 request.open(""GET"", ""http://www.baidu.com"")
 ");
             Assert.Equal(jsEngine.Get("request").Get("readyState").Value.ToInt32(), 1);
-        }
-
-        [Fact]
-        public void TestURL()
-        {
-            this._output.WriteLine(new Uri("http://www.baidu.com/abc").GetLeftPart(UriPartial.Authority));
         }
     }
 }

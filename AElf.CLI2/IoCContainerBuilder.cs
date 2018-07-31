@@ -10,8 +10,7 @@ namespace AElf.CLI2
 {
     public static class IoCContainerBuilder
     {
-        public static IContainer Build(BaseOption option, IBridgeJSProvider bridgeJSProvider,
-            IModule loggerModule = null)
+        public static IContainer Build(BaseOption option, IModule loggerModule = null)
         {
             if (loggerModule == null)
             {
@@ -19,7 +18,7 @@ namespace AElf.CLI2
             } 
             var builder = new ContainerBuilder();
             builder.RegisterModule(loggerModule);
-            builder.RegisterModule(new JSModule(bridgeJSProvider));
+            builder.RegisterModule(new JSModule());
             builder.RegisterModule(new SdkModule());
             var cmd = new CMDModule(option);
             builder.RegisterModule(cmd);

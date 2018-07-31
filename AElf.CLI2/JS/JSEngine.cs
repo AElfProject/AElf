@@ -55,7 +55,7 @@ namespace AElf.CLI2.JS
         private readonly BaseOption _option;
         private readonly IRandomGenerator _randomGenerator;
 
-        public JSEngine(IConsole console, BaseOption option, IBridgeJSProvider bridgeJSProvider,
+        public JSEngine(IConsole console, BaseOption option,
             IRandomGenerator randomGenerator, IDebugAdapter debugAdapter)
         {
             _console = console;
@@ -68,7 +68,7 @@ namespace AElf.CLI2.JS
             ExposeAElfOption();
             LoadCryptoJS();
             LoadXMLHttpRequestJS();
-            LoadBridgeJS(bridgeJSProvider);
+            LoadBridgeJS();
         }
 
         private void LoadXMLHttpRequestJS()
@@ -85,13 +85,13 @@ namespace AElf.CLI2.JS
 
         private void ExposeRandomGenerator()
         {
-            _context.GlobalObject.Binding.SetFunction<int>("_randomNextInt", _randomGenerator.NextInt);
+            _context.GlobalObject.Binding.SetFunction("_randomNextInt", _randomGenerator.NextInt);
         }
 
-        private void LoadBridgeJS(IBridgeJSProvider provider)
+        private void LoadBridgeJS()
         {
-            var stream = provider.GetBridgeJSStream();
-            RunScript(stream);
+            RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
+                .GetManifestResourceStream("AElf.CLI2.Scripts.AElf.bridge.bridge.js"));
         }
 
         private void RunScript(Stream stream)
