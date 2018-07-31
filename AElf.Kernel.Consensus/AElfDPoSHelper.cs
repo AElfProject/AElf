@@ -323,20 +323,19 @@ namespace AElf.Kernel.Consensus
                     orderDict.Add(order, signatureDict[sig]);
                 }
 
-                var extraBlockTimeslotOfCurrentRound = ExtraBlockTimeslot;
+                var baseTimeslot = ExtraBlockTimeslot;
 
                 //Maybe because something happened with setting extra block timeslot.
-                if (extraBlockTimeslotOfCurrentRound.ToDateTime().AddMilliseconds(Globals.AElfMiningTime * 2) < GetTimestampOfUtcNow().ToDateTime())
+                if (baseTimeslot.ToDateTime().AddMilliseconds(Globals.AElfMiningTime * 2) < GetTimestampOfUtcNow().ToDateTime())
                 {
-                    extraBlockTimeslotOfCurrentRound = GetTimestampWithOffset(extraBlockTimeslotOfCurrentRound,
-                        Globals.AElfMiningTime + Globals.AElfMiningTime * Globals.BlockProducerNumber);
+                    baseTimeslot = GetTimestampOfUtcNow();
                 }
 
                 for (var i = 0; i < orderDict.Count; i++)
                 {
                     var bpInfoNew = new BPInfo
                     {
-                        TimeSlot = GetTimestampWithOffset(extraBlockTimeslotOfCurrentRound,
+                        TimeSlot = GetTimestampWithOffset(baseTimeslot,
                             i * Globals.AElfMiningTime + Globals.AElfMiningTime),
                         Order = i + 1
                     };

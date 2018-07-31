@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
@@ -21,22 +22,26 @@ namespace AElf.Contracts.Genesis.ConsensusContract
         
         public Task Initialize(List<byte[]> args)
         {
-            throw new System.NotImplementedException();
+            Console.WriteLine($"This message come from Proof of Transactions Count consensus - {nameof(Initialize)}");
+            return Task.CompletedTask;
         }
 
         public Task Update(List<byte[]> args)
         {
-            throw new System.NotImplementedException();
+            Console.WriteLine($"This message come from Proof of Transactions Count consensus - {nameof(Update)}");
+            return Task.CompletedTask;
         }
 
         public Task Publish(List<byte[]> args)
         {
-            throw new System.NotImplementedException();
+            Console.WriteLine($"This message come from Proof of Transactions Count consensus - {nameof(Publish)}");
+            return Task.CompletedTask;
         }
 
         public Task<bool> Validation(List<byte[]> args)
         {
-            throw new System.NotImplementedException();
+            Console.WriteLine($"This message come from Proof of Transactions Count consensus - {nameof(Validation)}");
+            return Task.FromResult(true);
         }
     }
 }

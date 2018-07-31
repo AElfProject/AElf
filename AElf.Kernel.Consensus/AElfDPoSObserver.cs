@@ -85,10 +85,10 @@ namespace AElf.Kernel.Consensus
                     .Concat(recoverMining)
                     .Subscribe(this);
             }
-            
-            _logger?.Trace($"Will produce normal block after {Globals.AElfMiningTime}s" +
-                           $"Will publish in value after {Globals.AElfMiningTime * 2}s" +
-                           $"Will produce extra block after {Globals.AElfMiningTime * 3}s");
+
+            _logger?.Trace($"Will produce normal block after {Globals.AElfMiningTime / 1000}s\n");
+            _logger?.Trace($"Will publish in value after {Globals.AElfMiningTime * 2 / 1000}s\n");
+            _logger?.Trace($"Will produce extra block after {Globals.AElfMiningTime * 3 / 1000}s");
 
             var produceNormalBlock = Observable
                 .Timer(TimeSpan.FromMilliseconds(Globals.AElfMiningTime))

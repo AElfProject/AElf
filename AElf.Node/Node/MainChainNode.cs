@@ -65,7 +65,7 @@ namespace AElf.Kernel.Node
         /// </summary>
         public IDisposable ConsensusDisposable { get; set; }
 
-        public ulong CurrentRoundNumber { get; set; }
+        public ulong ConsensusMemory { get; set; }
 
         private int _flag;
 
@@ -540,7 +540,7 @@ namespace AElf.Kernel.Node
                 var executed = await _blockExecutor.ExecuteBlock(block);
                 Interlocked.CompareExchange(ref _flag, 0, 1);
 
-                CheckUpdatingConsensusProcess();
+                await CheckUpdatingConsensusProcess();
 
                 return new BlockExecutionResult(executed, error);
                 //return new BlockExecutionResult(true, error);
@@ -567,26 +567,34 @@ namespace AElf.Kernel.Node
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
-        public void StartConsensusProcess()
+        public async void StartConsensusProcess()
         {
             if (IsMining)
                 return;
 
             IsMining = true;
 
-            if (_dPoSHelper.CurrentRoundNumber.Value == 0 &&
-                BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
+            switch (Globals.ConsensusType)
             {
-                AElfDPoSSequence.Initialization();
-            }
+                case ConsensusType.AElfDPoS:
+                    if (_dPoSHelper.CurrentRoundNumber.Value == 0 &&
+                        BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
+                    {
+                        AElfDPoSSequence.Initialization();
+                    }
 
-            if (_dPoSHelper.CanRecoverDPoSInformation() &&
-                BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
-            {
-                AElfDPoSSequence.RecoverMining();
-            }
+                    if (_dPoSHelper.CanRecoverDPoSInformation() &&
+                        BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
+                    {
+                        AElfDPoSSequence.RecoverMining();
+                    }
 
-            _dPoSHelper.StartConsensusLog();
+                    _dPoSHelper.StartConsensusLog();
+                    break;
+                case ConsensusType.PoTC:
+                    await Mine();
+                    break;
+            }
         }
 
         // ReSharper disable once InconsistentNaming
@@ -607,7 +615,7 @@ namespace AElf.Kernel.Node
         // ReSharper disable once InconsistentNaming
         private void AElfDPoSProcess()
         {
-            if (CurrentRoundNumber == _dPoSHelper.CurrentRoundNumber.Value)
+            if (ConsensusMemory == _dPoSHelper.CurrentRoundNumber.Value)
                 return;
 
             //Dispose previous observer.
@@ -622,7 +630,7 @@ namespace AElf.Kernel.Node
                     _dPoSHelper.ExtraBlockTimeslot);
 
             //Update current round number.
-            CurrentRoundNumber = _dPoSHelper.CurrentRoundNumber.Value;
+            ConsensusMemory = _dPoSHelper.CurrentRoundNumber.Value;
         }
         
         // ReSharper disable once InconsistentNaming
@@ -631,8 +639,14 @@ namespace AElf.Kernel.Node
             while (true)
             {
                 var count = await _txPoolService.GetPoolSize();
+                if (ConsensusMemory != count)
+                {
+                    _logger?.Trace($"Current tx pool size: {count} / {Globals.ExpectedTransanctionCount}");
+                    ConsensusMemory = count;
+                }
                 if (count >= Globals.ExpectedTransanctionCount)
                 {
+                    _logger?.Trace("Will produce one block.");
                     var block = await _miner.Mine();
                     await BroadcastBlock(block);
                 }
