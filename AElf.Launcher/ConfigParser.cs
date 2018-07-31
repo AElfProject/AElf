@@ -132,6 +132,7 @@ namespace AElf.Launcher
             if (opts.ConsensusType == ConsensusType.PoTC)
             {
                 Globals.BlockProducerNumber = 1;
+                Globals.ExpectedTransanctionCount = opts.ExpectedTxsCount;
             }
 
             if (opts.NewChain)

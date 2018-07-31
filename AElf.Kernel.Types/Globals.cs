@@ -36,7 +36,7 @@ namespace AElf.Kernel
 
         #region PoTC
 
-        public const int ExpectedTransanctionCount = 5000;
+        public static ulong ExpectedTransanctionCount = 8000;
 
         #endregion
     }

@@ -652,7 +652,7 @@ namespace AElf.Kernel.Node
                     await BroadcastBlock(block);
                 }
 
-                Console.WriteLine("1");
+                Console.WriteLine(Globals.ExpectedTransanctionCount);
             }
         }
 

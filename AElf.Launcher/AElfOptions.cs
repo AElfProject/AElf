@@ -100,6 +100,9 @@ namespace AElf.Launcher
         [Option("consensus.type", Default = ConsensusType.AElfDPoS, HelpText = "Select the consensus type: 1, AElf DPoS; 2. PoTC")]
         public ConsensusType ConsensusType { get; set; }
 
+        [Option("potc.count", Default = 8000, HelpText = "Expected transactions count.")]
+        public ulong ExpectedTxsCount { get; set; }
+
         #endregion
 
         #region Runner
