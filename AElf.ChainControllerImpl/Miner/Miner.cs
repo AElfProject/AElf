@@ -26,8 +26,8 @@ namespace AElf.ChainController
         private readonly IWorldStateDictator _worldStateDictator;
         private ISmartContractService _smartContractService;
         private IConcurrencyExecutingService _concurrencyExecutingService;
-        private TransactionManager _transactionManager;
-        private TransactionResultManager _transactionResultManager;
+        private ITransactionManager _transactionManager;
+        private ITransactionResultManager _transactionResultManager;
 
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
@@ -46,7 +46,7 @@ namespace AElf.ChainController
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, 
                 IChainManager chainManager, IBlockManager blockManager, IWorldStateDictator worldStateDictator, 
-            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService, TransactionManager transactionManager, TransactionResultManager transactionResultManager)
+            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             Config = config;
             _txPoolService = txPoolService;

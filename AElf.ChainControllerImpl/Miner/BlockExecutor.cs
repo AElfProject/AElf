@@ -21,8 +21,8 @@ namespace AElf.ChainController
         private readonly ITxPoolService _txPoolService;
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
-        private readonly TransactionManager _transactionManager;
-        private readonly TransactionResultManager _transactionResultManager;
+        private readonly ITransactionManager _transactionManager;
+        private readonly ITransactionResultManager _transactionResultManager;
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly IConcurrencyExecutingService _concurrencyExecutingService;
         private IGrouper _grouper;
@@ -31,7 +31,7 @@ namespace AElf.ChainController
         public BlockExecutor(ITxPoolService txPoolService, IChainManager chainManager,
             IBlockManager blockManager, IWorldStateDictator worldStateDictator,
             IConcurrencyExecutingService concurrencyExecutingService, 
-            ILogger logger, TransactionManager transactionManager, TransactionResultManager transactionResultManager)
+            ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             _txPoolService = txPoolService;
             _chainManager = chainManager;

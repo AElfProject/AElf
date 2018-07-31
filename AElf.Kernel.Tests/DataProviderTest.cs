@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.SmartContract;
 using AElf.ChainController;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Kernel.TxMemPool;
 using NLog;
@@ -19,21 +20,18 @@ namespace AElf.Kernel.Tests
         private readonly IDataStore _dataStore;
         private readonly BlockTest _blockTest;
         private readonly ILogger _logger;
-        private readonly ITxPoolService _txPoolService;
-        private readonly TransactionStore _transactionStore;
+        private readonly ITransactionManager _transactionManager;
 
         public DataProviderTest(IWorldStateStore worldStateStore,
             IChangesStore changesStore, IDataStore dataStore,
-            BlockTest blockTest, ILogger logger,
-            ITxPoolService txPoolService, TransactionStore transactionStore)
+            BlockTest blockTest, ILogger logger, ITransactionManager transactionManager)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _blockTest = blockTest;
             _logger = logger;
-            _txPoolService = txPoolService;
-            _transactionStore = transactionStore;
+            _transactionManager = transactionManager;
         }
 
         [Fact]
@@ -48,7 +46,7 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
 
             var worldStateDictator =
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _transactionStore, _logger)
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,_logger, _transactionManager)
                     .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
 

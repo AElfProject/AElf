@@ -8,5 +8,6 @@ namespace AElf.Kernel.Managers
     {
         Task<Hash> AddTransactionAsync(Transaction tx);
         Task<Transaction> GetTransaction(Hash txId);
+        Task RemoveTransaction(Hash txId);
     }
 }

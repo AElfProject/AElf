@@ -19,11 +19,11 @@ namespace AElf.Kernel.Tests.TxMemPool
     {
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
-        private readonly TransactionManager _transactionManager;
-        private readonly TransactionResultManager _transactionResultManager;
+        private readonly ITransactionManager _transactionManager;
+        private readonly ITransactionResultManager _transactionResultManager;
         private readonly IWorldStateDictator _worldStateDictator;
         public TxPoolServiceTest(IAccountContextService accountContextService, ILogger logger,
-            TransactionManager transactionManager, TransactionResultManager transactionResultManager, IWorldStateDictator worldStateDictator)
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, IWorldStateDictator worldStateDictator)
         {
             _accountContextService = accountContextService;
             _logger = logger;
@@ -45,8 +45,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             var pool = GetPool();
 
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger);
             poolService.Start();
 
             var addr11 = Hash.Generate();
@@ -65,8 +64,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             var pool = GetPool();
 
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger);
             poolService.Start();
             var tx1 = BuildTransaction();
             var res = await poolService.AddTxAsync(tx1);
@@ -89,8 +87,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var pool = GetPool();
 
 
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger);
             poolService.Start();
 
             var keyPair = new KeyPairGenerator().Generate();
@@ -138,8 +135,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             var pool = GetPool();
 
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger);
             poolService.Start();
             
             await poolService.Stop();
@@ -154,8 +150,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         public async Task AddMultiTxs()
         {
             var pool = GetPool();
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger);
             poolService.Start();
             var kp = new KeyPairGenerator().Generate();
             var tx1 = BuildTransaction(keyPair:kp, nonce: 0);
@@ -183,8 +178,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             var pool = GetPool();
 
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger);
             poolService.Start();
             
             var kp1 = new KeyPairGenerator().Generate();

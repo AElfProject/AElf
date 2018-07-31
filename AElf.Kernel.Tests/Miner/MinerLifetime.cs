@@ -52,8 +52,8 @@ namespace AElf.Kernel.Tests.Miner
         private ISmartContractService _smartContractService;
         private IChainContextService _chainContextService;
         private IAccountContextService _accountContextService;
-        private TransactionManager _transactionManager;
-        private TransactionResultManager _transactionResultManager;
+        private ITransactionManager _transactionManager;
+        private ITransactionResultManager _transactionResultManager;
         private IConcurrencyExecutingService _concurrencyExecutingService;
         private IFunctionMetadataService _functionMetadataService;
 
@@ -66,7 +66,7 @@ namespace AElf.Kernel.Tests.Miner
         public MinerLifetime(IWorldStateDictator worldStateDictator, 
             IChainCreationService chainCreationService, 
             IChainContextService chainContextService, ILogger logger, IAccountContextService accountContextService, 
-            TransactionManager transactionManager, TransactionResultManager transactionResultManager, 
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
             IChainManager chainManager, IBlockManager blockManager, ISmartContractManager smartContractManager, 
             IFunctionMetadataService functionMetadataService, 
             IConcurrencyExecutingService concurrencyExecutingService) : base(new XunitAssertions())
@@ -298,8 +298,7 @@ namespace AElf.Kernel.Tests.Miner
             poolconfig.ChainId = chain.Id;
             var pool = new TxPool(poolconfig, _logger);
             
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger);
             
             poolService.Start();
 
@@ -338,8 +337,7 @@ namespace AElf.Kernel.Tests.Miner
             poolconfig.ChainId = chain.Id;
             var pool = new TxPool(poolconfig, _logger);
             
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger);
             
             poolService.Start();
 

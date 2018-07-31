@@ -22,14 +22,14 @@ namespace AElf.Kernel.Tests.TxMemPool
     {
         private IAccountContextService _accountContextService;
         private readonly ILogger _logger;
-        private readonly TransactionManager _transactionManager;
-        private readonly TransactionResultManager _transactionResultManager;
+        private readonly ITransactionManager _transactionManager;
+        private readonly ITransactionResultManager _transactionResultManager;
         private readonly IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
         private IWorldStateDictator _worldStateDictator;
 
         public IntegrationTest(ILogger logger,
-            TransactionManager transactionManager, TransactionResultManager transactionResultManager, 
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
             IChainCreationService chainCreationService, IBlockManager blockManager, 
             IWorldStateDictator worldStateDictator)
         {
@@ -94,8 +94,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var chain = CreateChain(chainId);*/
             var pool = GetPool();
 
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger);
             poolService.Start();
             var Num = 3;
             var threadNum = 5;
@@ -195,8 +194,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             _worldStateDictator.SetChainId(TxPoolConfig.Default.ChainId);
             _accountContextService = new AccountContextService(_worldStateDictator);
 
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger);
             poolService.Start();
             
             var results = new List<TransactionResult>();

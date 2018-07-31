@@ -43,6 +43,7 @@ namespace AElf.Kernel
                 To = To.Clone(),
                 IncrementId = IncrementId,
                 MethodName = MethodName,
+                Type = Type
             };
             if (Params.Length != 0)
                 txData.Params = Params;

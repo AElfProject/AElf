@@ -38,7 +38,7 @@ namespace AElf.Kernel.Node
         private ECKeyPair _nodeKeyPair;
         private readonly IBlockManager _blockManager;
         private readonly ITxPoolService _txPoolService;
-        private readonly TransactionManager _transactionManager;
+        private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
         private readonly INodeConfig _nodeConfig;
@@ -50,7 +50,7 @@ namespace AElf.Kernel.Node
         private readonly IChainCreationService _chainCreationService;
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly ISmartContractService _smartContractService;
-        private readonly TransactionResultService _transactionResultService;
+        private readonly ITransactionResultService _transactionResultService;
         private readonly IFunctionMetadataService _functionMetadataService;
         private readonly INetworkManager _netManager;
         private readonly IBlockSynchronizer _synchronizer;
@@ -99,14 +99,14 @@ namespace AElf.Kernel.Node
 
         public Hash ChainId => _nodeConfig.ChainId;
 
-        public MainChainNode(ITxPoolService poolService, TransactionManager txManager, IRpcServer rpcServer,
+        public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer,
             ILogger logger,
             INodeConfig nodeConfig, IMiner miner, IAccountContextService accountContextService,
             IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
             IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator,
             IChainManager chainManager, ISmartContractService smartContractService,
-            TransactionResultService transactionResultService, IBlockManager blockManager,
+            ITransactionResultService transactionResultService, IBlockManager blockManager,
             IFunctionMetadataService functionMetadataService, INetworkManager netManager,
             IBlockSynchronizer synchronizer)
         {

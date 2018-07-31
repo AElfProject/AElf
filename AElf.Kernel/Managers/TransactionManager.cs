@@ -23,5 +23,10 @@ namespace AElf.Kernel.Managers
         {
             return await _dataStore.GetAsync<Transaction>(txId);
         }
+
+        public async Task RemoveTransaction(Hash txId)
+        {
+            await _dataStore.RemoveAsync<Transaction>(txId);
+        }
     }
 }

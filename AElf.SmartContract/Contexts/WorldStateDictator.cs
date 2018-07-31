@@ -9,6 +9,7 @@ using AElf.Kernel.Storages;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
 using NLog;
 
@@ -21,7 +22,6 @@ namespace AElf.SmartContract
         private readonly IWorldStateStore _worldStateStore;
         private readonly IDataStore _dataStore;
         private readonly IChangesStore _changesStore;
-        private readonly TransactionStore _transactionStore;
         #endregion
 
         private readonly ILogger _logger;
@@ -30,18 +30,18 @@ namespace AElf.SmartContract
         private Hash _chainId;
 
         public bool DeleteChangeBeforesImmidiately { get; set; } = false;
-        
+        private readonly ITransactionManager _transactionManager;
         public Hash PreBlockHash { get; set; }
         public Hash BlockProducerAccountAddress { get; set; }
 
         public WorldStateDictator(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, TransactionStore transactionStore, ILogger logger)
+            IDataStore dataStore, ILogger logger, ITransactionManager transactionManager)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _logger = logger;
-            _transactionStore = transactionStore;
+            _transactionManager = transactionManager;
         }
 
         public IWorldStateDictator SetChainId(Hash chainId)
@@ -163,13 +163,13 @@ namespace AElf.SmartContract
                         .CalculateHashWith(header.MerkleTreeRootOfTransactions));
                 foreach (var txId in body.Transactions)
                 {
-                    var tx = await _transactionStore.GetAsync(txId);
+                    var tx = await _transactionManager.GetTransaction(txId);
                     if (tx == null)
                     {
                         _logger?.Trace($"tx {txId} is null");
                     }
                     txs.Add(tx);
-                    await _transactionStore.RemoveAsync(txId);
+                    await _transactionManager.RemoveTransaction(txId);
                 }
 
                 _logger?.Trace(

@@ -11,9 +11,9 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class TransactionManagerTests
     {
-        private TransactionManager _manager;
+        private ITransactionManager _manager;
 
-        public TransactionManagerTests(TransactionManager manager)
+        public TransactionManagerTests(ITransactionManager manager)
         {
             _manager = manager;
         }

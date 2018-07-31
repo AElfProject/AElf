@@ -13,7 +13,7 @@ namespace AElf.Kernel.Modules.AutofacModule
         {
             builder.RegisterType<ChainCreationService>().As<IChainCreationService>();
             builder.RegisterType<ChainContextService>().As<IChainContextService>();
-            builder.RegisterType<TransactionResultService>().As<TransactionResultService>();
+            builder.RegisterType<TransactionResultService>().As<ITransactionResultService>();
             builder.RegisterType<SmartContractService>().As<ISmartContractService>();
             builder.RegisterType<AccountContextService>().As<IAccountContextService>().SingleInstance();
             builder.RegisterType<ConcurrencyExecutingService>().As<IConcurrencyExecutingService>();

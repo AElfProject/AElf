@@ -36,19 +36,15 @@ namespace AElf.Kernel.Tests.Miner
         private ISmartContractManager _smartContractManager;
         private IFunctionMetadataService _functionMetadataService;
         private IConcurrencyExecutingService _concurrencyExecutingService;
-        private IDataStore _dataStore;
-        private IWorldStateStore _worldStateStore;
-        private IChangesStore _changesStore;
         private ServicePack _servicePack;
 
         public Synchronizer(
             IChainCreationService chainCreationService, IChainContextService chainContextService,
             IChainManager chainManager, IBlockManager blockManager, ILogger logger,
-            TransactionResultManager transactionResultManager, TransactionManager transactionManager,
+            ITransactionResultManager transactionResultManager, ITransactionManager transactionManager,
             FunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService,
             IChangesStore changesStore, IWorldStateStore worldStateStore, IDataStore dataStore,
-            ISmartContractManager smartContractManager, IAccountContextService accountContextService,
-            ITxPoolService txPoolService, TransactionStore transactionStore) : base(new XunitAssertions())
+            ISmartContractManager smartContractManager, IAccountContextService accountContextService) : base(new XunitAssertions())
         {
 
             _chainCreationService = chainCreationService;
@@ -60,11 +56,8 @@ namespace AElf.Kernel.Tests.Miner
             _transactionManager = transactionManager;
             _functionMetadataService = functionMetadataService;
             _concurrencyExecutingService = concurrencyExecutingService;
-            _changesStore = changesStore;
-            _worldStateStore = worldStateStore;
-            _dataStore = dataStore;
             _worldStateDictator =
-                new WorldStateDictator(worldStateStore, changesStore, dataStore, transactionStore, _logger);
+                new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, _transactionManager);
             _smartContractManager = smartContractManager;
             _accountContextService = accountContextService;
 
@@ -240,8 +233,8 @@ namespace AElf.Kernel.Tests.Miner
         
         private IAccountContextService _accountContextService;
         private readonly ILogger _logger;
-        private readonly TransactionManager _transactionManager;
-        private readonly TransactionResultManager _transactionResultManager;
+        private readonly ITransactionManager _transactionManager;
+        private readonly ITransactionResultManager _transactionResultManager;
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private ISmartContractService _smartContractService;
         private IActorRef _requestor;
@@ -256,8 +249,7 @@ namespace AElf.Kernel.Tests.Miner
             
             var pool = new TxPool(poolconfig, _logger);
             
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger);
             
             poolService.Start();
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, 1);

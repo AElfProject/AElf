@@ -20,8 +20,7 @@ namespace AElf.Kernel.TxMemPool
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
 
-        public TxPoolService(ITxPool txPool, IAccountContextService accountContextService,
-            TransactionManager transactionManager, TransactionResultManager transactionResultManager, ILogger logger)
+        public TxPoolService(ITxPool txPool, IAccountContextService accountContextService, ILogger logger)
         {
             _txPool = txPool;
             _accountContextService = accountContextService;

@@ -9,10 +9,10 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class TransactionResultTest
     {
-        private readonly TransactionResultService _transactionResultService;
-        private readonly TransactionResultManager _transactionResultManager;
+        private readonly ITransactionResultService _transactionResultService;
+        private readonly ITransactionResultManager _transactionResultManager;
 
-        public TransactionResultTest(TransactionResultService transactionResultService, TransactionResultManager transactionResultManager)
+        public TransactionResultTest(ITransactionResultService transactionResultService, ITransactionResultManager transactionResultManager)
         {
             _transactionResultService = transactionResultService;
             _transactionResultManager = transactionResultManager;

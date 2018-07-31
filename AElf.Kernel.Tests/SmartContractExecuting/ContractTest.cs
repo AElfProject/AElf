@@ -27,7 +27,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         private IChainCreationService _chainCreationService;
         private IChainContextService _chainContextService;
         private IBlockManager _blockManager;
-        private TransactionManager _transactionManager;
+        private ITransactionManager _transactionManager;
         private ISmartContractManager _smartContractManager;
         private ISmartContractService _smartContractService;
         private IFunctionMetadataService _functionMetadataService;
@@ -38,7 +38,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
         public ContractTest(IWorldStateDictator worldStateDictator,
             IChainCreationService chainCreationService, IBlockManager blockManager,
-            TransactionManager transactionManager, ISmartContractManager smartContractManager,
+            ITransactionManager transactionManager, ISmartContractManager smartContractManager,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
             _worldStateDictator = worldStateDictator;

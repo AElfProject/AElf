@@ -24,12 +24,9 @@ namespace AElf.Kernel.Tests
         private readonly BlockTest _blockTest;
         private readonly ChainManager _chainManager;
         private readonly ILogger _logger;
-        private readonly ITxPoolService _txPoolService;
-        private readonly TransactionStore _transactionStore;
-
+        private readonly ITransactionManager _transactionManager;
         public StoragesTest(IWorldStateStore worldStateStore, IChangesStore changesStore, 
-            IDataStore dataStore, BlockTest blockTest, ChainManager chainManager,
-            ILogger logger, ITxPoolService txPoolService, TransactionStore transactionStore)
+            IDataStore dataStore, BlockTest blockTest, ChainManager chainManager, ILogger logger, ITransactionManager transactionManager)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
@@ -37,8 +34,7 @@ namespace AElf.Kernel.Tests
             _blockTest = blockTest;
             _chainManager = chainManager;
             _logger = logger;
-            _txPoolService = txPoolService;
-            _transactionStore = transactionStore;
+            _transactionManager = transactionManager;
         }
         
         [Fact]
@@ -52,7 +48,7 @@ namespace AElf.Kernel.Tests
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
             var worldStateDictator =
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _transactionStore, _logger)
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _transactionManager)
                     .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
             await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);
@@ -101,7 +97,7 @@ namespace AElf.Kernel.Tests
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
             var worldStateDictator =
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _transactionStore, _logger)
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _transactionManager)
                     .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
 
@@ -159,7 +155,7 @@ namespace AElf.Kernel.Tests
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
             var worldStateDictator =
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _transactionStore, _logger)
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _transactionManager)
                     .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
 
