@@ -20,22 +20,7 @@ namespace AElf.CLI2.JS.IO
             _logger = logger;
         }
 
-        public void ExecuteAsync(string method, string url, IDictionary<string, string> headers, string body, Action<string, IResponse> callback)
-        {
-            Task.Run(() =>
-            {
-                var resp = Execute(method, url, headers, body);
-                callback(null, resp);
-            });
-        }
-
-        public IResponse Execute(string method, string url, IDictionary<string, string> headers, string body)
-        {
-            return Execute(new HttpMethod(method), new Uri(url), headers, body);
-        }
-
-
-        private IResponse Execute(HttpMethod method, Uri url, IDictionary<string, string> headers, string body)
+        private async Task<IResponse> Execute(HttpMethod method, Uri url, IDictionary<string, string> headers, string body)
         {
             if (url.IsFile)
             {
@@ -63,8 +48,7 @@ namespace AElf.CLI2.JS.IO
 
                 if (method == HttpMethod.Get)
                 {
-                    var uriBuilder = new UriBuilder();
-                    uriBuilder.Path = url.AbsolutePath;
+                    var uriBuilder = new UriBuilder {Path = url.AbsolutePath};
                     var query1 = HttpUtility.ParseQueryString(url.Query);
                     var query2 = HttpUtility.ParseQueryString(body);
                     foreach (var q in query2.AllKeys)
@@ -76,7 +60,7 @@ namespace AElf.CLI2.JS.IO
                     _logger.Debug(uriBuilder.Uri.ToString());
                     return new HttpResponse
                     {
-                        Content = client.GetAsync(uriBuilder.Uri).Result
+                        Content = await client.GetAsync(uriBuilder.Uri)
                     };
                 } 
                 
@@ -86,6 +70,11 @@ namespace AElf.CLI2.JS.IO
             {
                 return null;
             }
+        }
+
+        public Task<IResponse> ExecuteAsync(string method, string url, IDictionary<string, string> headers, string body)
+        {
+            return Execute(new HttpMethod(method), new Uri(url), headers, body);
         }
     }
 }

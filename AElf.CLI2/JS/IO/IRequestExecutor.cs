@@ -18,17 +18,13 @@ namespace AElf.CLI2.JS.IO
     {
         public HttpResponseMessage Content { get; set; }
     }
-    
+
     public interface IRequestExecutor
     {
-        void ExecuteAsync(
+        Task<IResponse> ExecuteAsync(
             string method,
             string url,
             IDictionary<string, string> headers,
-            string body,
-            Action<string, IResponse> callback
-        );
-
-        IResponse Execute(string method, string url, IDictionary<string, string> headers, string body);
+            string body);
     }
 }
