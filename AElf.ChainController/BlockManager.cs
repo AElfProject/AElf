@@ -11,24 +11,20 @@ namespace AElf.ChainController
     [LoggerName(nameof(BlockManager))]
     public class BlockManager : IBlockManager
     {
-        private readonly IBlockHeaderStore _blockHeaderStore;
-
-
         private readonly IDataStore _dataStore;
 
         private readonly ILogger _logger;
 
-        public BlockManager(IBlockHeaderStore blockHeaderStore, IDataStore dataStore, ILogger logger)
+        public BlockManager(IDataStore dataStore, ILogger logger)
         {
-            _blockHeaderStore = blockHeaderStore;
             _dataStore = dataStore;
             _logger = logger;
         }
 
         public async Task<IBlock> AddBlockAsync(IBlock block)
         {
-            //await _dataStore.InsertAsync<BlockHeader>(block.GetHash(), block.Header);
-            await _blockHeaderStore.InsertAsync(block.Header);
+            await _dataStore.InsertAsync(block.GetHash(), block.Header);
+            //await _blockHeaderStore.InsertAsync(block.Header);
             await _dataStore.InsertAsync(block.Body.GetHash(), block.Body);
 
             return block;
@@ -36,21 +32,21 @@ namespace AElf.ChainController
 
         public async Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash)
         {
-            //return await _dataStore.GetAsync<BlockHeader>(blockHash);
-            return await _blockHeaderStore.GetAsync(blockHash);
+            return await _dataStore.GetAsync<BlockHeader>(blockHash);
+            //return await _blockHeaderStore.GetAsync(blockHash);
         }
 
         public async Task<BlockHeader> AddBlockHeaderAsync(BlockHeader header)
         {
-            //await _dataStore.InsertAsync<BlockHeader>(header.GetHash(), header);
-            await _blockHeaderStore.InsertAsync(header);
+            await _dataStore.InsertAsync(header.GetHash(), header);
+            //await _blockHeaderStore.InsertAsync(header);
             return header;
         }
 
         public async Task<Block> GetBlockAsync(Hash blockHash)
         {
-            //var header =  await _dataStore.GetAsync<BlockHeader>(blockHash);
-            var header = await _blockHeaderStore.GetAsync(blockHash);
+            var header =  await _dataStore.GetAsync<BlockHeader>(blockHash);
+            //var header = await _blockHeaderStore.GetAsync(blockHash);
             var body = await _dataStore.GetAsync<BlockBody>(header.GetHash().CalculateHashWith(header.MerkleTreeRootOfTransactions));
             return new Block
             {
@@ -77,12 +73,10 @@ namespace AElf.ChainController
                 _logger?.Error($"Invalid block height - {height}");
                 return null;
             }
-            System.Diagnostics.Debug.WriteLine("get key for height {0}: {1}", height, key.ToHex());
-
+            
             var blockHash = await _dataStore.GetAsync<Hash>(key);
             
-            //var blockHeader = await _dataStore.GetAsync<BlockHeader>(key);
-            var blockHeader = await _blockHeaderStore.GetAsync(blockHash);
+            var blockHeader = await _dataStore.GetAsync<BlockHeader>(blockHash);
             var blockBody = await _dataStore.GetAsync<BlockBody>(blockHeader.GetHash()
                 .CalculateHashWith(blockHeader.MerkleTreeRootOfTransactions));
             return new Block

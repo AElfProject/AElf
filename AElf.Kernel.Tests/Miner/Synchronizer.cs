@@ -48,8 +48,7 @@ namespace AElf.Kernel.Tests.Miner
             FunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService,
             IChangesStore changesStore, IWorldStateStore worldStateStore, IDataStore dataStore,
             ISmartContractManager smartContractManager, IAccountContextService accountContextService,
-            ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore,
-            ITransactionStore transactionStore) : base(new XunitAssertions())
+            ITxPoolService txPoolService, ITransactionStore transactionStore) : base(new XunitAssertions())
         {
 
             _chainCreationService = chainCreationService;
@@ -64,8 +63,8 @@ namespace AElf.Kernel.Tests.Miner
             _changesStore = changesStore;
             _worldStateStore = worldStateStore;
             _dataStore = dataStore;
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore,
-                blockHeaderStore, transactionStore, _logger);
+            _worldStateDictator =
+                new WorldStateDictator(worldStateStore, changesStore, dataStore, transactionStore, _logger);
             _smartContractManager = smartContractManager;
             _accountContextService = accountContextService;
 

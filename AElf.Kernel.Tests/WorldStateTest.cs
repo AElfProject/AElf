@@ -5,9 +5,7 @@ using System.Threading.Tasks;
 using AElf.SmartContract;
 using AElf.ChainController;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
-using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
@@ -20,28 +18,21 @@ namespace AElf.Kernel.Tests
     public class WorldStateTest
     {
         private readonly IWorldStateStore _worldStateStore;
-        private readonly IChainStore _chainStore;
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
         private readonly ILogger _logger;
         private readonly BlockTest _blockTest;
-        private readonly ITxPoolService _txPoolService;
-        private readonly IBlockHeaderStore _blockHeaderStore;
         private readonly ITransactionStore _transactionStore;
 
-        public WorldStateTest(IChainStore chainStore, IWorldStateStore worldStateStore,
-            IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest, ILogger logger,
-            ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore,
+        public WorldStateTest(IWorldStateStore worldStateStore,
+            IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest, ILogger logger, 
             ITransactionStore transactionStore)
         {
-            _chainStore = chainStore;
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _blockTest = blockTest;
             _logger = logger;
-            _txPoolService = txPoolService;
-            _blockHeaderStore = blockHeaderStore;
             _transactionStore = transactionStore;
         }
 
@@ -50,10 +41,10 @@ namespace AElf.Kernel.Tests
         {
             // Data preparation
             var chain = await _blockTest.CreateChain();
-            var worldStateDirector = 
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                    _blockHeaderStore, _transactionStore,  _logger).SetChainId(chain.Id);
-            var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDirector);
+            var worldStateDirector =
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _transactionStore, _logger)
+                    .SetChainId(chain.Id);
+            var chainManger = new ChainManager(_dataStore, worldStateDirector);
             
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             
@@ -75,12 +66,12 @@ namespace AElf.Kernel.Tests
         public async Task GetHistoryWorldStateRootTest()
         {
             var chain = await _blockTest.CreateChain();
-            
-            var worldStateDictator = 
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                    _blockHeaderStore, _transactionStore,  _logger).SetChainId(chain.Id);
+
+            var worldStateDictator =
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _transactionStore, _logger)
+                    .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
-            var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDictator);
+            var chainManger = new ChainManager(_dataStore, worldStateDictator);
 
             var key = new Hash("testkey".CalculateHash());
             
@@ -194,16 +185,17 @@ namespace AElf.Kernel.Tests
         public async Task RollbackCurrentChangesTest()
         {
             var chain = await _blockTest.CreateChain();
-            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                _blockHeaderStore, _transactionStore, _logger).SetChainId(chain.Id);
+            var worldStateDictator =
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _transactionStore, _logger)
+                    .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
-            var chainManager = new ChainManager(_chainStore, _dataStore, worldStateDictator);
+            var chainManager = new ChainManager(_dataStore, worldStateDictator);
             worldStateDictator.PreBlockHash = chain.GenesisBlockHash;
             
             // block 1
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
-            var blockManager = new BlockManager(_blockHeaderStore, _dataStore, _logger);
+            var blockManager = new BlockManager(_dataStore, _logger);
             
             var address = Hash.Generate();
             
@@ -289,11 +281,11 @@ namespace AElf.Kernel.Tests
             
             var chain = await _blockTest.CreateChain();
             var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                _blockHeaderStore, _transactionStore,  _logger).SetChainId(chain.Id);
+                _transactionStore,  _logger).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
-            var chainManager = new ChainManager(_chainStore, _dataStore, worldStateDictator);
-            var blockManager = new BlockManager(_blockHeaderStore, _dataStore, _logger);
+            var chainManager = new ChainManager(_dataStore, worldStateDictator);
+            var blockManager = new BlockManager(_dataStore, _logger);
 
             var key = new Hash("testkey".CalculateHash());
             
@@ -408,13 +400,14 @@ namespace AElf.Kernel.Tests
         public async Task CheckoutTest()
         {
             var chain = await _blockTest.CreateChain();
-            
-            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                _blockHeaderStore, _transactionStore,  _logger).SetChainId(chain.Id);
+
+            var worldStateDictator =
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _transactionStore, _logger)
+                    .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
-            var chainManager = new ChainManager(_chainStore, _dataStore, worldStateDictator);
-            var blockManager = new BlockManager(_blockHeaderStore, _dataStore, _logger);
+            var chainManager = new ChainManager(_dataStore, worldStateDictator);
+            var blockManager = new BlockManager(_dataStore, _logger);
 
             var key = new Hash("testkey".CalculateHash());
             

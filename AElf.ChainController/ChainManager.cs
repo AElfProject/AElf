@@ -10,13 +10,11 @@ namespace AElf.Kernel.Managers
 {
     public class ChainManager : IChainManager
     {
-        private readonly IChainStore _chainStore;
         private readonly IDataStore _dataStore;
         private readonly IWorldStateDictator _worldStateDictator;
         
-        public ChainManager(IChainStore chainStore, IDataStore dataStore, IWorldStateDictator worldStateDictator)
+        public ChainManager(IDataStore dataStore, IWorldStateDictator worldStateDictator)
         {
-            _chainStore = chainStore;
             _dataStore = dataStore;
             _worldStateDictator = worldStateDictator;
         }
@@ -33,14 +31,14 @@ namespace AElf.Kernel.Managers
 
         public async Task<bool> Exists(Hash chainId)
         {
-            var chain = await _chainStore.GetAsync(chainId);
+            var chain = await _dataStore.GetAsync<Chain>(chainId);
             return chain != null;
         }
 
         public async Task AppendBlockHeaderAsync(BlockHeader header)
         {
             var chainId = header.ChainId;
-            if (await _chainStore.GetAsync(chainId) == null)
+            if (await _dataStore.GetAsync<Chain>(chainId) == null)
                 throw new KeyNotFoundException("The chain doesn't exist!");
 
             var height = await GetChainCurrentHeight(chainId);
@@ -68,14 +66,16 @@ namespace AElf.Kernel.Managers
             await SetChainLastBlockHash(chainId, header.GetHash());
         }
 
-        public Task<IChain> GetChainAsync(Hash id)
+        public async Task<IChain> GetChainAsync(Hash chainId)
         {
-            return _chainStore.GetAsync(id);
+            return await _dataStore.GetAsync<Chain>(chainId);
         }
 
-        public Task<IChain> AddChainAsync(Hash chainId, Hash genesisBlockHash)
+        public async Task<IChain> AddChainAsync(Hash chainId, Hash genesisBlockHash)
         {
-            return _chainStore.InsertAsync(new Chain(chainId, genesisBlockHash));
+            var chain = new Chain(chainId, genesisBlockHash);
+            await _dataStore.InsertAsync(chainId, chain);
+            return chain;
         }
         
         /// <inheritdoc/>

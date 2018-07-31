@@ -21,7 +21,6 @@ namespace AElf.SmartContract
         private readonly IWorldStateStore _worldStateStore;
         private readonly IDataStore _dataStore;
         private readonly IChangesStore _changesStore;
-        private readonly IBlockHeaderStore _blockHeaderStore;
         private readonly ITransactionStore _transactionStore;
         #endregion
 
@@ -36,13 +35,12 @@ namespace AElf.SmartContract
         public Hash BlockProducerAccountAddress { get; set; }
 
         public WorldStateDictator(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, IBlockHeaderStore blockHeaderStore,ITransactionStore transactionStore, ILogger logger)
+            IDataStore dataStore, ITransactionStore transactionStore, ILogger logger)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _logger = logger;
-            _blockHeaderStore = blockHeaderStore;
             _transactionStore = transactionStore;
         }
 
@@ -158,8 +156,8 @@ namespace AElf.SmartContract
                 var rollBackBlockHash =
                         await _dataStore.GetAsync<Hash>(
                             ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, i));
-                //var header = await _dataStore.GetAsync<BlockHeader>(rollBackBlockHash);
-                var header = await _blockHeaderStore.GetAsync(rollBackBlockHash);
+                var header = await _dataStore.GetAsync<BlockHeader>(rollBackBlockHash);
+                //var header = await _blockHeaderStore.GetAsync(rollBackBlockHash);
                 var body =
                     await _dataStore.GetAsync<BlockBody>(header.GetHash()
                         .CalculateHashWith(header.MerkleTreeRootOfTransactions));
