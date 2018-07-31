@@ -22,14 +22,14 @@ namespace AElf.Kernel.Tests.TxMemPool
     {
         private IAccountContextService _accountContextService;
         private readonly ILogger _logger;
-        private readonly ITransactionManager _transactionManager;
-        private readonly ITransactionResultManager _transactionResultManager;
+        private readonly TransactionManager _transactionManager;
+        private readonly TransactionResultManager _transactionResultManager;
         private readonly IChainCreationService _chainCreationService;
         private IBlockManager _blockManager;
         private IWorldStateDictator _worldStateDictator;
 
         public IntegrationTest(ILogger logger,
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
+            TransactionManager transactionManager, TransactionResultManager transactionResultManager, 
             IChainCreationService chainCreationService, IBlockManager blockManager, 
             IWorldStateDictator worldStateDictator)
         {
@@ -117,7 +117,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 i++;
             }
             
-            var txList = new List<ITransaction>();
+            var txList = new List<Transaction>();
 
             var txCount = threadNum * r;
             while (count++ < txCount)
@@ -222,7 +222,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 i++;
             }
             
-            var txList = new List<ITransaction>();
+            var txList = new List<Transaction>();
             
             while (count++ < threadNum)
             {

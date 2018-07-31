@@ -4,9 +4,9 @@ namespace AElf.Sdk.CSharp.ReadOnly
 {
     public static class Extensions
     {
-        public static ITransaction ToReadOnly(this ITransaction transaction)
+        public static Transaction ToReadOnly(this Transaction transaction)
         {
-            // TODO: ITransaction may be replaced with Transaction
+            // TODO: Transaction may be replaced with Transaction
             return ((Transaction)transaction).Clone();
         }
 

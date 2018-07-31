@@ -26,8 +26,8 @@ namespace AElf.ChainController
         private readonly IWorldStateDictator _worldStateDictator;
         private ISmartContractService _smartContractService;
         private IConcurrencyExecutingService _concurrencyExecutingService;
-        private ITransactionManager _transactionManager;
-        private ITransactionResultManager _transactionResultManager;
+        private TransactionManager _transactionManager;
+        private TransactionResultManager _transactionResultManager;
 
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
@@ -46,7 +46,7 @@ namespace AElf.ChainController
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, 
                 IChainManager chainManager, IBlockManager blockManager, IWorldStateDictator worldStateDictator, 
-            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
+            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService, TransactionManager transactionManager, TransactionResultManager transactionResultManager)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -160,7 +160,7 @@ namespace AElf.ChainController
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
-        private async Task<HashSet<Hash>> InsertTxs(List<ITransaction> executedTxs, List<TransactionResult> txResults)
+        private async Task<HashSet<Hash>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults)
         {
             var addrs = new HashSet<Hash>();
             foreach (var t in executedTxs)

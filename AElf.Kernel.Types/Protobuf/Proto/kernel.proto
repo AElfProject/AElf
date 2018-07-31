@@ -17,6 +17,11 @@ message Transaction
     bytes R = 7;
     bytes S = 8;
     bytes P = 9;
+    TxType type = 10;
+}
+
+enum TxType{
+    NormalTransaction = 0;
 }
 
 enum Status {

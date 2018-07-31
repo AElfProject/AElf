@@ -33,7 +33,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             // Normal transfer
             var tx1 = _mock.GetTransferTxn1(from, to, 10);
 
-            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, new List<ITransaction>() {tx1}, TestActor,
+            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, new List<Transaction>() {tx1}, TestActor,
                 TestActor));
 
 /*
@@ -93,7 +93,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var tx2 = _mock.GetTransferTxn1(address3, address4, 10);
 
             // Normal transfer
-            var job1 = new List<ITransaction>
+            var job1 = new List<Transaction>
             {
                 tx1,
                 tx2
@@ -150,7 +150,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         [Fact]
         public void JobCancelTest()
         {
-            var job = new List<ITransaction>()
+            var job = new List<Transaction>()
             {
                 _mock.GetSleepTxn1(1000),
                 _mock.GetSleepTxn1(1000),

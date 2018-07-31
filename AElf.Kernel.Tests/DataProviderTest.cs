@@ -20,12 +20,12 @@ namespace AElf.Kernel.Tests
         private readonly BlockTest _blockTest;
         private readonly ILogger _logger;
         private readonly ITxPoolService _txPoolService;
-        private readonly ITransactionStore _transactionStore;
+        private readonly TransactionStore _transactionStore;
 
         public DataProviderTest(IWorldStateStore worldStateStore,
             IChangesStore changesStore, IDataStore dataStore,
             BlockTest blockTest, ILogger logger,
-            ITxPoolService txPoolService, ITransactionStore transactionStore)
+            ITxPoolService txPoolService, TransactionStore transactionStore)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;

@@ -19,11 +19,11 @@ namespace AElf.Kernel.Tests.TxMemPool
     {
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
-        private readonly ITransactionManager _transactionManager;
-        private readonly ITransactionResultManager _transactionResultManager;
+        private readonly TransactionManager _transactionManager;
+        private readonly TransactionResultManager _transactionResultManager;
         private readonly IWorldStateDictator _worldStateDictator;
         public TxPoolServiceTest(IAccountContextService accountContextService, ILogger logger,
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, IWorldStateDictator worldStateDictator)
+            TransactionManager transactionManager, TransactionResultManager transactionResultManager, IWorldStateDictator worldStateDictator)
         {
             _accountContextService = accountContextService;
             _logger = logger;
@@ -218,7 +218,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var tx4_1 = BuildTransaction(nonce:2, keyPair:kp4);
             
             
-            await poolService.RollBack(new List<ITransaction>{tx1_4, tx1_5, tx2_2, tx3_2, tx4_1, tx4_0});
+            await poolService.RollBack(new List<Transaction>{tx1_4, tx1_5, tx2_2, tx3_2, tx4_1, tx4_0});
             
             Assert.Equal((ulong)0, pool.GetNonce(kp1.GetAddress()).Value);
             Assert.Equal((ulong)0, pool.GetNonce(kp2.GetAddress()).Value);

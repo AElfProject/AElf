@@ -21,8 +21,8 @@ namespace AElf.ChainController
         private readonly ITxPoolService _txPoolService;
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
-        private readonly ITransactionManager _transactionManager;
-        private readonly ITransactionResultManager _transactionResultManager;
+        private readonly TransactionManager _transactionManager;
+        private readonly TransactionResultManager _transactionResultManager;
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly IConcurrencyExecutingService _concurrencyExecutingService;
         private IGrouper _grouper;
@@ -31,7 +31,7 @@ namespace AElf.ChainController
         public BlockExecutor(ITxPoolService txPoolService, IChainManager chainManager,
             IBlockManager blockManager, IWorldStateDictator worldStateDictator,
             IConcurrencyExecutingService concurrencyExecutingService, 
-            ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
+            ILogger logger, TransactionManager transactionManager, TransactionResultManager transactionResultManager)
         {
             _txPoolService = txPoolService;
             _chainManager = chainManager;
@@ -51,7 +51,7 @@ namespace AElf.ChainController
         /// <inheritdoc/>
         public async Task<bool> ExecuteBlock(IBlock block)
         {
-            var readyTxs = new List<ITransaction>();
+            var readyTxs = new List<Transaction>();
 
             await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
             var worldState = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
@@ -196,12 +196,13 @@ namespace AElf.ChainController
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
-        private async Task<HashSet<Hash>> InsertTxs(List<ITransaction> executedTxs, List<TransactionResult> txResults)
+        private async Task<HashSet<Hash>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults)
         {
             var addrs = new HashSet<Hash>();
             foreach (var t in executedTxs)
             {
                 addrs.Add(t.From);
+                var type = t.GetType();
                 await _transactionManager.AddTransactionAsync(t);
             }
             
@@ -217,7 +218,7 @@ namespace AElf.ChainController
         /// </summary>
         /// <param name="readyTxs"></param>
         /// <returns></returns>
-        private async Task Rollback(List<ITransaction> readyTxs)
+        private async Task Rollback(List<Transaction> readyTxs)
         {
             await _txPoolService.RollBack(readyTxs);
             await _worldStateDictator.RollbackCurrentChangesAsync();

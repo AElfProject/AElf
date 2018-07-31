@@ -7,11 +7,11 @@ namespace AElf.ChainController
 {
     public class TransactionResultService : ITransactionResultService
     {
-        private readonly ITransactionResultManager _transactionResultManager;
+        private readonly TransactionResultManager _transactionResultManager;
         private readonly ITxPoolService _txPoolService;
         private readonly Dictionary<Hash, TransactionResult> _cacheResults = new Dictionary<Hash, TransactionResult>();
 
-        public TransactionResultService(ITxPoolService txPoolService, ITransactionResultManager transactionResultManager)
+        public TransactionResultService(ITxPoolService txPoolService, TransactionResultManager transactionResultManager)
         {
             _txPoolService = txPoolService;
             _transactionResultManager = transactionResultManager;

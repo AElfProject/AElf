@@ -20,7 +20,7 @@ namespace AElf.Kernel.Tests
 
         public WorldStateDictatorTest(IWorldStateStore worldStateStore, IChangesStore changesStore,
             IDataStore dataStore, ITxPoolService txPoolService,
-            ITransactionStore transactionStore, BlockTest blockTest, ILogger logger)
+            TransactionStore transactionStore, BlockTest blockTest, ILogger logger)
         {
             _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, transactionStore, _logger)
             {

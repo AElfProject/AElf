@@ -28,7 +28,7 @@ namespace AElf.ChainController
         /// <param name="pool"></param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        public static TxInsertionAndBroadcastingError ValidateTx(this ITxPool pool, ITransaction tx)
+        public static TxInsertionAndBroadcastingError ValidateTx(this ITxPool pool, Transaction tx)
         {
             if (tx.From == Hash.Zero || tx.MethodName == "" || tx.IncrementId < 0)
             {
@@ -74,7 +74,7 @@ namespace AElf.ChainController
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        public static bool VerifySignature(this ITransaction tx)
+        public static bool VerifySignature(this Transaction tx)
         {
             if (tx.P == null)
             {
@@ -97,7 +97,7 @@ namespace AElf.ChainController
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        public static bool CheckAccountAddress(this ITransaction tx)
+        public static bool CheckAccountAddress(this Transaction tx)
         {
             // TODO: more verifications
             return tx.From.Value.Length == ECKeyPair.AddressLength && (tx.To == null || tx.To.Value.Length == ECKeyPair.AddressLength);
@@ -110,7 +110,7 @@ namespace AElf.ChainController
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        private static int GetTxSize(ITransaction tx)
+        private static int GetTxSize(Transaction tx)
         {
             return tx.Size();
         }

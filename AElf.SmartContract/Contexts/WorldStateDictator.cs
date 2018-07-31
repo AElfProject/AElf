@@ -21,7 +21,7 @@ namespace AElf.SmartContract
         private readonly IWorldStateStore _worldStateStore;
         private readonly IDataStore _dataStore;
         private readonly IChangesStore _changesStore;
-        private readonly ITransactionStore _transactionStore;
+        private readonly TransactionStore _transactionStore;
         #endregion
 
         private readonly ILogger _logger;
@@ -35,7 +35,7 @@ namespace AElf.SmartContract
         public Hash BlockProducerAccountAddress { get; set; }
 
         public WorldStateDictator(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, ITransactionStore transactionStore, ILogger logger)
+            IDataStore dataStore, TransactionStore transactionStore, ILogger logger)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
@@ -71,13 +71,13 @@ namespace AElf.SmartContract
             var keyToGetCount = ResourcePath.CalculatePointerForPathsCount(_chainId, PreBlockHash);
             if (await _dataStore.GetAsync<UInt64Value>(keyToGetCount) == null)
             {
-                await _dataStore.InsertAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0});
+                await _dataStore.InsertAsync(keyToGetCount, new UInt64Value {Value = 0});
             }
             
             var result = await _dataStore.GetAsync<UInt64Value>(keyToGetCount);
             if (result == null)
             {
-                await _dataStore.InsertAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0});
+                await _dataStore.InsertAsync(keyToGetCount, new UInt64Value {Value = 0});
             }
             else
             {
@@ -124,7 +124,7 @@ namespace AElf.SmartContract
         /// </summary>
         /// <param name="specificHeight"></param>
         /// <returns></returns>
-        public async Task<List<ITransaction>> RollbackToSpecificHeight(ulong specificHeight)
+        public async Task<List<Transaction>> RollbackToSpecificHeight(ulong specificHeight)
         {
             if (specificHeight < 1)
             {
@@ -148,7 +148,7 @@ namespace AElf.SmartContract
             await SetChainLastBlockHash(_chainId, lastBlockHash);
             //PreBlockHash = lastBlockHash;
 
-            var txs = new List<ITransaction>();
+            var txs = new List<Transaction>();
 
             //Just for logging
             for (var i = currentHeight - 1; i >= specificHeight; i--)
@@ -507,13 +507,13 @@ namespace AElf.SmartContract
             var keyToGetCount = ResourcePath.CalculatePointerForPathsCount(_chainId, blockHash);
             if (await _dataStore.GetAsync<UInt64Value>(keyToGetCount) == null)
             {
-                await _dataStore.InsertAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0});
+                await _dataStore.InsertAsync(keyToGetCount, new UInt64Value {Value = 0});
             }
             
             var result = await _dataStore.GetAsync<UInt64Value>(keyToGetCount);
             if (result == null)
             {
-                await _dataStore.InsertAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0});
+                await _dataStore.InsertAsync(keyToGetCount, new UInt64Value {Value = 0});
             }
             else
             {

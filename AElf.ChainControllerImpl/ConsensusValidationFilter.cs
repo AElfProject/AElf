@@ -64,7 +64,7 @@ namespace AElf.ChainController
                 : ValidationError.InvalidTimeslot;
         }
 
-        private ITransaction GetTxToVerifyBlockProducer(Hash contractAccountHash, ECKeyPair keyPair, string recepientAddress, Timestamp timestamp)
+        private Transaction GetTxToVerifyBlockProducer(Hash contractAccountHash, ECKeyPair keyPair, string recepientAddress, Timestamp timestamp)
         {
             if (contractAccountHash == null || keyPair == null || recepientAddress == null)
             {

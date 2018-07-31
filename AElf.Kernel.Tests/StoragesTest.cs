@@ -25,11 +25,11 @@ namespace AElf.Kernel.Tests
         private readonly ChainManager _chainManager;
         private readonly ILogger _logger;
         private readonly ITxPoolService _txPoolService;
-        private readonly ITransactionStore _transactionStore;
+        private readonly TransactionStore _transactionStore;
 
         public StoragesTest(IWorldStateStore worldStateStore, IChangesStore changesStore, 
             IDataStore dataStore, BlockTest blockTest, ChainManager chainManager,
-            ILogger logger, ITxPoolService txPoolService, ITransactionStore transactionStore)
+            ILogger logger, ITxPoolService txPoolService, TransactionStore transactionStore)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;

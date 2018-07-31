@@ -182,7 +182,7 @@ namespace AElf.Benchmark
             return new KeyValuePair<string,double>(str, time);
         }
 
-        private List<Hash> GetTargetHashesForTransfer(List<ITransaction> transactions)
+        private List<Hash> GetTargetHashesForTransfer(List<Transaction> transactions)
         {
             if (transactions.Count(a => a.MethodName != "Transfer") != 0)
             {
@@ -313,7 +313,7 @@ namespace AElf.Benchmark
                 await _smartContractService.PutExecutiveAsync(contractAddr, executiveUser);    
             }
             //init contract
-            var initTxList = new List<ITransaction>();
+            var initTxList = new List<Transaction>();
             foreach (var addr in addrBook)
             {
                 var txnBalInit = new Transaction

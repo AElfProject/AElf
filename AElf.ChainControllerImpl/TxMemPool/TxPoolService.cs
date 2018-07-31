@@ -21,7 +21,7 @@ namespace AElf.Kernel.TxMemPool
         private readonly ILogger _logger;
 
         public TxPoolService(ITxPool txPool, IAccountContextService accountContextService,
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, ILogger logger)
+            TransactionManager transactionManager, TransactionResultManager transactionResultManager, ILogger logger)
         {
             _txPool = txPool;
             _accountContextService = accountContextService;
@@ -35,12 +35,12 @@ namespace AElf.Kernel.TxMemPool
 
         private TxPoolSchedulerLock Lock { get; } = new TxPoolSchedulerLock();
 
-        private readonly ConcurrentDictionary<Hash, ITransaction> _txs = new ConcurrentDictionary<Hash, ITransaction>();
+        private readonly ConcurrentDictionary<Hash, Transaction> _txs = new ConcurrentDictionary<Hash, Transaction>();
 
         private readonly HashSet<Hash> _addrCache = new HashSet<Hash>();
 
         /// <inheritdoc/>
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx)
         {
             if (Cts.IsCancellationRequested) return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
 
@@ -51,7 +51,7 @@ namespace AElf.Kernel.TxMemPool
             return await AddTransaction(tx);
         }
 
-        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(ITransaction tx)
+        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(Transaction tx)
         {
             return await Lock.WriteLock(() =>
             {
@@ -110,7 +110,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="txs"></param>
         /// <returns></returns>
-        private void PersistTxs(IEnumerable<ITransaction> txs)
+        private void PersistTxs(IEnumerable<Transaction> txs)
         {
             foreach (var t in txs)
             {
@@ -120,7 +120,7 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task<List<ITransaction>> GetReadyTxsAsync(ulong limit)
+        public Task<List<Transaction>> GetReadyTxsAsync(ulong limit)
         {
             return Lock.ReadLock(() =>
             {
@@ -177,7 +177,7 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public bool TryGetTx(Hash txHash, out ITransaction tx)
+        public bool TryGetTx(Hash txHash, out Transaction tx)
         {
             return _txs.TryGetValue(txHash, out tx);
         }
@@ -303,18 +303,18 @@ namespace AElf.Kernel.TxMemPool
 
 
         /// <inheritdoc/>
-        public async Task RollBack(List<ITransaction> txsOut)
+        public async Task RollBack(List<Transaction> txsOut)
         {
             try
             {
                 var nonces = txsOut.Select(async p => await TrySetNonce(p.From));
                 await Task.WhenAll(nonces);
  
-                var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(),  (current, p) =>
+                var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<Transaction>>(),  (current, p) =>
                 {
                     if (!current.TryGetValue(p.From, out var _))
                     {
-                        current[p.From] = new HashSet<ITransaction>();
+                        current[p.From] = new HashSet<Transaction>();
                     }
 
                     current[p.From].Add(p);

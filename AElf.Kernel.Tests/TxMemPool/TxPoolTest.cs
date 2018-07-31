@@ -80,7 +80,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             // Add a valid transaction
             var tx = BuildTransaction();
-            var tmp = new HashSet<ITransaction> {tx};
+            var tmp = new HashSet<Transaction> {tx};
             var ctx = await _accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
             pool.TrySetNonce(tx.From, ctx.IncrementId);
             pool.EnQueueTxs(tmp);
@@ -141,7 +141,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             // Add a valid transaction
             var tx = BuildTransaction();
-            var tmp = new HashSet<ITransaction> {tx};
+            var tmp = new HashSet<Transaction> {tx};
             var ctx = await _accountContextService.GetAccountDataContext(tx.From, TxPoolConfig.Default.ChainId);
             pool.Nonces[tx.From] = ctx.IncrementId;
             pool.QueueTxs(tmp);
@@ -159,7 +159,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             // Add a valid transaction
             var tx = BuildTransaction();
-            var tmp = new HashSet<ITransaction> {tx};
+            var tmp = new HashSet<Transaction> {tx};
             var ctx = await _accountContextService.GetAccountDataContext(tx.From, TxPoolConfig.Default.ChainId);
             pool.Nonces[tx.From] = ctx.IncrementId;
             pool.EnQueueTxs(tmp);
@@ -178,7 +178,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             // Add a valid transaction
             var tx = BuildTransaction();
-            var tmp = new HashSet<ITransaction> {tx};
+            var tmp = new HashSet<Transaction> {tx};
             var ctx =  await _accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
             pool.TrySetNonce(tx.From, ctx.IncrementId);
             pool.EnQueueTxs(tmp);
@@ -198,7 +198,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             var pool = GetPool();
             var tx = BuildTransaction();
-            var tmp = new HashSet<ITransaction> {tx};
+            var tmp = new HashSet<Transaction> {tx};
             var ctx = await _accountContextService.GetAccountDataContext(tx.From, TxPoolConfig.Default.ChainId);
             pool.Nonces[tx.From] = ctx.IncrementId;
             pool.QueueTxs(tmp);

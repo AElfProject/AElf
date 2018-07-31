@@ -62,7 +62,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public MockSetup(IWorldStateStore worldStateStore, IChangesStore changesStore,
             IDataStore dataStore, 
-            ITransactionStore transactionStore, IChainCreationService chainCreationService,
+            TransactionStore transactionStore, IChainCreationService chainCreationService,
             IBlockManager blockManager, ISmartContractStore smartContractStore,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger)
@@ -291,7 +291,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             };
         }
 
-        public DateTime GetTransactionStartTime1(ITransaction tx)
+        public DateTime GetTransactionStartTime1(Transaction tx)
         {
             var txn = GetSTTxn(SampleContractAddress1, tx.GetHash());
             var txnCtxt = new TransactionContext()
@@ -307,7 +307,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
         }
 
-        public DateTime GetTransactionEndTime1(ITransaction tx)
+        public DateTime GetTransactionEndTime1(Transaction tx)
         {
             var txn = GetETTxn(SampleContractAddress1, tx.GetHash());
             var txnCtxt = new TransactionContext()

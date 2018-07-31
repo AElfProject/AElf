@@ -76,7 +76,7 @@ namespace AElf.Benchmark
             return txAccountList;
         }
         
-        public List<ITransaction> GetTxsWithOneConflictGroup(Hash contractAddr, int txNumber, double conflictRate)
+        public List<Transaction> GetTxsWithOneConflictGroup(Hash contractAddr, int txNumber, double conflictRate)
         {
             var keyDictIter = KeyList.Iterator();
             
@@ -86,12 +86,12 @@ namespace AElf.Benchmark
             return txList;
         }
 
-        public List<ITransaction> GetMultipleGroupTx(int txNumber, int groupCount, Hash contractAddr)
+        public List<Transaction> GetMultipleGroupTx(int txNumber, int groupCount, Hash contractAddr)
         {
             if(txNumber > _maxTxNumber)  throw new InvalidParameterException();
             int txNumPerGroup = txNumber / groupCount;
             var keyDictIter = KeyList.Iterator();
-            List<ITransaction> txList = new List<ITransaction>();
+            List<Transaction> txList = new List<Transaction>();
             for (int i = 0; i < groupCount; i++)
             {
                 var addrPair = GenerateTransferAddressPair(txNumPerGroup, 1, ref keyDictIter);
@@ -102,9 +102,9 @@ namespace AElf.Benchmark
             return txList;
         }
         
-        public List<ITransaction> GenerateTransferTransactions(Hash tokenContractAddr, IEnumerable<KeyValuePair<Hash, Hash>> transferAddressPairs)
+        public List<Transaction> GenerateTransferTransactions(Hash tokenContractAddr, IEnumerable<KeyValuePair<Hash, Hash>> transferAddressPairs)
         {
-            var resList = new List<ITransaction>();
+            var resList = new List<Transaction>();
             foreach (var addressPair in transferAddressPairs)
             {
                 Transaction tx = new Transaction()

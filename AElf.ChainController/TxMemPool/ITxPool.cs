@@ -10,19 +10,19 @@ namespace AElf.ChainController
         /// queue txs from tmp to waiting
         /// </summary>
         /// <param name="txs"></param>
-        void EnQueueTxs(HashSet<ITransaction> txs);
+        void EnQueueTxs(HashSet<Transaction> txs);
         
         /// <summary>
         /// queue txs from tmp to waiting
         /// </summary>
         /// <param name="tx"></param>
-        TxValidation.TxInsertionAndBroadcastingError EnQueueTx(ITransaction tx);
+        TxValidation.TxInsertionAndBroadcastingError EnQueueTx(Transaction tx);
         
         /// <summary>
         /// remove a tx
         /// </summary>
         /// <param name="tx"></param>
-        bool DiscardTx(ITransaction tx);
+        bool DiscardTx(Transaction tx);
 
         /// <summary>
         /// promote txs from waiting to executable
@@ -39,7 +39,7 @@ namespace AElf.ChainController
         /// <summary>
         /// return tx list can be executed
         /// </summary>
-        List<ITransaction> ReadyTxs(ulong limit);
+        List<Transaction> ReadyTxs(ulong limit);
         
         /// <summary>
         /// return chain id for this pool

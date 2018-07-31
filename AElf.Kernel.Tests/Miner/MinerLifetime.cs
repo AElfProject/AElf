@@ -52,8 +52,8 @@ namespace AElf.Kernel.Tests.Miner
         private ISmartContractService _smartContractService;
         private IChainContextService _chainContextService;
         private IAccountContextService _accountContextService;
-        private ITransactionManager _transactionManager;
-        private ITransactionResultManager _transactionResultManager;
+        private TransactionManager _transactionManager;
+        private TransactionResultManager _transactionResultManager;
         private IConcurrencyExecutingService _concurrencyExecutingService;
         private IFunctionMetadataService _functionMetadataService;
 
@@ -66,7 +66,7 @@ namespace AElf.Kernel.Tests.Miner
         public MinerLifetime(IWorldStateDictator worldStateDictator, 
             IChainCreationService chainCreationService, 
             IChainContextService chainContextService, ILogger logger, IAccountContextService accountContextService, 
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
+            TransactionManager transactionManager, TransactionResultManager transactionResultManager, 
             IChainManager chainManager, IBlockManager blockManager, ISmartContractManager smartContractManager, 
             IFunctionMetadataService functionMetadataService, 
             IConcurrencyExecutingService concurrencyExecutingService) : base(new XunitAssertions())
@@ -173,7 +173,7 @@ namespace AElf.Kernel.Tests.Miner
             txnDep.R = ByteString.CopyFrom(signature.R); 
             txnDep.S = ByteString.CopyFrom(signature.S);
             
-            var txs = new List<ITransaction>(){
+            var txs = new List<Transaction>(){
                 txnDep
             };
             
@@ -183,7 +183,7 @@ namespace AElf.Kernel.Tests.Miner
         }
         
         
-        public List<ITransaction> CreateTxs(Hash chainId)
+        public List<Transaction> CreateTxs(Hash chainId)
         {
             var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
 
@@ -246,7 +246,7 @@ namespace AElf.Kernel.Tests.Miner
             txPrint.R = ByteString.CopyFrom(signature.R); 
             txPrint.S = ByteString.CopyFrom(signature.S);
             
-            var txs = new List<ITransaction>(){
+            var txs = new List<Transaction>(){
                 txPrint
             };
 
@@ -311,8 +311,6 @@ namespace AElf.Kernel.Tests.Miner
             
             var miner = GetMiner(minerconfig, poolService);
 
-            var parallelTransactionExecutingService = new ParallelTransactionExecutingService(_requestor,
-                new Grouper(_servicePack.ResourceDetectionService));
             miner.Start(keypair, new Grouper(_servicePack.ResourceDetectionService));
             
             var block = await miner.Mine();

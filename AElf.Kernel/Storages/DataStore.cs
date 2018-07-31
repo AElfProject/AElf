@@ -79,6 +79,29 @@ namespace AElf.Kernel.Storages
             }
         }
 
+        public async Task InsertSerializedData<T>(Hash pointerHash, T obj) where T : ISerializable
+        {
+            try
+            {
+                if (pointerHash == null)
+                {
+                    throw new Exception("Point hash cannot be null.");
+                }
+                if (!Enum.TryParse<Types>(typeof(T).Name, out var result))
+                {
+                    throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
+                }
+                
+                var key = pointerHash.GetKeyString((uint)result);
+                await _keyValueDatabase.SetAsync(key, obj.Serialize());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
         public async Task<bool> PipelineSetDataAsync(Dictionary<Hash, byte[]> pipelineSet)
         {
             try

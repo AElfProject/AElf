@@ -44,11 +44,11 @@ namespace AElf.Kernel.Tests.Miner
         public Synchronizer(
             IChainCreationService chainCreationService, IChainContextService chainContextService,
             IChainManager chainManager, IBlockManager blockManager, ILogger logger,
-            ITransactionResultManager transactionResultManager, ITransactionManager transactionManager,
+            TransactionResultManager transactionResultManager, TransactionManager transactionManager,
             FunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService,
             IChangesStore changesStore, IWorldStateStore worldStateStore, IDataStore dataStore,
             ISmartContractManager smartContractManager, IAccountContextService accountContextService,
-            ITxPoolService txPoolService, ITransactionStore transactionStore) : base(new XunitAssertions())
+            ITxPoolService txPoolService, TransactionStore transactionStore) : base(new XunitAssertions())
         {
 
             _chainCreationService = chainCreationService;
@@ -174,7 +174,7 @@ namespace AElf.Kernel.Tests.Miner
         }
 
 
-        public List<ITransaction> CreateTxs(Hash chainId)
+        public List<Transaction> CreateTxs(Hash chainId)
         {
             var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
 
@@ -231,7 +231,7 @@ namespace AElf.Kernel.Tests.Miner
             txInv_2.R = ByteString.CopyFrom(signature3.R); 
             txInv_2.S = ByteString.CopyFrom(signature3.S);
             
-            var txs = new List<ITransaction>(){
+            var txs = new List<Transaction>(){
                 txnDep, txInv_1, txInv_2
             };
 
@@ -240,8 +240,8 @@ namespace AElf.Kernel.Tests.Miner
         
         private IAccountContextService _accountContextService;
         private readonly ILogger _logger;
-        private readonly ITransactionManager _transactionManager;
-        private readonly ITransactionResultManager _transactionResultManager;
+        private readonly TransactionManager _transactionManager;
+        private readonly TransactionResultManager _transactionResultManager;
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
         private ISmartContractService _smartContractService;
         private IActorRef _requestor;

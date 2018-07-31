@@ -17,14 +17,14 @@ namespace AElf.Kernel.Storages
             _keyValueDatabase = keyValueDatabase;
         }
 
-        public async Task<Hash> InsertAsync(ITransaction tx)
+        public async Task<Hash> InsertAsync(Transaction tx)
         {
             var key = tx.GetHash().GetKeyString(TypeIndex);           
             await _keyValueDatabase.SetAsync(key, tx.Serialize());
             return tx.GetHash();
         }
 
-        public async Task<ITransaction> GetAsync(Hash hash)
+        public async Task<Transaction> GetAsync(Hash hash)
         {
             var key = hash.GetKeyString(TypeIndex);    
             var txBytes = await _keyValueDatabase.GetAsync(key);

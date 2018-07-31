@@ -26,7 +26,7 @@ namespace AElf.SmartContract
         
         Task RollbackCurrentChangesAsync();
 
-        Task<List<ITransaction>> RollbackToSpecificHeight(ulong specificHeight);
+        Task<List<Transaction>> RollbackToSpecificHeight(ulong specificHeight);
 
         Task<List<Hash>> GetPathsAsync(Hash blockHash = null);
 

@@ -10,6 +10,8 @@ namespace AElf.Kernel.Storages
         Task<byte[]> GetAsync(Hash pointerHash);
         Task InsertAsync<T>(Hash pointerHash, T obj) where T : IMessage;
         Task<T> GetAsync<T>(Hash pointerHash) where T : IMessage, new();
+        Task InsertSerializedData<T>(Hash pointerHash, T obj) where T : ISerializable;
+        
         Task<bool> PipelineSetDataAsync(Dictionary<Hash, byte[]> pipelineSet);
     }
 }

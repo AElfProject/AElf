@@ -15,7 +15,7 @@ namespace AElf.SmartContract
         public Hash Origin { get; set; }
         public Hash Miner { get; set; }
         public Hash PreviousBlockHash { get; set; }
-        public ITransaction Transaction { get; set; }
+        public Transaction Transaction { get; set; }
         public TransactionTrace Trace { get; set; }
     }
 }

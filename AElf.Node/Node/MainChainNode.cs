@@ -38,7 +38,7 @@ namespace AElf.Kernel.Node
         private ECKeyPair _nodeKeyPair;
         private readonly IBlockManager _blockManager;
         private readonly ITxPoolService _txPoolService;
-        private readonly ITransactionManager _transactionManager;
+        private readonly TransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
         private readonly INodeConfig _nodeConfig;
@@ -50,7 +50,7 @@ namespace AElf.Kernel.Node
         private readonly IChainCreationService _chainCreationService;
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly ISmartContractService _smartContractService;
-        private readonly ITransactionResultService _transactionResultService;
+        private readonly TransactionResultService _transactionResultService;
         private readonly IFunctionMetadataService _functionMetadataService;
         private readonly INetworkManager _netManager;
         private readonly IBlockSynchronizer _synchronizer;
@@ -99,14 +99,14 @@ namespace AElf.Kernel.Node
 
         public Hash ChainId => _nodeConfig.ChainId;
 
-        public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer,
+        public MainChainNode(ITxPoolService poolService, TransactionManager txManager, IRpcServer rpcServer,
             ILogger logger,
             INodeConfig nodeConfig, IMiner miner, IAccountContextService accountContextService,
             IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
             IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator,
             IChainManager chainManager, ISmartContractService smartContractService,
-            ITransactionResultService transactionResultService, IBlockManager blockManager,
+            TransactionResultService transactionResultService, IBlockManager blockManager,
             IFunctionMetadataService functionMetadataService, INetworkManager netManager,
             IBlockSynchronizer synchronizer)
         {
@@ -382,7 +382,7 @@ namespace AElf.Kernel.Node
         /// </summary>
         /// <param name="txId"></param>
         /// <returns></returns>
-        public async Task<ITransaction> GetTransaction(Hash txId)
+        public async Task<Transaction> GetTransaction(Hash txId)
         {
             if (_txPoolService.TryGetTx(txId, out var tx))
             {
@@ -676,7 +676,7 @@ namespace AElf.Kernel.Node
         /// also places it in the transaction pool.
         /// </summary>
         /// <param name="tx">The tx to broadcast</param>
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> BroadcastTransaction(ITransaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> BroadcastTransaction(Transaction tx)
         {
             TxValidation.TxInsertionAndBroadcastingError res;
 
@@ -712,7 +712,7 @@ namespace AElf.Kernel.Node
             return res;
         }
 
-        public async Task<byte[]> CallReadOnly(ITransaction tx)
+        public async Task<byte[]> CallReadOnly(Transaction tx)
         {
             var trace = new TransactionTrace
             {
@@ -760,7 +760,7 @@ namespace AElf.Kernel.Node
         #region Private Methods for DPoS
 
         // ReSharper disable once InconsistentNaming
-        private async Task<ITransaction> GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters,
+        private async Task<Transaction> GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters,
             ulong incrementIdOffset = 0)
         {
             var tx = new Transaction
@@ -906,7 +906,7 @@ namespace AElf.Kernel.Node
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(ITransaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(Transaction tx)
         {
             return await _txPoolService.AddTxAsync(tx);
         }

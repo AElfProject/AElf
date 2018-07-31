@@ -31,14 +31,14 @@ namespace AElf.Execution
     #region ExecuteTransactions
     public sealed class RequestExecuteTransactions
     {
-        public RequestExecuteTransactions(long requestId, List<ITransaction> transactions)
+        public RequestExecuteTransactions(long requestId, List<Transaction> transactions)
         {
             RequestId = requestId;
             Transactions = transactions;
         }
 
         public long RequestId { get; }
-        public List<ITransaction> Transactions { get; }
+        public List<Transaction> Transactions { get; }
     }
 
     public sealed class RespondExecuteTransactions
@@ -134,7 +134,7 @@ namespace AElf.Execution
     /// </summary>
     public sealed class LocalExecuteTransactionsMessage
     {
-        public LocalExecuteTransactionsMessage(Hash chainId, List<ITransaction> transactions, TaskCompletionSource<List<TransactionTrace>> taskCompletionSource)
+        public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions, TaskCompletionSource<List<TransactionTrace>> taskCompletionSource)
         {
             ChainId = chainId;
             Transactions = transactions;
@@ -142,7 +142,7 @@ namespace AElf.Execution
         }
 
         public Hash ChainId { get; }
-        public List<ITransaction> Transactions { get; }
+        public List<Transaction> Transactions { get; }
         public TaskCompletionSource<List<TransactionTrace>> TaskCompletionSource { get; }
     }
 
@@ -243,7 +243,7 @@ namespace AElf.Execution
 
     public class JobExecutionRequest
     {
-        public JobExecutionRequest(long requestId, Hash chainId, List<ITransaction> transactions, IActorRef resultCollector, IActorRef router)
+        public JobExecutionRequest(long requestId, Hash chainId, List<Transaction> transactions, IActorRef resultCollector, IActorRef router)
         {
             RequestId = requestId;
             ChainId = chainId;
@@ -254,7 +254,7 @@ namespace AElf.Execution
 
         public long RequestId { get; set; }
         public Hash ChainId { get; set; }
-        public List<ITransaction> Transactions { get; set; }
+        public List<Transaction> Transactions { get; set; }
         public IActorRef ResultCollector { get; set; }
         public IActorRef Router { get; set; }
 

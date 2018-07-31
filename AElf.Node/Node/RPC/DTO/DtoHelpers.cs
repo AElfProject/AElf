@@ -9,7 +9,7 @@ namespace AElf.Kernel.Node.RPC.DTO
 {
     public static class DtoHelper
     {
-        public static JObject GetTransactionInfo(this ITransaction tx)
+        public static JObject GetTransactionInfo(this Transaction tx)
         {
             return new JObject
             {
@@ -24,7 +24,7 @@ namespace AElf.Kernel.Node.RPC.DTO
             };
         }
 
-        public static TransactionDto ToTransactionDto(this ITransaction tx)
+        public static TransactionDto ToTransactionDto(this Transaction tx)
         {
             var transactionDto = new TransactionDto
             {

@@ -22,11 +22,11 @@ namespace AElf.Kernel.Tests
         private readonly IDataStore _dataStore;
         private readonly ILogger _logger;
         private readonly BlockTest _blockTest;
-        private readonly ITransactionStore _transactionStore;
+        private readonly TransactionStore _transactionStore;
 
         public WorldStateTest(IWorldStateStore worldStateStore,
             IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest, ILogger logger, 
-            ITransactionStore transactionStore)
+            TransactionStore transactionStore)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
