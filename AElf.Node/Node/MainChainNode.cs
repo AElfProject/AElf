@@ -634,7 +634,9 @@ namespace AElf.Kernel.Node
                 }
                 catch (Exception e)
                 {
-                    _logger?.Error(e, "Somehow failed to update DPoS observables. Just wait for another round.");
+                    _logger?.Error(e, "Somehow failed to update DPoS observables.");
+                    //In case just config one node to produce blocks.
+                    ConsensusSequence.RecoverMining();
                 }
 
                 return block;
