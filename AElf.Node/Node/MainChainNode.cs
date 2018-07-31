@@ -651,8 +651,6 @@ namespace AElf.Kernel.Node
                     var block = await _miner.Mine();
                     await BroadcastBlock(block);
                 }
-
-                Console.WriteLine(Globals.ExpectedTransanctionCount);
             }
         }
 
