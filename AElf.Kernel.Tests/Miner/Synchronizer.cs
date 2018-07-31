@@ -30,21 +30,21 @@ namespace AElf.Kernel.Tests.Miner
     [UseAutofacTestFramework]
     public class Synchronizer : TestKitBase
     {
-        private IChainCreationService _chainCreationService;
-        private IChainContextService _chainContextService;
-        private IWorldStateDictator _worldStateDictator;
-        private ISmartContractManager _smartContractManager;
-        private IFunctionMetadataService _functionMetadataService;
-        private IConcurrencyExecutingService _concurrencyExecutingService;
+        private readonly IChainCreationService _chainCreationService;
+        private readonly IChainContextService _chainContextService;
+        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly ISmartContractManager _smartContractManager;
+        private readonly IFunctionMetadataService _functionMetadataService;
+        private readonly IConcurrencyExecutingService _concurrencyExecutingService;
         private ServicePack _servicePack;
 
-        public Synchronizer(
-            IChainCreationService chainCreationService, IChainContextService chainContextService,
+        public Synchronizer(IChainCreationService chainCreationService, IChainContextService chainContextService,
             IChainManager chainManager, IBlockManager blockManager, ILogger logger,
             ITransactionResultManager transactionResultManager, ITransactionManager transactionManager,
             FunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService,
             IChangesStore changesStore, IWorldStateStore worldStateStore, IDataStore dataStore,
-            ISmartContractManager smartContractManager, IAccountContextService accountContextService) : base(new XunitAssertions())
+            ISmartContractManager smartContractManager, IAccountContextService accountContextService,
+            IPointerManager pointerManager) : base(new XunitAssertions())
         {
 
             _chainCreationService = chainCreationService;
@@ -57,7 +57,7 @@ namespace AElf.Kernel.Tests.Miner
             _functionMetadataService = functionMetadataService;
             _concurrencyExecutingService = concurrencyExecutingService;
             _worldStateDictator =
-                new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, _transactionManager, _blockManager);
+                new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, _transactionManager, _blockManager, pointerManager);
             _smartContractManager = smartContractManager;
             _accountContextService = accountContextService;
 

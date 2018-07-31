@@ -39,48 +39,34 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
 
-        public IChainContextService ChainContextService;
-
-        public IAccountDataProvider DataProvider1;
-        public IAccountDataProvider DataProvider2;
-
         public Hash SampleContractAddress1 { get; } = Hash.Generate();
         public Hash SampleContractAddress2 { get; } = Hash.Generate();
 
         public IExecutive Executive1 { get; private set; }
         public IExecutive Executive2 { get; private set; }
 
-        public ServicePack ServicePack;
+        public readonly ServicePack ServicePack;
 
-        private IWorldStateDictator _worldStateDictator;
-        private IChainCreationService _chainCreationService;
-        private IBlockManager _blockManager;
-        private IFunctionMetadataService _functionMetadataService;
-        private ILogger _logger;
-        private ITransactionManager _transactionManager;
-        private ISmartContractRunnerFactory _smartContractRunnerFactory;
+        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IChainCreationService _chainCreationService;
+        private readonly IBlockManager _blockManager;
 
         public MockSetup(IWorldStateStore worldStateStore, IChangesStore changesStore,
             IDataStore dataStore, IChainCreationService chainCreationService,
             IBlockManager blockManager, IChainContextService chainContextService, 
             IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger, 
-            ITransactionManager transactionManager)
+            ISmartContractRunnerFactory smartContractRunnerFactory,  ILogger logger, 
+            ITransactionManager transactionManager, IPointerManager pointerManager)
         {
-            _logger = logger;
-            _transactionManager = transactionManager;
             _worldStateDictator =
-                new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, _transactionManager,
-                    _blockManager);
+                new WorldStateDictator(worldStateStore, changesStore, dataStore, logger, transactionManager,
+                    _blockManager, pointerManager);
             _chainCreationService = chainCreationService;
             _blockManager = blockManager;
-            ChainContextService = chainContextService;
-            _functionMetadataService = functionMetadataService;
-            _smartContractRunnerFactory = smartContractRunnerFactory;
             SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator,
+                new SmartContractService(SmartContractManager, smartContractRunnerFactory, _worldStateDictator,
                     functionMetadataService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
@@ -118,15 +104,13 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
-            DataProvider1 =
-                await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(
-                    ResourcePath.CalculatePointerForAccountZero(ChainId1));
+            await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(
+                ResourcePath.CalculatePointerForAccountZero(ChainId1));
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, reg);
             var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
-            DataProvider2 =
-                await (_worldStateDictator.SetChainId(ChainId2)).GetAccountDataProvider(
-                    ResourcePath.CalculatePointerForAccountZero(ChainId2));
+            await (_worldStateDictator.SetChainId(ChainId2)).GetAccountDataProvider(
+                ResourcePath.CalculatePointerForAccountZero(ChainId2));
         }
 
         private async Task DeploySampleContracts()

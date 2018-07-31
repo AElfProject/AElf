@@ -24,9 +24,10 @@ namespace AElf.Kernel.Tests
         private readonly BlockTest _blockTest;
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockManager _blockManager;
+        private readonly IPointerManager _pointerManager;
 
         public WorldStateTest(IWorldStateStore worldStateStore,
-            IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest, ILogger logger, ITransactionManager transactionManager, IBlockManager blockManager)
+            IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest, ILogger logger, ITransactionManager transactionManager, IBlockManager blockManager, IPointerManager pointerManager)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
@@ -35,6 +36,7 @@ namespace AElf.Kernel.Tests
             _logger = logger;
             _transactionManager = transactionManager;
             _blockManager = blockManager;
+            _pointerManager = pointerManager;
         }
 
         [Fact]
@@ -43,7 +45,7 @@ namespace AElf.Kernel.Tests
             // Data preparation
             var chain = await _blockTest.CreateChain();
             var worldStateDirector =
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _transactionManager, _blockManager)
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _transactionManager, _blockManager, _pointerManager)
                     .SetChainId(chain.Id);
             var chainManger = new ChainManager(_dataStore, worldStateDirector);
             
@@ -69,7 +71,7 @@ namespace AElf.Kernel.Tests
             var chain = await _blockTest.CreateChain();
 
             var worldStateDictator =
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _transactionManager, _blockManager)
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _transactionManager, _blockManager, _pointerManager)
                     .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
             var chainManger = new ChainManager(_dataStore, worldStateDictator);
@@ -187,7 +189,7 @@ namespace AElf.Kernel.Tests
         {
             var chain = await _blockTest.CreateChain();
             var worldStateDictator =
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _transactionManager, _blockManager)
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _transactionManager, _blockManager, _pointerManager)
                     .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
@@ -282,7 +284,7 @@ namespace AElf.Kernel.Tests
             
             var chain = await _blockTest.CreateChain();
             var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                _logger, _transactionManager, _blockManager).SetChainId(chain.Id);
+                _logger, _transactionManager, _blockManager, _pointerManager).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
             var chainManager = new ChainManager(_dataStore, worldStateDictator);
@@ -404,7 +406,7 @@ namespace AElf.Kernel.Tests
 
             var worldStateDictator =
                 new WorldStateDictator(_worldStateStore, _changesStore, _dataStore, _logger, _transactionManager, 
-                        _blockManager).SetChainId(chain.Id);
+                        _blockManager, _pointerManager).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
             var chainManager = new ChainManager(_dataStore, worldStateDictator);

@@ -32,11 +32,13 @@ namespace AElf.SmartContract
         public bool DeleteChangeBeforesImmidiately { get; set; } = false;
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockManager _blockManager;
+        private readonly IPointerManager _pointerManager;
         public Hash PreBlockHash { get; set; }
         public Hash BlockProducerAccountAddress { get; set; }
+        
 
         public WorldStateDictator(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, ILogger logger, ITransactionManager transactionManager, IBlockManager blockManager)
+            IDataStore dataStore, ILogger logger, ITransactionManager transactionManager, IBlockManager blockManager, IPointerManager pointerManager)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
@@ -44,6 +46,7 @@ namespace AElf.SmartContract
             _logger = logger;
             _transactionManager = transactionManager;
             _blockManager = blockManager;
+            _pointerManager = pointerManager;
         }
 
         public IWorldStateDictator SetChainId(Hash chainId)
@@ -87,8 +90,8 @@ namespace AElf.SmartContract
             }
             
             // make a path related to its order
-            var key = CalculateKeyForPath(PreBlockHash, count);
-            await _dataStore.InsertAsync(key, pathHash);
+            var key = CalculatePointerForPath(PreBlockHash, count);
+            await _pointerManager.AddPointerAsync(key, pathHash);
 
             // update the count of changes
             count = new UInt64Value {Value = count.Value + 1};
@@ -145,7 +148,7 @@ namespace AElf.SmartContract
             await SetChainCurrentHeight(_chainId, specificHeight);
 
             //Update last block hash of curent chain
-            var lastBlockHash = await _dataStore.GetAsync<Hash>(
+            var lastBlockHash = await _pointerManager.GetPointerAsync(
                 ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, specificHeight - 1));
             await SetChainLastBlockHash(_chainId, lastBlockHash);
             //PreBlockHash = lastBlockHash;
@@ -156,7 +159,7 @@ namespace AElf.SmartContract
             for (var i = currentHeight - 1; i >= specificHeight; i--)
             {
                 var rollBackBlockHash =
-                        await _dataStore.GetAsync<Hash>(
+                        await _pointerManager.GetPointerAsync(
                             ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, i));
                 var header = await _blockManager.GetBlockHeaderAsync(rollBackBlockHash);
                 //var header = await _blockHeaderStore.GetAsync(rollBackBlockHash);
@@ -204,14 +207,14 @@ namespace AElf.SmartContract
         public async Task<Hash> GetChainLastBlockHash(Hash chainId)
         {
             var key = ResourcePath.CalculatePointerForLastBlockHash(chainId);
-            return await _dataStore.GetAsync<Hash>(key);
+            return await _pointerManager.GetPointerAsync(key);
         }
         
         public async Task SetChainLastBlockHash(Hash chainId, Hash blockHash)
         {
             var key = ResourcePath.CalculatePointerForLastBlockHash(chainId);
             PreBlockHash = blockHash;
-            await _dataStore.InsertAsync(key, blockHash);
+            await _pointerManager.AddPointerAsync(key, blockHash);
         }
 
         /// <summary>
@@ -333,8 +336,8 @@ namespace AElf.SmartContract
             
             for (ulong i = 0; i < changedPathsCount; i++)
             {
-                var key = CalculateKeyForPath(blockHash, new UInt64Value {Value = i});
-                var path = await _dataStore.GetAsync<Hash>(key);
+                var key = CalculatePointerForPath(blockHash, new UInt64Value {Value = i});
+                var path = await _pointerManager.GetPointerAsync(key);
                 paths.Add(path);
             }
 
@@ -425,7 +428,8 @@ namespace AElf.SmartContract
         {
             // The code chunk is copied from DataProvider
 
-            Hash prevBlockHash = await _dataStore.GetAsync<Hash>(ResourcePath.CalculatePointerForLastBlockHash(chainId));
+            Hash prevBlockHash =
+                await _pointerManager.GetPointerAsync(ResourcePath.CalculatePointerForLastBlockHash(chainId));
             
             //Generate the new pointer hash (using previous block hash)
             var pointerHashAfter = stateValueChange.Path.CalculateHashWith(prevBlockHash);
@@ -467,7 +471,8 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task<bool> ApplyCachedDataAction(Dictionary<Hash, StateCache> cachedActions, Hash chainId)
         {
-            Hash prevBlockHash = await _dataStore.GetAsync<Hash>(ResourcePath.CalculatePointerForLastBlockHash(chainId));
+            Hash prevBlockHash =
+                await _pointerManager.GetPointerAsync(ResourcePath.CalculatePointerForLastBlockHash(chainId));
             
             //Only dirty, i.e., changed data item, will be applied to database
             var pipelineSet = cachedActions.Where(kv => kv.Value.Dirty)
@@ -490,7 +495,7 @@ namespace AElf.SmartContract
                 header.ChainId,
                 height);
 
-            await _dataStore.InsertAsync(key, blockHash);
+            await _pointerManager.AddPointerAsync(key, blockHash);
         }
 
         #region Private methods
@@ -532,7 +537,7 @@ namespace AElf.SmartContract
         /// <param name="obj"></param>
         /// <returns></returns>
         // ReSharper disable once MemberCanBeMadeStatic.Local
-        private Hash CalculateKeyForPath(Hash blockHash, IMessage obj)
+        private Hash CalculatePointerForPath(Hash blockHash, IMessage obj)
         {
             return blockHash.CombineReverseHashWith(obj.CalculateHash());
         }
@@ -546,7 +551,7 @@ namespace AElf.SmartContract
 
             if (PreBlockHash == null)
             {
-                var hash = await _dataStore.GetAsync<Hash>(ResourcePath.CalculatePointerForLastBlockHash(_chainId));
+                var hash = await _pointerManager.GetPointerAsync(ResourcePath.CalculatePointerForLastBlockHash(_chainId));
                 PreBlockHash = hash ?? Hash.Genesis;
             }
         }

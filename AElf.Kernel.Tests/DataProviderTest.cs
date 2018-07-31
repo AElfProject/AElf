@@ -22,10 +22,11 @@ namespace AElf.Kernel.Tests
         private readonly ILogger _logger;
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockManager _blockManager;
+        private readonly IPointerManager _pointerManager;
 
         public DataProviderTest(IWorldStateStore worldStateStore,
             IChangesStore changesStore, IDataStore dataStore,
-            BlockTest blockTest, ILogger logger, ITransactionManager transactionManager, IBlockManager blockManager)
+            BlockTest blockTest, ILogger logger, ITransactionManager transactionManager, IBlockManager blockManager, IPointerManager pointerManager)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
@@ -34,6 +35,7 @@ namespace AElf.Kernel.Tests
             _logger = logger;
             _transactionManager = transactionManager;
             _blockManager = blockManager;
+            _pointerManager = pointerManager;
         }
 
         [Fact]
@@ -48,7 +50,8 @@ namespace AElf.Kernel.Tests
             var address = Hash.Generate();
 
             var worldStateDictator =
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,_logger, _transactionManager, _blockManager)
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,_logger, _transactionManager, 
+                        _blockManager, _pointerManager)
                     .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
 

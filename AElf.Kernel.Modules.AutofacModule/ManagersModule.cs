@@ -13,6 +13,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             builder.RegisterType<SmartContractManager>().As<ISmartContractManager>();
             builder.RegisterType<TransactionManager>().As<ITransactionManager>();
             builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>();
+            builder.RegisterType<PointerManager>().As<IPointerManager>();
         }
     }
 }
