@@ -1,14 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Consensus;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
 
 namespace AElf.Contracts.Genesis.ConsensusContract
 {
-    public class PoW : IConsensus
+    // ReSharper disable once InconsistentNaming
+    public class PoTC : IConsensus
     {
-        public ConsensusType Type => ConsensusType.PoW;
+        public ConsensusType Type => ConsensusType.PoTC;
 
         public ulong CurrentRoundNumber => 1;
 
@@ -16,8 +17,8 @@ namespace AElf.Contracts.Genesis.ConsensusContract
 
         public bool PrintLogs => true;
 
-        public Hash Nonce { get; set; } = Hash.Zero;
-
+        public Hash Nonce { get; set; } = Hash.Default;
+        
         public Task Initialize(List<byte[]> args)
         {
             throw new System.NotImplementedException();
@@ -28,14 +29,9 @@ namespace AElf.Contracts.Genesis.ConsensusContract
             throw new System.NotImplementedException();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        public async Task Publish(List<byte[]> args)
+        public Task Publish(List<byte[]> args)
         {
-            
+            throw new System.NotImplementedException();
         }
 
         public Task<bool> Validation(List<byte[]> args)

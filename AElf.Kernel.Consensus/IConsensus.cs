@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.Kernel.Types;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Consensus
 {
@@ -27,7 +25,7 @@ namespace AElf.Kernel.Consensus
         /// How soon to produce a block.
         /// (Milisenconds)
         /// </summary>
-        ulong Interval { get; }
+        int Interval { get; }
         
         /// <summary>
         /// Print logs or not.

@@ -24,7 +24,7 @@ namespace AElf.Kernel.Node
         ulong CurrentRoundNumber { get; set; }
 
         // ReSharper disable once InconsistentNaming
-        void CheckUpdatingDPoSProcess();
+        void CheckUpdatingConsensusProcess();
 
         int IsMiningInProcess { get; }
     }

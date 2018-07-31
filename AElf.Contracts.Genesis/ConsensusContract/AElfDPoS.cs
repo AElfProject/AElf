@@ -17,7 +17,7 @@ namespace AElf.Contracts.Genesis.ConsensusContract
 
         public ulong CurrentRoundNumber => _currentRoundNumberField.GetAsync().Result;
 
-        public ulong Interval => Globals.AElfMiningTime;
+        public int Interval => Globals.AElfMiningTime;
 
         public bool PrintLogs => true;
 
@@ -302,7 +302,7 @@ namespace AElf.Contracts.Genesis.ConsensusContract
 
             // 2. Timestamp sitting in correct timeslot of current round;
             var timeslotOfBlockProducer = (await GetBPInfoOfCurrentRound(accountAddress)).TimeSlot;
-            var endOfTimeslotOfBlockProducer = GetTimestampWithOffset(timeslotOfBlockProducer, Globals.AElfMiningTime);
+            var endOfTimeslotOfBlockProducer = GetTimestampWithOffset(timeslotOfBlockProducer, Interval);
             // ReSharper disable once InconsistentNaming
             var timeslotOfEBP = await _timeForProducingExtraBlockField.GetAsync();
             return CompareTimestamp(timestamp, timeslotOfBlockProducer) && CompareTimestamp(endOfTimeslotOfBlockProducer, timestamp) ||
@@ -363,7 +363,7 @@ namespace AElf.Contracts.Genesis.ConsensusContract
         private async Task SetExtraBlockMiningTimeslotOfSpecificRound(UInt64Value roundNumber, DPoSInfo info)
         {
             await _timeForProducingExtraBlockField.SetAsync(GetTimestampWithOffset(
-                info.GetLastBlockProducerTimeslotOfSpecificRound(roundNumber.Value), Globals.AElfMiningTime));
+                info.GetLastBlockProducerTimeslotOfSpecificRound(roundNumber.Value), Interval));
         }
         
         private async Task SetExtraBlockMiningTimeslotOfSpecificRound(Timestamp timestamp)
@@ -441,7 +441,7 @@ namespace AElf.Contracts.Genesis.ConsensusContract
             
             //Update Extra Block Timeslot.
             await SetExtraBlockMiningTimeslotOfSpecificRound(GetTimestampWithOffset(
-                nextRoundInfo.Info.Last().Value.TimeSlot, Globals.AElfMiningTime + Globals.AElfCheckTime));
+                nextRoundInfo.Info.Last().Value.TimeSlot, Interval + Globals.AElfCheckTime));
 
             ConsoleWriteLine(nameof(Update), $"Sync dpos info of round {CurrentRoundNumber} succeed");
         }

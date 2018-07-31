@@ -77,12 +77,34 @@ namespace AElf.Kernel.Consensus
             var recoverMining = Observable
                 .Timer(TimeSpan.FromMilliseconds(Globals.AElfMiningTime * Globals.BlockProducerNumber))
                 .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
+            
+            if (Globals.BlockProducerNumber != 1)
+            {
+                Observable.Return(ConsensusBehavior.DoNothing)
+                    .Concat(recoverMining)
+                    .Subscribe(this);
+            }
+
+            var produceNormalBlock = Observable
+                .Timer(TimeSpan.FromMilliseconds(Globals.AElfMiningTime))
+                .Select(_ => ConsensusBehavior.PublishOutValueAndSignature);
+            var publicInValue = Observable
+                .Timer(TimeSpan.FromMilliseconds(Globals.AElfMiningTime))
+                .Select(_ => ConsensusBehavior.PublishInValue);
+            var produceExtraBlock = Observable
+                .Timer(TimeSpan.FromMilliseconds(Globals.AElfMiningTime))
+                .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
+            
             Observable.Return(ConsensusBehavior.DoNothing)
                 .Concat(recoverMining)
+                .Concat(produceNormalBlock)
+                .Concat(publicInValue)
+                .Concat(produceExtraBlock)
                 .Subscribe(this);
         }
         
-        public IDisposable SubscribeMiningProcess(BPInfo infoOfMe, Timestamp extraBlockTimeslot)
+        // ReSharper disable once InconsistentNaming
+        public IDisposable SubscribeAElfDPoSMiningProcess(BPInfo infoOfMe, Timestamp extraBlockTimeslot)
         {
             var doNothingObservable = Observable
                 .Timer(TimeSpan.FromSeconds(0))

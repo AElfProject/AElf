@@ -17,6 +17,7 @@ using AElf.Kernel.Node.Config;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.Node.RPC.DTO;
+using AElf.Kernel.Types;
 using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -93,7 +94,8 @@ namespace AElf.Kernel.Node
             }
         }
 
-        public AElfDPoSObserver ConsensusSequence => new AElfDPoSObserver(_logger,
+        // ReSharper disable once InconsistentNaming
+        private AElfDPoSObserver AElfDPoSSequence => new AElfDPoSObserver(_logger,
             MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
@@ -233,7 +235,6 @@ namespace AElf.Kernel.Node
             {
                 _miner.Start(nodeKeyPair, grouper);
 
-                //DoDPos();
                 _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.ToHex());
             }
 
@@ -274,7 +275,7 @@ namespace AElf.Kernel.Node
             }
         }
 
-        private async void ProcessPeerMessage(object sender, EventArgs e)
+        private void ProcessPeerMessage(object sender, EventArgs e)
         {
             if (sender != null && e is NetMessageReceivedArgs args && args.Message != null)
             {
@@ -471,6 +472,7 @@ namespace AElf.Kernel.Node
             }
             catch (Exception e)
             {
+                _logger?.Error(e, "Failed to get increment id.");
                 return 0;
             }
         }
@@ -538,7 +540,7 @@ namespace AElf.Kernel.Node
                 var executed = await _blockExecutor.ExecuteBlock(block);
                 Interlocked.CompareExchange(ref _flag, 0, 1);
 
-                CheckUpdatingDPoSProcess();
+                CheckUpdatingConsensusProcess();
 
                 return new BlockExecutionResult(executed, error);
                 //return new BlockExecutionResult(true, error);
@@ -575,35 +577,64 @@ namespace AElf.Kernel.Node
             if (_dPoSHelper.CurrentRoundNumber.Value == 0 &&
                 BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
             {
-                ConsensusSequence.Initialization();
+                AElfDPoSSequence.Initialization();
             }
 
             if (_dPoSHelper.CanRecoverDPoSInformation() &&
                 BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
             {
-                ConsensusSequence.RecoverMining();
+                AElfDPoSSequence.RecoverMining();
             }
 
             _dPoSHelper.StartConsensusLog();
         }
 
         // ReSharper disable once InconsistentNaming
-        public void CheckUpdatingDPoSProcess()
+        public void CheckUpdatingConsensusProcess()
         {
-            if (CurrentRoundNumber == _dPoSHelper.CurrentRoundNumber.Value) 
+            switch (Globals.ConsensusType)
+            {
+                case ConsensusType.AElfDPoS:
+                    AElfDPoSProcess();
+                    break;
+                
+                case ConsensusType.PoTC:
+                    PoTCProcess();
+                    break;
+            }
+        }
+
+        // ReSharper disable once InconsistentNaming
+        private void AElfDPoSProcess()
+        {
+            if (CurrentRoundNumber == _dPoSHelper.CurrentRoundNumber.Value)
                 return;
-            
+
             //Dispose previous observer.
             ConsensusDisposable?.Dispose();
-            
+
             //Update observer.
-            var blockProducerInfoOfCurrentRound = _dPoSHelper[_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()];
+            var blockProducerInfoOfCurrentRound =
+                _dPoSHelper[_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()];
             ConsensusDisposable =
-                ConsensusSequence.SubscribeMiningProcess(blockProducerInfoOfCurrentRound,
+                AElfDPoSSequence.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound,
                     _dPoSHelper.ExtraBlockTimeslot);
-            
+
             //Update current round number.
             CurrentRoundNumber = _dPoSHelper.CurrentRoundNumber.Value;
+        }
+        
+        // ReSharper disable once InconsistentNaming
+        private async Task PoTCProcess()
+        {
+            while (true)
+            {
+                var count = await _txPoolService.GetPoolSize();
+                if (count >= Globals.ExpectedTransanctionCount)
+                {
+                    
+                }
+            }
         }
 
         public async Task<IBlock> Mine()
@@ -630,13 +661,13 @@ namespace AElf.Kernel.Node
                 //Which means this node will do nothing in this round.
                 try
                 {
-                    CheckUpdatingDPoSProcess();
+                    CheckUpdatingConsensusProcess();
                 }
                 catch (Exception e)
                 {
-                    _logger?.Error(e, "Somehow failed to update DPoS observables.");
+                    _logger?.Error(e, "Somehow failed to update DPoS observables. Will recover soon.");
                     //In case just config one node to produce blocks.
-                    ConsensusSequence.RecoverMining();
+                    AElfDPoSSequence.RecoverMining();
                 }
 
                 return block;
