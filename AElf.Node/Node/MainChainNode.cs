@@ -660,8 +660,9 @@ namespace AElf.Kernel.Node
             await _netManager.BroadcastMessage(MessageType.BroadcastBlock, serializedBlock);
 
             var bh = block.GetHash().ToHex();
+            var txsInPool = await GetTransactionPoolSize();
             _logger?.Trace(
-                $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}]. [{GetTransactionPoolSize()}] tx(s) left in pool");
+                $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}]. [{txsInPool}] tx(s) left in pool");
 
             return true;
         }
@@ -703,7 +704,7 @@ namespace AElf.Kernel.Node
                     return TxValidation.TxInsertionAndBroadcastingError.BroadCastFailed;
                 }
 
-                _logger?.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
+                //_logger?.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return TxValidation.TxInsertionAndBroadcastingError.Success;
             }
 
