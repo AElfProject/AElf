@@ -101,7 +101,7 @@ namespace AElf.Launcher
         public ConsensusType ConsensusType { get; set; }
 
         [Option("potc.count", Default = 8000, HelpText = "Expected transactions count.")]
-        public ulong ExpectedTxsCount { get; set; }
+        public int ExpectedTxsCount { get; set; }
 
         #endregion
 

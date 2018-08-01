@@ -645,7 +645,7 @@ namespace AElf.Kernel.Node
                     _logger?.Trace($"Current tx pool size: {count} / {Globals.ExpectedTransanctionCount}");
                     ConsensusMemory = count;
                 }
-                if (count >= Globals.ExpectedTransanctionCount)
+                if (count >= (ulong) Globals.ExpectedTransanctionCount)
                 {
                     _logger?.Trace("Will produce one block.");
                     var block = await _miner.Mine();
