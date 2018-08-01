@@ -703,8 +703,8 @@ namespace AElf.Kernel.Node
                     _logger?.Trace("Broadcasting transaction failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
                     return TxValidation.TxInsertionAndBroadcastingError.BroadCastFailed;
                 }
-
-                //_logger?.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
+                if(tx.From.Equals(_nodeKeyPair.GetAddress()))
+                    _logger?.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return TxValidation.TxInsertionAndBroadcastingError.Success;
             }
 
