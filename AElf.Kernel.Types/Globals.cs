@@ -1,5 +1,6 @@
 ﻿using AElf.Kernel.Types;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public static class Globals
@@ -8,8 +9,8 @@ namespace AElf.Kernel
         public static readonly string GenesisSmartContractLastName = ".ContractZeroWithAElfDPoS";
         public static readonly string SmartContractZeroIdString = "__SmartContractZero__";
         
-        public static readonly ConsensusType ConsensusType = ConsensusType.AElfDPoS;
-        public static int BlockProducerNumber = 3;
+        public static ConsensusType ConsensusType = ConsensusType.AElfDPoS;
+        public static int BlockProducerNumber = 0;
 
         #region AElf DPoS
 
@@ -30,6 +31,12 @@ namespace AElf.Kernel
         public const string AElfDPoSExtraBlockTimeslotString = "AElfExtraBlockTimeslot";
         // ReSharper disable once InconsistentNaming
         public const string AElfDPoSFirstPlaceOfEachRoundString = "AElfFirstPlaceOfEachRound";
+
+        #endregion
+
+        #region PoTC
+
+        public static ulong ExpectedTransanctionCount = 8000;
 
         #endregion
     }
