@@ -117,6 +117,7 @@ namespace AElf.ChainController
                 minerTxs.RemoveRange(0, r);
             }
 
+            // get txs from other address
             foreach (var kv in _executable)
             {
                 if ((ulong) res.Count >= limit)
