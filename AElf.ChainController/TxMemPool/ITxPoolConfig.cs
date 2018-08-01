@@ -1,4 +1,5 @@
-﻿using AElf.Kernel;
+﻿using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 
 namespace AElf.ChainController
 {
@@ -29,6 +30,11 @@ namespace AElf.ChainController
         /// minimal number of txs for entering ready list
         /// </summary>
         ulong EntryThreshold { get; }*/
+        
+        /// <summary>
+        /// represent miner self
+        /// </summary>
+        ECKeyPair EcKeyPair { get; set; }
         
     }
 }

@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
 using AElf.SmartContract;
 using Google.Protobuf;
-using Newtonsoft.Json.Linq;
 using NLog;
-using Org.BouncyCastle.Asn1.Esf;
-using Org.BouncyCastle.Crypto.Agreement.JPake;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Utilities.Collections;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
@@ -31,9 +24,11 @@ namespace AElf.Kernel.Tests.TxMemPool
             _worldStateDictator = worldStateDictator;
         }
 
-        private TxPool GetPool()
+        private TxPool GetPool(ECKeyPair ecKeyPair = null)
         {
             var config = TxPoolConfig.Default;
+            if (ecKeyPair != null)
+                config.EcKeyPair = ecKeyPair;
             _worldStateDictator.SetChainId(config.ChainId);
             return new TxPool(config, _logger);
         }
@@ -118,94 +113,48 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.Equal((ulong)0, pool.GetWaitingSize());
         }
 
-        [Fact]
-        public void Foreach()
-        {
-            var list = new List<int>();
-            int t = 1000;
-            while (t-- >0)
-            {
-                list.Add(t);
-            }
-            list.ForEach(async i =>
-            {
-                await Task.Delay(1000);
-                System.Diagnostics.Debug.WriteLine(i + " " + Thread.CurrentThread.ManagedThreadId);
-            });
-        }
-        
-        /*[Fact]
-        public async Task ContainsTx_ReturnsTrue_AfterAdd()
-        {
-            var pool = GetPool();
-            
-            // Add a valid transaction
-            var tx = BuildTransaction();
-            var tmp = new HashSet<ITransaction> {tx};
-            var ctx = await _accountContextService.GetAccountDataContext(tx.From, TxPoolConfig.Default.ChainId);
-            pool.Nonces[tx.From] = ctx.IncrementId;
-            pool.QueueTxs(tmp);
-
-            var res = pool.Contains(tx.GetHash());
-            
-            Assert.True(res);
-        }*/
-
-
-        /*[Fact]
-        public async Task PromoteTest()
-        {
-            var pool = GetPool();
-            
-            // Add a valid transaction
-            var tx = BuildTransaction();
-            var tmp = new HashSet<ITransaction> {tx};
-            var ctx = await _accountContextService.GetAccountDataContext(tx.From, TxPoolConfig.Default.ChainId);
-            pool.Nonces[tx.From] = ctx.IncrementId;
-            pool.EnQueueTxs(tmp);
-            
-            pool.Promote();
-            
-            pool.GetPoolState(out var executable, out var waiting);
-            Assert.Equal(0, (int)waiting);
-            Assert.Equal(1, (int)executable);
-        }*/
 
         [Fact]
         public async Task ReadyTxsTest()
         {
-            var pool = GetPool();
-            
-            // Add a valid transaction
-            var tx = BuildTransaction();
-            var tmp = new HashSet<ITransaction> {tx};
-            var ctx =  await _accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
-            pool.TrySetNonce(tx.From, ctx.IncrementId);
+            ECKeyPair ecKeyPair = new KeyPairGenerator().Generate();
+            var pool = GetPool(ecKeyPair);
+            var tmp = new HashSet<ITransaction>();
+
+            // Add valid transactions
+            int i = 0;
+            while (i++ < 15)
+            {
+                var tx = BuildTransaction();
+                var ctx =  await _accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
+                pool.TrySetNonce(tx.From, ctx.IncrementId);
+                tmp.Add(tx);
+            }
             pool.EnQueueTxs(tmp);
-            
-            //pool.Promote();
-            
+
+            // add miner txs
+            int minerTxCount = 5;
+            i = 0;
+            var minerTxs = new HashSet<ITransaction>();
+
+            while (i++ < minerTxCount)
+            {
+                var minerTx = BuildTransaction(nonce:(ulong)(i-1), keyPair:ecKeyPair);
+                minerTxs.Add(minerTx);
+            }
+            var ctx1 =  await _accountContextService.GetAccountDataContext(ecKeyPair.GetAddress(), pool.ChainId);
+            pool.TrySetNonce(ecKeyPair.GetAddress(), ctx1.IncrementId);
+            pool.EnQueueTxs(minerTxs);
+
             var ready = pool.ReadyTxs(10);
             
-            Assert.Equal(1, ready.Count);
-            Assert.True(ready.Contains(tx));
-            Assert.Equal(pool.GetNonce(tx.From).Value, ctx.IncrementId + 1);
+            Assert.Equal(10, ready.Count);
+            foreach (var mtx in minerTxs)
+            {
+                Assert.True(ready.Contains(mtx));
+            }
+
+            Assert.Equal(minerTxCount, (int) pool.GetNonce(ecKeyPair.GetAddress()).Value);
         }
-
-
-        /*[Fact]
-        public async Task GetTxTest()
-        {
-            var pool = GetPool();
-            var tx = BuildTransaction();
-            var tmp = new HashSet<ITransaction> {tx};
-            var ctx = await _accountContextService.GetAccountDataContext(tx.From, TxPoolConfig.Default.ChainId);
-            pool.Nonces[tx.From] = ctx.IncrementId;
-            pool.QueueTxs(tmp);
-            
-            var t = pool.GetTx(tx.GetHash());
-            
-            Assert.Equal(tx, t);
-        }*/
     }
 }
