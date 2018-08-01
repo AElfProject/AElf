@@ -46,7 +46,6 @@ namespace AElf.Launcher
             if (!parsed)
                 return;
 
-            var txPoolConf = confParser.TxPoolConfig;
             var netConf = confParser.NetConfig;
             var minerConfig = confParser.MinerConfig;
             var nodeConfig = confParser.NodeConfig;
@@ -60,22 +59,6 @@ namespace AElf.Launcher
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
-
-            // Setup ioc 
-            var container = SetupIocContainer(isMiner, isNewChain, netConf, txPoolConf,
-                minerConfig, nodeConfig, smartContractRunnerFactory);
-
-            if (container == null)
-            {
-                Console.WriteLine("IoC setup failed");
-                return;
-            }
-
-            if (!CheckDbConnect(container))
-            {
-                Console.WriteLine("Database connection failed");
-                return;
-            }
 
             // todo : quick fix, to be refactored
             ECKeyPair nodeKey = null;
@@ -98,6 +81,26 @@ namespace AElf.Launcher
                     throw new Exception("Load keystore failed");
                 }
             }
+            
+            var txPoolConf = confParser.TxPoolConfig;
+            txPoolConf.EcKeyPair = nodeKey;
+            
+            // Setup ioc 
+            var container = SetupIocContainer(isMiner, isNewChain, netConf, txPoolConf,
+                minerConfig, nodeConfig, smartContractRunnerFactory);
+
+            if (container == null)
+            {
+                Console.WriteLine("IoC setup failed");
+                return;
+            }
+
+            if (!CheckDbConnect(container))
+            {
+                Console.WriteLine("Database connection failed");
+                return;
+            }
+
 
             using (var scope = container.BeginLifetimeScope())
             {

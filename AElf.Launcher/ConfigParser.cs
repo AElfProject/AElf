@@ -145,7 +145,7 @@ namespace AElf.Launcher
             MinerConfig = new MinerConfig
             {
                 CoinBase = Coinbase,
-                TxCount = opts.TxCountLimit
+                TxCount = Math.Max(opts.TxCountLimit, 1024)
             };
 
             // tx pool config

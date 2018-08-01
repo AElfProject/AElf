@@ -95,6 +95,28 @@ namespace AElf.ChainController
         public List<ITransaction> ReadyTxs(ulong limit)
         {
             var res = new List<ITransaction>();
+             
+            // get txs from miner first
+            var minerAddr = _config.EcKeyPair?.GetAddress();
+            if (minerAddr != null && _executable.TryGetValue(minerAddr, out var minerTxs))
+            {
+                var nonce = GetNonce(minerAddr);
+                var r = 0;
+                foreach (var tx in minerTxs)
+                {
+                    if (tx.IncrementId < nonce) continue;
+                    r++;
+                    res.Add(tx);
+                    if ((ulong) res.Count >= limit)
+                        break;
+                }
+                // update incrementId in account data context
+                AddNonce(minerAddr, (ulong) r);
+
+                //remove txs from executable list 
+                minerTxs.RemoveRange(0, r);
+            }
+
             foreach (var kv in _executable)
             {
                 if ((ulong) res.Count >= limit)
