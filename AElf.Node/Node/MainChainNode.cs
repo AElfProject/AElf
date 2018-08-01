@@ -727,6 +727,9 @@ namespace AElf.Kernel.Node
         /// <param name="tx">The tx to broadcast</param>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> BroadcastTransaction(ITransaction tx)
         {
+
+            _logger?.Trace("Try to inseret transaction to pool: " + tx.From.ToHex() + ", threadId: " +
+                           Thread.CurrentThread.ManagedThreadId);
             TxValidation.TxInsertionAndBroadcastingError res;
 
             try
