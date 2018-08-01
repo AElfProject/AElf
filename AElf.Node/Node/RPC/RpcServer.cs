@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
@@ -478,6 +479,7 @@ namespace AElf.Kernel.Node.RPC
                 var result = await ProcessBroadcastTx(new JObject{["rawtx"] = rawtx});
                 if (result.ContainsKey("error"))
                     break;
+                Thread.Sleep(10);
                 response.Add(result["hash"].ToString());
             }
 
