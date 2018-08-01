@@ -24,6 +24,7 @@ namespace AElf.Kernel.Node.RPC
         //private const string GetTxMethodName = "get_tx";
         //private const string InsertTxMethodName = "insert_tx";
         private const string BroadcastTxMethodName = "broadcast_tx";
+        private const string BroadcastTxsMethodName = "broadcast_txs";
 
         //private const string GetPeersMethodName = "get_peers";
         private const string GetIncrementIdMethodName = "get_increment";
@@ -47,6 +48,7 @@ namespace AElf.Kernel.Node.RPC
         private readonly List<string> _rpcCommands = new List<string>
         {
             BroadcastTxMethodName,
+            BroadcastTxsMethodName,
             GetCommandsMethodName,
             GetIncrementIdMethodName,
             GetContractAbi,
@@ -187,63 +189,65 @@ namespace AElf.Kernel.Node.RPC
                 var methodName = JToken.FromObject(request["method"]).ToObject<string>();
                 var reqParams = JObject.FromObject(request["params"]);
 
-                JObject responseData = null;
+                JObject response = null;
                 switch (methodName)
                 {
                     /*case GetTxMethodName:
-                        responseData = await ProcessGetTx(reqParams);
+                        response = await ProcessGetTx(reqParams);
                         break;*/
                     /*case InsertTxMethodName:
-                        responseData = await ProcessInsertTx(reqParams);
+                        response = await ProcessInsertTx(reqParams);
                         break;*/
                     case BroadcastTxMethodName:
-                        responseData = await ProcessBroadcastTx(reqParams);
+                        response = await ProcessBroadcastTx(reqParams);
+                        break;
+                    case BroadcastTxsMethodName:
+                        response = await ProcessBroadcastTxs(reqParams);
                         break;
                     /*case GetPeersMethodName:
                         responseData = await ProcessGetPeers(reqParams);
                         break;*/
                     case GetCommandsMethodName:
-                        responseData = ProcessGetCommands();
+                        response = ProcessGetCommands();
                         break;
                     case GetIncrementIdMethodName:
-                        responseData = await ProcessGetIncrementId(reqParams);
+                        response = await ProcessGetIncrementId(reqParams);
                         break;
                     /*case BroadcastBlockMethodName:
                         responseData = await ProcessBroadcastBlock(reqParams);
                         break;*/
                     case GetContractAbi:
-                        responseData = await ProcessGetContractAbi(reqParams);
+                        response = await ProcessGetContractAbi(reqParams);
                         break;
                     case GetTxResultMethodName:
-                        responseData = await ProcGetTxResult(reqParams);
+                        response = await ProcGetTxResult(reqParams);
                         break;
                     case GetGenesisiAddress:
-                        responseData = await ProGetGenesisAddress(reqParams);
+                        response = await ProGetGenesisAddress(reqParams);
                         break;
                     case GetBlockHeight:
-                        responseData = await ProGetBlockHeight(reqParams);
+                        response = await ProGetBlockHeight(reqParams);
                         break;
                     case GetBlockInfo:
-                        responseData = await ProGetBlockInfo(reqParams);
+                        response = await ProGetBlockInfo(reqParams);
                         break;
                     case GetDeserializedInfo:
-                        responseData = ProGetDeserializedInfo(reqParams);
+                        response = ProGetDeserializedInfo(reqParams);
                         break;
                     case CallReadOnly:
-                        responseData = await ProcessCallReadOnly(reqParams);
+                        response = await ProcessCallReadOnly(reqParams);
                         break;
                     default:
                         Console.WriteLine("Method name not found"); // todo log
                         break;
                 }
 
-                if (responseData == null)
+                if (response == null)
                 {
                     // todo write error 
                 }
 
-                var resp = JsonRpcHelpers.CreateResponse(responseData, reqId);
-
+                var resp = JsonRpcHelpers.CreateResponse(response, reqId);
                 await WriteResponse(context, resp);
             }
             catch (Exception e)
@@ -464,6 +468,23 @@ namespace AElf.Kernel.Node.RPC
 
             response = new JObject {["hash"] = transaction.GetHash().ToHex()};
             return JObject.FromObject(response);
+        }
+
+        private async Task<JObject> ProcessBroadcastTxs(JObject reqParams)
+        {
+            var response = new List<object>();
+            foreach (var rawtx in reqParams["rawtxs"].ToString().Split(','))
+            {
+                var result = await ProcessBroadcastTx(new JObject{["rawtx"] = rawtx});
+                if (result.ContainsKey("error"))
+                    break;
+                response.Add(result["hash"].ToString());
+            }
+
+            return new JObject
+            {
+                ["result"] = JToken.FromObject(response)
+            };
         }
 
         private async Task<JObject> ProcessCallReadOnly(JObject reqParams)
