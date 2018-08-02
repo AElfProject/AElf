@@ -146,7 +146,7 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public async Task<List<ITransaction>> GetReadyTxsAsync()
         {
-            var dpos = await DPoSTxLock.ReadLock(() =>
+            var dpos = await DPoSTxLock.WriteLock(() =>
             {
                 var readyTxs = _dpoSTxPool.ReadyTxs();
                 foreach (var tx in readyTxs)
@@ -156,7 +156,9 @@ namespace AElf.Kernel.TxMemPool
                 _logger.Log(LogLevel.Debug, $"Got {readyTxs.Count} DPoS transaction");
                 return readyTxs;
             });
-            var contractTxs = await ContractTxLock.ReadLock(() =>
+            
+            List<ITransaction> contractTxs = null;
+            ContractTxLock.WriteLock(() =>
             {
                 //_contractTxPool.Enqueueable = false;
                 var execCount = _contractTxPool.GetExecutableSize();
@@ -164,19 +166,26 @@ namespace AElf.Kernel.TxMemPool
                 {
                     _logger.Log(LogLevel.Debug,
                         $"Contract transaction number in pool: {execCount}, less than {_contractTxPool.Least}");
-                    return null;
+                    return;
                 }
-                var readyTxs = _contractTxPool.ReadyTxs();
-                foreach (var tx in readyTxs)
+                contractTxs = _contractTxPool.ReadyTxs();
+            }).Wait(TimeSpan.FromMilliseconds(30));
+            
+            if (contractTxs != null)
+            {
+                dpos.AddRange(contractTxs);
+            
+                foreach (var tx in contractTxs)
                 {
                     _txs.TryRemove(tx.GetHash(), out _);
                 }
-                _logger.Log(LogLevel.Debug, $"Got {readyTxs.Count} Contract transaction");
-                return readyTxs;
-            });
-
-            if(contractTxs != null) 
-                dpos.AddRange(contractTxs);
+                _logger.Log(LogLevel.Debug, $"Got {contractTxs.Count} Contract transaction");
+            }
+            else
+            {
+                _logger.Log(LogLevel.Debug, "Unable to get Contract transactions");
+            }
+                
             return dpos;
         }
 

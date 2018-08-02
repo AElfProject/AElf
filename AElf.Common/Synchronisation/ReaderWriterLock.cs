@@ -9,13 +9,13 @@ namespace AElf.Common.Synchronisation
     /// </summary>
     public class ReaderWriterLock : ILock
     {
-        private readonly ConcurrentExclusiveSchedulerPair _schedulerPair  =
+        private readonly ConcurrentExclusiveSchedulerPair SchedulerPair  =
             new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default, Environment.ProcessorCount);
 
         public ReaderWriterLock()
         {
-            ExclusiveWritrer = new TaskFactory(_schedulerPair.ExclusiveScheduler);
-            ConcurrentReader = new TaskFactory(_schedulerPair.ConcurrentScheduler);
+            ExclusiveWritrer = new TaskFactory(SchedulerPair.ExclusiveScheduler);
+            ConcurrentReader = new TaskFactory(SchedulerPair.ConcurrentScheduler);
         }
 
 
