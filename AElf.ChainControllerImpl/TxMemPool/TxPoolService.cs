@@ -303,7 +303,7 @@ namespace AElf.Kernel.TxMemPool
         {
             ILock @lock;
             IPool pool;
-            if (isDPoS)
+            if (!isDPoS)
             {
                 @lock = ContractTxLock;
                 pool = _contractTxPool;
