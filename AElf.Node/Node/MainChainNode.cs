@@ -464,12 +464,14 @@ namespace AElf.Kernel.Node
         {
             try
             {
-                var isDPoS = addr.Equals(_nodeKeyPair.GetAddress()) ||
+                bool isDPoS = addr.Equals(_nodeKeyPair.GetAddress()) ||
                              _dPoSHelper.BlockProducer.Nodes.Contains(addr.ToHex().RemoveHexPrefix());
                 
                 // ReSharper disable once InconsistentNaming
                 var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId)).IncrementId;
+                _logger?.Log(LogLevel.Debug, $"Trying to get increment id, {isDPoS}");
                 var idInPool = await _txPoolService.GetIncrementId(addr, isDPoS);
+                _logger?.Log(LogLevel.Debug, $"End Trying to get increment id, {isDPoS}");
 
                 return Math.Max(idInDB, idInPool);
             }
