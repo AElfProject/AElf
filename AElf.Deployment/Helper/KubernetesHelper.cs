@@ -110,6 +110,70 @@ namespace AElf.Deployment.Helper
             }
         }
 
+        public static V1beta1StatefulSetList ListNamespacedStatefulSet1(string namespaceParameter, string continueParameter = null, string fieldSelector = null, bool? includeUninitialized = null, string labelSelector = null, int? limit = null, string resourceVersion = null, int? timeoutSeconds = null, bool? watch = null, string pretty = null)
+        {
+            using (var client = GetClient())
+            {
+                return client.ListNamespacedStatefulSet1(namespaceParameter, continueParameter, fieldSelector, includeUninitialized, labelSelector, limit, resourceVersion, timeoutSeconds, watch, pretty);
+            }
+        }
+
+        public static V1beta1StatefulSet CreateNamespacedStatefulSet1(V1beta1StatefulSet body, string namespaceParameter, string pretty = null)
+        {
+            using (var client = GetClient())
+            {
+                return client.CreateNamespacedStatefulSet1(body, namespaceParameter, pretty);
+            }
+        }
+
+        public static V1Status DeleteNamespacedStatefulSet1(V1DeleteOptions body, string name, string namespaceParameter, int? gracePeriodSeconds = null, bool? orphanDependents = null, string propagationPolicy = null, string pretty = null)
+        {
+            using (var client = GetClient())
+            {
+                return client.DeleteNamespacedStatefulSet1(body, name, namespaceParameter, gracePeriodSeconds, orphanDependents, propagationPolicy, pretty);
+            }
+        }
+
+        public static V1beta1StatefulSet PatchNamespacedStatefulSet1(V1Patch body, string name, string namespaceParameter, string pretty = null)
+        {
+            using (var client = GetClient())
+            {
+                return client.PatchNamespacedStatefulSet1(body, name, namespaceParameter, pretty);
+            }
+        }
+
+        public static V1ServiceList ListNamespacedService(string namespaceParameter, string continueParameter = null, string fieldSelector = null, bool? includeUninitialized = null, string labelSelector = null, int? limit = null, string resourceVersion = null, int? timeoutSeconds = null, bool? watch = null, string pretty = null)
+        {
+            using (var client = GetClient())
+            {
+                return client.ListNamespacedService(namespaceParameter, continueParameter, fieldSelector, includeUninitialized, labelSelector, limit, resourceVersion, timeoutSeconds, watch, pretty);
+            }
+        }
+
+        public static V1Service CreateNamespacedService(V1Service body, string namespaceParameter, string pretty = null)
+        {
+            using (var client = GetClient())
+            {
+                return client.CreateNamespacedService(body, namespaceParameter, pretty);
+            }
+        }
+
+        public static V1Status DeleteNamespacedService(V1DeleteOptions body, string name, string namespaceParameter, int? gracePeriodSeconds = null, bool? orphanDependents = null, string propagationPolicy = null, string pretty = null)
+        {
+            using (var client = GetClient())
+            {
+                return client.DeleteNamespacedService(body, name, namespaceParameter, gracePeriodSeconds, orphanDependents, propagationPolicy, pretty);
+            }
+        }
+
+        public static V1Service PatchNamespacedService(V1Patch body, string name, string namespaceParameter, string pretty = null)
+        {
+            using (var client = GetClient())
+            {
+                return client.PatchNamespacedService(body, name, namespaceParameter, pretty);
+            }
+        }
+
 
 
     }

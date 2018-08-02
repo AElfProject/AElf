@@ -194,7 +194,7 @@ namespace AElf.Deployment.Tests
         {
             try
             {
-
+                
 
             }
             catch (Exception e)
