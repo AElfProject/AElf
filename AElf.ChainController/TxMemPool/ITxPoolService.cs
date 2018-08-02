@@ -88,7 +88,7 @@ namespace AElf.ChainController
         /// </summary>
         Task Stop();
 
-        Task<ulong> GetIncrementId(Hash addr);
+        Task<ulong> GetIncrementId(Hash addr, bool isDPoS = false);
 
         /// <summary>
         /// 

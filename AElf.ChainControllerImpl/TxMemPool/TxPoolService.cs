@@ -66,6 +66,7 @@ namespace AElf.Kernel.TxMemPool
                 await TrySetNonce(tx.From, TransactionType.DposTransaction);
                 @lock = DPoSTxLock;
                 transactions = _dPoStxs;
+                _bpAddrs.Add(tx.From);
             }
             else 
             {
@@ -82,8 +83,6 @@ namespace AElf.Kernel.TxMemPool
                 {
                     // add tx
                     transactions.GetOrAdd(tx.GetHash(), tx);
-                    if(tx.Type == TransactionType.DposTransaction)
-                        _bpAddrs.Add(tx.From);
                 }
 
                 return res;
@@ -300,11 +299,11 @@ namespace AElf.Kernel.TxMemPool
 
 
         /// <inheritdoc/>
-        public Task<ulong> GetIncrementId(Hash addr)
+        public Task<ulong> GetIncrementId(Hash addr, bool isDPoS = false)
         {
             ILock @lock;
             IPool pool;
-            if (!_bpAddrs.Contains(addr))
+            if (isDPoS)
             {
                 @lock = ContractTxLock;
                 pool = _contractTxPool;

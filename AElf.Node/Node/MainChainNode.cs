@@ -464,9 +464,12 @@ namespace AElf.Kernel.Node
         {
             try
             {
+                var isDPoS = addr.Equals(_nodeKeyPair.GetAddress()) ||
+                             _dPoSHelper.BlockProducer.Nodes.Contains(addr.ToHex().RemoveHexPrefix());
+                
                 // ReSharper disable once InconsistentNaming
                 var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId)).IncrementId;
-                var idInPool = await _txPoolService.GetIncrementId(addr);
+                var idInPool = await _txPoolService.GetIncrementId(addr, isDPoS);
 
                 return Math.Max(idInDB, idInPool);
             }
@@ -935,11 +938,13 @@ namespace AElf.Kernel.Node
                 extraBlockResult.Item2.ToByteArray(),
                 extraBlockResult.Item3.ToByteArray()
             };
+            _logger?.Log(LogLevel.Debug, "Generating transaction..");
 
             var txForExtraBlock = await GenerateTransaction(
                 "UpdateAElfDPoS",
                 parameters,
                 _incrementIdNeedToAddOne ? (ulong) 1 : 0);
+            _logger?.Log(LogLevel.Debug, "End Generating transaction..");
 
             await BroadcastTransaction(txForExtraBlock);
 
