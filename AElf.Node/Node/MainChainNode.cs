@@ -470,7 +470,7 @@ namespace AElf.Kernel.Node
                 // ReSharper disable once InconsistentNaming
                 var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId)).IncrementId;
                 _logger?.Log(LogLevel.Debug, $"Trying to get increment id, {isDPoS}");
-                var idInPool = await _txPoolService.GetIncrementId(addr, isDPoS);
+                var idInPool = _txPoolService.GetIncrementId(addr, isDPoS);
                 _logger?.Log(LogLevel.Debug, $"End Trying to get increment id, {isDPoS}");
 
                 return Math.Max(idInDB, idInPool);
