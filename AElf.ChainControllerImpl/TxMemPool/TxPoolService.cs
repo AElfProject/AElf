@@ -299,7 +299,7 @@ namespace AElf.Kernel.TxMemPool
 
 
         /// <inheritdoc/>
-        public Task<ulong> GetIncrementId(Hash addr, bool isDPoS = false)
+        public ulong GetIncrementId(Hash addr, bool isDPoS = false)
         {
             ILock @lock;
             IPool pool;
@@ -313,10 +313,7 @@ namespace AElf.Kernel.TxMemPool
                 @lock = DPoSTxLock;
                 pool = _dpoSTxPool;
             }
-            return @lock.ReadLock(()=>
-            {
-                return pool.GetPendingIncrementId(addr);
-            });
+            return pool.GetPendingIncrementId(addr);
         }
 
 
