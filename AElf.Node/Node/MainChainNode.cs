@@ -705,7 +705,7 @@ namespace AElf.Kernel.Node
             }
 
             var serializedBlock = b.ToByteArray();
-            await _netManager.BroadcastMessage(MessageType.BroadcastBlock, serializedBlock);
+            await _netManager.BroadcastBock(block.GetHash().Value.ToByteArray(), serializedBlock);
 
             var bh = block.GetHash().ToHex();
             _logger?.Trace(
