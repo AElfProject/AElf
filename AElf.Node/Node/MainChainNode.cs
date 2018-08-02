@@ -728,7 +728,7 @@ namespace AElf.Kernel.Node
         public async Task<TxValidation.TxInsertionAndBroadcastingError> BroadcastTransaction(ITransaction tx)
         {
             if(tx.From.Equals(_nodeKeyPair.GetAddress()))
-                _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.From.ToHex() + ", threadId: " +
+                _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().ToHex() + ", threadId: " +
                            Thread.CurrentThread.ManagedThreadId);
             TxValidation.TxInsertionAndBroadcastingError res;
 
@@ -925,7 +925,9 @@ namespace AElf.Kernel.Node
         // ReSharper disable once InconsistentNaming
         public async Task MiningWithUpdatingAElfDPoSInformation()
         {
+            _logger?.Log(LogLevel.Debug, "MiningWithUpdatingAElf..");
             var extraBlockResult = await _dPoSHelper.ExecuteTxsForExtraBlock();
+            _logger?.Log(LogLevel.Debug, "End MiningWithUpdatingAElf..");
 
             var parameters = new List<byte[]>
             {
