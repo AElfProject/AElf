@@ -69,6 +69,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
             tx.MethodName = "hello world";
+            tx.Type = type;
             tx.Params = ByteString.CopyFrom(new Parameters
             {
                 Params = { new Param
@@ -87,7 +88,6 @@ namespace AElf.Kernel.Tests.TxMemPool
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
             tx.S = ByteString.CopyFrom(signature.S);
-            tx.Type = type;
             
             return tx;
         }

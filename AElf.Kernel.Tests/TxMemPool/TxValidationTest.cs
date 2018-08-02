@@ -44,6 +44,8 @@ namespace AElf.Kernel.Tests.TxMemPool
                 MethodName = "null",
                 P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded()),
                 Fee = fee,
+                Type = TransactionType.ContractTransaction,
+
                 Params = ByteString.CopyFrom(new Parameters
                 {
                     Params =
@@ -67,7 +69,6 @@ namespace AElf.Kernel.Tests.TxMemPool
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
             tx.S = ByteString.CopyFrom(signature.S);
-            tx.Type = TransactionType.ContractTransaction;
 
             return tx;
         }
