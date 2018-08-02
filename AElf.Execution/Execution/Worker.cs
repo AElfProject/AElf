@@ -244,19 +244,12 @@ namespace AElf.Execution
             {
                 executive = await _servicePack.SmartContractService
                     .GetExecutiveAsync(transaction.To, chainContext.ChainId);
-                try
-                {
-                    executive.SetDataCache(stateCache);
 
-                    await executive.SetTransactionContext(txCtxt).Apply(false);
-                    trace.Logs.AddRange(txCtxt.Trace.FlattenedLogs);
-                    // TODO: Check run results / logs etc.
-                }
-                finally
-                {
-                    await _servicePack.SmartContractService.PutExecutiveAsync(transaction.To, executive);    
-                }
+                executive.SetDataCache(stateCache);
 
+                await executive.SetTransactionContext(txCtxt).Apply(false);
+                trace.Logs.AddRange(txCtxt.Trace.FlattenedLogs);
+                // TODO: Check run results / logs etc.
             }
             catch (Exception ex)
             {
