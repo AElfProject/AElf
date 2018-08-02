@@ -17,6 +17,12 @@ message Transaction
     bytes R = 7;
     bytes S = 8;
     bytes P = 9;
+    TransactionType type = 10;
+}
+
+enum TransactionType{
+    DposTransaction = 0;
+    ContractTransaction = 1;
 }
 
 enum Status {

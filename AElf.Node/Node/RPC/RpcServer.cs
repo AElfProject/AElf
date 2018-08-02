@@ -39,7 +39,7 @@ namespace AElf.Kernel.Node.RPC
         private const string GetBlockHeight = "get_block_height";
         private const string GetBlockInfo = "get_block_info";
         private const string GetDeserializedInfo = "get_deserialized_info";
-
+        private const string SetBlockVolume = "set_block_volume";
         private const string CallReadOnly = "call";
 
         /// <summary>
@@ -59,7 +59,8 @@ namespace AElf.Kernel.Node.RPC
             GetBlockHeight,
             GetBlockInfo,
             GetDeserializedInfo,
-            CallReadOnly
+            CallReadOnly,
+            SetBlockVolume
         };
 
         /// <summary>
@@ -238,6 +239,9 @@ namespace AElf.Kernel.Node.RPC
                     case CallReadOnly:
                         response = await ProcessCallReadOnly(reqParams);
                         break;
+                    case SetBlockVolume:
+                        response = ProcSetBlockVolume(reqParams);
+                        break;
                     default:
                         Console.WriteLine("Method name not found"); // todo log
                         break;
@@ -254,6 +258,28 @@ namespace AElf.Kernel.Node.RPC
             catch (Exception e)
             {
                 Console.WriteLine(e);
+            }
+        }
+
+        private JObject ProcSetBlockVolume(JObject reqParams)
+        {
+            try
+            {
+                var min = ulong.Parse(reqParams["minimal"].ToString());
+                var max = ulong.Parse(reqParams["maximal"].ToString());
+                _node.SetBlockVolume(min, max);
+                return new JObject
+                {
+                    ["result"] = "Success"
+                };
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return new JObject
+                {
+                    ["error"] = "Failed"
+                };
             }
         }
 

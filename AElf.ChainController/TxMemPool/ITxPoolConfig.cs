@@ -35,6 +35,15 @@ namespace AElf.ChainController
         /// represent miner self
         /// </summary>
         ECKeyPair EcKeyPair { get; set; }
+
+        /// <summary>
+        /// the minimal number of tx in one block
+        /// </summary>
+        ulong Minimal { get; set; }
         
+        /// <summary>
+        /// the Maximal number of tx in one block
+        /// </summary>
+        ulong Maximal { get; set; }
     }
 }

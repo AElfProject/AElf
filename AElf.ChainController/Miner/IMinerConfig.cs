@@ -17,9 +17,5 @@ namespace AElf.ChainController
         
         
         Hash ChainId { get; set; }
-        /// <summary>
-        /// represent number limit in a block
-        /// </summary>
-        ulong TxCount { get; set; }
     }
 }

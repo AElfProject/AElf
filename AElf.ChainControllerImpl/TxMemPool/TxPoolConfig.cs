@@ -10,6 +10,8 @@ using AElf.Kernel;
              PoolLimitSize = 1024 * 1024,
              TxLimitSize = 1024 * 20,
              ChainId = Hash.Generate(),
+             Minimal = 1,
+             Maximal = 1024,
              FeeThreshold = 0
          };
          
@@ -24,6 +26,8 @@ using AElf.Kernel;
          //public ulong EntryThreshold { get; set; }
          
          public ECKeyPair EcKeyPair { get; set; }
-     
+         
+         public ulong Minimal { get; set; }
+         public ulong Maximal { get; set; }
      }
  }

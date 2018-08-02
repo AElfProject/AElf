@@ -9,8 +9,8 @@ using NLog;
 
 namespace AElf.ChainController
 {
-    [LoggerName("TxPool")]
-    public class TxPool : ITxPool
+    [LoggerName("ContractTxPool")]
+    public class ContractTxPool : IContractTxPool
     {
         private readonly Dictionary<Hash, List<ITransaction>> _executable =
             new Dictionary<Hash, List<ITransaction>>();
@@ -24,7 +24,7 @@ namespace AElf.ChainController
         private readonly ITxPoolConfig _config;
 
 
-        public TxPool(ITxPoolConfig config, ILogger logger)
+        public ContractTxPool(ITxPoolConfig config, ILogger logger)
         {
             _config = config;
             _logger = logger;
@@ -92,7 +92,7 @@ namespace AElf.ChainController
         }*/
 
         /// <inheritdoc/>
-        public List<ITransaction> ReadyTxs(ulong limit)
+        public List<ITransaction> ReadyTxs()
         {
             var res = new List<ITransaction>();
              
@@ -107,7 +107,7 @@ namespace AElf.ChainController
                     if (tx.IncrementId < nonce) continue;
                     r++;
                     res.Add(tx);
-                    if ((ulong) res.Count >= limit)
+                    if ((ulong) res.Count >= Limit)
                         break;
                 }
                 // update incrementId in account data context
@@ -120,7 +120,7 @@ namespace AElf.ChainController
             // get txs from other address
             foreach (var kv in _executable)
             {
-                if ((ulong) res.Count >= limit)
+                if ((ulong) res.Count >= Limit)
                     break;
                 var nonce = GetNonce(kv.Key);
                 var r = 0;
@@ -129,7 +129,7 @@ namespace AElf.ChainController
                     if (tx.IncrementId < nonce) continue;
                     r++;
                     res.Add(tx);
-                    if ((ulong) res.Count >= limit)
+                    if ((ulong) res.Count >= Limit)
                         break;
                 }
 
@@ -531,6 +531,21 @@ namespace AElf.ChainController
             }
 
             return null;
+        }
+        
+        /// <inheritdoc/>
+        public TransactionType Type => TransactionType.ContractTransaction;
+
+        /// <inheritdoc/>
+        public ulong Least => _config.Minimal;
+        
+        /// <inheritdoc/>
+        public ulong Limit => _config.Maximal;
+
+        public void SetBlockVolume(ulong minimal, ulong maximal)
+        {
+            _config.Maximal = maximal;
+            _config.Minimal = minimal;
         }
     }
 }

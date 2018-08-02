@@ -24,13 +24,12 @@ namespace AElf.Kernel.Tests.TxMemPool
             _worldStateDictator = worldStateDictator;
         }
 
-        private TxPool GetPool(ECKeyPair ecKeyPair = null)
+        private ContractTxPool GetPool(TxPoolConfig config, ECKeyPair ecKeyPair = null)
         {
-            var config = TxPoolConfig.Default;
             if (ecKeyPair != null)
                 config.EcKeyPair = ecKeyPair;
             _worldStateDictator.SetChainId(config.ChainId);
-            return new TxPool(config, _logger);
+            return new ContractTxPool(config, _logger);
         }
 
         public static Transaction BuildTransaction(Hash adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
@@ -62,6 +61,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
             tx.S = ByteString.CopyFrom(signature.S);
+            tx.Type = TransactionType.ContractTransaction;
             return tx;
         }
         
@@ -71,7 +71,8 @@ namespace AElf.Kernel.Tests.TxMemPool
         public async Task EntryThreshold_Test()
         {
             // setup config
-            var pool = GetPool();
+            var config = TxPoolConfig.Default;
+            var pool = GetPool(config);
             
             // Add a valid transaction
             var tx = BuildTransaction();
@@ -88,7 +89,8 @@ namespace AElf.Kernel.Tests.TxMemPool
         [Fact]
         public void DemoteTxs()
         {
-            var pool = GetPool();
+            var config = TxPoolConfig.Default;
+            var pool = GetPool(config);
             var kp1 = new KeyPairGenerator().Generate();
             var tx1_0 = BuildTransaction(nonce: 2, keyPair:kp1);
             var tx1_1 = BuildTransaction(nonce: 1, keyPair:kp1);
@@ -118,7 +120,9 @@ namespace AElf.Kernel.Tests.TxMemPool
         public async Task ReadyTxsTest()
         {
             ECKeyPair ecKeyPair = new KeyPairGenerator().Generate();
-            var pool = GetPool(ecKeyPair);
+            var config = TxPoolConfig.Default;
+            config.Maximal = 10;
+            var pool = GetPool(config, ecKeyPair);
             var tmp = new HashSet<ITransaction>();
 
             // Add valid transactions
@@ -146,7 +150,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             pool.TrySetNonce(ecKeyPair.GetAddress(), ctx1.IncrementId);
             pool.EnQueueTxs(minerTxs);
 
-            var ready = pool.ReadyTxs(10);
+            var ready = pool.ReadyTxs();
             
             Assert.Equal(10, ready.Count);
             foreach (var mtx in minerTxs)

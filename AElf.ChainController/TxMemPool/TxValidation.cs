@@ -12,6 +12,7 @@ namespace AElf.ChainController
             Success = 0,
             AlreadyInserted,
             Valid,
+            WrongTransactionType,
             InvalidTxFormat,
             NotEnoughGas,
             TooBigSize,
@@ -28,8 +29,14 @@ namespace AElf.ChainController
         /// <param name="pool"></param>
         /// <param name="tx"></param>
         /// <returns></returns>
-        public static TxInsertionAndBroadcastingError ValidateTx(this ITxPool pool, ITransaction tx)
+        public static TxInsertionAndBroadcastingError ValidateTx(this IPool pool, ITransaction tx)
         {
+            if (tx.Type != pool.Type)
+            {
+                // TODO: verifiy corrrectness of dpos 
+                return TxInsertionAndBroadcastingError.WrongTransactionType;
+            }
+            
             if (tx.From == Hash.Zero || tx.MethodName == "" || tx.IncrementId < 0)
             {
                 // TODO: log errors
@@ -68,7 +75,7 @@ namespace AElf.ChainController
             return TxInsertionAndBroadcastingError.Valid;
         }
 
-
+        
         /// <summary>
         /// verify signature in tx
         /// </summary>

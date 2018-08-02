@@ -67,7 +67,7 @@ namespace AElf.ChainController
                 if (Cts == null || Cts.IsCancellationRequested)
                     return null;            
 
-                var readyTxs = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
+                var readyTxs = await _txPoolService.GetReadyTxsAsync();
                 // TODO：dispatch txs with ISParallel, return list of tx results
 
                 // reset Promotable and update account context

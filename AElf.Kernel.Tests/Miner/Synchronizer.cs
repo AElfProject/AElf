@@ -191,7 +191,8 @@ namespace AElf.Kernel.Tests.Miner
                 MethodName = "DeploySmartContract",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack((int)0, code)),
                 
-                Fee = TxPoolConfig.Default.FeeThreshold + 1
+                Fee = TxPoolConfig.Default.FeeThreshold + 1,
+                Type = TransactionType.ContractTransaction
             };
             
             Hash hash = txnDep.GetHash();
@@ -209,7 +210,8 @@ namespace AElf.Kernel.Tests.Miner
                 MethodName = "Print",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack("AElf")),
                 
-                Fee = TxPoolConfig.Default.FeeThreshold + 1
+                Fee = TxPoolConfig.Default.FeeThreshold + 1,
+                Type = TransactionType.ContractTransaction
             };
             ECSignature signature2 = signer.Sign(keyPair, txInv_1.GetHash().GetHashBytes());
             txInv_1.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
@@ -224,7 +226,8 @@ namespace AElf.Kernel.Tests.Miner
                 MethodName = "Print",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack("Hoopox")),
                 
-                Fee = TxPoolConfig.Default.FeeThreshold + 1
+                Fee = TxPoolConfig.Default.FeeThreshold + 1,
+                Type = TransactionType.ContractTransaction
             };
             
             ECSignature signature3 = signer.Sign(keyPair, txInv_2.GetHash().GetHashBytes());
@@ -255,10 +258,10 @@ namespace AElf.Kernel.Tests.Miner
             var chain = await CreateChain(NewSmartContractZeroCode);
             poolconfig.ChainId = chain.Id;
             
-            var pool = new TxPool(poolconfig, _logger);
+            var contractTxPool = new ContractTxPool(poolconfig, _logger);
+            var dPoSTxPool = new DPoSTxPool(poolconfig, _logger);
             
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(contractTxPool, _accountContextService, _logger, dPoSTxPool);
             
             poolService.Start();
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, 1);
@@ -290,7 +293,7 @@ namespace AElf.Kernel.Tests.Miner
             Assert.Equal((ulong)2, await poolService.GetExecutableSizeAsync());
             //Assert.False(poolService.TryGetTx(txs[2].GetHash(), out tx));
             Assert.True(poolService.TryGetTx(txs[1].GetHash(), out tx));
-            Assert.Equal((ulong)0, pool.GetNonce(tx.From));
+            Assert.Equal((ulong)0, contractTxPool.GetNonce(tx.From));
 
             Assert.Equal((ulong)1, await _chainManager.GetChainCurrentHeight(chain.Id));
             Assert.Equal(chain.GenesisBlockHash, await _chainManager.GetChainLastBlockHash(chain.Id));

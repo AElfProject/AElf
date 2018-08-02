@@ -727,8 +727,8 @@ namespace AElf.Kernel.Node
         /// <param name="tx">The tx to broadcast</param>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> BroadcastTransaction(ITransaction tx)
         {
-
-            _logger?.Trace("Try to inseret transaction to pool: " + tx.From.ToHex() + ", threadId: " +
+            if(tx.From.Equals(_nodeKeyPair.GetAddress()))
+                _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.From.ToHex() + ", threadId: " +
                            Thread.CurrentThread.ManagedThreadId);
             TxValidation.TxInsertionAndBroadcastingError res;
 
@@ -821,7 +821,8 @@ namespace AElf.Kernel.Node
                 To = ContractAccountHash,
                 IncrementId = await GetIncrementId(_nodeKeyPair.GetAddress()) + incrementIdOffset,
                 MethodName = methodName,
-                P = ByteString.CopyFrom(_nodeKeyPair.PublicKey.Q.GetEncoded())
+                P = ByteString.CopyFrom(_nodeKeyPair.PublicKey.Q.GetEncoded()),
+                Type = TransactionType.DposTransaction
             };
 
             switch (parameters.Count)
@@ -964,5 +965,10 @@ namespace AElf.Kernel.Node
         }
 
         private static int _currentIncr;
+
+        public void SetBlockVolume(ulong minimal, ulong maximal)
+        {
+            _txPoolService.SetBlockVolume(minimal, maximal);
+        }
     }
 }

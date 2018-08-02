@@ -20,9 +20,9 @@ namespace AElf.Kernel.Tests.TxMemPool
             _logger = logger;
         }
 
-        private TxPool GetPool(ulong feeThreshold = 0, uint txSize = 0)
+        private ContractTxPool GetPool(ulong feeThreshold = 0, uint txSize = 0)
         {
-            return new TxPool(new TxPoolConfig
+            return new ContractTxPool(new TxPoolConfig
             {
                 TxLimitSize = txSize,
                 FeeThreshold = feeThreshold
@@ -67,6 +67,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             // Update the signature
             tx.R = ByteString.CopyFrom(signature.R);
             tx.S = ByteString.CopyFrom(signature.S);
+            tx.Type = TransactionType.ContractTransaction;
 
             return tx;
         }
