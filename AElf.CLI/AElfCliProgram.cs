@@ -26,6 +26,7 @@ using Globals = AElf.Kernel.Globals;
 using Method = AElf.CLI.Data.Protobuf.Method;
 using Module = AElf.CLI.Data.Protobuf.Module;
 using Transaction = AElf.CLI.Data.Protobuf.Transaction;
+using TransactionType = AElf.CLI.Data.Protobuf.TransactionType;
 using Type = System.Type;
 
 namespace AElf.CLI
@@ -303,7 +304,7 @@ namespace AElf.CLI
             
                         Transaction t = new Transaction();
                         t = CreateTransaction(parsedCmd.Args.ElementAt(2), _genesisAddress, parsedCmd.Args.ElementAt(1),
-                            DeploySmartContract, serializedParams);
+                            DeploySmartContract, serializedParams, TransactionType.ContractTransaction);
                         
                         MemoryStream ms = new MemoryStream();
                         Serializer.Serialize(ms, t);
@@ -399,7 +400,8 @@ namespace AElf.CLI
                             
                             JArray p = j["params"] == null ? null : JArray.Parse(j["params"].ToString());
                             tr.Params = j["params"] == null ? null : method.SerializeParams(p.ToObject<string[]>());
-
+                            tr.type = TransactionType.ContractTransaction;
+                            
                             _accountManager.SignTransaction(tr);
                             var resp = SignAndSendTransaction(tr);
                             
@@ -537,7 +539,8 @@ namespace AElf.CLI
             }
         }
 
-        private Transaction CreateTransaction(string elementAt, string genesisAddress, string incrementid, string methodName, byte[] serializedParams)
+        private Transaction CreateTransaction(string elementAt, string genesisAddress, string incrementid,
+            string methodName, byte[] serializedParams, TransactionType contracttransaction)
         {
             try
             {
@@ -547,6 +550,7 @@ namespace AElf.CLI
                 t.IncrementId = Convert.ToUInt64(incrementid);
                 t.MethodName = methodName;
                 t.Params = serializedParams;
+                t.type = contracttransaction;
                 return t;
             }
             catch (Exception e)

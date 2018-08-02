@@ -67,7 +67,7 @@ namespace AElf.Kernel.TxMemPool
                 @lock = DPoSTxLock;
                 transactions = _dPoStxs;
             }
-            else
+            else 
             {
                 pool = _contractTxPool;
                 await TrySetNonce(tx.From, TransactionType.ContractTransaction);
