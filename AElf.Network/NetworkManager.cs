@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Timers;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Collections;
 using AElf.Kernel;

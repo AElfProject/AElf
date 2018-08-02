@@ -61,6 +61,9 @@ namespace AElf.Network.Connection
 
                     // Is this a partial reception ?
                     bool isBuffered = await ReadBoolean();
+                    
+                    // Is this a consensus message
+                    bool isConsensus = await ReadBoolean();
 
                     // Read the size of the data
                     int length = await ReadInt();
@@ -103,7 +106,8 @@ namespace AElf.Network.Connection
 
                         byte[] packetData = await ReadBytesAsync(length);
 
-                        Message message = new Message {Type = type, Length = length, Payload = packetData};
+                        Message message = new Message {Type = type, IsConsensus = isConsensus, Length = length, Payload = packetData};
+                        _logger?.Trace($"Received message - type: {(MessageType) message.Type}, dpos: {message.IsConsensus}");
                         FireMessageReceivedEvent(message);
                     }
                 }
@@ -135,7 +139,6 @@ namespace AElf.Network.Connection
         private void FireMessageReceivedEvent(Message message)
         {
             PacketReceivedEventArgs args = new PacketReceivedEventArgs { Message = message };
-
             PacketReceived?.Invoke(this, args);
         }
 
