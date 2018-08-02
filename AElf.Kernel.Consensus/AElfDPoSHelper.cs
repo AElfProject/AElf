@@ -326,7 +326,7 @@ namespace AElf.Kernel.Consensus
                 var baseTimeslot = ExtraBlockTimeslot;
 
                 //Maybe because something happened with setting extra block timeslot.
-                if (baseTimeslot.ToDateTime().AddMilliseconds(Globals.AElfMiningTime * 2) < GetTimestampOfUtcNow().ToDateTime())
+                if (baseTimeslot.ToDateTime().AddMilliseconds(Globals.AElfMiningTime * 1.5) < GetTimestampOfUtcNow().ToDateTime())
                 {
                     baseTimeslot = GetTimestampOfUtcNow();
                 }

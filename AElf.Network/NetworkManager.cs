@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Timers;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Collections;
 using AElf.Kernel;
 using AElf.Network.Config;
 using AElf.Network.Connection;
@@ -46,6 +47,8 @@ namespace AElf.Network.Peers
     
     public class NetworkManager : INetworkManager, IPeerManager, IDisposable
     {
+        public const int DefaultMaxBlockHistory = 5;
+        
         public const int TargetPeerCount = 8;
         public const int DefaultRequestTimeout = 2000;
         public const int DefaultRequestMaxRetry = TimeoutRequest.DefaultMaxRetry;
@@ -90,8 +93,13 @@ namespace AElf.Network.Peers
         private Object _pendingRequestsLock = new Object();  
         public List<TimeoutRequest> _pendingRequests;
 
+        private BoundedByteArrayQueue _lastBlocksReceived;
+        public int MaxBlockHistory { get; set; } = DefaultMaxBlockHistory;
+
         public NetworkManager(IAElfNetworkConfig config, IConnectionListener connectionListener, ILogger logger)
         {
+            
+            
             _pendingRequests = new List<TimeoutRequest>();
             
             _connectionListener = connectionListener;
@@ -140,7 +148,10 @@ namespace AElf.Network.Peers
         /// </summary>
         public void Start()
         {
+            _lastBlocksReceived = new BoundedByteArrayQueue(MaxBlockHistory);
+            
             Task.Run(() => _connectionListener.StartListening(_port));
+            
             _connectionListener.IncomingConnection += ConnectionListenerOnIncomingConnection;
             _connectionListener.ListeningStopped += ConnectionListenerOnListeningStopped;
             
@@ -713,6 +724,26 @@ namespace AElf.Network.Peers
                     {
                         originalRequest = HandleBlockMessage(args.Peer, args.Message);
                     }
+
+                    if (args.Message.Type == (int) MessageType.BroadcastBlock)
+                    {
+                        Block b = Block.Parser.ParseFrom(args.Message.Payload); // todo later deserializations will be redundant
+                        byte[] blockHash = b.GetHash().Value.ToByteArray();
+                        
+                        if (_lastBlocksReceived.Contains(blockHash))
+                            return;
+                        
+                        _lastBlocksReceived.Enqueue(blockHash);
+                        
+                        foreach (var peer in _peers.Where(p => p.Equals(args.Peer)))
+                        {
+                            try 
+                            {
+                                peer.EnqueueOutgoing(args.Message); 
+                            }
+                            catch (Exception ex) { } // todo think about removing this try/catch, enqueu should be fire and forget
+                        }
+                    }
                     
                     var evt = new NetMessageReceivedArgs {
                         Message = args.Message,
@@ -817,6 +848,12 @@ namespace AElf.Network.Peers
             }
         }
 
+        public async Task<int> BroadcastBock(byte[] hash, byte[] payload)
+        {
+            _lastBlocksReceived.Enqueue(hash);
+            return await BroadcastMessage(MessageType.BroadcastBlock, payload);
+        }
+        
         /// <summary>
         /// This message broadcasts data to all of its peers. This creates and
         /// sends a <see cref="AElfPacketData"/> object with the provided pay-
@@ -828,11 +865,9 @@ namespace AElf.Network.Peers
         /// <returns></returns>
         public async Task<int> BroadcastMessage(MessageType messageType, byte[] payload)
         {
-            if (_peers == null || !_peers.Any())
-                return 0;
-
             try
             {
+                
                 Message packet = NetRequestFactory.CreateMessage(messageType, payload);
                 return BroadcastMessage(packet);
             }
