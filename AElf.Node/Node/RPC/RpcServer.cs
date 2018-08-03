@@ -322,7 +322,6 @@ namespace AElf.Kernel.Node.RPC
             {
                 var transactions = blockinfo.Body.Transactions;
                 var txs = new List<string>();
-
                 foreach (var txHash in transactions)
                 {
                     txs.Add(txHash.ToHex());
@@ -382,7 +381,6 @@ namespace AElf.Kernel.Node.RPC
             var transaction = await _node.GetTransaction(txHash);
 
             var txInfo = transaction == null ? new JObject {["tx"] = "Not Found"} : transaction.GetTransactionInfo();
-
 
             var txResult = await _node.GetTransactionResult(txHash);
             var response = new JObject
