@@ -296,15 +296,7 @@ namespace AElf.Kernel.Node.RPC
                 return error;
 
             var transactionPoolSize = await _node.GetTransactionPoolSize();
-          
-            var transactions = blockinfo.Body.Transactions;
-            var txs = new List<string>();
-           
-            foreach (var txHash in transactions)
-            {
-                txs.Add(txHash.ToHex());
-            }
-
+               
             var response = new JObject
             {
                 ["result"] = new JObject
@@ -321,14 +313,25 @@ namespace AElf.Kernel.Node.RPC
                     },
                     ["Body"] = new JObject
                     {
-                        ["TransactionsCount"] = blockinfo.Body.TransactionsCount,
-                        ["Transactions"] = JArray.FromObject(txs)
+                        ["TransactionsCount"] = blockinfo.Body.TransactionsCount
+                        
                     
                     },
                     ["CurrentTransactionPoolSize"] = transactionPoolSize
                 }
             };
-
+            if (reqParams["include_txs"] != null && bool.Parse(reqParams["include_txs"].ToString().ToLower()))
+            {
+                var transactions = blockinfo.Body.Transactions;
+                var txs = new List<string>();
+           
+                foreach (var txHash in transactions)
+                {
+                    txs.Add(txHash.ToHex());
+                }
+                response["result"]["Body"]["Transactions"] = JArray.FromObject(txs);
+            }
+                     
             return JObject.FromObject(response);
         }
 
