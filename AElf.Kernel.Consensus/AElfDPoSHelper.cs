@@ -336,7 +336,7 @@ namespace AElf.Kernel.Consensus
                     var bpInfoNew = new BPInfo
                     {
                         TimeSlot = GetTimestampWithOffset(baseTimeslot,
-                            i * Globals.AElfMiningTime + Globals.AElfMiningTime),
+                            i * Globals.AElfMiningTime + Globals.AElfMiningTime * 2),
                         Order = i + 1
                     };
 
