@@ -214,16 +214,21 @@ namespace AElf.ChainController
 
             
             // set ws merkle tree root
+            
             await _worldStateDictator.SetWorldStateAsync(lastBlockHash);
+            _logger?.Log(LogLevel.Debug, "End Set WS..");
             var ws = await _worldStateDictator.GetWorldStateAsync(lastBlockHash);
+            _logger?.Log(LogLevel.Debug, "End Get Ws");
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
-            
 
-            if(ws != null)
+
+            if (ws != null)
+            {
                 block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
+                _logger?.Log(LogLevel.Debug, "End GetWorldStateMerkleTreeRootAsync");
+            }
+               
             block.Body.BlockHeader = block.Header.GetHash();
-
-            
             return block;
         }
         
