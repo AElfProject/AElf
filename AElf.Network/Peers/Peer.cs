@@ -93,7 +93,7 @@ namespace AElf.Network.Peers
         /// <summary>
         /// The data received after the initial connection.
         /// </summary>
-        public NodeData DistantNodeData { get; private set; }
+        public NodeData DistantNodeData { get; set; }
 
         public bool IsConnected
         {
@@ -174,8 +174,13 @@ namespace AElf.Network.Peers
         private async void MessageReaderOnStreamClosed(object sender, EventArgs eventArgs)
         {
             Disconnect();
-            
-            NodeDialer p = new NodeDialer(IPAddress.Loopback.ToString(), 6789);
+
+            if (DistantNodeData == null)
+            {
+                PeerUnreachable?.Invoke(this, EventArgs.Empty);
+            }
+
+            NodeDialer p = new NodeDialer(IPAddress.Loopback.ToString(), DistantNodeData.Port);
             TcpClient client = await p.DialWithRetryAsync();
 
             if (client != null)
@@ -247,9 +252,13 @@ namespace AElf.Network.Peers
         /// <returns></returns>
         public void EnqueueOutgoing(Message msg)
         {
+            if (!IsAuthentified)
+            {
+                _logger?.Trace($"Can't write : not identified {DistantNodeData}.");
+            }
             if (_messageWriter == null)
             {
-                _logger?.Trace($"Peer {DistantNodeData.IpAddress} : {DistantNodeData.Port} - Null stream while sending");
+                _logger?.Trace($"Peer {DistantNodeData?.IpAddress} : {DistantNodeData?.Port} - Null stream while sending");
                 return;
             }
 
@@ -259,7 +268,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger.Trace(e, $"Exception while sending data.");
+                _logger?.Trace(e, $"Exception while sending data.");
             }
         }
         

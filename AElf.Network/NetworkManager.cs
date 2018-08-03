@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -47,7 +48,7 @@ namespace AElf.Network.Peers
     
     public class NetworkManager : INetworkManager, IPeerManager, IDisposable
     {
-        public const int DefaultMaxBlockHistory = 5;
+        public const int DefaultMaxBlockHistory = 15;
         
         public const int TargetPeerCount = 8;
         public const int DefaultRequestTimeout = 2000;
@@ -73,6 +74,8 @@ namespace AElf.Network.Peers
         
         // List of non bootnode peers
         private readonly List<IPeer> _peers = new List<IPeer>();
+        private readonly List<IPeer> _peersNoAuth = new List<IPeer>();
+        
         
         private readonly int _port;
 
@@ -80,7 +83,7 @@ namespace AElf.Network.Peers
         public bool ReceivingPeers { get; private set; } = false;
 
         private System.Threading.Timer _maintenanceTimer = null;
-        private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(5);
+        private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(2);
         private readonly TimeSpan _maintenancePeriod = TimeSpan.FromMinutes(1);
         
         public bool NoPeers { get; set; } = true;
@@ -98,8 +101,6 @@ namespace AElf.Network.Peers
 
         public NetworkManager(IAElfNetworkConfig config, IConnectionListener connectionListener, ILogger logger)
         {
-            
-            
             _pendingRequests = new List<TimeoutRequest>();
             
             _connectionListener = connectionListener;
@@ -213,7 +214,7 @@ namespace AElf.Network.Peers
         {
             if (sender != null && eventArgs is IncomingConnectionArgs args)
             {
-                CreatePeerFromConnection(args.Client);
+                CreatePeerFromConnection(args.Client, null);
             }
         }
         
@@ -368,11 +369,11 @@ namespace AElf.Network.Peers
                     // anybody else modifying it.
                     
                     // Calculate peers to remove
-                    List<IPeer> peersToRemove = GetPeersToRemove(Math.Abs(missingPeers));
+                    //List<IPeer> peersToRemove = GetPeersToRemove(Math.Abs(missingPeers));
                     
                     // Remove them
-                    foreach (var peer in peersToRemove)
-                       RemovePeer(peer);
+                    //foreach (var peer in peersToRemove)
+                       //RemovePeer(peer);
                 }
                 else
                 {
@@ -427,6 +428,7 @@ namespace AElf.Network.Peers
             }
         }
         
+        private List<NodeData> AlreadyReceived = new List<NodeData>();
         /// <summary>
         /// This method processes the peers received from one of
         /// the connected peers.
@@ -438,7 +440,9 @@ namespace AElf.Network.Peers
             // If we're in a maintenance cycle - do nothing
             // todo : maybe later we can queue this work...
             if (UndergoingPm)
-                return;
+            {
+                _logger?.Trace("Doing peer maintenance...");
+            }
                 
             ReceivingPeers = true;
             
@@ -451,11 +455,15 @@ namespace AElf.Network.Peers
 
                 foreach (var peer in peerList.NodeData)
                 {
-                    NodeData p = new NodeData
+                    NodeData p = new NodeData { IpAddress = peer.IpAddress, Port = peer.Port };
+
+                    if (AlreadyReceived.Any(n => n.Equals(p)))
                     {
-                        IpAddress = peer.IpAddress, 
-                        Port = peer.Port
-                    };
+                        _logger?.Trace($"Already received {p}.");
+                        continue;
+                    }
+
+                    AlreadyReceived.Add(p);
                     
                     IPeer newPeer = await CreateAndAddPeer(p);
                 }
@@ -486,38 +494,35 @@ namespace AElf.Network.Peers
         /// listening process.
         /// </summary>
         /// <param name="peer">the peer to add</param>
-        public IPeer CreatePeerFromConnection(TcpClient client)
+        public IPeer CreatePeerFromConnection(TcpClient client, NodeData nd)
         {
             if (client == null)
                 return null;
-            
+
             Peer peer = new Peer(_port);
-            
             peer.Initialize(client);
-            
+
+            if (nd != null)
+            {
+                AlreadyReceived.Add(nd);
+                peer.DistantNodeData = nd;
+            }
+
             // Don't add a peer already in the list
             if (GetPeer(peer) != null)
             {
                 _logger?.Trace($"[AddPeer] Peer already included - {peer.IpAddress} : {peer.Port}");
                 return null;
             }
-
-            /*peer.DistantNodeData.IsBootnode = _bootnodes?.Any(p => p.Equals(peer.DistantNodeData)) ?? false;
-            
-            if (peer.DistantNodeData.IsBootnode)
-                _bootnodePeers.Add(peer);*/
             
             AddPeer(peer);
-            
-            
-            //PeerAdded?.Invoke(this, new PeerAddedEventArgs { Peer = peer });
 
             return peer;
         }
 
         internal void AddPeer(IPeer peer)
         {
-            _peers.Add(peer);
+            _peersNoAuth.Add(peer);
             
             peer.PeerAuthentified += PeerOnPeerAuthentified;
             peer.PeerDisconnected += ProcessClientDisconnection;
@@ -528,6 +533,14 @@ namespace AElf.Network.Peers
             if (sender is Peer peer)
             {
                 peer.MessageReceived += ProcessPeerMessage;
+                
+                _peersNoAuth.Remove(peer);
+
+                if (_peers.Any(p => p.DistantNodeData != null && p.DistantNodeData.Equals(peer.DistantNodeData)))
+                    return;
+                
+                _peers.Add(peer);
+                
                 _logger?.Trace("Peer authentified and added : " + peer);
                 
                 PeerAdded?.Invoke(this, new PeerAddedEventArgs { Peer = peer });
@@ -553,7 +566,7 @@ namespace AElf.Network.Peers
                 // add it to be managed
                 if (peer != null)
                 {
-                    return CreatePeerFromConnection(peer);
+                    return CreatePeerFromConnection(peer, nodeData);
                 }
             }
             catch (ResponseTimeOutException rex)
@@ -678,39 +691,41 @@ namespace AElf.Network.Peers
                 {
                     try
                     {
-                        Random rand = new Random();
-                        List<IPeer> peers = _peers.OrderBy(c => rand.Next()).Select(c => c).ToList();
-                    
                         ReqPeerListData req = ReqPeerListData.Parser.ParseFrom(args.Message.Payload);
                         ushort numPeers = (ushort) req.NumPeers;
                     
                         PeerListData pListData = new PeerListData();
 
-                        foreach (var peer in peers.Where(p => !p.DistantNodeData.Equals(args.Peer.DistantNodeData)))
+                        foreach (var peer in _peers.Where(p => p.DistantNodeData != null && !p.DistantNodeData.Equals(args.Peer.DistantNodeData)))
                         {
                             pListData.NodeData.Add(peer.DistantNodeData);
+                            
                             if (pListData.NodeData.Count == numPeers)
                                 break;
                         }
 
+                        byte[] payload = pListData.ToByteArray();
                         var resp = new Message
                         {
                             Type = (int)MessageType.Peers,
-                            Length = 1,
-                            Payload = pListData.ToByteString().ToByteArray()
+                            Length = payload.Length,
+                            Payload = payload,
+                            OutboundTrace = Guid.NewGuid().ToString()
                         };
+                        
+                        _logger?.Trace($"Sending peers : {pListData} to {args.Peer}");
+
+                        Task.Run(() => args.Peer.EnqueueOutgoing(resp));
                     }
                     catch (Exception exception)
                     {
-                        _logger.Trace(exception);
+                        _logger?.Trace(exception);
                     }
-
-                    // todo
-                    //Task.Run(async () => await args.Peer.SendAsync(resp.ToByteArray()));
+                    
                 }
                 else if (args.Message.Type == (int)MessageType.Peers)
                 {
-                    //Task.Run(() => ReceivePeers(args.Message.Payload));
+                    Task.Run(() => ReceivePeers(ByteString.CopyFrom(args.Message.Payload)));
                 }
                 else
                 {
@@ -735,7 +750,7 @@ namespace AElf.Network.Peers
                         
                         _lastBlocksReceived.Enqueue(blockHash);
                         
-                        foreach (var peer in _peers.Where(p => p.Equals(args.Peer)))
+                        foreach (var peer in _peers.Where(p => !p.Equals(args.Peer)))
                         {
                             try 
                             {
