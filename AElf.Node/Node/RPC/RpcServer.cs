@@ -296,6 +296,15 @@ namespace AElf.Kernel.Node.RPC
                 return error;
 
             var transactionPoolSize = await _node.GetTransactionPoolSize();
+          
+            var transactions = blockinfo.Body.Transactions;
+            var txs = new List<string>();
+           
+            foreach (var txHash in transactions)
+            {
+                txs.Add(txHash.ToHex());
+            }
+
             var response = new JObject
             {
                 ["result"] = new JObject
@@ -312,7 +321,9 @@ namespace AElf.Kernel.Node.RPC
                     },
                     ["Body"] = new JObject
                     {
-                        ["TransactionsCount"] = blockinfo.Body.TransactionsCount
+                        ["TransactionsCount"] = blockinfo.Body.TransactionsCount,
+                        ["Transactions"] = JArray.FromObject(txs)
+                    
                     },
                     ["CurrentTransactionPoolSize"] = transactionPoolSize
                 }
@@ -366,11 +377,17 @@ namespace AElf.Kernel.Node.RPC
                 });
             }
 
+            var transaction = await _node.GetTransaction(txHash);
+
+            var txInfo = transaction == null ? new JObject {["tx"] = "Not Found"} : transaction.GetTransactionInfo();
+
+            
             var txResult = await _node.GetTransactionResult(txHash);
             var response = new JObject
             {
-                ["tx_id"] = txResult.TransactionId.ToHex(),
-                ["tx_status"] = txResult.Status.ToString()
+                //["tx_id"] = txResult.TransactionId.ToHex(),
+                ["tx_status"] = txResult.Status.ToString(),
+                ["tx_info"] = txInfo["tx"]
             };
 
             if (txResult.Status == Status.Failed)
