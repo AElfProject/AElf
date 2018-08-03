@@ -602,7 +602,7 @@ namespace AElf.Kernel.Node
                     await Mine();
                     break;
                 
-                case ConsensusType.SingleNodeTest:
+                case ConsensusType.SingleNode:
                     SingleNodeTestProcess();
                     break;
             }

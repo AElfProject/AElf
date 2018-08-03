@@ -141,7 +141,7 @@ namespace AElf.Launcher
                 Globals.ExpectedTransanctionCount = opts.ExpectedTxsCount;
             }
 
-            if (opts.ConsensusType == ConsensusType.SingleNodeTest)
+            if (opts.ConsensusType == ConsensusType.SingleNode)
             {
                 Globals.BlockProducerNumber = 1;
                 Globals.SingleNodeTestMiningInterval = opts.MiningInterval;

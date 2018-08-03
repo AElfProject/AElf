@@ -97,7 +97,7 @@ namespace AElf.Launcher
         [Option('g', "dpos.generator", Default = false, HelpText = "Is the one who will generate DPoS information")]
         public bool IsConsensusInfoGenerator { get; set; }
 
-        [Option("consensus.type", Default = ConsensusType.AElfDPoS, HelpText = "Select the consensus type: 1, AElf DPoS; 2. PoTC; 3. SingleNodeTest")]
+        [Option("consensus.type", Default = ConsensusType.AElfDPoS, HelpText = "Select the consensus type: 1, AElf DPoS; 2. PoTC; 3. SingleNode")]
         public ConsensusType ConsensusType { get; set; }
         
         [Option("dpos.interval", Default = 4000, HelpText = "Mining interval of AElf DPoS.")]
