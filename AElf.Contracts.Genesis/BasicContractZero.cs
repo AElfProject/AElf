@@ -133,9 +133,9 @@ namespace AElf.Contracts.Genesis
             return info.Owner;
         }
 
-        public String TestInvoking(string str)
+        public String TestInvoking(byte[] str)
         {
-            Console.WriteLine(str);
+            Console.WriteLine(str.ToHex());
             return "Success";
         }
     }
