@@ -318,7 +318,8 @@ namespace AElf.Kernel.Node.RPC
                     ["CurrentTransactionPoolSize"] = transactionPoolSize
                 }
             };
-            if (reqParams["include_txs"] != null && bool.Parse(reqParams["include_txs"].ToString().ToLower()))
+           
+            if (reqParams["include_txs"] != null && reqParams["include_txs"].Value<Boolean>())
             {
                 var transactions = blockinfo.Body.Transactions;
                 var txs = new List<string>();
