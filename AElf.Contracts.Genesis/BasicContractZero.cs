@@ -132,5 +132,11 @@ namespace AElf.Contracts.Genesis
             var info = _contractInfos[contractAddress];
             return info.Owner;
         }
+
+        public String TestInvking()
+        {
+            Console.WriteLine("Success!");
+            return "Success";
+        }
     }
 }
