@@ -132,9 +132,11 @@ namespace AElf.ChainController
                 var addrs = await InsertTxs(readyTxs, results);
                 await _txPoolService.UpdateAccountContext(addrs);
             
+                _logger?.Log(LogLevel.Debug, "Generating block..");
                 // generate block
                 var block = await GenerateBlockAsync(Config.ChainId, results);
-                
+                _logger?.Log(LogLevel.Debug, "Generating block End..");
+
                 // sign block
                 ECSigner signer = new ECSigner();
                 var hash = block.GetHash();
@@ -205,9 +207,11 @@ namespace AElf.ChainController
                 block.AddTransaction(r.TransactionId);
             }
         
+            _logger?.Log(LogLevel.Debug, "Calculating MK Tree Root..");
             // calculate and set tx merkle tree root
             block.FillTxsMerkleTreeRootInHeader();
-            
+            _logger?.Log(LogLevel.Debug, "Calculating MK Tree Root End..");
+
             
             // set ws merkle tree root
             await _worldStateDictator.SetWorldStateAsync(lastBlockHash);
