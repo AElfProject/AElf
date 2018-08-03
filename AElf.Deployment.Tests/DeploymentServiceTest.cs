@@ -5,7 +5,6 @@ using k8s.Models;
 using Xunit;
 using Microsoft.AspNetCore.JsonPatch;
 
-
 namespace AElf.Deployment.Tests
 {
     public class DeploymentServiceTest
