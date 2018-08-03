@@ -257,6 +257,7 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public async Task UpdateAccountContext(HashSet<Hash> addrs)
         {
+            _logger?.Log(LogLevel.Debug, "Updating Account Context..");
             foreach (var addr in addrs)
             {
                 IPool pool;
@@ -278,6 +279,8 @@ namespace AElf.Kernel.TxMemPool
                     ChainId = pool.ChainId
                 });
             }
+            _logger?.Log(LogLevel.Debug, "End Updating Account Context..");
+
         }
 
         /// <inheritdoc/>

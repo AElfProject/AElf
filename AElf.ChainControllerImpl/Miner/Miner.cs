@@ -13,10 +13,11 @@ using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Kernel;
 using AElf.ChainController.Execution;
+ using NLog;
 
 namespace AElf.ChainController
 {
-    [LoggerName("Node")]
+    [LoggerName("Miner")]
     public class Miner : IMiner
     {
         private readonly ITxPoolService _txPoolService;
@@ -24,14 +25,15 @@ namespace AElf.ChainController
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
         private readonly IWorldStateDictator _worldStateDictator;
-        private ISmartContractService _smartContractService;
-        private IConcurrencyExecutingService _concurrencyExecutingService;
-        private ITransactionManager _transactionManager;
-        private ITransactionResultManager _transactionResultManager;
+        private readonly ISmartContractService _smartContractService;
+        private readonly IConcurrencyExecutingService _concurrencyExecutingService;
+        private readonly ITransactionManager _transactionManager;
+        private readonly ITransactionResultManager _transactionResultManager;
 
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
         private MinerLock Lock { get; } = new MinerLock();
+        private readonly ILogger _logger;
         
         /// <summary>
         /// Signals to a CancellationToken that mining should be canceled
@@ -46,7 +48,8 @@ namespace AElf.ChainController
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService, 
                 IChainManager chainManager, IBlockManager blockManager, IWorldStateDictator worldStateDictator, 
-            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
+            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService, 
+            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, ILogger logger)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -57,6 +60,7 @@ namespace AElf.ChainController
             _concurrencyExecutingService = concurrencyExecutingService;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
+            _logger = logger;
         }
 
         
@@ -71,7 +75,8 @@ namespace AElf.ChainController
                 // TODO：dispatch txs with ISParallel, return list of tx results
 
                 // reset Promotable and update account context
-            
+                
+                _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                 List<TransactionTrace> traces = null;
                 if(Config.IsParallel)
                 {  
@@ -99,7 +104,7 @@ namespace AElf.ChainController
 
                     }
                 }
-                
+                _logger?.Log(LogLevel.Debug, "End Executing Transactions..");
                 var results = new List<TransactionResult>();
                 foreach (var trace in traces)
                 {
