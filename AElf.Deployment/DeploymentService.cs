@@ -69,12 +69,12 @@ namespace AElf.Deployment
             
             var namespaceParameter = "default";
             
-            var result =  KubernetesHelper.CreateNamespacedDeployment3(body, namespaceParameter);
+            var result =  K8SRequestHelper.CreateNamespacedDeployment3(body, namespaceParameter);
         }
 
         public V1PodList GetPods()
         {
-            return KubernetesHelper.ListNamespacedPod("default");
+            return K8SRequestHelper.ListNamespacedPod("default");
         }
 
 //        public void Scale()
@@ -159,7 +159,7 @@ namespace AElf.Deployment
             
             var namespaceParameter = "default";
 
-            KubernetesHelper.ReplaceNamespacedDeployment3(body, "worker-test", "default");
+            K8SRequestHelper.ReplaceNamespacedDeployment3(body, "worker-test", "default");
         }
 
         public void PatchDepoyment()
@@ -169,14 +169,14 @@ namespace AElf.Deployment
             
             var body = new V1Patch(patch);
 
-            KubernetesHelper.PatchNamespacedDeployment3(body,"worker-test", "default");
+            K8SRequestHelper.PatchNamespacedDeployment3(body,"worker-test", "default");
         }
 
         public void DeleteDeployment()
         {
             var body = new V1DeleteOptions();
             body.PropagationPolicy = "Foreground";
-            var result = KubernetesHelper.DeleteNamespacedDeployment3(body, "worker", "default");
+            var result = K8SRequestHelper.DeleteNamespacedDeployment3(body, "worker", "default");
         }
 
         public void CreateNamespace()
@@ -189,17 +189,17 @@ namespace AElf.Deployment
                 }
             };
             
-            var result = KubernetesHelper.CreateNamespace(body);
+            var result = K8SRequestHelper.CreateNamespace(body);
         }
 
         public V1NamespaceList ListNamespace()
         {
-            return KubernetesHelper.ListNamespace();
+            return K8SRequestHelper.ListNamespace();
         }
 
         public void DeleteNamespace()
         {
-            var status = KubernetesHelper.DeleteNamespace(new V1DeleteOptions(), "test");
+            var status = K8SRequestHelper.DeleteNamespace(new V1DeleteOptions(), "test");
         }
         
         

@@ -3,7 +3,7 @@ using k8s.Models;
 
 namespace AElf.Deployment.Helper
 {
-    public static class KubernetesHelper
+    public static class K8SRequestHelper
     {
         private static KubernetesClientConfiguration _clientConfiguration = KubernetesClientConfiguration.BuildConfigFromConfigFile();
 

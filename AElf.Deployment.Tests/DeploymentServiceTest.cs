@@ -167,19 +167,34 @@ namespace AElf.Deployment.Tests
                 body.Data.Add("1", "1");
                 body.Data.Add("2", "2");
 
-                KubernetesHelper.CreateNamespacedConfigMap(body, "default");
+                K8SRequestHelper.CreateNamespacedConfigMap(body, "default");
 
-                var configList1 = KubernetesHelper.ListNamespacedConfigMap("default");
+                var configList1 = K8SRequestHelper.ListNamespacedConfigMap("default");
 
                 var patch = new JsonPatchDocument<V1ConfigMap>();
                 patch.Replace(e => e.Data, new Dictionary<string, string> {{"3", "3"}});
 
                 var bodyPatch = new V1Patch(patch);
-                KubernetesHelper.PatchNamespacedConfigMap(bodyPatch, "test", "default");
+                K8SRequestHelper.PatchNamespacedConfigMap(bodyPatch, "test", "default");
 
-                var configList2 = KubernetesHelper.ListNamespacedConfigMap("default");
+                var configList2 = K8SRequestHelper.ListNamespacedConfigMap("default");
 
-                KubernetesHelper.DeleteNamespacedConfigMap(new V1DeleteOptions(), "test", "default");
+                K8SRequestHelper.DeleteNamespacedConfigMap(new V1DeleteOptions(), "test", "default");
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+        
+        [Fact]
+        public void ServiceTest()
+        {
+            try
+            {
+                 
 
             }
             catch (Exception e)
