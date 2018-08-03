@@ -8,6 +8,6 @@
         // ReSharper disable once InconsistentNaming
         PoTC = 2,//Proof of Transaction Count. Used for testing execution performance of single node.
         // ReSharper disable once InconsistentNaming
-        BFTDPoS = 3
+        SingleNodeTest = 3
     }
 }
