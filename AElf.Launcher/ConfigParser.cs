@@ -128,11 +128,23 @@ namespace AElf.Launcher
             }
 
             Globals.ConsensusType = opts.ConsensusType;
+            Console.WriteLine($"Using consensus: {opts.ConsensusType}");
+
+            if (opts.ConsensusType == ConsensusType.AElfDPoS)
+            {
+                Globals.AElfDPoSMiningInterval = opts.AElfDPoSMiningInterval;
+            }
 
             if (opts.ConsensusType == ConsensusType.PoTC)
             {
                 Globals.BlockProducerNumber = 1;
                 Globals.ExpectedTransanctionCount = opts.ExpectedTxsCount;
+            }
+
+            if (opts.ConsensusType == ConsensusType.SingleNodeTest)
+            {
+                Globals.BlockProducerNumber = 1;
+                Globals.SingleNodeTestMiningInterval = opts.MiningInterval;
             }
 
             if (opts.NewChain)

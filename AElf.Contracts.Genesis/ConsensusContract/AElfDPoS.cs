@@ -17,7 +17,7 @@ namespace AElf.Contracts.Genesis.ConsensusContract
 
         public ulong CurrentRoundNumber => _currentRoundNumberField.GetAsync().Result;
 
-        public int Interval => Globals.AElfMiningTime;
+        public int Interval => Globals.AElfDPoSMiningInterval;
 
         public bool PrintLogs => true;
 
@@ -37,6 +37,9 @@ namespace AElf.Contracts.Genesis.ConsensusContract
         private readonly PbField<Timestamp> _timeForProducingExtraBlockField;
 
         private readonly Map<UInt64Value, StringValue> _firstPlaceMap;
+
+        //TODO: Sync the mining interval from starting node.
+        //private readonly PbField<Timestamp> _miningIntervalField;
 
         #endregion
 
@@ -441,7 +444,7 @@ namespace AElf.Contracts.Genesis.ConsensusContract
             
             //Update Extra Block Timeslot.
             await SetExtraBlockMiningTimeslotOfSpecificRound(GetTimestampWithOffset(
-                nextRoundInfo.Info.Last().Value.TimeSlot, Interval + Globals.AElfCheckTime));
+                nextRoundInfo.Info.Last().Value.TimeSlot, Interval));
 
             ConsoleWriteLine(nameof(Update), $"Sync dpos info of round {CurrentRoundNumber} succeed");
         }

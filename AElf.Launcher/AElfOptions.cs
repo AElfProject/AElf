@@ -97,11 +97,18 @@ namespace AElf.Launcher
         [Option('g', "dpos.generator", Default = false, HelpText = "Is the one who will generate DPoS information")]
         public bool IsConsensusInfoGenerator { get; set; }
 
-        [Option("consensus.type", Default = ConsensusType.AElfDPoS, HelpText = "Select the consensus type: 1, AElf DPoS; 2. PoTC")]
+        [Option("consensus.type", Default = ConsensusType.AElfDPoS, HelpText = "Select the consensus type: 1, AElf DPoS; 2. PoTC; 3. SingleNodeTest")]
         public ConsensusType ConsensusType { get; set; }
+        
+        [Option("dpos.interval", Default = 4000, HelpText = "Mining interval of AElf DPoS.")]
+        // ReSharper disable once InconsistentNaming
+        public int AElfDPoSMiningInterval { get; set; }
 
-        [Option("potc.count", Default = 8000, HelpText = "Expected transactions count.")]
-        public int ExpectedTxsCount { get; set; }
+        [Option("potc.count", Default = (ulong) 8000, HelpText = "Expected transactions count.")]
+        public ulong ExpectedTxsCount { get; set; }
+        
+        [Option("single.interval", Default = 4000, HelpText = "Mining interval if use single node to test other logic.")]
+        public int MiningInterval { get; set; }
 
         #endregion
 
