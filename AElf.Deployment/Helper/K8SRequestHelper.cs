@@ -9,7 +9,7 @@ namespace AElf.Deployment.Helper
 
         private static IKubernetes GetClient()
         {
-            _clientConfiguration.AccessToken = "k8s-aws-v1.aHR0cHM6Ly9zdHMuYW1hem9uYXdzLmNvbS8_QWN0aW9uPUdldENhbGxlcklkZW50aXR5JlZlcnNpb249MjAxMS0wNi0xNSZYLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFKWlEzTkJTTVlWVE1ORk5RJTJGMjAxODA4MDIlMkZ1cy1lYXN0LTElMkZzdHMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDE4MDgwMlQxMTUwMzVaJlgtQW16LUV4cGlyZXM9NjAmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JTNCeC1rOHMtYXdzLWlkJlgtQW16LVNpZ25hdHVyZT05ZWFjODc4ZDM1NzBlNTNiOTAxZTRlNGE2MGVkMzhkYzY3ZmI2M2EwNDY3MzFlYTUyNzk3OTJmZTE0ZjA4MTBh";
+            _clientConfiguration.AccessToken = AWSTokenHelper.GetToken().Status.Token;
             var client = new Kubernetes(_clientConfiguration);
             return client;
         }
@@ -27,14 +27,6 @@ namespace AElf.Deployment.Helper
             using (var client = GetClient())
             {
                 return client.CreateNamespacedDeployment3(body, namespaceParameter, pretty);
-            }
-        }
-
-        public static Extensionsv1beta1Deployment ReplaceNamespacedDeployment3(Extensionsv1beta1Deployment body, string name, string namespaceParameter, string pretty = null)
-        {
-            using (var client = GetClient())
-            {
-                return client.ReplaceNamespacedDeployment3(body, name, namespaceParameter, pretty);
             }
         }
 
@@ -173,8 +165,6 @@ namespace AElf.Deployment.Helper
                 return client.PatchNamespacedService(body, name, namespaceParameter, pretty);
             }
         }
-
-
 
     }
 }

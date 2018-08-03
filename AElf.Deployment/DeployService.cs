@@ -1,120 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using AElf.Deployment.Handler;
 using AElf.Deployment.Helper;
 using k8s.Models;
 using Microsoft.AspNetCore.JsonPatch;
 
 namespace AElf.Deployment
 {
-    public class DeploymentService : IDeploymentService
+    public class DeployService : IDeployService
     {
-        public void CreateDeployment()
+        public void DeploySideChain()
         {
-            var body = new Extensionsv1beta1Deployment();
-            body.ApiVersion = "extensions/v1beta1";
-            body.Kind = "Deployment";
-            
-            body.Metadata= new V1ObjectMeta();
-            body.Metadata.Name = "worker-test";
-            body.Metadata.Labels=new Dictionary<string, string>();
-            body.Metadata.Labels.Add("name","worker-test");
-            
-            body.Spec = new Extensionsv1beta1DeploymentSpec();
-            body.Spec.Selector=new V1LabelSelector();
-            body.Spec.Selector.MatchLabels = body.Metadata.Labels;
-
-            body.Spec.Replicas = 2;
-            
-            body.Spec.Template = new V1PodTemplateSpec();
-            body.Spec.Template.Metadata = new V1ObjectMeta();
-            body.Spec.Template.Metadata.Labels = body.Metadata.Labels;
-            
-            body.Spec.Template.Spec=new V1PodSpec();
-            
-            body.Spec.Template.Spec.Containers=new List<V1Container>();
-            var container1 = new V1Container();
-            container1.Name = "worker-test";
-            container1.Image = "aelf/node:worker";
-            container1.Ports=new List<V1ContainerPort>();
-            container1.Ports.Add(new V1ContainerPort(32551));
-            
-            container1.Env=new List<V1EnvVar>();
-            var env1 = new V1EnvVar();
-            env1.Name = "POD_IP";
-            env1.ValueFrom=new V1EnvVarSource();
-            env1.ValueFrom.FieldRef=new V1ObjectFieldSelector();
-            env1.ValueFrom.FieldRef.FieldPath = "status.podIP";
-            container1.Env.Add(env1);
-            
-            container1.Args=new List<string>();
-            container1.Args.Add("--actor.host");
-            container1.Args.Add("$(POD_IP)");
-            container1.Args.Add("--actor.port");
-            container1.Args.Add("32551");
-            
-            container1.VolumeMounts=new List<V1VolumeMount>();
-            var volumeMount1 = new V1VolumeMount();
-            volumeMount1.MountPath = "/app/aelf/config";
-            volumeMount1.Name = "config";
-            container1.VolumeMounts.Add(volumeMount1);
-            
-            body.Spec.Template.Spec.Containers.Add(container1);
-            
-            body.Spec.Template.Spec.Volumes=new List<V1Volume>();
-            var volume1 = new V1Volume();
-            volume1.Name = "config";
-            volume1.ConfigMap=new V1ConfigMapVolumeSource();
-            volume1.ConfigMap.Name = "aelf-config";
-            body.Spec.Template.Spec.Volumes.Add(volume1);
-            
-            var namespaceParameter = "default";
-            
-            var result =  K8SRequestHelper.CreateNamespacedDeployment3(body, namespaceParameter);
-        }
-
-        public V1PodList GetPods()
-        {
-            return K8SRequestHelper.ListNamespacedPod("default");
-        }
-
-        public void PatchDepoyment()
-        {
-            var patch = new JsonPatchDocument<Extensionsv1beta1Deployment>();
-            patch.Replace(e => e.Spec.Replicas, 5);
-            
-            var body = new V1Patch(patch);
-
-            K8SRequestHelper.PatchNamespacedDeployment3(body,"worker-test", "default");
-        }
-
-        public void DeleteDeployment()
-        {
-            var body = new V1DeleteOptions();
-            body.PropagationPolicy = "Foreground";
-            var result = K8SRequestHelper.DeleteNamespacedDeployment3(body, "worker", "default");
-        }
-
-        public void CreateNamespace()
-        {
-            var body = new V1Namespace
-            {
-                Metadata = new V1ObjectMeta
-                {
-                    Name = "test"
-                }
-            };
-            
-            var result = K8SRequestHelper.CreateNamespace(body);
-        }
-
-        public V1NamespaceList ListNamespace()
-        {
-            return K8SRequestHelper.ListNamespace();
-        }
-
-        public void DeleteNamespace()
-        {
-            var status = K8SRequestHelper.DeleteNamespace(new V1DeleteOptions(), "test");
+            var type = "k8s";
+            var handler = DeployHandlerFactory.GetHandler(type);
+            handler.Execute();
         }
     }
 }

@@ -1,21 +1,21 @@
 ﻿using Newtonsoft.Json;
+using k8s;
 
 namespace AElf.Deployment.Models
 {
-    public class K8SCredential
+    public class K8SCredential : IKubernetesObject
     {
-        [JsonProperty("kind")]
-        public string kind { get; set; }
+        [JsonProperty("kind")] 
+        public string Kind { get; set; }
 
-        [JsonProperty("apiVersion")]
+        [JsonProperty("apiVersion")] 
         public string ApiVersion { get; set; }
 
-        [JsonProperty("spec")]
+        [JsonProperty("spec")] 
         public K8SCredentialSpec Spec { get; set; }
 
-        [JsonProperty("status")]
+        [JsonProperty("status")] 
         public K8SCredentialStatus Status { get; set; }
-
     }
 
     public class K8SCredentialSpec

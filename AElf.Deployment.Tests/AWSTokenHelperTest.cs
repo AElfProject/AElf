@@ -9,7 +9,6 @@ namespace AElf.Deployment.Tests
         public void GetTokenTest()
         {
             var credential = AWSTokenHelper.GetToken();
-
             Assert.NotNull(credential.Status.Token);
         }
     }

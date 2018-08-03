@@ -1,7 +1,7 @@
 ﻿namespace AElf.Deployment
 {
-    public interface IDeploymentService
+    public interface IDeployService
     {
-        
+        void DeploySideChain();
     }
 }
