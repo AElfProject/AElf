@@ -133,9 +133,9 @@ namespace AElf.Contracts.Genesis
             return info.Owner;
         }
 
-        public String TestInvking()
+        public String TestInvoking(string str)
         {
-            Console.WriteLine("Success!");
+            Console.WriteLine(str);
             return "Success";
         }
     }
