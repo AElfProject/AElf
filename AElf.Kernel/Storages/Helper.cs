@@ -24,6 +24,7 @@ namespace AElf.Kernel.Storages
         BlockBody,
         BlockHeader,
         Chain,
+        CanonicalBlockHash,
         Change,
         SmartContractRegistration,
         TransactionResult,
