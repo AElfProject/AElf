@@ -33,10 +33,8 @@ namespace AElf.Kernel.Consensus
                     return BlockProducer.Parser.ParseFrom(_dataProvider
                         .GetAsync(Globals.AElfDPoSBlockProducerString.CalculateHash()).Result);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    _logger.Info(e, "The DPoS mining nodes list is empty if you see this log." +
-                                  "Maybe you should re-check the config file or election part.");
                     return default(BlockProducer);
                 }
             }
@@ -53,6 +51,7 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception)
                 {
+                    //TODO: Consider to use a in-memory cache to store current round number
                     _logger.Info("Failed to get current round number.");
                     return new UInt64Value {Value = 0};
                 }
@@ -164,6 +163,21 @@ namespace AElf.Kernel.Consensus
             }
         }
 
+        //TODO: So rude.
+        public async Task<bool> HasGenerated()
+        {
+            try
+            {
+                UInt64Value.Parser.ParseFrom(
+                    await _dataProvider.GetAsync(Globals.AElfDPoSCurrentRoundNumber.CalculateHash()));
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         public DPoSInfo GenerateInfoForFirstTwoRounds()
         {
             var dict = new Dictionary<string, int>();
@@ -240,7 +254,7 @@ namespace AElf.Kernel.Consensus
             {
                 RoundInfo = {infosOfRound1, infosOfRound2}
             };
-            
+
             return dPoSInfo;
         }
 
@@ -492,36 +506,6 @@ namespace AElf.Kernel.Consensus
         }
         
         // ReSharper disable once InconsistentNaming
-        public void StartConsensusLog(bool doLogsAboutConsensus = true)
-        {
-            new EventLoopScheduler().Schedule(() =>
-            {
-                var dPoSInfo = "";
-
-                var intervalSequnce = _consensusHelper.GetIntervalObservable();
-                intervalSequnce.Subscribe
-                (
-                    async x =>
-                    {
-                        var currentHeightOfThisNode = (long) await _chainManager.GetChainCurrentHeight(_chainId);
-
-                        if (!doLogsAboutConsensus) 
-                            return;
-                        
-                        // ReSharper disable once InconsistentNaming
-                        var currentDPoSInfo = await GetDPoSInfo(currentHeightOfThisNode);
-                        if (dPoSInfo == currentDPoSInfo)
-                            return;
-                            
-                        dPoSInfo = currentDPoSInfo;
-                        _logger?.Log(LogLevel.Debug, dPoSInfo);
-
-                    }
-                );
-            });
-        }
-        
-        // ReSharper disable once InconsistentNaming
         /// <summary>
         /// This method should return true if all the BPs restarted (and missed their timeslots).
         /// </summary>
@@ -555,14 +539,11 @@ namespace AElf.Kernel.Consensus
 
         public void SyncMiningInterval()
         {
-            Console.WriteLine("22222222 " + MiningInterval.Value);
-            Console.WriteLine("33333333 " + Globals.AElfDPoSMiningInterval);
-
             Globals.AElfDPoSMiningInterval = MiningInterval.Value;
         }
         
         // ReSharper disable once InconsistentNaming
-        private async Task<string> GetDPoSInfo(long height)
+        public async Task<string> GetDPoSInfo(ulong height)
         {
             return await GetDPoSInfoToStringOfLatestRounds(Globals.AElfDPoSLogRoundCount) + $". Current height: {height}";
         }

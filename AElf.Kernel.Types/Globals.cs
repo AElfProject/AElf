@@ -12,7 +12,7 @@ namespace AElf.Kernel
         
         public static ConsensusType ConsensusType = ConsensusType.AElfDPoS;
         public static int BlockProducerNumber = 0;
-        public const int AElfLogInterval = 1000;
+        public const int AElfLogInterval = 900;
 
         #region AElf DPoS
 

@@ -149,6 +149,7 @@ namespace AElf.Launcher
             {
                 Globals.BlockProducerNumber = 1;
                 Globals.SingleNodeTestMiningInterval = opts.MiningInterval;
+                Console.WriteLine($"Mining interval: {Globals.SingleNodeTestMiningInterval} ms");
             }
 
             if (opts.NewChain)

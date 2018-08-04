@@ -223,7 +223,6 @@ namespace AElf.Kernel.Node
             }
 
             Task.Run(() => _synchronizer.Start(this, !_nodeConfig.ConsensusInfoGenerater));
-
             // akka env 
             var servicePack = new ServicePack
             {
@@ -232,10 +231,8 @@ namespace AElf.Kernel.Node
                 ResourceDetectionService = new ResourceUsageDetectionService(_functionMetadataService),
                 WorldStateDictator = _worldStateDictator
             };
-
             var grouper = new Grouper(servicePack.ResourceDetectionService, _logger);
             _blockExecutor.Start(grouper);
-
             if (_nodeConfig.IsMiner)
             {
                 _miner.Start(nodeKeyPair, grouper);
@@ -582,24 +579,28 @@ namespace AElf.Kernel.Node
             switch (Globals.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    if (_nodeConfig.ConsensusInfoGenerater || _dPoSHelper.CurrentRoundNumber.Value == 0 &&
-                        BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
+                    if (!BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
+                    {
+                        break;
+                    }
+                    
+                    if (_nodeConfig.ConsensusInfoGenerater && !await _dPoSHelper.HasGenerated())
                     {
                         AElfDPoSObserver.Initialization();
+                        break;
                     }
                     else
                     {
                         _dPoSHelper.SyncMiningInterval();
-                        _logger?.Trace($"AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms.");
+                        _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms.");
+
                     }
 
-                    if (_dPoSHelper.CanRecoverDPoSInformation() &&
-                        BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
+                    if (_dPoSHelper.CanRecoverDPoSInformation())
                     {
                         AElfDPoSObserver.RecoverMining();
                     }
-
-                    _dPoSHelper.StartConsensusLog();
+                    
                     break;
                 
                 case ConsensusType.PoTC:
@@ -618,7 +619,7 @@ namespace AElf.Kernel.Node
             switch (Globals.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    AElfDPoSProcess();
+                    await AElfDPoSProcess();
                     break;
                 
                 case ConsensusType.PoTC:
@@ -628,11 +629,13 @@ namespace AElf.Kernel.Node
         }
 
         // ReSharper disable once InconsistentNaming
-        private void AElfDPoSProcess()
+        private async Task AElfDPoSProcess()
         {
+            //Do DPoS log
+            _logger?.Trace(await _dPoSHelper.GetDPoSInfo(await _chainManager.GetChainCurrentHeight(_nodeConfig.ChainId)));
+            
             if (ConsensusMemory == _dPoSHelper.CurrentRoundNumber.Value)
                 return;
-
             //Dispose previous observer.
             if (ConsensusDisposable != null)
             {
