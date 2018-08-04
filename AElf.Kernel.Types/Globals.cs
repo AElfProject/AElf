@@ -1,5 +1,6 @@
 ﻿using AElf.Kernel.Types;
 
+// ReSharper disable InconsistentNaming
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
@@ -15,23 +16,16 @@ namespace AElf.Kernel
 
         #region AElf DPoS
 
-        // ReSharper disable once InconsistentNaming
         public const int AElfDPoSLogRoundCount = 3;
-        // ReSharper disable once InconsistentNaming
         public static int AElfDPoSMiningInterval = 4000;
         public const int AElfWaitFirstRoundTime = 1000;
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSCurrentRoundNumber = "AElfCurrentRoundNumber";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSBlockProducerString = "AElfBlockProducer";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSInformationString = "AElfDPoSInformation";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSExtraBlockProducerString = "AElfExtraBlockProducer";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSExtraBlockTimeslotString = "AElfExtraBlockTimeslot";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSFirstPlaceOfEachRoundString = "AElfFirstPlaceOfEachRound";
+        public const string AElfDPoSMiningIntervalString = "AElfDPoSMiningInterval";
 
         #endregion
 

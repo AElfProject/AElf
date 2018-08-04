@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
@@ -105,6 +106,7 @@ namespace AElf.Kernel.Consensus
                 .Concat(produceNormalBlock)
                 .Concat(publicInValue)
                 .Concat(produceExtraBlock)
+                .SubscribeOn(NewThreadScheduler.Default)
                 .Subscribe(this);
         }
         
@@ -180,6 +182,7 @@ namespace AElf.Kernel.Consensus
                 .Concat(produceNormalBlock)
                 .Concat(publishInValue)
                 .Concat(produceExtraBlock)
+                .SubscribeOn(NewThreadScheduler.Default)
                 .Subscribe(this);
         }
     }

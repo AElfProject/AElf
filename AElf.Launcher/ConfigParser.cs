@@ -133,6 +133,10 @@ namespace AElf.Launcher
             if (opts.ConsensusType == ConsensusType.AElfDPoS)
             {
                 Globals.AElfDPoSMiningInterval = opts.AElfDPoSMiningInterval;
+                if (opts.IsConsensusInfoGenerator)
+                {
+                    Console.WriteLine($"Mining interval: {Globals.AElfDPoSMiningInterval} ms");
+                }
             }
 
             if (opts.ConsensusType == ConsensusType.PoTC)

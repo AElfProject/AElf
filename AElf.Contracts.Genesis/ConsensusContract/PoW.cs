@@ -33,9 +33,9 @@ namespace AElf.Contracts.Genesis.ConsensusContract
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public async Task Publish(List<byte[]> args)
+        public Task Publish(List<byte[]> args)
         {
-            
+            throw new System.NotImplementedException();
         }
 
         public Task<bool> Validation(List<byte[]> args)

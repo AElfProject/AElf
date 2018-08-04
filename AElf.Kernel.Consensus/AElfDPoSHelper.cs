@@ -51,9 +51,9 @@ namespace AElf.Kernel.Consensus
                     var bytes = _dataProvider.GetAsync(Globals.AElfDPoSCurrentRoundNumber.CalculateHash()).Result;
                     return UInt64Value.Parser.ParseFrom(bytes);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    _logger.Info(e, "The DPoS information hasn't initialized yet if you see this log.");
+                    _logger.Info("Failed to get current round number.");
                     return new UInt64Value {Value = 0};
                 }
             }
@@ -90,6 +90,23 @@ namespace AElf.Kernel.Consensus
                 {
                     _logger?.Error(e, "Failed to get DPoS information of current round.");
                     return default(RoundInfo);
+                }
+            }
+        }
+
+        public Int32Value MiningInterval
+        {
+            get
+            {
+                try
+                {
+                    return Int32Value.Parser.ParseFrom(_dataProvider
+                        .GetAsync(Globals.AElfDPoSMiningIntervalString.CalculateHash()).Result);
+                }
+                catch (Exception e)
+                {
+                    _logger?.Error(e, "Failed to get DPoS mining interval.");
+                    return new Int32Value {Value = Globals.AElfDPoSMiningInterval};
                 }
             }
         }
@@ -423,9 +440,7 @@ namespace AElf.Kernel.Consensus
             {
                 if (CurrentRoundNumber.Value == 0)
                 {
-                    return "No DPoS Information, maybe failed to generate related information or synchronize blocks.\n" +
-                           "Please check the account you config has the right to produce block if this node is the first" +
-                           "one to start.";
+                    return "Somehow current round number is 0.";
                 }
             
                 var currentRoundNumber = CurrentRoundNumber.Value;
@@ -536,6 +551,14 @@ namespace AElf.Kernel.Consensus
             }
 
             return true;
+        }
+
+        public void SyncMiningInterval()
+        {
+            Console.WriteLine("22222222 " + MiningInterval.Value);
+            Console.WriteLine("33333333 " + Globals.AElfDPoSMiningInterval);
+
+            Globals.AElfDPoSMiningInterval = MiningInterval.Value;
         }
         
         // ReSharper disable once InconsistentNaming

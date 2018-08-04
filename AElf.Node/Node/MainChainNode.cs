@@ -582,11 +582,15 @@ namespace AElf.Kernel.Node
             switch (Globals.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    _logger?.Trace($"AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms.");
-                    if (_dPoSHelper.CurrentRoundNumber.Value == 0 &&
+                    if (_nodeConfig.ConsensusInfoGenerater || _dPoSHelper.CurrentRoundNumber.Value == 0 &&
                         BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
                     {
                         AElfDPoSObserver.Initialization();
+                    }
+                    else
+                    {
+                        _dPoSHelper.SyncMiningInterval();
+                        _logger?.Trace($"AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms.");
                     }
 
                     if (_dPoSHelper.CanRecoverDPoSInformation() &&
@@ -882,8 +886,10 @@ namespace AElf.Kernel.Node
             var parameters = new List<byte[]>
             {
                 BlockProducers.ToByteArray(),
-                _dPoSHelper.GenerateInfoForFirstTwoRounds().ToByteArray()
+                _dPoSHelper.GenerateInfoForFirstTwoRounds().ToByteArray(),
+                new Int32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray()
             };
+            _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms");
             // ReSharper disable once InconsistentNaming
             var txToInitializeAElfDPoS = await GenerateTransaction("InitializeAElfDPoS", parameters);
             await BroadcastTransaction(txToInitializeAElfDPoS);
