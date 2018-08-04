@@ -15,10 +15,10 @@ namespace AElf.ChainController
         Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx);
 
         /// <summary>
-        /// remove a tx
+        /// remove a tx from collection not pool
         /// </summary>
         /// <param name="txHash"></param>
-        Task RemoveAsync(Hash txHash);
+        void RemoveAsync(Hash txHash);
 
         /// <summary>
         /// remove tx with worst price

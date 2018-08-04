@@ -114,12 +114,11 @@ namespace AElf.Kernel.TxMemPool
 
 
         /// <inheritdoc/>
-        public Task RemoveAsync(Hash txHash)
+        public void RemoveAsync(Hash txHash)
         {
             if (_dPoStxs.TryRemove(txHash, out _))
-                return null;
+                return;
             _txs.TryRemove(txHash, out _);
-            return null;
         }
 
         /// <inheritdoc/>

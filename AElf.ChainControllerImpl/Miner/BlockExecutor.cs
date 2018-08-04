@@ -85,7 +85,7 @@ namespace AElf.ChainController
                     readyTxs.Add(tx);
                     
                     // remove from tx collection
-                    await _txPoolService.RemoveAsync(tx.GetHash());
+                    _txPoolService.RemoveAsync(tx.GetHash());
                     var from = tx.From;
                     if (!map.ContainsKey(from))
                         map[from] = new HashSet<ulong>();
