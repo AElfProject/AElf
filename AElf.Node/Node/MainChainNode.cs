@@ -720,9 +720,9 @@ namespace AElf.Kernel.Node
             return true;
         }
 
-        public async Task<IMessage> GetContractAbi(Hash address)
+        public async Task<IMessage> GetContractAbi(Hash address, string name = null)
         {
-            return await _smartContractService.GetAbiAsync(address);
+            return await _smartContractService.GetAbiAsync(address, name);
         }
 
         /// <summary>

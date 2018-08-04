@@ -102,11 +102,11 @@ namespace AElf.Contracts.Genesis
             
             await Api.DeployContractAsync(address, reg);
 
-            new ContractHasBeenDeployed()
+            /*new ContractHasBeenDeployed()
             {
                 Creator = creator,
                 Address = address
-            }.Fire();
+            }.Fire();*/
 
             Console.WriteLine("Deployment success: " + address.ToHex());
             return address.GetHashBytes();

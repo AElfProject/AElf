@@ -463,7 +463,8 @@ namespace AElf.Kernel.Node.RPC
             var addr = reqParams["address"] == null
                 ? _node.GetGenesisContractHash().ToHex()
                 : reqParams["address"].ToString();
-
+            var name = reqParams["name"].ToString(); 
+    
             JObject response;
             try
             {
@@ -472,7 +473,7 @@ namespace AElf.Kernel.Node.RPC
                     Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(addr))
                 };
 
-                var abi = await _node.GetContractAbi(addrHash);
+                var abi = await _node.GetContractAbi(addrHash, name);
                 response = new JObject
                 {
                     ["address"] = addr,

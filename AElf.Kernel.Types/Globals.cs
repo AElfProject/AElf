@@ -7,6 +7,7 @@ namespace AElf.Kernel
     {
         public static readonly string GenesisSmartContractZeroAssemblyName = "AElf.Contracts.Genesis";
         public static readonly string GenesisSmartContractLastName = ".ContractZeroWithAElfDPoS";
+        public static readonly string GenesisSmartContractZeroUserAvailable= "UserAvailable";
         public static readonly string SmartContractZeroIdString = "__SmartContractZero__";
         
         public static ConsensusType ConsensusType = ConsensusType.AElfDPoS;

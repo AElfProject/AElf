@@ -218,6 +218,7 @@ namespace AElf.CLI
                         Module m = null;
                         if (!_loadedModules.TryGetValue(addr, out m))
                         {
+                            parsedCmd.Args.Add(Globals.GenesisSmartContractZeroUserAvailable);
                             string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
         
                             if (resp == null)

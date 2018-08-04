@@ -84,16 +84,16 @@ namespace AElf.Runtime.CSharp
             return await Task.FromResult(executive);
         }
 
-        private Module GetAbiModule(SmartContractRegistration reg)
+        private Module GetAbiModule(SmartContractRegistration reg, string name = null)
         {
             var code = reg.ContractBytes.ToByteArray();
-            var abiModule = Generator.GetABIModule(code);
+            var abiModule = Generator.GetABIModule(code, name);
             return abiModule;
         }
 
-        public IMessage GetAbi(SmartContractRegistration reg)
+        public IMessage GetAbi(SmartContractRegistration reg, string name = null)
         {
-            return GetAbiModule(reg);
+            return GetAbiModule(reg, name);
         }
 
         public System.Type GetContractType(SmartContractRegistration reg)

@@ -17,11 +17,11 @@ namespace AElf.Kernel.Tests.TxMemPool
         private readonly ILogger _logger;
         private readonly IWorldStateDictator _worldStateDictator;
 
-        public TxPoolTest(IAccountContextService accountContextService, ILogger logger, IWorldStateDictator worldStateDictator)
+        public TxPoolTest(ILogger logger, IWorldStateDictator worldStateDictator)
         {
-            _accountContextService = accountContextService;
             _logger = logger;
             _worldStateDictator = worldStateDictator;
+            _accountContextService = new AccountContextService(_worldStateDictator);
         }
 
         private ContractTxPool GetPool(TxPoolConfig config, ECKeyPair ecKeyPair = null)

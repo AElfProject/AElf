@@ -12,10 +12,9 @@ namespace AElf.ABI.CSharp
         private string _eventBaseFullName;
         private string _typeBaseFullName;
 
-        public List<TypeReference> TypeReferences { get; private set; }
         public List<TypeDefinition> Types { get; } = new List<TypeDefinition>();
         public List<TypeDefinition> Events { get; } = new List<TypeDefinition>();
-        public Dictionary<string, List<TypeDefinition>> _baseChildrenMap = new Dictionary<string, List<TypeDefinition>>();
+        private readonly Dictionary<string, List<TypeDefinition>> _baseChildrenMap = new Dictionary<string, List<TypeDefinition>>();
 
         public Container(string contractBaseFullName, string eventBaseFullName, string typeBaseFullName)
         {
@@ -61,11 +60,56 @@ namespace AElf.ABI.CSharp
             }
         }
 
-        public IEnumerable<TypeDefinition> GetSmartContractTypePath()
+        public IEnumerable<TypeDefinition> GetSmartContractTypePath(string name = null)
         {
-            var types = new List<TypeDefinition>();
             if (_contractBaseFullName == null)
                 return null;
+            return name != null ? GetTypePathWithName(name) : GetTypePathWithoutName();
+        }
+        
+        
+        /// <summary>
+        /// return type definiations with specific name and classes inherit it
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        private IEnumerable<TypeDefinition> GetTypePathWithName(string name)
+        {
+            var types = new List<TypeDefinition>();
+            string curName = null;
+            var children = _baseChildrenMap.First(kv =>
+            {
+                if (!kv.Key.Contains(name)) return false;
+                curName = kv.Key;
+                return true;
+
+            }).Value;
+            if (curName == null)
+            {
+                throw new Exception("No valid smart contract found.");
+            }
+            Queue<TypeDefinition> queue = new Queue<TypeDefinition>(children);
+
+            while (queue.Count != 0)
+            {
+                var type = queue.Dequeue();
+                types.Add(type);
+                if (!_baseChildrenMap.TryGetValue(type.FullName, out children))
+                {
+                    continue;
+                }
+                foreach (var typeDefinition in children) 
+                    queue.Enqueue(typeDefinition);
+            }
+
+            return types;
+
+        }
+
+        private IEnumerable<TypeDefinition> GetTypePathWithoutName()
+        {
+            var types = new List<TypeDefinition>();
             var curName = _contractBaseFullName;
             if (!_baseChildrenMap.TryGetValue(curName, out var children))
             {
@@ -73,9 +117,11 @@ namespace AElf.ABI.CSharp
             }
             while (true)
             {
-                var contractType = children.Count > 1
-                    ? children.First(c => c.FullName.Contains(Kernel.Globals.ConsensusType.ToString())) //To select the specific consensus contract
-                    : children[0];
+                if (children.Count == 0)
+                {
+                    return types;
+                }
+                var contractType = children[0];
                 types.Add(contractType);
                 curName = contractType.FullName;
                 if (!_baseChildrenMap.TryGetValue(curName, out children))
