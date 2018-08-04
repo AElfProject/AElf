@@ -323,6 +323,7 @@ namespace AElf.Kernel.Node.RPC
                 return error;
 
             var transactionPoolSize = await _node.GetTransactionPoolSize();
+
             var response = new JObject
             {
                 ["result"] = new JObject
@@ -344,6 +345,18 @@ namespace AElf.Kernel.Node.RPC
                     ["CurrentTransactionPoolSize"] = transactionPoolSize
                 }
             };
+           
+            if (reqParams["include_txs"] != null && reqParams["include_txs"].Value<Boolean>())
+            {
+                var transactions = blockinfo.Body.Transactions;
+                var txs = new List<string>();
+                foreach (var txHash in transactions)
+                {
+                    txs.Add(txHash.ToHex());
+                }
+
+                response["result"]["Body"]["Transactions"] = JArray.FromObject(txs);
+            }
 
             return JObject.FromObject(response);
         }
@@ -393,11 +406,15 @@ namespace AElf.Kernel.Node.RPC
                 });
             }
 
+            var transaction = await _node.GetTransaction(txHash);
+
+            var txInfo = transaction == null ? new JObject {["tx"] = "Not Found"} : transaction.GetTransactionInfo();
+
             var txResult = await _node.GetTransactionResult(txHash);
             var response = new JObject
             {
-                ["tx_id"] = txResult.TransactionId.ToHex(),
-                ["tx_status"] = txResult.Status.ToString()
+                ["tx_status"] = txResult.Status.ToString(),
+                ["tx_info"] = txInfo["tx"]
             };
 
             if (txResult.Status == Status.Failed)
@@ -502,7 +519,7 @@ namespace AElf.Kernel.Node.RPC
             var response = new List<object>();
             foreach (var rawtx in reqParams["rawtxs"].ToString().Split(','))
             {
-                var result = await ProcessBroadcastTx(new JObject{["rawtx"] = rawtx});
+                var result = await ProcessBroadcastTx(new JObject {["rawtx"] = rawtx});
                 if (result.ContainsKey("error"))
                     break;
                 response.Add(result["hash"].ToString());
