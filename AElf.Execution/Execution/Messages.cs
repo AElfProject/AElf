@@ -156,17 +156,7 @@ namespace AElf.Execution
 //        public TransactionResult TransactionResult { get; }
 //    }
 
-    public sealed class TransactionTraceMessage
-    {
-        public TransactionTraceMessage(long requestId, List<TransactionTrace> transactionTraces)
-        {
-            RequestId = requestId;
-            TransactionTraces = transactionTraces;
-        }
 
-        public long RequestId { get; set; }
-        public List<TransactionTrace> TransactionTraces { get; set; }
-    }
 
     #region Singleton Messages
     /// <summary>
