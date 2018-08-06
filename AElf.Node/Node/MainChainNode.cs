@@ -24,6 +24,7 @@ using AElf.Network.Data;
 using AElf.Network.Peers;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
+using Akka.Util;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
@@ -37,7 +38,6 @@ namespace AElf.Kernel.Node
     public class MainChainNode : IAElfNode
     {
         private ECKeyPair _nodeKeyPair;
-        private readonly IBlockManager _blockManager;
         private readonly ITxPoolService _txPoolService;
         private readonly ITransactionManager _transactionManager;
         private readonly IRpcServer _rpcServer;
@@ -47,7 +47,7 @@ namespace AElf.Kernel.Node
         private readonly IAccountContextService _accountContextService;
         private readonly IBlockVaildationService _blockVaildationService;
         private readonly IChainContextService _chainContextService;
-        private readonly IChainManager _chainManager;
+        private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly ISmartContractService _smartContractService;
@@ -107,17 +107,16 @@ namespace AElf.Kernel.Node
             IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
             IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator,
-            IChainManager chainManager, ISmartContractService smartContractService,
-            ITransactionResultService transactionResultService, IBlockManager blockManager,
+            IChainService chainService, ISmartContractService smartContractService,
+            ITransactionResultService transactionResultService,
             IFunctionMetadataService functionMetadataService, INetworkManager netManager,
             IBlockSynchronizer synchronizer)
         {
             _chainCreationService = chainCreationService;
-            _chainManager = chainManager;
+            _chainService = chainService;
             _worldStateDictator = worldStateDictator;
             _smartContractService = smartContractService;
             _transactionResultService = transactionResultService;
-            _blockManager = blockManager;
             _functionMetadataService = functionMetadataService;
             _txPoolService = poolService;
             _transactionManager = txManager;
@@ -134,7 +133,7 @@ namespace AElf.Kernel.Node
             _synchronizer = synchronizer;
 
             _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
-                ContractAccountHash, _chainManager, _logger);
+                ContractAccountHash, _chainService, _logger);
         }
 
         public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData,
@@ -154,7 +153,9 @@ namespace AElf.Kernel.Node
 
             try
             {
-                var chainExists = _chainManager.Exists(_nodeConfig.ChainId).Result;
+                var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
+                var curHash = blockchain.GetCurrentBlockHashAsync().Result;
+                var chainExists = curHash != null;
                 if (!chainExists)
                 {
                     // Creation of the chain if it doesn't already exist
@@ -502,8 +503,8 @@ namespace AElf.Kernel.Node
 
                 if (error != ValidationError.Success)
                 {
-                    var localCorrespondingBlock =
-                        await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, block.Header.Index);
+                    var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
+                    var localCorrespondingBlock = await blockchain.GetBlockByHeightAsync(block.Header.Index);
                     if (error == ValidationError.OrphanBlock)
                     {
                         //TODO: limit the count of blocks to rollback
@@ -791,7 +792,8 @@ namespace AElf.Kernel.Node
 
         public async Task<Block> GetBlockAtHeight(int height)
         {
-            return await _blockManager.GetBlockByHeight(_nodeConfig.ChainId, (ulong) height);
+            var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
+            return (Block) await blockchain.GetBlockByHeightAsync((ulong) height);
         }
 
         /// <summary>

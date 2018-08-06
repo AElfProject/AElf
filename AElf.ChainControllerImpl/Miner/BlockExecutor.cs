@@ -19,8 +19,7 @@ namespace AElf.ChainController
     public class BlockExecutor : IBlockExecutor
     {
         private readonly ITxPoolService _txPoolService;
-        private readonly IChainManager _chainManager;
-        private readonly IBlockManager _blockManager;
+        private readonly IChainService _chainService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IWorldStateDictator _worldStateDictator;
@@ -28,14 +27,13 @@ namespace AElf.ChainController
         private IGrouper _grouper;
         private ILogger _logger;
 
-        public BlockExecutor(ITxPoolService txPoolService, IChainManager chainManager,
-            IBlockManager blockManager, IWorldStateDictator worldStateDictator,
+        public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
+            IWorldStateDictator worldStateDictator,
             IConcurrencyExecutingService concurrencyExecutingService, 
             ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             _txPoolService = txPoolService;
-            _chainManager = chainManager;
-            _blockManager = blockManager;
+            _chainService = chainService;
             _worldStateDictator = worldStateDictator;
             _concurrencyExecutingService = concurrencyExecutingService;
             _logger = logger;
@@ -177,9 +175,9 @@ namespace AElf.ChainController
                     await Rollback(readyTxs);
                     return false;
                 }
-                
-                await _chainManager.AppendBlockToChainAsync(block);
-                await _blockManager.AddBlockAsync(block);
+
+                var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
+                await blockchain.AddBlocksAsync(new List<IBlock>() {block});
             }
             catch (Exception e)
             {

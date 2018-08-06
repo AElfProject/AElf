@@ -25,6 +25,10 @@ namespace AElf.Kernel.Storages
         {
             var key = chainId.GetKeyString(TypeIndex);
             var hash = await _keyValueDatabase.GetAsync(key, typeof(Hash));
+            if (hash == null)
+            {
+                return null;   
+            }
             return Hash.Parser.ParseFrom(hash);
         }
     }
