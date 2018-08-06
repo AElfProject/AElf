@@ -104,6 +104,7 @@ namespace AElf.Kernel
                 if (curHash == null)
                 {
                     await _chainManager.AddChainAsync(_chainId, header.GetHash());
+                    return;
                 }
             }
 
@@ -115,9 +116,12 @@ namespace AElf.Kernel
                 throw new InvalidOperationException("Parent is unknown.");
             }
 
-            if (((BlockHeader) header).Index != ((BlockHeader) prevHeader).Index + 1)
+            var expected = ((BlockHeader) prevHeader).Index + 1;
+            var actual = ((BlockHeader) header).Index; 
+            
+            if ( actual != expected )
             {
-                throw new InvalidOperationException("Incorrect index.");
+                throw new InvalidOperationException($"Incorrect index. Expected: {expected}, actual: {actual}");
             }
         }
 
@@ -165,6 +169,7 @@ namespace AElf.Kernel
             {
                 await _canonicalHashStore.InsertOrUpdateAsync(GetHeightHash(((BlockHeader) header).Index),
                     header.GetHash());
+                await _chainManager.UpdateCurrentBlockHashAsync(_chainId, header.GetHash());
                 return;
             }
 
