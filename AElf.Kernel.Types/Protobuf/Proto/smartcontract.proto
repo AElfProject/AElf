@@ -2,6 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.SmartContract";
 
+import "hash.proto";
 import "kernel.proto";
 
 message Resource {
@@ -28,4 +29,16 @@ message SerializedCallGraph {
 message GraphEdge {
     string Source = 1;
     string Target = 2;
+}
+
+message TransactionTrace
+{
+    Hash TransactionId = 1;
+    RetVal RetVal = 2;
+    string StdOut = 3;
+    string StdErr = 4;
+    repeated LogEvent Logs = 5;
+    repeated TransactionTrace InlineTraces = 6;
+    repeated StateValueChange ValueChanges = 7;
+    int64 Elapsed = 8;
 }

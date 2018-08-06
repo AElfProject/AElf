@@ -22,6 +22,7 @@ namespace AElf.Kernel.Consensus
         private readonly IChainManager _chainManager;
         private readonly ILogger _logger;
         private readonly Hash _chainId;
+        private readonly ConsensusHelper _consensusHelper;
 
         public BlockProducer BlockProducer
         {
@@ -34,8 +35,6 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception)
                 {
-                    _logger.Info("The DPoS mining nodes list is empty if you see this log." +
-                                  "Maybe you should re-check the config file or election part.");
                     return default(BlockProducer);
                 }
             }
@@ -52,7 +51,8 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception)
                 {
-                    _logger.Info("The DPoS information hasn't initialized yet if you see this log.");
+                    //TODO: Consider to use a in-memory cache to store current round number
+                    _logger.Info("Failed to get current round number.");
                     return new UInt64Value {Value = 0};
                 }
             }
@@ -93,6 +93,23 @@ namespace AElf.Kernel.Consensus
             }
         }
 
+        public Int32Value MiningInterval
+        {
+            get
+            {
+                try
+                {
+                    return Int32Value.Parser.ParseFrom(_dataProvider
+                        .GetAsync(Globals.AElfDPoSMiningIntervalString.CalculateHash()).Result);
+                }
+                catch (Exception e)
+                {
+                    _logger?.Error(e, "Failed to get DPoS mining interval.");
+                    return new Int32Value {Value = Globals.AElfDPoSMiningInterval};
+                }
+            }
+        }
+
         public StringValue FirstPlaceBlockProducerOfCurrentRound
         {
             get
@@ -122,6 +139,7 @@ namespace AElf.Kernel.Consensus
             _chainId = chainId;
 
             _dataProvider = worldStateDictator.GetAccountDataProvider(contractAddressHash).Result.GetDataProvider();
+            _consensusHelper = new ConsensusHelper();
         }
 
         /// <summary>
@@ -142,6 +160,21 @@ namespace AElf.Kernel.Consensus
                     _logger.Error(e, "Failed to get BPInfo of current round.");
                     return default(BPInfo);
                 }
+            }
+        }
+
+        //TODO: So rude.
+        public async Task<bool> HasGenerated()
+        {
+            try
+            {
+                UInt64Value.Parser.ParseFrom(
+                    await _dataProvider.GetAsync(Globals.AElfDPoSCurrentRoundNumber.CalculateHash()));
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 
@@ -177,7 +210,7 @@ namespace AElf.Kernel.Consensus
 
                 bpInfo.Order = i + 1;
                 bpInfo.Signature = Hash.Generate();
-                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * Globals.AElfMiningTime + Globals.AElfWaitFirstRoundTime);
+                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * Globals.AElfDPoSMiningInterval + Globals.AElfWaitFirstRoundTime);
 
                 infosOfRound1.Info.Add(enumerable[i], bpInfo);
             }
@@ -199,7 +232,7 @@ namespace AElf.Kernel.Consensus
             
             var infosOfRound2 = new RoundInfo();
 
-            var addition = enumerable.Count * Globals.AElfMiningTime + Globals.AElfMiningTime;
+            var addition = enumerable.Count * Globals.AElfDPoSMiningInterval + Globals.AElfDPoSMiningInterval;
 
             selected = _blockProducer.Nodes.Count / 2;
             for (var i = 0; i < enumerable.Count; i++)
@@ -211,7 +244,7 @@ namespace AElf.Kernel.Consensus
                     bpInfo.IsEBP = true;
                 }
 
-                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * Globals.AElfMiningTime + addition + Globals.AElfWaitFirstRoundTime);
+                bpInfo.TimeSlot = GetTimestampOfUtcNow(i * Globals.AElfDPoSMiningInterval + addition + Globals.AElfWaitFirstRoundTime);
                 bpInfo.Order = i + 1;
 
                 infosOfRound2.Info.Add(enumerable[i], bpInfo);
@@ -221,7 +254,7 @@ namespace AElf.Kernel.Consensus
             {
                 RoundInfo = {infosOfRound1, infosOfRound2}
             };
-            
+
             return dPoSInfo;
         }
 
@@ -326,7 +359,7 @@ namespace AElf.Kernel.Consensus
                 var baseTimeslot = ExtraBlockTimeslot;
 
                 //Maybe because something happened with setting extra block timeslot.
-                if (baseTimeslot.ToDateTime().AddMilliseconds(Globals.AElfMiningTime * 1.5) < GetTimestampOfUtcNow().ToDateTime())
+                if (baseTimeslot.ToDateTime().AddMilliseconds(Globals.AElfDPoSMiningInterval * 1.5) < GetTimestampOfUtcNow().ToDateTime())
                 {
                     baseTimeslot = GetTimestampOfUtcNow();
                 }
@@ -336,7 +369,7 @@ namespace AElf.Kernel.Consensus
                     var bpInfoNew = new BPInfo
                     {
                         TimeSlot = GetTimestampWithOffset(baseTimeslot,
-                            i * Globals.AElfMiningTime + Globals.AElfMiningTime),
+                            i * Globals.AElfDPoSMiningInterval + Globals.AElfDPoSMiningInterval * 2),
                         Order = i + 1
                     };
 
@@ -421,9 +454,7 @@ namespace AElf.Kernel.Consensus
             {
                 if (CurrentRoundNumber.Value == 0)
                 {
-                    return "No DPoS Information, maybe failed to generate related information or synchronize blocks.\n" +
-                           "Please check the account you config has the right to produce block if this node is the first" +
-                           "one to start.";
+                    return "Somehow current round number is 0.";
                 }
             
                 var currentRoundNumber = CurrentRoundNumber.Value;
@@ -475,36 +506,6 @@ namespace AElf.Kernel.Consensus
         }
         
         // ReSharper disable once InconsistentNaming
-        public void StartConsensusLog(bool doLogsAboutConsensus = true)
-        {
-            new EventLoopScheduler().Schedule(() =>
-            {
-                var dPoSInfo = "";
-
-                var intervalSequnce = GetIntervalObservable();
-                intervalSequnce.Subscribe
-                (
-                    async x =>
-                    {
-                        var currentHeightOfThisNode = (long) await _chainManager.GetChainCurrentHeight(_chainId);
-
-                        if (!doLogsAboutConsensus) 
-                            return;
-                        
-                        // ReSharper disable once InconsistentNaming
-                        var currentDPoSInfo = await GetDPoSInfo(currentHeightOfThisNode);
-                        if (dPoSInfo == currentDPoSInfo)
-                            return;
-                            
-                        dPoSInfo = currentDPoSInfo;
-                        _logger?.Log(LogLevel.Debug, dPoSInfo);
-
-                    }
-                );
-            });
-        }
-        
-        // ReSharper disable once InconsistentNaming
         /// <summary>
         /// This method should return true if all the BPs restarted (and missed their timeslots).
         /// </summary>
@@ -535,17 +536,17 @@ namespace AElf.Kernel.Consensus
 
             return true;
         }
-        
-        // ReSharper disable once InconsistentNaming
-        private async Task<string> GetDPoSInfo(long height)
+
+        public void SyncMiningInterval()
         {
-            return await GetDPoSInfoToStringOfLatestRounds(Globals.AElfDPoSLogRoundCount) + $". Current height: {height}";
+            Globals.AElfDPoSMiningInterval = MiningInterval.Value;
         }
         
-        // ReSharper disable once MemberCanBeMadeStatic.Local
-        private IObservable<long> GetIntervalObservable()
+        // ReSharper disable once InconsistentNaming
+        public async Task<string> GetDPoSInfo(ulong height)
         {
-            return Observable.Interval(TimeSpan.FromMilliseconds(Globals.AElfCheckTime));
+            _logger?.Trace("Log dpos information - Start");
+            return await GetDPoSInfoToStringOfLatestRounds(Globals.AElfDPoSLogRoundCount) + $". Current height: {height}";
         }
 
         private async Task<string> GetRoundInfoToString(UInt64Value roundNumber)

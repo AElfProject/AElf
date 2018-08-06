@@ -52,7 +52,7 @@ namespace AElf.Contracts.Token.Tests
             
             // Initialize
             _contract.Initialize("ELF", "AElf Token", 1000000000, 2);
-            Assert.Null(_contract.TransactionContext.Trace.StdErr);
+            Assert.True(string.IsNullOrEmpty(_contract.TransactionContext.Trace.StdErr));
             Assert.True(_contract.TransactionContext.Trace.IsSuccessful());
             
             // Basic info query

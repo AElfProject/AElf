@@ -131,9 +131,15 @@ namespace AElf.Network.Connection
             byte[] isConsensus = { (byte)(p.IsConsensus ? 0 : 1) };
             byte[] length = BitConverter.GetBytes(p.Length);
             byte[] arrData = p.Payload;
-            
             byte[] b = ByteArrayHelpers.Combine(type, isbuffered, isConsensus, length, arrData);
+            
+            if (!string.IsNullOrWhiteSpace(p.OutboundTrace))
+                _logger?.Trace($"About to dequeued message with trace : {p.OutboundTrace}");
+            
             _stream.Write(b, 0, b.Length);
+            
+            if (!string.IsNullOrWhiteSpace(p.OutboundTrace))
+                _logger?.Trace($"Dequeued message with trace : {p.OutboundTrace}");
         }
 
         internal void SendPartialPacket(PartialPacket p)
