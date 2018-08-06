@@ -541,6 +541,15 @@ namespace AElf.Network.Peers
             peer.PeerDisconnected += ProcessClientDisconnection;
         }
 
+        // todo temp fix for unit testing
+        internal void AddPeerNoAuth(IPeer peer)
+        {
+            _peers.Add(peer);
+            
+            peer.PeerAuthentified += PeerOnPeerAuthentified;
+            peer.PeerDisconnected += ProcessClientDisconnection;
+        }
+
         private void PeerOnPeerAuthentified(object sender, EventArgs eventArgs)
         {
             if (sender is Peer peer)
