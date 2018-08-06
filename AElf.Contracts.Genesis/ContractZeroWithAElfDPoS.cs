@@ -21,14 +21,15 @@ namespace AElf.Contracts.Genesis
             DPoSInfoMap = new Map<UInt64Value, RoundInfo>(Globals.AElfDPoSInformationString),
             EBPMap = new Map<UInt64Value, StringValue>(Globals.AElfDPoSExtraBlockProducerString),
             TimeForProducingExtraBlockField = new PbField<Timestamp>(Globals.AElfDPoSExtraBlockTimeslotString),
-            FirstPlaceMap = new Map<UInt64Value, StringValue>(Globals.AElfDPoSFirstPlaceOfEachRoundString)
+            FirstPlaceMap = new Map<UInt64Value, StringValue>(Globals.AElfDPoSFirstPlaceOfEachRoundString),
+            MiningIntervalField = new PbField<Int32Value>(Globals.AElfDPoSMiningIntervalString)
         });
         
         // ReSharper disable once UnusedMember.Global
         // ReSharper disable once InconsistentNaming
-        public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo)
+        public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo, byte[] miningInterval)
         {
-            await _consensus.Initialize(new List<byte[]> {blockProducer, dPoSInfo});
+            await _consensus.Initialize(new List<byte[]> {blockProducer, dPoSInfo, miningInterval});
         }
 
         // ReSharper disable once InconsistentNaming

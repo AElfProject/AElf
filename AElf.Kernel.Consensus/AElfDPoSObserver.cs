@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
@@ -75,7 +76,7 @@ namespace AElf.Kernel.Consensus
         public void RecoverMining()
         {
             var recoverMining = Observable
-                .Timer(TimeSpan.FromMilliseconds(Globals.AElfMiningTime * Globals.BlockProducerNumber))
+                .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval * Globals.BlockProducerNumber))
                 .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
             
             _logger?.Trace("Block producer number:" + Globals.BlockProducerNumber);
@@ -86,18 +87,18 @@ namespace AElf.Kernel.Consensus
                     .Subscribe(this);
             }
 
-            _logger?.Trace($"Will produce normal block after {Globals.AElfMiningTime / 1000}s\n");
-            _logger?.Trace($"Will publish in value after {Globals.AElfMiningTime * 2 / 1000}s\n");
-            _logger?.Trace($"Will produce extra block after {Globals.AElfMiningTime * 3 / 1000}s");
+            _logger?.Trace($"Will produce normal block after {Globals.AElfDPoSMiningInterval / 1000}s\n");
+            _logger?.Trace($"Will publish in value after {Globals.AElfDPoSMiningInterval * 2 / 1000}s\n");
+            _logger?.Trace($"Will produce extra block after {Globals.AElfDPoSMiningInterval * 3 / 1000}s");
 
             var produceNormalBlock = Observable
-                .Timer(TimeSpan.FromMilliseconds(Globals.AElfMiningTime))
+                .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval))
                 .Select(_ => ConsensusBehavior.PublishOutValueAndSignature);
             var publicInValue = Observable
-                .Timer(TimeSpan.FromMilliseconds(Globals.AElfMiningTime))
+                .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval))
                 .Select(_ => ConsensusBehavior.PublishInValue);
             var produceExtraBlock = Observable
-                .Timer(TimeSpan.FromMilliseconds(Globals.AElfMiningTime))
+                .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval))
                 .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
             
             Observable.Return(ConsensusBehavior.DoNothing)
@@ -105,6 +106,7 @@ namespace AElf.Kernel.Consensus
                 .Concat(produceNormalBlock)
                 .Concat(publicInValue)
                 .Concat(produceExtraBlock)
+                .SubscribeOn(NewThreadScheduler.Default)
                 .Subscribe(this);
         }
         
@@ -158,19 +160,19 @@ namespace AElf.Kernel.Consensus
             }
             else if (infoOfMe.IsEBP)
             {
-                var after = distanceToPublishInValue + Globals.AElfMiningTime / 1000;
+                var after = distanceToPublishInValue + Globals.AElfDPoSMiningInterval / 1000;
                 produceExtraBlock = Observable
-                    .Timer(TimeSpan.FromMilliseconds(Globals.AElfMiningTime))
+                    .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval))
                     .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
 
                 _logger?.Trace($"Will produce extra block after {after} seconds"); 
             }
             else
             {
-                var after = distanceToPublishInValue + Globals.AElfMiningTime / 1000 +
-                            Globals.AElfMiningTime * infoOfMe.Order / 1000;
+                var after = distanceToPublishInValue + Globals.AElfDPoSMiningInterval / 1000 +
+                            Globals.AElfDPoSMiningInterval * infoOfMe.Order / 1000;
                 produceExtraBlock = Observable
-                    .Timer(TimeSpan.FromMilliseconds(Globals.AElfMiningTime + Globals.AElfMiningTime * infoOfMe.Order))
+                    .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval + Globals.AElfDPoSMiningInterval * infoOfMe.Order))
                     .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
 
                 _logger?.Trace($"Will help to produce extra block after {after} seconds");
@@ -180,6 +182,7 @@ namespace AElf.Kernel.Consensus
                 .Concat(produceNormalBlock)
                 .Concat(publishInValue)
                 .Concat(produceExtraBlock)
+                .SubscribeOn(NewThreadScheduler.Default)
                 .Subscribe(this);
         }
     }
