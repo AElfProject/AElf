@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Consensus;
 using AElf.Contracts.Genesis.ConsensusContract;
@@ -7,11 +6,11 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
+// ReSharper disable UnusedMember.Global
+// ReSharper disable InconsistentNaming
 namespace AElf.Contracts.Genesis
 {
-    // ReSharper disable once InconsistentNaming
     // ReSharper disable once ClassNeverInstantiated.Global
-    // ReSharper disable once UnusedMember.Global
     public class ContractZeroWithAElfDPoS : BasicContractZero
     {
         private readonly IConsensus _consensus = new AElfDPoS(new AElfDPoSFiledMapCollection
@@ -25,15 +24,11 @@ namespace AElf.Contracts.Genesis
             MiningIntervalField = new PbField<Int32Value>(Globals.AElfDPoSMiningIntervalString)
         });
         
-        // ReSharper disable once UnusedMember.Global
-        // ReSharper disable once InconsistentNaming
         public async Task InitializeAElfDPoS(byte[] blockProducer, byte[] dPoSInfo, byte[] miningInterval)
         {
             await _consensus.Initialize(new List<byte[]> {blockProducer, dPoSInfo, miningInterval});
         }
 
-        // ReSharper disable once InconsistentNaming
-        // ReSharper disable once UnusedMember.Global
         public async Task UpdateAElfDPoS(byte[] currentRoundInfo, byte[] nextRoundInfo, byte[] nextExtraBlockProducer)
         {
             await _consensus.Update(new List<byte[]>
@@ -44,7 +39,6 @@ namespace AElf.Contracts.Genesis
             });
         }
 
-        // ReSharper disable once UnusedMember.Global
         public async Task<BoolValue> Validation(byte[] accountAddress, byte[] timestamp)
         {
             return new BoolValue
@@ -53,7 +47,6 @@ namespace AElf.Contracts.Genesis
             };
         }
 
-        // ReSharper disable once UnusedMember.Global
         public async Task PublishOutValueAndSignature(byte[] roundNumber, byte[] accountAddress, byte[] outValue, byte[] signature)
         {
             await _consensus.Publish(new List<byte[]>
@@ -65,7 +58,6 @@ namespace AElf.Contracts.Genesis
             });
         }
         
-        // ReSharper disable once UnusedMember.Global
         public async Task PublishInValue(byte[] roundNumber, byte[] accountAddress, byte[] inValue)
         {
             await _consensus.Publish(new List<byte[]>

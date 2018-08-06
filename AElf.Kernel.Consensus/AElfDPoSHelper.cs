@@ -545,6 +545,7 @@ namespace AElf.Kernel.Consensus
         // ReSharper disable once InconsistentNaming
         public async Task<string> GetDPoSInfo(ulong height)
         {
+            _logger?.Trace("Log dpos information - Start");
             return await GetDPoSInfoToStringOfLatestRounds(Globals.AElfDPoSLogRoundCount) + $". Current height: {height}";
         }
 

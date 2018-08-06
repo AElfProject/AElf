@@ -633,6 +633,7 @@ namespace AElf.Kernel.Node
         {
             //Do DPoS log
             _logger?.Trace(await _dPoSHelper.GetDPoSInfo(await _chainManager.GetChainCurrentHeight(_nodeConfig.ChainId)));
+            _logger?.Trace("Log dpos information - End");
             
             if (ConsensusMemory == _dPoSHelper.CurrentRoundNumber.Value)
                 return;
