@@ -33,6 +33,7 @@ namespace AElf.Launcher
         public string RpcHost { get; private set; }
         public string DataDir { get; private set; }
         public string NodeAccount { get; set; }
+        public string NodeAccountPassword { get; set; }
 
         public bool Success { get; private set; }
         public bool IsMiner { get; private set; }
@@ -70,6 +71,7 @@ namespace AElf.Launcher
             RpcPort = opts.RpcPort;
             RpcHost = opts.RpcHost;
             NodeAccount = opts.NodeAccount;
+            NodeAccountPassword = opts.NodeAccountPassword;
             InitData = opts.InitData;
 
             // Network
