@@ -29,10 +29,9 @@ namespace AElf.Kernel.Managers
             return await _blockHeaderStore.GetAsync(blockHash);
         }
 
-        public async Task AddBlockAsync(IBlock block)
+        public async Task AddBlockBodyAsync(Hash blockHash, IBlockBody blockBody)
         {
-            await _blockHeaderStore.InsertAsync(block.Header);
-            await _blockBodyStore.InsertAsync(block.Body.GetHash(), block.Body);
+            await _blockBodyStore.InsertAsync(blockHash, blockBody);
         }
 
         

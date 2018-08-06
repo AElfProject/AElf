@@ -5,7 +5,7 @@ namespace AElf.Kernel
     public interface IBlockManagerBasic
     {
         Task AddBlockHeaderAsync(IBlockHeader header);
-        Task AddBlockAsync(IBlock block);
+        Task AddBlockBodyAsync(Hash blockHash, IBlockBody blockBody);
         Task<IBlockHeader> GetBlockHeaderAsync(Hash blockId);
         Task<IBlock> GetBlockAsync(Hash blockId);
     }
