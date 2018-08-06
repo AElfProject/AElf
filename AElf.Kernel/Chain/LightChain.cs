@@ -6,6 +6,7 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using Akka.Dispatch;
+using Akka.Util;
 
 namespace AElf.Kernel
 {
@@ -31,13 +32,13 @@ namespace AElf.Kernel
             var hash = await _chainManager.GetCurrentBlockHashAsync(_chainId);
             return hash;
         }
-        
+
         public async Task<bool> HasHeader(Hash blockId)
         {
             var header = await _blockManager.GetBlockHeaderAsync(blockId);
             return header != null;
         }
-        
+
         public async Task AddHeadersAsync(IEnumerable<IBlockHeader> headers)
         {
             foreach (var header in headers)
@@ -73,7 +74,7 @@ namespace AElf.Kernel
             var canonicalHash = await GetCanonicalHashAsync(header.Index);
             return canonicalHash == blockId;
         }
-        
+
         protected async Task AddHeaderAsync(IBlockHeader header)
         {
             await CheckHeaderAppendable(header);
@@ -85,7 +86,7 @@ namespace AElf.Kernel
         {
             return ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, height);
         }
-        
+
         protected async Task<Hash> GetCanonicalHashAsync(ulong height)
         {
             var blockHash = await _canonicalHashStore.GetAsync(GetHeightHash(height));
@@ -94,22 +95,38 @@ namespace AElf.Kernel
 
         protected async Task CheckHeaderAppendable(IBlockHeader header)
         {
-            var prevHeader = await GetHeaderByHashAsync(((BlockHeader)header).PreviousBlockHash);
+            #region genesis
+
+            // TODO: more strict genesis
+            if (((BlockHeader) header).Index == 0)
+            {
+                var curHash = await _chainManager.GetCurrentBlockHashAsync(_chainId);
+                if (curHash == null)
+                {
+                    await _chainManager.AddChainAsync(_chainId, header.GetHash());
+                }
+            }
+
+            #endregion genesis
+
+            var prevHeader = await GetHeaderByHashAsync(((BlockHeader) header).PreviousBlockHash);
             if (prevHeader == null)
             {
                 throw new InvalidOperationException("Parent is unknown.");
             }
-            if(((BlockHeader)header).Index !=((BlockHeader)prevHeader).Index+1)
+
+            if (((BlockHeader) header).Index != ((BlockHeader) prevHeader).Index + 1)
             {
                 throw new InvalidOperationException("Incorrect index.");
             }
         }
 
-        protected async Task<Tuple<List<IBlockHeader>, List<IBlockHeader>>> GetComparedBranchesAsync(IBlockHeader oldHead,
+        protected async Task<Tuple<List<IBlockHeader>, List<IBlockHeader>>> GetComparedBranchesAsync(
+            IBlockHeader oldHead,
             IBlockHeader newHead)
         {
-            var tempOldHead = (BlockHeader)oldHead;
-            var tempNewHead = (BlockHeader)newHead;
+            var tempOldHead = (BlockHeader) oldHead;
+            var tempNewHead = (BlockHeader) newHead;
             var oldBranch = new List<IBlockHeader>();
             var newBranch = new List<IBlockHeader>();
             while (((BlockHeader) oldHead).Index > ((BlockHeader) newHead).Index)
@@ -117,6 +134,7 @@ namespace AElf.Kernel
                 oldBranch.Add(tempOldHead);
                 tempOldHead = (BlockHeader) await GetHeaderByHashAsync(tempOldHead.PreviousBlockHash);
             }
+
             while (((BlockHeader) newHead).Index > ((BlockHeader) oldHead).Index)
             {
                 newBranch.Add(tempNewHead);
@@ -128,7 +146,7 @@ namespace AElf.Kernel
                 oldBranch.Add(tempOldHead);
                 newBranch.Add(tempNewHead);
                 tempOldHead = (BlockHeader) await GetHeaderByHashAsync(tempOldHead.PreviousBlockHash);
-                tempNewHead = (BlockHeader) await GetHeaderByHashAsync(tempNewHead.PreviousBlockHash);                
+                tempNewHead = (BlockHeader) await GetHeaderByHashAsync(tempNewHead.PreviousBlockHash);
             }
 
             if (tempOldHead != null && tempNewHead != null)
@@ -136,17 +154,20 @@ namespace AElf.Kernel
                 oldBranch.Add(tempOldHead);
                 newBranch.Add(tempNewHead);
             }
+
             return Tuple.Create(oldBranch, newBranch);
         }
-        
+
         protected async Task MaybeSwitchBranch(IBlockHeader header)
         {
             var currentHeader = await GetHeaderByHashAsync(await GetCurrentBlockHashAsync());
             if (currentHeader.GetHash().Equals(((BlockHeader) header).PreviousBlockHash))
             {
-                await _canonicalHashStore.InsertOrUpdateAsync(GetHeightHash(((BlockHeader) header).Index), header.GetHash());
+                await _canonicalHashStore.InsertOrUpdateAsync(GetHeightHash(((BlockHeader) header).Index),
+                    header.GetHash());
                 return;
             }
+
             if (((BlockHeader) header).Index > ((BlockHeader) currentHeader).Index)
             {
                 await _chainManager.UpdateCurrentBlockHashAsync(_chainId, header.GetHash());
@@ -155,7 +176,8 @@ namespace AElf.Kernel
                 {
                     foreach (var newBranchHeader in branches.Item2)
                     {
-                        await _canonicalHashStore.InsertOrUpdateAsync(GetHeightHash(((BlockHeader) newBranchHeader).Index), newBranchHeader.GetHash());
+                        await _canonicalHashStore.InsertOrUpdateAsync(
+                            GetHeightHash(((BlockHeader) newBranchHeader).Index), newBranchHeader.GetHash());
                     }
                 }
             }
