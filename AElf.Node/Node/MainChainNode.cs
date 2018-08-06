@@ -256,10 +256,11 @@ namespace AElf.Kernel.Node
                 while (true)
                 {
                     var args = _messageQueue.Take();
-                    _logger?.Trace("Message dequeued !");
 
                     var message = args.Message;
                     var msgType = (MessageType) message.Type;
+                    
+                    _logger?.Trace($"Handling message {message}");
 
                     if (msgType == MessageType.RequestBlock)
                     {

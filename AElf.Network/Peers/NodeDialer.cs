@@ -33,16 +33,18 @@ namespace AElf.Network.Peers
                 TcpClient tcpClient = new TcpClient();
                 Task timeoutTask = Task.Delay(timeout);
                 Task connectTask = Task.Run(() => tcpClient.Connect(_ipAddress, _port));
+                
+                _logger?.Trace($"Dialing {_ipAddress}:{_port}");
 
                 if (await Task.WhenAny(timeoutTask, connectTask) != timeoutTask && tcpClient.Connected)
                     return tcpClient;
             }
             catch (Exception e)
             {
-                _logger.Trace(e, "Exception during connection");
+                _logger?.Trace(e, "Exception during connection");
             }
             
-            _logger.Trace("Could not connect, operation timed out.");
+            _logger?.Trace("Could not connect, operation timed out.");
             
             return null;
         }
