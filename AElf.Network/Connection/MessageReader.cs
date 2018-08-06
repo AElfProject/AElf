@@ -106,8 +106,7 @@ namespace AElf.Network.Connection
 
                         byte[] packetData = await ReadBytesAsync(length);
 
-                        Message message = new Message {Type = type, IsConsensus = isConsensus, Length = length, Payload = packetData};
-                        _logger?.Trace($"Received message - type: {(MessageType) message.Type}, dpos: {message.IsConsensus}");
+                        Message message = new Message {Type = type, Length = length, IsConsensus = isConsensus, Payload = packetData};
                         FireMessageReceivedEvent(message);
                     }
                 }
