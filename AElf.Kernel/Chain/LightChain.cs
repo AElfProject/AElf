@@ -10,16 +10,26 @@ namespace AElf.Kernel
     public class LightChain : ILightChain
     {
         protected readonly Hash _chainId;
+        protected readonly IChainManagerBasic _chainManager;
         protected readonly IBlockManagerBasic _blockManager;
         protected readonly ICanonicalHashStore _canonicalHashStore;
 
-        public LightChain(Hash chainId, IBlockManagerBasic blockManager, ICanonicalHashStore canonicalHashStore)
+        public LightChain(Hash chainId,
+            IChainManagerBasic chainManager,
+            IBlockManagerBasic blockManager, ICanonicalHashStore canonicalHashStore)
         {
             _chainId = chainId;
+            _chainManager = chainManager;
             _blockManager = blockManager;
             _canonicalHashStore = canonicalHashStore;
         }
 
+        public async Task<Hash> GetCurrentBlockHashAsync()
+        {
+            var hash = await _chainManager.GetCurrentBlockHashAsync(_chainId);
+            return hash;
+        }
+        
         public async Task<bool> HasHeader(Hash blockId)
         {
             var header = await _blockManager.GetBlockHeaderAsync(blockId);

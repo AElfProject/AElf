@@ -9,7 +9,9 @@ namespace AElf.Kernel
 {
     public class BlockChain : LightChain, IBlockChain
     {
-        public BlockChain(Hash chainId, IBlockManagerBasic blockManager, ICanonicalHashStore canonicalHashStore):base(chainId, blockManager, canonicalHashStore)
+        public BlockChain(Hash chainId, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
+            ICanonicalHashStore canonicalHashStore) : base(
+            chainId, chainManager, blockManager, canonicalHashStore)
         {
         }
 
@@ -31,7 +33,7 @@ namespace AElf.Kernel
         {
             await _blockManager.AddBlockAsync(block);
         }
-        
+
         public async Task AddBlocksAsync(IEnumerable<IBlock> blocks)
         {
             foreach (var block in blocks)

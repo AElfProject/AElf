@@ -24,6 +24,8 @@ namespace AElf.Kernel.Storages
         BlockBody,
         BlockHeader,
         Chain,
+        GenesisHash,
+        CurrentHash,
         CanonicalBlockHash,
         Change,
         SmartContractRegistration,
