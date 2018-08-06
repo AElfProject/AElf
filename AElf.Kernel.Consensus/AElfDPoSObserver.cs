@@ -89,7 +89,7 @@ namespace AElf.Kernel.Consensus
 
             _logger?.Trace($"Will produce normal block after {Globals.AElfDPoSMiningInterval / 1000}s\n");
             _logger?.Trace($"Will publish in value after {Globals.AElfDPoSMiningInterval * 2 / 1000}s\n");
-            _logger?.Trace($"Will produce extra block after {Globals.AElfDPoSMiningInterval * 3 / 1000}s");
+            _logger?.Trace($"Will produce extra block after {Globals.AElfDPoSMiningInterval * 3.5 / 1000}s");
 
             var produceNormalBlock = Observable
                 .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval))
@@ -98,7 +98,7 @@ namespace AElf.Kernel.Consensus
                 .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval))
                 .Select(_ => ConsensusBehavior.PublishInValue);
             var produceExtraBlock = Observable
-                .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval))
+                .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval * 1.5))
                 .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
             
             Observable.Return(ConsensusBehavior.DoNothing)
@@ -170,9 +170,11 @@ namespace AElf.Kernel.Consensus
             else
             {
                 var after = distanceToPublishInValue + Globals.AElfDPoSMiningInterval / 1000 +
-                            Globals.AElfDPoSMiningInterval * infoOfMe.Order / 1000;
+                            Globals.AElfDPoSMiningInterval * infoOfMe.Order / 1000 + Globals.AElfDPoSMiningInterval / 2000;
                 produceExtraBlock = Observable
-                    .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval + Globals.AElfDPoSMiningInterval * infoOfMe.Order))
+                    .Timer(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval +
+                                                     Globals.AElfDPoSMiningInterval * infoOfMe.Order +
+                                                     Globals.AElfDPoSMiningInterval / 2))
                     .Select(_ => ConsensusBehavior.UpdateAElfDPoS);
 
                 _logger?.Trace($"Will help to produce extra block after {after} seconds");
