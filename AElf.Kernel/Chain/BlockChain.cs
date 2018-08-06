@@ -42,5 +42,21 @@ namespace AElf.Kernel
                 await AddBlockAsync(block);
             }
         }
+
+        public async Task<IBlock> GetBlockByHashAsync(Hash blockId)
+        {
+            return await _blockManager.GetBlockAsync(blockId);
+        }
+
+        public async Task<IBlock> GetBlockByHeightAsync(ulong height)
+        {
+            var header = await GetHeaderByHeightAsync(height);
+            if (header == null)
+            {
+                return null;
+            }
+
+            return await GetBlockByHashAsync(header.GetHash());
+        }
     }
 }
