@@ -51,7 +51,7 @@ namespace AElf.Network.Peers
         public const int DefaultMaxBlockHistory = 15;
         
         public const int TargetPeerCount = 8;
-        public const int DefaultRequestTimeout = 2000;
+        public const int DefaultRequestTimeout = 1000;
         public const int DefaultRequestMaxRetry = TimeoutRequest.DefaultMaxRetry;
         
         public event EventHandler MessageReceived;
@@ -75,7 +75,6 @@ namespace AElf.Network.Peers
         // List of non bootnode peers
         private readonly List<IPeer> _peers = new List<IPeer>();
         private readonly List<IPeer> _peersNoAuth = new List<IPeer>();
-        
         
         private readonly int _port;
 
@@ -239,14 +238,14 @@ namespace AElf.Network.Peers
                     _pendingRequests.Add(request);
                 }
             
-                request.TryPeer(selectedPeer);
                 request.RequestTimedOut += RequestOnRequestTimedOut;
+                request.TryPeer(selectedPeer);
                 
                 _logger?.Trace($"Request for transaction {transactionHash?.ToHex()} send to {selectedPeer}");
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error while requesting transaction for index {transactionHash?.ToHex()}.");
+                _logger?.Trace(e, $"Error while requesting transaction {transactionHash?.ToHex()}.");
             }
         }
 
@@ -265,19 +264,25 @@ namespace AElf.Network.Peers
 
             if (sender is TimeoutRequest req)
             {
+                string id = req.ItemHash != null ? $"for transaction with hash {req.ItemHash.ToHex()}" : $"for block with index {req.BlockIndex}";
+                _logger?.Trace("Request timedout " + id + $", with {req.Peer} and timeout : {TimeSpan.FromMilliseconds(req.Timeout)}.");
+                
                 if (req.HasReachedMaxRetry)
                 {
                     lock (_pendingRequestsLock)
                     {
                         _pendingRequests.Remove(req);
                     }
-                   
+                    
+                    req.RequestTimedOut -= RequestOnRequestTimedOut;
                     FireRequestFailed(req);
+                    return;
                 }
                 
                 IPeer nextPeer = _peers.FirstOrDefault(p => !p.Equals(req.Peer));
                 if (nextPeer != null)
                 {
+                    _logger?.Trace("Trying another peer " + id + $", next : {nextPeer}.");
                     req.TryPeer(nextPeer);
                 }
             }
@@ -296,6 +301,9 @@ namespace AElf.Network.Peers
                 ItemHash = req.ItemHash,
                 TriedPeers = req.TriedPeers.ToList()
             };
+
+            string id = req.ItemHash != null ? $"for transaction with hash {req.ItemHash.ToHex()}" : $"for block with index {req.BlockIndex}";
+            _logger?.Trace("Request failed " + id + $" after {req.TriedPeers.Count} tries. Max tries : {req.MaxRetryCount}.");
                     
             RequestFailed?.Invoke(this, reqFailedArgs);
         }
@@ -435,7 +443,7 @@ namespace AElf.Network.Peers
         /// </summary>
         /// <param name="messagePayload"></param>
         /// <returns></returns>
-        internal async Task ReceivePeers(ByteString messagePayload)
+        internal async Task ReceivePeers(IPeer pr, ByteString messagePayload)
         {
             // If we're in a maintenance cycle - do nothing
             // todo : maybe later we can queue this work...
@@ -448,7 +456,12 @@ namespace AElf.Network.Peers
             
             try
             {
+                var str = $"Receiving peers from {pr} - current node list: \n";
+                var peerStr = _peers.Select(c => c.ToString()).Aggregate((a, b) => a.ToString() + ", " + b);
+                _logger?.Trace(str + peerStr);
+                
                 PeerListData peerList = PeerListData.Parser.ParseFrom(messagePayload);
+                _logger?.Trace($"Receiving peers - node list count {peerList.NodeData.Count}.");
                 
                 if (peerList.NodeData.Count > 0)
                     _logger?.Trace("Peers received : " + peerList.GetLoggerString());
@@ -725,7 +738,7 @@ namespace AElf.Network.Peers
                 }
                 else if (args.Message.Type == (int)MessageType.Peers)
                 {
-                    Task.Run(() => ReceivePeers(ByteString.CopyFrom(args.Message.Payload)));
+                    Task.Run(() => ReceivePeers(args.Peer,ByteString.CopyFrom(args.Message.Payload)));
                 }
                 else
                 {
@@ -840,6 +853,7 @@ namespace AElf.Network.Peers
 
                 if (request != null)
                 {
+                    request.RequestTimedOut -= RequestOnRequestTimedOut;
                     request.Stop();
 
                     lock (_pendingRequestsLock)

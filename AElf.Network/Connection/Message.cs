@@ -1,4 +1,5 @@
-﻿using AElf.Network.Data;
+﻿using System;
+using AElf.Network.Data;
 
 namespace AElf.Network.Connection
 {

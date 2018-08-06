@@ -103,6 +103,8 @@ namespace AElf.Kernel.Node.Protocol
             {
                 var message = args.Message;
                 var msgType = (MessageType) message.Type;
+                
+                _logger?.Trace($"Handling message {message} from {args.PeerMessage.Peer}.");
 
                 if (msgType == MessageType.Tx || msgType == MessageType.BroadcastTx)
                 {
