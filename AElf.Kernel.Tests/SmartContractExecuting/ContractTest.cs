@@ -121,7 +121,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply(true);
             
-            Assert.Null(txnCtxt.Trace.StdErr);
+            Assert.True(string.IsNullOrEmpty(txnCtxt.Trace.StdErr));
             
             var address = txnCtxt.Trace.RetVal.Data.DeserializeToBytes();
 
