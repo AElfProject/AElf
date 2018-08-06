@@ -11,12 +11,10 @@ namespace AElf.ChainController
     public class BlockVaildationService: IBlockVaildationService
     {
         private readonly IEnumerable<IBlockValidationFilter> _filters;
-        private readonly IBlockManager _blockManager;
 
-        public BlockVaildationService(IEnumerable<IBlockValidationFilter> filters, IBlockManager blockManager)
+        public BlockVaildationService(IEnumerable<IBlockValidationFilter> filters)
         {
             _filters = filters;
-            _blockManager = blockManager;
         }
 
         public async Task<ValidationError> ValidateBlockAsync(IBlock block, IChainContext context, ECKeyPair keyPair)
