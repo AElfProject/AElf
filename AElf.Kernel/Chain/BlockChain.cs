@@ -31,7 +31,8 @@ namespace AElf.Kernel
 
         private async Task AddBlockAsync(IBlock block)
         {
-            await _blockManager.AddBlockAsync(block);
+            await AddHeaderAsync(block.Header);
+            await _blockManager.AddBlockBodyAsync(block.Header.GetHash(), block.Body);
         }
 
         public async Task AddBlocksAsync(IEnumerable<IBlock> blocks)

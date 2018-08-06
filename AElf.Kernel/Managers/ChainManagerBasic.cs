@@ -20,6 +20,7 @@ namespace AElf.Kernel.Managers
         public async Task AddChainAsync(Hash chainId, Hash genesisBlockHash)
         {
             await _genesisHashStore.InsertAsync(chainId, genesisBlockHash);
+            await UpdateCurrentBlockHashAsync(chainId, genesisBlockHash);
         }
 
         public async Task<Hash> GetGenesisBlockHashAsync(Hash chainId)
@@ -28,6 +29,11 @@ namespace AElf.Kernel.Managers
             return hash;
         }
 
+        public async Task UpdateCurrentBlockHashAsync(Hash chainId, Hash blockHash)
+        {
+            await _currentHashStore.InsertOrUpdateAsync(chainId, blockHash);
+        }
+        
         public async Task<Hash> GetCurrentBlockHashAsync(Hash chainId)
         {
             var hash = await _currentHashStore.GetAsync(chainId);

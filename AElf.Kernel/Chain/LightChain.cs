@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
@@ -74,14 +76,89 @@ namespace AElf.Kernel
         
         protected async Task AddHeaderAsync(IBlockHeader header)
         {
+            await CheckHeaderAppendable(header);
             await _blockManager.AddBlockHeaderAsync((BlockHeader) header);
+            await MaybeSwitchBranch(header);
         }
 
+        protected Hash GetHeightHash(ulong height)
+        {
+            return ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, height);
+        }
+        
         protected async Task<Hash> GetCanonicalHashAsync(ulong height)
         {
-            var heightHash = ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, height);
-            var blockHash = await _canonicalHashStore.GetAsync(heightHash);
+            var blockHash = await _canonicalHashStore.GetAsync(GetHeightHash(height));
             return blockHash;
+        }
+
+        protected async Task CheckHeaderAppendable(IBlockHeader header)
+        {
+            var prevHeader = await GetHeaderByHashAsync(((BlockHeader)header).PreviousBlockHash);
+            if (prevHeader == null)
+            {
+                throw new InvalidOperationException("Parent is unknown.");
+            }
+            if(((BlockHeader)header).Index !=((BlockHeader)prevHeader).Index+1)
+            {
+                throw new InvalidOperationException("Incorrect index.");
+            }
+        }
+
+        protected async Task<Tuple<List<IBlockHeader>, List<IBlockHeader>>> GetComparedBranchesAsync(IBlockHeader oldHead,
+            IBlockHeader newHead)
+        {
+            var tempOldHead = (BlockHeader)oldHead;
+            var tempNewHead = (BlockHeader)newHead;
+            var oldBranch = new List<IBlockHeader>();
+            var newBranch = new List<IBlockHeader>();
+            while (((BlockHeader) oldHead).Index > ((BlockHeader) newHead).Index)
+            {
+                oldBranch.Add(tempOldHead);
+                tempOldHead = (BlockHeader) await GetHeaderByHashAsync(tempOldHead.PreviousBlockHash);
+            }
+            while (((BlockHeader) newHead).Index > ((BlockHeader) oldHead).Index)
+            {
+                newBranch.Add(tempNewHead);
+                tempNewHead = (BlockHeader) await GetHeaderByHashAsync(tempNewHead.PreviousBlockHash);
+            }
+
+            while (tempOldHead.PreviousBlockHash != tempNewHead.PreviousBlockHash)
+            {
+                oldBranch.Add(tempOldHead);
+                newBranch.Add(tempNewHead);
+                tempOldHead = (BlockHeader) await GetHeaderByHashAsync(tempOldHead.PreviousBlockHash);
+                tempNewHead = (BlockHeader) await GetHeaderByHashAsync(tempNewHead.PreviousBlockHash);                
+            }
+
+            if (tempOldHead != null && tempNewHead != null)
+            {
+                oldBranch.Add(tempOldHead);
+                newBranch.Add(tempNewHead);
+            }
+            return Tuple.Create(oldBranch, newBranch);
+        }
+        
+        protected async Task MaybeSwitchBranch(IBlockHeader header)
+        {
+            var currentHeader = await GetHeaderByHashAsync(await GetCurrentBlockHashAsync());
+            if (currentHeader.GetHash().Equals(((BlockHeader) header).PreviousBlockHash))
+            {
+                await _canonicalHashStore.InsertOrUpdateAsync(GetHeightHash(((BlockHeader) header).Index), header.GetHash());
+                return;
+            }
+            if (((BlockHeader) header).Index > ((BlockHeader) currentHeader).Index)
+            {
+                await _chainManager.UpdateCurrentBlockHashAsync(_chainId, header.GetHash());
+                var branches = await GetComparedBranchesAsync(currentHeader, header);
+                if (branches.Item2.Count > 0)
+                {
+                    foreach (var newBranchHeader in branches.Item2)
+                    {
+                        await _canonicalHashStore.InsertOrUpdateAsync(GetHeightHash(((BlockHeader) newBranchHeader).Index), newBranchHeader.GetHash());
+                    }
+                }
+            }
         }
     }
 }
