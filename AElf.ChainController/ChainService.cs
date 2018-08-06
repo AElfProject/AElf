@@ -5,13 +5,14 @@ using AElf.Kernel.Storages;
 
 namespace AElf.ChainController
 {
-    public class ChainService
+    public class ChainService : IChainService
     {
         private readonly IChainManagerBasic _chainManager;
         private readonly IBlockManagerBasic _blockManager;
         private readonly ICanonicalHashStore _canonicalHashStore;
-        
-        public ChainService(IChainManagerBasic chainManager, IBlockManagerBasic blockManager, ICanonicalHashStore canonicalHashStore)
+
+        public ChainService(IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
+            ICanonicalHashStore canonicalHashStore)
         {
             _chainManager = chainManager;
             _blockManager = blockManager;
