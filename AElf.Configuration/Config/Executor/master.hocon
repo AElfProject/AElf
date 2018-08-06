@@ -25,6 +25,7 @@ akka {
             bytes = "Akka.Serialization.ByteArraySerializer"
         }
         serialization-bindings {
+            "Google.Protobuf.IMessage, Google.Protobuf" = proto
             "System.Object" = hyperion
             "System.Byte[]" = bytes
         }
