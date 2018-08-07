@@ -7,7 +7,8 @@ namespace AElf.Kernel.Node
 {
     public interface IAElfNode
     {
-        bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData, byte[] code);
+        bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData, byte[] code,
+            byte[] consensusGenesisContractCode, byte[] basicContractZero);
 
         Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block);
 

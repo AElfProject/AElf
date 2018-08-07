@@ -377,13 +377,15 @@ namespace AElf.Kernel.Node.RPC
 
         private Task<JObject> ProGetGenesisAddress(JObject reqParams)
         {
-            var genesisHash = _node.GetGenesisContractHash();
             var chainId = _node.ChainId;
+            var basicContractZero = _node.GetGenesisContractHash(SmartContractType.BasicContractZero);
+            var tokenContract = _node.GetGenesisContractHash(SmartContractType.TokenContract);
             var response = new JObject
             {
                 ["result"] = new JObject
                 {
-                    ["genesis_contract"] = genesisHash.ToHex(),
+                    [SmartContractType.BasicContractZero.ToString()] = basicContractZero.ToHex(),
+                    [SmartContractType.TokenContract.ToString()] = tokenContract.ToHex(),
                     ["chain_id"] = chainId.ToHex()
                 }
             };
@@ -460,11 +462,9 @@ namespace AElf.Kernel.Node.RPC
 
         private async Task<JObject> ProcessGetContractAbi(JObject reqParams)
         {
-            var addr = reqParams["address"] == null
-                ? _node.GetGenesisContractHash().ToHex()
-                : reqParams["address"].ToString();
-            var name = reqParams["name"].ToString(); 
-    
+            var addr = reqParams["address"]?.ToString();
+            
+            
             JObject response;
             try
             {
@@ -473,7 +473,14 @@ namespace AElf.Kernel.Node.RPC
                     Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(addr))
                 };
 
-                var abi = await _node.GetContractAbi(addrHash, name);
+                IMessage abi;
+                if (reqParams["name"] != null)
+                    abi = await _node.GetContractAbi(addrHash, reqParams["name"].ToString());
+                else
+                {
+                    abi = await _node.GetContractAbi(addrHash);
+                }
+
                 response = new JObject
                 {
                     ["address"] = addr,

@@ -111,14 +111,46 @@ namespace AElf.Launcher
 
                 // Start the system
                 node.Start(nodeKey, confParser.Rpc, confParser.RpcPort, confParser.RpcHost, initData,
-                    SmartContractZeroCode);
+                    TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero);
 
                 //DoDPos(node);
                 Console.ReadLine();
             }
         }
 
-        private static byte[] SmartContractZeroCode
+        private static byte[] TokenGenesisContractCode
+        {
+            get
+            {
+                var contractZeroDllPath = Path.Combine(AssemblyDir, $"{Globals.GenesisTokenContractAssemblyName}.dll");
+
+                byte[] code;
+                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
+                {
+                    code = file.ReadFully();
+                }
+
+                return code;
+            }
+        }
+        
+        private static byte[] ConsensusGenesisContractCode
+        {
+            get
+            {
+                var contractZeroDllPath = Path.Combine(AssemblyDir, $"{Globals.GenesisConsensusContractAssemblyName}.dll");
+
+                byte[] code;
+                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
+                {
+                    code = file.ReadFully();
+                }
+
+                return code;
+            }
+        }
+        
+        private static byte[] BasicContractZero
         {
             get
             {

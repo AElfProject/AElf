@@ -58,7 +58,7 @@ namespace AElf.Kernel.Node
         private readonly IBlockExecutor _blockExecutor;
         private readonly AElfDPoSHelper _dPoSHelper;
 
-        public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
+        public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, SmartContractType.AElfDPoS);
 
         /// <summary>
         /// Just used to dispose previous consensus observer.
@@ -138,7 +138,7 @@ namespace AElf.Kernel.Node
         }
 
         public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData,
-            byte[] code)
+            byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero)
         {
             if (_nodeConfig == null)
             {
@@ -154,23 +154,48 @@ namespace AElf.Kernel.Node
 
             try
             {
+                _logger?.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToHex());
+                var genesis = GetGenesisContractHash(SmartContractType.BasicContractZero);
+                _logger?.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"", genesis.ToHex());
+                    
+                var tokenContractAddress = GetGenesisContractHash(SmartContractType.TokenContract);
+                _logger?.Log(LogLevel.Debug, "Token contract address = \"{0}\"", tokenContractAddress.ToHex());
+                    
+                var consensusAddress = GetGenesisContractHash(SmartContractType.AElfDPoS);
+                _logger?.Log(LogLevel.Debug, "DPoS contract address = \"{0}\"", consensusAddress.ToHex());
+                
                 var chainExists = _chainManager.Exists(_nodeConfig.ChainId).Result;
                 if (!chainExists)
                 {
                     // Creation of the chain if it doesn't already exist
-                    var smartContractZeroReg = new SmartContractRegistration
+                    var tokenSCReg = new SmartContractRegistration
                     {
                         Category = 0,
-                        ContractBytes = ByteString.CopyFrom(code),
-                        ContractHash = code.CalculateHash()
+                        ContractBytes = ByteString.CopyFrom(tokenContractCode),
+                        ContractHash = tokenContractCode.CalculateHash(),
+                        Type = (int)SmartContractType.TokenContract
                     };
-                    var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg).Result;
+                    
+                    var consensusCReg = new SmartContractRegistration
+                    {
+                        Category = 0,
+                        ContractBytes = ByteString.CopyFrom(consensusContractCode),
+                        ContractHash = consensusContractCode.CalculateHash(),
+                        Type = (int)SmartContractType.AElfDPoS
+                    };
+                    
+                    var basicReg = new SmartContractRegistration
+                    {
+                        Category = 0,
+                        ContractBytes = ByteString.CopyFrom(basicContractZero),
+                        ContractHash = basicContractZero.CalculateHash(),
+                        Type = (int)SmartContractType.BasicContractZero
+                    };
+                    var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId,
+                        new List<SmartContractRegistration> {basicReg, tokenSCReg, consensusCReg}).Result;
 
-                    _logger?.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToHex());
                     _logger?.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.ToHex());
-                    var contractAddress = GetGenesisContractHash();
-                    _logger?.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
-                        contractAddress.ToAccount().ToHex());
+                    
                 }
                 else
                 {
@@ -564,11 +589,11 @@ namespace AElf.Kernel.Node
             return chainContext.BlockHeight;
         }
 
-        public Hash GetGenesisContractHash()
+        public Hash GetGenesisContractHash(SmartContractType contractType)
         {
-            return _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
+            return _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, contractType);
         }
-
+        
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
