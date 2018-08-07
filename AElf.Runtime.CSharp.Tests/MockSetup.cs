@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -80,13 +81,14 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero
+                ContractHash = Hash.Zero,
+                Type = (int)SmartContractType.BasicContractZero
             };
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
+            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
             DataProvider1 = await (WorldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId1));
 
-            var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, reg);
+            var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
             var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
             DataProvider2 = await (WorldStateDictator.SetChainId(ChainId2)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId2));
         }
@@ -95,7 +97,7 @@ namespace AElf.Runtime.CSharp.Tests
         {
             var reg = new SmartContractRegistration
             {
-                Category = 0,
+                Category = 1,
                 ContractBytes = ByteString.CopyFrom(ContractCode),
                 ContractHash = new Hash(ContractCode)
             };

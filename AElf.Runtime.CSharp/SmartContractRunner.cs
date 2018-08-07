@@ -15,6 +15,7 @@ using AElf.SmartContract;
 using AElf.SmartContract.MetaData;
 using AElf.Types.CSharp.MetadataAttribute;
  using LiteDB;
+ using Globals = AElf.Kernel.Globals;
 
 namespace AElf.Runtime.CSharp
 {
@@ -62,9 +63,14 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
-            var abiModule = GetAbiModule(reg);
+            string name = null;
+            if (reg.Category == 0)
+                name = ((SmartContractType)reg.Type).ToString();
+            var abiModule = GetAbiModule(reg, name);
+            
             // TODO: Change back
-            var type = assembly.GetTypes().FirstOrDefault(x => x.FullName == abiModule.Name);
+            var types = assembly.GetTypes();
+            var type = types.FirstOrDefault(x => x.FullName.Contains(abiModule.Name));
             if (type == null)
             {
                 throw new InvalidCodeException($"No SmartContract type {abiModule.Name} is defined in the code.");
@@ -87,6 +93,10 @@ namespace AElf.Runtime.CSharp
         private Module GetAbiModule(SmartContractRegistration reg, string name = null)
         {
             var code = reg.ContractBytes.ToByteArray();
+            if (reg.Category == 0)
+            {
+                name = ((SmartContractType)reg.Type).ToString();
+            }
             var abiModule = Generator.GetABIModule(code, name);
             return abiModule;
         }
