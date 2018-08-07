@@ -9,10 +9,13 @@ namespace AElf.Kernel
 {
     public class BlockChain : LightChain, IBlockChain
     {
+        private readonly ITransactionManager _transactionManager;
+        
         public BlockChain(Hash chainId, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
-            ICanonicalHashStore canonicalHashStore) : base(
+            ITransactionManager transactionManager, ICanonicalHashStore canonicalHashStore) : base(
             chainId, chainManager, blockManager, canonicalHashStore)
         {
+            _transactionManager = transactionManager;
         }
 
         // TODO: Implement
@@ -57,6 +60,27 @@ namespace AElf.Kernel
             }
 
             return await GetBlockByHashAsync(header.GetHash());
+        }
+
+        public async Task<List<ITransaction>> RollbackToHeight(ulong height)
+        {   
+            var currentHash = await GetCurrentBlockHashAsync();
+            var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
+            
+            var txs = new List<ITransaction>();
+
+            //Just for logging
+            for (var i = currentHeight - 1; i >= height; i--)
+            {
+                var block = await GetBlockByHeightAsync(i);
+                var body = block.Body;
+                foreach (var txId in body.Transactions)
+                {
+                    var tx = await _transactionManager.GetTransaction(txId);
+                    txs.Add(tx);
+                }
+            }
+            return txs;
         }
     }
 }

@@ -9,10 +9,11 @@ namespace AElf.ChainController
     {
         private readonly IChainManagerBasic _chainManager;
         private readonly IBlockManagerBasic _blockManager;
+        private readonly ITransactionManager _transactionManager;
         private readonly ICanonicalHashStore _canonicalHashStore;
 
         public ChainService(IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
-            ICanonicalHashStore canonicalHashStore)
+            ITransactionManager transactionManager, ICanonicalHashStore canonicalHashStore)
         {
             _chainManager = chainManager;
             _blockManager = blockManager;
@@ -21,7 +22,7 @@ namespace AElf.ChainController
 
         public IBlockChain GetBlockChain(Hash chainId)
         {
-            return new BlockChain(chainId, _chainManager, _blockManager, _canonicalHashStore);
+            return new BlockChain(chainId, _chainManager, _blockManager, _transactionManager, _canonicalHashStore);
         }
 
         public ILightChain GetLightChain(Hash chainId)

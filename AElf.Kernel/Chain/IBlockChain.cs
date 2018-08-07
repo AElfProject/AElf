@@ -11,5 +11,6 @@ namespace AElf.Kernel
         Task AddBlocksAsync(IEnumerable<IBlock> blocks);
         Task<IBlock> GetBlockByHashAsync(Hash blockId);
         Task<IBlock> GetBlockByHeightAsync(ulong height);
+        Task<List<ITransaction>> RollbackToHeight(ulong height);
     }
 }
