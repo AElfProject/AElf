@@ -12,7 +12,7 @@ namespace AElf.Contracts.Genesis.ConsensusContract
 
         public ulong CurrentRoundNumber => 1;
 
-        public ulong Interval => 0;
+        public int Interval => 0;
 
         public bool PrintLogs => true;
 
@@ -28,6 +28,11 @@ namespace AElf.Contracts.Genesis.ConsensusContract
             throw new System.NotImplementedException();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
         public Task Publish(List<byte[]> args)
         {
             throw new System.NotImplementedException();

@@ -1,4 +1,5 @@
-﻿using AElf.Network.Data;
+﻿using System;
+using AElf.Network.Data;
 
 namespace AElf.Network.Connection
 {
@@ -8,6 +9,8 @@ namespace AElf.Network.Connection
         public int Length { get; set; } 
         
         public byte[] Payload { get; set; }
+        
+        public string OutboundTrace { get; set; }
 
         public override string ToString()
         {

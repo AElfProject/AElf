@@ -21,10 +21,10 @@ namespace AElf.Kernel.Node
 
         IDisposable ConsensusDisposable { get; set; }
 
-        ulong CurrentRoundNumber { get; set; }
+        ulong ConsensusMemory { get; set; }
 
         // ReSharper disable once InconsistentNaming
-        void CheckUpdatingDPoSProcess();
+        Task CheckUpdatingConsensusProcess();
 
         int IsMiningInProcess { get; }
     }
