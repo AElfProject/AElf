@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -84,7 +85,7 @@ namespace AElf.Kernel.Tests
             };
 
             var chainId = Hash.Generate();
-            return await _chainCreationService.CreateNewChainAsync(chainId, reg);
+            return await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
         }
      
        [Fact]

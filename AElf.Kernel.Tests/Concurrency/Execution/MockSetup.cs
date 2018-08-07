@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
@@ -112,15 +113,16 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero
+                ContractHash = Hash.Zero,
+                Type = (int) SmartContractType.BasicContractZero
             };
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
+            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1,  new List<SmartContractRegistration>{reg});
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
             DataProvider1 =
                 await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(
                     ResourcePath.CalculatePointerForAccountZero(ChainId1));
 
-            var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, reg);
+            var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
             var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
             DataProvider2 =
                 await (_worldStateDictator.SetChainId(ChainId2)).GetAccountDataProvider(
@@ -131,7 +133,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         {
             var reg = new SmartContractRegistration
             {
-                Category = 0,
+                Category = 1,
                 ContractBytes = ByteString.CopyFrom(ExampleContractCode),
                 ContractHash = new Hash(ExampleContractCode)
             };

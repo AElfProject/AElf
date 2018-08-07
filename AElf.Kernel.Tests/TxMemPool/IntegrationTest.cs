@@ -163,34 +163,6 @@ namespace AElf.Kernel.Tests.TxMemPool
             }
         }
 
-        public byte[] SmartContractZeroCode
-        {
-            get
-            {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.SmartContractZero/bin/Debug/netstandard2.0/AElf.Contracts.SmartContractZero.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
-            }
-        }
-        
-        
-        public async Task<IChain> CreateChain(Hash chainId = null)
-        {
-            var reg = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero
-            };
-            var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
-            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
-            return chain;
-        }
-        
-        //[Fact(Skip = "todo")]
         [Fact]
         public async Task StartMultiThread()
         {

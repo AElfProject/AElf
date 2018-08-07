@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.SmartContract;
@@ -78,7 +79,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 ContractHash = Hash.Zero
             };
 
-            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
+            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
             var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
 
             var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
@@ -98,7 +99,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 ContractHash = Hash.Zero
             };
 
-            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
+            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
             var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
 
             var code = ExampleContractCode;
@@ -144,20 +145,14 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero
+                ContractHash = Hash.Zero,
+                Type = (int)SmartContractType.BasicContractZero
             };
 
-            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
+            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
             var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
 
             var code = ExampleContractCode;
-
-            var regExample = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = code.CalculateHash()
-            };
 
             var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
 
@@ -167,7 +162,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(1, code))
             };
 
             var txnCtxt = new TransactionContext()
