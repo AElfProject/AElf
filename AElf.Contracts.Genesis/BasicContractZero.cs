@@ -82,7 +82,7 @@ namespace AElf.Contracts.Genesis
             ulong serialNumber = _serialNumber.Increment().Value;
 
             Hash creator = Api.GetTransaction().From;
-
+            
             var info = new ContractInfo()
             {
                 Owner = creator,
