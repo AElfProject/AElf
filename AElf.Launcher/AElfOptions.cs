@@ -29,6 +29,9 @@ namespace AElf.Launcher
 
         [Option("node.account", HelpText = "The key used by the node.")]
         public string NodeAccount { get; set; }
+        
+        [Option("node.accountpassword", HelpText = "The password of the account key.")]
+        public string NodeAccountPassword { get; set; }
 
         [Option("node.datadir", HelpText = "The directory the node uses to store data.")]
         public string DataDir { get; set; }
