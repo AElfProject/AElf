@@ -165,7 +165,8 @@ namespace AElf.Kernel
         protected async Task MaybeSwitchBranch(IBlockHeader header)
         {
             var currentHeader = await GetHeaderByHashAsync(await GetCurrentBlockHashAsync());
-            if (currentHeader.GetHash().Equals(((BlockHeader) header).PreviousBlockHash))
+            if (currentHeader.GetHash().Equals(((BlockHeader) header).PreviousBlockHash) ||
+                ((BlockHeader) header).PreviousBlockHash.Equals(Hash.Genesis))
             {
                 await _canonicalHashStore.InsertOrUpdateAsync(GetHeightHash(((BlockHeader) header).Index),
                     header.GetHash());
