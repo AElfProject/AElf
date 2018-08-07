@@ -17,6 +17,7 @@ namespace AElf.ChainController
         {
             _chainManager = chainManager;
             _blockManager = blockManager;
+            _transactionManager = transactionManager;
             _canonicalHashStore = canonicalHashStore;
         }
 
