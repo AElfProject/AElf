@@ -54,7 +54,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         private IWorldStateDictator _worldStateDictator;
         private IChainCreationService _chainCreationService;
-        private IBlockManager _blockManager;
+        private IChainService _chainService;
         private IFunctionMetadataService _functionMetadataService;
         private ILogger _logger;
 
@@ -63,7 +63,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public MockSetup(IWorldStateStore worldStateStore, IChangesStore changesStore,
             IDataStore dataStore, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
             ITransactionStore transactionStore, IChainCreationService chainCreationService,
-            IBlockManager blockManager, ISmartContractStore smartContractStore,
+            IChainService chainService, ISmartContractStore smartContractStore,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger)
         {
@@ -71,7 +71,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore,
                 blockHeaderStore, blockBodyStore, transactionStore, _logger);
             _chainCreationService = chainCreationService;
-            _blockManager = blockManager;
+            _chainService = chainService;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
@@ -115,13 +115,11 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 ContractHash = Hash.Zero
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
-            var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
             DataProvider1 =
                 await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(
                     ResourcePath.CalculatePointerForAccountZero(ChainId1));
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, reg);
-            var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
             DataProvider2 =
                 await (_worldStateDictator.SetChainId(ChainId2)).GetAccountDataProvider(
                     ResourcePath.CalculatePointerForAccountZero(ChainId2));

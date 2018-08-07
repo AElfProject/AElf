@@ -57,8 +57,7 @@ namespace AElf.Kernel.Tests.Miner
         private IConcurrencyExecutingService _concurrencyExecutingService;
         private IFunctionMetadataService _functionMetadataService;
 
-        private IChainManager _chainManager;
-        private readonly IBlockManager _blockManager;
+        private IChainService _chainService;
 
         private ServicePack _servicePack;
         private IActorRef _requestor;
@@ -67,7 +66,7 @@ namespace AElf.Kernel.Tests.Miner
             IChainCreationService chainCreationService, 
             IChainContextService chainContextService, ILogger logger, IAccountContextService accountContextService, 
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
-            IChainManager chainManager, IBlockManager blockManager, ISmartContractManager smartContractManager, 
+            IChainService chainService, ISmartContractManager smartContractManager, 
             IFunctionMetadataService functionMetadataService, 
             IConcurrencyExecutingService concurrencyExecutingService) : base(new XunitAssertions())
         {
@@ -78,8 +77,7 @@ namespace AElf.Kernel.Tests.Miner
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
 
-            _chainManager = chainManager;
-            _blockManager = blockManager;
+            _chainService = chainService;
             _smartContractManager = smartContractManager;
             _functionMetadataService = functionMetadataService;
             _concurrencyExecutingService = concurrencyExecutingService;
@@ -270,7 +268,7 @@ namespace AElf.Kernel.Tests.Miner
         
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {
-            var miner = new ChainController.Miner(config, poolService, _chainManager, _blockManager, _worldStateDictator,
+            var miner = new ChainController.Miner(config, poolService, _chainService, _worldStateDictator,
                 _smartContractService, _concurrencyExecutingService, _transactionManager, _transactionResultManager);
 
             return miner;

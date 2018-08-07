@@ -18,6 +18,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             builder.RegisterType<AccountContextService>().As<IAccountContextService>().SingleInstance();
             builder.RegisterType<ConcurrencyExecutingService>().As<IConcurrencyExecutingService>();
             builder.RegisterType<FunctionMetadataService>().As<IFunctionMetadataService>();
+            builder.RegisterType<ChainService>().As<IChainService>();
         }
     }
 }
