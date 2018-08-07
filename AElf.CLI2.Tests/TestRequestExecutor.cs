@@ -4,6 +4,7 @@ using AElf.CLI2.JS;
 using AElf.CLI2.JS.IO;
 using AElf.CLI2.Tests.Utils;
 using Autofac;
+using ServiceStack;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -46,6 +47,17 @@ namespace AElf.CLI2.Tests
             Assert.NotNull(fileResp);
             Assert.Equal(fileResp.Content, "abc");
             File.Delete(fn);
+        }
+
+        [Fact]
+        public void TestHttpGet()
+        {
+            var requestExecutor = GetRequestExecutor();
+            Assert.NotNull(requestExecutor);
+            var resp = requestExecutor.ExecuteAsync("GET", "http://www.baidu.com", null, string.Empty);
+            resp.Wait();
+            var httpResp = resp.Result as HttpResponse;
+            Assert.NotNull(httpResp);
         }
     }
 }

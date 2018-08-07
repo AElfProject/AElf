@@ -41,9 +41,12 @@ namespace AElf.CLI2.JS.IO
             if (url.Scheme == "http" || url.Scheme == "https")
             {
                 var client = new HttpClient {BaseAddress = new Uri(url.GetLeftPart(UriPartial.Authority))};
-                foreach (var each in headers)
+                if (headers != null)
                 {
-                    client.DefaultRequestHeaders.Add(each.Key, each.Value);
+                    foreach (var each in headers)
+                    {
+                        client.DefaultRequestHeaders.Add(each.Key, each.Value);
+                    }
                 }
 
                 if (method == HttpMethod.Get)
