@@ -68,9 +68,13 @@ namespace AElf.Kernel
             var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
             
             var txs = new List<ITransaction>();
+            if (currentHeight == height)
+            {
+                return txs;
+            }
 
             //Just for logging
-            for (var i = currentHeight - 1; i >= height; i--)
+            for (var i = currentHeight - 1; i > height; i--)
             {
                 var block = await GetBlockByHeightAsync(i);
                 var body = block.Body;
@@ -80,6 +84,16 @@ namespace AElf.Kernel
                     txs.Add(tx);
                 }
             }
+
+            for (var i = currentHeight - 1; i > height; i--)
+            {
+                await _canonicalHashStore.RemoveAsync(GetHeightHash(currentHeight));
+            }
+
+            var hash = await GetCanonicalHashAsync(height);
+            
+            await _chainManager.UpdateCurrentBlockHashAsync(_chainId, hash);
+            
             return txs;
         }
     }
