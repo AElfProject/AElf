@@ -6,9 +6,12 @@ namespace AElf.Kernel
     public static class Globals
     {
         public static readonly string GenesisSmartContractZeroAssemblyName = "AElf.Contracts.Genesis";
-        public static readonly string GenesisSmartContractLastName = ".ContractZeroWithAElfDPoS";
-        public static readonly string GenesisSmartContractZeroUserAvailable= "UserAvailable";
-        public static readonly string SmartContractZeroIdString = "__SmartContractZero__";
+        public static readonly string GenesisConsensusContractAssemblyName = "AElf.Contracts.Consensus";
+        public static readonly string GenesisTokenContractAssemblyName = "AElf.Contracts.Token";
+
+
+        public static readonly string GenesisBasicContract = "BasicContractZero";
+        public static readonly string SmartContractZeroIdString = SmartContractType.BasicContractZero.ToString();
         
         public static ConsensusType ConsensusType = ConsensusType.AElfDPoS;
         public static int BlockProducerNumber = 0;

@@ -42,8 +42,7 @@ namespace AElf.CLI.Command
         {
             var reqParams = new JObject
             {
-                ["address"] = parsedCmd.Args.ElementAt(0),
-                ["name"] = parsedCmd.Args.ElementAt(1)
+                ["address"] = parsedCmd.Args.ElementAt(0)
             };
             var req = JsonRpcHelpers.CreateRequest(reqParams, "get_contract_abi", 1);
 

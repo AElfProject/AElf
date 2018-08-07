@@ -212,13 +212,14 @@ namespace AElf.CLI
                                 return;
                             }
                             parsedCmd.Args.Add(_genesisAddress);
+                            //parsedCmd.Args.Add(Globals.GenesisBasicContract);
                         }
 
                         var addr = parsedCmd.Args.ElementAt(0);
                         Module m = null;
                         if (!_loadedModules.TryGetValue(addr, out m))
                         {
-                            parsedCmd.Args.Add(Globals.GenesisSmartContractZeroUserAvailable);
+                            
                             string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
         
                             if (resp == null)
@@ -284,7 +285,7 @@ namespace AElf.CLI
                         byte[] sc = screader.Read(filename);
                         string hex = sc.ToHex();
 
-                        var name = Globals.GenesisSmartContractZeroAssemblyName + Globals.GenesisSmartContractLastName;
+                        var name = Globals.GenesisBasicContract;
                         Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals(name));
             
                         if (m == null)
@@ -513,9 +514,9 @@ namespace AElf.CLI
                             return;
                         }
                         
-                        if (j["result"]["genesis_contract"] != null)
+                        if (j["result"]["BasicContractZero"] != null)
                         {
-                            _genesisAddress = j["result"]["genesis_contract"].ToString();
+                            _genesisAddress = j["result"]["BasicContractZero"].ToString();
                         }
                         string toPrint = def.GetPrintString(JObject.FromObject(j));
                         
