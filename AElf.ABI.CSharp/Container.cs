@@ -14,7 +14,12 @@ namespace AElf.ABI.CSharp
 
         public List<TypeDefinition> Types { get; } = new List<TypeDefinition>();
         public List<TypeDefinition> Events { get; } = new List<TypeDefinition>();
-        private readonly Dictionary<string, List<TypeDefinition>> _baseChildrenMap = new Dictionary<string, List<TypeDefinition>>();
+
+        private readonly Dictionary<string, List<TypeDefinition>> _baseChildrenMap =
+            new Dictionary<string, List<TypeDefinition>>();
+        
+        private readonly Dictionary<string, TypeDefinition> _nameTypeDefinitions =
+            new Dictionary<string, TypeDefinition>();
 
         public Container(string contractBaseFullName, string eventBaseFullName, string typeBaseFullName)
         {
@@ -33,6 +38,7 @@ namespace AElf.ABI.CSharp
                 children = new List<TypeDefinition>();
                 _baseChildrenMap.Add(baseName, children);
             }
+
             children.Add(type);
             if (baseName == _contractBaseFullName)
             {
@@ -41,10 +47,13 @@ namespace AElf.ABI.CSharp
             else if (baseName == _eventBaseFullName)
             {
                 Events.Add(type);
-            }else if (baseName == _typeBaseFullName)
+            }
+            else if (baseName == _typeBaseFullName)
             {
                 Types.Add(type);
             }
+            if(!_nameTypeDefinitions.ContainsKey(type.FullName))
+                _nameTypeDefinitions.Add(type.FullName, type);
         }
 
         public void AddType(TypeDefinition type, bool includingNested = true)
@@ -62,12 +71,10 @@ namespace AElf.ABI.CSharp
 
         public IEnumerable<TypeDefinition> GetSmartContractTypePath(string name = null)
         {
-            if (_contractBaseFullName == null)
-                return null;
             return name != null ? GetTypePathWithName(name) : GetTypePathWithoutName();
         }
-        
-        
+
+
         /// <summary>
         /// return type definiations with specific name and classes inherit it
         /// </summary>
@@ -76,19 +83,37 @@ namespace AElf.ABI.CSharp
         /// <exception cref="Exception"></exception>
         private IEnumerable<TypeDefinition> GetTypePathWithName(string name)
         {
-            var types = new List<TypeDefinition>();
-            string curName = null;
-            var children = _baseChildrenMap.First(kv =>
+            var children = new List<TypeDefinition>();
+            try
             {
-                if (!kv.Key.Contains(name)) return false;
-                curName = kv.Key;
-                return true;
-
-            }).Value;
-            if (curName == null)
+                var fullName = _nameTypeDefinitions.First(kv => kv.Key.Contains(name)).Key;
+                children.Add(_nameTypeDefinitions[fullName]);
+            }
+            catch (Exception e)
             {
                 throw new Exception("No valid smart contract found.");
             }
+            
+            return GetTypePaths(children);
+
+        }
+
+        private IEnumerable<TypeDefinition> GetTypePathWithoutName()
+        {
+            if (_contractBaseFullName == null)
+                return null;
+            var curName = _contractBaseFullName;
+            if (!_baseChildrenMap.TryGetValue(curName, out var children))
+            {
+                throw new Exception("No valid smart contract found.");
+            }
+            return GetTypePaths(children);
+        }
+
+        
+        private IEnumerable<TypeDefinition> GetTypePaths(List<TypeDefinition> children)
+        {
+            var types = new List<TypeDefinition>();
             Queue<TypeDefinition> queue = new Queue<TypeDefinition>(children);
 
             while (queue.Count != 0)
@@ -99,36 +124,12 @@ namespace AElf.ABI.CSharp
                 {
                     continue;
                 }
-                foreach (var typeDefinition in children) 
+
+                foreach (var typeDefinition in children)
                     queue.Enqueue(typeDefinition);
             }
 
             return types;
-
         }
-
-        private IEnumerable<TypeDefinition> GetTypePathWithoutName()
-        {
-            var types = new List<TypeDefinition>();
-            var curName = _contractBaseFullName;
-            if (!_baseChildrenMap.TryGetValue(curName, out var children))
-            {
-                throw new Exception("No valid smart contract found.");
-            }
-            while (true)
-            {
-                if (children.Count == 0)
-                {
-                    return types;
-                }
-                var contractType = children[0];
-                types.Add(contractType);
-                curName = contractType.FullName;
-                if (!_baseChildrenMap.TryGetValue(curName, out children))
-                {
-                    return types;
-                }
-            }
-        }
-    }
+}
 }
