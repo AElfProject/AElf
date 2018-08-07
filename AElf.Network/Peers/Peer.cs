@@ -36,6 +36,11 @@ namespace AElf.Network.Peers
     {
         public Peer Peer { get; set; }
         public Message Message { get; set; }
+        
+        public bool IsConsensus
+        {
+            get { return Message?.IsConsensus ?? false; }
+        } 
     }
     
     /// <summary>

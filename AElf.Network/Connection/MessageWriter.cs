@@ -128,10 +128,10 @@ namespace AElf.Network.Connection
         {
             byte[] type = { (byte)p.Type };
             byte[] isbuffered = { 0 };
+            byte[] isConsensus = { (byte)(p.IsConsensus ? 0 : 1) };
             byte[] length = BitConverter.GetBytes(p.Length);
             byte[] arrData = p.Payload;
-            
-            byte[] b = ByteArrayHelpers.Combine(type, isbuffered, length, arrData);
+            byte[] b = ByteArrayHelpers.Combine(type, isbuffered, isConsensus, length, arrData);
             
             if (!string.IsNullOrWhiteSpace(p.OutboundTrace))
                 _logger?.Trace($"About to dequeued message with trace : {p.OutboundTrace}");
@@ -146,6 +146,7 @@ namespace AElf.Network.Connection
         {
             byte[] type = { (byte)p.Type };
             byte[] isbuffered = { 1 };
+            byte[] isConsensus = { 0 };
             byte[] length = BitConverter.GetBytes(p.Data.Length);
 
             byte[] posBytes = BitConverter.GetBytes(p.Position);
