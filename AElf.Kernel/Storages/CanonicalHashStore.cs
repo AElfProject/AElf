@@ -28,5 +28,11 @@ namespace AElf.Kernel.Storages
             var key = heightHash.GetKeyString(TypeIndex);
             return Hash.Parser.ParseFrom(await _keyValueDatabase.GetAsync(key, typeof(Hash)));
         }
+
+        public async Task RemoveAsync(Hash heightHash)
+        {
+            var key = heightHash.GetKeyString(TypeIndex);
+            await _keyValueDatabase.RemoveAsync(key);
+        }
     }
 }

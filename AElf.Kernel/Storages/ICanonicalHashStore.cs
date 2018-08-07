@@ -6,5 +6,6 @@ namespace AElf.Kernel.Storages
     {
         Task<Hash> InsertOrUpdateAsync(Hash heightHash, Hash blockHash);
         Task<Hash> GetAsync(Hash heightHash);
+        Task RemoveAsync(Hash heightHash);
     }
 }
