@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Kernel.Storages;
 using NLog;
@@ -38,7 +39,7 @@ namespace AElf.Kernel.Managers
         public async Task<IBlock> GetBlockAsync(Hash blockHash)
         {
             var header = await _blockHeaderStore.GetAsync(blockHash);
-            var body = await _blockBodyStore.GetAsync(header.GetHash().CalculateHashWith(header.MerkleTreeRootOfTransactions));
+            var body = await _blockBodyStore.GetAsync(header.GetHash());
             return new Block
             {
                 Header = header,
