@@ -137,10 +137,12 @@ namespace AElf.Kernel.Node
             _synchronizer = synchronizer;
 
             _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
-                ContractAccountHash, _logger);
+                ContractAccountHash, GenerateTransaction, _logger, _smartContractService);
             
             _consensusHelper = new ConsensusHelper();
         }
+
+        
 
         public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData,
             byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero)
@@ -617,7 +619,7 @@ namespace AElf.Kernel.Node
                         break;
                     }
                     
-                    if (_nodeConfig.ConsensusInfoGenerater && !await _dPoSHelper.HasGenerated())
+                    if (_nodeConfig.ConsensusInfoGenerater && _dPoSHelper.HasGenerated())
                     {
                         AElfDPoSObserver.Initialization();
                         break;
@@ -900,14 +902,14 @@ namespace AElf.Kernel.Node
         #region Private Methods for DPoS
 
         // ReSharper disable once InconsistentNaming
-        private async Task<ITransaction> GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters,
+        private ITransaction GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters,
             ulong incrementIdOffset = 0)
         {
             var tx = new Transaction
             {
                 From = _nodeKeyPair.GetAddress(),
                 To = ContractAccountHash,
-                IncrementId = await GetIncrementId(_nodeKeyPair.GetAddress()) + incrementIdOffset,
+                IncrementId = GetIncrementId(_nodeKeyPair.GetAddress()).Result + incrementIdOffset,
                 MethodName = methodName,
                 P = ByteString.CopyFrom(_nodeKeyPair.PublicKey.Q.GetEncoded()),
                 Type = TransactionType.DposTransaction
@@ -950,7 +952,7 @@ namespace AElf.Kernel.Node
             };
             _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms");
             // ReSharper disable once InconsistentNaming
-            var txToInitializeAElfDPoS = await GenerateTransaction("InitializeAElfDPoS", parameters);
+            var txToInitializeAElfDPoS = GenerateTransaction("InitializeAElfDPoS", parameters);
             await BroadcastTransaction(txToInitializeAElfDPoS);
 
             var block = await Mine();
@@ -970,7 +972,7 @@ namespace AElf.Kernel.Node
             var signature = Hash.Default;
             if (currentRoundNumber.Value > 1)
             {
-                signature = await _dPoSHelper.CalculateSignature(inValue);
+                signature = _dPoSHelper.CalculateSignature(inValue);
             }
 
             var parameters = new List<byte[]>
@@ -981,7 +983,7 @@ namespace AElf.Kernel.Node
                 signature.ToByteArray()
             };
 
-            var txToPublishOutValueAndSignature = await GenerateTransaction("PublishOutValueAndSignature", parameters);
+            var txToPublishOutValueAndSignature = GenerateTransaction("PublishOutValueAndSignature", parameters);
 
             await BroadcastTransaction(txToPublishOutValueAndSignature);
 
@@ -1008,7 +1010,7 @@ namespace AElf.Kernel.Node
                 _consensusData.Pop().ToByteArray()
             };
 
-            var txToPublishInValue = await GenerateTransaction("PublishInValue", parameters);
+            var txToPublishInValue = GenerateTransaction("PublishInValue", parameters);
             await BroadcastTransaction(txToPublishInValue);
         }
 
@@ -1027,7 +1029,7 @@ namespace AElf.Kernel.Node
             };
             _logger?.Log(LogLevel.Debug, "Generating transaction..");
 
-            var txForExtraBlock = await GenerateTransaction(
+            var txForExtraBlock = GenerateTransaction(
                 "UpdateAElfDPoS",
                 parameters,
                 _incrementIdNeedToAddOne ? (ulong) 1 : 0);

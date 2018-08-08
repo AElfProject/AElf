@@ -10,7 +10,9 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
+    // ReSharper disable ClassNeverInstantiated.Global
+    // ReSharper disable InconsistentNaming
+    // ReSharper disable UnusedMember.Global
     public class ContractZeroWithAElfDPoS : CSharpSmartContract
     {
         private readonly IConsensus _consensus = new DPoS(new AElfDPoSFiledMapCollection
