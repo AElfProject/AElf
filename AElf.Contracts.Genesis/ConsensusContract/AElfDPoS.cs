@@ -17,7 +17,14 @@ namespace AElf.Contracts.Genesis.ConsensusContract
 
         public ulong CurrentRoundNumber => _currentRoundNumberField.GetAsync().Result;
 
-        public int Interval => Globals.AElfMiningTime;
+        public int Interval
+        {
+            get
+            {
+                var interval = _miningIntervalField.GetAsync().Result;
+                return interval.Value == 0 ? 4000 : interval.Value;
+            }
+        }
 
         public bool PrintLogs => true;
 
@@ -38,6 +45,8 @@ namespace AElf.Contracts.Genesis.ConsensusContract
 
         private readonly Map<UInt64Value, StringValue> _firstPlaceMap;
 
+        private readonly PbField<Int32Value> _miningIntervalField;
+
         #endregion
 
         public AElfDPoS(AElfDPoSFiledMapCollection collection)
@@ -48,26 +57,29 @@ namespace AElf.Contracts.Genesis.ConsensusContract
             _eBPMap = collection.EBPMap;
             _timeForProducingExtraBlockField = collection.TimeForProducingExtraBlockField;
             _firstPlaceMap = collection.FirstPlaceMap;
+            _miningIntervalField = collection.MiningIntervalField;
         }
 
         /// <inheritdoc />
         /// <summary>
         /// 1. Set block producers;
         /// 2. Set current round number to 1;
-        /// 3. Set first place of round 1 and 2 using DPoSInfo;
-        /// 4. Set DPoS information of first round to map;
-        /// 5. Set EBP of round 1 and 2;
-        /// 6. Set Extra Block mining timeslot of current round (actually round 1).
+        /// 3. Set mining interval;
+        /// 4. Set first place of round 1 and 2 using DPoSInfo;
+        /// 5. Set DPoS information of first round to map;
+        /// 6. Set EBP of round 1 and 2;
+        /// 7. Set Extra Block mining timeslot of current round (actually round 1).
         /// </summary>
         /// <param name="args">
         /// 2 args:
         /// [0] BlockProducer
         /// [1] DPoSInfo
+        /// [2] Int32Value
         /// </param>
         /// <returns></returns>
         public async Task Initialize(List<byte[]> args)
         {
-            if (args.Count != 2)
+            if (args.Count != 3)
             {
                 return;
             }
@@ -76,10 +88,12 @@ namespace AElf.Contracts.Genesis.ConsensusContract
             var round2 = new UInt64Value {Value = 2};
             BlockProducer blockProducer;
             DPoSInfo dPoSInfo;
+            Int32Value miningInterval;
             try
             {
                 blockProducer = BlockProducer.Parser.ParseFrom(args[0]);
                 dPoSInfo = DPoSInfo.Parser.ParseFrom(args[1]);
+                miningInterval = Int32Value.Parser.ParseFrom(args[2]);
             }
             catch (Exception e)
             {
@@ -107,7 +121,17 @@ namespace AElf.Contracts.Genesis.ConsensusContract
                 ConsoleWriteLine(nameof(Initialize), "Failed to update current round number.", e);
             }
             
-            // 3. Set first place of round 1 and 2 using DPoSInfo;
+            // 3. Set mining interval;
+            try
+            {
+                await SetMiningInterval(miningInterval);
+            }
+            catch (Exception e)
+            {
+                ConsoleWriteLine(nameof(Initialize), "Failed to set mining interval.", e);
+            }
+            
+            // 4. Set first place of round 1 and 2 using DPoSInfo;
             try
             {
                 await SetFirstPlaceOfSpecificRound(round1, dPoSInfo);
@@ -118,7 +142,7 @@ namespace AElf.Contracts.Genesis.ConsensusContract
                 ConsoleWriteLine(nameof(Initialize), "Failed to set first place.", e);
             }
 
-            // 4. Set DPoS information of first round to map;
+            // 5. Set DPoS information of first round to map;
             try
             {
                 await SetDPoSInfoToMap(round1, dPoSInfo);
@@ -129,7 +153,7 @@ namespace AElf.Contracts.Genesis.ConsensusContract
                 ConsoleWriteLine(nameof(Initialize), "Failed to set DPoS information of first round to map.", e);
             }
 
-            // 5. Set EBP of round 1 and 2;
+            // 6. Set EBP of round 1 and 2;
             try
             {
                 await SetExtraBlockProducerOfSpecificRound(round1, dPoSInfo);
@@ -140,7 +164,7 @@ namespace AElf.Contracts.Genesis.ConsensusContract
                 ConsoleWriteLine(nameof(Initialize), "Failed to set Extra Block Producer.", e);
             }
 
-            // 6. Set Extra Block mining timeslot of current round (actually round 1);
+            // 7. Set Extra Block mining timeslot of current round (actually round 1);
             try
             {
                 await SetExtraBlockMiningTimeslotOfSpecificRound(round1, dPoSInfo);
@@ -327,6 +351,11 @@ namespace AElf.Contracts.Genesis.ConsensusContract
             await _currentRoundNumberField.SetAsync(currentRoundNumber);
         }
 
+        private async Task SetMiningInterval(Int32Value interval)
+        {
+            await _miningIntervalField.SetAsync(interval);
+        }
+
         private async Task SetFirstPlaceOfSpecificRound(UInt64Value roundNumber, DPoSInfo info)
         {
             await _firstPlaceMap.SetValueAsync(roundNumber,
@@ -441,7 +470,7 @@ namespace AElf.Contracts.Genesis.ConsensusContract
             
             //Update Extra Block Timeslot.
             await SetExtraBlockMiningTimeslotOfSpecificRound(GetTimestampWithOffset(
-                nextRoundInfo.Info.Last().Value.TimeSlot, Interval + Globals.AElfCheckTime));
+                nextRoundInfo.Info.Last().Value.TimeSlot, Interval));
 
             ConsoleWriteLine(nameof(Update), $"Sync dpos info of round {CurrentRoundNumber} succeed");
         }

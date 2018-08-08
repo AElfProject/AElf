@@ -53,7 +53,7 @@ namespace AElf.ChainController
 
             await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
             var worldState = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
-            _logger?.Trace($"Merkle Tree Root before execution:{(await worldState.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
+            //_logger?.Trace($"Merkle Tree Root before execution:{(await worldState.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
             
             try
             {

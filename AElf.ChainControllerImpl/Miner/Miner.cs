@@ -138,8 +138,6 @@ namespace AElf.ChainController
                 block.Header.R = ByteString.CopyFrom(signature.R);
                 block.Header.S = ByteString.CopyFrom(signature.S);
 
-                var foo = block.Header.MerkleTreeRootOfWorldState;
-                Console.WriteLine($"Merkle Tree Root Hash: {foo.Value.ToByteArray().ToHex()}");
                 // append block
                 var blockChain = _chainService.GetBlockChain(Config.ChainId);
                 await blockChain.AddBlocksAsync(new List<IBlock>(){ block });

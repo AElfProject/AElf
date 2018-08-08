@@ -15,7 +15,7 @@ namespace AElf.Network.Peers
         event EventHandler PeerRemoved;
         
         void Start();
-        IPeer CreatePeerFromConnection(TcpClient client);
+        IPeer CreatePeerFromConnection(TcpClient client, NodeData nodeData);
         
         bool NoPeers { get; }
 
