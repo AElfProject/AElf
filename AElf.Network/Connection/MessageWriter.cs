@@ -155,7 +155,7 @@ namespace AElf.Network.Connection
             
             byte[] arrData = p.Data;
             
-            byte[] b = ByteArrayHelpers.Combine(type, isbuffered, length, posBytes, isEndBytes, totalLengthBytes, arrData);
+            byte[] b = ByteArrayHelpers.Combine(type, isbuffered, isConsensus, length, posBytes, isEndBytes, totalLengthBytes, arrData);
             _stream.Write(b, 0, b.Length);
         }
         

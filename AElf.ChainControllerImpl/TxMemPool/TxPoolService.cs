@@ -157,9 +157,9 @@ namespace AElf.Kernel.TxMemPool
             });
             
             List<ITransaction> contractTxs = null;
-            ContractTxLock.WriteLock(() =>
+            var t = ContractTxLock.WriteLock(() =>
             {
-                //_contractTxPool.Enqueueable = false;
+                // TODO: remove this limit
                 var execCount = _contractTxPool.GetExecutableSize();
                 if (execCount < _contractTxPool.Least)
                 {
