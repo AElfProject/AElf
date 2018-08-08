@@ -19,6 +19,6 @@ namespace AElf.SmartContract
         /// <returns></returns>
         Task DeployContractAsync(Hash chainId, Hash account, SmartContractRegistration registration, bool isPrivileged);
         Type GetContractType(SmartContractRegistration registration);
-        Task<IMessage> GetAbiAsync(Hash account);
+        Task<IMessage> GetAbiAsync(Hash account, string name = null);
     }
 }

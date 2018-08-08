@@ -78,6 +78,7 @@ namespace AElf.SmartContract
         public async Task PutExecutiveAsync(Hash account, IExecutive executive)
         {
             // TODO: Maybe reset TransactionContext
+            executive.SetDataCache(new Dictionary<Hash, StateCache>());
             GetPoolFor(account).Add(executive);
             await Task.CompletedTask;
         }
@@ -109,11 +110,11 @@ namespace AElf.SmartContract
             await _smartContractManager.InsertAsync(account, registration);
         }
 
-        public async Task<IMessage> GetAbiAsync(Hash account)
+        public async Task<IMessage> GetAbiAsync(Hash account, string name = null)
         {
             var reg = await _smartContractManager.GetAsync(account);
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
-            return runner.GetAbi(reg);
+            return runner.GetAbi(reg, name);
         }
     }
 }

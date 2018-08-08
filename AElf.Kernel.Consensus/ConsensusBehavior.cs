@@ -9,6 +9,6 @@
         // ReSharper disable once InconsistentNaming
         UpdateAElfDPoS = 2,
         PublishOutValueAndSignature = 3,
-        PublishInValue = 4
+        PublishInValue = 4,
     }
 }

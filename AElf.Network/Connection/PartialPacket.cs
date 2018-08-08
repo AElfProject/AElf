@@ -2,6 +2,7 @@
 {
     public class PartialPacket
     {
+        public int Type { get; set; }
         public int Position { get; set; }
         public bool IsEnd { get; set; }
         public int TotalDataSize { get; set; }

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Consensus;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
 
-namespace AElf.Contracts.Genesis.ConsensusContract
+namespace AElf.Contracts.Consensus.ConsensusContract
 {
     public class PoW : IConsensus
     {
@@ -12,7 +12,7 @@ namespace AElf.Contracts.Genesis.ConsensusContract
 
         public ulong CurrentRoundNumber => 1;
 
-        public ulong Interval => 0;
+        public int Interval => 0;
 
         public bool PrintLogs => true;
 
@@ -28,9 +28,14 @@ namespace AElf.Contracts.Genesis.ConsensusContract
             throw new System.NotImplementedException();
         }
 
-        public Task Publish(List<byte[]> args)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public async Task Publish(List<byte[]> args)
         {
-            throw new System.NotImplementedException();
+            
         }
 
         public Task<bool> Validation(List<byte[]> args)

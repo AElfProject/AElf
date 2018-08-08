@@ -13,6 +13,8 @@ namespace AElf.Network.Connection
     /// </summary>
     public class MessageWriter : IMessageWriter
     {
+        private const int DefaultMaxOutboundPacketSize = 1024;
+        
         private readonly ILogger _logger;
         private readonly NetworkStream _stream;
         private readonly BlockingCollection<Message> _outboundMessages;
@@ -23,14 +25,14 @@ namespace AElf.Network.Connection
         /// than this value, this message will be send in multiple sub
         /// packets.
         /// </summary>
-        public int MaxOutboundPacketSize { get; private set; } = 1024;
+        public int MaxOutboundPacketSize { get; set; } = DefaultMaxOutboundPacketSize;
         
         public MessageWriter(NetworkStream stream)
         {
             _outboundMessages = new BlockingCollection<Message>();
             _stream = stream;
             
-            _logger = LogManager.GetLogger(nameof(MessageReader));
+            _logger = LogManager.GetLogger(nameof(MessageWriter));
         }
         
         /// <summary>
@@ -58,74 +60,67 @@ namespace AElf.Network.Connection
         /// </summary>
         internal void DequeueOutgoingLoop()
         {
-            try
+            while (true)
             {
-                while (true)
+                try
                 {
-                    try
+                    Message p = _outboundMessages.Take();
+
+                    if (p.Payload.Length > MaxOutboundPacketSize)
                     {
-                        Message p = _outboundMessages.Take();
+                        // Split
+                        int packetCount = (p.Payload.Length / MaxOutboundPacketSize);
+                        int lastPacketSize = p.Payload.Length % MaxOutboundPacketSize;
+                        
+                        if (lastPacketSize != 0)
+                            packetCount++;
 
-                        if (p.Payload.Length > MaxOutboundPacketSize)
+                        List<PartialPacket> partials = new List<PartialPacket>();
+
+                        int currentIndex = 0;
+                        for (int i = 0; i < packetCount - 1; i++)
                         {
-                            // Split
-                            int packetCount = (p.Payload.Length / MaxOutboundPacketSize);
-                            int lastPacketSize = p.Payload.Length % MaxOutboundPacketSize;
+                            byte[] slice = new byte[MaxOutboundPacketSize];
                             
-                            if (lastPacketSize != 0)
-                                packetCount++;
-
-                            List<PartialPacket> partials = new List<PartialPacket>();
-
-                            int currentIndex = 0;
-                            for (int i = 0; i < packetCount - 1; i++)
+                            Array.Copy(p.Payload, currentIndex, slice, 0, MaxOutboundPacketSize);
+                            
+                            var partial = new PartialPacket 
                             {
-                                byte[] slice = new byte[MaxOutboundPacketSize];
-                                
-                                Array.Copy(p.Payload, currentIndex, slice, 0, MaxOutboundPacketSize);
-                                
-                                var partial = new PartialPacket 
-                                {
-                                    Position = i, IsEnd = false, TotalDataSize = p.Payload.Length, Data = slice
-                                };
-                                
-                                partials.Add(partial);
-
-                                currentIndex += MaxOutboundPacketSize;
-                            }
-                            
-                            byte[] endSlice = new byte[lastPacketSize];
-                            Array.Copy(p.Payload, currentIndex, endSlice, 0, lastPacketSize);
-                            
-                            var endPartial = new PartialPacket 
-                            {
-                                Position = packetCount-1, IsEnd = true, TotalDataSize = p.Payload.Length, Data = endSlice
+                                Type = p.Type, Position = i, IsEnd = false, TotalDataSize = p.Payload.Length, Data = slice
                             };
                             
-                            partials.Add(endPartial);
+                            partials.Add(partial);
 
-                            _logger.Trace($"Message split into {partials.Count} packets.");
-
-                            foreach (var msg in partials)
-                            {
-                                SendPartialPacket(msg);
-                            }
+                            currentIndex += MaxOutboundPacketSize;
                         }
-                        else
+                        
+                        byte[] endSlice = new byte[lastPacketSize];
+                        Array.Copy(p.Payload, currentIndex, endSlice, 0, lastPacketSize);
+                        
+                        var endPartial = new PartialPacket 
                         {
-                            // Send without splitting
-                            SendPacketFromMessage(p);
+                            Type = p.Type, Position = packetCount-1, IsEnd = true, TotalDataSize = p.Payload.Length, Data = endSlice
+                        };
+                        
+                        partials.Add(endPartial);
+
+                        _logger.Trace($"Message split into {partials.Count} packets.");
+
+                        foreach (var msg in partials)
+                        {
+                            SendPartialPacket(msg);
                         }
                     }
-                    catch (Exception e)
+                    else
                     {
-                        _logger.Trace("EX : DeQ error");
+                        // Send without splitting
+                        SendPacketFromMessage(p);
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                _logger.Trace(e);
+                catch (Exception e)
+                {
+                    _logger.Trace(e, "Exception while dequeing message");
+                }
             }
         }
 
@@ -133,17 +128,25 @@ namespace AElf.Network.Connection
         {
             byte[] type = { (byte)p.Type };
             byte[] isbuffered = { 0 };
+            byte[] isConsensus = { (byte)(p.IsConsensus ? 0 : 1) };
             byte[] length = BitConverter.GetBytes(p.Length);
             byte[] arrData = p.Payload;
+            byte[] b = ByteArrayHelpers.Combine(type, isbuffered, isConsensus, length, arrData);
             
-            byte[] b = ByteArrayHelpers.Combine(type, isbuffered, length, arrData);
+            if (!string.IsNullOrWhiteSpace(p.OutboundTrace))
+                _logger?.Trace($"About to dequeued message with trace : {p.OutboundTrace}");
+            
             _stream.Write(b, 0, b.Length);
+            
+            if (!string.IsNullOrWhiteSpace(p.OutboundTrace))
+                _logger?.Trace($"Dequeued message with trace : {p.OutboundTrace}");
         }
 
         internal void SendPartialPacket(PartialPacket p)
         {
-            byte[] type = { 1 }; // todo
+            byte[] type = { (byte)p.Type };
             byte[] isbuffered = { 1 };
+            byte[] isConsensus = { 0 };
             byte[] length = BitConverter.GetBytes(p.Data.Length);
 
             byte[] posBytes = BitConverter.GetBytes(p.Position);
@@ -152,7 +155,7 @@ namespace AElf.Network.Connection
             
             byte[] arrData = p.Data;
             
-            byte[] b = ByteArrayHelpers.Combine(type, isbuffered, length, posBytes, isEndBytes, totalLengthBytes, arrData);
+            byte[] b = ByteArrayHelpers.Combine(type, isbuffered, isConsensus, length, posBytes, isEndBytes, totalLengthBytes, arrData);
             _stream.Write(b, 0, b.Length);
         }
         

@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
@@ -79,7 +80,7 @@ namespace AElf.Sdk.CSharp.Tests
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.Zero
             };
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
+            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
             DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId1));
         }
@@ -88,7 +89,7 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var reg = new SmartContractRegistration
             {
-                Category = 0,
+                Category = 1,
                 ContractBytes = ByteString.CopyFrom(code),
                 ContractHash = new Hash(code)
             };

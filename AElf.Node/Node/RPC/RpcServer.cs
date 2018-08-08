@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
@@ -25,6 +26,7 @@ namespace AElf.Kernel.Node.RPC
         //private const string GetTxMethodName = "get_tx";
         //private const string InsertTxMethodName = "insert_tx";
         private const string BroadcastTxMethodName = "broadcast_tx";
+        private const string BroadcastTxsMethodName = "broadcast_txs";
 
         //private const string GetPeersMethodName = "get_peers";
         private const string GetIncrementIdMethodName = "get_increment";
@@ -38,7 +40,7 @@ namespace AElf.Kernel.Node.RPC
         private const string GetBlockHeight = "get_block_height";
         private const string GetBlockInfo = "get_block_info";
         private const string GetDeserializedInfo = "get_deserialized_info";
-
+        private const string SetBlockVolume = "set_block_volume";
         private const string CallReadOnly = "call";
 
         /// <summary>
@@ -48,6 +50,7 @@ namespace AElf.Kernel.Node.RPC
         private readonly List<string> _rpcCommands = new List<string>
         {
             BroadcastTxMethodName,
+            BroadcastTxsMethodName,
             GetCommandsMethodName,
             GetIncrementIdMethodName,
             GetContractAbi,
@@ -57,7 +60,8 @@ namespace AElf.Kernel.Node.RPC
             GetBlockHeight,
             GetBlockInfo,
             GetDeserializedInfo,
-            CallReadOnly
+            CallReadOnly,
+            SetBlockVolume
         };
 
         /// <summary>
@@ -95,10 +99,6 @@ namespace AElf.Kernel.Node.RPC
                 var url = "http://" + rpcHost + ":" + rpcPort;
                 var host = new WebHostBuilder()
                     .UseKestrel()
-                    .UseLibuv(opts =>
-                    {
-                        opts.ThreadCount = 24;
-                    })
                     .UseUrls(url)
                     .ConfigureLogging((hostingContext, logging) => { })
                     .Configure(a => a.Run(ProcessAsync))
@@ -108,7 +108,7 @@ namespace AElf.Kernel.Node.RPC
             }
             catch (Exception e)
             {
-                _logger.LogException(LogLevel.Error, "Error while starting the RPC server.", e);
+                _logger.Log(LogLevel.Error, e, "Error while starting the RPC server.");
                 return false;
             }
 
@@ -132,7 +132,7 @@ namespace AElf.Kernel.Node.RPC
             }
             catch (Exception e)
             {
-                _logger.LogException(LogLevel.Error, "Error while parsing the RPC request.", e);
+                _logger.Log(LogLevel.Error, e, "Error while parsing the RPC request.");
                 return null;
             }
         }
@@ -192,68 +192,95 @@ namespace AElf.Kernel.Node.RPC
                 var methodName = JToken.FromObject(request["method"]).ToObject<string>();
                 var reqParams = JObject.FromObject(request["params"]);
 
-                JObject responseData = null;
+                JObject response = null;
                 switch (methodName)
                 {
                     /*case GetTxMethodName:
-                        responseData = await ProcessGetTx(reqParams);
+                        response = await ProcessGetTx(reqParams);
                         break;*/
                     /*case InsertTxMethodName:
-                        responseData = await ProcessInsertTx(reqParams);
+                        response = await ProcessInsertTx(reqParams);
                         break;*/
                     case BroadcastTxMethodName:
-                        responseData = await ProcessBroadcastTx(reqParams);
+                        response = await ProcessBroadcastTx(reqParams);
+                        break;
+                    case BroadcastTxsMethodName:
+                        response = await ProcessBroadcastTxs(reqParams);
                         break;
                     /*case GetPeersMethodName:
                         responseData = await ProcessGetPeers(reqParams);
                         break;*/
                     case GetCommandsMethodName:
-                        responseData = ProcessGetCommands();
+                        response = ProcessGetCommands();
                         break;
                     case GetIncrementIdMethodName:
-                        responseData = await ProcessGetIncrementId(reqParams);
+                        response = await ProcessGetIncrementId(reqParams);
                         break;
                     /*case BroadcastBlockMethodName:
                         responseData = await ProcessBroadcastBlock(reqParams);
                         break;*/
                     case GetContractAbi:
-                        responseData = await ProcessGetContractAbi(reqParams);
+                        response = await ProcessGetContractAbi(reqParams);
                         break;
                     case GetTxResultMethodName:
-                        responseData = await ProcGetTxResult(reqParams);
+                        response = await ProcGetTxResult(reqParams);
                         break;
                     case GetGenesisiAddress:
-                        responseData = await ProGetGenesisAddress(reqParams);
+                        response = await ProGetGenesisAddress(reqParams);
                         break;
                     case GetBlockHeight:
-                        responseData = await ProGetBlockHeight(reqParams);
+                        response = await ProGetBlockHeight(reqParams);
                         break;
                     case GetBlockInfo:
-                        responseData = await ProGetBlockInfo(reqParams);
+                        response = await ProGetBlockInfo(reqParams);
                         break;
                     case GetDeserializedInfo:
-                        responseData = ProGetDeserializedInfo(reqParams);
+                        response = ProGetDeserializedInfo(reqParams);
                         break;
                     case CallReadOnly:
-                        responseData = await ProcessCallReadOnly(reqParams);
+                        response = await ProcessCallReadOnly(reqParams);
+                        break;
+                    case SetBlockVolume:
+                        response = ProcSetBlockVolume(reqParams);
                         break;
                     default:
                         Console.WriteLine("Method name not found"); // todo log
                         break;
                 }
 
-                if (responseData == null)
+                if (response == null)
                 {
                     // todo write error 
                 }
 
-                var resp = JsonRpcHelpers.CreateResponse(responseData, reqId);
-
+                var resp = JsonRpcHelpers.CreateResponse(response, reqId);
                 await WriteResponse(context, resp);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
+            }
+        }
+
+        private JObject ProcSetBlockVolume(JObject reqParams)
+        {
+            try
+            {
+                var min = ulong.Parse(reqParams["minimal"].ToString());
+                var max = ulong.Parse(reqParams["maximal"].ToString());
+                _node.SetBlockVolume(min, max);
+                return new JObject
+                {
+                    ["result"] = "Success"
+                };
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return new JObject
+                {
+                    ["error"] = "Failed"
+                };
             }
         }
 
@@ -297,6 +324,7 @@ namespace AElf.Kernel.Node.RPC
                 return error;
 
             var transactionPoolSize = await _node.GetTransactionPoolSize();
+
             var response = new JObject
             {
                 ["result"] = new JObject
@@ -318,6 +346,18 @@ namespace AElf.Kernel.Node.RPC
                     ["CurrentTransactionPoolSize"] = transactionPoolSize
                 }
             };
+           
+            if (reqParams["include_txs"] != null && reqParams["include_txs"].Value<Boolean>())
+            {
+                var transactions = blockinfo.Body.Transactions;
+                var txs = new List<string>();
+                foreach (var txHash in transactions)
+                {
+                    txs.Add(txHash.ToHex());
+                }
+
+                response["result"]["Body"]["Transactions"] = JArray.FromObject(txs);
+            }
 
             return JObject.FromObject(response);
         }
@@ -338,13 +378,15 @@ namespace AElf.Kernel.Node.RPC
 
         private Task<JObject> ProGetGenesisAddress(JObject reqParams)
         {
-            var genesisHash = _node.GetGenesisContractHash();
             var chainId = _node.ChainId;
+            var basicContractZero = _node.GetGenesisContractHash(SmartContractType.BasicContractZero);
+            var tokenContract = _node.GetGenesisContractHash(SmartContractType.TokenContract);
             var response = new JObject
             {
                 ["result"] = new JObject
                 {
-                    ["genesis_contract"] = genesisHash.ToHex(),
+                    [SmartContractType.BasicContractZero.ToString()] = basicContractZero.ToHex(),
+                    [SmartContractType.TokenContract.ToString()] = tokenContract.ToHex(),
                     ["chain_id"] = chainId.ToHex()
                 }
             };
@@ -367,11 +409,15 @@ namespace AElf.Kernel.Node.RPC
                 });
             }
 
+            var transaction = await _node.GetTransaction(txHash);
+
+            var txInfo = transaction == null ? new JObject {["tx"] = "Not Found"} : transaction.GetTransactionInfo();
+
             var txResult = await _node.GetTransactionResult(txHash);
             var response = new JObject
             {
-                ["tx_id"] = txResult.TransactionId.ToHex(),
-                ["tx_status"] = txResult.Status.ToString()
+                ["tx_status"] = txResult.Status.ToString(),
+                ["tx_info"] = txInfo["tx"]
             };
 
             if (txResult.Status == Status.Failed)
@@ -417,10 +463,9 @@ namespace AElf.Kernel.Node.RPC
 
         private async Task<JObject> ProcessGetContractAbi(JObject reqParams)
         {
-            var addr = reqParams["address"] == null
-                ? _node.GetGenesisContractHash().ToHex()
-                : reqParams["address"].ToString();
-
+            var addr = reqParams["address"]?.ToString();
+            
+            
             JObject response;
             try
             {
@@ -429,7 +474,14 @@ namespace AElf.Kernel.Node.RPC
                     Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(addr))
                 };
 
-                var abi = await _node.GetContractAbi(addrHash);
+                IMessage abi;
+                if (reqParams["name"] != null)
+                    abi = await _node.GetContractAbi(addrHash, reqParams["name"].ToString());
+                else
+                {
+                    abi = await _node.GetContractAbi(addrHash);
+                }
+
                 response = new JObject
                 {
                     ["address"] = addr,
@@ -474,6 +526,26 @@ namespace AElf.Kernel.Node.RPC
 
             response = new JObject {["hash"] = transaction.GetHash().ToHex()};
             return JObject.FromObject(response);
+        }
+
+        private async Task<JObject> ProcessBroadcastTxs(JObject reqParams)
+        {
+            var response = new List<object>();
+            int count = 0;
+            foreach (var rawtx in reqParams["rawtxs"].ToString().Split(','))
+            {
+                var result = await ProcessBroadcastTx(new JObject {["rawtx"] = rawtx});
+                if (result.ContainsKey("error"))
+                    break;
+                response.Add(result["hash"].ToString());
+                count++;
+            }
+            _logger.Log(LogLevel.Info, "Batch request pass count number:" + count.ToString());
+            
+            return new JObject
+            {
+                ["result"] = JToken.FromObject(response)
+            };
         }
 
         private async Task<JObject> ProcessCallReadOnly(JObject reqParams)

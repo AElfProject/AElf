@@ -18,18 +18,6 @@ namespace AElf.Contracts.Token.Tests
 
         private IExecutive Executive { get; set; }
 
-        public byte[] Code
-        {
-            get
-            {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
-            }
-        }
         
         public TokenContractTest(MockSetup mock)
         {
@@ -39,20 +27,21 @@ namespace AElf.Contracts.Token.Tests
 
         private void Init()
         {
-            _contractZero = new ContractZeroShim(_mock);
-            _contractZero.DeploySmartContract(0, Code);
-            var address = new Hash(_contractZero.TransactionContext.Trace.RetVal.Data.DeserializeToBytes());
-            _contract = new TokenContractShim(_mock, address);
+            _contract = new TokenContractShim(_mock, 
+                new Hash(_mock.ChainId1.CalculateHashWith(SmartContractType.TokenContract.ToString())).ToAccount());
         }
 
         [Fact]
         public void Test()
         {
-            _contractZero.GetContractOwner(_contract.Address);
-            
+            /*_contract.GetContractOwner(new Hash(_mock.ChainId1.CalculateHashWith(SmartContractType.BasicContractZero.ToString())).ToAccount());
+            Assert.Null(_contract.TransactionContext.Trace.StdErr);
+            var owner = _contract.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Hash>();
+
+            Assert.Equal(_contract.Sender, owner);*/
             // Initialize
             _contract.Initialize("ELF", "AElf Token", 1000000000, 2);
-            Assert.Null(_contract.TransactionContext.Trace.StdErr);
+            Assert.True(string.IsNullOrEmpty(_contract.TransactionContext.Trace.StdErr));
             Assert.True(_contract.TransactionContext.Trace.IsSuccessful());
             
             // Basic info query

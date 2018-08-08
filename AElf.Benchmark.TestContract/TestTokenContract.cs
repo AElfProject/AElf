@@ -14,11 +14,6 @@ namespace AElf.Benchmark.TestContract
         [SmartContractFieldData("${this}.TokenContractName", DataAccessMode.ReadOnlyAccountSharing)]
         public StringField TokenContractName;
         
-        public bool Initialize(string tokenContractName, Hash owner)
-        {
-            TokenContractName.SetValue(tokenContractName);
-            return true;
-        }
         
         [SmartContractFunction("${this}.InitBalance", new string[]{}, new []{"${this}.Balances"})]
         public bool InitBalance(Hash addr)

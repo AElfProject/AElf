@@ -33,6 +33,7 @@ namespace AElf.Kernel.Tests
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             smartContractRunnerFactory.AddRunner(0, runner);
+            smartContractRunnerFactory.AddRunner(1, runner);
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
             // configure your container
             // e.g. builder.RegisterModule<TestOverrideModule>();

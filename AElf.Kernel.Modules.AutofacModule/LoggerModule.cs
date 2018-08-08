@@ -33,7 +33,8 @@ namespace AElf.Kernel.Modules.AutofacModule
                 }
                 else
                 {
-                    target.FileName = "logs/" + _nodeName + "-log.txt";
+                    target.FileName = "logs/" + _nodeName + ".log";
+                    target.ArchiveFileName = "logs/archives/" + _nodeName + "--{#}.arc";
                 }
                 
                 LogManager.ReconfigExistingLoggers();

@@ -37,6 +37,8 @@ namespace AElf.Network.Peers
         {
             get { return RetryCount >= MaxRetryCount; }
         }
+        
+        public double Timeout { get; }
 
         private TimeoutRequest(Message msg, double timeout)
         {
@@ -46,6 +48,8 @@ namespace AElf.Network.Peers
             _timeoutTimer.Interval = timeout;
             _timeoutTimer.Elapsed += TimerTimeoutElapsed;
             _timeoutTimer.AutoReset = false;
+
+            Timeout = timeout;
         }
 
         public TimeoutRequest(byte[] itemHash, Message msg, double timeout)

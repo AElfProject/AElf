@@ -14,6 +14,7 @@ namespace AElf.Network
         void QueueTransactionRequest(byte[] transaction, IPeer hint);
         void QueueBlockRequestByIndex(int index);
 
+        Task<int> BroadcastBock(byte[] hash, byte[] payload);
         Task<int> BroadcastMessage(MessageType messageType, byte[] payload);
     }
 }

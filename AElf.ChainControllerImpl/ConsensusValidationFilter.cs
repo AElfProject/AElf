@@ -12,7 +12,7 @@ using AElf.Kernel;
 namespace AElf.ChainController
 {
     [LoggerName(nameof(ConsensusBlockValidationFilter))]
-    public class ConsensusBlockValidationFilter
+    public class ConsensusBlockValidationFilter: IBlockValidationFilter
     {
         private readonly ISmartContractService _smartContractService;
         private readonly ILogger _logger;
@@ -36,7 +36,7 @@ namespace AElf.ChainController
             var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             
             //Calculate the address of smart contract zero
-            var contractAccountHash = new Hash(context.ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            var contractAccountHash = new Hash(context.ChainId.CalculateHashWith(Globals.ConsensusContract)).ToAccount();
 
             var timestampOfBlock = block.Header.Time;
             

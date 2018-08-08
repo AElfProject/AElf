@@ -15,10 +15,10 @@ namespace AElf.ChainController
         Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx);
 
         /// <summary>
-        /// remove a tx
+        /// remove a tx from collection not pool
         /// </summary>
         /// <param name="txHash"></param>
-        Task RemoveAsync(Hash txHash);
+        void RemoveAsync(Hash txHash);
 
         /// <summary>
         /// remove tx with worst price
@@ -29,16 +29,8 @@ namespace AElf.ChainController
         /// return ready txs can be executed 
         /// </summary>
         /// <returns></returns>
-        Task<List<ITransaction>> GetReadyTxsAsync(ulong limit);
+        Task<List<ITransaction>> GetReadyTxsAsync();
 
-        /// <summary>
-        /// promote txs from waiting list to executable
-        /// return true if promotable
-        /// otherwis return true
-        /// </summary>
-        /// <returns></returns>
-        Task<bool> PromoteAsync();
-        
         /// <summary>
         /// return pool size
         /// </summary>
@@ -59,18 +51,6 @@ namespace AElf.ChainController
         /// <param name="block"></param>
         /// <returns></returns>
         List<Hash> GetMissingTransactions(IBlock block);
-
-        /// <summary>
-        /// clear tx pool
-        /// </summary>
-        /// <returns></returns>
-        Task ClearAsync();
-
-        /// <summary>
-        /// persistent Tx pool to storage
-        /// </summary>
-        /// <returns></returns>
-        Task SavePoolAsync();
 
         /// <summary>
         /// return size of waiting list
@@ -108,14 +88,7 @@ namespace AElf.ChainController
         /// </summary>
         Task Stop();
 
-        Task<ulong> GetIncrementId(Hash addr);
-        
-        /// <summary>
-        /// promote txs from some addresses
-        /// </summary>
-        /// <param name="addresses"></param>
-        /// <returns></returns>
-        Task PromoteAsync(List<Hash> addresses);
+        ulong GetIncrementId(Hash addr, bool isDPoS = false);
 
         /// <summary>
         /// 
@@ -131,5 +104,7 @@ namespace AElf.ChainController
         /// </summary>
         /// <returns></returns>
         Task RollBack(List<ITransaction> txsOut);
+
+        void SetBlockVolume(ulong minimal, ulong maximal);
     }
 }

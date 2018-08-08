@@ -2,8 +2,7 @@
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
-// ReSharper disable once CheckNamespace
-namespace AElf.Contracts.Genesis.ConsensusContract
+namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
 {
     // ReSharper disable once InconsistentNaming
     public class AElfDPoSFiledMapCollection
@@ -16,5 +15,6 @@ namespace AElf.Contracts.Genesis.ConsensusContract
         public Map<UInt64Value, StringValue> EBPMap;
         public PbField<Timestamp> TimeForProducingExtraBlockField;
         public Map<UInt64Value, StringValue> FirstPlaceMap;
+        public PbField<Int32Value> MiningIntervalField;
     }
 }

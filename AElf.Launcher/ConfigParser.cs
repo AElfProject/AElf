@@ -9,6 +9,7 @@ using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Node;
 using AElf.Kernel.Node.Config;
+using AElf.Kernel.Types;
 using AElf.Network.Config;
 using AElf.Network.Data;
 using AElf.Runtime.CSharp;
@@ -32,6 +33,7 @@ namespace AElf.Launcher
         public string RpcHost { get; private set; }
         public string DataDir { get; private set; }
         public string NodeAccount { get; set; }
+        public string NodeAccountPassword { get; set; }
 
         public bool Success { get; private set; }
         public bool IsMiner { get; private set; }
@@ -69,6 +71,7 @@ namespace AElf.Launcher
             RpcPort = opts.RpcPort;
             RpcHost = opts.RpcHost;
             NodeAccount = opts.NodeAccount;
+            NodeAccountPassword = opts.NodeAccountPassword;
             InitData = opts.InitData;
 
             // Network
@@ -126,6 +129,31 @@ namespace AElf.Launcher
                 IsConsensusInfoGenerater = true;
             }
 
+            Globals.ConsensusType = opts.ConsensusType;
+            Console.WriteLine($"Using consensus: {opts.ConsensusType}");
+
+            if (opts.ConsensusType == ConsensusType.AElfDPoS)
+            {
+                Globals.AElfDPoSMiningInterval = opts.AElfDPoSMiningInterval;
+                if (opts.IsConsensusInfoGenerator)
+                {
+                    Console.WriteLine($"Mining interval: {Globals.AElfDPoSMiningInterval} ms");
+                }
+            }
+
+            if (opts.ConsensusType == ConsensusType.PoTC)
+            {
+                Globals.BlockProducerNumber = 1;
+                Globals.ExpectedTransanctionCount = opts.ExpectedTxsCount;
+            }
+
+            if (opts.ConsensusType == ConsensusType.SingleNode)
+            {
+                Globals.BlockProducerNumber = 1;
+                Globals.SingleNodeTestMiningInterval = opts.MiningInterval;
+                Console.WriteLine($"Mining interval: {Globals.SingleNodeTestMiningInterval} ms");
+            }
+
             if (opts.NewChain)
             {
                 IsMiner = true;
@@ -144,14 +172,14 @@ namespace AElf.Launcher
 
             MinerConfig = new MinerConfig
             {
-                CoinBase = Coinbase,
-                TxCount = opts.TxCountLimit
+                CoinBase = Coinbase
             };
 
             // tx pool config
             TxPoolConfig = ChainController.TxPoolConfig.Default;
             TxPoolConfig.FeeThreshold = opts.MinimalFee;
             TxPoolConfig.PoolLimitSize = opts.PoolCapacity;
+            TxPoolConfig.Maximal = opts.TxCountLimit;
 
             // node config
             NodeConfig = new NodeConfig

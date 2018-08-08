@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Linq;
@@ -90,7 +91,7 @@ namespace AElf.Contracts.Genesis.Tests
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.Zero
             };
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
+            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
             var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
             DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId1));
         }

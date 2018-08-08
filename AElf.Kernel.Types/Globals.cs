@@ -1,35 +1,48 @@
 ﻿using AElf.Kernel.Types;
 
+// ReSharper disable InconsistentNaming
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public static class Globals
     {
         public static readonly string GenesisSmartContractZeroAssemblyName = "AElf.Contracts.Genesis";
-        public static readonly string GenesisSmartContractLastName = ".ContractZeroWithAElfDPoS";
-        public static readonly string SmartContractZeroIdString = "__SmartContractZero__";
+        public static readonly string GenesisConsensusContractAssemblyName = "AElf.Contracts.Consensus";
+        public static readonly string GenesisTokenContractAssemblyName = "AElf.Contracts.Token";
+
+
+        public static readonly string GenesisBasicContract = SmartContractType.BasicContractZero.ToString();
         
-        public static readonly ConsensusType ConsensusType = ConsensusType.AElfDPoS;
-        public static int BlockProducerNumber = 3;
+        public static readonly string ConsensusContract = SmartContractType.AElfDPoS.ToString();
+        
+        public static ConsensusType ConsensusType = ConsensusType.AElfDPoS;
+        public static int BlockProducerNumber = 0;
+        public const int AElfLogInterval = 900;
 
         #region AElf DPoS
 
-        public const int AElfMiningTime = 8000;
-        public const int AElfCheckTime = 1000;
+        public const int AElfDPoSLogRoundCount = 3;
+        public static int AElfDPoSMiningInterval = 4000;
         public const int AElfWaitFirstRoundTime = 1000;
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSCurrentRoundNumber = "AElfCurrentRoundNumber";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSBlockProducerString = "AElfBlockProducer";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSInformationString = "AElfDPoSInformation";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSExtraBlockProducerString = "AElfExtraBlockProducer";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSExtraBlockTimeslotString = "AElfExtraBlockTimeslot";
-        // ReSharper disable once InconsistentNaming
-        public const string AElfDPoSChainCreatorString = "AElfChainCreator";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSFirstPlaceOfEachRoundString = "AElfFirstPlaceOfEachRound";
+        public const string AElfDPoSMiningIntervalString = "AElfDPoSMiningInterval";
+
+        #endregion
+
+        #region PoTC
+
+        public static ulong ExpectedTransanctionCount = 8000;
+
+        #endregion
+
+        #region Single node test
+
+        public static int SingleNodeTestMiningInterval = 4000;
 
         #endregion
     }

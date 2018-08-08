@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -53,7 +54,7 @@ namespace AElf.Kernel.Tests
             };
 
             var chainId = Hash.Generate();
-            var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
+            var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
 
             // add chain to storage
             
@@ -85,7 +86,7 @@ namespace AElf.Kernel.Tests
             };
 
             var chainId = Hash.Generate();
-            var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
+            var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
 
             // add chain to storage
             

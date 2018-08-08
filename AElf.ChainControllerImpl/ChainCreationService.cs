@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
@@ -25,16 +26,19 @@ namespace AElf.ChainController
         /// </summary>
         /// <returns>The new chain async.</returns>
         /// <param name="chainId">The new chain id which will be derived from the creator address.</param>
-        /// <param name="smartContractRegistration">Thec smart contract registration containing the code of the SmartContractZero.</param>
-        public async Task<IChain> CreateNewChainAsync(Hash chainId, SmartContractRegistration smartContractRegistration)
+        /// <param name="smartContractRegistration">The smart contract registration containing the code of the SmartContractZero.</param>
+        public async Task<IChain> CreateNewChainAsync(Hash chainId, List<SmartContractRegistration> smartContractRegistration)
         {
             try
             {
                 // TODO: Centralize this function in Hash class
                 // SmartContractZero address can be derived from ChainId
-                var contractAddress = GenesisContractHash(chainId);
-                await _smartContractService.DeployContractAsync(chainId, contractAddress, smartContractRegistration,
-                    true);
+                foreach (var reg in smartContractRegistration)
+                {
+                    var contractAddress = GenesisContractHash(chainId, (SmartContractType) reg.Type);
+                    await _smartContractService.DeployContractAsync(chainId, contractAddress, reg, true);
+                }
+                
                 var builder = new GenesisBlockBuilder();
                 builder.Build(chainId);
 
@@ -52,9 +56,9 @@ namespace AElf.ChainController
             }
         }
 
-        public Hash GenesisContractHash(Hash chainId)
+        public Hash GenesisContractHash(Hash chainId, SmartContractType contractType)
         {
-            return new Hash(chainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            return new Hash(chainId.CalculateHashWith(contractType.ToString())).ToAccount();
         }
     }
 }

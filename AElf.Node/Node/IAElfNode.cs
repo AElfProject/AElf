@@ -7,7 +7,8 @@ namespace AElf.Kernel.Node
 {
     public interface IAElfNode
     {
-        bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData, byte[] code);
+        bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData, byte[] code,
+            byte[] consensusGenesisContractCode, byte[] basicContractZero);
 
         Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block);
 
@@ -21,10 +22,10 @@ namespace AElf.Kernel.Node
 
         IDisposable ConsensusDisposable { get; set; }
 
-        ulong CurrentRoundNumber { get; set; }
+        ulong ConsensusMemory { get; set; }
 
         // ReSharper disable once InconsistentNaming
-        Task CheckUpdatingDPoSProcess();
+        Task CheckUpdatingConsensusProcess();
 
         int IsMiningInProcess { get; }
     }

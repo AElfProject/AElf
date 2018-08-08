@@ -48,6 +48,11 @@ namespace AElf.Kernel
         /// </summary>
         /// <returns></returns>
         int Size();
+        
+        /// <summary>
+        /// transaction type
+        /// </summary>
+        TransactionType Type { get; set; }
     }
 
 }
