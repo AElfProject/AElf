@@ -8,10 +8,12 @@ namespace AElf.Network.Peers
     {
         event EventHandler MessageReceived;
         event EventHandler PeerDisconnected;
-        event EventHandler PeerAuthentified;
+        event EventHandler AuthFinished;
         
         string IpAddress { get; }
         ushort Port { get; }
+
+        bool Start();
         
         NodeData DistantNodeData { get; }
 

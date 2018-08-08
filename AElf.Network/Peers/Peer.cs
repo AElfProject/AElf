@@ -67,21 +67,17 @@ namespace AElf.Network.Peers
         /// <summary>
         /// The event that's raised when the authentification phase has finished.
         /// </summary>
-        public event EventHandler PeerAuthentified;
+        public event EventHandler AuthFinished; 
         
         public bool IsClosed { get; private set; }
-        public bool IsAuthentified { get; set; }
-        
-        /// <summary>
-        /// The data relative to the current nodes identity.
-        /// </summary>
-        //private NodeData _nodeData; // todo readonly
+        public bool IsAuthentified { get; private set; }
 
+        /// <summary>
+        /// This nodes listening port.
+        /// </summary>
         private int _port;
         
         private TcpClient _client;
-
-        private bool _isListening = false;
         
         public int PacketsReceivedCount { get; private set; }
         
@@ -93,22 +89,6 @@ namespace AElf.Network.Peers
         private TimeSpan pingWaitTime = TimeSpan.FromSeconds(2);
 
         private int _droppedPings = 0;
-        
-        public Peer(int port)
-        {
-            _pingPongTimer = new Timer();
-            SetupHeartbeat();
-            
-            _port = port;
-            _logger = LogManager.GetLogger(LoggerName);
-        }
-
-        private void SetupHeartbeat()
-        {
-            _pingPongTimer.Interval = _defaultPingInterval;
-            _pingPongTimer.Elapsed += TimerTimeoutElapsed;
-            _pingPongTimer.AutoReset = true;
-        }
         
         /// <summary>
         /// The data received after the initial connection.
@@ -130,37 +110,41 @@ namespace AElf.Network.Peers
             get { return DistantNodeData?.Port != null ? (ushort) DistantNodeData?.Port : (ushort)0; }
         }
         
-        /// <summary>
-        /// This method set the peers underliying tcp client. This method is intended to be
-        /// called when the internal state is clean - meaning that either the object has just
-        /// been contructed or has just been closed. 
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="reader"></param>
-        /// <param name="writer"></param>
-        public void Initialize(TcpClient client)
+        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port)
         {
-            if (_messageReader != null || _messageWriter != null || _client != null)
+            _pingPongTimer = new Timer();
+            SetupHeartbeat();
+            
+            _port = port;
+            _logger = LogManager.GetLogger(LoggerName);
+            
+            _client = client;
+            
+            _messageReader = reader;
+            _messageWriter = writer;
+        }
+
+        private void SetupHeartbeat()
+        {
+            _pingPongTimer.Interval = _defaultPingInterval;
+            _pingPongTimer.Elapsed += TimerTimeoutElapsed;
+            _pingPongTimer.AutoReset = true;
+        }
+        
+        public bool Start()
+        {
+            if (_messageReader == null || _messageWriter == null || _client == null)
             {
-                _logger.Trace("Could not initialize, some components aren't cleared.");
+                _logger.Trace("Could not initialize, null components.");
+                return false;
             }
             
             try
             {
-                _client = client;
-            
-                var stream = client.GetStream();
-            
-                MessageReader reader = new MessageReader(stream);
-                //_messageReader = reader;
-            
-                MessageWriter writer = new MessageWriter(stream);
-                //_messageWriter = writer;
-                
                 _messageReader.PacketReceived += ClientOnPacketReceived;
                 _messageReader.StreamClosed += MessageReaderOnStreamClosed;
             
-                _messageReader.Start(); 
+                _messageReader.Start();
                 _messageWriter.Start();
 
                 SendAuthentification();
@@ -168,7 +152,10 @@ namespace AElf.Network.Peers
             catch (Exception e)
             {
                 _logger.Trace(e, "Error while initializing the connection");
+                return false;
             }
+
+            return true;
         }
 
         private void MessageReaderOnStreamClosed(object sender, EventArgs eventArgs)
@@ -186,6 +173,7 @@ namespace AElf.Network.Peers
                 if (a.Message.Type == (int) MessageType.Auth)
                 {
                     HandleAuthResponse(a.Message);
+                    return;
                 }
                 
                 if (!IsAuthentified)
@@ -285,7 +273,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Trace("Failed Ping reply.");
+                _logger?.Trace(e, $"Failed to process ping message from {DistantNodeData}.");
             }
         }
 
@@ -307,7 +295,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Trace("Failed to handle pong message.");
+                _logger?.Trace(e, $"Failed to handle pong message from {DistantNodeData}.");
             }
         }
 
@@ -322,7 +310,7 @@ namespace AElf.Network.Peers
         /// <returns></returns>
         private void SendAuthentification()
         {
-            var nd = new NodeData {Port = _port};
+            var nd = new NodeData { Port = _port };
             byte[] packet = nd.ToByteArray();
             
             _messageWriter.EnqueueMessage(new Message { Type = (int)MessageType.Auth, Length = packet.Length, Payload = packet});
@@ -344,7 +332,7 @@ namespace AElf.Network.Peers
             
             _pingPongTimer.Start();
             
-            PeerAuthentified?.Invoke(this, EventArgs.Empty);
+            AuthFinished?.Invoke(this, EventArgs.Empty);
         }
 
         #endregion Authentification
