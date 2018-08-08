@@ -8,6 +8,7 @@ using AElf.ChainController;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
+using AElf.Kernel.Tests.BlockSyncTests;
 using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -62,28 +63,37 @@ namespace AElf.Kernel.Tests
         {
             // Data preparation
             var chain = await _blockTest.CreateChain();
-            var worldStateDirector = 
+            var worldStateDictator = 
                 new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
                     _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger).SetChainId(chain.Id);
-//            var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDirector);
+
             var blockchain = _chainService.GetBlockChain(chain.Id);
             
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             
             //because the hash value of block1 will be changed in appending operation, 
             //so reverse this two operations.
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block1 });
-            await worldStateDirector.SetWorldStateAsync(block1.GetHash());
+            await AddBlockAsync(blockchain, worldStateDictator, block1);
+            await worldStateDictator.SetWorldStateAsync(block1.GetHash());
 
             var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block2 });
-            await worldStateDirector.SetWorldStateAsync(block2.GetHash());
+            await AddBlockAsync(blockchain, worldStateDictator, block2);
+            await worldStateDictator.SetWorldStateAsync(block2.GetHash());
 
-            var worldState = await worldStateDirector.GetWorldStateAsync(block1.GetHash());
+            var worldState = await worldStateDictator.GetWorldStateAsync(block1.GetHash());
             
             Assert.NotNull(worldState);
         }
 
+        private async Task AddBlockAsync(IBlockChain blockchain, IWorldStateDictator worldStateDictator, IBlock block)
+        {
+            await blockchain.AddBlocksAsync(new List<IBlock>(){ block });
+            var height = block.Header.Index;
+            await worldStateDictator.SetBlockHashToCorrespondingHeight(
+                height, (BlockHeader) await blockchain.GetHeaderByHeightAsync(height)
+            );
+        }
+        
         [Fact]
         public async Task GetHistoryWorldStateRootTest()
         {
@@ -93,9 +103,13 @@ namespace AElf.Kernel.Tests
                 new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
                     _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
-//            var chainManger = new ChainManager(_chainStore, _dataStore, worldStateDictator);
-            var blockchain = _chainService.GetBlockChain(chain.Id);
 
+            var blockchain = _chainService.GetBlockChain(chain.Id);
+            await worldStateDictator.SetBlockHashToCorrespondingHeight(
+                0, (BlockHeader) await blockchain.GetHeaderByHeightAsync(0)
+            );
+            await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);
+            
             var key = new Hash("testkey".CalculateHash());
             
             var address = Hash.Generate();
@@ -115,8 +129,8 @@ namespace AElf.Kernel.Tests
             await subDataProvider4.SetAsync(key, data4);
             
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
+            await AddBlockAsync(blockchain, worldStateDictator, block1);
             await worldStateDictator.SetWorldStateAsync(block1.GetHash());
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block1 });
 
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
@@ -134,8 +148,8 @@ namespace AElf.Kernel.Tests
             
             var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
             await worldStateDictator.SetWorldStateAsync(block2.GetHash()); 
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block2 });
-
+            await AddBlockAsync(blockchain, worldStateDictator, block2);
+            
             //Test the continuity of changes (through two sequence world states).
             var getChanges1 = await worldStateDictator.GetChangesAsync(chain.GenesisBlockHash);
             var changes2 = await worldStateDictator.GetChangesAsync(block1.GetHash());
@@ -168,7 +182,7 @@ namespace AElf.Kernel.Tests
             Assert.True(getData1InHeight2.SequenceEqual(getData1));
 
             var block3 = CreateBlock(block2.GetHash(), chain.Id, 3);
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block3 });
+            await AddBlockAsync(blockchain, worldStateDictator, block3);
             await worldStateDictator.SetWorldStateAsync(block3.GetHash());
 
             var changes3 = await worldStateDictator.GetChangesAsync();
@@ -182,7 +196,7 @@ namespace AElf.Kernel.Tests
             await subDataProvider5.SetAsync(key, data8);
             
             var block4 = CreateBlock(block3.GetHash(), chain.Id, 4);
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block4 });
+            await AddBlockAsync(blockchain, worldStateDictator, block4);
             await worldStateDictator.SetWorldStateAsync(block4.GetHash());
 
             var changes4 = await worldStateDictator.GetChangesAsync(block3.GetHash());
@@ -198,6 +212,7 @@ namespace AElf.Kernel.Tests
             await subDataProvider5.SetAsync(key, data9);
             
             await worldStateDictator.RollbackCurrentChangesAsync();
+            worldStateDictator.PreBlockHash = ((BlockHeader)await blockchain.GetHeaderByHashAsync(worldStateDictator.PreBlockHash)).PreviousBlockHash;
             
             var getData9 = await subDataProvider5.GetAsync(key);
             Assert.False(data9.SequenceEqual(getData9));
@@ -208,6 +223,7 @@ namespace AElf.Kernel.Tests
         public async Task RollbackCurrentChangesTest()
         {
             var chain = await _blockTest.CreateChain();
+            
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             
             var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
@@ -215,6 +231,10 @@ namespace AElf.Kernel.Tests
                 .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
             var blockchain = _chainService.GetBlockChain(chain.Id);
+            await worldStateDictator.SetBlockHashToCorrespondingHeight(
+                0, (BlockHeader) await blockchain.GetHeaderByHeightAsync(0)
+            );
+            await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);
             
             var address = Hash.Generate();
             
@@ -229,7 +249,7 @@ namespace AElf.Kernel.Tests
             await subDataProvider.SetAsync(key1, data1);
             await subDataProvider.SetAsync(key2, data2);
             
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block1 });
+            await AddBlockAsync(blockchain, worldStateDictator, block1);
             await worldStateDictator.SetWorldStateAsync(block1.GetHash());
 
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
@@ -247,6 +267,7 @@ namespace AElf.Kernel.Tests
 
             //Do the rollback
             await worldStateDictator.RollbackCurrentChangesAsync();
+            worldStateDictator.PreBlockHash = ((BlockHeader)await blockchain.GetHeaderByHashAsync(worldStateDictator.PreBlockHash)).PreviousBlockHash;
 
             //Now the "key"'s value of subDataProvider rollback to previous data.
             var getData1 = await subDataProvider.GetAsync(key1);
@@ -264,8 +285,8 @@ namespace AElf.Kernel.Tests
             Assert.Equal(data4, await subDataProvider.GetAsync(key2));
 
             var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block2 });
             await worldStateDictator.SetWorldStateAsync(block2.GetHash());
+            await AddBlockAsync(blockchain, worldStateDictator, block2);
 
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
@@ -279,7 +300,8 @@ namespace AElf.Kernel.Tests
             Assert.Equal(data5, getData5);
 
             await worldStateDictator.RollbackCurrentChangesAsync();
-
+            worldStateDictator.PreBlockHash = ((BlockHeader)await blockchain.GetHeaderByHashAsync(worldStateDictator.PreBlockHash)).PreviousBlockHash;
+            
             getData3 = await subDataProvider.GetAsync(key1);
             Assert.Equal(data3, getData3);
         }
@@ -296,10 +318,12 @@ namespace AElf.Kernel.Tests
                 _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
-//            var chainManager = new ChainManager(_chainStore, _dataStore, worldStateDictator);
-//            var blockManager = new BlockManager(_blockHeaderStore, _blockBodyStore, _dataStore, _logger);
             var blockchain = _chainService.GetBlockChain(chain.Id);
-
+            await worldStateDictator.SetBlockHashToCorrespondingHeight(
+                0, (BlockHeader) await blockchain.GetHeaderByHeightAsync(0)
+            );
+            await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);
+            
             var key = new Hash("testkey".CalculateHash());
             
             var address = Hash.Generate();
@@ -314,9 +338,7 @@ namespace AElf.Kernel.Tests
             //--------------- set height 1 ---------------
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, ++index);
             await worldStateDictator.SetWorldStateAsync(block1.GetHash());
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block1 });
-//            await blockManager.AddBlockAsync(block1);
-//            await chainManager.AppendBlockToChainAsync(block1);
+            await AddBlockAsync(blockchain, worldStateDictator, block1);
 
             //----------------- height 2 -----------------
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
@@ -328,10 +350,8 @@ namespace AElf.Kernel.Tests
             //--------------- set height 2 ---------------
             var block2 = CreateBlock(block1.GetHash(), chain.Id, ++index);
             await worldStateDictator.SetWorldStateAsync(block2.GetHash());
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block2 });
-//            await blockManager.AddBlockAsync(block2);
-//            await chainManager.AppendBlockToChainAsync(block2);
-            
+            await AddBlockAsync(blockchain, worldStateDictator, block2);
+
             //----------------- height 3 -----------------
             //Though do nothing
             
@@ -346,11 +366,12 @@ namespace AElf.Kernel.Tests
             Assert.Equal(data2, await subDataProvider.GetAsync(key));
             
             //Do rollback - rollback world state to height 1
-            await worldStateDictator.RollbackToSpecificHeight(1);
+            await blockchain.RollbackToHeight(0);
+            await worldStateDictator.RollbackToBlockHash(chain.GenesisBlockHash);
+//            await worldStateDictator.RollbackToSpecificHeight(1);
             
             //Reset the index
             index = 0;
-            
             //Check result of rollback
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
@@ -368,10 +389,8 @@ namespace AElf.Kernel.Tests
             //--------------- set height 1 ---------------
             var block1Quote = CreateBlock(chain.GenesisBlockHash, chain.Id, ++index);
             await worldStateDictator.SetWorldStateAsync(block1Quote.GetHash());
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block1Quote });
-//            await blockManager.AddBlockAsync(block1Quote);
-//            await chainManager.AppendBlockToChainAsync(block1Quote);
-            
+            await AddBlockAsync(blockchain, worldStateDictator, block1Quote);
+
             //----------------- height 2 -----------------
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
@@ -381,11 +400,10 @@ namespace AElf.Kernel.Tests
             
             //--------------- set height 2 ---------------
             var block2Quote = CreateBlock(block1Quote.GetHash(), chain.Id, ++index);
-            await worldStateDictator.SetWorldStateAsync(block2Quote.GetHash());
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block2Quote });
-//            await blockManager.AddBlockAsync(block2Quote);
-//            await chainManager.AppendBlockToChainAsync(block2Quote);
 
+            await worldStateDictator.SetWorldStateAsync(block2Quote.GetHash());
+            await AddBlockAsync(blockchain, worldStateDictator, block2Quote);
+            
             //----------------- height 3 -----------------
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
@@ -396,10 +414,8 @@ namespace AElf.Kernel.Tests
             //--------------- set height 3 ---------------
             var block3Quote = CreateBlock(block2Quote.GetHash(), chain.Id, ++index);
             await worldStateDictator.SetWorldStateAsync(block3Quote.GetHash());
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block3Quote });
-//            await blockManager.AddBlockAsync(block3Quote);
-//            await chainManager.AppendBlockToChainAsync(block3Quote);
-            
+            await AddBlockAsync(blockchain, worldStateDictator, block3Quote);
+
             //----------------- height 4 -----------------
             //Though do nothing
 
@@ -410,11 +426,13 @@ namespace AElf.Kernel.Tests
             Assert.Equal("4", (await getNextHeight()).ToString());
 
             //Let's rollback to height 2
-            await worldStateDictator.RollbackToSpecificHeight(2);
+            
+            await blockchain.RollbackToHeight(block1Quote.Header.Index);
+            await worldStateDictator.RollbackToBlockHash(block1Quote.GetHash());
+//            await worldStateDictator.RollbackToSpecificHeight(2);
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
             subDataProvider = dataProvider.GetDataProvider("test");
-            
             //And check
             Assert.Equal("2", (await getNextHeight()).ToString());
             Assert.Equal(data4, await subDataProvider.GetAsync(key));
@@ -431,8 +449,6 @@ namespace AElf.Kernel.Tests
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
             var blockchain = _chainService.GetBlockChain(chain.Id);
-//            var chainManager = new ChainManager(_chainStore, _dataStore, worldStateDictator);
-//            var blockManager = new BlockManager(_blockHeaderStore, _blockBodyStore, _dataStore, _logger);
 
             var key = new Hash("testkey".CalculateHash());
             
@@ -448,9 +464,7 @@ namespace AElf.Kernel.Tests
             //--------------- set height 1 ---------------
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             await worldStateDictator.SetWorldStateAsync(block1.GetHash());
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block1 });
-//            await blockManager.AddBlockAsync(block1);
-//            await chainManager.AppendBlockToChainAsync(block1);
+            await AddBlockAsync(blockchain, worldStateDictator, block1);
 
             //----------------- height 2 -----------------
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
@@ -462,14 +476,14 @@ namespace AElf.Kernel.Tests
             //--------------- set height 2 ---------------
             var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
             await worldStateDictator.SetWorldStateAsync(block2.GetHash());
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block2 });
-//            await blockManager.AddBlockAsync(block2);
-//            await chainManager.AppendBlockToChainAsync(block2);
+            await AddBlockAsync(blockchain, worldStateDictator, block2);
             
             //------------ create height 2 again------------
             var block2Again = CreateBlock(block1.GetHash(), chain.Id, 2);
             //Assuming the validation filter result is ValidationError.Orphan, and passed the consensus validation
-            await worldStateDictator.RollbackToSpecificHeight(block2Again.Header.Index);
+//            await worldStateDictator.RollbackToSpecificHeight(block2Again.Header.Index);
+            await blockchain.RollbackToHeight(block1.Header.Index);
+            await worldStateDictator.RollbackToBlockHash(block1.Header.GetHash());
 
             var getNextHeight = new Func<Task<ulong>>(async () =>
             {
@@ -482,9 +496,7 @@ namespace AElf.Kernel.Tests
             
             //--------------- set height 2 ---------------
             await worldStateDictator.SetWorldStateAsync(block2Again.GetHash());
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block2Again });
-//            await blockManager.AddBlockAsync(block2Again);
-//            await chainManager.AppendBlockToChainAsync(block2Again);
+            await AddBlockAsync(blockchain, worldStateDictator, block2Again);
 
             Assert.Equal("3", (await getNextHeight()).ToString());
         }
