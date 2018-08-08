@@ -82,7 +82,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
             var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
 
-            var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
             var copy = await _smartContractManager.GetAsync(contractAddressZero);
 
             // throw exception if not registered
@@ -103,7 +103,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
 
             var code = ExampleContractCode;
-            var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
 
             var txnDep = new Transaction()
             {
@@ -122,7 +122,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply(true);
             
-            Assert.Null(txnCtxt.Trace.StdErr);
+            Assert.True(string.IsNullOrEmpty(txnCtxt.Trace.StdErr));
             
             var address = txnCtxt.Trace.RetVal.Data.DeserializeToBytes();
 
@@ -154,7 +154,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var code = ExampleContractCode;
 
-            var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
 
             var txnDep = new Transaction()
             {

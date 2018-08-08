@@ -177,7 +177,7 @@ namespace AElf.Kernel.Tests.Miner
 
         public List<ITransaction> CreateTxs(Hash chainId)
         {
-            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
 
             var code = ExampleContractCode;
             

@@ -15,5 +15,6 @@ namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
         public Map<UInt64Value, StringValue> EBPMap;
         public PbField<Timestamp> TimeForProducingExtraBlockField;
         public Map<UInt64Value, StringValue> FirstPlaceMap;
+        public PbField<Int32Value> MiningIntervalField;
     }
 }

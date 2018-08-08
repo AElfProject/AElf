@@ -1,5 +1,6 @@
 ﻿using AElf.Kernel.Types;
 
+// ReSharper disable InconsistentNaming
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
@@ -10,37 +11,38 @@ namespace AElf.Kernel
         public static readonly string GenesisTokenContractAssemblyName = "AElf.Contracts.Token";
 
 
-        public static readonly string GenesisBasicContract = "BasicContractZero";
-        public static readonly string SmartContractZeroIdString = SmartContractType.BasicContractZero.ToString();
+        public static readonly string GenesisBasicContract = SmartContractType.BasicContractZero.ToString();
+        
+        public static readonly string ConsensusContract = SmartContractType.AElfDPoS.ToString();
         
         public static ConsensusType ConsensusType = ConsensusType.AElfDPoS;
         public static int BlockProducerNumber = 0;
+        public const int AElfLogInterval = 900;
 
         #region AElf DPoS
 
-        // ReSharper disable once InconsistentNaming
         public const int AElfDPoSLogRoundCount = 3;
-        public const int AElfMiningTime = 4000;
-        public const int AElfCheckTime = 1000;
+        public static int AElfDPoSMiningInterval = 4000;
         public const int AElfWaitFirstRoundTime = 1000;
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSCurrentRoundNumber = "AElfCurrentRoundNumber";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSBlockProducerString = "AElfBlockProducer";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSInformationString = "AElfDPoSInformation";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSExtraBlockProducerString = "AElfExtraBlockProducer";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSExtraBlockTimeslotString = "AElfExtraBlockTimeslot";
-        // ReSharper disable once InconsistentNaming
         public const string AElfDPoSFirstPlaceOfEachRoundString = "AElfFirstPlaceOfEachRound";
+        public const string AElfDPoSMiningIntervalString = "AElfDPoSMiningInterval";
 
         #endregion
 
         #region PoTC
 
-        public static int ExpectedTransanctionCount = 8000;
+        public static ulong ExpectedTransanctionCount = 8000;
+
+        #endregion
+
+        #region Single node test
+
+        public static int SingleNodeTestMiningInterval = 4000;
 
         #endregion
     }

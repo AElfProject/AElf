@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Execution";
+
+import "hash.proto";
+import "kernel.proto";
+import "smartcontract.proto";
+
+message TransactionTraceMessage
+{
+    int64 RequestId = 1;
+    repeated TransactionTrace TransactionTraces = 2;
+}

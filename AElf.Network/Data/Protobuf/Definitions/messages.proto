@@ -2,6 +2,8 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.Network.Data";
 
+import "google/protobuf/timestamp.proto";
+
 message NodeData {
     string IpAddress = 1;
     int32 Port = 2;
@@ -34,5 +36,15 @@ message TxRequest {
 
 message HeightData {
     int32 Height = 1;
+}
+
+message Ping {
+    string Id = 1;
+    google.protobuf.Timestamp Time = 2;
+}
+
+message Pong {
+    string Id = 1;
+    google.protobuf.Timestamp Time = 2;
 }
 

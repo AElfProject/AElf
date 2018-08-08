@@ -132,7 +132,7 @@ namespace AElf.Kernel.Tests.Miner
 
         public Mock<ITxPoolService> MockTxPoolService(Hash chainId)
         {
-            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
 
             var code = ExampleContractCode;
 
@@ -184,7 +184,7 @@ namespace AElf.Kernel.Tests.Miner
         
         public List<ITransaction> CreateTxs(Hash chainId)
         {
-            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
 
             var code = ExampleContractCode;
 

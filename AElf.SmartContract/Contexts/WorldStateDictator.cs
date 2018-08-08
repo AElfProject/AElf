@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +10,7 @@ using Google.Protobuf.WellKnownTypes;
 using AElf.Kernel;
 using NLog;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
 {
     [LoggerName(nameof(WorldStateDictator))]
@@ -152,9 +152,18 @@ namespace AElf.SmartContract
             await SetChainLastBlockHash(_chainId, lastBlockHash);
             PreBlockHash = lastBlockHash;
 
-            var txs = new List<ITransaction>();
+            var txs = await RollbackTxs(currentHeight, specificHeight);
+            
+            _logger?.Trace($"Already rollback to height: {await GetChainCurrentHeight(_chainId)}");
+            
+            await RollbackCurrentChangesAsync();
 
-            //Just for logging
+            return txs;
+        }
+
+        private async Task<List<ITransaction>> RollbackTxs(ulong currentHeight, ulong specificHeight)
+        {
+            var txs = new List<ITransaction>();
             for (var i = currentHeight - 1; i >= specificHeight; i--)
             {
                 var rollBackBlockHash =
@@ -178,10 +187,6 @@ namespace AElf.SmartContract
                     $"Rollback block hash: " +
                     $"{rollBackBlockHash.Value.ToByteArray().ToHex()}");
             }
-            
-            _logger?.Trace($"Already rollback to height: {await GetChainCurrentHeight(_chainId)}");
-            
-            await RollbackCurrentChangesAsync();
 
             return txs;
         }

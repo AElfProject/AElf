@@ -67,7 +67,7 @@ namespace AElf.Launcher
                 try
                 {
                     var ks = new AElfKeyStore(nodeConfig.DataDir);
-                    var pass = AskInvisible(confParser.NodeAccount);
+                    var pass = string.IsNullOrWhiteSpace(confParser.NodeAccountPassword) ? AskInvisible(confParser.NodeAccount) : confParser.NodeAccountPassword;
                     ks.OpenAsync(confParser.NodeAccount, pass, false);
 
                     nodeKey = ks.GetAccountKeyPair(confParser.NodeAccount);

@@ -57,6 +57,7 @@ namespace AElf.Kernel.Node
         private readonly IBlockSynchronizer _synchronizer;
         private readonly IBlockExecutor _blockExecutor;
         private readonly AElfDPoSHelper _dPoSHelper;
+        private readonly ConsensusHelper _consensusHelper;
 
         public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, SmartContractType.AElfDPoS);
 
@@ -95,9 +96,11 @@ namespace AElf.Kernel.Node
         }
 
         // ReSharper disable once InconsistentNaming
-        private AElfDPoSObserver AElfDPoSSequence => new AElfDPoSObserver(_logger,
+        private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(_logger,
             MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
+
+        private SingleNodeTestObserver SingleNodeTestObserver => new SingleNodeTestObserver(_logger, SingleNodeMining);
 
         public Hash ChainId => _nodeConfig.ChainId;
 
@@ -135,6 +138,8 @@ namespace AElf.Kernel.Node
 
             _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
                 ContractAccountHash, _chainManager, _logger);
+            
+            _consensusHelper = new ConsensusHelper();
         }
 
         public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData,
@@ -243,7 +248,6 @@ namespace AElf.Kernel.Node
             }
 
             Task.Run(() => _synchronizer.Start(this, !_nodeConfig.ConsensusInfoGenerater));
-
             // akka env 
             var servicePack = new ServicePack
             {
@@ -252,10 +256,8 @@ namespace AElf.Kernel.Node
                 ResourceDetectionService = new ResourceUsageDetectionService(_functionMetadataService),
                 WorldStateDictator = _worldStateDictator
             };
-
             var grouper = new Grouper(servicePack.ResourceDetectionService, _logger);
             _blockExecutor.Start(grouper);
-
             if (_nodeConfig.IsMiner)
             {
                 _miner.Start(nodeKeyPair, grouper);
@@ -279,10 +281,11 @@ namespace AElf.Kernel.Node
                 while (true)
                 {
                     var args = _messageQueue.Take();
-                    _logger?.Trace("Message dequeued !");
 
                     var message = args.Message;
                     var msgType = (MessageType) message.Type;
+                    
+                    _logger?.Trace($"Handling message {message}");
 
                     if (msgType == MessageType.RequestBlock)
                     {
@@ -607,23 +610,36 @@ namespace AElf.Kernel.Node
             switch (Globals.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    if (_dPoSHelper.CurrentRoundNumber.Value == 0 &&
-                        BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
+                    if (!BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
                     {
-                        AElfDPoSSequence.Initialization();
+                        break;
+                    }
+                    
+                    if (_nodeConfig.ConsensusInfoGenerater && !await _dPoSHelper.HasGenerated())
+                    {
+                        AElfDPoSObserver.Initialization();
+                        break;
+                    }
+                    else
+                    {
+                        _dPoSHelper.SyncMiningInterval();
+                        _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms.");
+
                     }
 
-                    if (_dPoSHelper.CanRecoverDPoSInformation() &&
-                        BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
+                    if (_dPoSHelper.CanRecoverDPoSInformation())
                     {
-                        AElfDPoSSequence.RecoverMining();
+                        AElfDPoSObserver.RecoverMining();
                     }
-
-                    _dPoSHelper.StartConsensusLog();
+                    
                     break;
                 
                 case ConsensusType.PoTC:
                     await Mine();
+                    break;
+                
+                case ConsensusType.SingleNode:
+                    SingleNodeTestProcess();
                     break;
             }
         }
@@ -634,7 +650,7 @@ namespace AElf.Kernel.Node
             switch (Globals.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    AElfDPoSProcess();
+                    await AElfDPoSProcess();
                     break;
                 
                 case ConsensusType.PoTC:
@@ -644,20 +660,30 @@ namespace AElf.Kernel.Node
         }
 
         // ReSharper disable once InconsistentNaming
-        private void AElfDPoSProcess()
+        private async Task AElfDPoSProcess()
         {
+            //Do DPoS log
+            _logger?.Trace(await _dPoSHelper.GetDPoSInfo(await _chainManager.GetChainCurrentHeight(_nodeConfig.ChainId)));
+            _logger?.Trace("Log dpos information - End");
+            
             if (ConsensusMemory == _dPoSHelper.CurrentRoundNumber.Value)
                 return;
-
             //Dispose previous observer.
-            ConsensusDisposable?.Dispose();
-            _logger?.Trace("Disposed previous consensus observables list.");
+            if (ConsensusDisposable != null)
+            {
+                ConsensusDisposable.Dispose();
+                _logger?.Trace("Disposed previous consensus observables list.");
+            }
+            else
+            {
+                _logger?.Trace("For now the consensus observables list is null.");
+            }
 
             //Update observer.
             var blockProducerInfoOfCurrentRound =
                 _dPoSHelper[_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()];
             ConsensusDisposable =
-                AElfDPoSSequence.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound,
+                AElfDPoSObserver.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound,
                     _dPoSHelper.ExtraBlockTimeslot);
 
             //Update current round number.
@@ -675,13 +701,26 @@ namespace AElf.Kernel.Node
                     _logger?.Trace($"Current tx pool size: {count} / {Globals.ExpectedTransanctionCount}");
                     ConsensusMemory = count;
                 }
-                if (count >= (ulong) Globals.ExpectedTransanctionCount)
+                if (count >= Globals.ExpectedTransanctionCount)
                 {
                     _logger?.Trace("Will produce one block.");
                     var block = await _miner.Mine();
                     await BroadcastBlock(block);
                 }
             }
+        }
+
+        private void SingleNodeTestProcess()
+        {
+            ConsensusDisposable = SingleNodeTestObserver.SubscribeSingleNodeTestProcess();
+        }
+
+        private async Task SingleNodeMining()
+        {
+            _logger.Trace("Single node mining start.");
+            var block = await Mine();
+            await BroadcastBlock(block);
+            _logger.Trace("Single node mining end.");
         }
 
         public async Task<IBlock> Mine()
@@ -714,7 +753,7 @@ namespace AElf.Kernel.Node
                 {
                     _logger?.Error(e, "Somehow failed to update DPoS observables. Will recover soon.");
                     //In case just config one node to produce blocks.
-                    AElfDPoSSequence.RecoverMining();
+                    AElfDPoSObserver.RecoverMining();
                 }
 
                 return block;
@@ -887,8 +926,10 @@ namespace AElf.Kernel.Node
             var parameters = new List<byte[]>
             {
                 BlockProducers.ToByteArray(),
-                _dPoSHelper.GenerateInfoForFirstTwoRounds().ToByteArray()
+                _dPoSHelper.GenerateInfoForFirstTwoRounds().ToByteArray(),
+                new Int32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray()
             };
+            _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms");
             // ReSharper disable once InconsistentNaming
             var txToInitializeAElfDPoS = await GenerateTransaction("InitializeAElfDPoS", parameters);
             await BroadcastTransaction(txToInitializeAElfDPoS);

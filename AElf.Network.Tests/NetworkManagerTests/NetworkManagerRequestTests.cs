@@ -20,8 +20,8 @@ namespace AElf.Network.Tests.NetworkManagerTests
             secondPeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
             
             NetworkManager manager = new NetworkManager(null, null, null);
-            manager.AddPeer(firstPeer.Object);
-            manager.AddPeer(secondPeer.Object);
+            manager.AddPeerNoAuth(firstPeer.Object);
+            manager.AddPeerNoAuth(secondPeer.Object);
 
             var txHash = new byte[] {0x01, 0x02};
             manager.QueueTransactionRequest(txHash, firstPeer.Object);
@@ -43,7 +43,7 @@ namespace AElf.Network.Tests.NetworkManagerTests
             
             // Set tries to 1 : no retries.
             manager.RequestMaxRetry = 1;
-            manager.AddPeer(firstPeer.Object);
+            manager.AddPeerNoAuth(firstPeer.Object);
             
             List<EventArgs> receivedEvents = new List<EventArgs>();
 
