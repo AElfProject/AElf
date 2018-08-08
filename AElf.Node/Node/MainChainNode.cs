@@ -137,7 +137,7 @@ namespace AElf.Kernel.Node
             _synchronizer = synchronizer;
 
             _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
-                ContractAccountHash, _chainService, _logger);
+                ContractAccountHash, _logger);
             
             _consensusHelper = new ConsensusHelper();
         }
