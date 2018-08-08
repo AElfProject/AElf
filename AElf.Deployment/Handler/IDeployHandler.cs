@@ -4,6 +4,6 @@ namespace AElf.Deployment.Handler
 {
     public interface IDeployHandler
     {
-        void Deploy(DeployArgument arg);
+        void Excute(DeployType type, string chainId, DeployArg arg = null);
     }
 }

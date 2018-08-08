@@ -10,13 +10,20 @@ namespace AElf.Deployment
 {
     public class DeployService : IDeployService
     {
-        public void DeploySideChain(DeployArgument arg)
+        public void DeploySideChain(string chainId, DeployArg arg)
+        {
+            GetHandler().Excute(DeployType.Deploy, chainId, arg);
+        }
+
+        public void RemoveSideChain(string chainId)
+        {
+            GetHandler().Excute(DeployType.Remove, chainId);
+        }
+
+        private IDeployHandler GetHandler()
         {
             var type = "k8s";
-            var handler = DeployHandlerFactory.GetHandler(type);
-            handler.Deploy(arg);
+            return DeployHandlerFactory.GetHandler(type);
         }
-        
-        
     }
 }

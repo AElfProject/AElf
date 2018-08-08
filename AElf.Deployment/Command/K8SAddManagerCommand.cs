@@ -7,17 +7,17 @@ namespace AElf.Deployment.Command
 {
     public class K8SAddManagerCommand:IDeployCommand
     {
-        public void Action(DeployArgument arg)
+        public void Action(string chainId, DeployArg arg)
         {
             throw new System.NotImplementedException();
         }
 
-        private void DeployService(DeployArgument arg)
+        private void DeployService(DeployArg arg)
         {
             
         }
 
-        private void DeployStatefulSet(DeployArgument arg)
+        private void DeployStatefulSet(string chainId, DeployArg arg)
         {
             var body = new V1beta1StatefulSet
             {
@@ -80,7 +80,7 @@ namespace AElf.Deployment.Command
                 }
             };
 
-            K8SRequestHelper.CreateNamespacedStatefulSet1(body, arg.ChainId);
+            K8SRequestHelper.CreateNamespacedStatefulSet1(body, chainId);
         }
     }
 }

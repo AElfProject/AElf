@@ -4,6 +4,6 @@ namespace AElf.Deployment.Command
 {
     public interface IDeployCommand
     {
-        void Action(DeployArgument arg);
+        void Action(string chainId, DeployArg arg);
     }
 }

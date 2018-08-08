@@ -4,7 +4,7 @@ namespace AElf.Deployment.Command
 {
     public class K8SAddLauncherCommand:IDeployCommand
     {
-        public void Action(DeployArgument arg)
+        public void Action(string chainId, DeployArg arg)
         {
             throw new System.NotImplementedException();
         }

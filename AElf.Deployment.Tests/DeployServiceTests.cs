@@ -9,9 +9,9 @@ namespace AElf.Deployment.Tests
         [Fact]
         public void DeploySideChainTest()
         {
-            var arg = new DeployArgument();
-            arg.ChainId = Guid.NewGuid().ToString("N");
-            new DeployService().DeploySideChain(arg);
+            var arg = new DeployArg();
+            var chainId = Guid.NewGuid().ToString("N");
+            new DeployService().DeploySideChain(chainId,arg);
         }
     }
 }

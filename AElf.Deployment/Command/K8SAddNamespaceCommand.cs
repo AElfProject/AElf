@@ -6,13 +6,13 @@ namespace AElf.Deployment.Command
 {
     public class K8SAddNamespaceCommand:IDeployCommand
     {
-        public void Action(DeployArgument arg)
+        public void Action(string chainId, DeployArg arg)
         {
             var body = new V1Namespace
             {
                 Metadata = new V1ObjectMeta
                 {
-                    Name = arg.ChainId
+                    Name = chainId
                 }
             };
             

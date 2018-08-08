@@ -4,6 +4,8 @@ namespace AElf.Deployment
 {
     public interface IDeployService
     {
-        void DeploySideChain(DeployArgument arg);
+        void DeploySideChain(string chainId, DeployArg arg);
+
+        void RemoveSideChain(string chainId);
     }
 }

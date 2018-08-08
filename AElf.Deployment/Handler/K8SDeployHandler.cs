@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using AElf.Deployment.Command;
 using AElf.Deployment.Models;
 
@@ -12,20 +13,36 @@ namespace AElf.Deployment.Handler
         {
             get { return _instance; }
         }
-        
-        private readonly List<IDeployCommand> _commands =new List<IDeployCommand>();
+
+        private readonly List<IDeployCommand> _deployCommands = new List<IDeployCommand>();
+        private readonly List<IDeployCommand> _removeCommands = new List<IDeployCommand>();
 
         private K8SDeployHandler()
         {
-            _commands.Add(new K8SAddNamespaceCommand());
-            _commands.Add(new K8SAddRedisCommand());
+            _deployCommands.Add(new K8SAddNamespaceCommand());
+            _deployCommands.Add(new K8SAddRedisCommand());
+
+            _removeCommands.Add(new K8SDeleteNamespaceCommand());
         }
 
-        public void Deploy(DeployArgument arg)
+        public void Excute(DeployType type, string chainId, DeployArg arg = null)
         {
-            foreach (var cmd in _commands)
+            switch (type)
             {
-                cmd.Action(arg);
+                case DeployType.Deploy:
+                    foreach (var cmd in _deployCommands)
+                    {
+                        cmd.Action(chainId, arg);
+                    }
+                    break;
+                case DeployType.Remove:
+                    foreach (var cmd in _removeCommands)
+                    {
+                        cmd.Action(chainId, arg);
+                    }
+                    break;
+                default:
+                    throw new ArgumentException("deploy type is incorrect");
             }
         }
     }

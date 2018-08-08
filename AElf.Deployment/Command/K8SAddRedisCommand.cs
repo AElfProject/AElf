@@ -12,14 +12,14 @@ namespace AElf.Deployment.Command
         private const string ServiceName = "service-redis";
         private const string StatefulSetName = "set-redis";
 
-        public void Action(DeployArgument arg)
+        public void Action(string chainId, DeployArg arg)
         {
-            AddConfig(arg);
-            AddService(arg);
-            AddStatefulSet(arg);
+            AddConfig(chainId,arg);
+            AddService(chainId,arg);
+            AddStatefulSet(chainId,arg);
         }
 
-        private void AddConfig(DeployArgument arg)
+        private void AddConfig(string chainId, DeployArg arg)
         {
             var body = new V1ConfigMap
             {
@@ -28,21 +28,21 @@ namespace AElf.Deployment.Command
                 Metadata = new V1ObjectMeta
                 {
                     Name = ConfigName,
-                    NamespaceProperty = arg.ChainId
+                    NamespaceProperty = chainId
                 },
                 Data = new Dictionary<string, string>
                 {
                     {
                         ConfigName,
-                        string.Concat("port ", arg.DbArgument.Port, Environment.NewLine, "bind 0.0.0.0", Environment.NewLine, "appendonly no", Environment.NewLine)
+                        string.Concat("port ", arg.DBArg.Port, Environment.NewLine, "bind 0.0.0.0", Environment.NewLine, "appendonly no", Environment.NewLine)
                     }
                 }
             };
 
-            K8SRequestHelper.CreateNamespacedConfigMap(body, arg.ChainId);
+            K8SRequestHelper.CreateNamespacedConfigMap(body, chainId);
         }
 
-        private void AddService(DeployArgument arg)
+        private void AddService(string chainId, DeployArg arg)
         {
             var body = new V1Service
             {
@@ -58,7 +58,7 @@ namespace AElf.Deployment.Command
                 {
                     Ports = new List<V1ServicePort>
                     {
-                        new V1ServicePort(arg.DbArgument.Port)
+                        new V1ServicePort(arg.DBArg.Port)
                     },
                     Selector = new Dictionary<string, string>
                     {
@@ -68,10 +68,10 @@ namespace AElf.Deployment.Command
                 }
             };
 
-            K8SRequestHelper.CreateNamespacedService(body, arg.ChainId);
+            K8SRequestHelper.CreateNamespacedService(body, chainId);
         }
 
-        private void AddStatefulSet(DeployArgument arg)
+        private void AddStatefulSet(string chainId, DeployArg arg)
         {
             var body = new V1beta1StatefulSet
             {
@@ -105,7 +105,7 @@ namespace AElf.Deployment.Command
                                 {
                                     Name = StatefulSetName,
                                     Image = "redis",
-                                    Ports = new List<V1ContainerPort> {new V1ContainerPort(arg.DbArgument.Port)},
+                                    Ports = new List<V1ContainerPort> {new V1ContainerPort(arg.DBArg.Port)},
                                     Command = new List<string> {"redis-server"},
                                     Args = new List<string> {"/redis/redis.conf"},
                                     Resources = new V1ResourceRequirements
@@ -151,7 +151,7 @@ namespace AElf.Deployment.Command
                 }
             };
 
-            K8SRequestHelper.CreateNamespacedStatefulSet1(body, arg.ChainId);
+            K8SRequestHelper.CreateNamespacedStatefulSet1(body, chainId);
         }
     }
 }
