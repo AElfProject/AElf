@@ -69,7 +69,7 @@ namespace AElf.Network.Peers
         /// </summary>
         public event EventHandler AuthFinished; 
         
-        public bool IsClosed { get; private set; }
+        public bool IsDisposed { get; private set; }
         public bool IsAuthentified { get; private set; }
 
         /// <summary>
@@ -94,11 +94,6 @@ namespace AElf.Network.Peers
         /// The data received after the initial connection.
         /// </summary>
         public NodeData DistantNodeData { get; set; }
-
-        public bool IsConnected
-        {
-            get { return _client != null && _client.Connected; }
-        }
 
         public string IpAddress
         {
@@ -160,11 +155,18 @@ namespace AElf.Network.Peers
 
         private void MessageReaderOnStreamClosed(object sender, EventArgs eventArgs)
         {
-            Disconnect();
+            Dispose();
+            
+            _logger?.Trace($"Peer connection has been terminated : {DistantNodeData}");
+            
+            PeerDisconnected?.Invoke(this, new PeerDisconnectedArgs { Peer = this, Reason = DisconnectReason.StreamClosed } );
         }
 
         private void ClientOnPacketReceived(object sender, EventArgs eventArgs)
         {
+            if (IsDisposed)
+                return;
+            
             try
             {
                 if (!(eventArgs is PacketReceivedEventArgs a) || a.Message == null)
@@ -208,7 +210,7 @@ namespace AElf.Network.Peers
         
         private void TimerTimeoutElapsed(object sender, ElapsedEventArgs e)
         {
-            if (IsClosed)
+            if (IsDisposed)
                 return;
 
             lock (pingLock)
@@ -353,6 +355,7 @@ namespace AElf.Network.Peers
             {
                 _logger?.Trace($"Can't write : not identified {DistantNodeData}.");
             }
+            
             if (_messageWriter == null)
             {
                 _logger?.Trace($"Peer {DistantNodeData?.IpAddress} : {DistantNodeData?.Port} - Null stream while sending");
@@ -398,13 +401,13 @@ namespace AElf.Network.Peers
 
         #region Closing and disposing
         
-        public void Disconnect()
-        {
-            Dispose();
-        }
-        
         public void Dispose()
         {
+            if (IsDisposed)
+                return;
+            
+            _pingPongTimer?.Stop();
+            
             if (_messageReader != null)
             {
                 _messageReader.PacketReceived -= ClientOnPacketReceived;
@@ -413,9 +416,8 @@ namespace AElf.Network.Peers
             
             _messageReader?.Close();
             _messageWriter?.Close();
-            _client?.Close();
             
-            _pingPongTimer.Stop();
+            _client?.Close();
         }
         
         #endregion

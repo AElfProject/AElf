@@ -16,11 +16,6 @@ namespace AElf.Network.Peers
         bool Start();
         
         NodeData DistantNodeData { get; }
-
-        bool IsConnected { get; }
-        
         void EnqueueOutgoing(Message msg);
-
-        void Disconnect();
     }
 }
