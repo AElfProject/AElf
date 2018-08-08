@@ -21,7 +21,10 @@ namespace AElf.Deployment.Handler
 
         public void Execute()
         {
-            throw new System.NotImplementedException();
+//            DeployDBConfig();
+            DeployDBService();
+            DeployDBStatefulSet();
+            
         }
 
         private void DeployDBConfig()
@@ -67,7 +70,7 @@ namespace AElf.Deployment.Handler
                     },
                     Selector = new Dictionary<string, string>
                     {
-                        {"name", "pod-redis"}
+                        {"name", "set-redis"}
                     },
                     ClusterIP = "None"
                 }
@@ -82,8 +85,8 @@ namespace AElf.Deployment.Handler
             {
                 Metadata = new V1ObjectMeta
                 {
-                    Name = "pod-redis",
-                    Labels = new Dictionary<string, string> {{"name", "pod-redis"}}
+                    Name = "set-redis",
+                    Labels = new Dictionary<string, string> {{"name", "set-redis"}}
                 },
                 Spec = new V1beta1StatefulSetSpec
                 {
@@ -91,7 +94,7 @@ namespace AElf.Deployment.Handler
                     {
                         MatchExpressions = new List<V1LabelSelectorRequirement>
                         {
-                            new V1LabelSelectorRequirement("name", "In", new List<string> {"pod-redis"})
+                            new V1LabelSelectorRequirement("name", "In", new List<string> {"set-redis"})
                         }
                     },
                     ServiceName = "service-redis",
@@ -100,7 +103,7 @@ namespace AElf.Deployment.Handler
                     {
                         Metadata = new V1ObjectMeta
                         {
-                            Labels = new Dictionary<string, string> {{"name", "pod-redis"}}
+                            Labels = new Dictionary<string, string> {{"name", "set-redis"}}
                         },
                         Spec = new V1PodSpec
                         {
@@ -108,7 +111,7 @@ namespace AElf.Deployment.Handler
                             {
                                 new V1Container
                                 {
-                                    Name = "pod-redis",
+                                    Name = "set-redis",
                                     Image = "redis",
                                     Ports = new List<V1ContainerPort> {new V1ContainerPort(7001)},
                                     Command = new List<string> {"redis-server"},
@@ -131,8 +134,24 @@ namespace AElf.Deployment.Handler
                             {
                                 new V1Volume
                                 {
+                                    Name = "data",
+                                    EmptyDir = new V1EmptyDirVolumeSource()
+                                },
+                                new V1Volume
+                                {
                                     Name = "config",
-                                    ConfigMap = new V1ConfigMapVolumeSource {Name = "aelf-config"}
+                                    ConfigMap = new V1ConfigMapVolumeSource
+                                    {
+                                        Name = "config-redis",
+                                        Items = new List<V1KeyToPath>
+                                        {
+                                            new V1KeyToPath
+                                            {
+                                                Key = "config-redis",
+                                                Path = "redis.conf"
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
