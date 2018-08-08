@@ -1,29 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
-using AElf.Kernel.Managers;
 using AElf.SmartContract;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 
 namespace AElf.Kernel.Consensus
 {
-    // ReSharper disable once InconsistentNaming
+    // ReSharper disable InconsistentNaming
     public class AElfDPoSHelper
     {
-        private readonly ECKeyPair _keyPair;
         private readonly IDataProvider _dataProvider;
         private readonly BlockProducer _blockProducer;
-        private readonly IChainService _chainService;
         private readonly ILogger _logger;
-        private readonly Hash _chainId;
-        private readonly ConsensusHelper _consensusHelper;
 
         public BlockProducer BlockProducer
         {
@@ -31,8 +22,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return BlockProducer.Parser.ParseFrom(_dataProvider
-                        .GetAsync(Globals.AElfDPoSBlockProducerString.CalculateHash()).Result);
+                    return BlockProducer.Parser.ParseFrom(GetBytes(Globals.AElfDPoSBlockProducerString.CalculateHash()));
                 }
                 catch (Exception)
                 {
@@ -47,12 +37,10 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    var bytes = _dataProvider.GetAsync(Globals.AElfDPoSCurrentRoundNumber.CalculateHash()).Result;
-                    return UInt64Value.Parser.ParseFrom(bytes);
+                    return UInt64Value.Parser.ParseFrom(GetBytes(Globals.AElfDPoSCurrentRoundNumber.CalculateHash()));
                 }
                 catch (Exception)
                 {
-                    //TODO: Consider to use a in-memory cache to store current round number
                     _logger.Info("Failed to get current round number.");
                     return new UInt64Value {Value = 0};
                 }
@@ -65,9 +53,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return Timestamp.Parser.ParseFrom(_dataProvider
-                        .GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash())
-                        .Result);
+                    return Timestamp.Parser.ParseFrom(GetBytes(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
                 }
                 catch (Exception e)
                 {
@@ -83,8 +69,8 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return RoundInfo.Parser.ParseFrom(_dataProvider.GetDataProvider(Globals.AElfDPoSInformationString)
-                        .GetAsync(CurrentRoundNumber.CalculateHash()).Result);
+                    return RoundInfo.Parser.ParseFrom(GetBytes(CurrentRoundNumber.CalculateHash(),
+                        Globals.AElfDPoSInformationString));
                 }
                 catch (Exception e)
                 {
@@ -100,8 +86,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return Int32Value.Parser.ParseFrom(_dataProvider
-                        .GetAsync(Globals.AElfDPoSMiningIntervalString.CalculateHash()).Result);
+                    return Int32Value.Parser.ParseFrom(GetBytes(Globals.AElfDPoSMiningIntervalString.CalculateHash()));
                 }
                 catch (Exception e)
                 {
@@ -117,9 +102,8 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return StringValue.Parser.ParseFrom(_dataProvider
-                        .GetDataProvider(Globals.AElfDPoSFirstPlaceOfEachRoundString)
-                        .GetAsync(CurrentRoundNumber.CalculateHash()).Result);
+                    return StringValue.Parser.ParseFrom(GetBytes(CurrentRoundNumber.CalculateHash(),
+                        Globals.AElfDPoSFirstPlaceOfEachRoundString));
                 }
                 catch (Exception e)
                 {
@@ -128,19 +112,42 @@ namespace AElf.Kernel.Consensus
                 }
             }
         }
+
+        /// <summary>
+        /// Assert: Related value has surely exists in database.
+        /// </summary>
+        /// <param name="keyHash"></param>
+        /// <param name="resourceStr"></param>
+        /// <returns></returns>
+        private byte[] GetBytes(Hash keyHash, string resourceStr = "")
+        {
+            byte[] bytes = null;
+            if (resourceStr != "")
+            {
+                while (bytes == null)
+                {
+                    bytes = _dataProvider.GetDataProvider(resourceStr).GetAsync(keyHash).Result;
+                }
+            }
+            else
+            {
+                while (bytes == null)
+                {
+                    bytes = _dataProvider.GetAsync(keyHash).Result;
+                }
+            }
+
+            return bytes;
+        }
         
         public AElfDPoSHelper(IWorldStateDictator worldStateDictator, ECKeyPair keyPair, Hash chainId,
-            BlockProducer blockProducer, Hash contractAddressHash, IChainService chainService, ILogger logger)
+            BlockProducer blockProducer, Hash contractAddressHash, ILogger logger)
         {
             worldStateDictator.SetChainId(chainId);
-            _keyPair = keyPair;
             _blockProducer = blockProducer;
             _logger = logger;
-            _chainService = chainService;
-            _chainId = chainId;
 
             _dataProvider = worldStateDictator.GetAccountDataProvider(contractAddressHash).Result.GetDataProvider();
-            _consensusHelper = new ConsensusHelper();
         }
 
         /// <summary>
@@ -386,7 +393,7 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public async Task<StringValue> CalculateNextExtraBlockProducer()
+        public StringValue CalculateNextExtraBlockProducer()
         {
             try
             {
@@ -403,7 +410,6 @@ namespace AElf.Kernel.Consensus
                 var blockProducerCount = _blockProducer.Nodes.Count;
                 var order = GetModulus(sigNum, blockProducerCount);
 
-                // ReSharper disable once InconsistentNaming
                 var nextEBP = _blockProducer.Nodes[order];
             
                 return new StringValue {Value = nextEBP.RemoveHexPrefix()};
@@ -415,7 +421,6 @@ namespace AElf.Kernel.Consensus
             }
         }
         
-        // ReSharper disable once InconsistentNaming
         // ReSharper disable once UnusedMember.Global
         public async Task<StringValue> GetDPoSInfoToString()
         {
@@ -435,7 +440,6 @@ namespace AElf.Kernel.Consensus
                 i++;
             }
 
-            // ReSharper disable once InconsistentNaming
             var eBPTimeslot = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
 
             var res = new StringValue
@@ -448,7 +452,6 @@ namespace AElf.Kernel.Consensus
             return res;
         }
 
-        // ReSharper disable once InconsistentNaming
         private async Task<string> GetDPoSInfoToStringOfLatestRounds(ulong countOfRounds)
         {
             try
@@ -483,7 +486,6 @@ namespace AElf.Kernel.Consensus
                     i++;
                 }
             
-                // ReSharper disable once InconsistentNaming
                 var eBPTimeslot = Timestamp.Parser.ParseFrom(await _dataProvider.GetAsync(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
 
                 return infoOfOneRound + $"EBP Timeslot of current round: {eBPTimeslot.ToDateTime().ToLocalTime():u}\n"
@@ -500,13 +502,11 @@ namespace AElf.Kernel.Consensus
         {
             var currentRoundInfo = await SupplyPreviousRoundInfo();
             var nextRoundInfo = await GenerateNextRoundOrder();
-            // ReSharper disable once InconsistentNaming
-            var nextEBP = await CalculateNextExtraBlockProducer();
+            var nextEBP = CalculateNextExtraBlockProducer();
             
             return Tuple.Create(currentRoundInfo, nextRoundInfo, nextEBP);
         }
         
-        // ReSharper disable once InconsistentNaming
         /// <summary>
         /// This method should return true if all the BPs restarted (and missed their timeslots).
         /// </summary>
@@ -543,7 +543,6 @@ namespace AElf.Kernel.Consensus
             Globals.AElfDPoSMiningInterval = MiningInterval.Value;
         }
         
-        // ReSharper disable once InconsistentNaming
         public async Task<string> GetDPoSInfo(ulong height)
         {
             _logger?.Trace("Log dpos information - Start");
@@ -556,6 +555,11 @@ namespace AElf.Kernel.Consensus
             {
                 var bytes = await _dataProvider.GetDataProvider(Globals.AElfDPoSInformationString)
                     .GetAsync(roundNumber.CalculateHash());
+                while (bytes == null)
+                {
+                    bytes = await _dataProvider.GetDataProvider(Globals.AElfDPoSInformationString)
+                        .GetAsync(roundNumber.CalculateHash());
+                }
                 var info = RoundInfo.Parser.ParseFrom(bytes);
                 
                 var result = "";
