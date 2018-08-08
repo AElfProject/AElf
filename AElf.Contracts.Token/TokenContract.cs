@@ -122,7 +122,7 @@ namespace AElf.Contracts.Token
             DoTransfer(from, to, amount);
         }
 
-        [SmartContractFunction("${this}.Transfer", new string[]{"${this}.DoTransfer"}, new string[]{"${this}._allowancePlaceHolder"})]
+        [SmartContractFunction("${this}.TransferFrom", new string[]{"${this}.DoTransfer"}, new string[]{"${this}._allowancePlaceHolder"})]
         public void TransferFrom(Hash from, Hash to, ulong amount)
         {
             var allowance = Allowances.GetAllowance(from, Api.GetTransaction().From);

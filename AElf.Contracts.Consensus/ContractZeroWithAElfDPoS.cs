@@ -2,13 +2,13 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.ConsensusContract;
 using AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections;
-using AElf.Kernel.Consensus;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Genesis
+namespace AElf.Contracts.Consensus
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     public class ContractZeroWithAElfDPoS : CSharpSmartContract
