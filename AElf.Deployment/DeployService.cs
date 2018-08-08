@@ -14,7 +14,9 @@ namespace AElf.Deployment
         {
             var type = "k8s";
             var handler = DeployHandlerFactory.GetHandler(type);
-            handler.Deploy(new DeployArgument());
+            handler.Deploy(arg);
         }
+        
+        
     }
 }

@@ -5,16 +5,26 @@ using k8s.Models;
 
 namespace AElf.Deployment.Command
 {
-    public class K8SAddRedisStatefulSetCommand : IDeployCommand
+    public class K8SAddManagerCommand:IDeployCommand
     {
         public void Action(DeployArgument arg)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        private void DeployService(DeployArgument arg)
+        {
+            
+        }
+
+        private void DeployStatefulSet(DeployArgument arg)
         {
             var body = new V1beta1StatefulSet
             {
                 Metadata = new V1ObjectMeta
                 {
-                    Name = "set-redis",
-                    Labels = new Dictionary<string, string> {{"name", "set-redis"}}
+                    Name = "pod-redis",
+                    Labels = new Dictionary<string, string> {{"name", "pod-redis"}}
                 },
                 Spec = new V1beta1StatefulSetSpec
                 {
@@ -22,7 +32,7 @@ namespace AElf.Deployment.Command
                     {
                         MatchExpressions = new List<V1LabelSelectorRequirement>
                         {
-                            new V1LabelSelectorRequirement("name", "In", new List<string> {"set-redis"})
+                            new V1LabelSelectorRequirement("name", "In", new List<string> {"pod-redis"})
                         }
                     },
                     ServiceName = "service-redis",
@@ -31,7 +41,7 @@ namespace AElf.Deployment.Command
                     {
                         Metadata = new V1ObjectMeta
                         {
-                            Labels = new Dictionary<string, string> {{"name", "set-redis"}}
+                            Labels = new Dictionary<string, string> {{"name", "pod-redis"}}
                         },
                         Spec = new V1PodSpec
                         {
@@ -39,22 +49,21 @@ namespace AElf.Deployment.Command
                             {
                                 new V1Container
                                 {
-                                    Name = "set-redis",
+                                    Name = "pod-redis",
                                     Image = "redis",
                                     Ports = new List<V1ContainerPort> {new V1ContainerPort(7001)},
-                                    Command = new List<string> {"redis-server"},
-                                    Args = new List<string> {"/redis/redis.conf"},
-                                    Resources = new V1ResourceRequirements
+                                    Env = new List<V1EnvVar>
                                     {
-                                        Limits = new Dictionary<string, ResourceQuantity>()
+                                        new V1EnvVar
                                         {
-                                            {"cpu", new ResourceQuantity("0.1")}
+                                            Name = "POD_NAME",
+                                            ValueFrom = new V1EnvVarSource {FieldRef = new V1ObjectFieldSelector("metadata.name")}
                                         }
                                     },
+                                    Args = new List<string> {"--actor.host", "$(POD_NAME).manager-service", "--actor.port", "4053"},
                                     VolumeMounts = new List<V1VolumeMount>
                                     {
-                                        new V1VolumeMount("/redisdata", "data"),
-                                        new V1VolumeMount("/redis", "config")
+                                        new V1VolumeMount("/app/aelf/config", "config")
                                     }
                                 }
                             },
@@ -62,24 +71,8 @@ namespace AElf.Deployment.Command
                             {
                                 new V1Volume
                                 {
-                                    Name = "data",
-                                    EmptyDir = new V1EmptyDirVolumeSource()
-                                },
-                                new V1Volume
-                                {
                                     Name = "config",
-                                    ConfigMap = new V1ConfigMapVolumeSource
-                                    {
-                                        Name = "config-redis",
-                                        Items = new List<V1KeyToPath>
-                                        {
-                                            new V1KeyToPath
-                                            {
-                                                Key = "config-redis",
-                                                Path = "redis.conf"
-                                            }
-                                        }
-                                    }
+                                    ConfigMap = new V1ConfigMapVolumeSource {Name = "aelf-config"}
                                 }
                             }
                         }
@@ -87,7 +80,7 @@ namespace AElf.Deployment.Command
                 }
             };
 
-            K8SRequestHelper.CreateNamespacedStatefulSet1(body, "default");
+            K8SRequestHelper.CreateNamespacedStatefulSet1(body, arg.ChainId);
         }
     }
 }
