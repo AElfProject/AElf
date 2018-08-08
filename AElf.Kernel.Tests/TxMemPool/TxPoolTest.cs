@@ -13,7 +13,6 @@ namespace AElf.Kernel.Tests.TxMemPool
     [UseAutofacTestFramework]
     public class TxPoolTest
     {
-        private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
         private readonly IWorldStateDictator _worldStateDictator;
 
@@ -21,7 +20,6 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             _logger = logger;
             _worldStateDictator = worldStateDictator;
-            _accountContextService = new AccountContextService(_worldStateDictator);
         }
 
         private ContractTxPool GetPool(TxPoolConfig config, ECKeyPair ecKeyPair = null)
@@ -78,7 +76,8 @@ namespace AElf.Kernel.Tests.TxMemPool
             // Add a valid transaction
             var tx = BuildTransaction();
             var tmp = new HashSet<ITransaction> {tx};
-            var ctx = await _accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
+            var accountContextService = new AccountContextService(_worldStateDictator);
+            var ctx = await accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
             pool.TrySetNonce(tx.From,ctx.IncrementId);
             pool.EnQueueTxs(tmp);
             
@@ -125,13 +124,14 @@ namespace AElf.Kernel.Tests.TxMemPool
             config.Maximal = 10;
             var pool = GetPool(config, ecKeyPair);
             var tmp = new HashSet<ITransaction>();
+            var accountContextService = new AccountContextService(_worldStateDictator);
 
             // Add valid transactions
             int i = 0;
             while (i++ < 15)
             {
                 var tx = BuildTransaction();
-                var ctx =  await _accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
+                var ctx =  await accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
                 pool.TrySetNonce(tx.From, ctx.IncrementId);
                 tmp.Add(tx);
             }
@@ -147,7 +147,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 var minerTx = BuildTransaction(nonce:(ulong)(i-1), keyPair:ecKeyPair);
                 minerTxs.Add(minerTx);
             }
-            var ctx1 =  await _accountContextService.GetAccountDataContext(ecKeyPair.GetAddress(), pool.ChainId);
+            var ctx1 =  await accountContextService.GetAccountDataContext(ecKeyPair.GetAddress(), pool.ChainId);
             pool.TrySetNonce(ecKeyPair.GetAddress(), ctx1.IncrementId);
             pool.EnQueueTxs(minerTxs);
 

@@ -22,22 +22,11 @@ namespace AElf.Kernel.Tests.TxMemPool
     {
         private IAccountContextService _accountContextService;
         private readonly ILogger _logger;
-        private readonly ITransactionManager _transactionManager;
-        private readonly ITransactionResultManager _transactionResultManager;
-        private readonly IChainCreationService _chainCreationService;
-        private IChainService _chainService;
         private IWorldStateDictator _worldStateDictator;
 
-        public IntegrationTest(ILogger logger,
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
-            IChainCreationService chainCreationService, IChainService chainService, 
-            IWorldStateDictator worldStateDictator)
+        public IntegrationTest(ILogger logger, IWorldStateDictator worldStateDictator)
         {
             _logger = logger;
-            _transactionManager = transactionManager;
-            _transactionResultManager = transactionResultManager;
-            _chainCreationService = chainCreationService;
-            _chainService = chainService;
             _worldStateDictator = worldStateDictator;
             _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
             
