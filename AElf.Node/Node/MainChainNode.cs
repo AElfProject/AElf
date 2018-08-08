@@ -834,7 +834,7 @@ namespace AElf.Kernel.Node
                     var transaction = tx.Serialize();
                     await _netManager.BroadcastMessage(MessageType.BroadcastTx, transaction);
                     stopWatch.Stop();
-                    _logger?.Info($"### Debug _netManager.BroadcastMessage Time: {stopWatch.ElapsedMilliseconds}");
+                   // _logger?.Info($"### Debug _netManager.BroadcastMessage Time: {stopWatch.ElapsedMilliseconds}");
                 }
                 catch (Exception e)
                 {
