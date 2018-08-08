@@ -22,8 +22,7 @@ namespace AElf.ChainController
     {
         private readonly ITxPoolService _txPoolService;
         private ECKeyPair _keyPair;
-        private readonly IChainManager _chainManager;
-        private readonly IBlockManager _blockManager;
+        private readonly IChainService _chainService;
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly ISmartContractService _smartContractService;
         private readonly IConcurrencyExecutingService _concurrencyExecutingService;
@@ -46,15 +45,14 @@ namespace AElf.ChainController
 
         public Hash Coinbase => Config.CoinBase;
 
-        public Miner(IMinerConfig config, ITxPoolService txPoolService, 
-                IChainManager chainManager, IBlockManager blockManager, IWorldStateDictator worldStateDictator, 
-            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService, 
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, ILogger logger)
+        public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
+            IWorldStateDictator worldStateDictator,  ISmartContractService smartContractService, 
+            IConcurrencyExecutingService concurrencyExecutingService, ITransactionManager transactionManager, 
+            ITransactionResultManager transactionResultManager, ILogger logger)
         {
             Config = config;
             _txPoolService = txPoolService;
-            _chainManager = chainManager;
-            _blockManager = blockManager;
+            _chainService = chainService;
             _worldStateDictator = worldStateDictator;
             _smartContractService = smartContractService;
             _concurrencyExecutingService = concurrencyExecutingService;
@@ -148,8 +146,8 @@ namespace AElf.ChainController
                 block.Header.S = ByteString.CopyFrom(signature.S);
 
                 // append block
-                await _blockManager.AddBlockAsync(block);
-                await _chainManager.AppendBlockToChainAsync(block);
+                var blockChain = _chainService.GetBlockChain(Config.ChainId);
+                await blockChain.AddBlocksAsync(new List<IBlock>(){ block });
   
                 return block;
             }
@@ -189,10 +187,13 @@ namespace AElf.ChainController
         /// <returns></returns>
         public async Task<IBlock> GenerateBlockAsync(Hash chainId, IEnumerable<TransactionResult> results)
         {
+            var blockChain = _chainService.GetBlockChain(chainId);
             
-            var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
-            var index = await _chainManager.GetChainCurrentHeight(chainId);
-            var block = new Block(lastBlockHash)
+            var currentBlockHash = await blockChain.GetCurrentBlockHashAsync();
+            // TODO: Generic IBlockHeader
+            var header = (BlockHeader) await blockChain.GetHeaderByHashAsync(currentBlockHash);
+            var index = header.Index + 1;
+            var block = new Block(currentBlockHash)
             {
                 Header =
                 {
@@ -214,10 +215,9 @@ namespace AElf.ChainController
 
             
             // set ws merkle tree root
-            
-            await _worldStateDictator.SetWorldStateAsync(lastBlockHash);
+            await _worldStateDictator.SetWorldStateAsync(currentBlockHash);
             _logger?.Log(LogLevel.Debug, "End Set WS..");
-            var ws = await _worldStateDictator.GetWorldStateAsync(lastBlockHash);
+            var ws = await _worldStateDictator.GetWorldStateAsync(currentBlockHash);
             _logger?.Log(LogLevel.Debug, "End Get Ws");
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
 
@@ -242,8 +242,12 @@ namespace AElf.ChainController
         public async Task<IBlockHeader> GenerateBlockHeaderAsync(Hash chainId, Hash merkleTreeRootForTransaction)
         {
             // get ws merkle tree root
-            var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
-            var index = await _chainManager.GetChainCurrentHeight(chainId);
+            var blockChain = _chainService.GetBlockChain(chainId);
+            
+            var lastBlockHash = await blockChain.GetCurrentBlockHashAsync();
+            // TODO: Generic IBlockHeader
+            var lastHeader = (BlockHeader) await blockChain.GetHeaderByHashAsync(lastBlockHash);
+            var index = lastHeader.Index;
             var block = new Block(lastBlockHash);
             block.Header.Index = index + 1;
             block.Header.ChainId = chainId;

@@ -25,19 +25,19 @@ namespace AElf.Kernel.Tests.TxMemPool
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IChainCreationService _chainCreationService;
-        private IBlockManager _blockManager;
+        private IChainService _chainService;
         private IWorldStateDictator _worldStateDictator;
 
         public IntegrationTest(ILogger logger,
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
-            IChainCreationService chainCreationService, IBlockManager blockManager, 
+            IChainCreationService chainCreationService, IChainService chainService, 
             IWorldStateDictator worldStateDictator)
         {
             _logger = logger;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _chainCreationService = chainCreationService;
-            _blockManager = blockManager;
+            _chainService = chainService;
             _worldStateDictator = worldStateDictator;
             _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
             
@@ -162,7 +162,8 @@ namespace AElf.Kernel.Tests.TxMemPool
                 j1++;
             }
         }
-
+        
+        //[Fact(Skip = "todo")]
         [Fact]
         public async Task StartMultiThread()
         {

@@ -10,14 +10,12 @@ namespace AElf.ChainController
 {
     public class ChainCreationService : IChainCreationService
     {
-        private readonly IChainManager _chainManager;
-        private readonly IBlockManager _blockManager;
+        private readonly IChainService _chainService;
         private readonly ISmartContractService _smartContractService;
 
-        public ChainCreationService(IChainManager chainManager, IBlockManager blockManager, ISmartContractService smartContractService)
+        public ChainCreationService(IChainService chainService, ISmartContractService smartContractService)
         {
-            _chainManager = chainManager;
-            _blockManager = blockManager;
+            _chainService = chainService;
             _smartContractService = smartContractService;
         }
 
@@ -43,10 +41,13 @@ namespace AElf.ChainController
                 builder.Build(chainId);
 
                 // add block to storage
-                await _blockManager.AddBlockAsync(builder.Block);
-                var chain = await _chainManager.AddChainAsync(chainId, builder.Block.GetHash());
-                await _chainManager.AppendBlockToChainAsync(builder.Block);
-                
+                var blockchain = _chainService.GetBlockChain(chainId);
+                await blockchain.AddBlocksAsync(new List<IBlock>() {builder.Block});
+                var chain = new Chain()
+                {
+                    GenesisBlockHash = await blockchain.GetCurrentBlockHashAsync(),
+                    Id = chainId
+                };
                 return chain;
             }
             catch (Exception e)

@@ -121,6 +121,14 @@ namespace AElf.SmartContract
             var keyToGetCount = ResourcePath.CalculatePointerForPathsCount(_chainId, PreBlockHash);
             await _dataStore.SetDataAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
         }
+
+        public async Task RollbackToBlockHash(Hash blockHash)
+        {
+            await Check();
+            await RollbackCurrentChangesAsync();
+            PreBlockHash = blockHash;
+            await RollbackCurrentChangesAsync();
+        }
         
         /// <summary>
         /// The world state will rollback to specific block height's world state

@@ -43,7 +43,7 @@ namespace AElf.Kernel.Tests.Miner
 
         public Synchronizer(
             IChainCreationService chainCreationService, IChainContextService chainContextService,
-            IChainManager chainManager, IBlockManager blockManager, ILogger logger,
+            IChainService chainService, ILogger logger,
             ITransactionResultManager transactionResultManager, ITransactionManager transactionManager,
             FunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService,
             IChangesStore changesStore, IWorldStateStore worldStateStore, IDataStore dataStore,
@@ -54,8 +54,7 @@ namespace AElf.Kernel.Tests.Miner
 
             _chainCreationService = chainCreationService;
             _chainContextService = chainContextService;
-            _chainManager = chainManager;
-            _blockManager = blockManager;
+            _chainService = chainService;
             _logger = logger;
             _transactionResultManager = transactionResultManager;
             _transactionManager = transactionManager;
@@ -131,8 +130,7 @@ namespace AElf.Kernel.Tests.Miner
         
 
         private static int _incrementId;
-        private IChainManager _chainManager;
-        private IBlockManager _blockManager;
+        private IChainService _chainService;
 
         
         public ulong NewIncrementId()
@@ -283,7 +281,7 @@ namespace AElf.Kernel.Tests.Miner
             block.Body.BlockHeader = block.Header.GetHash();
 
             var synchronizer = new BlockExecutor(poolService,
-                _chainManager, _blockManager, _worldStateDictator, _concurrencyExecutingService, null, _transactionManager, _transactionResultManager);
+                _chainService, _worldStateDictator, _concurrencyExecutingService, null, _transactionManager, _transactionResultManager);
 
             synchronizer.Start(new Grouper(_servicePack.ResourceDetectionService));
             var res = await synchronizer.ExecuteBlock(block);
@@ -295,8 +293,11 @@ namespace AElf.Kernel.Tests.Miner
             Assert.True(poolService.TryGetTx(txs[1].GetHash(), out tx));
             Assert.Equal((ulong)0, contractTxPool.GetNonce(tx.From));
 
-            Assert.Equal((ulong)1, await _chainManager.GetChainCurrentHeight(chain.Id));
-            Assert.Equal(chain.GenesisBlockHash, await _chainManager.GetChainLastBlockHash(chain.Id));
+            var blockchain = _chainService.GetBlockChain(chain.Id); 
+            var curHash = await blockchain.GetCurrentBlockHashAsync();
+            var index = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
+            Assert.Equal((ulong)0, index);
+            Assert.Equal(chain.GenesisBlockHash, curHash);
         }
     }
 }

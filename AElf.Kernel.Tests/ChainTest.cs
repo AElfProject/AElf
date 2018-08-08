@@ -17,19 +17,19 @@ namespace AElf.Kernel.Tests
     {
         private readonly IChainCreationService _chainCreationService;
         //private readonly ISmartContractZero _smartContractZero;
-        private readonly IChainManager _chainManager;
+        private readonly IChainService _chainService;
         private readonly IWorldStateStore _worldStateStore;
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
         
 
         public ChainTest(IChainCreationService chainCreationService,
-            IChainManager chainManager, IWorldStateStore worldStateStore, 
+            IChainService chainService, IWorldStateStore worldStateStore, 
             IChangesStore changesStore, IDataStore dataStore)
         {
             //_smartContractZero = smartContractZero;
             _chainCreationService = chainCreationService;
-            _chainManager = chainManager;
+            _chainService = chainService;
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
@@ -64,15 +64,22 @@ namespace AElf.Kernel.Tests
             //var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             
             //await _smartContractZero.InitializeAsync(accountDataProvider);
-            Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)1);
+            var blockchain = _chainService.GetBlockChain(chainId);
+            var getNextHeight = new Func<Task<ulong>>(async () =>
+            {
+                var curHash = await blockchain.GetCurrentBlockHashAsync();
+                var indx = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
+                return indx + 1;
+            });
+            Assert.Equal(await getNextHeight(), (ulong)1);
             return chain;
         }
 
-        public async Task ChainStoreTest(Hash chainId)
-        {
-            await _chainManager.AddChainAsync(chainId, Hash.Generate());
-            Assert.NotNull(_chainManager.GetChainAsync(chainId).Result);
-        }
+//        public async Task ChainStoreTest(Hash chainId)
+//        {
+//            await _chainManager.AddChainAsync(chainId, Hash.Generate());
+//            Assert.NotNull(_chainManager.GetChainAsync(chainId).Result);
+//        }
         
 
         [Fact]
@@ -96,12 +103,20 @@ namespace AElf.Kernel.Tests
             //var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
             
             //await _smartContractZero.InitializeAsync(accountDataProvider);
-            Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)1);
+            var blockchain = _chainService.GetBlockChain(chainId);
+            var getNextHeight = new Func<Task<ulong>>(async () =>
+            {
+                var curHash = await blockchain.GetCurrentBlockHashAsync();
+                var indx = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
+                return indx + 1;
+            });
+            Assert.Equal(await getNextHeight(), (ulong)1);
 
             var block = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
-            await _chainManager.AppendBlockToChainAsync(block);
-            Assert.Equal(await _chainManager.GetChainCurrentHeight(chain.Id), (ulong)2);
-            Assert.Equal(await _chainManager.GetChainLastBlockHash(chain.Id), block.GetHash());
+            await blockchain.AddBlocksAsync(new List<IBlock>(){ block });
+//            await _chainManager.AppendBlockToChainAsync(block);
+            Assert.Equal(await getNextHeight(), (ulong)2);
+            Assert.Equal(await blockchain.GetCurrentBlockHashAsync(), block.GetHash());
             Assert.Equal(block.Header.Index, (ulong)1);
         }
         

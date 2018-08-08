@@ -22,7 +22,6 @@ namespace AElf.Benchmark
     public class Benchmarks
     {
         private readonly IChainCreationService _chainCreationService;
-        private readonly IBlockManager _blockManager;
         private readonly ISmartContractService _smartContractService;
         private readonly ILogger _logger;
         private readonly BenchmarkOptions _options;
@@ -50,7 +49,7 @@ namespace AElf.Benchmark
             }
         }
 
-        public Benchmarks(IChainCreationService chainCreationService, IBlockManager blockManager,
+        public Benchmarks(IChainCreationService chainCreationService,
             IChainContextService chainContextService, ISmartContractService smartContractService,
             ILogger logger, IFunctionMetadataService functionMetadataService,
             IAccountContextService accountContextService, IWorldStateDictator worldStateDictator, BenchmarkOptions options, IConcurrencyExecutingService concurrencyExecutingService)
@@ -61,7 +60,6 @@ namespace AElf.Benchmark
             worldStateDictator1.SetChainId(ChainId).DeleteChangeBeforesImmidiately = true;
             
             _chainCreationService = chainCreationService;
-            _blockManager = blockManager;
             _smartContractService = smartContractService;
             _logger = logger;
             _options = options;
@@ -250,10 +248,8 @@ namespace AElf.Benchmark
                 ContractHash = Hash.Zero,
                 Type = (int)SmartContractType.BasicContractZero
             };
-
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId,
                 new List<SmartContractRegistration> {reg});
-            await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
             var contractAddressZero = _chainCreationService.GenesisContractHash(ChainId, SmartContractType.BasicContractZero);
             
             

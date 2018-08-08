@@ -18,11 +18,6 @@ namespace AElf.SmartContract
 
         private readonly IResourcePath _resourcePath;
 
-        /// <summary>
-        /// Will only set the value during setting data.
-        /// </summary>
-        private Hash PreBlockHash { get; set; }
-
         public DataProvider(IAccountDataContext accountDataContext, IWorldStateDictator worldStateDictator,
             string dataProviderKey = "")
         {
@@ -96,14 +91,6 @@ namespace AElf.SmartContract
             //Generate the new pointer hash (using previous block hash)
             var pointerHashAfter = await _worldStateDictator.CalculatePointerHashOfCurrentHeight(_resourcePath);
 
-            var preBlockHash = PreBlockHash;
-            if (preBlockHash == null)
-            {
-                PreBlockHash = await _worldStateDictator.GetDataAsync(
-                    ResourcePath.CalculatePointerForLastBlockHash(_accountDataContext.ChainId));
-                preBlockHash = PreBlockHash;
-            }
-
             var change = await _worldStateDictator.GetChangeAsync(pathHash);
             if (change == null)
             {
@@ -116,7 +103,7 @@ namespace AElf.SmartContract
             {
                 //See whether the latest changes of this Change happened in this height,
                 //If not, clear the change, because this Change is too old to support rollback.
-                if (_worldStateDictator.DeleteChangeBeforesImmidiately || preBlockHash != change.LatestChangedBlockHash)
+                if (_worldStateDictator.DeleteChangeBeforesImmidiately || _worldStateDictator.PreBlockHash != change.LatestChangedBlockHash)
                 {
                     change.ClearChangeBefores();
                 }
@@ -124,7 +111,7 @@ namespace AElf.SmartContract
                 change.UpdateHashAfter(pointerHashAfter);
             }
 
-            change.LatestChangedBlockHash = preBlockHash;
+            change.LatestChangedBlockHash = _worldStateDictator.PreBlockHash;
 
             await _worldStateDictator.InsertChangeAsync(pathHash, change);
             await _worldStateDictator.SetDataAsync(pointerHashAfter, obj);
