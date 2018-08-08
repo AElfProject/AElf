@@ -40,7 +40,10 @@ namespace AElf.Network.Peers
         private readonly TimeSpan _initialMaintenanceDelay = TimeSpan.FromSeconds(2);
         private readonly TimeSpan _maintenancePeriod = TimeSpan.FromMinutes(1);
         
+        private readonly List<IPeer> _authentifyingPeer = new List<IPeer>();
         private readonly List<IPeer> _peers = new List<IPeer>();
+        
+        private Object _peerListLock = new Object(); 
         
         private BlockingCollection<PeerManagerJob> _jobQueue;
 
@@ -177,6 +180,11 @@ namespace AElf.Network.Peers
         {
             // todo verification : must be connected
             // todo hook up to auth finished
+
+            lock (_peerListLock)
+            {
+                _authentifyingPeer.Add(peer);
+            }
             
             peer.AuthFinished += PeerOnPeerAuthentified;
             peer.Start();
@@ -188,18 +196,23 @@ namespace AElf.Network.Peers
         {
             if (sender is Peer peer)
             {
+                // todo verify authentified
                 // todo peer.MessageReceived += HandleNewMessage;
+                // todo failed authentification
 
-//                if (_peers.Any(p => p.DistantNodeData != null && p.DistantNodeData.Equals(peer.DistantNodeData)))
-//                    return;
-                
-                _peers.Add(peer);
-                
-                _logger?.Trace($"Peer authentified and added : {peer}");
-                
-                //PeerAdded?.Invoke(this, new PeerAddedEventArgs { Peer = peer });
-                // todo
+                AddAuthentifiedPeer(peer);
             }
+        }
+        
+        /// <summary>
+        /// Returns the first occurence of the peer. IPeer
+        /// implementations may override the equality logic.
+        /// </summary>
+        /// <param name="peer"></param>
+        /// <returns></returns>
+        public IPeer GetPeer(IPeer peer)
+        {
+            return _peers?.FirstOrDefault(p => p.Equals(peer));
         }
 
         internal void AddAuthentifiedPeer(IPeer peer)
@@ -209,6 +222,26 @@ namespace AElf.Network.Peers
             // todo add to list 
             // todo event 
             // todo hook up peer messages
+            //                if (_peers.Any(p => p.DistantNodeData != null && p.DistantNodeData.Equals(peer.DistantNodeData)))
+//                    return;
+            lock (_peerListLock)
+            {
+                _authentifyingPeer.Remove(peer);
+
+                if (GetPeer(peer) != null)
+                {
+                    peer.Dispose(); // todo
+                    return;
+                }
+                    
+                _peers.Add(peer);
+            }
+                
+            _logger?.Trace($"Peer authentified and added : {peer}");
+                
+            //PeerAdded?.Invoke(this, new PeerAddedEventArgs { Peer = peer });
+            // todo fire event
+            
             peer.MessageReceived += OnPeerMessageReceived;
         }
 
@@ -299,10 +332,15 @@ namespace AElf.Network.Peers
                 if (peerList.NodeData.Count > 0)
                     _logger?.Trace("Peers received : " + peerList.GetLoggerString());
 
-                foreach (var peer in peerList.NodeData)
+                List<NodeData> currentPeers;
+                lock (_peerListLock)
                 {
-                    NodeData p = new NodeData { IpAddress = peer.IpAddress, Port = peer.Port };
-                    //IPeer newPeer = await CreateAndAddPeer(p);
+                    currentPeers = _peers.Select(p => p.DistantNodeData).ToList();
+                }
+
+                foreach (var peer in peerList.NodeData.Where(nd => !currentPeers.Contains(nd)))
+                {
+                    _jobQueue.Add(new PeerManagerJob { Type = PeerManagerJobType.DialNode, Node = peer });
                 }
             }
             catch (Exception e)
@@ -343,12 +381,12 @@ namespace AElf.Network.Peers
                 if (missingPeers > 0)
                 {
                     var req = NetRequestFactory.CreateMissingPeersReq(missingPeers);
-                    //var taskAwaiter = BroadcastMessage(req);
+                    var taskAwaiter = BroadcastMessage(req);
                 }
             }
             catch (Exception e)
             {
-                ;
+                _logger?.Trace(e, "Error while doing peer maintenance.");
             }
         }
         
@@ -381,5 +419,35 @@ namespace AElf.Network.Peers
         }
         
         #endregion Closing and disposing
+        
+        
+        // todo remove duplicate
+
+        public int BroadcastMessage(Message message)
+        {
+            if (_peers == null || !_peers.Any())
+                return 0;
+
+            int count = 0;
+            
+            try
+            {
+                foreach (var peer in _peers)
+                {
+                    try
+                    {
+                        peer.EnqueueOutgoing(message); //todo
+                        count++;
+                    }
+                    catch (Exception e) { }
+                }
+            }
+            catch (Exception e)
+            {
+                _logger?.Error(e, "Error while sending a message to the peers.");
+            }
+
+            return count;
+        }
     }
 }

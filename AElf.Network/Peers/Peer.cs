@@ -400,20 +400,22 @@ namespace AElf.Network.Peers
         
         public void Disconnect()
         {
-            if (_messageReader != null)
-            {
-                _messageReader.PacketReceived -= ClientOnPacketReceived;
-                _messageReader.StreamClosed -= MessageReaderOnStreamClosed;
-            }
-
             Dispose();
         }
         
         public void Dispose()
         {
+            if (_messageReader != null)
+            {
+                _messageReader.PacketReceived -= ClientOnPacketReceived;
+                _messageReader.StreamClosed -= MessageReaderOnStreamClosed;
+            }
+            
             _messageReader?.Close();
             _messageWriter?.Close();
             _client?.Close();
+            
+            _pingPongTimer.Stop();
         }
         
         #endregion
