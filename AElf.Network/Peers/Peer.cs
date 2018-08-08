@@ -19,12 +19,12 @@ namespace AElf.Network.Peers
         public Peer Peer { get; set; }
     }
 
-    public enum DisconnectReason
+    public class AuthFinishedArgs : EventArgs
     {
-        Timeout,
-        Auth,
-        StreamClosed
+        public bool HasTimedOut { get; set; } = false;
     }
+
+    public enum DisconnectReason { Timeout, Auth, StreamClosed }
     
     public class PeerMessageReceivedArgs : EventArgs
     {
@@ -38,76 +38,99 @@ namespace AElf.Network.Peers
     }
     
     /// <summary>
-    /// This class is essentially a wrapper around the connection. Its the entry
-    /// point for incoming messages and is also used for sending messages to the
-    /// peer it represents.
+    /// This class is essentially a wrapper around the connections underlying stream. Its the entry
+    /// point for incoming messages and is also used for sending messages to the peer it represents.
+    /// This class handles a basic form of authentification as well as ping messages.
     /// </summary>
     public class Peer : IPeer
     {
         private const string LoggerName = "Peer";
+        
+        private const double DefaultPingInterval = 1000;
+        private const double DefaultAuthTimeout = 2000;
         
         private readonly ILogger _logger;
         private readonly IMessageReader _messageReader;
         private readonly IMessageWriter _messageWriter;
         
         private readonly Timer _pingPongTimer;
+        private readonly Timer _authTimer;
         
         /// <summary>
-        /// The event that's raised when a message is received
-        /// from the peer.
+        /// The event that's raised when a message is received from the peer.
         /// </summary>
         public event EventHandler MessageReceived;
         
         /// <summary>
-        /// The event that's raised when a peers stream
-        /// as ended.
+        /// The event that's raised when a peers stream has ended.
         /// </summary>
         public event EventHandler PeerDisconnected;
 
         /// <summary>
         /// The event that's raised when the authentification phase has finished.
         /// </summary>
-        public event EventHandler AuthFinished; 
-        
+        public event EventHandler AuthFinished;
+
+        /// <summary>
+        /// Indicates if Dispose has been called (once false, never changes back to true).
+        /// </summary>
         public bool IsDisposed { get; private set; }
+        
+        /// <summary>
+        /// Indicates if correct authentification information has been received.
+        /// </summary>
         public bool IsAuthentified { get; private set; }
 
         /// <summary>
         /// This nodes listening port.
         /// </summary>
-        private int _port;
+        private readonly int _port;
         
-        private TcpClient _client;
+        /// <summary>
+        /// The underlying network client.
+        /// </summary>
+        private readonly TcpClient _client;
         
         public int PacketsReceivedCount { get; private set; }
         
-        private readonly double _defaultPingInterval = TimeSpan.FromSeconds(1).TotalMilliseconds;
-        
+        /// <summary>
+        /// List of currently pending ping requests.
+        /// </summary>
         private readonly List<Ping> _pings = new List<Ping>();
         private object pingLock = new Object();
         
         private TimeSpan pingWaitTime = TimeSpan.FromSeconds(2);
 
         private int _droppedPings = 0;
+
+        public double AuthTimeout { get; set; } = DefaultAuthTimeout;
         
         /// <summary>
-        /// The data received after the initial connection.
+        /// The data received after the authentification.
         /// </summary>
         public NodeData DistantNodeData { get; set; }
 
         public string IpAddress
         {
-            get { return DistantNodeData?.IpAddress; }
+            get
+            {
+                return DistantNodeData?.IpAddress;
+            }
         }
 
         public ushort Port
         {
-            get { return DistantNodeData?.Port != null ? (ushort) DistantNodeData?.Port : (ushort)0; }
+            get
+            {
+                return DistantNodeData?.Port != null ? (ushort) DistantNodeData?.Port : (ushort)0;
+            }
         }
         
         public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port)
         {
             _pingPongTimer = new Timer();
+            _authTimer = new Timer();
+            
             SetupHeartbeat();
             
             _port = port;
@@ -121,18 +144,21 @@ namespace AElf.Network.Peers
 
         private void SetupHeartbeat()
         {
-            _pingPongTimer.Interval = _defaultPingInterval;
+            _pingPongTimer.Interval = DefaultPingInterval;
             _pingPongTimer.Elapsed += TimerTimeoutElapsed;
             _pingPongTimer.AutoReset = true;
         }
         
         public bool Start()
         {
+            if (IsDisposed)
+                throw new ObjectDisposedException(nameof(Peer), "This peer as already been disposed.");
+            
+            if (IsAuthentified)
+                throw new InvalidOperationException("Cannot start an already authentified peer.");
+            
             if (_messageReader == null || _messageWriter == null || _client == null)
-            {
-                _logger.Trace("Could not initialize, null components.");
-                return false;
-            }
+                throw new InvalidOperationException("Could not initialize, null components.");
             
             try
             {
@@ -142,11 +168,12 @@ namespace AElf.Network.Peers
                 _messageReader.Start();
                 _messageWriter.Start();
 
-                SendAuthentification();
+                StartAuthentification();
             }
             catch (Exception e)
             {
-                _logger.Trace(e, "Error while initializing the connection");
+                _logger?.Trace(e, "Error while initializing the connection");
+                Dispose();
                 return false;
             }
 
@@ -306,35 +333,84 @@ namespace AElf.Network.Peers
         #region Authentification
         
         /// <summary>
-        /// This method writes the initial connection information on the peers stream.
-        /// Note: for now only the listening port is sent.
+        /// This method sends authentification information to the distant peer and
+        /// start the authentification timer.
         /// </summary>
         /// <returns></returns>
-        private void SendAuthentification()
+        private void StartAuthentification()
         {
             var nd = new NodeData { Port = _port };
             byte[] packet = nd.ToByteArray();
             
+            _logger?.Trace($"Sending authentification : {nd}");
+            
             _messageWriter.EnqueueMessage(new Message { Type = (int)MessageType.Auth, Length = packet.Length, Payload = packet});
+            
+            StartAuthTimer();
         }
-       
+        
+        private void StartAuthTimer()
+        {
+            _authTimer.Interval = AuthTimeout;
+            _authTimer.Elapsed += AuthTimerElapsed;
+            _authTimer.AutoReset = false;
+            _authTimer.Start();
+        }
+
+        private void AuthTimerElapsed(object sender, ElapsedEventArgs e)
+        {
+            _authTimer.Stop(); // dispose
+
+            if (IsAuthentified)
+                return; 
+            
+            _logger?.Trace("Authentification timed out.");
+            
+            Dispose();
+            
+            AuthFinished?.Invoke(this, new AuthFinishedArgs { HasTimedOut = true });
+        }
+
+        /// <summary>
+        /// Handles authentification information.
+        /// </summary>
+        /// <param name="aMessage"></param>
         private void HandleAuthResponse(Message aMessage)
         {
-            NodeData n = NodeData.Parser.ParseFrom(aMessage.Payload);
+            try
+            {
+                _authTimer.Stop();
+                
+                NodeData n = NodeData.Parser.ParseFrom(aMessage.Payload);
             
-            IPEndPoint remoteEndPoint = (IPEndPoint)_client.Client.RemoteEndPoint;
+                IPEndPoint remoteEndPoint = (IPEndPoint)_client.Client.RemoteEndPoint;
                     
-            NodeData distant = new NodeData();
-            distant.IpAddress = remoteEndPoint.Address.ToString();
-            distant.Port = n.Port;
+                NodeData distant = new NodeData();
+                distant.IpAddress = remoteEndPoint.Address.ToString();
+                distant.Port = n.Port;
+                
+                AuthentifyWith(distant);
+                
+                _pingPongTimer.Start();
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "Error processing authentification information.");
+                Dispose();
+            }
+            
+            AuthFinished?.Invoke(this, new AuthFinishedArgs());
+        }
 
-            DistantNodeData = distant;
-            
+        /// <summary>
+        /// Mainly for testing purposes, it's used for authentifying a node. Note that
+        /// is doesn't launch the correponding event.
+        /// </summary>
+        /// <param name="nodeData"></param>
+        internal void AuthentifyWith(NodeData nodeData)
+        {
+            DistantNodeData = nodeData;
             IsAuthentified = true;
-            
-            _pingPongTimer.Start();
-            
-            AuthFinished?.Invoke(this, EventArgs.Empty);
         }
 
         #endregion Authentification
@@ -343,11 +419,12 @@ namespace AElf.Network.Peers
         {
             MessageReceived?.Invoke(this, new PeerMessageReceivedArgs { Peer = this, Message = p });
         }
-        
+
         /// <summary>
         /// Sends the provided message to the peer.
         /// </summary>
         /// <param name="data"></param>
+        /// <param name="msg"></param>
         /// <returns></returns>
         public void EnqueueOutgoing(Message msg)
         {
@@ -407,6 +484,7 @@ namespace AElf.Network.Peers
                 return;
             
             _pingPongTimer?.Stop();
+            _authTimer?.Stop();
             
             if (_messageReader != null)
             {
@@ -418,6 +496,8 @@ namespace AElf.Network.Peers
             _messageWriter?.Close();
             
             _client?.Close();
+
+            IsDisposed = true;
         }
         
         #endregion

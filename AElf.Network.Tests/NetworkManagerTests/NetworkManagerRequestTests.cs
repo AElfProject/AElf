@@ -22,9 +22,6 @@ namespace AElf.Network.Tests.NetworkManagerTests
             secondPeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
             
             NetworkManager manager = new NetworkManager(null, peerManager.Object, null);
-            
-            //manager.AddPeerNoAuth(firstPeer.Object);
-            //manager.AddPeerNoAuth(secondPeer.Object);
             peerManager.Raise(m => m.PeerAdded += null, new PeerAddedEventArgs { Peer = firstPeer.Object });
             peerManager.Raise(m => m.PeerAdded += null, new PeerAddedEventArgs { Peer = secondPeer.Object });
 
