@@ -125,9 +125,9 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
-            var abiModule = Generator.GetABIModule(code);
+            var abiModule = GetAbiModule(reg);
             // TODO: Change back
-            var type = assembly.GetTypes().FirstOrDefault(x => x.FullName == abiModule.Name);
+            var type = assembly.GetTypes().FirstOrDefault(x => x.FullName.Contains(abiModule.Name));
             if (type == null)
             {
                 throw new InvalidCodeException($"No SmartContract type {abiModule.Name} is defined in the code.");
