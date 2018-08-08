@@ -24,7 +24,12 @@ namespace AElf.Kernel.Storages
         public async Task<BlockHeader> GetAsync(Hash blockHash)
         {
             var key = blockHash.GetKeyString(TypeIndex);
-            return BlockHeader.Parser.ParseFrom(await _keyValueDatabase.GetAsync(key, typeof(BlockHeader)));
+            var bytes = await _keyValueDatabase.GetAsync(key, typeof(BlockHeader));
+            if (bytes == null)
+            {
+                return null;
+            }
+            return BlockHeader.Parser.ParseFrom(bytes);
         }
     }
 }

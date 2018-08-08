@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
@@ -19,7 +20,7 @@ namespace AElf.Kernel.Consensus
         private readonly ECKeyPair _keyPair;
         private readonly IDataProvider _dataProvider;
         private readonly BlockProducer _blockProducer;
-        private readonly IChainManager _chainManager;
+        private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private readonly Hash _chainId;
         private readonly ConsensusHelper _consensusHelper;
@@ -129,13 +130,13 @@ namespace AElf.Kernel.Consensus
         }
         
         public AElfDPoSHelper(IWorldStateDictator worldStateDictator, ECKeyPair keyPair, Hash chainId,
-            BlockProducer blockProducer, Hash contractAddressHash, IChainManager chainManager, ILogger logger)
+            BlockProducer blockProducer, Hash contractAddressHash, IChainService chainService, ILogger logger)
         {
             worldStateDictator.SetChainId(chainId);
             _keyPair = keyPair;
             _blockProducer = blockProducer;
             _logger = logger;
-            _chainManager = chainManager;
+            _chainService = chainService;
             _chainId = chainId;
 
             _dataProvider = worldStateDictator.GetAccountDataProvider(contractAddressHash).Result.GetDataProvider();

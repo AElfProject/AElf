@@ -149,6 +149,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new NetworkModule(netConf, isMiner));
             builder.RegisterModule(new RpcServerModule());
+            builder.RegisterType<ChainService>().As<IChainService>();
 
             // register SmartContractRunnerFactory 
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
