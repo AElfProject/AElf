@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types.Merkle;
@@ -14,12 +15,12 @@ namespace AElf.Kernel.Tests.Miner
     [UseAutofacTestFramework]
     public class BlockGeneration
     {
-        private readonly IBlockManager _blockManager;
+        private readonly IChainService _chainService;
         private readonly IWorldStateDictator _worldStateDictator;
 
-        public BlockGeneration(IBlockManager blockManager, IWorldStateDictator worldStateDictator)
+        public BlockGeneration(IChainService chainService, IWorldStateDictator worldStateDictator)
         {
-            _blockManager = blockManager;
+            _chainService = chainService;
             _worldStateDictator = worldStateDictator;
         }
 
@@ -124,12 +125,12 @@ namespace AElf.Kernel.Tests.Miner
             return mock;
         }
 
-        public Mock<IChainManager> GetChainManager(Hash lastBlockHash)
-        {
-            var mock = new Mock<IChainManager>();
-            mock.Setup(c => c.GetChainLastBlockHash(It.IsAny<Hash>())).Returns(Task.FromResult(lastBlockHash));
-            return mock;
-        }
+//        public Mock<IChainManager> GetChainManager(Hash lastBlockHash)
+//        {
+//            var mock = new Mock<IChainManager>();
+//            mock.Setup(c => c.GetChainLastBlockHash(It.IsAny<Hash>())).Returns(Task.FromResult(lastBlockHash));
+//            return mock;
+//        }
 
         
     }

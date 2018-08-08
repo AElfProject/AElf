@@ -26,7 +26,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         private IWorldStateDictator _worldStateDictator;
         private IChainCreationService _chainCreationService;
         private IChainContextService _chainContextService;
-        private IBlockManager _blockManager;
+        private IChainService _chainService;
         private ITransactionManager _transactionManager;
         private ISmartContractManager _smartContractManager;
         private ISmartContractService _smartContractService;
@@ -37,13 +37,13 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         private Hash ChainId { get; } = Hash.Generate();
 
         public ContractTest(IWorldStateDictator worldStateDictator,
-            IChainCreationService chainCreationService, IBlockManager blockManager,
+            IChainCreationService chainCreationService, IChainService chainService,
             ITransactionManager transactionManager, ISmartContractManager smartContractManager,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
             _worldStateDictator = worldStateDictator;
             _chainCreationService = chainCreationService;
-            _blockManager = blockManager;
+            _chainService = chainService;
             _transactionManager = transactionManager;
             _smartContractManager = smartContractManager;
             _chainContextService = chainContextService;
@@ -79,7 +79,6 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
-            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
 
             var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
             var copy = await _smartContractManager.GetAsync(contractAddressZero);
@@ -99,7 +98,6 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
-            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
 
             var code = ExampleContractCode;
             var contractAddressZero = new Hash(ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
@@ -148,7 +146,6 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
-            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
 
             var code = ExampleContractCode;
 
