@@ -12,12 +12,12 @@ namespace AElf.ChainController
     [LoggerName(nameof(ChainContextValidationFilter))]
     public class ChainContextValidationFilter : IBlockValidationFilter
     {
-        private readonly IBlockManager _blockManager;
+        private readonly IChainService _chainService;
         private readonly ILogger _logger;
 
-        public ChainContextValidationFilter(IBlockManager blockManager, ILogger logger)
+        public ChainContextValidationFilter(IChainService chainService, ILogger logger)
         {
-            _blockManager = blockManager;
+            _chainService = chainService;
             _logger = logger;
         }
 
@@ -65,7 +65,8 @@ namespace AElf.ChainController
                 
                 if (index < currentChainHeight)
                 {
-                    var b = await _blockManager.GetBlockByHeight(block.Header.ChainId, index);
+                    var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
+                    var b = await blockchain.GetBlockByHeightAsync(index);
                     if (b == null)
                     {
                         return ValidationError.FailedToGetBlockByHeight;

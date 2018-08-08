@@ -29,6 +29,7 @@ namespace AElf.Kernel.Tests
             builder.RegisterModule(new ServicesModule());
             builder.RegisterModule(new ManagersModule());
             builder.RegisterModule(new TxPoolServiceModule(new TxPoolConfig()));
+            builder.RegisterType<ChainService>().As<IChainService>();
 
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
