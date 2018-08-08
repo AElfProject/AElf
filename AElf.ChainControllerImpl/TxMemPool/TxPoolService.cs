@@ -219,7 +219,7 @@ namespace AElf.Kernel.TxMemPool
             }*/
 
             return await ContractTxLock.ReadLock(() => _contractTxPool.Size) +
-                   await DPoSTxLock.ReadLock(() => _contractTxPool.Size);
+                   await DPoSTxLock.ReadLock(() => _dpoSTxPool.Size);
         }
 
         /// <inheritdoc/>

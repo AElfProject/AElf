@@ -512,7 +512,7 @@ namespace AElf.Kernel.Node.RPC
             stopWatch.Start();
             var res = await _node.BroadcastTransaction(transaction);
             stopWatch.Stop();
-            _logger?.Info($"### Debug ProcessBroadcastTx Time: {stopWatch.ElapsedMilliseconds}");
+            //_logger?.Info($"### Debug ProcessBroadcastTx Time: {stopWatch.ElapsedMilliseconds}");
 
             JObject response;
             if (res != TxValidation.TxInsertionAndBroadcastingError.Success)

@@ -818,7 +818,7 @@ namespace AElf.Kernel.Node
                 stopWatch.Start();
                 res = await _txPoolService.AddTxAsync(tx);
                 stopWatch.Stop();
-                _logger?.Info($"### Debug _txPoolService.AddTxAsync Time: {stopWatch.ElapsedMilliseconds}");
+                //_logger?.Info($"### Debug _txPoolService.AddTxAsync Time: {stopWatch.ElapsedMilliseconds}");
             }
             catch (Exception e)
             {
