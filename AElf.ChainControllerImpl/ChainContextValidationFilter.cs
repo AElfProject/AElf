@@ -50,7 +50,7 @@ namespace AElf.ChainController
                 }
                 
                 // can be added to chain
-                if (index == currentChainHeight + 1)
+                if (previousBlockHash == Hash.Genesis ||  index == currentChainHeight + 1)
                 {
                     if (!currentPreviousBlockHash.Equals(previousBlockHash))
                     {
