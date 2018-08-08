@@ -239,7 +239,7 @@ namespace AElf.Network.Peers
                 
             _logger?.Trace($"Peer authentified and added : {peer}");
                 
-            //PeerAdded?.Invoke(this, new PeerAddedEventArgs { Peer = peer });
+            PeerAdded?.Invoke(this, new PeerAddedEventArgs { Peer = peer });
             // todo fire event
             
             peer.MessageReceived += OnPeerMessageReceived;

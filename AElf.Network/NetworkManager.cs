@@ -86,7 +86,18 @@ namespace AElf.Network.Peers
             _peerManager = peerManager;
             _logger = logger;
             
-            // todo peerManager.PeerAdded
+            peerManager.PeerAdded += PeerManagerOnPeerAdded;
+        }
+
+        private void PeerManagerOnPeerAdded(object sender, EventArgs eventArgs)
+        {
+            if (eventArgs is PeerAddedEventArgs peer && peer.Peer != null)
+            {
+                _peers.Add(peer.Peer);
+
+                peer.Peer.MessageReceived += HandleNewMessage;
+                peer.Peer.PeerDisconnected += ProcessClientDisconnection;
+            }
         }
 
         internal TimeoutRequest HasRequestWithHash(byte[] hash)
@@ -338,8 +349,9 @@ namespace AElf.Network.Peers
                 peer.MessageReceived -= HandleNewMessage;
                 peer.PeerDisconnected -= ProcessClientDisconnection;
                 
-                //RemovePeer(args.Peer);
-                // todo
+                // todo check already in list
+                
+                _peers.Remove(args.Peer);
             }
         }
 
