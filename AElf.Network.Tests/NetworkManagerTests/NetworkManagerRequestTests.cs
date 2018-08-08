@@ -13,15 +13,20 @@ namespace AElf.Network.Tests.NetworkManagerTests
         [Fact]
         public void QueueTransactionRequest_RetryOnTimeout()
         {
+            Mock<IPeerManager> peerManager = new Mock<IPeerManager>();
+            
             Mock<IPeer> firstPeer = new Mock<IPeer>();
             firstPeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
             
             Mock<IPeer> secondPeer = new Mock<IPeer>();
             secondPeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
             
-            NetworkManager manager = new NetworkManager(null, null, null);
-            manager.AddPeerNoAuth(firstPeer.Object);
-            manager.AddPeerNoAuth(secondPeer.Object);
+            NetworkManager manager = new NetworkManager(null, peerManager.Object, null);
+            
+            //manager.AddPeerNoAuth(firstPeer.Object);
+            //manager.AddPeerNoAuth(secondPeer.Object);
+            peerManager.Raise(m => m.PeerAdded += null, new PeerAddedEventArgs { Peer = firstPeer.Object });
+            peerManager.Raise(m => m.PeerAdded += null, new PeerAddedEventArgs { Peer = secondPeer.Object });
 
             var txHash = new byte[] {0x01, 0x02};
             manager.QueueTransactionRequest(txHash, firstPeer.Object);
@@ -36,14 +41,16 @@ namespace AElf.Network.Tests.NetworkManagerTests
         [Fact]
         public void QueueTransactionRequest_TryAllPeers_ShouldThrowEx()
         {
+            Mock<IPeerManager> peerManager = new Mock<IPeerManager>();
+            
             Mock<IPeer> firstPeer = new Mock<IPeer>();
             firstPeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
             
-            NetworkManager manager = new NetworkManager(null, null, null);
+            NetworkManager manager = new NetworkManager(null, peerManager.Object, null);
             
             // Set tries to 1 : no retries.
             manager.RequestMaxRetry = 1;
-            manager.AddPeerNoAuth(firstPeer.Object);
+            peerManager.Raise(m => m.PeerAdded += null, new PeerAddedEventArgs { Peer = firstPeer.Object });
             
             List<EventArgs> receivedEvents = new List<EventArgs>();
 
