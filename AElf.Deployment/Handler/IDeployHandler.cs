@@ -1,7 +1,9 @@
-﻿namespace AElf.Deployment.Handler
+﻿using AElf.Deployment.Models;
+
+namespace AElf.Deployment.Handler
 {
     public interface IDeployHandler
     {
-        void Execute();
+        void Deploy(DeployArgument arg);
     }
 }

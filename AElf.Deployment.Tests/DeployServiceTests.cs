@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using AElf.Deployment.Models;
+using Xunit;
 
 namespace AElf.Deployment.Tests
 {
@@ -7,7 +8,8 @@ namespace AElf.Deployment.Tests
         [Fact]
         public void DeploySideChainTest()
         {
-            new DeployService().DeploySideChain();
+            var arg = new DeployArgument();
+            new DeployService().DeploySideChain(arg);
         }
     }
 }

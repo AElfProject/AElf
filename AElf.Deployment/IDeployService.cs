@@ -1,7 +1,9 @@
-﻿namespace AElf.Deployment
+﻿using AElf.Deployment.Models;
+
+namespace AElf.Deployment
 {
     public interface IDeployService
     {
-        void DeploySideChain();
+        void DeploySideChain(DeployArgument arg);
     }
 }
