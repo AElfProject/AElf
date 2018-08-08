@@ -735,7 +735,13 @@ namespace AElf.Kernel.Node
 
                 _worldStateDictator.BlockProducerAccountAddress = _nodeKeyPair.GetAddress();
 
-                var block = await _miner.Mine();
+                var task = Task.Run(async () => await _miner.Mine());
+
+                if (!task.Wait(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval * 0.9)))
+                {
+                    _logger?.Error("Mining timeout.");
+                    return null;
+                }
 
                 var b = Interlocked.CompareExchange(ref _flag, 0, 1);
 
@@ -757,7 +763,7 @@ namespace AElf.Kernel.Node
                     AElfDPoSObserver.RecoverMining();
                 }
 
-                return block;
+                return task.Result;
             }
             catch (Exception e)
             {
