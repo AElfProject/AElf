@@ -13,6 +13,8 @@ namespace AElf.Network.Peers
         string IpAddress { get; }
         ushort Port { get; }
 
+        bool IsAuthentified { get; }
+
         bool Start();
         
         NodeData DistantNodeData { get; }

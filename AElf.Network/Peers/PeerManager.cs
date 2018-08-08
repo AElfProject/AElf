@@ -102,7 +102,7 @@ namespace AElf.Network.Peers
                     }
                     catch (Exception e)
                     {
-                        _logger?.Trace("Error while dequeuing peer manager job: stopping the dequing loop.");
+                        _logger?.Trace("Error while dequeuing peer manager job: stopping the dequeing loop.");
                         break;
                     }
                 
@@ -141,6 +141,11 @@ namespace AElf.Network.Peers
         
         #region Peer creation
 
+        /// <summary>
+        /// Adds a peer to the peer management. This method will initiate the
+        /// authentification procedure.
+        /// </summary>
+        /// <param name="nodeData"></param>
         public void AddPeer(NodeData nodeData)
         {
             if (nodeData == null)
@@ -150,14 +155,20 @@ namespace AElf.Network.Peers
             TcpClient client = dialer.DialAsync().GetAwaiter().GetResult(); // todo async 
 
             IPeer peer = CreatePeerFromConnection(client);
+            peer.PeerDisconnected += ProcessClientDisconnection;
             
             StartAuthentification(peer);
             
-            // todo create peer => IPeer (connected = true)
             // todo hookup disconnection
             // todo start auth
         }
 
+        /// <summary>
+        /// Given a client, this method will create a peer with the appropriate
+        /// stream writer and reader. 
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
         private IPeer CreatePeerFromConnection(TcpClient client)
         {
             if (client == null)
@@ -179,7 +190,6 @@ namespace AElf.Network.Peers
         internal void StartAuthentification(IPeer peer)
         {
             // todo verification : must be connected
-            // todo hook up to auth finished
 
             lock (_peerListLock)
             {
@@ -187,9 +197,9 @@ namespace AElf.Network.Peers
             }
             
             peer.AuthFinished += PeerOnPeerAuthentified;
-            peer.Start();
             
-            // todo peer.PeerDisconnected += ProcessClientDisconnection;
+            // Start and authentify the peer
+            peer.Start();
         }
         
         private void PeerOnPeerAuthentified(object sender, EventArgs eventArgs)
@@ -217,13 +227,18 @@ namespace AElf.Network.Peers
 
         internal void AddAuthentifiedPeer(IPeer peer)
         {
-            // todo verification : must be auth
-            // todo check if peer not already included
-            // todo add to list 
-            // todo event 
-            // todo hook up peer messages
-            //                if (_peers.Any(p => p.DistantNodeData != null && p.DistantNodeData.Equals(peer.DistantNodeData)))
-//                    return;
+            if (peer == null)
+            {
+                _logger?.Trace("Peer is null, cannot add.");
+                return;
+            }
+            
+            if (!peer.IsAuthentified)
+            {
+                _logger?.Trace($"Peer not authentified, cannot add {peer}");
+                return;
+            }
+            
             lock (_peerListLock)
             {
                 _authentifyingPeer.Remove(peer);
@@ -238,11 +253,10 @@ namespace AElf.Network.Peers
             }
                 
             _logger?.Trace($"Peer authentified and added : {peer}");
-                
-            PeerAdded?.Invoke(this, new PeerAddedEventArgs { Peer = peer });
-            // todo fire event
             
             peer.MessageReceived += OnPeerMessageReceived;
+                
+            PeerAdded?.Invoke(this, new PeerAddedEventArgs { Peer = peer });
         }
 
         private void OnPeerMessageReceived(object sender, EventArgs args)
@@ -271,6 +285,31 @@ namespace AElf.Network.Peers
         }
 
         #endregion Peer creation
+        
+        #region Peer diconnection
+        
+        /// <summary>
+        /// Callback for when a Peer fires a <see cref="PeerDisconnected"/> event. It unsubscribes
+        /// the manager from the events and removes it from the list.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ProcessClientDisconnection(object sender, EventArgs e)
+        {
+            if (sender != null && e is PeerDisconnectedArgs args && args.Peer != null)
+            {
+                IPeer peer = args.Peer;
+                
+                peer.MessageReceived -= OnPeerMessageReceived;
+                peer.PeerDisconnected -= ProcessClientDisconnection;
+                peer.AuthFinished -= PeerOnPeerAuthentified;
+                
+                if (!_peers.Remove(args.Peer))
+                    _logger?.Trace($"Tried to remove peer, but not in list {args.Peer}");
+            }
+        }
+        
+        #endregion Peer disconnection
 
         #region Peer maintenance
 
