@@ -788,9 +788,8 @@ namespace AElf.Kernel.Node
             await _netManager.BroadcastBock(block.GetHash().Value.ToByteArray(), serializedBlock);
 
             var bh = block.GetHash().ToHex();
-            var txsInPool = await GetTransactionPoolSize();
             _logger?.Trace(
-                $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}]. [{txsInPool}] tx(s) left in pool");
+                $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}].");
 
             return true;
         }
