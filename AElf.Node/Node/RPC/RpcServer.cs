@@ -196,30 +196,18 @@ namespace AElf.Kernel.Node.RPC
                 JObject response = null;
                 switch (methodName)
                 {
-                    /*case GetTxMethodName:
-                        response = await ProcessGetTx(reqParams);
-                        break;*/
-                    /*case InsertTxMethodName:
-                        response = await ProcessInsertTx(reqParams);
-                        break;*/
                     case BroadcastTxMethodName:
                         response = await ProcessBroadcastTx(reqParams);
                         break;
                     case BroadcastTxsMethodName:
                         response = await ProcessBroadcastTxs(reqParams);
                         break;
-                    /*case GetPeersMethodName:
-                        responseData = await ProcessGetPeers(reqParams);
-                        break;*/
                     case GetCommandsMethodName:
                         response = ProcessGetCommands();
                         break;
                     case GetIncrementIdMethodName:
                         response = await ProcessGetIncrementId(reqParams);
                         break;
-                    /*case BroadcastBlockMethodName:
-                        responseData = await ProcessBroadcastBlock(reqParams);
-                        break;*/
                     case GetContractAbi:
                         response = await ProcessGetContractAbi(reqParams);
                         break;
@@ -227,7 +215,7 @@ namespace AElf.Kernel.Node.RPC
                         response = await ProcGetTxResult(reqParams);
                         break;
                     case GetGenesisiAddress:
-                        response = await ProGetGenesisAddress(reqParams);
+                        response = await ProGetChainInfo(reqParams);
                         break;
                     case GetBlockHeight:
                         response = await ProGetBlockHeight(reqParams);
@@ -263,6 +251,13 @@ namespace AElf.Kernel.Node.RPC
             }
         }
 
+        /// <summary>
+        /// set transaction pool throughput
+        /// no tx returned if transaction count in pool is less than "minimal"
+        /// the number of transaction got from pool cannot be more than "maximal"
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private JObject ProcSetBlockVolume(JObject reqParams)
         {
             try
@@ -309,6 +304,11 @@ namespace AElf.Kernel.Node.RPC
             }
         }
 
+        /// <summary>
+        /// return block info with block height
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProGetBlockInfo(JObject reqParams)
         {
             var error = JObject.FromObject(new JObject
@@ -363,6 +363,11 @@ namespace AElf.Kernel.Node.RPC
             return JObject.FromObject(response);
         }
 
+        /// <summary>
+        /// return block height 
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProGetBlockHeight(JObject reqParams)
         {
             var height = await _node.GetCurrentChainHeight();
@@ -376,8 +381,12 @@ namespace AElf.Kernel.Node.RPC
             return JObject.FromObject(response);
         }
 
-
-        private Task<JObject> ProGetGenesisAddress(JObject reqParams)
+        /// <summary>
+        /// return chain info containing basic contract zero, token contract, chainId
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
+        private Task<JObject> ProGetChainInfo(JObject reqParams)
         {
             var chainId = _node.ChainId;
             var basicContractZero = _node.GetGenesisContractHash(SmartContractType.BasicContractZero);
@@ -395,6 +404,11 @@ namespace AElf.Kernel.Node.RPC
             return Task.FromResult(JObject.FromObject(response));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProcGetTxResult(JObject reqParams)
         {
             Hash txHash;
@@ -450,6 +464,11 @@ namespace AElf.Kernel.Node.RPC
             
         }
 
+        /// <summary>
+        /// return incrementId for one address
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProcessGetIncrementId(JObject reqParams)
         {
             Hash addr;
@@ -477,6 +496,11 @@ namespace AElf.Kernel.Node.RPC
             return JObject.FromObject(response);
         }
 
+        /// <summary>
+        /// return abi for the contract with address 
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProcessGetContractAbi(JObject reqParams)
         {
             var addr = reqParams["address"]?.ToString();
@@ -518,6 +542,11 @@ namespace AElf.Kernel.Node.RPC
             return response;
         }
 
+        /// <summary>
+        /// broadcast transaction
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProcessBroadcastTx(JObject reqParams)
         {
             var raw64 = reqParams["rawtx"].ToString();
@@ -544,6 +573,12 @@ namespace AElf.Kernel.Node.RPC
             return JObject.FromObject(response);
         }
 
+        
+        /// <summary>
+        /// broadcast batch of transaction  
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProcessBroadcastTxs(JObject reqParams)
         {
             var response = new List<object>();
@@ -626,11 +661,6 @@ namespace AElf.Kernel.Node.RPC
             };
 
             return JObject.FromObject(response);
-        }
-
-        private async Task<JObject> ProcessBroadcastBlock(JObject reqParams)
-        {
-            throw new NotImplementedException();
         }
 
         private async Task WriteResponse(HttpContext context, JObject response)
