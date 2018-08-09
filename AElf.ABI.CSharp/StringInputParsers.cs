@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
+using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -17,7 +18,7 @@ namespace AElf.ABI.CSharp
             return value.Length >= 2 && value[0] == '0' && (value[1] == 'x' || value[1] == 'X');
         }
 
-        private static readonly Dictionary<System.Type, Func<string, object>> _handlers =
+        private static readonly Dictionary<System.Type, Func<string, object>> StringHandlers =
             new Dictionary<System.Type, Func<string, object>>()
             {
                 {typeof(bool), (s) => bool.Parse(s)},
@@ -32,11 +33,27 @@ namespace AElf.ABI.CSharp
                         .Select(x => Convert.ToByte(s.Substring(x, 2), 16)).ToArray()
                 }
             };
-
+        
+        
+        private static readonly Dictionary<System.Type, Func<object, string>> ObjectHandlers =
+            new Dictionary<System.Type, Func<object, string>>()
+            {
+                {typeof(bool), obj => ((bool)obj).ToString()},
+                {typeof(int), obj => ((int)obj).ToString()},
+                {typeof(uint), obj => ((uint)obj).ToString()},
+                {typeof(long), obj => ((long)obj).ToString()},
+                {typeof(ulong), obj => ((ulong)obj).ToString()},
+                {typeof(string), obj => (string)obj},
+                {
+                    typeof(byte[]),
+                    obj => ((byte[])obj).ToHex()
+                }
+            };
+        
         static StringInputParsers()
         {
             _nameToType = new Dictionary<string, System.Type>();
-            foreach (var t in _handlers.Keys)
+            foreach (var t in StringHandlers.Keys)
             {
                 _nameToType.Add(t.FullName, t);
                 _nameToType.Add(t.FullName.ToShorterName(), t);
@@ -47,7 +64,7 @@ namespace AElf.ABI.CSharp
         {
             if (_nameToType.TryGetValue(typeName, out var type))
             {
-                if (_handlers.TryGetValue(type, out var parser))
+                if (StringHandlers.TryGetValue(type, out var parser))
                 {
                     return parser;
                 }
@@ -69,9 +86,28 @@ namespace AElf.ABI.CSharp
                     
                     return new BytesValue()
                     {
-                        Value = ByteString.CopyFrom((byte[]) _handlers[typeof(byte[])](s))
+                        Value = ByteString.CopyFrom((byte[]) StringHandlers[typeof(byte[])](s))
                     };
                 };
+            }
+
+            throw new Exception($"Cannot find parser for type {typeName}");
+        }
+        
+        
+        public static Func<object, string> ParseToStringFor(string typeName)
+        {
+            if (_nameToType.TryGetValue(typeName, out var type))
+            {
+                if (ObjectHandlers.TryGetValue(type, out var parser))
+                {
+                    return parser;
+                }
+            }
+
+            if (typeName == Globals.HASH_TYPE_FULL_NAME)
+            {
+                return obj => ((Hash)obj).ToHex();
             }
 
             throw new Exception($"Cannot find parser for type {typeName}");

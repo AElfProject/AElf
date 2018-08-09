@@ -10,6 +10,7 @@ using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Node.RPC.DTO;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -409,29 +410,44 @@ namespace AElf.Kernel.Node.RPC
                 });
             }
 
-            var transaction = await _node.GetTransaction(txHash);
 
-            var txInfo = transaction == null ? new JObject {["tx"] = "Not Found"} : transaction.GetTransactionInfo();
-
-            var txResult = await _node.GetTransactionResult(txHash);
-            var response = new JObject
+            try
             {
-                ["tx_status"] = txResult.Status.ToString(),
-                ["tx_info"] = txInfo["tx"]
-            };
+                var transaction = await _node.GetTransaction(txHash);
+            
+                var txInfo = transaction == null ? new JObject {["tx"] = "Not Found"} : transaction.GetTransactionInfo();
+                if(transaction != null)
+                    ((JObject)txInfo["tx"]).Add("params", String.Join(", ", await _node.GetTransactionParameters(transaction))); 
+                
+                var txResult = await _node.GetTransactionResult(txHash);
+                var response = new JObject
+                {
+                    ["tx_status"] = txResult.Status.ToString(),
+                    ["tx_info"] = txInfo["tx"]
+                };
+                
 
-            if (txResult.Status == Status.Failed)
-            {
-                response["tx_error"] = txResult.RetVal.ToStringUtf8();
+                if (txResult.Status == Status.Failed)
+                {
+                    response["tx_error"] = txResult.RetVal.ToStringUtf8();
+                }
+
+                if (txResult.Status == Status.Mined)
+                {
+                    response["return"] = txResult.RetVal.ToByteArray().ToHex();
+                }
+                // Todo: it should be deserialized to obj ion cli, 
+
+                return JObject.FromObject(new JObject {["result"] = response});
             }
-
-            if (txResult.Status == Status.Mined)
+            catch (Exception e)
             {
-                response["return"] = txResult.RetVal.ToByteArray().ToHex();
+                return new JObject
+                {
+                    ["error"] = e.ToString()
+                };
             }
-            // Todo: it should be deserialized to obj ion cli, 
-
-            return JObject.FromObject(new JObject {["result"] = response});
+            
         }
 
         private async Task<JObject> ProcessGetIncrementId(JObject reqParams)

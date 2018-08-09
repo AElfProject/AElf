@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -802,6 +803,12 @@ namespace AElf.Kernel.Node
             return await _smartContractService.GetAbiAsync(address, name);
         }
 
+
+        public async Task<IEnumerable<string>> GetTransactionParameters(ITransaction tx)
+        {
+            return await _smartContractService.GetInvokingParams(tx);
+        }
+        
         /// <summary>
         /// Broadcasts a transaction to the network. This method
         /// also places it in the transaction pool.
