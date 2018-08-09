@@ -123,20 +123,14 @@ namespace AElf.Kernel.Consensus
         /// <returns></returns>
         private byte[] GetBytes(Hash keyHash, string resourceStr = "")
         {
-            byte[] bytes = null;
+            byte[] bytes;
             if (resourceStr != "")
             {
-                while (bytes == null)
-                {
-                    bytes = _dataProvider.GetDataProvider(resourceStr).GetAsync(keyHash).Result;
-                }
+                bytes = _dataProvider.GetDataProvider(resourceStr).GetAsync(keyHash).Result;
             }
             else
             {
-                while (bytes == null)
-                {
-                    bytes = _dataProvider.GetAsync(keyHash).Result;
-                }
+                bytes = _dataProvider.GetAsync(keyHash).Result;
             }
 
             return bytes;
