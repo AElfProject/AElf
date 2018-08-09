@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Google.Protobuf;
 using System.Security.Cryptography;
 
@@ -7,13 +8,44 @@ namespace AElf.Kernel
 {
     public class Bloom
     {
+        private static byte[] GetNewEmptyBytes()
+        {
+            var bytes = new byte[256];
+            for (int i = 0; i < 256; i++)
+            {
+                bytes[i] = 0x00;
+            }
+
+            return bytes;
+        }
+
+        public static byte[] AndMultipleBloomBytes(IEnumerable<byte[]> multipleBytes)
+        {
+            var res = GetNewEmptyBytes();
+            foreach (var bytes in multipleBytes)
+            {
+                if (bytes.Length != 256)
+                {
+                    throw new InvalidOperationException("Bloom data has to be 256 bytes long.");
+                }
+
+                for (int i = 0; i < 256; i++)
+                {
+                    res[i] |= bytes[i];
+                }
+            }
+
+            return res;
+        }
+
         private const uint BucketPerVal = 3; // number of hash functions
-        private byte[] _data = new byte[256];
+        private byte[] _data;
 
         public byte[] Data => _data;
 
         public Bloom()
         {
+            _data = GetNewEmptyBytes();
         }
 
         public Bloom(byte[] data)
