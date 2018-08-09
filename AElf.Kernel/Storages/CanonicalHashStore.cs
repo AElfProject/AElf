@@ -26,7 +26,12 @@ namespace AElf.Kernel.Storages
         public async Task<Hash> GetAsync(Hash heightHash)
         {
             var key = heightHash.GetKeyString(TypeIndex);
-            return Hash.Parser.ParseFrom(await _keyValueDatabase.GetAsync(key, typeof(Hash)));
+            var bytes = await _keyValueDatabase.GetAsync(key, typeof(Hash));
+            if (bytes == null)
+            {
+                return null;
+            }
+            return Hash.Parser.ParseFrom(bytes);
         }
 
         public async Task RemoveAsync(Hash heightHash)

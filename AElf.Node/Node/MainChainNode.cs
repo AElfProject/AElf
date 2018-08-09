@@ -171,7 +171,7 @@ namespace AElf.Kernel.Node
                 
                 var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
                 var curHash = blockchain.GetCurrentBlockHashAsync().Result;
-                var chainExists = curHash != null;
+                var chainExists = curHash != null && !curHash.Equals(Hash.Genesis);
                 if (!chainExists)
                 {
                     // Creation of the chain if it doesn't already exist

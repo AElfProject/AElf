@@ -47,8 +47,6 @@ namespace AElf.SmartContract
         Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId);
 
         Task<bool> ApplyCachedDataAction(Dictionary<Hash, StateCache> queue, Hash chainId);
-
-        Task SetBlockHashToCorrespondingHeight(ulong height, BlockHeader header);
         
         Hash PreBlockHash { get; set; }
         

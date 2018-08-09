@@ -9,6 +9,7 @@ namespace AElf.Kernel
         Task<bool> HasHeader(Hash blockId);
         Task<bool> IsOnCanonical(Hash blockId);
         Task AddHeadersAsync(IEnumerable<IBlockHeader> headers);
+        Task<ulong> GetCurrentBlockHeightAsync();
         Task<Hash> GetCurrentBlockHashAsync();
         Task<IBlockHeader> GetHeaderByHashAsync(Hash blockId);
         Task<IBlockHeader> GetHeaderByHeightAsync(ulong height);
