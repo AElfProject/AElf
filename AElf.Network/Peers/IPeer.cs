@@ -8,18 +8,16 @@ namespace AElf.Network.Peers
     {
         event EventHandler MessageReceived;
         event EventHandler PeerDisconnected;
-        event EventHandler PeerAuthentified;
+        event EventHandler AuthFinished;
         
         string IpAddress { get; }
         ushort Port { get; }
+
+        bool IsAuthentified { get; }
+
+        bool Start();
         
         NodeData DistantNodeData { get; }
-
-        bool IsConnected { get; }
-        bool IsListening { get; }
-        
         void EnqueueOutgoing(Message msg);
-
-        void Disconnect();
     }
 }

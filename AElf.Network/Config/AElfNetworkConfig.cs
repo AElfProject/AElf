@@ -24,7 +24,7 @@ namespace AElf.Network.Config
         /// <summary>
         /// Server listening Port
         /// </summary>
-        public int Port { get; set; } = 6790;
+        public int ListeningPort { get; set; } = 6790;
 
         public int MaxPeers { get; set; } = 500;
     }

@@ -17,13 +17,13 @@ namespace AElf.Network.Tests.NetworkManagerTests
             Assert.Equal(ex.Message, "Peer cannot be null.");
         }
         
-        [Fact]
-        public void TryPeer_FireWithNullMessage_ThrowsException()
-        {
-            TimeoutRequest request = new TimeoutRequest(new byte[0], null, 1000);
-            var ex = Assert.Throws<InvalidOperationException>(() => request.TryPeer(new Peer(1234)));
-            Assert.Equal(ex.Message, "RequestMessage cannot be null.");
-        }
+//        [Fact]
+//        public void TryPeer_FireWithNullMessage_ThrowsException()
+//        {
+//            TimeoutRequest request = new TimeoutRequest(new byte[0], null, 1000);
+//            var ex = Assert.Throws<InvalidOperationException>(() => request.TryPeer(new Peer(1234)));
+//            Assert.Equal(ex.Message, "RequestMessage cannot be null.");
+//        }
         
         [Fact]
         public void TryPeer_ShouldEnqueueMessage()

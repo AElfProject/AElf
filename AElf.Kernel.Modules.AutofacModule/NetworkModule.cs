@@ -26,7 +26,8 @@ using Autofac;
                  builder.RegisterType<BootnodePeerManager>().As<IPeerManager>();
              else
                  builder.RegisterType<PeerManager>().As<IPeerManager>();*/
-             
+
+             builder.RegisterType<PeerManager>().As<IPeerManager>().SingleInstance();
              builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
              builder.RegisterType<ConnectionListener>().As<IConnectionListener>();
                  
