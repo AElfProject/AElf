@@ -15,9 +15,6 @@ namespace AElf.Kernel.Consensus
         private readonly IDataProvider _dataProvider;
         private readonly BlockProducer _blockProducer;
         private readonly ILogger _logger;
-        private readonly Func<string, IReadOnlyList<byte[]>, ulong, ITransaction> _generateTx;
-        private readonly ISmartContractService _smartContractService;
-        private readonly IExecutive _executive;
 
         public BlockProducer BlockProducer
         {
@@ -146,17 +143,11 @@ namespace AElf.Kernel.Consensus
         }
 
         public AElfDPoSHelper(IWorldStateDictator worldStateDictator, ECKeyPair keyPair, Hash chainId,
-            BlockProducer blockProducer, Hash contractAddressHash,
-            Func<string, IReadOnlyList<byte[]>, ulong, ITransaction> generateTx, ILogger logger,
-            ISmartContractService smartContractService)
+            BlockProducer blockProducer, Hash contractAddressHash, ILogger logger)
         {
             worldStateDictator.SetChainId(chainId);
             _blockProducer = blockProducer;
-            _generateTx = generateTx;
             _logger = logger;
-            _smartContractService = smartContractService;
-
-            _executive = smartContractService.GetExecutiveAsync(contractAddressHash, chainId).Result;
 
             _dataProvider = worldStateDictator.GetAccountDataProvider(contractAddressHash).Result.GetDataProvider();
         }
@@ -201,10 +192,10 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        //TODO: So rude.
-        public bool HasGenerated()
+        public async Task<bool> HasGenerated()
         {
-            return CurrentRoundNumber.Value != 0;
+            var bytes = await _dataProvider.GetAsync(Globals.AElfDPoSCurrentRoundNumber.CalculateHash());
+            return bytes != null;
         }
 
         public DPoSInfo GenerateInfoForFirstTwoRounds()

@@ -137,13 +137,11 @@ namespace AElf.Kernel.Node
             _synchronizer = synchronizer;
 
             _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
-                ContractAccountHash, GenerateTransaction, _logger, _smartContractService);
+                ContractAccountHash, _logger);
             
             _consensusHelper = new ConsensusHelper();
         }
-
-        
-
+ 
         public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData,
             byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero)
         {
@@ -577,6 +575,7 @@ namespace AElf.Kernel.Node
                 var executed = await _blockExecutor.ExecuteBlock(block);
                 Interlocked.CompareExchange(ref _flag, 0, 1);
 
+                Task.WaitAll();
                 await CheckUpdatingConsensusProcess();
 
                 return new BlockExecutionResult(executed, error);
@@ -619,7 +618,7 @@ namespace AElf.Kernel.Node
                         break;
                     }
                     
-                    if (_nodeConfig.ConsensusInfoGenerater && _dPoSHelper.HasGenerated())
+                    if (_nodeConfig.ConsensusInfoGenerater && ! await _dPoSHelper.HasGenerated())
                     {
                         AElfDPoSObserver.Initialization();
                         break;
@@ -754,6 +753,8 @@ namespace AElf.Kernel.Node
                 _synchronizer.IncrementChainHeight();
 
                 _logger?.Trace($"Mine - Leaving mining {b}");
+                
+                Task.WaitAll();
 
                 //Update DPoS observables.
                 //Sometimes failed to update this observables list (which is weird), just ignore this.
