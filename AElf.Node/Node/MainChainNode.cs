@@ -821,7 +821,7 @@ namespace AElf.Kernel.Node
                 stopWatch.Start();
                 res = await _txPoolService.AddTxAsync(tx);
                 stopWatch.Stop();
-                _logger?.Info($"### Debug _txPoolService.AddTxAsync Time: {stopWatch.ElapsedMilliseconds}");
+                //_logger?.Info($"### Debug _txPoolService.AddTxAsync Time: {stopWatch.ElapsedMilliseconds}");
             }
             catch (Exception e)
             {
@@ -837,7 +837,7 @@ namespace AElf.Kernel.Node
                     var transaction = tx.Serialize();
                     await _netManager.BroadcastMessage(MessageType.BroadcastTx, transaction);
                     stopWatch.Stop();
-                    _logger?.Info($"### Debug _netManager.BroadcastMessage Time: {stopWatch.ElapsedMilliseconds}");
+                   // _logger?.Info($"### Debug _netManager.BroadcastMessage Time: {stopWatch.ElapsedMilliseconds}");
                 }
                 catch (Exception e)
                 {

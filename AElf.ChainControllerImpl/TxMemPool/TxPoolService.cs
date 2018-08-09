@@ -157,16 +157,19 @@ namespace AElf.Kernel.TxMemPool
             });
             
             List<ITransaction> contractTxs = null;
+            bool available = false;
+            ulong count = 0;
             var t = ContractTxLock.WriteLock(() =>
             {
                 // TODO: remove this limit
+                available = true;
                 var execCount = _contractTxPool.GetExecutableSize();
                 if (execCount < _contractTxPool.Least)
                 {
-                    _logger.Log(LogLevel.Debug,
-                        $"Contract transaction number in pool: {execCount}, less than {_contractTxPool.Least}");
                     return;
                 }
+
+                count = execCount;
                 contractTxs = _contractTxPool.ReadyTxs();
             }).Wait(TimeSpan.FromMilliseconds(30));
             
@@ -180,11 +183,21 @@ namespace AElf.Kernel.TxMemPool
                 }
                 _logger.Log(LogLevel.Debug, $"Got {contractTxs.Count} Contract transaction");
             }
+            else if(!available)
+            {
+                _logger.Log(LogLevel.Debug, "TIMEOUT! - Unable to get Contract transactions");
+            }
+            else if(count < _contractTxPool.Least)
+            {
+                _logger.Log(LogLevel.Debug,
+                    $"{count} Contract transaction(s) in pool are ready:  less than {_contractTxPool.Least}");
+            }
             else
             {
-                _logger.Log(LogLevel.Debug, "Unable to get Contract transactions");
+                _logger.Log(LogLevel.Error, "FAILED to get all transactions，some would be lost!");
             }
                 
+            
             return dpos;
         }
 
@@ -206,7 +219,7 @@ namespace AElf.Kernel.TxMemPool
             }*/
 
             return await ContractTxLock.ReadLock(() => _contractTxPool.Size) +
-                   await DPoSTxLock.ReadLock(() => _contractTxPool.Size);
+                   await DPoSTxLock.ReadLock(() => _dpoSTxPool.Size);
         }
 
         /// <inheritdoc/>
