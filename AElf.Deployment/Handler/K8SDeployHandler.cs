@@ -21,6 +21,8 @@ namespace AElf.Deployment.Handler
         {
             _deployCommands.Add(new K8SAddNamespaceCommand());
             _deployCommands.Add(new K8SAddRedisCommand());
+            _deployCommands.Add(new K8SAddConfigCommand());
+            _deployCommands.Add(new K8SAddManagerCommand());
 
             _removeCommands.Add(new K8SDeleteNamespaceCommand());
         }

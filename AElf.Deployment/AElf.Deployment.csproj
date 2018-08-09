@@ -5,4 +5,8 @@
   <ItemGroup>
     <PackageReference Include="KubernetesClient" Version="1.2.3-g3551f03258" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
+    <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
+  </ItemGroup>
 </Project>

@@ -7,14 +7,43 @@ namespace AElf.Deployment.Command
 {
     public class K8SAddManagerCommand:IDeployCommand
     {
+        private const string ServiceName = "service-manager";
+        private const string StatefulSetName = "set-manager";
+        private const int Port = 4053;
+        
         public void Action(string chainId, DeployArg arg)
         {
-            throw new System.NotImplementedException();
+            DeployService(chainId,arg);
+            DeployStatefulSet(chainId, arg);
         }
 
-        private void DeployService(DeployArg arg)
+        private void DeployService(string chainId, DeployArg arg)
         {
-            
+            var body = new V1Service
+            {
+                Metadata = new V1ObjectMeta
+                {
+                    Name = ServiceName,
+                    Labels = new Dictionary<string, string>
+                    {
+                        {"name", ServiceName}
+                    }
+                },
+                Spec = new V1ServiceSpec
+                {
+                    Ports = new List<V1ServicePort>
+                    {
+                        new V1ServicePort(arg.DBArg.Port)
+                    },
+                    Selector = new Dictionary<string, string>
+                    {
+                        {"name", StatefulSetName}
+                    },
+                    ClusterIP = "None"
+                }
+            };
+
+            K8SRequestHelper.CreateNamespacedService(body, chainId);
         }
 
         private void DeployStatefulSet(string chainId, DeployArg arg)
@@ -23,8 +52,8 @@ namespace AElf.Deployment.Command
             {
                 Metadata = new V1ObjectMeta
                 {
-                    Name = "pod-redis",
-                    Labels = new Dictionary<string, string> {{"name", "pod-redis"}}
+                    Name = StatefulSetName,
+                    Labels = new Dictionary<string, string> {{"name", StatefulSetName}}
                 },
                 Spec = new V1beta1StatefulSetSpec
                 {
@@ -32,16 +61,16 @@ namespace AElf.Deployment.Command
                     {
                         MatchExpressions = new List<V1LabelSelectorRequirement>
                         {
-                            new V1LabelSelectorRequirement("name", "In", new List<string> {"pod-redis"})
+                            new V1LabelSelectorRequirement("name", "In", new List<string> {StatefulSetName})
                         }
                     },
-                    ServiceName = "service-redis",
+                    ServiceName = ServiceName,
                     Replicas = 1,
                     Template = new V1PodTemplateSpec
                     {
                         Metadata = new V1ObjectMeta
                         {
-                            Labels = new Dictionary<string, string> {{"name", "pod-redis"}}
+                            Labels = new Dictionary<string, string> {{"name", StatefulSetName}}
                         },
                         Spec = new V1PodSpec
                         {
@@ -49,9 +78,9 @@ namespace AElf.Deployment.Command
                             {
                                 new V1Container
                                 {
-                                    Name = "pod-redis",
-                                    Image = "redis",
-                                    Ports = new List<V1ContainerPort> {new V1ContainerPort(7001)},
+                                    Name = StatefulSetName,
+                                    Image = "aelf/node:manager",
+                                    Ports = new List<V1ContainerPort> {new V1ContainerPort(Port)},
                                     Env = new List<V1EnvVar>
                                     {
                                         new V1EnvVar
@@ -60,7 +89,7 @@ namespace AElf.Deployment.Command
                                             ValueFrom = new V1EnvVarSource {FieldRef = new V1ObjectFieldSelector("metadata.name")}
                                         }
                                     },
-                                    Args = new List<string> {"--actor.host", "$(POD_NAME).manager-service", "--actor.port", "4053"},
+                                    Args = new List<string> {"--actor.host", "$(POD_NAME).manager-service", "--actor.port", Port.ToString()},
                                     VolumeMounts = new List<V1VolumeMount>
                                     {
                                         new V1VolumeMount("/app/aelf/config", "config")
