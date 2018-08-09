@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Google.Protobuf;
 using System.Security.Cryptography;
 
@@ -22,18 +23,22 @@ namespace AElf.Kernel
             _data = (byte[]) bloom.Data.Clone();
         }
         
+        public void AddValue(byte[] bytes)
+        {
+            var hash = SHA256.Create().ComputeHash(bytes);
+            AddSha256Hash(hash);
+        }
+        
         public void AddValue(IMessage message)
         {
             var bytes = message.ToByteArray();
-            var hash = SHA256.Create().ComputeHash(bytes);
-            AddSha256Hash(hash);
+            AddValue(bytes);
         }
 
         public void AddValue(ISerializable serializable)
         {
             var bytes = serializable.Serialize();
-            var hash = SHA256.Create().ComputeHash(bytes);
-            AddSha256Hash(hash);
+            AddValue(bytes);
         }
 
         public void AddSha256Hash(byte[] hash256)
@@ -51,9 +56,24 @@ namespace AElf.Kernel
         }
 
         /// <summary>
+        /// Combines some other blooms into current bloom.
+        /// </summary>
+        /// <param name="blooms">Other blooms</param>
+        public void Combine(IEnumerable<Bloom> blooms)
+        {
+            foreach (var bloom in blooms)
+            {
+                for (int i = 0; i < 256; i++)
+                {
+                    _data[i] |= bloom.Data[i];
+                }
+            }
+        }
+        
+        /// <summary>
         /// Checks if current bloom is contained in the input bloom.
         /// </summary>
-        /// <param name="bloom"></param>
+        /// <param name="bloom">Other bloom</param>
         /// <returns></returns>
         public bool IsIn(Bloom bloom)
         {
