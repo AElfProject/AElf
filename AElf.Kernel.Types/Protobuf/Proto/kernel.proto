@@ -40,17 +40,11 @@ message StateValueChange{
     bytes AfterValue = 3;
 }
 
-message EventField
-{
-    string Name = 1;
-    google.protobuf.Any Value = 2;
-}
-
 message LogEvent
 {
     Hash Address = 1;
-    Hash Topic = 2;
-    repeated EventField Details = 3;
+    repeated bytes Topics = 2;
+    bytes Data = 3;
 }
 
 message RetVal {
