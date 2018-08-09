@@ -99,7 +99,7 @@ namespace AElf.Launcher
                 netConfig.Peers = opts.Peers.ToList();
 
             if (opts.Port.HasValue)
-                netConfig.Port = opts.Port.Value;
+                netConfig.ListeningPort = opts.Port.Value;
 
             NetConfig = netConfig;
 
