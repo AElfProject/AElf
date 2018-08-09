@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using AElf.Common.ByteArrayHelpers;
@@ -17,7 +18,10 @@ namespace AElf.Network.Connection
         
         private readonly ILogger _logger;
         private readonly NetworkStream _stream;
-        private readonly BlockingCollection<Message> _outboundMessages;
+        
+        private BlockingCollection<Message> _outboundMessages;
+
+        internal bool IsDisposed { get; private set; }
         
         /// <summary>
         /// This configuration property determines the maximum size an
@@ -45,6 +49,9 @@ namespace AElf.Network.Connection
         
         public void EnqueueMessage(Message p)
         {
+            if (IsDisposed || _outboundMessages == null || _outboundMessages.IsAddingCompleted)
+                return;
+            
             try
             {
                 _outboundMessages.Add(p);
@@ -60,18 +67,28 @@ namespace AElf.Network.Connection
         /// </summary>
         internal void DequeueOutgoingLoop()
         {
-            while (true)
+            while (!IsDisposed && _outboundMessages != null)
             {
+                Message p = null;
+                
                 try
                 {
-                    Message p = _outboundMessages.Take();
-
+                    p = _outboundMessages.Take();
+                }
+                catch (Exception e)
+                {
+                    Dispose(); // if already disposed will do nothing 
+                    break;
+                }
+                
+                try
+                {
                     if (p.Payload.Length > MaxOutboundPacketSize)
                     {
                         // Split
                         int packetCount = (p.Payload.Length / MaxOutboundPacketSize);
                         int lastPacketSize = p.Payload.Length % MaxOutboundPacketSize;
-                        
+
                         if (lastPacketSize != 0)
                             packetCount++;
 
@@ -81,30 +98,38 @@ namespace AElf.Network.Connection
                         for (int i = 0; i < packetCount - 1; i++)
                         {
                             byte[] slice = new byte[MaxOutboundPacketSize];
-                            
+
                             Array.Copy(p.Payload, currentIndex, slice, 0, MaxOutboundPacketSize);
-                            
-                            var partial = new PartialPacket 
+
+                            var partial = new PartialPacket
                             {
-                                Type = p.Type, Position = i, IsEnd = false, TotalDataSize = p.Payload.Length, Data = slice
+                                Type = p.Type,
+                                Position = i,
+                                IsEnd = false,
+                                TotalDataSize = p.Payload.Length,
+                                Data = slice
                             };
-                            
+
                             partials.Add(partial);
 
                             currentIndex += MaxOutboundPacketSize;
                         }
-                        
+
                         byte[] endSlice = new byte[lastPacketSize];
                         Array.Copy(p.Payload, currentIndex, endSlice, 0, lastPacketSize);
-                        
-                        var endPartial = new PartialPacket 
+
+                        var endPartial = new PartialPacket
                         {
-                            Type = p.Type, Position = packetCount-1, IsEnd = true, TotalDataSize = p.Payload.Length, Data = endSlice
+                            Type = p.Type,
+                            Position = packetCount - 1,
+                            IsEnd = true,
+                            TotalDataSize = p.Payload.Length,
+                            Data = endSlice
                         };
-                        
+
                         partials.Add(endPartial);
 
-                        _logger.Trace($"Message split into {partials.Count} packets.");
+                        _logger?.Trace($"Message split into {partials.Count} packets.");
 
                         foreach (var msg in partials)
                         {
@@ -117,11 +142,18 @@ namespace AElf.Network.Connection
                         SendPacketFromMessage(p);
                     }
                 }
+                catch (Exception e) when (e is IOException || e is ObjectDisposedException)
+                {
+                    _logger?.Trace("Exception with the underlying socket or stream closed.");
+                    Dispose();
+                }
                 catch (Exception e)
                 {
-                    _logger.Trace(e, "Exception while dequeing message");
+                    _logger?.Trace(e, "Exception while dequeing message");
                 }
             }
+            
+            _logger?.Trace("Finished writting messages.");
         }
 
         internal void SendPacketFromMessage(Message p)
@@ -155,7 +187,7 @@ namespace AElf.Network.Connection
             
             byte[] arrData = p.Data;
             
-            byte[] b = ByteArrayHelpers.Combine(type, isbuffered, length, posBytes, isEndBytes, totalLengthBytes, arrData);
+            byte[] b = ByteArrayHelpers.Combine(type, isbuffered, isConsensus, length, posBytes, isEndBytes, totalLengthBytes, arrData);
             _stream.Write(b, 0, b.Length);
         }
         
@@ -168,10 +200,17 @@ namespace AElf.Network.Connection
         
         public void Dispose()
         {
-            // This will cause an IOException in the read loop
-            // but since IsConnected is switched to false, it 
-            // will not fire the disconnection exception.
+            if (IsDisposed)
+                return;
+            
+            // Note that This will cause an IOException in the read loop.
             _stream?.Close();
+
+            _outboundMessages?.CompleteAdding();
+            _outboundMessages?.Dispose();
+            _outboundMessages = null;
+            
+            IsDisposed = true;
         }
 
         #endregion
