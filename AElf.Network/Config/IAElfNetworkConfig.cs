@@ -13,7 +13,7 @@ namespace AElf.Network.Config
         string PeersDbPath { get; }
 
         //string Host { get; }
-        int Port { get; }
+        int ListeningPort { get; }
         
         int MaxPeers { get; }
     }

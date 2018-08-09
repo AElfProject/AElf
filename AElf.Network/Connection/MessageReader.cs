@@ -113,9 +113,7 @@ namespace AElf.Network.Connection
             }
             catch (PeerDisconnectedException e)
             {
-                _logger.Trace(e, "Connection was aborted.\n");
                 StreamClosed?.Invoke(this, EventArgs.Empty);
-                
                 Close();
             }
             catch (Exception e)
@@ -128,9 +126,6 @@ namespace AElf.Network.Connection
                 }
 
                 Close();
-                
-                _logger.Trace(e, "[Message reader] Connection was aborted.\n");
-                
                 StreamClosed?.Invoke(this, EventArgs.Empty);
             }
         }
