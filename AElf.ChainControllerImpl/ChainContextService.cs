@@ -20,7 +20,10 @@ namespace AElf.ChainController
                 ChainId = chainId,
                 BlockHash = await blockchain.GetCurrentBlockHashAsync()
             };
-            chainContext.BlockHeight = ((BlockHeader)await blockchain.GetHeaderByHashAsync(chainContext.BlockHash)).Index;
+            if (chainContext.BlockHash != Hash.Genesis)
+            {
+                chainContext.BlockHeight = ((BlockHeader)await blockchain.GetHeaderByHashAsync(chainContext.BlockHash)).Index;
+            }
             return chainContext;
         }
     }

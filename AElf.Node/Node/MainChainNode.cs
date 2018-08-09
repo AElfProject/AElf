@@ -171,7 +171,7 @@ namespace AElf.Kernel.Node
                 
                 var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
                 var curHash = blockchain.GetCurrentBlockHashAsync().Result;
-                var chainExists = curHash != null;
+                var chainExists = curHash != null && !curHash.Equals(Hash.Genesis);
                 if (!chainExists)
                 {
                     // Creation of the chain if it doesn't already exist
@@ -791,9 +791,8 @@ namespace AElf.Kernel.Node
             await _netManager.BroadcastBock(block.GetHash().Value.ToByteArray(), serializedBlock);
 
             var bh = block.GetHash().ToHex();
-            var txsInPool = await GetTransactionPoolSize();
             _logger?.Trace(
-                $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}]. [{txsInPool}] tx(s) left in pool");
+                $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}].");
 
             return true;
         }
