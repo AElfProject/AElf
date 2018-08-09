@@ -30,7 +30,8 @@ message TransactionResult{
     Hash TransactionId = 1;
     Status status = 2;
     repeated LogEvent Logs = 3;
-    bytes RetVal = 4;
+    bytes Bloom = 4;
+    bytes RetVal = 5;
 }
 
 message StateValueChange{
@@ -74,12 +75,13 @@ message BlockHeader{
     Hash PreviousBlockHash = 2;
     Hash MerkleTreeRootOfTransactions = 3;
     Hash MerkleTreeRootOfWorldState = 4;
-    uint64 Index = 5;
-    bytes R = 6;
-    bytes S = 7;
-    bytes P = 8;
-    google.protobuf.Timestamp Time = 9;
-    Hash ChainId = 10;
+    bytes Bloom = 5;
+    uint64 Index = 6;
+    bytes R = 7;
+    bytes S = 8;
+    bytes P = 9;
+    google.protobuf.Timestamp Time = 10;
+    Hash ChainId = 11;
 }
 
 message BlockBody{
