@@ -88,10 +88,6 @@ namespace AElf.Kernel.Tests
         private async Task AddBlockAsync(IBlockChain blockchain, IWorldStateDictator worldStateDictator, IBlock block)
         {
             await blockchain.AddBlocksAsync(new List<IBlock>(){ block });
-            var height = block.Header.Index;
-            await worldStateDictator.SetBlockHashToCorrespondingHeight(
-                height, (BlockHeader) await blockchain.GetHeaderByHeightAsync(height)
-            );
         }
         
         [Fact]
@@ -105,9 +101,6 @@ namespace AElf.Kernel.Tests
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
             var blockchain = _chainService.GetBlockChain(chain.Id);
-            await worldStateDictator.SetBlockHashToCorrespondingHeight(
-                0, (BlockHeader) await blockchain.GetHeaderByHeightAsync(0)
-            );
             await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);
             
             var key = new Hash("testkey".CalculateHash());
@@ -231,9 +224,6 @@ namespace AElf.Kernel.Tests
                 .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
             var blockchain = _chainService.GetBlockChain(chain.Id);
-            await worldStateDictator.SetBlockHashToCorrespondingHeight(
-                0, (BlockHeader) await blockchain.GetHeaderByHeightAsync(0)
-            );
             await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);
             
             var address = Hash.Generate();
@@ -319,9 +309,6 @@ namespace AElf.Kernel.Tests
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
             var blockchain = _chainService.GetBlockChain(chain.Id);
-            await worldStateDictator.SetBlockHashToCorrespondingHeight(
-                0, (BlockHeader) await blockchain.GetHeaderByHeightAsync(0)
-            );
             await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);
             
             var key = new Hash("testkey".CalculateHash());

@@ -139,6 +139,7 @@ namespace AElf.Runtime.CSharp
 
         public async Task Apply(bool autoCommit)
         {
+            _worldStateDictator.PreBlockHash = _currentTransactionContext.PreviousBlockHash;
             var s = _currentTransactionContext.Trace.StartTime = DateTime.UtcNow;
             var methodName = _currentTransactionContext.Transaction.MethodName;
 

@@ -41,7 +41,7 @@ namespace AElf.ChainController
                 var currentPreviousBlockHash = context.BlockHash;
     
                 // other block needed before this one
-                if (index > currentChainHeight)
+                if (index > currentChainHeight + 1)
                 {
                     _logger?.Trace("Received block index:" + index);
                     _logger?.Trace("Current chain height:" + currentChainHeight);
@@ -50,7 +50,7 @@ namespace AElf.ChainController
                 }
                 
                 // can be added to chain
-                if (currentChainHeight == index)
+                if (previousBlockHash == Hash.Genesis ||  index == currentChainHeight + 1)
                 {
                     if (!currentPreviousBlockHash.Equals(previousBlockHash))
                     {
@@ -63,7 +63,7 @@ namespace AElf.ChainController
                         : ValidationError.OrphanBlock;
                 }
                 
-                if (index < currentChainHeight)
+                if (index <= currentChainHeight)
                 {
                     var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
                     var b = await blockchain.GetBlockByHeightAsync(index);

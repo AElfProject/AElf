@@ -493,17 +493,6 @@ namespace AElf.SmartContract
             //return true for read-only 
             return true;
         }
-        
-        public async Task SetBlockHashToCorrespondingHeight(ulong height, BlockHeader header)
-        {
-            var blockHash = header.GetHash();
-            _logger?.Trace($"Set height {height} block hash: {blockHash.Value.ToByteArray().ToHex()}");
-            await _dataStore.SetDataAsync<Hash>(
-                ResourcePath.CalculatePointerForGettingBlockHashByHeight(
-                    header.ChainId,
-                    height),
-                blockHash.ToByteArray());
-        }
 
         #region Private methods
 

@@ -27,9 +27,24 @@ namespace AElf.Kernel
             _canonicalHashStore = canonicalHashStore;
         }
 
+        public async Task<ulong> GetCurrentBlockHeightAsync()
+        {
+            var hash = await _chainManager.GetCurrentBlockHashAsync(_chainId);
+            if (hash == null)
+            {
+                return 0;
+            }
+            var header = (BlockHeader) await GetHeaderByHashAsync(hash);
+            return header.Index;
+        }
+        
         public async Task<Hash> GetCurrentBlockHashAsync()
         {
             var hash = await _chainManager.GetCurrentBlockHashAsync(_chainId);
+            if (hash == null)
+            {
+                return Hash.Genesis;
+            }
             return hash;
         }
 

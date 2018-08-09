@@ -88,6 +88,7 @@ namespace AElf.ChainController
                             {
                                 Transaction = transaction
                             };
+                            _worldStateDictator.PreBlockHash = await _chainService.GetBlockChain(Config.ChainId).GetCurrentBlockHashAsync();
                             await executive.SetTransactionContext(txnInitCtxt).Apply(true);
                         }
                         finally
@@ -183,9 +184,7 @@ namespace AElf.ChainController
             var blockChain = _chainService.GetBlockChain(chainId);
             
             var currentBlockHash = await blockChain.GetCurrentBlockHashAsync();
-            // TODO: Generic IBlockHeader
-            var header = (BlockHeader) await blockChain.GetHeaderByHashAsync(currentBlockHash);
-            var index = header.Index + 1;
+            var index = await blockChain.GetCurrentBlockHeightAsync() + 1;
             var block = new Block(currentBlockHash)
             {
                 Header =
@@ -215,7 +214,6 @@ namespace AElf.ChainController
                 block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
             block.Body.BlockHeader = block.Header.GetHash();
 
-            
             return block;
         }
         
