@@ -12,23 +12,30 @@ namespace AElf.Kernel
 
         public byte[] Data => _data;
 
-        public Bloom(){}
-        
-        public Bloom(Bloom bloom)
+        public Bloom()
         {
-            if (bloom.Data.Length != 256)
+        }
+
+        public Bloom(byte[] data)
+        {
+            if (data.Length != 256)
             {
                 throw new InvalidOperationException("Bloom data has to be 256 bytes long.");
             }
-            _data = (byte[]) bloom.Data.Clone();
+
+            _data = (byte[]) data.Clone();
         }
-        
+
+        public Bloom(Bloom bloom) : this(bloom.Data)
+        {
+        }
+
         public void AddValue(byte[] bytes)
         {
             var hash = SHA256.Create().ComputeHash(bytes);
             AddSha256Hash(hash);
         }
-        
+
         public void AddValue(IMessage message)
         {
             var bytes = message.ToByteArray();
@@ -47,11 +54,12 @@ namespace AElf.Kernel
             {
                 throw new InvalidOperationException("Invalid input.");
             }
+
             for (uint i = 0; i < BucketPerVal * 2; i += 2)
             {
                 var index = ((hash256[i] << 8) | hash256[i + 1]) & 2047;
-                var byteToSet = (byte)(((uint)1) << (index % 8));
-                _data[255 - index / 8] |= byteToSet;   
+                var byteToSet = (byte) (((uint) 1) << (index % 8));
+                _data[255 - index / 8] |= byteToSet;
             }
         }
 
@@ -69,7 +77,7 @@ namespace AElf.Kernel
                 }
             }
         }
-        
+
         /// <summary>
         /// Checks if current bloom is contained in the input bloom.
         /// </summary>
