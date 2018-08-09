@@ -101,7 +101,7 @@ namespace AElf.Deployment.Command
                                 new V1Volume
                                 {
                                     Name = "config",
-                                    ConfigMap = new V1ConfigMapVolumeSource {Name = "aelf-config"}
+                                    ConfigMap = new V1ConfigMapVolumeSource {Name = "config-common"}
                                 }
                             }
                         }

@@ -25,7 +25,7 @@ namespace AElf.Deployment.Command
             body.Data.Add("actor.json", GetActorConfigJson());
             body.Data.Add("database.json", GetDatabaseConfigJson());
 
-            K8SRequestHelper.CreateNamespacedConfigMap(body, "default");
+            K8SRequestHelper.CreateNamespacedConfigMap(body, chainId);
         }
 
         private string GetActorConfigJson()
