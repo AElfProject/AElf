@@ -8,5 +8,7 @@ namespace AElf.Deployment.Command
         {
             throw new System.NotImplementedException();
         }
+        
+        private void 
     }
 }
