@@ -82,7 +82,7 @@ namespace AElf.Contracts.Genesis
             ulong serialNumber = _serialNumber.Increment().Value;
 
             Hash creator = Api.GetTransaction().From;
-
+            
             var info = new ContractInfo()
             {
                 Owner = creator,
@@ -102,12 +102,16 @@ namespace AElf.Contracts.Genesis
             
             await Api.DeployContractAsync(address, reg);
 
+            /*
+            // TODO: Enable back
+            // This is a quick fix, see https://github.com/AElfProject/AElf/issues/377
             new ContractHasBeenDeployed()
             {
                 Creator = creator,
                 Address = address,
                 CodeHash = SHA256.Create().ComputeHash(code)
             }.Fire();
+            */
 
             Console.WriteLine("Deployment success: " + address.ToHex());
             return address.GetHashBytes();
@@ -132,6 +136,12 @@ namespace AElf.Contracts.Genesis
         {
             var info = _contractInfos[contractAddress];
             return info.Owner;
+        }
+
+        public String TestInvoking(byte[] str)
+        {
+            Console.WriteLine(str.ToHex());
+            return "Success";
         }
     }
 }

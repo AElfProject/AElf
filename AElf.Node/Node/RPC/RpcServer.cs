@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Node.RPC.DTO;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -38,7 +41,7 @@ namespace AElf.Kernel.Node.RPC
         private const string GetBlockHeight = "get_block_height";
         private const string GetBlockInfo = "get_block_info";
         private const string GetDeserializedInfo = "get_deserialized_info";
-
+        private const string SetBlockVolume = "set_block_volume";
         private const string CallReadOnly = "call";
 
         /// <summary>
@@ -58,7 +61,8 @@ namespace AElf.Kernel.Node.RPC
             GetBlockHeight,
             GetBlockInfo,
             GetDeserializedInfo,
-            CallReadOnly
+            CallReadOnly,
+            SetBlockVolume
         };
 
         /// <summary>
@@ -192,30 +196,18 @@ namespace AElf.Kernel.Node.RPC
                 JObject response = null;
                 switch (methodName)
                 {
-                    /*case GetTxMethodName:
-                        response = await ProcessGetTx(reqParams);
-                        break;*/
-                    /*case InsertTxMethodName:
-                        response = await ProcessInsertTx(reqParams);
-                        break;*/
                     case BroadcastTxMethodName:
                         response = await ProcessBroadcastTx(reqParams);
                         break;
                     case BroadcastTxsMethodName:
                         response = await ProcessBroadcastTxs(reqParams);
                         break;
-                    /*case GetPeersMethodName:
-                        responseData = await ProcessGetPeers(reqParams);
-                        break;*/
                     case GetCommandsMethodName:
                         response = ProcessGetCommands();
                         break;
                     case GetIncrementIdMethodName:
                         response = await ProcessGetIncrementId(reqParams);
                         break;
-                    /*case BroadcastBlockMethodName:
-                        responseData = await ProcessBroadcastBlock(reqParams);
-                        break;*/
                     case GetContractAbi:
                         response = await ProcessGetContractAbi(reqParams);
                         break;
@@ -223,7 +215,7 @@ namespace AElf.Kernel.Node.RPC
                         response = await ProcGetTxResult(reqParams);
                         break;
                     case GetGenesisiAddress:
-                        response = await ProGetGenesisAddress(reqParams);
+                        response = await ProGetChainInfo(reqParams);
                         break;
                     case GetBlockHeight:
                         response = await ProGetBlockHeight(reqParams);
@@ -236,6 +228,9 @@ namespace AElf.Kernel.Node.RPC
                         break;
                     case CallReadOnly:
                         response = await ProcessCallReadOnly(reqParams);
+                        break;
+                    case SetBlockVolume:
+                        response = ProcSetBlockVolume(reqParams);
                         break;
                     default:
                         Console.WriteLine("Method name not found"); // todo log
@@ -253,6 +248,35 @@ namespace AElf.Kernel.Node.RPC
             catch (Exception e)
             {
                 Console.WriteLine(e);
+            }
+        }
+
+        /// <summary>
+        /// set transaction pool throughput
+        /// no tx returned if transaction count in pool is less than "minimal"
+        /// the number of transaction got from pool cannot be more than "maximal"
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
+        private JObject ProcSetBlockVolume(JObject reqParams)
+        {
+            try
+            {
+                var min = ulong.Parse(reqParams["minimal"].ToString());
+                var max = ulong.Parse(reqParams["maximal"].ToString());
+                _node.SetBlockVolume(min, max);
+                return new JObject
+                {
+                    ["result"] = "Success"
+                };
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return new JObject
+                {
+                    ["error"] = "Failed"
+                };
             }
         }
 
@@ -280,6 +304,11 @@ namespace AElf.Kernel.Node.RPC
             }
         }
 
+        /// <summary>
+        /// return block info with block height
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProGetBlockInfo(JObject reqParams)
         {
             var error = JObject.FromObject(new JObject
@@ -334,6 +363,11 @@ namespace AElf.Kernel.Node.RPC
             return JObject.FromObject(response);
         }
 
+        /// <summary>
+        /// return block height 
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProGetBlockHeight(JObject reqParams)
         {
             var height = await _node.GetCurrentChainHeight();
@@ -347,16 +381,22 @@ namespace AElf.Kernel.Node.RPC
             return JObject.FromObject(response);
         }
 
-
-        private Task<JObject> ProGetGenesisAddress(JObject reqParams)
+        /// <summary>
+        /// return chain info containing basic contract zero, token contract, chainId
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
+        private Task<JObject> ProGetChainInfo(JObject reqParams)
         {
-            var genesisHash = _node.GetGenesisContractHash();
             var chainId = _node.ChainId;
+            var basicContractZero = _node.GetGenesisContractHash(SmartContractType.BasicContractZero);
+            var tokenContract = _node.GetGenesisContractHash(SmartContractType.TokenContract);
             var response = new JObject
             {
                 ["result"] = new JObject
                 {
-                    ["genesis_contract"] = genesisHash.ToHex(),
+                    [SmartContractType.BasicContractZero.ToString()] = basicContractZero.ToHex(),
+                    [SmartContractType.TokenContract.ToString()] = tokenContract.ToHex(),
                     ["chain_id"] = chainId.ToHex()
                 }
             };
@@ -364,6 +404,11 @@ namespace AElf.Kernel.Node.RPC
             return Task.FromResult(JObject.FromObject(response));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProcGetTxResult(JObject reqParams)
         {
             Hash txHash;
@@ -379,31 +424,51 @@ namespace AElf.Kernel.Node.RPC
                 });
             }
 
-            var transaction = await _node.GetTransaction(txHash);
 
-            var txInfo = transaction == null ? new JObject {["tx"] = "Not Found"} : transaction.GetTransactionInfo();
-
-            var txResult = await _node.GetTransactionResult(txHash);
-            var response = new JObject
+            try
             {
-                ["tx_status"] = txResult.Status.ToString(),
-                ["tx_info"] = txInfo["tx"]
-            };
+                var transaction = await _node.GetTransaction(txHash);
+            
+                var txInfo = transaction == null ? new JObject {["tx"] = "Not Found"} : transaction.GetTransactionInfo();
+                if(transaction != null)
+                    ((JObject)txInfo["tx"]).Add("params", String.Join(", ", await _node.GetTransactionParameters(transaction))); 
+                
+                var txResult = await _node.GetTransactionResult(txHash);
+                var response = new JObject
+                {
+                    ["tx_status"] = txResult.Status.ToString(),
+                    ["tx_info"] = txInfo["tx"]
+                };
+                
 
-            if (txResult.Status == Status.Failed)
-            {
-                response["tx_error"] = txResult.RetVal.ToStringUtf8();
+                if (txResult.Status == Status.Failed)
+                {
+                    response["tx_error"] = txResult.RetVal.ToStringUtf8();
+                }
+
+                if (txResult.Status == Status.Mined)
+                {
+                    response["return"] = txResult.RetVal.ToByteArray().ToHex();
+                }
+                // Todo: it should be deserialized to obj ion cli, 
+
+                return JObject.FromObject(new JObject {["result"] = response});
             }
-
-            if (txResult.Status == Status.Mined)
+            catch (Exception e)
             {
-                response["return"] = txResult.RetVal.ToByteArray().ToHex();
+                return new JObject
+                {
+                    ["error"] = e.ToString()
+                };
             }
-            // Todo: it should be deserialized to obj ion cli, 
-
-            return JObject.FromObject(new JObject {["result"] = response});
+            
         }
 
+        /// <summary>
+        /// return incrementId for one address
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProcessGetIncrementId(JObject reqParams)
         {
             Hash addr;
@@ -431,12 +496,16 @@ namespace AElf.Kernel.Node.RPC
             return JObject.FromObject(response);
         }
 
+        /// <summary>
+        /// return abi for the contract with address 
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProcessGetContractAbi(JObject reqParams)
         {
-            var addr = reqParams["address"] == null
-                ? _node.GetGenesisContractHash().ToHex()
-                : reqParams["address"].ToString();
-
+            var addr = reqParams["address"]?.ToString();
+            
+            
             JObject response;
             try
             {
@@ -445,7 +514,14 @@ namespace AElf.Kernel.Node.RPC
                     Value = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(addr))
                 };
 
-                var abi = await _node.GetContractAbi(addrHash);
+                IMessage abi;
+                if (reqParams["name"] != null)
+                    abi = await _node.GetContractAbi(addrHash, reqParams["name"].ToString());
+                else
+                {
+                    abi = await _node.GetContractAbi(addrHash);
+                }
+
                 response = new JObject
                 {
                     ["address"] = addr,
@@ -466,12 +542,22 @@ namespace AElf.Kernel.Node.RPC
             return response;
         }
 
+        /// <summary>
+        /// broadcast transaction
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProcessBroadcastTx(JObject reqParams)
         {
             var raw64 = reqParams["rawtx"].ToString();
             var hexString = ByteArrayHelpers.FromHexString(raw64);
             var transaction = Transaction.Parser.ParseFrom(hexString);
+
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             var res = await _node.BroadcastTransaction(transaction);
+            stopWatch.Stop();
+            //_logger?.Info($"### Debug ProcessBroadcastTx Time: {stopWatch.ElapsedMilliseconds}");
 
             JObject response;
             if (res != TxValidation.TxInsertionAndBroadcastingError.Success)
@@ -487,17 +573,26 @@ namespace AElf.Kernel.Node.RPC
             return JObject.FromObject(response);
         }
 
+        
+        /// <summary>
+        /// broadcast batch of transaction  
+        /// </summary>
+        /// <param name="reqParams"></param>
+        /// <returns></returns>
         private async Task<JObject> ProcessBroadcastTxs(JObject reqParams)
         {
             var response = new List<object>();
+            int count = 0;
             foreach (var rawtx in reqParams["rawtxs"].ToString().Split(','))
             {
                 var result = await ProcessBroadcastTx(new JObject {["rawtx"] = rawtx});
                 if (result.ContainsKey("error"))
                     break;
                 response.Add(result["hash"].ToString());
+                count++;
             }
-
+            _logger.Log(LogLevel.Info, "Batch request pass count number:" + count.ToString());
+            
             return new JObject
             {
                 ["result"] = JToken.FromObject(response)
@@ -566,11 +661,6 @@ namespace AElf.Kernel.Node.RPC
             };
 
             return JObject.FromObject(response);
-        }
-
-        private async Task<JObject> ProcessBroadcastBlock(JObject reqParams)
-        {
-            throw new NotImplementedException();
         }
 
         private async Task WriteResponse(HttpContext context, JObject response)

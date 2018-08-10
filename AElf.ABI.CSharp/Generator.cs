@@ -10,7 +10,7 @@ namespace AElf.ABI.CSharp
 {
     public class Generator
     {
-        public static Module GetABIModule(byte[] code)
+        public static Module GetABIModule(byte[] code, string name = null)
         {
             var module = new Module();
             var monoModule = ModuleDefinition.ReadModule(new MemoryStream(code));
@@ -21,20 +21,20 @@ namespace AElf.ABI.CSharp
             {
                 container.AddType(t);
             }
-
-            var contractTypePath = container.GetSmartContractTypePath();
-            module.Name = contractTypePath.Last().FullName;
-            module.Methods.AddRange(GetMethods(container));
+            
+            var contractTypePath = container.GetSmartContractTypePath(name);
+            module.Name = name ?? contractTypePath.Last().FullName;
+            module.Methods.AddRange(GetMethods(contractTypePath));
             module.Events.AddRange(GetEvents(container));
             module.Types_.AddRange(GetTypes(container));
 
             return module;
         }
 
-        private static IEnumerable<Method> GetMethods(Container container)
+        private static IEnumerable<Method> GetMethods(IEnumerable<TypeDefinition> contractTypePath)
         {
             List<Method> methods = new List<Method>();
-            foreach (var sc in container.GetSmartContractTypePath())
+            foreach (var sc in contractTypePath)
             {
                 methods.AddRange(GetMethodsFromType(sc));
             }

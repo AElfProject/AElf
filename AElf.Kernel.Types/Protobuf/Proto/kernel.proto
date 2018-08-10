@@ -17,6 +17,12 @@ message Transaction
     bytes R = 7;
     bytes S = 8;
     bytes P = 9;
+    TransactionType type = 10;
+}
+
+enum TransactionType{
+    DposTransaction = 0;
+    ContractTransaction = 1;
 }
 
 enum Status {
@@ -93,6 +99,7 @@ message SmartContractRegistration{
     int32 Category = 1;
     Hash ContractHash = 2;
     bytes ContractBytes = 3;
+    int32 Type = 4;
 }
 
 message SmartContractDeployment{

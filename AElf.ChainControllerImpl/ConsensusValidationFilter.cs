@@ -36,7 +36,7 @@ namespace AElf.ChainController
             var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
             
             //Calculate the address of smart contract zero
-            var contractAccountHash = new Hash(context.ChainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            var contractAccountHash = new Hash(context.ChainId.CalculateHashWith(Globals.ConsensusContract)).ToAccount();
 
             var timestampOfBlock = block.Header.Time;
             

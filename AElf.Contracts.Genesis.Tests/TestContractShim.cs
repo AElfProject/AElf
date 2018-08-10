@@ -24,7 +24,7 @@ namespace AElf.Contracts.Genesis.Tests
         
         public Hash Address
         {
-            get => new Hash(_mock.ChainId1.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            get => new Hash(_mock.ChainId1.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
         }
         
         public TestContractShim(MockSetup mock)

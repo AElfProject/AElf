@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Kernel.Managers;
 using AElf.ChainController;
+using AElf.Common.Synchronisation;
 using AElf.SmartContract;
 using NLog;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
@@ -16,16 +17,18 @@ namespace AElf.Kernel.TxMemPool
     [LoggerName("Txpool")]
     public class TxPoolService : ITxPoolService
     {
-        private readonly ITxPool _txPool;
+        private readonly IContractTxPool _contractTxPool;
+        private readonly IDPoSTxPool _dpoSTxPool;
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
 
-        public TxPoolService(ITxPool txPool, IAccountContextService accountContextService,
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, ILogger logger)
+        public TxPoolService(IContractTxPool contractTxPool, IAccountContextService accountContextService, 
+            ILogger logger, IDPoSTxPool dpoSTxPool)
         {
-            _txPool = txPool;
+            _contractTxPool = contractTxPool;
             _accountContextService = accountContextService;
             _logger = logger;
+            _dpoSTxPool = dpoSTxPool;
         }
 
         /// <summary>
@@ -33,11 +36,13 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         private CancellationTokenSource Cts { get; set; }
 
-        private TxPoolSchedulerLock Lock { get; } = new TxPoolSchedulerLock();
+        private TxPoolSchedulerLock ContractTxLock { get; } = new TxPoolSchedulerLock();
+        private TxPoolSchedulerLock DPoSTxLock { get; } = new TxPoolSchedulerLock();
+
 
         private readonly ConcurrentDictionary<Hash, ITransaction> _txs = new ConcurrentDictionary<Hash, ITransaction>();
-
-        private readonly HashSet<Hash> _addrCache = new HashSet<Hash>();
+        private readonly ConcurrentDictionary<Hash, ITransaction> _dPoStxs = new ConcurrentDictionary<Hash, ITransaction>();
+        private readonly ConcurrentBag<Hash> _bpAddrs = new ConcurrentBag<Hash>();
 
         /// <inheritdoc/>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx)
@@ -46,20 +51,38 @@ namespace AElf.Kernel.TxMemPool
 
             if (_txs.ContainsKey(tx.GetHash()))
                 return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
-            await TrySetNonce(tx.From);
             
             return await AddTransaction(tx);
         }
 
         private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(ITransaction tx)
         {
-            return await Lock.WriteLock(() =>
+            IPool pool;
+            ILock @lock;
+            ConcurrentDictionary<Hash, ITransaction> transactions;
+            if (tx.Type == TransactionType.DposTransaction)
             {
-                var res = _txPool.EnQueueTx(tx);
+                pool = _dpoSTxPool;
+                await TrySetNonce(tx.From, TransactionType.DposTransaction);
+                @lock = DPoSTxLock;
+                transactions = _dPoStxs;
+                _bpAddrs.Add(tx.From);
+            }
+            else 
+            {
+                pool = _contractTxPool;
+                await TrySetNonce(tx.From, TransactionType.ContractTransaction);
+                @lock = ContractTxLock;
+                transactions = _txs;
+            }
+            
+            return await @lock.WriteLock(() =>
+            {
+                var res = pool.EnQueueTx(tx);
                 if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
                 {
                     // add tx
-                    _txs.GetOrAdd(tx.GetHash(), tx);
+                    transactions.GetOrAdd(tx.GetHash(), tx);
                 }
 
                 return res;
@@ -71,31 +94,31 @@ namespace AElf.Kernel.TxMemPool
         /// set nonce for address in tx pool
         /// </summary>
         /// <param name="addr"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        private async Task TrySetNonce(Hash addr)
+        private async Task TrySetNonce(Hash addr, TransactionType type)
         {
+            IPool pool;
+            if(type == TransactionType.ContractTransaction)
+                pool =  _contractTxPool;
+            else
+                pool = _dpoSTxPool;
             // tx from account state
-            if (!_txPool.GetNonce(addr).HasValue)
+            if (!pool.GetNonce(addr).HasValue)
             {
-                var incrementId = (await _accountContextService.GetAccountDataContext(addr, _txPool.ChainId))
+                var incrementId = (await _accountContextService.GetAccountDataContext(addr, pool.ChainId))
                     .IncrementId;
-                _txPool.TrySetNonce(addr, incrementId);
+                pool.TrySetNonce(addr, incrementId);
             }
-            _addrCache.Add(addr);
         }
 
 
         /// <inheritdoc/>
-        public Task RemoveAsync(Hash txHash)
+        public void RemoveAsync(Hash txHash)
         {
-            return Lock.WriteLock(() =>
-            {
-                if (_txs.TryGetValue(txHash, out var tx))
-                {
-                    _txs.TryRemove(tx.GetHash(), out tx);
-                }
-            });
-
+            if (_dPoStxs.TryRemove(txHash, out _))
+                return;
+            _txs.TryRemove(txHash, out _);
         }
 
         /// <inheritdoc/>
@@ -120,66 +143,89 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task<List<ITransaction>> GetReadyTxsAsync(ulong limit)
+        public async Task<List<ITransaction>> GetReadyTxsAsync()
         {
-            return Lock.ReadLock(() =>
+            var dpos = await DPoSTxLock.WriteLock(() =>
             {
-                //_txPool.Enqueueable = false;
-
-                var readyTxs = _txPool.ReadyTxs(limit);
+                var readyTxs = _dpoSTxPool.ReadyTxs();
                 foreach (var tx in readyTxs)
                 {
-                    _txs.TryRemove(tx.GetHash(), out var t);
+                    _dPoStxs.TryRemove(tx.GetHash(), out _);
                 }
-
+                _logger.Log(LogLevel.Debug, $"Got {readyTxs.Count} DPoS transaction");
                 return readyTxs;
             });
+            
+            List<ITransaction> contractTxs = null;
+            bool available = false;
+            ulong count = 0;
+            var t = ContractTxLock.WriteLock(() =>
+            {
+                // TODO: remove this limit
+                available = true;
+                var execCount = _contractTxPool.GetExecutableSize();
+                if (execCount < _contractTxPool.Least)
+                {
+                    return;
+                }
+
+                count = execCount;
+                contractTxs = _contractTxPool.ReadyTxs();
+            }).Wait(TimeSpan.FromMilliseconds(30));
+            
+            if (contractTxs != null)
+            {
+                dpos.AddRange(contractTxs);
+            
+                foreach (var tx in contractTxs)
+                {
+                    _txs.TryRemove(tx.GetHash(), out _);
+                }
+                _logger.Log(LogLevel.Debug, $"Got {contractTxs.Count} Contract transaction");
+            }
+            else if(!available)
+            {
+                _logger.Log(LogLevel.Debug, "TIMEOUT! - Unable to get Contract transactions");
+            }
+            else if(count < _contractTxPool.Least)
+            {
+                _logger.Log(LogLevel.Debug,
+                    $"{count} Contract transaction(s) in pool are ready:  less than {_contractTxPool.Least}");
+            }
+            else
+            {
+                _logger.Log(LogLevel.Error, "FAILED to get all transactions，some would be lost!");
+            }
+                
+            
+            return dpos;
         }
 
         /// <inheritdoc/>
         public Task<bool> GetReadyTxsAsync(Hash addr, ulong start, ulong ids)
         {
-            return Lock.WriteLock(() => { return _txPool.ReadyTxs(addr, start, ids); });
-        }
-
-        /// <inheritdoc/>
-        public Task<bool> PromoteAsync()
-        {
-            //return Lock.WriteLock(() =>
-            lock (this)
-            {
-                _txPool.Promote();
-                return Task.FromResult(true);
-            }
+            return _bpAddrs.Contains(addr)
+                ? DPoSTxLock.WriteLock(() => { return _dpoSTxPool.ReadyTxs(addr, start, ids); })
+                : ContractTxLock.WriteLock(() => { return _contractTxPool.ReadyTxs(addr, start, ids); });
         }
 
 
         /// <inheritdoc/>
-        public Task PromoteAsync(List<Hash> addresses)
-        {
-            //return Lock.WriteLock(() =>
-            lock (this)
-            {
-                _txPool.Promote(addresses);
-                return Task.FromResult(true);
-            }
-        }
-
-        /// <inheritdoc/>
-        public Task<ulong> GetPoolSize()
+        public async Task<ulong> GetPoolSize()
         {
             /*lock (this)
             {
-                return Task.FromResult(_txPool.Size);
+                return Task.FromResult(_contractTxPool.Size);
             }*/
 
-            return Lock.ReadLock(() => _txPool.Size);
+            return await ContractTxLock.ReadLock(() => _contractTxPool.Size) +
+                   await DPoSTxLock.ReadLock(() => _dpoSTxPool.Size);
         }
 
         /// <inheritdoc/>
         public bool TryGetTx(Hash txHash, out ITransaction tx)
         {
-            return _txs.TryGetValue(txHash, out tx);
+            return _txs.TryGetValue(txHash, out tx) || _dPoStxs.TryGetValue(txHash, out tx);
         }
         
         public List<Hash> GetMissingTransactions(IBlock block)
@@ -206,52 +252,34 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public Task ClearAsync()
+        public async Task<ulong> GetWaitingSizeAsync()
         {
-            return Lock.WriteLock(()=>
-            {
-                _txPool.ClearAll();
-            });
-            /*lock (this)
-            {
-                _txPool.ClearAll();
-                return Task.CompletedTask;
-            }*/
+            return await ContractTxLock.ReadLock(() => _contractTxPool.GetWaitingSize()) +
+                   await DPoSTxLock.ReadLock(() => _dpoSTxPool.GetWaitingSize());
         }
 
         /// <inheritdoc/>
-        public Task SavePoolAsync()
+        public async Task<ulong> GetExecutableSizeAsync()
         {
-            throw new System.NotImplementedException(); 
-        }
-
-        /// <inheritdoc/>
-        public Task<ulong> GetWaitingSizeAsync()
-        {
-            return Lock.ReadLock(() => _txPool.GetWaitingSize());
-            /*lock (this)
-            {
-                return Task.FromResult(_txPool.GetWaitingSize());
-            }*/
-        }
-
-        /// <inheritdoc/>
-        public Task<ulong> GetExecutableSizeAsync()
-        {
-            return Lock.ReadLock(() => _txPool.GetExecutableSize());
-            /*lock (this)
-            {
-                return Task.FromResult(_txPool.GetExecutableSize());
-            }*/
+            return await ContractTxLock.ReadLock(() => _contractTxPool.GetExecutableSize()) +
+                   await DPoSTxLock.ReadLock(() => _dpoSTxPool.GetExecutableSize());
         }        
 
 
         /// <inheritdoc/>
         public async Task UpdateAccountContext(HashSet<Hash> addrs)
         {
+            _logger?.Log(LogLevel.Debug, "Updating Account Context..");
             foreach (var addr in addrs)
             {
-                var id = _txPool.GetNonce(addr);
+                IPool pool;
+                if (!_bpAddrs.Contains(addr))
+                    pool = _contractTxPool;
+                else
+                {
+                    pool = _dpoSTxPool;
+                }
+                var id = pool.GetNonce(addr);
                 if(!id.HasValue)
                     continue;
                 
@@ -260,9 +288,11 @@ namespace AElf.Kernel.TxMemPool
                 {
                     IncrementId = id.Value,
                     Address = addr,
-                    ChainId = _txPool.ChainId
+                    ChainId = pool.ChainId
                 });
             }
+            _logger?.Log(LogLevel.Debug, "End Updating Account Context..");
+
         }
 
         /// <inheritdoc/>
@@ -276,7 +306,7 @@ namespace AElf.Kernel.TxMemPool
         /// <inheritdoc/>
         public Task Stop()
         {
-            /*await Lock.WriteLock(() =>
+            /*await ContractTxLock.WriteLock(() =>
             {
                 // TODO: release resources
                 Cts.Cancel();
@@ -284,7 +314,7 @@ namespace AElf.Kernel.TxMemPool
                 //EnqueueEvent.Dispose();
                 //DemoteEvent.Dispose();
             });*/
-            return Lock.WriteLock(() =>
+            return ContractTxLock.WriteLock(() =>
             {
                 Cts.Cancel();
                 Cts.Dispose();
@@ -293,12 +323,21 @@ namespace AElf.Kernel.TxMemPool
 
 
         /// <inheritdoc/>
-        public Task<ulong> GetIncrementId(Hash addr)
+        public ulong GetIncrementId(Hash addr, bool isDPoS = false)
         {
-            return Lock.ReadLock(()=>
+            ILock @lock;
+            IPool pool;
+            if (!isDPoS)
             {
-                return _txPool.GetPendingIncrementId(addr);
-            });
+                @lock = ContractTxLock;
+                pool = _contractTxPool;
+            }
+            else
+            {
+                @lock = DPoSTxLock;
+                pool = _dpoSTxPool;
+            }
+            return pool.GetPendingIncrementId(addr);
         }
 
 
@@ -307,7 +346,7 @@ namespace AElf.Kernel.TxMemPool
         {
             try
             {
-                var nonces = txsOut.Select(async p => await TrySetNonce(p.From));
+                var nonces = txsOut.Select(async p => await TrySetNonce(p.From, p.Type));
                 await Task.WhenAll(nonces);
  
                 var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(),  (current, p) =>
@@ -324,15 +363,31 @@ namespace AElf.Kernel.TxMemPool
 
                 foreach (var kv in tmap)
                 {
-                    var nonce = _txPool.GetNonce(kv.Key);
+                    
+                    ILock @lock;
+                    IPool pool;
+                    ConcurrentDictionary<Hash, ITransaction> transactions;
+                    if (!_bpAddrs.Contains(kv.Key))
+                    {
+                        @lock = ContractTxLock;
+                        pool = _contractTxPool;
+                        transactions = _txs;
+                    }
+                    else
+                    {
+                        @lock = DPoSTxLock;
+                        pool = _dpoSTxPool;
+                        transactions = _dPoStxs;
+                    }
+                    var nonce = pool.GetNonce(kv.Key);
                     var min = kv.Value.Min(t => t.IncrementId);
                     if(min >= nonce.Value)
                         continue;
                 
-                    _txPool.Withdraw(kv.Key, min);
+                    pool.Withdraw(kv.Key, min);
                     foreach (var tx in kv.Value)
                     {
-                        if (_txs.ContainsKey(tx.GetHash()))
+                        if (transactions.ContainsKey(tx.GetHash()))
                             continue;
                         await AddTransaction(tx);
                     }
@@ -341,9 +396,9 @@ namespace AElf.Kernel.TxMemPool
                     {
                         IncrementId = min,
                         Address = kv.Key,
-                        ChainId = _txPool.ChainId
+                        ChainId = pool.ChainId
                     });
-                    Console.WriteLine("After rollback, addr {0}: nonce {1}", kv.Key.ToHex(), _txPool.GetNonce(kv.Key).Value);
+                    Console.WriteLine("After rollback, addr {0}: nonce {1}", kv.Key.ToHex(), pool.GetNonce(kv.Key).Value);
                 }
             }
             catch (Exception e)
@@ -353,6 +408,11 @@ namespace AElf.Kernel.TxMemPool
             }
             
             
+        }
+
+        public void SetBlockVolume(ulong minimal, ulong maximal)
+        {
+            _contractTxPool.SetBlockVolume(minimal, maximal);
         }
     }
 

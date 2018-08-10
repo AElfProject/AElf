@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using AElf.Kernel;
@@ -19,6 +20,13 @@ namespace AElf.SmartContract
         /// <returns></returns>
         Task DeployContractAsync(Hash chainId, Hash account, SmartContractRegistration registration, bool isPrivileged);
         Type GetContractType(SmartContractRegistration registration);
-        Task<IMessage> GetAbiAsync(Hash account);
+        Task<IMessage> GetAbiAsync(Hash account, string name = null);
+        
+        /// <summary>
+        /// return invoking parameters in one tx
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<IEnumerable<string>> GetInvokingParams(ITransaction transaction);
     }
 }

@@ -245,11 +245,12 @@ namespace AElf.Benchmark
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero
+                ContractHash = Hash.Zero,
+                Type = (int)SmartContractType.BasicContractZero
             };
-            
-            var chain = await _chainCreationService.CreateNewChainAsync(ChainId, reg);
-            var contractAddressZero = _chainCreationService.GenesisContractHash(ChainId);
+            var chain = await _chainCreationService.CreateNewChainAsync(ChainId,
+                new List<SmartContractRegistration> {reg});
+            var contractAddressZero = _chainCreationService.GenesisContractHash(ChainId, SmartContractType.BasicContractZero);
             
             
             //deploy token contract
@@ -261,7 +262,7 @@ namespace AElf.Benchmark
                 To = contractAddressZero,
                 IncrementId = 0,
                 MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(0, code))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(1, code))
             };
             
             var txnCtxt = new TransactionContext()
@@ -292,7 +293,7 @@ namespace AElf.Benchmark
                 From = Hash.Zero.ToAccount(),
                 To = contractAddr,
                 IncrementId = NewIncrementId(),
-                MethodName = "Initialize",
+                MethodName = "InitBalance",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(name, Hash.Zero.ToAccount()))
             };
             

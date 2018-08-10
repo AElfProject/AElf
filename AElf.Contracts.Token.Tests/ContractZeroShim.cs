@@ -24,7 +24,7 @@ namespace AElf.Contracts.Token.Tests
         
         public Hash Address
         {
-            get => new Hash(_mock.ChainId1.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            get => new Hash(_mock.ChainId1.CalculateHashWith(SmartContractType.TokenContract.ToString())).ToAccount();
         }
         
         public ContractZeroShim(MockSetup mock)
