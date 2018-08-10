@@ -36,8 +36,9 @@ namespace AElf.Deployment.Command
             actorConfig.Port = 0;
             actorConfig.WorkerCount = 8;
             actorConfig.Benchmark = false;
+            actorConfig.ConcurrencyLevel = 16;
             actorConfig.Seeds = new List<SeedNode>();
-            actorConfig.Seeds.Add(new SeedNode {HostName = "", Port = 4053});
+            actorConfig.Seeds.Add(new SeedNode {HostName = "set-manager-0.service-manager", Port = 4053});
             actorConfig.SingleHoconFile = "single.hocon";
             actorConfig.MasterHoconFile = "master.hocon";
             actorConfig.WorkerHoconFile = "worker.hocon";
@@ -52,7 +53,7 @@ namespace AElf.Deployment.Command
         {
             var databaseConfig = new DatabaseConfig();
             databaseConfig.Type = DatabaseType.Redis;
-            databaseConfig.Host = "redis-0.redis-service";
+            databaseConfig.Host = "set-redis-0.redis-service";
             databaseConfig.Port = 7001;
 
             var result = JsonSerializer.Instance.Serialize(databaseConfig);

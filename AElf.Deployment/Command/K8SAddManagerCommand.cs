@@ -33,7 +33,7 @@ namespace AElf.Deployment.Command
                 {
                     Ports = new List<V1ServicePort>
                     {
-                        new V1ServicePort(arg.DBArg.Port)
+                        new V1ServicePort(Port)
                     },
                     Selector = new Dictionary<string, string>
                     {
@@ -89,7 +89,7 @@ namespace AElf.Deployment.Command
                                             ValueFrom = new V1EnvVarSource {FieldRef = new V1ObjectFieldSelector("metadata.name")}
                                         }
                                     },
-                                    Args = new List<string> {"--actor.host", "$(POD_NAME).manager-service", "--actor.port", Port.ToString()},
+                                    Args = new List<string> {"--actor.host", "$(POD_NAME)." + ServiceName, "--actor.port", Port.ToString()},
                                     VolumeMounts = new List<V1VolumeMount>
                                     {
                                         new V1VolumeMount("/app/aelf/config", "config")
