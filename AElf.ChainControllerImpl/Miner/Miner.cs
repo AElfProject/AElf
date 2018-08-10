@@ -116,6 +116,8 @@ namespace AElf.ChainController
                         res.Logs.AddRange(trace.FlattenedLogs);
                         res.Status = Status.Mined;
                         res.RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes());
+                        res.Logs.AddRange(trace.FlattenedLogs);
+                        res.UpdateBloom();
                     }
                     else
                     {
@@ -134,6 +136,12 @@ namespace AElf.ChainController
                 _logger?.Log(LogLevel.Debug, "Generating block..");
                 // generate block
                 var block = await GenerateBlockAsync(Config.ChainId, results);
+
+                block.Header.Bloom =ByteString.CopyFrom( 
+                    Bloom.AndMultipleBloomBytes(
+                        results.Where(x=>!x.Bloom.IsEmpty).Select(x=>x.Bloom.ToByteArray())
+                    )
+                );
                 _logger?.Log(LogLevel.Debug, "Generating block End..");
 
                 // sign block
