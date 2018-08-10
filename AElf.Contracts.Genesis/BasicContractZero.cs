@@ -15,8 +15,8 @@ namespace AElf.Contracts.Genesis
     public class ContractHasBeenDeployed : Event
     {
         [Indexed] public Hash Creator;
-
         [Indexed] public Hash Address;
+        [Indexed] public Hash CodeHash;
     }
 
     public class OwnerHasBeenChanged : Event
@@ -105,7 +105,8 @@ namespace AElf.Contracts.Genesis
             new ContractHasBeenDeployed()
             {
                 Creator = creator,
-                Address = address
+                Address = address,
+                CodeHash = SHA256.Create().ComputeHash(code)
             }.Fire();
 
             Console.WriteLine("Deployment success: " + address.ToHex());
