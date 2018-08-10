@@ -26,6 +26,7 @@ using Globals = AElf.Kernel.Globals;
 using Method = AElf.CLI.Data.Protobuf.Method;
 using Module = AElf.CLI.Data.Protobuf.Module;
 using Transaction = AElf.CLI.Data.Protobuf.Transaction;
+using TransactionType = AElf.CLI.Data.Protobuf.TransactionType;
 using Type = System.Type;
 
 namespace AElf.CLI
@@ -211,12 +212,14 @@ namespace AElf.CLI
                                 return;
                             }
                             parsedCmd.Args.Add(_genesisAddress);
+                            //parsedCmd.Args.Add(Globals.GenesisBasicContract);
                         }
 
                         var addr = parsedCmd.Args.ElementAt(0);
                         Module m = null;
                         if (!_loadedModules.TryGetValue(addr, out m))
                         {
+                            
                             string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
         
                             if (resp == null)
@@ -282,7 +285,7 @@ namespace AElf.CLI
                         byte[] sc = screader.Read(filename);
                         string hex = sc.ToHex();
 
-                        var name = Globals.GenesisSmartContractZeroAssemblyName + Globals.GenesisSmartContractLastName;
+                        var name = Globals.GenesisBasicContract;
                         Module m = _loadedModules.Values.FirstOrDefault(ld => ld.Name.Equals(name));
             
                         if (m == null)
@@ -303,7 +306,7 @@ namespace AElf.CLI
             
                         Transaction t = new Transaction();
                         t = CreateTransaction(parsedCmd.Args.ElementAt(2), _genesisAddress, parsedCmd.Args.ElementAt(1),
-                            DeploySmartContract, serializedParams);
+                            DeploySmartContract, serializedParams, TransactionType.ContractTransaction);
                         
                         MemoryStream ms = new MemoryStream();
                         Serializer.Serialize(ms, t);
@@ -399,7 +402,8 @@ namespace AElf.CLI
                             
                             JArray p = j["params"] == null ? null : JArray.Parse(j["params"].ToString());
                             tr.Params = j["params"] == null ? null : method.SerializeParams(p.ToObject<string[]>());
-
+                            tr.type = TransactionType.ContractTransaction;
+                            
                             _accountManager.SignTransaction(tr);
                             var resp = SignAndSendTransaction(tr);
                             
@@ -510,9 +514,9 @@ namespace AElf.CLI
                             return;
                         }
                         
-                        if (j["result"]["genesis_contract"] != null)
+                        if (j["result"]["BasicContractZero"] != null)
                         {
-                            _genesisAddress = j["result"]["genesis_contract"].ToString();
+                            _genesisAddress = j["result"]["BasicContractZero"].ToString();
                         }
                         string toPrint = def.GetPrintString(JObject.FromObject(j));
                         
@@ -537,7 +541,8 @@ namespace AElf.CLI
             }
         }
 
-        private Transaction CreateTransaction(string elementAt, string genesisAddress, string incrementid, string methodName, byte[] serializedParams)
+        private Transaction CreateTransaction(string elementAt, string genesisAddress, string incrementid,
+            string methodName, byte[] serializedParams, TransactionType contracttransaction)
         {
             try
             {
@@ -547,6 +552,7 @@ namespace AElf.CLI
                 t.IncrementId = Convert.ToUInt64(incrementid);
                 t.MethodName = methodName;
                 t.Params = serializedParams;
+                t.type = contracttransaction;
                 return t;
             }
             catch (Exception e)

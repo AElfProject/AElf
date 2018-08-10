@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 
@@ -9,7 +10,7 @@ namespace AElf.ChainController
     /// </summary>
     public interface IChainCreationService
     {
-        Task<IChain> CreateNewChainAsync(Hash chainId, SmartContractRegistration smartContractZero);
-        Hash GenesisContractHash(Hash chainId);
+        Task<IChain> CreateNewChainAsync(Hash chainId, List<SmartContractRegistration> smartContractZeros);
+        Hash GenesisContractHash(Hash chainId, SmartContractType contractType);
     }
 }

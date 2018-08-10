@@ -81,7 +81,9 @@ namespace AElf.ChainController
                         return false;
                     }
                     readyTxs.Add(tx);
-                    await _txPoolService.RemoveAsync(tx.GetHash());
+                    
+                    // remove from tx collection
+                    _txPoolService.RemoveAsync(tx.GetHash());
                     var from = tx.From;
                     if (!map.ContainsKey(from))
                         map[from] = new HashSet<ulong>();
@@ -113,12 +115,10 @@ namespace AElf.ChainController
                     // get ready txs from pool
                     var ready = await _txPoolService.GetReadyTxsAsync(addr, ids.Min(), (ulong) ids.Count);
 
-                    if (!ready)
-                    {
-                        _logger?.Trace($"ExecuteBlock - No transactions are ready.");
-                        await Rollback(readyTxs);
-                        return false;
-                    }
+                    if (ready) continue;
+                    _logger?.Trace($"ExecuteBlock - No transactions are ready.");
+                    await Rollback(readyTxs);
+                    return false;
                 }
                 
                 var traces = readyTxs.Count == 0

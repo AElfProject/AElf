@@ -1,19 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Consensus;
-using AElf.Contracts.Genesis.ConsensusContract;
+using AElf.Contracts.Consensus.ConsensusContract;
+using AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
+using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
-// ReSharper disable UnusedMember.Global
-// ReSharper disable InconsistentNaming
-namespace AElf.Contracts.Genesis
+namespace AElf.Contracts.Consensus
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
-    public class ContractZeroWithAElfDPoS : BasicContractZero
+    // ReSharper disable ClassNeverInstantiated.Global
+    // ReSharper disable InconsistentNaming
+    // ReSharper disable UnusedMember.Global
+    public class ContractZeroWithAElfDPoS : CSharpSmartContract
     {
-        private readonly IConsensus _consensus = new AElfDPoS(new AElfDPoSFiledMapCollection
+        private readonly IConsensus _consensus = new DPoS(new AElfDPoSFiledMapCollection
         {
             CurrentRoundNumberField = new UInt64Field(Globals.AElfDPoSCurrentRoundNumber),
             BlockProducerField = new PbField<BlockProducer>(Globals.AElfDPoSBlockProducerString),

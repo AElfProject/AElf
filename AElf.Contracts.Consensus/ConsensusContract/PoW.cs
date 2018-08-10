@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Consensus;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
 
-namespace AElf.Contracts.Genesis.ConsensusContract
+namespace AElf.Contracts.Consensus.ConsensusContract
 {
     public class PoW : IConsensus
     {
@@ -33,9 +33,9 @@ namespace AElf.Contracts.Genesis.ConsensusContract
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public Task Publish(List<byte[]> args)
+        public async Task Publish(List<byte[]> args)
         {
-            throw new System.NotImplementedException();
+            
         }
 
         public Task<bool> Validation(List<byte[]> args)

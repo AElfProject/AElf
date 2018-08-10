@@ -172,14 +172,14 @@ namespace AElf.Launcher
 
             MinerConfig = new MinerConfig
             {
-                CoinBase = Coinbase,
-                TxCount = opts.TxCountLimit
+                CoinBase = Coinbase
             };
 
             // tx pool config
             TxPoolConfig = ChainController.TxPoolConfig.Default;
             TxPoolConfig.FeeThreshold = opts.MinimalFee;
             TxPoolConfig.PoolLimitSize = opts.PoolCapacity;
+            TxPoolConfig.Maximal = opts.TxCountLimit;
 
             // node config
             NodeConfig = new NodeConfig

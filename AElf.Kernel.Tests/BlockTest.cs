@@ -89,7 +89,7 @@ namespace AElf.Kernel.Tests
             };
 
             var chainId = Hash.Generate();
-            return await _chainCreationService.CreateNewChainAsync(chainId, reg);
+            return await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
         }
      
        [Fact]

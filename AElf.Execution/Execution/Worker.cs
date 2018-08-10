@@ -194,14 +194,14 @@ namespace AElf.Execution
                 }
                 result.Add(trace);
             }
-            request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, result));
-
 
             if (chainContext != null)
             {
                 await _servicePack.WorldStateDictator.ApplyCachedDataAction(stateCache, chainContext.ChainId);
             }
             stateCache.Clear();
+            
+            request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, result));
 
             // TODO: What if actor died in the middle
 

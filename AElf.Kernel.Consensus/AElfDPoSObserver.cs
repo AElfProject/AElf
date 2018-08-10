@@ -157,6 +157,10 @@ namespace AElf.Kernel.Consensus
             if (distanceToPublishInValue < 0 && Globals.BlockProducerNumber != 1)
             {
                 produceExtraBlock = doNothingObservable;
+                if (Globals.BlockProducerNumber != 1)
+                {
+                    produceExtraBlock = doNothingObservable;
+                }
             }
             else if (infoOfMe.IsEBP)
             {

@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Consensus;
+using AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Genesis.ConsensusContract
+namespace AElf.Contracts.Consensus.ConsensusContract
 {
     // ReSharper disable once InconsistentNaming
-    public class AElfDPoS : IConsensus
+    public class DPoS : IConsensus
     {
         public ConsensusType Type => ConsensusType.AElfDPoS;
 
@@ -49,7 +50,7 @@ namespace AElf.Contracts.Genesis.ConsensusContract
 
         #endregion
 
-        public AElfDPoS(AElfDPoSFiledMapCollection collection)
+        public DPoS(AElfDPoSFiledMapCollection collection)
         {
             _currentRoundNumberField = collection.CurrentRoundNumberField;
             _blockProducerField = collection.BlockProducerField;

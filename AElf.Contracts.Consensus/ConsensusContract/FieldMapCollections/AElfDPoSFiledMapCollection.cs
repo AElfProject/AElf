@@ -2,8 +2,7 @@
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
-// ReSharper disable once CheckNamespace
-namespace AElf.Contracts.Genesis.ConsensusContract
+namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
 {
     // ReSharper disable once InconsistentNaming
     public class AElfDPoSFiledMapCollection

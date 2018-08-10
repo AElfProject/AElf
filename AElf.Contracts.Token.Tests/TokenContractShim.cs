@@ -18,18 +18,19 @@ namespace AElf.Contracts.Token.Tests
             get => Hash.Zero;
         }
         
-        public Hash Address { get; set; }
+        public Hash TokenContractAddress { get; set; }
+
         
-        public TokenContractShim(MockSetup mock, Hash address)
+        public TokenContractShim(MockSetup mock, Hash tokenContractAddress)
         {
             _mock = mock;
-            Address = address; 
+            TokenContractAddress = tokenContractAddress;
             Init();
         }
 
         private void Init()
         {
-            var task = _mock.GetExecutiveAsync(Address);
+            var task = _mock.GetExecutiveAsync(TokenContractAddress);
             task.Wait();
             Executive = task.Result;
         }
@@ -43,7 +44,7 @@ namespace AElf.Contracts.Token.Tests
             var tx = new Transaction
             {
                 From = Sender,
-                To = Address,
+                To = TokenContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "Symbol",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
@@ -62,7 +63,7 @@ namespace AElf.Contracts.Token.Tests
             var tx = new Transaction
             {
                 From = Sender,
-                To = Address,
+                To = TokenContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "TokenName",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
@@ -81,7 +82,7 @@ namespace AElf.Contracts.Token.Tests
             var tx = new Transaction
             {
                 From = Sender,
-                To = Address,
+                To = TokenContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "TotalSupply",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
@@ -100,7 +101,7 @@ namespace AElf.Contracts.Token.Tests
             var tx = new Transaction
             {
                 From = Sender,
-                To = Address,
+                To = TokenContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "Decimals",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack())
@@ -119,7 +120,7 @@ namespace AElf.Contracts.Token.Tests
             var tx = new Transaction
             {
                 From = Sender,
-                To = Address,
+                To = TokenContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "BalanceOf",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(owner))
@@ -138,7 +139,7 @@ namespace AElf.Contracts.Token.Tests
             var tx = new Transaction
             {
                 From = Sender,
-                To = Address,
+                To = TokenContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "Allowance",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(owner, spender))
@@ -162,7 +163,7 @@ namespace AElf.Contracts.Token.Tests
             var tx = new Transaction
             {
                 From = Sender,
-                To = Address,
+                To = TokenContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "Initialize",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(symbol, tokenName, totalSupply, decimals))
@@ -180,7 +181,7 @@ namespace AElf.Contracts.Token.Tests
             var tx = new Transaction
             {
                 From = Sender,
-                To = Address,
+                To = TokenContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "Transfer",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(to, amount))
@@ -198,7 +199,7 @@ namespace AElf.Contracts.Token.Tests
             var tx = new Transaction
             {
                 From = Sender,
-                To = Address,
+                To = TokenContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "TransferFrom",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(from, to, amount))
@@ -216,7 +217,7 @@ namespace AElf.Contracts.Token.Tests
             var tx = new Transaction
             {
                 From = Sender,
-                To = Address,
+                To = TokenContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "Approve",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(spender, amount))
@@ -234,7 +235,7 @@ namespace AElf.Contracts.Token.Tests
             var tx = new Transaction
             {
                 From = Sender,
-                To = Address,
+                To = TokenContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = "UnApprove",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(spender, amount))
@@ -247,6 +248,27 @@ namespace AElf.Contracts.Token.Tests
             Executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
         }
 
+        public Hash GetContractOwner(Hash scZeroAddress)
+        {
+            var executive = _mock.GetExecutiveAsync(scZeroAddress).Result;
+            
+            var tx = new Transaction
+            {
+                From = Sender,
+                To = scZeroAddress,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = "GetContractOwner",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(TokenContractAddress))
+            };
+
+            TransactionContext = new TransactionContext()
+            {
+                Transaction = tx
+            };
+            executive.SetTransactionContext(TransactionContext).Apply(true).Wait();
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Hash>();
+        }
+        
         #endregion Actions
 
         #endregion ABI (Public) Methods

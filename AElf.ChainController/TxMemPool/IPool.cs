@@ -4,7 +4,7 @@ using AElf.Kernel;
 
 namespace AElf.ChainController
 {
-    public interface ITxPool
+    public interface IPool
     {
         /// <summary>
         /// queue txs from tmp to waiting
@@ -39,7 +39,7 @@ namespace AElf.ChainController
         /// <summary>
         /// return tx list can be executed
         /// </summary>
-        List<ITransaction> ReadyTxs(ulong limit);
+        List<ITransaction> ReadyTxs();
         
         /// <summary>
         /// return chain id for this pool
@@ -129,5 +129,11 @@ namespace AElf.ChainController
         /// <param name="addr"></param>
         /// <returns></returns>
         ulong? GetNonce(Hash addr);
+        
+        
+        /// <summary>
+        /// Transaction type in the pool
+        /// </summary>
+        TransactionType Type { get; }
     }
 }

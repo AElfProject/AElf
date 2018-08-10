@@ -3,11 +3,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using AElf.ABI.CSharp;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
 using Google.Protobuf;
 using AElf.Kernel;
 using AElf.Configuration;
+using AElf.Types.CSharp;
+using Type = System.Type;
 
 namespace AElf.SmartContract
 {
@@ -110,11 +114,33 @@ namespace AElf.SmartContract
             await _smartContractManager.InsertAsync(account, registration);
         }
 
-        public async Task<IMessage> GetAbiAsync(Hash account)
+        public async Task<IMessage> GetAbiAsync(Hash account, string name = null)
         {
             var reg = await _smartContractManager.GetAsync(account);
+            return GetAbiAsync(reg, name);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IEnumerable<string>> GetInvokingParams(ITransaction transaction)
+        {
+            var reg = await _smartContractManager.GetAsync(transaction.To);
+            var abi = (Module) GetAbiAsync(reg);
+            
+            // method info 
+            var methodInfo = GetContractType(reg).GetMethod(transaction.MethodName);
+            var parameters = ParamsPacker.Unpack(transaction.Params.ToByteArray(),
+                methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
+            // get method in abi
+            var method = abi.Methods.First(m => m.Name.Equals(transaction.MethodName));
+            
+            // deserialize
+            return method.DeserializeParams(parameters);
+        }
+
+        private IMessage GetAbiAsync(SmartContractRegistration reg, string name = null)
+        {
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
-            return runner.GetAbi(reg);
+            return runner.GetAbi(reg, name);
         }
     }
 }

@@ -481,6 +481,8 @@ namespace AElf.SmartContract
         {
             Hash prevBlockHash = await _dataStore.GetDataAsync<Hash>(ResourcePath.CalculatePointerForLastBlockHash(chainId));
             
+            _logger?.Debug($"Pipeline set {cachedActions.Count} data item");
+            
             //Only dirty, i.e., changed data item, will be applied to database
             var pipelineSet = cachedActions.Where(kv => kv.Value.Dirty)
                 .ToDictionary(kv => new Hash(kv.Key.CalculateHashWith(prevBlockHash)), kv => kv.Value.CurrentValue);

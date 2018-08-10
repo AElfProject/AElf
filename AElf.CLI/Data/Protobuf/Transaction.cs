@@ -48,5 +48,15 @@ namespace AElf.CLI.Data.Protobuf
         
         [ProtoMember(9)]
         public byte[] P { get; set; }
+        
+        [ProtoMember(10)]
+        public TransactionType  type { get; set; }
+    }
+
+    [ProtoContract]
+    public enum TransactionType
+    {
+        DposTransaction = 0,
+        ContractTransaction = 1
     }
 }

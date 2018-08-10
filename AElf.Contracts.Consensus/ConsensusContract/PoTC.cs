@@ -5,7 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
 
-namespace AElf.Contracts.Genesis.ConsensusContract
+namespace AElf.Contracts.Consensus.ConsensusContract
 {
     // ReSharper disable once InconsistentNaming
     public class PoTC : IConsensus

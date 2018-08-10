@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -59,7 +61,7 @@ namespace AElf.Kernel.Node
         private readonly AElfDPoSHelper _dPoSHelper;
         private readonly ConsensusHelper _consensusHelper;
 
-        public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
+        public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, SmartContractType.AElfDPoS);
 
         /// <summary>
         /// Just used to dispose previous consensus observer.
@@ -136,13 +138,13 @@ namespace AElf.Kernel.Node
             _synchronizer = synchronizer;
 
             _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
-                ContractAccountHash, _chainService, _logger);
+                ContractAccountHash, _logger);
             
             _consensusHelper = new ConsensusHelper();
         }
-
+ 
         public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData,
-            byte[] code)
+            byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero)
         {
             if (_nodeConfig == null)
             {
@@ -158,25 +160,50 @@ namespace AElf.Kernel.Node
 
             try
             {
+                _logger?.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToHex());
+                var genesis = GetGenesisContractHash(SmartContractType.BasicContractZero);
+                _logger?.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"", genesis.ToHex());
+                    
+                var tokenContractAddress = GetGenesisContractHash(SmartContractType.TokenContract);
+                _logger?.Log(LogLevel.Debug, "Token contract address = \"{0}\"", tokenContractAddress.ToHex());
+                    
+                var consensusAddress = GetGenesisContractHash(SmartContractType.AElfDPoS);
+                _logger?.Log(LogLevel.Debug, "DPoS contract address = \"{0}\"", consensusAddress.ToHex());
+                
                 var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
                 var curHash = blockchain.GetCurrentBlockHashAsync().Result;
                 var chainExists = curHash != null && !curHash.Equals(Hash.Genesis);
                 if (!chainExists)
                 {
                     // Creation of the chain if it doesn't already exist
-                    var smartContractZeroReg = new SmartContractRegistration
+                    var tokenSCReg = new SmartContractRegistration
                     {
                         Category = 0,
-                        ContractBytes = ByteString.CopyFrom(code),
-                        ContractHash = code.CalculateHash()
+                        ContractBytes = ByteString.CopyFrom(tokenContractCode),
+                        ContractHash = tokenContractCode.CalculateHash(),
+                        Type = (int)SmartContractType.TokenContract
                     };
-                    var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId, smartContractZeroReg).Result;
+                    
+                    var consensusCReg = new SmartContractRegistration
+                    {
+                        Category = 0,
+                        ContractBytes = ByteString.CopyFrom(consensusContractCode),
+                        ContractHash = consensusContractCode.CalculateHash(),
+                        Type = (int)SmartContractType.AElfDPoS
+                    };
+                    
+                    var basicReg = new SmartContractRegistration
+                    {
+                        Category = 0,
+                        ContractBytes = ByteString.CopyFrom(basicContractZero),
+                        ContractHash = basicContractZero.CalculateHash(),
+                        Type = (int)SmartContractType.BasicContractZero
+                    };
+                    var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId,
+                        new List<SmartContractRegistration> {basicReg, tokenSCReg, consensusCReg}).Result;
 
-                    _logger?.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToHex());
                     _logger?.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.ToHex());
-                    var contractAddress = GetGenesisContractHash();
-                    _logger?.Log(LogLevel.Debug, "HEX Genesis contract address = \"{0}\"",
-                        contractAddress.ToAccount().ToHex());
+                    
                 }
                 else
                 {
@@ -468,9 +495,14 @@ namespace AElf.Kernel.Node
         {
             try
             {
+                bool isDPoS = addr.Equals(_nodeKeyPair.GetAddress()) ||
+                             _dPoSHelper.BlockProducer.Nodes.Contains(addr.ToHex().RemoveHexPrefix());
+                
                 // ReSharper disable once InconsistentNaming
                 var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId)).IncrementId;
-                var idInPool = await _txPoolService.GetIncrementId(addr);
+                _logger?.Log(LogLevel.Debug, $"Trying to get increment id, {isDPoS}");
+                var idInPool = _txPoolService.GetIncrementId(addr, isDPoS);
+                _logger?.Log(LogLevel.Debug, $"End Trying to get increment id, {isDPoS}");
 
                 return Math.Max(idInDB, idInPool);
             }
@@ -544,6 +576,7 @@ namespace AElf.Kernel.Node
                 var executed = await _blockExecutor.ExecuteBlock(block);
                 Interlocked.CompareExchange(ref _flag, 0, 1);
 
+                Task.WaitAll();
                 await CheckUpdatingConsensusProcess();
 
                 return new BlockExecutionResult(executed, error);
@@ -563,11 +596,11 @@ namespace AElf.Kernel.Node
             return chainContext.BlockHeight;
         }
 
-        public Hash GetGenesisContractHash()
+        public Hash GetGenesisContractHash(SmartContractType contractType)
         {
-            return _chainCreationService.GenesisContractHash(_nodeConfig.ChainId);
+            return _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, contractType);
         }
-
+        
         /// <summary>
         /// temple mine to generate fake block data with loop
         /// </summary>
@@ -586,7 +619,7 @@ namespace AElf.Kernel.Node
                         break;
                     }
                     
-                    if (_nodeConfig.ConsensusInfoGenerater && !await _dPoSHelper.HasGenerated())
+                    if (_nodeConfig.ConsensusInfoGenerater && ! await _dPoSHelper.HasGenerated())
                     {
                         AElfDPoSObserver.Initialization();
                         break;
@@ -708,13 +741,21 @@ namespace AElf.Kernel.Node
 
                 _worldStateDictator.BlockProducerAccountAddress = _nodeKeyPair.GetAddress();
 
-                var block = await _miner.Mine();
+                var task = Task.Run(async () => await _miner.Mine());
+
+                if (!task.Wait(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval * 0.9)))
+                {
+                    _logger?.Error("Mining timeout.");
+                    return null;
+                }
 
                 var b = Interlocked.CompareExchange(ref _flag, 0, 1);
 
                 _synchronizer.IncrementChainHeight();
 
                 _logger?.Trace($"Mine - Leaving mining {b}");
+                
+                Task.WaitAll();
 
                 //Update DPoS observables.
                 //Sometimes failed to update this observables list (which is weird), just ignore this.
@@ -730,7 +771,7 @@ namespace AElf.Kernel.Node
                     AElfDPoSObserver.RecoverMining();
                 }
 
-                return block;
+                return task.Result;
             }
             catch (Exception e)
             {
@@ -752,16 +793,22 @@ namespace AElf.Kernel.Node
 
             var bh = block.GetHash().ToHex();
             _logger?.Trace(
-                $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}]");
+                $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}].");
 
             return true;
         }
 
-        public async Task<IMessage> GetContractAbi(Hash address)
+        public async Task<IMessage> GetContractAbi(Hash address, string name = null)
         {
-            return await _smartContractService.GetAbiAsync(address);
+            return await _smartContractService.GetAbiAsync(address, name);
         }
 
+
+        public async Task<IEnumerable<string>> GetTransactionParameters(ITransaction tx)
+        {
+            return await _smartContractService.GetInvokingParams(tx);
+        }
+        
         /// <summary>
         /// Broadcasts a transaction to the network. This method
         /// also places it in the transaction pool.
@@ -769,11 +816,18 @@ namespace AElf.Kernel.Node
         /// <param name="tx">The tx to broadcast</param>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> BroadcastTransaction(ITransaction tx)
         {
+            if(tx.From.Equals(_nodeKeyPair.GetAddress()))
+                _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().ToHex() + ", threadId: " +
+                           Thread.CurrentThread.ManagedThreadId);
             TxValidation.TxInsertionAndBroadcastingError res;
 
+            var stopWatch = new Stopwatch();
             try
             {
+                stopWatch.Start();
                 res = await _txPoolService.AddTxAsync(tx);
+                stopWatch.Stop();
+                //_logger?.Info($"### Debug _txPoolService.AddTxAsync Time: {stopWatch.ElapsedMilliseconds}");
             }
             catch (Exception e)
             {
@@ -785,16 +839,19 @@ namespace AElf.Kernel.Node
             {
                 try
                 {
+                    stopWatch.Start();
                     var transaction = tx.Serialize();
                     await _netManager.BroadcastMessage(MessageType.BroadcastTx, transaction);
+                    stopWatch.Stop();
+                   // _logger?.Info($"### Debug _netManager.BroadcastMessage Time: {stopWatch.ElapsedMilliseconds}");
                 }
                 catch (Exception e)
                 {
                     _logger?.Trace("Broadcasting transaction failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
                     return TxValidation.TxInsertionAndBroadcastingError.BroadCastFailed;
                 }
-
-                _logger?.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
+                if(tx.From.Equals(_nodeKeyPair.GetAddress()))
+                    _logger?.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return TxValidation.TxInsertionAndBroadcastingError.Success;
             }
 
@@ -852,16 +909,17 @@ namespace AElf.Kernel.Node
         #region Private Methods for DPoS
 
         // ReSharper disable once InconsistentNaming
-        private async Task<ITransaction> GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters,
+        private ITransaction GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters,
             ulong incrementIdOffset = 0)
         {
             var tx = new Transaction
             {
                 From = _nodeKeyPair.GetAddress(),
                 To = ContractAccountHash,
-                IncrementId = await GetIncrementId(_nodeKeyPair.GetAddress()) + incrementIdOffset,
+                IncrementId = GetIncrementId(_nodeKeyPair.GetAddress()).Result + incrementIdOffset,
                 MethodName = methodName,
-                P = ByteString.CopyFrom(_nodeKeyPair.PublicKey.Q.GetEncoded())
+                P = ByteString.CopyFrom(_nodeKeyPair.PublicKey.Q.GetEncoded()),
+                Type = TransactionType.DposTransaction
             };
 
             switch (parameters.Count)
@@ -901,7 +959,7 @@ namespace AElf.Kernel.Node
             };
             _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms");
             // ReSharper disable once InconsistentNaming
-            var txToInitializeAElfDPoS = await GenerateTransaction("InitializeAElfDPoS", parameters);
+            var txToInitializeAElfDPoS = GenerateTransaction("InitializeAElfDPoS", parameters);
             await BroadcastTransaction(txToInitializeAElfDPoS);
 
             var block = await Mine();
@@ -921,7 +979,7 @@ namespace AElf.Kernel.Node
             var signature = Hash.Default;
             if (currentRoundNumber.Value > 1)
             {
-                signature = await _dPoSHelper.CalculateSignature(inValue);
+                signature = _dPoSHelper.CalculateSignature(inValue);
             }
 
             var parameters = new List<byte[]>
@@ -932,7 +990,7 @@ namespace AElf.Kernel.Node
                 signature.ToByteArray()
             };
 
-            var txToPublishOutValueAndSignature = await GenerateTransaction("PublishOutValueAndSignature", parameters);
+            var txToPublishOutValueAndSignature = GenerateTransaction("PublishOutValueAndSignature", parameters);
 
             await BroadcastTransaction(txToPublishOutValueAndSignature);
 
@@ -959,14 +1017,16 @@ namespace AElf.Kernel.Node
                 _consensusData.Pop().ToByteArray()
             };
 
-            var txToPublishInValue = await GenerateTransaction("PublishInValue", parameters);
+            var txToPublishInValue = GenerateTransaction("PublishInValue", parameters);
             await BroadcastTransaction(txToPublishInValue);
         }
 
         // ReSharper disable once InconsistentNaming
         public async Task MiningWithUpdatingAElfDPoSInformation()
         {
+            _logger?.Log(LogLevel.Debug, "MiningWithUpdatingAElf..");
             var extraBlockResult = await _dPoSHelper.ExecuteTxsForExtraBlock();
+            _logger?.Log(LogLevel.Debug, "End MiningWithUpdatingAElf..");
 
             var parameters = new List<byte[]>
             {
@@ -974,11 +1034,13 @@ namespace AElf.Kernel.Node
                 extraBlockResult.Item2.ToByteArray(),
                 extraBlockResult.Item3.ToByteArray()
             };
+            _logger?.Log(LogLevel.Debug, "Generating transaction..");
 
-            var txForExtraBlock = await GenerateTransaction(
+            var txForExtraBlock = GenerateTransaction(
                 "UpdateAElfDPoS",
                 parameters,
                 _incrementIdNeedToAddOne ? (ulong) 1 : 0);
+            _logger?.Log(LogLevel.Debug, "End Generating transaction..");
 
             await BroadcastTransaction(txForExtraBlock);
 
@@ -1006,5 +1068,10 @@ namespace AElf.Kernel.Node
         }
 
         private static int _currentIncr;
+        
+        public void SetBlockVolume(ulong minimal, ulong maximal)
+        {
+            _txPoolService.SetBlockVolume(minimal, maximal);
+        }
     }
 }
