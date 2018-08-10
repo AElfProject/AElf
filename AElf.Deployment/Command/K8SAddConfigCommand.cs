@@ -53,7 +53,7 @@ namespace AElf.Deployment.Command
         {
             var databaseConfig = new DatabaseConfig();
             databaseConfig.Type = DatabaseType.Redis;
-            databaseConfig.Host = "set-redis-0.redis-service";
+            databaseConfig.Host = "set-redis-0.service-redis";
             databaseConfig.Port = 7001;
 
             var result = JsonSerializer.Instance.Serialize(databaseConfig);
