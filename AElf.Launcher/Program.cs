@@ -11,11 +11,12 @@ using AElf.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
-using AElf.Kernel.Node.Config;
+using AElf.Configuration;
 using AElf.Network.Config;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using Autofac;
+using Google.Protobuf;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ServiceStack;
@@ -218,7 +219,7 @@ namespace AElf.Launcher
             minerConfiguration.ChainId = chainId;
             builder.RegisterModule(new MinerModule(minerConfiguration));
 
-            nodeConfig.ChainId = chainId;
+            nodeConfig.ChainId = chainId.Value.ToByteArray();
             builder.RegisterModule(new MainChainNodeModule(nodeConfig));
 
             txPoolConf.ChainId = chainId;

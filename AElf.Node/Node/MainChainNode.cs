@@ -15,7 +15,6 @@ using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Node.Config;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Node.RPC;
 using AElf.Kernel.Node.RPC.DTO;
@@ -152,7 +151,7 @@ namespace AElf.Kernel.Node
                 return false;
             }
 
-            if (_nodeConfig.ChainId?.Value == null || _nodeConfig.ChainId.Value.Length <= 0)
+            if (_nodeConfig.ChainId == null || _nodeConfig.ChainId.Length <= 0)
             {
                 _logger?.Log(LogLevel.Error, "No chain id.");
                 return false;
