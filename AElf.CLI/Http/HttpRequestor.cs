@@ -21,7 +21,9 @@ namespace AElf.CLI.Http
         public string DoRequest(string content)
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/");
-            request.Content = new StringContent(content, Encoding.UTF8, "application/json");
+            var c = new StringContent(content);
+            c.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+            request.Content = c;
 
             string result = null;
             try
