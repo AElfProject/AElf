@@ -228,12 +228,7 @@ namespace AElf.Kernel.Node
 
             _nodeKeyPair = nodeKeyPair;
 
-            if (startRpc)
-                _rpcServer.Start(rpcHost, rpcPort);
-
             _txPoolService.Start();
-            // todo : avoid circular dependency
-            _rpcServer.SetCommandContext(this);
 
             Task.Run(() => _netManager.Start());
 
