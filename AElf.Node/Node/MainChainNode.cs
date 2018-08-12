@@ -16,8 +16,6 @@ using AElf.Execution.Scheduling;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node.Protocol;
-using AElf.Kernel.Node.RPC;
-using AElf.Kernel.Node.RPC.DTO;
 using AElf.Kernel.Types;
 using AElf.Network;
 using AElf.Network.Connection;
@@ -25,7 +23,6 @@ using AElf.Network.Data;
 using AElf.Network.Peers;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
-using Akka.Util;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
@@ -41,7 +38,6 @@ namespace AElf.Kernel.Node
         private ECKeyPair _nodeKeyPair;
         private readonly ITxPoolService _txPoolService;
         private readonly ITransactionManager _transactionManager;
-        private readonly IRpcServer _rpcServer;
         private readonly ILogger _logger;
         private readonly INodeConfig _nodeConfig;
         private readonly IMiner _miner;
@@ -52,13 +48,11 @@ namespace AElf.Kernel.Node
         private readonly IChainCreationService _chainCreationService;
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly ISmartContractService _smartContractService;
-        private readonly ITransactionResultService _transactionResultService;
         private readonly IFunctionMetadataService _functionMetadataService;
         private readonly INetworkManager _netManager;
         private readonly IBlockSynchronizer _synchronizer;
         private readonly IBlockExecutor _blockExecutor;
         private readonly AElfDPoSHelper _dPoSHelper;
-        private readonly ConsensusHelper _consensusHelper;
 
         public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, SmartContractType.AElfDPoS);
 
@@ -105,14 +99,13 @@ namespace AElf.Kernel.Node
 
         public Hash ChainId => _nodeConfig.ChainId;
 
-        public MainChainNode(ITxPoolService poolService, ITransactionManager txManager, IRpcServer rpcServer,
+        public MainChainNode(ITxPoolService poolService, ITransactionManager txManager,
             ILogger logger,
             INodeConfig nodeConfig, IMiner miner, IAccountContextService accountContextService,
             IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
             IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator,
             IChainService chainService, ISmartContractService smartContractService,
-            ITransactionResultService transactionResultService,
             IFunctionMetadataService functionMetadataService, INetworkManager netManager,
             IBlockSynchronizer synchronizer)
         {
@@ -120,11 +113,9 @@ namespace AElf.Kernel.Node
             _chainService = chainService;
             _worldStateDictator = worldStateDictator;
             _smartContractService = smartContractService;
-            _transactionResultService = transactionResultService;
             _functionMetadataService = functionMetadataService;
             _txPoolService = poolService;
             _transactionManager = txManager;
-            _rpcServer = rpcServer;
             _logger = logger;
             _nodeConfig = nodeConfig;
             _miner = miner;
@@ -138,8 +129,6 @@ namespace AElf.Kernel.Node
 
             _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
                 ContractAccountHash, _logger);
-            
-            _consensusHelper = new ConsensusHelper();
         }
  
         public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData,
@@ -469,18 +458,6 @@ namespace AElf.Kernel.Node
         }
 
         /// <summary>
-        /// This method requests a specified number of peers from
-        /// the node's peer list.
-        /// </summary>
-        /// <param name="numPeers"></param>
-        /// <returns></returns>
-        public async Task<List<NodeData>> GetPeers(ushort? numPeers)
-        {
-            return new List<NodeData>();
-            //return _protocolDirector.GetPeers(numPeers);
-        }
-
-        /// <summary>
         /// return default incrementId for one address
         /// </summary>
         /// <param name="addr"></param>
@@ -582,12 +559,6 @@ namespace AElf.Kernel.Node
                 Interlocked.CompareExchange(ref _flag, 0, 1);
                 return new BlockExecutionResult(e);
             }
-        }
-
-        public async Task<ulong> GetCurrentChainHeight()
-        {
-            var chainContext = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
-            return chainContext.BlockHeight;
         }
 
         public Hash GetGenesisContractHash(SmartContractType contractType)
@@ -792,17 +763,6 @@ namespace AElf.Kernel.Node
             return true;
         }
 
-        public async Task<IMessage> GetContractAbi(Hash address, string name = null)
-        {
-            return await _smartContractService.GetAbiAsync(address, name);
-        }
-
-
-        public async Task<IEnumerable<string>> GetTransactionParameters(ITransaction tx)
-        {
-            return await _smartContractService.GetInvokingParams(tx);
-        }
-        
         /// <summary>
         /// Broadcasts a transaction to the network. This method
         /// also places it in the transaction pool.
@@ -854,50 +814,10 @@ namespace AElf.Kernel.Node
             return res;
         }
 
-        public async Task<byte[]> CallReadOnly(ITransaction tx)
-        {
-            var trace = new TransactionTrace
-            {
-                TransactionId = tx.GetHash()
-            };
-
-            var chainContext = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
-            var txCtxt = new TransactionContext
-            {
-                PreviousBlockHash = chainContext.BlockHash,
-                Transaction = tx,
-                Trace = trace
-            };
-
-            var executive = await _smartContractService.GetExecutiveAsync(tx.To, _nodeConfig.ChainId);
-
-            try
-            {
-                await executive.SetTransactionContext(txCtxt).Apply(false);
-            }
-            finally
-            {
-                await _smartContractService.PutExecutiveAsync(tx.To, executive);
-            }
-
-            return trace.RetVal.ToFriendlyBytes();
-        }
-
         public async Task<Block> GetBlockAtHeight(int height)
         {
             var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
             return (Block) await blockchain.GetBlockByHeightAsync((ulong) height);
-        }
-
-        /// <summary>
-        /// return transaction execution result
-        /// </summary>
-        /// <param name="txHash"></param>
-        /// <returns></returns>
-        public async Task<TransactionResult> GetTransactionResult(Hash txHash)
-        {
-            var res = await _transactionResultService.GetResultAsync(txHash);
-            return res;
         }
 
         #region Private Methods for DPoS
@@ -1045,27 +965,5 @@ namespace AElf.Kernel.Node
         #endregion
 
         #endregion
-
-        public async Task<ulong> GetTransactionPoolSize()
-        {
-            return await _txPoolService.GetPoolSize();
-        }
-
-        /// <summary>
-        /// add tx
-        /// </summary>
-        /// <param name="tx"></param>
-        /// <returns></returns>
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(ITransaction tx)
-        {
-            return await _txPoolService.AddTxAsync(tx);
-        }
-
-        private static int _currentIncr;
-        
-        public void SetBlockVolume(ulong minimal, ulong maximal)
-        {
-            _txPoolService.SetBlockVolume(minimal, maximal);
-        }
     }
 }

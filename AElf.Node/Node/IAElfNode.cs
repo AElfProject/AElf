@@ -14,8 +14,6 @@ namespace AElf.Kernel.Node
 
         Task ReceiveTransaction(byte[] messagePayload, bool isFromSend);
 
-        Task<ulong> GetCurrentChainHeight();
-
         BlockProducer BlockProducers { get; }
 
         Hash ContractAccountHash { get; }

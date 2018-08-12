@@ -194,7 +194,6 @@ namespace AElf.Launcher
             builder.RegisterModule(new LoggerModule("aelf-node-" + netConf.ListeningPort));
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new NetworkModule(netConf, isMiner));
-            builder.RegisterModule(new RpcServerModule());
             builder.RegisterModule(new RpcServicesModule());
             builder.RegisterType<ChainService>().As<IChainService>();
 
