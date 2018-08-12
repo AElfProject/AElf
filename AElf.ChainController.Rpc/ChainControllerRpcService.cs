@@ -66,7 +66,6 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("connect_chain")]
         public async Task<JObject> ProGetChainInfo()
         {
-            Console.WriteLine("connect_chain");
             try
             {
                 var chainId = NodeConfig.ChainId;
