@@ -120,9 +120,12 @@ namespace AElf.Launcher
                     await ((MainChainNode) node).BroadcastTransaction(await transaction);
                 });
 
-                var rpc = new RpcServer();
-                rpc.Initialize(scope, confParser.RpcHost, confParser.RpcPort);
-                rpc.RunAsync();
+                if (confParser.Rpc)
+                {
+                    var rpc = new RpcServer();
+                    rpc.Initialize(scope, confParser.RpcHost, confParser.RpcPort);
+                    rpc.RunAsync();                    
+                }
 
                 //DoDPos(node);
                 Console.ReadLine();
