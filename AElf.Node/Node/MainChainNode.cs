@@ -35,6 +35,7 @@ namespace AElf.Kernel.Node
     [LoggerName("Node")]
     public class MainChainNode : IAElfNode
     {
+        private readonly IP2P _p2p;
         private ECKeyPair _nodeKeyPair;
         private readonly ITxPoolService _txPoolService;
         private readonly ITransactionManager _transactionManager;
@@ -107,7 +108,7 @@ namespace AElf.Kernel.Node
             IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator,
             IChainService chainService, ISmartContractService smartContractService,
             IFunctionMetadataService functionMetadataService, INetworkManager netManager,
-            IBlockSynchronizer synchronizer)
+            IBlockSynchronizer synchronizer, IP2P p2p)
         {
             _chainCreationService = chainCreationService;
             _chainService = chainService;
@@ -126,6 +127,7 @@ namespace AElf.Kernel.Node
             _blockExecutor = blockExecutor;
             _netManager = netManager;
             _synchronizer = synchronizer;
+            _p2p = p2p;
 
             _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
                 ContractAccountHash, _logger);
@@ -221,7 +223,7 @@ namespace AElf.Kernel.Node
 
             Task.Run(() => _netManager.Start());
 
-            _netManager.MessageReceived += ProcessPeerMessage;
+//            _netManager.MessageReceived += ProcessPeerMessage;
 
             //_protocolDirector.SetCommandContext(this, _nodeConfig.ConsensusInfoGenerater); // If not miner do sync
             if (!_nodeConfig.ConsensusInfoGenerater)
@@ -253,93 +255,60 @@ namespace AElf.Kernel.Node
 
             _logger?.Log(LogLevel.Debug, "AElf node started.");
 
-            Task.Run(async () => await ProcessLoop()).ConfigureAwait(false);
+            Task.Run(async () => await _p2p.ProcessLoop()).ConfigureAwait(false);
 
             return true;
         }
 
-        private BlockingCollection<NetMessageReceivedArgs> _messageQueue = new BlockingCollection<NetMessageReceivedArgs>();
+        
 
-        private async Task ProcessLoop()
-        {
-            try
-            {
-                while (true)
-                {
-                    var args = _messageQueue.Take();
 
-                    var message = args.Message;
-                    var msgType = (MessageType) message.Type;
-                    
-                    _logger?.Trace($"Handling message {message}");
 
-                    if (msgType == MessageType.RequestBlock)
-                    {
-                        await HandleBlockRequest(message, args.PeerMessage);
-                    }
-                    else if (msgType == MessageType.TxRequest)
-                    {
-                        await HandleTxRequest(message, args.PeerMessage);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                _logger?.Trace(e, "Error while dequeuing.");
-            }
-        }
 
-        private void ProcessPeerMessage(object sender, EventArgs e)
-        {
-            if (sender != null && e is NetMessageReceivedArgs args && args.Message != null)
-            {
-                _messageQueue.Add(args);
-            }
-        }
 
-        internal async Task HandleBlockRequest(Message message, PeerMessageReceivedArgs args)
-        {
-            try
-            {
-                var breq = BlockRequest.Parser.ParseFrom(message.Payload);
-                var block = await GetBlockAtHeight(breq.Height);
-                var req = NetRequestFactory.CreateMessage(MessageType.Block, block.ToByteArray());
-                
-                args.Peer.EnqueueOutgoing(req);
+//        internal async Task HandleBlockRequest(Message message, PeerMessageReceivedArgs args)
+//        {
+//            try
+//            {
+//                var breq = BlockRequest.Parser.ParseFrom(message.Payload);
+//                var block = await GetBlockAtHeight(breq.Height);
+//                var req = NetRequestFactory.CreateMessage(MessageType.Block, block.ToByteArray());
+//                
+//                args.Peer.EnqueueOutgoing(req);
+//
+//                _logger?.Trace("Send block " + block.GetHash().ToHex() + " to " + args.Peer);
+//            }
+//            catch (Exception e)
+//            {
+//                _logger?.Trace(e, "Error while during HandleBlockRequest.");
+//            }
+//        }
 
-                _logger?.Trace("Send block " + block.GetHash().ToHex() + " to " + args.Peer);
-            }
-            catch (Exception e)
-            {
-                _logger?.Trace(e, "Error while during HandleBlockRequest.");
-            }
-        }
-
-        private async Task HandleTxRequest(Message message, PeerMessageReceivedArgs args)
-        {
-            string hash = null;
-
-            try
-            {
-                var breq = TxRequest.Parser.ParseFrom(message.Payload);
-                hash = breq.TxHash.ToByteArray().ToHex();
-                var tx = await GetTransaction(breq.TxHash);
-                if (!(tx is Transaction t))
-                {
-                    _logger?.Trace("Could not find transaction: ", hash);
-                    return;
-                }
-
-                var req = NetRequestFactory.CreateMessage(MessageType.Tx, t.ToByteArray());
-                args.Peer.EnqueueOutgoing(req);
-
-                _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + t.ToByteArray().Length + " bytes)");
-            }
-            catch (Exception e)
-            {
-                _logger?.Trace(e, $"Transaction request failed. Hash : {hash}");
-            }
-        }
+//        private async Task HandleTxRequest(Message message, PeerMessageReceivedArgs args)
+//        {
+//            string hash = null;
+//
+//            try
+//            {
+//                var breq = TxRequest.Parser.ParseFrom(message.Payload);
+//                hash = breq.TxHash.ToByteArray().ToHex();
+//                var tx = await GetTransaction(breq.TxHash);
+//                if (!(tx is Transaction t))
+//                {
+//                    _logger?.Trace("Could not find transaction: ", hash);
+//                    return;
+//                }
+//
+//                var req = NetRequestFactory.CreateMessage(MessageType.Tx, t.ToByteArray());
+//                args.Peer.EnqueueOutgoing(req);
+//
+//                _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + t.ToByteArray().Length + " bytes)");
+//            }
+//            catch (Exception e)
+//            {
+//                _logger?.Trace(e, $"Transaction request failed. Hash : {hash}");
+//            }
+//        }
 
         private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
         {
@@ -397,15 +366,15 @@ namespace AElf.Kernel.Node
         /// </summary>
         /// <param name="txId"></param>
         /// <returns></returns>
-        public async Task<ITransaction> GetTransaction(Hash txId)
-        {
-            if (_txPoolService.TryGetTx(txId, out var tx))
-            {
-                return tx;
-            }
-
-            return await _transactionManager.GetTransaction(txId);
-        }
+//        public async Task<ITransaction> GetTransaction(Hash txId)
+//        {
+//            if (_txPoolService.TryGetTx(txId, out var tx))
+//            {
+//                return tx;
+//            }
+//
+//            return await _transactionManager.GetTransaction(txId);
+//        }
 
         /// <summary>
         /// This inserts a transaction into the node. Note that it does
@@ -427,35 +396,35 @@ namespace AElf.Kernel.Node
         /// <param name="messagePayload"></param>
         /// <param name="isFromSend"></param>
         /// <returns></returns>
-        public async Task ReceiveTransaction(byte[] messagePayload, bool isFromSend)
-        {
-            try
-            {
-                var tx = Transaction.Parser.ParseFrom(messagePayload);
-                var success = await _txPoolService.AddTxAsync(tx);
-
-                if (isFromSend)
-                {
-                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " +
-                                   tx.IncrementId);
-                    //_protocolDirector.AddTransaction(tx);
-                }
-
-                if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
-                {
-                    _logger?.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ",
-                        tx.GetTransactionInfo(),
-                        tx.IncrementId, success);
-                    return;
-                }
-
-                _logger?.Trace("Successfully added tx : " + tx.GetHash().Value.ToByteArray().ToHex());
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, "Invalid tx - Could not receive transaction from the network", null);
-            }
-        }
+//        public async Task ReceiveTransaction(byte[] messagePayload, bool isFromSend)
+//        {
+//            try
+//            {
+//                var tx = Transaction.Parser.ParseFrom(messagePayload);
+//                var success = await _txPoolService.AddTxAsync(tx);
+//
+//                if (isFromSend)
+//                {
+//                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " +
+//                                   tx.IncrementId);
+//                    //_protocolDirector.AddTransaction(tx);
+//                }
+//
+//                if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
+//                {
+//                    _logger?.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ",
+//                        tx.GetTransactionInfo(),
+//                        tx.IncrementId, success);
+//                    return;
+//                }
+//
+//                _logger?.Trace("Successfully added tx : " + tx.GetHash().Value.ToByteArray().ToHex());
+//            }
+//            catch (Exception e)
+//            {
+//                _logger?.Error(e, "Invalid tx - Could not receive transaction from the network", null);
+//            }
+//        }
 
         /// <summary>
         /// return default incrementId for one address
@@ -814,11 +783,11 @@ namespace AElf.Kernel.Node
             return res;
         }
 
-        public async Task<Block> GetBlockAtHeight(int height)
-        {
-            var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
-            return (Block) await blockchain.GetBlockByHeightAsync((ulong) height);
-        }
+//        public async Task<Block> GetBlockAtHeight(int height)
+//        {
+//            var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
+//            return (Block) await blockchain.GetBlockByHeightAsync((ulong) height);
+//        }
 
         #region Private Methods for DPoS
 

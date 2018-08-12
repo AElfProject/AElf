@@ -12,7 +12,7 @@ namespace AElf.Kernel.Node
 
         Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block);
 
-        Task ReceiveTransaction(byte[] messagePayload, bool isFromSend);
+//        Task ReceiveTransaction(byte[] messagePayload, bool isFromSend);
 
         BlockProducer BlockProducers { get; }
 

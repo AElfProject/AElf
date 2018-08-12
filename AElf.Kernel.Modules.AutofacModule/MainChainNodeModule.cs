@@ -19,7 +19,8 @@ namespace AElf.Kernel.Modules.AutofacModule
                 builder.RegisterInstance(_nodeConfig).As<INodeConfig>();
             }
             builder.RegisterType<MainChainNode>().As<IAElfNode>();
-            
+            builder.RegisterType<P2PHandler>().PropertiesAutowired();
+
         }
     }
 }
