@@ -55,9 +55,10 @@ namespace AElf.Kernel.Node
         private readonly IBlockExecutor _blockExecutor;
 //        private readonly AElfDPoSHelper _dPoSHelper;
         private readonly Consensus _consensus;
+        private readonly PoTC _poTc;
+        public IBlockChain BlockChain { get; }
 
-        private MinerHelper
-            _minerHelper;
+        private readonly MinerHelper _minerHelper;
 
         public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, SmartContractType.AElfDPoS);
 
@@ -68,18 +69,7 @@ namespace AElf.Kernel.Node
 
         public ulong ConsensusMemory { get; set; }
 
-        private int _flag;
-
-//        public bool IsMining { get; private set; }
-
-        private readonly Stack<Hash> _consensusData = new Stack<Hash>();
-
-        public int IsMiningInProcess => _flag;
-
-        // ReSharper disable once InconsistentNaming
-//        private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(_logger,
-//            MiningWithInitializingAElfDPoSInformation,
-//            MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
+        public int IsMiningInProcess => _minerHelper.IsMiningInProcess;
 
         private SingleNodeTestObserver SingleNodeTestObserver => new SingleNodeTestObserver(_logger, SingleNodeMining);
 
@@ -113,8 +103,12 @@ namespace AElf.Kernel.Node
             _netManager = netManager;
             _synchronizer = synchronizer;
             _p2p = p2p;
-            _consensus= new Consensus(logger,this,nodeConfig, worldStateDictator, _accountContextService, _txPoolService);
-            _minerHelper = new MinerHelper(logger, this, worldStateDictator, miner, _consensus, synchronizer );
+            _consensus= new Consensus(logger,this,nodeConfig, worldStateDictator, _accountContextService, _txPoolService, _p2p);
+            _minerHelper = new MinerHelper(logger, this, _txPoolService, nodeConfig,
+                worldStateDictator, blockExecutor,chainService,chainContextService,
+                blockVaildationService, miner, _consensus, synchronizer);
+            BlockChain = chainService.GetBlockChain(_nodeConfig.ChainId);
+            _poTc = new PoTC(logger, this, miner, accountContextService, _txPoolService, _p2p);
 //            _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
 //                ContractAccountHash, _logger);
         }
@@ -247,61 +241,6 @@ namespace AElf.Kernel.Node
             return true;
         }
 
-        
-
-
-
-
-
-//        internal async Task HandleBlockRequest(Message message, PeerMessageReceivedArgs args)
-//        {
-//            try
-//            {
-//                var breq = BlockRequest.Parser.ParseFrom(message.Payload);
-//                var block = await GetBlockAtHeight(breq.Height);
-//                var req = NetRequestFactory.CreateMessage(MessageType.Block, block.ToByteArray());
-//                
-//                args.Peer.EnqueueOutgoing(req);
-//
-//                _logger?.Trace("Send block " + block.GetHash().ToHex() + " to " + args.Peer);
-//            }
-//            catch (Exception e)
-//            {
-//                _logger?.Trace(e, "Error while during HandleBlockRequest.");
-//            }
-//        }
-
-//        private async Task HandleTxRequest(Message message, PeerMessageReceivedArgs args)
-//        {
-//            string hash = null;
-//
-//            try
-//            {
-//                var breq = TxRequest.Parser.ParseFrom(message.Payload);
-//                hash = breq.TxHash.ToByteArray().ToHex();
-//                var tx = await GetTransaction(breq.TxHash);
-//                if (!(tx is Transaction t))
-//                {
-//                    _logger?.Trace("Could not find transaction: ", hash);
-//                    return;
-//                }
-//
-//                var req = NetRequestFactory.CreateMessage(MessageType.Tx, t.ToByteArray());
-//                args.Peer.EnqueueOutgoing(req);
-//
-//                _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + t.ToByteArray().Length + " bytes)");
-//            }
-//            catch (Exception e)
-//            {
-//                _logger?.Trace(e, $"Transaction request failed. Hash : {hash}");
-//            }
-//        }
-//
-//        private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
-//        {
-//            StartMining();
-//        }
-
         private void StartMining()
         {
             if (_nodeConfig.IsMiner)
@@ -309,54 +248,6 @@ namespace AElf.Kernel.Node
                _consensus.StartConsensusProcess();
             }
         }
-
-//        private async Task<bool> InitialDebugSync(string initFileName)
-//        {
-//            try
-//            {
-//                var fullPath = Path.Combine(_nodeConfig.DataDir, "tests", initFileName);
-//
-//                using (var file = File.OpenText(fullPath))
-//                using (var reader = new JsonTextReader(file))
-//                {
-//                    var balances = (JObject) JToken.ReadFrom(reader);
-//                    foreach (var kv in balances)
-//                    {
-//                        var address = ByteArrayHelpers.FromHexString(kv.Key);
-//                        var balance = kv.Value.ToObject<ulong>();
-//
-//                        var accountDataProvider = await _worldStateDictator.GetAccountDataProvider(address);
-//                        var dataProvider = accountDataProvider.GetDataProvider();
-//
-//                        // set balance
-//                        await dataProvider.SetAsync("Balance".CalculateHash(),
-//                            new UInt64Value {Value = balance}.ToByteArray());
-//                        _logger?.Log(LogLevel.Debug, "Initial balance {0} in Address \"{1}\"", balance, kv.Key);
-//                    }
-//                }
-//            }
-//            catch (Exception e)
-//            {
-//                return false;
-//            }
-//
-//            return true;
-//        }
-
-        /// <summary>
-        /// get the tx from tx pool or database
-        /// </summary>
-        /// <param name="txId"></param>
-        /// <returns></returns>
-//        public async Task<ITransaction> GetTransaction(Hash txId)
-//        {
-//            if (_txPoolService.TryGetTx(txId, out var tx))
-//            {
-//                return tx;
-//            }
-//
-//            return await _transactionManager.GetTransaction(txId);
-//        }
 
         /// <summary>
         /// This inserts a transaction into the node. Note that it does
@@ -377,76 +268,80 @@ namespace AElf.Kernel.Node
             return await _worldStateDictator.GetDataAsync(pointer);
         }
 
-        /// <summary>
-        /// Add a new block received from network by first validating it and then
-        /// executing it.
-        /// </summary>
-        /// <param name="block"></param>
-        /// <returns></returns>
         public async Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block)
         {
-            try
-            {
-                var res = Interlocked.CompareExchange(ref _flag, 1, 0);
-                if (res == 1)
-                    return new BlockExecutionResult(false, ValidationError.Mining);
-
-                var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
-                var error = await _blockVaildationService.ValidateBlockAsync(block, context, NodeKeyPair);
-
-                if (error != ValidationError.Success)
-                {
-                    var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
-                    var localCorrespondingBlock = await blockchain.GetBlockByHeightAsync(block.Header.Index);
-                    if (error == ValidationError.OrphanBlock)
-                    {
-                        //TODO: limit the count of blocks to rollback
-                        if (block.Header.Time.ToDateTime() < localCorrespondingBlock.Header.Time.ToDateTime())
-                        {
-                            _logger?.Trace("Ready to rollback");
-                            //Rollback world state
-                            var txs = await _worldStateDictator.RollbackToSpecificHeight(block.Header.Index);
-
-                            await _txPoolService.RollBack(txs);
-                            _worldStateDictator.PreBlockHash = block.Header.PreviousBlockHash;
-                            await _worldStateDictator.RollbackCurrentChangesAsync();
-
-                            var ws = await _worldStateDictator.GetWorldStateAsync(block.GetHash());
-                            _logger?.Trace($"Current world state {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
-
-                            error = ValidationError.Success;
-                        }
-                        else
-                        {
-                            // insert to database 
-                            Interlocked.CompareExchange(ref _flag, 0, 1);
-                            return new BlockExecutionResult(false, ValidationError.OrphanBlock);
-                        }
-                    }
-                    else
-                    {
-                        Interlocked.CompareExchange(ref _flag, 0, 1);
-                        _logger?.Trace("Invalid block received from network: " + error);
-                        return new BlockExecutionResult(false, error);
-                    }
-                }
-
-                var executed = await _blockExecutor.ExecuteBlock(block);
-                Interlocked.CompareExchange(ref _flag, 0, 1);
-
-                Task.WaitAll();
-                await CheckUpdatingConsensusProcess();
-
-                return new BlockExecutionResult(executed, error);
-                //return new BlockExecutionResult(true, error);
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, "Block synchronzing failed");
-                Interlocked.CompareExchange(ref _flag, 0, 1);
-                return new BlockExecutionResult(e);
-            }
+            return await _minerHelper.ExecuteAndAddBlock(block);
         }
+//        /// <summary>
+//        /// Add a new block received from network by first validating it and then
+//        /// executing it.
+//        /// </summary>
+//        /// <param name="block"></param>
+//        /// <returns></returns>
+//        public async Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block)
+//        {
+//            try
+//            {
+//                var res = Interlocked.CompareExchange(ref _flag, 1, 0);
+//                if (res == 1)
+//                    return new BlockExecutionResult(false, ValidationError.Mining);
+//
+//                var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
+//                var error = await _blockVaildationService.ValidateBlockAsync(block, context, NodeKeyPair);
+//
+//                if (error != ValidationError.Success)
+//                {
+//                    var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
+//                    var localCorrespondingBlock = await blockchain.GetBlockByHeightAsync(block.Header.Index);
+//                    if (error == ValidationError.OrphanBlock)
+//                    {
+//                        //TODO: limit the count of blocks to rollback
+//                        if (block.Header.Time.ToDateTime() < localCorrespondingBlock.Header.Time.ToDateTime())
+//                        {
+//                            _logger?.Trace("Ready to rollback");
+//                            //Rollback world state
+//                            var txs = await _worldStateDictator.RollbackToSpecificHeight(block.Header.Index);
+//
+//                            await _txPoolService.RollBack(txs);
+//                            _worldStateDictator.PreBlockHash = block.Header.PreviousBlockHash;
+//                            await _worldStateDictator.RollbackCurrentChangesAsync();
+//
+//                            var ws = await _worldStateDictator.GetWorldStateAsync(block.GetHash());
+//                            _logger?.Trace($"Current world state {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
+//
+//                            error = ValidationError.Success;
+//                        }
+//                        else
+//                        {
+//                            // insert to database 
+//                            Interlocked.CompareExchange(ref _flag, 0, 1);
+//                            return new BlockExecutionResult(false, ValidationError.OrphanBlock);
+//                        }
+//                    }
+//                    else
+//                    {
+//                        Interlocked.CompareExchange(ref _flag, 0, 1);
+//                        _logger?.Trace("Invalid block received from network: " + error);
+//                        return new BlockExecutionResult(false, error);
+//                    }
+//                }
+//
+//                var executed = await _blockExecutor.ExecuteBlock(block);
+//                Interlocked.CompareExchange(ref _flag, 0, 1);
+//
+//                Task.WaitAll();
+//                await CheckUpdatingConsensusProcess();
+//
+//                return new BlockExecutionResult(executed, error);
+//                //return new BlockExecutionResult(true, error);
+//            }
+//            catch (Exception e)
+//            {
+//                _logger?.Error(e, "Block synchronzing failed");
+//                Interlocked.CompareExchange(ref _flag, 0, 1);
+//                return new BlockExecutionResult(e);
+//            }
+//        }
 
         public Hash GetGenesisContractHash(SmartContractType contractType)
         {
@@ -459,66 +354,12 @@ namespace AElf.Kernel.Node
             switch (Globals.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    await AElfDPoSProcess();
+                    await _consensus.AElfDPoSProcess();
                     break;
                 
                 case ConsensusType.PoTC:
-                    await PoTCProcess();
+                    await _poTc.PoTCProcess();
                     break;
-            }
-        }
-
-        // ReSharper disable once InconsistentNaming
-        private async Task AElfDPoSProcess()
-        {
-            var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
-            var hash = await blockchain.GetCurrentBlockHashAsync();
-            var header = (BlockHeader) await blockchain.GetHeaderByHashAsync(hash); 
-            //Do DPoS log
-            _logger?.Trace(await _consensus.DPoSHelper.GetDPoSInfo(header.Index));
-            _logger?.Trace("Log dpos information - End");
-            
-            if (ConsensusMemory == _consensus.DPoSHelper.CurrentRoundNumber.Value)
-                return;
-            //Dispose previous observer.
-            if (ConsensusDisposable != null)
-            {
-                ConsensusDisposable.Dispose();
-                _logger?.Trace("Disposed previous consensus observables list.");
-            }
-            else
-            {
-                _logger?.Trace("For now the consensus observables list is null.");
-            }
-
-            //Update observer.
-            var blockProducerInfoOfCurrentRound =
-                _consensus.DPoSHelper[NodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()];
-            ConsensusDisposable =
-               _consensus.AElfDPoSObserver.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound,
-                   _consensus.DPoSHelper.ExtraBlockTimeslot);
-
-            //Update current round number.
-            ConsensusMemory = _consensus.DPoSHelper.CurrentRoundNumber.Value;
-        }
-        
-        // ReSharper disable once InconsistentNaming
-        private async Task PoTCProcess()
-        {
-            while (true)
-            {
-                var count = await _txPoolService.GetPoolSize();
-                if (ConsensusMemory != count)
-                {
-                    _logger?.Trace($"Current tx pool size: {count} / {Globals.ExpectedTransanctionCount}");
-                    ConsensusMemory = count;
-                }
-                if (count >= Globals.ExpectedTransanctionCount)
-                {
-                    _logger?.Trace("Will produce one block.");
-                    var block = await _miner.Mine();
-                    await BroadcastBlock(block);
-                }
             }
         }
 
@@ -531,81 +372,13 @@ namespace AElf.Kernel.Node
         {
             _logger.Trace("Single node mining start.");
             var block = await Mine();
-            await BroadcastBlock(block);
+            await _p2p.BroadcastBlock(block);
             _logger.Trace("Single node mining end.");
         }
 
         public async Task<IBlock> Mine()
         {
             return await _minerHelper.Mine();
-        }
-        
-//        public async Task<IBlock> Mine()
-//        {
-//            var res = Interlocked.CompareExchange(ref _flag, 1, 0);
-//            if (res == 1)
-//                return null;
-//            try
-//            {
-//                _logger?.Trace($"Mine - Entered mining {res}");
-//
-//                _worldStateDictator.BlockProducerAccountAddress = NodeKeyPair.GetAddress();
-//
-//                var task = Task.Run(async () => await _miner.Mine());
-//
-//                if (!task.Wait(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval * 0.9)))
-//                {
-//                    _logger?.Error("Mining timeout.");
-//                    return null;
-//                }
-//
-//                var b = Interlocked.CompareExchange(ref _flag, 0, 1);
-//
-//                _synchronizer.IncrementChainHeight();
-//
-//                _logger?.Trace($"Mine - Leaving mining {b}");
-//                
-//                Task.WaitAll();
-//
-//                //Update DPoS observables.
-//                //Sometimes failed to update this observables list (which is weird), just ignore this.
-//                //Which means this node will do nothing in this round.
-//                try
-//                {
-//                    await CheckUpdatingConsensusProcess();
-//                }
-//                catch (Exception e)
-//                {
-//                    _logger?.Error(e, "Somehow failed to update DPoS observables. Will recover soon.");
-//                    //In case just config one node to produce blocks.
-//                  _consensus.AElfDPoSObserver.RecoverMining();
-//                }
-//
-//                return task.Result;
-//            }
-//            catch (Exception e)
-//            {
-//                Console.WriteLine(e);
-//                Interlocked.CompareExchange(ref _flag, 0, 1);
-//                return null;
-//            }
-//        }
-
-        public async Task<bool> BroadcastBlock(IBlock block)
-        {
-            if (!(block is Block b))
-            {
-                return false;
-            }
-
-            var serializedBlock = b.ToByteArray();
-            await _netManager.BroadcastBock(block.GetHash().Value.ToByteArray(), serializedBlock);
-
-            var bh = block.GetHash().ToHex();
-            _logger?.Trace(
-                $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}].");
-
-            return true;
         }
 
         /// <summary>
@@ -658,64 +431,5 @@ namespace AElf.Kernel.Node
             // await _poolService.RemoveAsync(tx.GetHash());
             return res;
         }
-
-//        public async Task<Block> GetBlockAtHeight(int height)
-//        {
-//            var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
-//            return (Block) await blockchain.GetBlockByHeightAsync((ulong) height);
-//        }
-
-        #region Private Methods for DPoS
-
-//        // ReSharper disable once InconsistentNaming
-//        private ITransaction GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters,
-//            ulong incrementIdOffset = 0)
-//        {
-//            var tx = new Transaction
-//            {
-//                From = NodeKeyPair.GetAddress(),
-//                To = ContractAccountHash,
-//                IncrementId = GetIncrementId(NodeKeyPair.GetAddress()).Result + incrementIdOffset,
-//                MethodName = methodName,
-//                P = ByteString.CopyFrom(NodeKeyPair.PublicKey.Q.GetEncoded()),
-//                Type = TransactionType.DposTransaction
-//            };
-//
-//            switch (parameters.Count)
-//            {
-//                case 2:
-//                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1]));
-//                    break;
-//                case 3:
-//                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2]));
-//                    break;
-//                case 4:
-//                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2],
-//                        parameters[3]));
-//                    break;
-//            }
-//
-//            var signer = new ECSigner();
-//            var signature = signer.Sign(NodeKeyPair, tx.GetHash().GetHashBytes());
-//
-//            // Update the signature
-//            tx.R = ByteString.CopyFrom(signature.R);
-//            tx.S = ByteString.CopyFrom(signature.S);
-//
-//            return tx;
-//        }
-
-        #region Broadcast Txs
-
-
-
-
-
-
-
-
-        #endregion
-
-        #endregion
     }
 }

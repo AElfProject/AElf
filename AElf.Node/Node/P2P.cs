@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Network;
 using AElf.Network.Peers;
 using AElf.Network.Data;
@@ -10,7 +11,7 @@ using NLog;
 
 namespace AElf.Kernel.Node
 {
-    public class P2P:IP2P
+    public class P2P : IP2P
     {
         private readonly ILogger _logger;
         private readonly INetworkManager _netManager;
@@ -108,6 +109,23 @@ namespace AElf.Kernel.Node
             {
                 _messageQueue.Add(args);
             }
+        }
+
+        public async Task<bool> BroadcastBlock(IBlock block)
+        {
+            if (!(block is Block b))
+            {
+                return false;
+            }
+
+            var serializedBlock = b.ToByteArray();
+            await _netManager.BroadcastBock(block.GetHash().Value.ToByteArray(), serializedBlock);
+
+            var bh = block.GetHash().ToHex();
+            _logger?.Trace(
+                $"Broadcasted block \"{bh}\" to peers with {block.Body.TransactionsCount} tx(s). Block height: [{block.Header.Index}].");
+
+            return true;
         }
     }
 }
