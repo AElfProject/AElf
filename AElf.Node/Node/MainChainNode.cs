@@ -23,6 +23,7 @@ using AElf.Network.Data;
 using AElf.Network.Peers;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
+using Akka.Dispatch;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
@@ -282,10 +283,9 @@ namespace AElf.Kernel.Node
             return await _transactionManager.AddTransactionAsync(tx);
         }
 
-        public async Task<Hash> GetLastValidBlockHash()
+        private async Task<Hash> GetLastValidBlockHash()
         {
-            var pointer = ResourcePath.CalculatePointerForLastBlockHash(_nodeConfig.ChainId);
-            return await _worldStateDictator.GetDataAsync(pointer);
+            return await BlockChain.GetCurrentBlockHashAsync();
         }
 
         public async Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block)
