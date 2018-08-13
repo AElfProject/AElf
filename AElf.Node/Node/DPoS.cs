@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Kernel.Types;
@@ -163,7 +164,7 @@ namespace AElf.Kernel.Node
             _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms");
             // ReSharper disable once InconsistentNaming
             var txToInitializeAElfDPoS = GenerateTransaction("InitializeAElfDPoS", parameters);
-            await Node.BroadcastTransaction(txToInitializeAElfDPoS);
+            await BroadcastTransaction(txToInitializeAElfDPoS);
 
             var block = await Node.Mine();
             await _p2p.BroadcastBlock(block);
@@ -261,7 +262,7 @@ namespace AElf.Kernel.Node
 
             var txToPublishOutValueAndSignature = GenerateTransaction("PublishOutValueAndSignature", parameters);
 
-            await Node.BroadcastTransaction(txToPublishOutValueAndSignature);
+            await BroadcastTransaction(txToPublishOutValueAndSignature);
 
             var block = await Node.Mine();
             await _p2p.BroadcastBlock(block);
@@ -287,7 +288,7 @@ namespace AElf.Kernel.Node
             };
 
             var txToPublishInValue = GenerateTransaction("PublishInValue", parameters);
-            await Node.BroadcastTransaction(txToPublishInValue);
+            await BroadcastTransaction(txToPublishInValue);
         }
 
         // ReSharper disable once InconsistentNaming
@@ -311,7 +312,7 @@ namespace AElf.Kernel.Node
                 _incrementIdNeedToAddOne ? (ulong) 1 : 0);
             _logger?.Log(LogLevel.Debug, "End Generating transaction..");
 
-            await Node.BroadcastTransaction(txForExtraBlock);
+            await BroadcastTransaction(txForExtraBlock);
 
             var block = await Node.Mine();
             await _p2p.BroadcastBlock(block);
@@ -355,5 +356,20 @@ namespace AElf.Kernel.Node
             AElfDPoSObserver.RecoverMining();
             await Task.CompletedTask;
         }
+
+        private async Task BroadcastTransaction(ITransaction tx)
+        {
+            if(tx.From.Equals(NodeKeyPair.GetAddress()))
+                _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().ToHex() + ", threadId: " +
+                               Thread.CurrentThread.ManagedThreadId);
+            try
+            {
+                await _txPoolService.AddTxAsync(tx);
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
+            }
+        } 
     }
 }

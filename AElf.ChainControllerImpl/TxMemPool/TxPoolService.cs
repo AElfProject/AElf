@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Kernel.Managers;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Common.Synchronisation;
 using AElf.SmartContract;
+using AsyncEventAggregator;
 using NLog;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
@@ -52,7 +54,13 @@ namespace AElf.Kernel.TxMemPool
             if (_txs.ContainsKey(tx.GetHash()))
                 return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
             
-            return await AddTransaction(tx);
+            var res = await AddTransaction(tx);
+            if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
+            {
+                await this.Publish(new TransactionAddedToPool(tx).AsTask());
+            }
+
+            return res;
         }
 
         private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(ITransaction tx)

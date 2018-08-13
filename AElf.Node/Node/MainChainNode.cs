@@ -285,49 +285,24 @@ namespace AElf.Kernel.Node
             return await _minerHelper.Mine();
         }
 
-        /// <summary>
-        /// Broadcasts a transaction to the network. This method
-        /// also places it in the transaction pool.
-        /// </summary>
-        /// <param name="tx">The tx to broadcast</param>
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> BroadcastTransaction(ITransaction tx)
-        {
-            if(tx.From.Equals(NodeKeyPair.GetAddress()))
-                _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().ToHex() + ", threadId: " +
-                           Thread.CurrentThread.ManagedThreadId);
-            TxValidation.TxInsertionAndBroadcastingError res;
-
-
-            try
-            {
-                res = await _txPoolService.AddTxAsync(tx);
-            }
-            catch (Exception e)
-            {
-                _logger?.Trace("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
-                return TxValidation.TxInsertionAndBroadcastingError.Failed;
-            }
-
-            if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
-            {
-                try
-                {
-                    var transaction = tx.Serialize();
-                    await _netManager.BroadcastMessage(AElfProtocolType.BroadcastTx, transaction);
-                }
-                catch (Exception e)
-                {
-                    _logger?.Trace("Broadcasting transaction failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
-                    return TxValidation.TxInsertionAndBroadcastingError.BroadCastFailed;
-                }
-                if(tx.From.Equals(NodeKeyPair.GetAddress()))
-                    _logger?.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
-                return TxValidation.TxInsertionAndBroadcastingError.Success;
-            }
-
-            _logger?.Trace("Transaction insertion failed:{0}, [{1}]", res, tx.GetTransactionInfo());
-            // await _poolService.RemoveAsync(tx.GetHash());
-            return res;
-        }
+//        /// <summary>
+//        /// Broadcasts a transaction to the network. This method
+//        /// also places it in the transaction pool.
+//        /// </summary>
+//        /// <param name="tx">The tx to broadcast</param>
+//        public async Task BroadcastTransaction(ITransaction tx)
+//        {
+//            if(tx.From.Equals(NodeKeyPair.GetAddress()))
+//                _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().ToHex() + ", threadId: " +
+//                           Thread.CurrentThread.ManagedThreadId);
+//            try
+//            {
+//                await _txPoolService.AddTxAsync(tx);
+//            }
+//            catch (Exception e)
+//            {
+//                _logger?.Trace("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
+//            }
+//        }
     }
 }

@@ -9,4 +9,7 @@
       <Name>AElf.Types.CSharp</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="EventAggregator" Version="1.0.0" />
+  </ItemGroup>
 </Project>

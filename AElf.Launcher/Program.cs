@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Security;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -12,6 +13,8 @@ using AElf.Kernel;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
 using AElf.Configuration;
+using AElf.Kernel.TxMemPool;
+using AElf.Network;
 using AElf.Network.Config;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
@@ -69,7 +72,9 @@ namespace AElf.Launcher
                 try
                 {
                     var ks = new AElfKeyStore(nodeConfig.DataDir);
-                    var pass = string.IsNullOrWhiteSpace(confParser.NodeAccountPassword) ? AskInvisible(confParser.NodeAccount) : confParser.NodeAccountPassword;
+                    var pass = string.IsNullOrWhiteSpace(confParser.NodeAccountPassword)
+                        ? AskInvisible(confParser.NodeAccount)
+                        : confParser.NodeAccountPassword;
                     ks.OpenAsync(confParser.NodeAccount, pass, false);
 
                     nodeKey = ks.GetAccountKeyPair(confParser.NodeAccount);
@@ -83,10 +88,10 @@ namespace AElf.Launcher
                     throw new Exception("Load keystore failed");
                 }
             }
-            
+
             var txPoolConf = confParser.TxPoolConfig;
             txPoolConf.EcKeyPair = nodeKey;
-            
+
             // Setup ioc 
             var container = SetupIocContainer(isMiner, isNewChain, netConf, txPoolConf,
                 minerConfig, nodeConfig, smartContractRunnerFactory);
@@ -114,17 +119,24 @@ namespace AElf.Launcher
                 node.Start(nodeKey, confParser.Rpc, confParser.RpcPort, confParser.RpcHost, initData,
                     TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero);
 
-                node.Subscribe<ITransaction>(
-                    async (transaction) =>
-                {
-                    await ((MainChainNode) node).BroadcastTransaction(await transaction);
-                });
+                var txPoolService = scope.Resolve<ITxPoolService>();
+                node.Subscribe<IncomingTransaction>(
+                    async (inTx) => { await txPoolService.AddTxAsync((await inTx).Transaction); });
+
+                var netManager = scope.Resolve<INetworkManager>();
+                netManager.Subscribe<TransactionAddedToPool>(
+                    async (txAdded) =>
+                    {
+                        await netManager.BroadcastMessage(AElfProtocolType.BroadcastTx,
+                            (await txAdded).Transaction.Serialize());
+                    }
+                );
 
                 if (confParser.Rpc)
                 {
                     var rpc = new RpcServer();
                     rpc.Initialize(scope, confParser.RpcHost, confParser.RpcPort);
-                    rpc.RunAsync();                    
+                    rpc.RunAsync();
                 }
 
                 //DoDPos(node);
@@ -147,12 +159,13 @@ namespace AElf.Launcher
                 return code;
             }
         }
-        
+
         private static byte[] ConsensusGenesisContractCode
         {
             get
             {
-                var contractZeroDllPath = Path.Combine(AssemblyDir, $"{Globals.GenesisConsensusContractAssemblyName}.dll");
+                var contractZeroDllPath =
+                    Path.Combine(AssemblyDir, $"{Globals.GenesisConsensusContractAssemblyName}.dll");
 
                 byte[] code;
                 using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
@@ -163,12 +176,13 @@ namespace AElf.Launcher
                 return code;
             }
         }
-        
+
         private static byte[] BasicContractZero
         {
             get
             {
-                var contractZeroDllPath = Path.Combine(AssemblyDir, $"{Globals.GenesisSmartContractZeroAssemblyName}.dll");
+                var contractZeroDllPath =
+                    Path.Combine(AssemblyDir, $"{Globals.GenesisSmartContractZeroAssemblyName}.dll");
 
                 byte[] code;
                 using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
