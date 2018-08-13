@@ -24,11 +24,12 @@ namespace AElf.Deployment.Handler
             _deployCommands.Add(new K8SAddConfigCommand());
 //            _deployCommands.Add(new K8SAddManagerCommand());
             _deployCommands.Add(new K8SAddWorkerCommand());
+            _deployCommands.Add(new K8SAddLauncherCommand());
 
             _removeCommands.Add(new K8SDeleteNamespaceCommand());
         }
 
-        public void Excute(DeployType type, string chainId, DeployArg arg = null)
+        public void Execute(DeployType type, string chainId, DeployArg arg = null)
         {
             switch (type)
             {

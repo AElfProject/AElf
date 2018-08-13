@@ -8,18 +8,16 @@ using Microsoft.AspNetCore.JsonPatch;
 
 namespace AElf.Deployment
 {
-    public class DeployService : IDeployService
+    public class SideChainService : ISideChainService
     {
-        public void DeploySideChain(string chainId, DeployArg arg)
+        public void Deploy(string chainId, DeployArg arg)
         {
-            GetHandler().Excute(DeployType.Deploy, chainId, arg);
+            GetHandler().Execute(DeployType.Deploy, chainId, arg);
         }
 
-        public void RemoveSideChain(string chainId)
+        public void Remove(string chainId)
         {
-            GetHandler().Excute(DeployType.Remove, chainId);
-
-            string a = $"dfef{chainId}";
+            GetHandler().Execute(DeployType.Remove, chainId);
         }
 
         private IDeployHandler GetHandler()
