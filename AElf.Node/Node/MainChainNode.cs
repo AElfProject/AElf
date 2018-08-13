@@ -175,10 +175,6 @@ namespace AElf.Kernel.Node
                     "Could not create the chain : " + _nodeConfig.ChainId.ToHex());
             }
 
-            if (!string.IsNullOrWhiteSpace(initData))
-            {
-            }
-
             // set world state
             _worldStateDictator.SetChainId(_nodeConfig.ChainId);
 
@@ -226,7 +222,6 @@ namespace AElf.Kernel.Node
             return true;
         }
 
-
         private void SetupConsensus()
         {
             if (_consensus != null)
@@ -270,19 +265,6 @@ namespace AElf.Kernel.Node
             }
         }
 
-        /// <summary>
-        /// This inserts a transaction into the node. Note that it does
-        /// not broadcast it to the network and doesn't add it to the
-        /// transaction pool. Essentially it just inserts the transaction
-        /// in the database.
-        /// </summary>
-        /// <param name="tx">The transaction to insert</param>
-        /// <returns>The hash of the transaction that was inserted</returns>
-        public async Task<IHash> InsertTransaction(Transaction tx)
-        {
-            return await _transactionManager.AddTransactionAsync(tx);
-        }
-
         private async Task<Hash> GetLastValidBlockHash()
         {
             return await BlockChain.GetCurrentBlockHashAsync();
@@ -293,7 +275,7 @@ namespace AElf.Kernel.Node
             return await _minerHelper.ExecuteAndAddBlock(block);
         }
 
-        public Hash GetGenesisContractHash(SmartContractType contractType)
+        private Hash GetGenesisContractHash(SmartContractType contractType)
         {
             return _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, contractType);
         }
