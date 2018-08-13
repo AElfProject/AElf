@@ -9,13 +9,13 @@ namespace AElf.Deployment.Command
     {
         private const string ServiceName = "service-launcher";
         private const string DeploymentName = "deploy-launcher";
-        private const int NodePort = 6800;
-        private const int RpcPort = 6000;
+        private const int NodePort = 30800;
+        private const int RpcPort = 30600;
         private const int ActorPort = 32550;
 
         public void Action(string chainId, DeployArg arg)
         {
-            AddService(chainId, arg);
+            //AddService(chainId, arg);
             AddDeployment(chainId, arg);
         }
 
@@ -33,16 +33,16 @@ namespace AElf.Deployment.Command
                 },
                 Spec = new V1ServiceSpec
                 {
+                    Type = "NodePort",
                     Ports = new List<V1ServicePort>
                     {
-                        new V1ServicePort(NodePort, "node_port", NodePort),
-                        new V1ServicePort(RpcPort, "rpc_port", RpcPort)
+                        new V1ServicePort(NodePort, "node-port", NodePort, "TCP", NodePort),
+                        new V1ServicePort(RpcPort, "rpc-port", RpcPort, "TCP", RpcPort)
                     },
                     Selector = new Dictionary<string, string>
                     {
                         {"name", DeploymentName}
-                    },
-                    Type = "NodePort"
+                    }
                 }
             };
 
@@ -63,7 +63,7 @@ namespace AElf.Deployment.Command
 
                 Spec = new Extensionsv1beta1DeploymentSpec
                 {
-                    Selector = new V1LabelSelector {MatchLabels = new Dictionary<string, string> {{"name", DeploymentName}}},
+//                    Selector = new V1LabelSelector {MatchLabels = new Dictionary<string, string> {{"name", DeploymentName}}},
                     Replicas = 1,
                     Template = new V1PodTemplateSpec
                     {
@@ -78,16 +78,40 @@ namespace AElf.Deployment.Command
                                     Image = "aelf/node",
                                     Ports = new List<V1ContainerPort>
                                     {
-                                        new V1ContainerPort(NodePort, name: "node_port"),
-                                        new V1ContainerPort(RpcPort, name: "rpc_port")
+                                        new V1ContainerPort(NodePort),
+                                        new V1ContainerPort(RpcPort)
                                     },
-                                    Args = new List<string> {"--mine.enable", "true", "--rpc.port", RpcPort.ToString(), "node.account", arg.MainChainAccount, "--node.port", NodePort.ToString(), "--actor.port", ActorPort.ToString(), "--node.accountpassword", arg.AccountPassword},
+                                    Command = new List<string> {"dotnet", "AElf.Launcher.dll"},
+                                    Args = new List<string>
+                                    {
+                                        "--mine.enable",
+                                        "true",
+                                        "--rpc.port",
+                                        RpcPort.ToString(),
+                                        "--node.account",
+                                        arg.MainChainAccount,
+                                        "--node.port",
+                                        NodePort.ToString(),
+                                        "--actor.port",
+                                        ActorPort.ToString(),
+                                        "--node.accountpassword",
+                                        arg.AccountPassword,
+                                        "--dpos.generator",
+                                        "true",
+                                        "--chain.new",
+                                        "true"
+                                    },
                                     VolumeMounts = new List<V1VolumeMount>
                                     {
                                         new V1VolumeMount
                                         {
                                             MountPath = "/app/aelf/config",
                                             Name = "config"
+                                        },
+                                        new V1VolumeMount
+                                        {
+                                            MountPath = "/app/aelf/keys",
+                                            Name = "key"
                                         }
                                     }
                                 }
@@ -98,6 +122,11 @@ namespace AElf.Deployment.Command
                                 {
                                     Name = "config",
                                     ConfigMap = new V1ConfigMapVolumeSource {Name = "config-common"}
+                                },
+                                new V1Volume
+                                {
+                                    Name = "key",
+                                    ConfigMap = new V1ConfigMapVolumeSource {Name = "config-keys"}
                                 }
                             }
                         }
