@@ -1,5 +1,5 @@
 ﻿using Autofac;
-using AElf.Kernel.Node.Config;
+using AElf.Configuration;
 using AElf.Kernel.Node;
 
 namespace AElf.Kernel.Modules.AutofacModule

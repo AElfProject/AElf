@@ -95,6 +95,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus", "AE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus", "AElf.Contracts.Consensus\AElf.Contracts.Consensus.csproj", "{548B9649-EE72-445A-92BC-97E9F1858827}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ChainController.Rpc", "AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj", "{2AE2D692-6450-4339-B725-F6DF76CDF437}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.RPC", "AElf.RPC\AElf.RPC.csproj", "{AE13A559-B20D-4680-971A-17BAD5C2AFE6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RPC", "RPC", "{6037B755-5BBF-4515-81AB-B63C52A4D067}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -285,6 +291,14 @@ Global
 		{548B9649-EE72-445A-92BC-97E9F1858827}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{548B9649-EE72-445A-92BC-97E9F1858827}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{548B9649-EE72-445A-92BC-97E9F1858827}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AE2D692-6450-4339-B725-F6DF76CDF437}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AE2D692-6450-4339-B725-F6DF76CDF437}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AE2D692-6450-4339-B725-F6DF76CDF437}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AE2D692-6450-4339-B725-F6DF76CDF437}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE13A559-B20D-4680-971A-17BAD5C2AFE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE13A559-B20D-4680-971A-17BAD5C2AFE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE13A559-B20D-4680-971A-17BAD5C2AFE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE13A559-B20D-4680-971A-17BAD5C2AFE6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -293,5 +307,7 @@ Global
 		SolutionGuid = {F7C06F6A-D4FE-4202-B8B8-A593F80AB861}
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{2AE2D692-6450-4339-B725-F6DF76CDF437} = {6037B755-5BBF-4515-81AB-B63C52A4D067}
+		{AE13A559-B20D-4680-971A-17BAD5C2AFE6} = {6037B755-5BBF-4515-81AB-B63C52A4D067}
 	EndGlobalSection
 EndGlobal

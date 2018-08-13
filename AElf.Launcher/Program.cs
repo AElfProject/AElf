@@ -11,15 +11,17 @@ using AElf.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
-using AElf.Kernel.Node.Config;
+using AElf.Configuration;
 using AElf.Network.Config;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
+using AsyncEventAggregator;
 using Autofac;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ServiceStack;
 using IContainer = Autofac.IContainer;
+using RpcServer = AElf.RPC.RpcServer;
 
 namespace AElf.Launcher
 {
@@ -108,10 +110,22 @@ namespace AElf.Launcher
                 concurrencySercice.InitActorSystem();
 
                 var node = scope.Resolve<IAElfNode>();
-
                 // Start the system
                 node.Start(nodeKey, confParser.Rpc, confParser.RpcPort, confParser.RpcHost, initData,
                     TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero);
+
+                node.Subscribe<ITransaction>(
+                    async (transaction) =>
+                {
+                    await ((MainChainNode) node).BroadcastTransaction(await transaction);
+                });
+
+                if (confParser.Rpc)
+                {
+                    var rpc = new RpcServer();
+                    rpc.Initialize(scope, confParser.RpcHost, confParser.RpcPort);
+                    rpc.RunAsync();                    
+                }
 
                 //DoDPos(node);
                 Console.ReadLine();
@@ -183,7 +197,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new LoggerModule("aelf-node-" + netConf.ListeningPort));
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new NetworkModule(netConf, isMiner));
-            builder.RegisterModule(new RpcServerModule());
+            builder.RegisterModule(new RpcServicesModule());
             builder.RegisterType<ChainService>().As<IChainService>();
 
             // register SmartContractRunnerFactory 
@@ -218,7 +232,7 @@ namespace AElf.Launcher
             minerConfiguration.ChainId = chainId;
             builder.RegisterModule(new MinerModule(minerConfiguration));
 
-            nodeConfig.ChainId = chainId;
+            nodeConfig.ChainId = chainId.Value.ToByteArray();
             builder.RegisterModule(new MainChainNodeModule(nodeConfig));
 
             txPoolConf.ChainId = chainId;

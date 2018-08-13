@@ -8,7 +8,6 @@ using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Node;
-using AElf.Kernel.Node.Config;
 using AElf.Kernel.Types;
 using AElf.Network.Config;
 using AElf.Network.Data;
@@ -186,7 +185,7 @@ namespace AElf.Launcher
             {
                 IsMiner = IsMiner,
                 FullNode = true,
-                Coinbase = Coinbase
+                Coinbase = Coinbase.Value.ToByteArray()
             };
 
             // Actor

@@ -1,5 +1,4 @@
-﻿using AElf.Kernel.Node.RPC;
-using AElf.Kernel.Storages;
+﻿using AElf.Kernel.Storages;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
