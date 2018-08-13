@@ -36,7 +36,7 @@ namespace AElf.Kernel.Node
     public class MainChainNode : IAElfNode
     {
         private readonly IP2P _p2p;
-        private ECKeyPair _nodeKeyPair;
+        public ECKeyPair NodeKeyPair { get; private set; }
         private readonly ITxPoolService _txPoolService;
         private readonly ITransactionManager _transactionManager;
         private readonly ILogger _logger;
@@ -53,7 +53,11 @@ namespace AElf.Kernel.Node
         private readonly INetworkManager _netManager;
         private readonly IBlockSynchronizer _synchronizer;
         private readonly IBlockExecutor _blockExecutor;
-        private readonly AElfDPoSHelper _dPoSHelper;
+//        private readonly AElfDPoSHelper _dPoSHelper;
+        private readonly Consensus _consensus;
+
+        private MinerHelper
+            _minerHelper;
 
         public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, SmartContractType.AElfDPoS);
 
@@ -66,35 +70,16 @@ namespace AElf.Kernel.Node
 
         private int _flag;
 
-        private bool _incrementIdNeedToAddOne;
-
-        public bool IsMining { get; private set; }
+//        public bool IsMining { get; private set; }
 
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
 
         public int IsMiningInProcess => _flag;
 
-        public BlockProducer BlockProducers
-        {
-            get
-            {
-                var dict = MinersConfig.Instance.Producers;
-                var blockProducers = new BlockProducer();
-
-                foreach (var bp in dict.Values)
-                {
-                    var b = bp["address"].RemoveHexPrefix();
-                    blockProducers.Nodes.Add(b);
-                }
-                Globals.BlockProducerNumber = blockProducers.Nodes.Count;
-                return blockProducers;
-            }
-        }
-
         // ReSharper disable once InconsistentNaming
-        private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(_logger,
-            MiningWithInitializingAElfDPoSInformation,
-            MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
+//        private AElfDPoSObserver AElfDPoSObserver => new AElfDPoSObserver(_logger,
+//            MiningWithInitializingAElfDPoSInformation,
+//            MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
         private SingleNodeTestObserver SingleNodeTestObserver => new SingleNodeTestObserver(_logger, SingleNodeMining);
 
@@ -128,9 +113,10 @@ namespace AElf.Kernel.Node
             _netManager = netManager;
             _synchronizer = synchronizer;
             _p2p = p2p;
-
-            _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
-                ContractAccountHash, _logger);
+            _consensus= new Consensus(logger,this,nodeConfig, worldStateDictator, _accountContextService, _txPoolService);
+            _minerHelper = new MinerHelper(logger, this, worldStateDictator, miner, _consensus, synchronizer );
+//            _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
+//                ContractAccountHash, _logger);
         }
  
         public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData,
@@ -217,7 +203,7 @@ namespace AElf.Kernel.Node
             // set world state
             _worldStateDictator.SetChainId(_nodeConfig.ChainId);
 
-            _nodeKeyPair = nodeKeyPair;
+            NodeKeyPair = nodeKeyPair;
 
             _txPoolService.Start();
 
@@ -228,7 +214,8 @@ namespace AElf.Kernel.Node
             //_protocolDirector.SetCommandContext(this, _nodeConfig.ConsensusInfoGenerater); // If not miner do sync
             if (!_nodeConfig.ConsensusInfoGenerater)
             {
-                _synchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
+//                _synchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
+                _synchronizer.SyncFinished += (s, e) => { StartMining(); };
             }
             else
             {
@@ -309,57 +296,52 @@ namespace AElf.Kernel.Node
 //                _logger?.Trace(e, $"Transaction request failed. Hash : {hash}");
 //            }
 //        }
-
-        private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
-        {
-            StartMining();
-        }
+//
+//        private void BlockSynchronizerOnSyncFinished(object sender, EventArgs eventArgs)
+//        {
+//            StartMining();
+//        }
 
         private void StartMining()
         {
-            if (IsMiner() && !IsMining)
+            if (_nodeConfig.IsMiner)
             {
-                StartConsensusProcess();
+               _consensus.StartConsensusProcess();
             }
         }
 
-        public bool IsMiner()
-        {
-            return _nodeConfig.IsMiner;
-        }
-
-        private async Task<bool> InitialDebugSync(string initFileName)
-        {
-            try
-            {
-                var fullPath = Path.Combine(_nodeConfig.DataDir, "tests", initFileName);
-
-                using (var file = File.OpenText(fullPath))
-                using (var reader = new JsonTextReader(file))
-                {
-                    var balances = (JObject) JToken.ReadFrom(reader);
-                    foreach (var kv in balances)
-                    {
-                        var address = ByteArrayHelpers.FromHexString(kv.Key);
-                        var balance = kv.Value.ToObject<ulong>();
-
-                        var accountDataProvider = await _worldStateDictator.GetAccountDataProvider(address);
-                        var dataProvider = accountDataProvider.GetDataProvider();
-
-                        // set balance
-                        await dataProvider.SetAsync("Balance".CalculateHash(),
-                            new UInt64Value {Value = balance}.ToByteArray());
-                        _logger?.Log(LogLevel.Debug, "Initial balance {0} in Address \"{1}\"", balance, kv.Key);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                return false;
-            }
-
-            return true;
-        }
+//        private async Task<bool> InitialDebugSync(string initFileName)
+//        {
+//            try
+//            {
+//                var fullPath = Path.Combine(_nodeConfig.DataDir, "tests", initFileName);
+//
+//                using (var file = File.OpenText(fullPath))
+//                using (var reader = new JsonTextReader(file))
+//                {
+//                    var balances = (JObject) JToken.ReadFrom(reader);
+//                    foreach (var kv in balances)
+//                    {
+//                        var address = ByteArrayHelpers.FromHexString(kv.Key);
+//                        var balance = kv.Value.ToObject<ulong>();
+//
+//                        var accountDataProvider = await _worldStateDictator.GetAccountDataProvider(address);
+//                        var dataProvider = accountDataProvider.GetDataProvider();
+//
+//                        // set balance
+//                        await dataProvider.SetAsync("Balance".CalculateHash(),
+//                            new UInt64Value {Value = balance}.ToByteArray());
+//                        _logger?.Log(LogLevel.Debug, "Initial balance {0} in Address \"{1}\"", balance, kv.Key);
+//                    }
+//                }
+//            }
+//            catch (Exception e)
+//            {
+//                return false;
+//            }
+//
+//            return true;
+//        }
 
         /// <summary>
         /// get the tx from tx pool or database
@@ -389,70 +371,6 @@ namespace AElf.Kernel.Node
             return await _transactionManager.AddTransactionAsync(tx);
         }
 
-        /// <summary>
-        /// This method processes a transaction received from one of the
-        /// connected peers.
-        /// </summary>
-        /// <param name="messagePayload"></param>
-        /// <param name="isFromSend"></param>
-        /// <returns></returns>
-//        public async Task ReceiveTransaction(byte[] messagePayload, bool isFromSend)
-//        {
-//            try
-//            {
-//                var tx = Transaction.Parser.ParseFrom(messagePayload);
-//                var success = await _txPoolService.AddTxAsync(tx);
-//
-//                if (isFromSend)
-//                {
-//                    _logger?.Trace("Received Transaction: " + "FROM, " + tx.GetHash().ToHex() + ", INCR : " +
-//                                   tx.IncrementId);
-//                    //_protocolDirector.AddTransaction(tx);
-//                }
-//
-//                if (success != TxValidation.TxInsertionAndBroadcastingError.Success)
-//                {
-//                    _logger?.Trace("DID NOT add Transaction to pool: FROM {0} , INCR : {1}, with error {2} ",
-//                        tx.GetTransactionInfo(),
-//                        tx.IncrementId, success);
-//                    return;
-//                }
-//
-//                _logger?.Trace("Successfully added tx : " + tx.GetHash().Value.ToByteArray().ToHex());
-//            }
-//            catch (Exception e)
-//            {
-//                _logger?.Error(e, "Invalid tx - Could not receive transaction from the network", null);
-//            }
-//        }
-
-        /// <summary>
-        /// return default incrementId for one address
-        /// </summary>
-        /// <param name="addr"></param>
-        /// <returns></returns>
-        public async Task<ulong> GetIncrementId(Hash addr)
-        {
-            try
-            {
-                bool isDPoS = addr.Equals(_nodeKeyPair.GetAddress()) ||
-                             _dPoSHelper.BlockProducer.Nodes.Contains(addr.ToHex().RemoveHexPrefix());
-                
-                // ReSharper disable once InconsistentNaming
-                var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId)).IncrementId;
-                _logger?.Log(LogLevel.Debug, $"Trying to get increment id, {isDPoS}");
-                var idInPool = _txPoolService.GetIncrementId(addr, isDPoS);
-                _logger?.Log(LogLevel.Debug, $"End Trying to get increment id, {isDPoS}");
-
-                return Math.Max(idInDB, idInPool);
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, "Failed to get increment id.");
-                return 0;
-            }
-        }
-
         public async Task<Hash> GetLastValidBlockHash()
         {
             var pointer = ResourcePath.CalculatePointerForLastBlockHash(_nodeConfig.ChainId);
@@ -474,7 +392,7 @@ namespace AElf.Kernel.Node
                     return new BlockExecutionResult(false, ValidationError.Mining);
 
                 var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
-                var error = await _blockVaildationService.ValidateBlockAsync(block, context, _nodeKeyPair);
+                var error = await _blockVaildationService.ValidateBlockAsync(block, context, NodeKeyPair);
 
                 if (error != ValidationError.Success)
                 {
@@ -534,53 +452,6 @@ namespace AElf.Kernel.Node
         {
             return _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, contractType);
         }
-        
-        /// <summary>
-        /// temple mine to generate fake block data with loop
-        /// </summary>
-        public async void StartConsensusProcess()
-        {
-            if (IsMining)
-                return;
-
-            IsMining = true;
-
-            switch (Globals.ConsensusType)
-            {
-                case ConsensusType.AElfDPoS:
-                    if (!BlockProducers.Nodes.Contains(_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
-                    {
-                        break;
-                    }
-                    
-                    if (_nodeConfig.ConsensusInfoGenerater && ! await _dPoSHelper.HasGenerated())
-                    {
-                        AElfDPoSObserver.Initialization();
-                        break;
-                    }
-                    else
-                    {
-                        _dPoSHelper.SyncMiningInterval();
-                        _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms.");
-
-                    }
-
-                    if (_dPoSHelper.CanRecoverDPoSInformation())
-                    {
-                        AElfDPoSObserver.RecoverMining();
-                    }
-                    
-                    break;
-                
-                case ConsensusType.PoTC:
-                    await Mine();
-                    break;
-                
-                case ConsensusType.SingleNode:
-                    SingleNodeTestProcess();
-                    break;
-            }
-        }
 
         // ReSharper disable once InconsistentNaming
         public async Task CheckUpdatingConsensusProcess()
@@ -604,10 +475,10 @@ namespace AElf.Kernel.Node
             var hash = await blockchain.GetCurrentBlockHashAsync();
             var header = (BlockHeader) await blockchain.GetHeaderByHashAsync(hash); 
             //Do DPoS log
-            _logger?.Trace(await _dPoSHelper.GetDPoSInfo(header.Index));
+            _logger?.Trace(await _consensus.DPoSHelper.GetDPoSInfo(header.Index));
             _logger?.Trace("Log dpos information - End");
             
-            if (ConsensusMemory == _dPoSHelper.CurrentRoundNumber.Value)
+            if (ConsensusMemory == _consensus.DPoSHelper.CurrentRoundNumber.Value)
                 return;
             //Dispose previous observer.
             if (ConsensusDisposable != null)
@@ -622,13 +493,13 @@ namespace AElf.Kernel.Node
 
             //Update observer.
             var blockProducerInfoOfCurrentRound =
-                _dPoSHelper[_nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()];
+                _consensus.DPoSHelper[NodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()];
             ConsensusDisposable =
-                AElfDPoSObserver.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound,
-                    _dPoSHelper.ExtraBlockTimeslot);
+               _consensus.AElfDPoSObserver.SubscribeAElfDPoSMiningProcess(blockProducerInfoOfCurrentRound,
+                   _consensus.DPoSHelper.ExtraBlockTimeslot);
 
             //Update current round number.
-            ConsensusMemory = _dPoSHelper.CurrentRoundNumber.Value;
+            ConsensusMemory = _consensus.DPoSHelper.CurrentRoundNumber.Value;
         }
         
         // ReSharper disable once InconsistentNaming
@@ -651,7 +522,7 @@ namespace AElf.Kernel.Node
             }
         }
 
-        private void SingleNodeTestProcess()
+        public void SingleNodeTestProcess()
         {
             ConsensusDisposable = SingleNodeTestObserver.SubscribeSingleNodeTestProcess();
         }
@@ -666,54 +537,59 @@ namespace AElf.Kernel.Node
 
         public async Task<IBlock> Mine()
         {
-            var res = Interlocked.CompareExchange(ref _flag, 1, 0);
-            if (res == 1)
-                return null;
-            try
-            {
-                _logger?.Trace($"Mine - Entered mining {res}");
-
-                _worldStateDictator.BlockProducerAccountAddress = _nodeKeyPair.GetAddress();
-
-                var task = Task.Run(async () => await _miner.Mine());
-
-                if (!task.Wait(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval * 0.9)))
-                {
-                    _logger?.Error("Mining timeout.");
-                    return null;
-                }
-
-                var b = Interlocked.CompareExchange(ref _flag, 0, 1);
-
-                _synchronizer.IncrementChainHeight();
-
-                _logger?.Trace($"Mine - Leaving mining {b}");
-                
-                Task.WaitAll();
-
-                //Update DPoS observables.
-                //Sometimes failed to update this observables list (which is weird), just ignore this.
-                //Which means this node will do nothing in this round.
-                try
-                {
-                    await CheckUpdatingConsensusProcess();
-                }
-                catch (Exception e)
-                {
-                    _logger?.Error(e, "Somehow failed to update DPoS observables. Will recover soon.");
-                    //In case just config one node to produce blocks.
-                    AElfDPoSObserver.RecoverMining();
-                }
-
-                return task.Result;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                Interlocked.CompareExchange(ref _flag, 0, 1);
-                return null;
-            }
+            return await _minerHelper.Mine();
         }
+        
+//        public async Task<IBlock> Mine()
+//        {
+//            var res = Interlocked.CompareExchange(ref _flag, 1, 0);
+//            if (res == 1)
+//                return null;
+//            try
+//            {
+//                _logger?.Trace($"Mine - Entered mining {res}");
+//
+//                _worldStateDictator.BlockProducerAccountAddress = NodeKeyPair.GetAddress();
+//
+//                var task = Task.Run(async () => await _miner.Mine());
+//
+//                if (!task.Wait(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval * 0.9)))
+//                {
+//                    _logger?.Error("Mining timeout.");
+//                    return null;
+//                }
+//
+//                var b = Interlocked.CompareExchange(ref _flag, 0, 1);
+//
+//                _synchronizer.IncrementChainHeight();
+//
+//                _logger?.Trace($"Mine - Leaving mining {b}");
+//                
+//                Task.WaitAll();
+//
+//                //Update DPoS observables.
+//                //Sometimes failed to update this observables list (which is weird), just ignore this.
+//                //Which means this node will do nothing in this round.
+//                try
+//                {
+//                    await CheckUpdatingConsensusProcess();
+//                }
+//                catch (Exception e)
+//                {
+//                    _logger?.Error(e, "Somehow failed to update DPoS observables. Will recover soon.");
+//                    //In case just config one node to produce blocks.
+//                  _consensus.AElfDPoSObserver.RecoverMining();
+//                }
+//
+//                return task.Result;
+//            }
+//            catch (Exception e)
+//            {
+//                Console.WriteLine(e);
+//                Interlocked.CompareExchange(ref _flag, 0, 1);
+//                return null;
+//            }
+//        }
 
         public async Task<bool> BroadcastBlock(IBlock block)
         {
@@ -739,7 +615,7 @@ namespace AElf.Kernel.Node
         /// <param name="tx">The tx to broadcast</param>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> BroadcastTransaction(ITransaction tx)
         {
-            if(tx.From.Equals(_nodeKeyPair.GetAddress()))
+            if(tx.From.Equals(NodeKeyPair.GetAddress()))
                 _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().ToHex() + ", threadId: " +
                            Thread.CurrentThread.ManagedThreadId);
             TxValidation.TxInsertionAndBroadcastingError res;
@@ -773,7 +649,7 @@ namespace AElf.Kernel.Node
                     _logger?.Trace("Broadcasting transaction failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
                     return TxValidation.TxInsertionAndBroadcastingError.BroadCastFailed;
                 }
-                if(tx.From.Equals(_nodeKeyPair.GetAddress()))
+                if(tx.From.Equals(NodeKeyPair.GetAddress()))
                     _logger?.Trace("Broadcasted transaction to peers: " + tx.GetTransactionInfo());
                 return TxValidation.TxInsertionAndBroadcastingError.Success;
             }
@@ -791,145 +667,52 @@ namespace AElf.Kernel.Node
 
         #region Private Methods for DPoS
 
-        // ReSharper disable once InconsistentNaming
-        private ITransaction GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters,
-            ulong incrementIdOffset = 0)
-        {
-            var tx = new Transaction
-            {
-                From = _nodeKeyPair.GetAddress(),
-                To = ContractAccountHash,
-                IncrementId = GetIncrementId(_nodeKeyPair.GetAddress()).Result + incrementIdOffset,
-                MethodName = methodName,
-                P = ByteString.CopyFrom(_nodeKeyPair.PublicKey.Q.GetEncoded()),
-                Type = TransactionType.DposTransaction
-            };
-
-            switch (parameters.Count)
-            {
-                case 2:
-                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1]));
-                    break;
-                case 3:
-                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2]));
-                    break;
-                case 4:
-                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2],
-                        parameters[3]));
-                    break;
-            }
-
-            var signer = new ECSigner();
-            var signature = signer.Sign(_nodeKeyPair, tx.GetHash().GetHashBytes());
-
-            // Update the signature
-            tx.R = ByteString.CopyFrom(signature.R);
-            tx.S = ByteString.CopyFrom(signature.S);
-
-            return tx;
-        }
+//        // ReSharper disable once InconsistentNaming
+//        private ITransaction GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters,
+//            ulong incrementIdOffset = 0)
+//        {
+//            var tx = new Transaction
+//            {
+//                From = NodeKeyPair.GetAddress(),
+//                To = ContractAccountHash,
+//                IncrementId = GetIncrementId(NodeKeyPair.GetAddress()).Result + incrementIdOffset,
+//                MethodName = methodName,
+//                P = ByteString.CopyFrom(NodeKeyPair.PublicKey.Q.GetEncoded()),
+//                Type = TransactionType.DposTransaction
+//            };
+//
+//            switch (parameters.Count)
+//            {
+//                case 2:
+//                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1]));
+//                    break;
+//                case 3:
+//                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2]));
+//                    break;
+//                case 4:
+//                    tx.Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters[0], parameters[1], parameters[2],
+//                        parameters[3]));
+//                    break;
+//            }
+//
+//            var signer = new ECSigner();
+//            var signature = signer.Sign(NodeKeyPair, tx.GetHash().GetHashBytes());
+//
+//            // Update the signature
+//            tx.R = ByteString.CopyFrom(signature.R);
+//            tx.S = ByteString.CopyFrom(signature.S);
+//
+//            return tx;
+//        }
 
         #region Broadcast Txs
 
-        // ReSharper disable once InconsistentNaming
-        public async Task MiningWithInitializingAElfDPoSInformation()
-        {
-            var parameters = new List<byte[]>
-            {
-                BlockProducers.ToByteArray(),
-                _dPoSHelper.GenerateInfoForFirstTwoRounds().ToByteArray(),
-                new Int32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray()
-            };
-            _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms");
-            // ReSharper disable once InconsistentNaming
-            var txToInitializeAElfDPoS = GenerateTransaction("InitializeAElfDPoS", parameters);
-            await BroadcastTransaction(txToInitializeAElfDPoS);
 
-            var block = await Mine();
-            await BroadcastBlock(block);
-        }
 
-        public async Task MiningWithPublishingOutValueAndSignature()
-        {
-            var inValue = Hash.Generate();
-            if (_consensusData.Count <= 0)
-            {
-                _consensusData.Push(inValue.CalculateHash());
-                _consensusData.Push(inValue);
-            }
 
-            var currentRoundNumber = _dPoSHelper.CurrentRoundNumber;
-            var signature = Hash.Default;
-            if (currentRoundNumber.Value > 1)
-            {
-                signature = _dPoSHelper.CalculateSignature(inValue);
-            }
 
-            var parameters = new List<byte[]>
-            {
-                _dPoSHelper.CurrentRoundNumber.ToByteArray(),
-                new StringValue {Value = _nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()}.ToByteArray(),
-                _consensusData.Pop().ToByteArray(),
-                signature.ToByteArray()
-            };
 
-            var txToPublishOutValueAndSignature = GenerateTransaction("PublishOutValueAndSignature", parameters);
 
-            await BroadcastTransaction(txToPublishOutValueAndSignature);
-
-            var block = await Mine();
-            await BroadcastBlock(block);
-        }
-
-        public async Task PublishInValue()
-        {
-            if (_consensusData.Count <= 0)
-            {
-                _incrementIdNeedToAddOne = false;
-                return;
-            }
-
-            _incrementIdNeedToAddOne = true;
-
-            var currentRoundNumber = _dPoSHelper.CurrentRoundNumber;
-
-            var parameters = new List<byte[]>
-            {
-                currentRoundNumber.ToByteArray(),
-                new StringValue {Value = _nodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()}.ToByteArray(),
-                _consensusData.Pop().ToByteArray()
-            };
-
-            var txToPublishInValue = GenerateTransaction("PublishInValue", parameters);
-            await BroadcastTransaction(txToPublishInValue);
-        }
-
-        // ReSharper disable once InconsistentNaming
-        public async Task MiningWithUpdatingAElfDPoSInformation()
-        {
-            _logger?.Log(LogLevel.Debug, "MiningWithUpdatingAElf..");
-            var extraBlockResult = await _dPoSHelper.ExecuteTxsForExtraBlock();
-            _logger?.Log(LogLevel.Debug, "End MiningWithUpdatingAElf..");
-
-            var parameters = new List<byte[]>
-            {
-                extraBlockResult.Item1.ToByteArray(),
-                extraBlockResult.Item2.ToByteArray(),
-                extraBlockResult.Item3.ToByteArray()
-            };
-            _logger?.Log(LogLevel.Debug, "Generating transaction..");
-
-            var txForExtraBlock = GenerateTransaction(
-                "UpdateAElfDPoS",
-                parameters,
-                _incrementIdNeedToAddOne ? (ulong) 1 : 0);
-            _logger?.Log(LogLevel.Debug, "End Generating transaction..");
-
-            await BroadcastTransaction(txForExtraBlock);
-
-            var block = await Mine();
-            await BroadcastBlock(block);
-        }
 
         #endregion
 

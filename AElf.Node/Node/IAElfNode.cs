@@ -14,7 +14,7 @@ namespace AElf.Kernel.Node
 
 //        Task ReceiveTransaction(byte[] messagePayload, bool isFromSend);
 
-        BlockProducer BlockProducers { get; }
+//        BlockProducer BlockProducers { get; }
 
         Hash ContractAccountHash { get; }
 
