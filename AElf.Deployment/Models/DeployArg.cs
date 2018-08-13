@@ -45,6 +45,12 @@
         public int ActorCount { get; set; }
 
         public int ConcurrencyLevel { get; set; }
+
+        public DeployWorkArg()
+        {
+            ActorCount = 8;
+            ConcurrencyLevel = 16;
+        }
     }
 
     public class DeployLauncherArg
