@@ -297,13 +297,10 @@ namespace AElf.Kernel.Node
                            Thread.CurrentThread.ManagedThreadId);
             TxValidation.TxInsertionAndBroadcastingError res;
 
-            var stopWatch = new Stopwatch();
+
             try
             {
-                stopWatch.Start();
                 res = await _txPoolService.AddTxAsync(tx);
-                stopWatch.Stop();
-                //_logger?.Info($"### Debug _txPoolService.AddTxAsync Time: {stopWatch.ElapsedMilliseconds}");
             }
             catch (Exception e)
             {
@@ -315,11 +312,8 @@ namespace AElf.Kernel.Node
             {
                 try
                 {
-                    stopWatch.Start();
                     var transaction = tx.Serialize();
                     await _netManager.BroadcastMessage(AElfProtocolType.BroadcastTx, transaction);
-                    stopWatch.Stop();
-                   // _logger?.Info($"### Debug _netManager.BroadcastMessage Time: {stopWatch.ElapsedMilliseconds}");
                 }
                 catch (Exception e)
                 {
