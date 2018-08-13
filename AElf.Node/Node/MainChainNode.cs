@@ -269,15 +269,15 @@ namespace AElf.Kernel.Node
                     var args = _messageQueue.Take();
 
                     var message = args.Message;
-                    var msgType = (MessageType) message.Type;
+                    var msgType = (AElfProtocolType) message.Type;
                     
                     _logger?.Trace($"Handling message {message}");
 
-                    if (msgType == MessageType.RequestBlock)
+                    if (msgType == AElfProtocolType.RequestBlock)
                     {
                         await HandleBlockRequest(message, args.PeerMessage);
                     }
-                    else if (msgType == MessageType.TxRequest)
+                    else if (msgType == AElfProtocolType.TxRequest)
                     {
                         await HandleTxRequest(message, args.PeerMessage);
                     }
@@ -303,7 +303,11 @@ namespace AElf.Kernel.Node
             {
                 var breq = BlockRequest.Parser.ParseFrom(message.Payload);
                 var block = await GetBlockAtHeight(breq.Height);
-                var req = NetRequestFactory.CreateMessage(MessageType.Block, block.ToByteArray());
+                
+                Message req = NetRequestFactory.CreateMessage(AElfProtocolType.Block, block.ToByteArray());
+
+                if (message.HasId)
+                    req.Id = message.Id;
                 
                 args.Peer.EnqueueOutgoing(req);
 
@@ -323,6 +327,7 @@ namespace AElf.Kernel.Node
             {
                 var breq = TxRequest.Parser.ParseFrom(message.Payload);
                 hash = breq.TxHash.ToByteArray().ToHex();
+                
                 var tx = await GetTransaction(breq.TxHash);
                 if (!(tx is Transaction t))
                 {
@@ -330,7 +335,14 @@ namespace AElf.Kernel.Node
                     return;
                 }
 
-                var req = NetRequestFactory.CreateMessage(MessageType.Tx, t.ToByteArray());
+                Message req = NetRequestFactory.CreateMessage(AElfProtocolType.Tx, t.ToByteArray());
+
+                if (message.HasId)
+                {
+                    req.HasId = true;
+                    req.Id = message.Id;
+                }
+
                 args.Peer.EnqueueOutgoing(req);
 
                 _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + t.ToByteArray().Length + " bytes)");
@@ -795,7 +807,7 @@ namespace AElf.Kernel.Node
                 {
                     stopWatch.Start();
                     var transaction = tx.Serialize();
-                    await _netManager.BroadcastMessage(MessageType.BroadcastTx, transaction);
+                    await _netManager.BroadcastMessage(AElfProtocolType.BroadcastTx, transaction);
                     stopWatch.Stop();
                    // _logger?.Info($"### Debug _netManager.BroadcastMessage Time: {stopWatch.ElapsedMilliseconds}");
                 }

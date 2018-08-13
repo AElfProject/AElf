@@ -20,7 +20,7 @@ namespace AElf.Network.Data
             return request;
         }
 
-        public static Message CreateMessage(MessageType messageType, byte[] payload)
+        public static Message CreateMessage(AElfProtocolType messageType, byte[] payload)
         {
             Message packetData = new Message
             {

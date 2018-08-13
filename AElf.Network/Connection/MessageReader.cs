@@ -20,6 +20,7 @@ namespace AElf.Network.Connection
     public class MessageReader : IMessageReader
     {   
         private const int IntLength = 4;
+        private const int IdLength = 16;
 
         private ILogger _logger;
         
@@ -58,12 +59,19 @@ namespace AElf.Network.Connection
                 {
                     // Read type 
                     int type = await ReadByte();
+                    
+                    // Read if the message is associated with an id
+                    bool hasId = await ReadBoolean();
 
+                    byte[] id = null;
+                    if (hasId)
+                    {
+                        // The Id is a 128-bit guid
+                        id = await ReadBytesAsync(IdLength);
+                    }
+                    
                     // Is this a partial reception ?
                     bool isBuffered = await ReadBoolean();
-                    
-                    // Is this a consensus message
-                    bool isConsensus = await ReadBoolean();
 
                     // Read the size of the data
                     int length = await ReadInt();
@@ -94,8 +102,17 @@ namespace AElf.Network.Connection
 
                             // Clear the buffer for the next partial to receive 
                             _partialPacketBuffer.Clear();
-
-                            Message message = new Message {Type = type, Length = allData.Length, Payload = allData};
+                            
+                            Message message;
+                            if (hasId)
+                            {
+                                message = new Message {Type = type, HasId = true, Id = id, Length = allData.Length, Payload = allData};
+                            }
+                            else
+                            {
+                                message = new Message {Type = type, HasId = false, Length = allData.Length, Payload = allData};
+                            }
+                            
                             FireMessageReceivedEvent(message);
                         }
                     }
@@ -106,7 +123,16 @@ namespace AElf.Network.Connection
 
                         byte[] packetData = await ReadBytesAsync(length);
 
-                        Message message = new Message {Type = type, Length = length, IsConsensus = isConsensus, Payload = packetData};
+                        Message message;
+                        if (hasId)
+                        {
+                            message = new Message {Type = type, HasId = true, Id = id, Length = length, Payload = packetData};
+                        }
+                        else
+                        {
+                            message = new Message {Type = type, HasId = false, Length = length, Payload = packetData};
+                        }
+                        
                         FireMessageReceivedEvent(message);
                     }
                 }

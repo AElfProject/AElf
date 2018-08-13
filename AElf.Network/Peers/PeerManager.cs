@@ -303,6 +303,8 @@ namespace AElf.Network.Peers
                 peer.MessageReceived -= OnPeerMessageReceived;
                 peer.PeerDisconnected -= ProcessClientDisconnection;
                 peer.AuthFinished -= PeerOnPeerAuthentified;
+
+                _authentifyingPeer.Remove(args.Peer);
                 
                 if (!_peers.Remove(args.Peer))
                     _logger?.Trace($"Tried to remove peer, but not in list {args.Peer}");

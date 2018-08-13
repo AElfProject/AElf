@@ -30,11 +30,6 @@ namespace AElf.Network.Peers
     {
         public Peer Peer { get; set; }
         public Message Message { get; set; }
-        
-        public bool IsConsensus
-        {
-            get { return Message?.IsConsensus ?? false; }
-        } 
     }
     
     /// <summary>
@@ -344,7 +339,7 @@ namespace AElf.Network.Peers
             
             _logger?.Trace($"Sending authentification : {nd}");
             
-            _messageWriter.EnqueueMessage(new Message { Type = (int)MessageType.Auth, Length = packet.Length, Payload = packet});
+            _messageWriter.EnqueueMessage(new Message { Type = (int)MessageType.Auth, HasId = false, Length = packet.Length, Payload = packet});
             
             StartAuthTimer();
         }
