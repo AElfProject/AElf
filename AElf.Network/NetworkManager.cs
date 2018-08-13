@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
@@ -14,12 +10,12 @@ using AElf.Kernel;
 using AElf.Network.Config;
 using AElf.Network.Connection;
 using AElf.Network.Data;
-using AElf.Network.Peers.Exceptions;
+using AElf.Network.Peers;
 using Google.Protobuf;
 using NLog;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
-namespace AElf.Network.Peers
+namespace AElf.Network
 {
     public class PeerAddedEventArgs : EventArgs
     {
