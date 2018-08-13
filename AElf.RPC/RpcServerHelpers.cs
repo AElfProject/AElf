@@ -20,7 +20,6 @@ namespace AElf.RPC
                 .SelectMany(r => r.Services.OfType<IServiceWithType>(), (r, s) => new {r, s})
                 .Where(rs => typeof(IJsonRpcService).IsAssignableFrom(rs.s.ServiceType))
                 .Select(rs => rs.r.Activator.LimitType).ToList();
-            Console.WriteLine(string.Join(" type ", types));
             return types;
         }
 
@@ -49,7 +48,6 @@ namespace AElf.RPC
             }
             var methodInfoGeneric = methodInfo.MakeGenericMethod(new[] { type });
             methodInfoGeneric.Invoke(services, new object[] { services , null});
-            Console.WriteLine("adding " + type);
         }
         
         private static void UseJsonRpcService(IApplicationBuilder appBuilder, Type type, PathString path = default(PathString))
