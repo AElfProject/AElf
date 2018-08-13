@@ -24,11 +24,13 @@ namespace AElf.Network.Peers
         
         public IPeer Peer { get; private set; }
         public Message RequestMessage { get; }
+
+        public byte[] Id
+        {
+            get { return RequestMessage?.Id; }
+        }
         
-        public byte[] ItemHash { get; private set; }
-        public int BlockIndex { get; private set; }
-        
-        public List<IPeer> TriedPeers = new List<IPeer>();
+        public readonly List<IPeer> TriedPeers = new List<IPeer>();
 
         public int MaxRetryCount { get; set; } = DefaultMaxRetry;
         public int RetryCount { get; private set; } = 0;
@@ -39,8 +41,9 @@ namespace AElf.Network.Peers
         }
         
         public double Timeout { get; }
+        
 
-        private TimeoutRequest(Message msg, double timeout)
+        public TimeoutRequest(Message msg, double timeout)
         {
             RequestMessage = msg;
             
@@ -50,18 +53,6 @@ namespace AElf.Network.Peers
             _timeoutTimer.AutoReset = false;
 
             Timeout = timeout;
-        }
-
-        public TimeoutRequest(byte[] itemHash, Message msg, double timeout)
-            : this(msg, timeout)
-        {
-            ItemHash = itemHash;
-        }
-        
-        public TimeoutRequest(int index, Message msg, double timeout)
-            : this(msg, timeout)
-        {
-            BlockIndex = index;
         }
 
         public void TryPeer(IPeer peer)

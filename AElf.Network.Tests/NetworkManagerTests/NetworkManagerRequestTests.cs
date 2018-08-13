@@ -25,8 +25,8 @@ namespace AElf.Network.Tests.NetworkManagerTests
             peerManager.Raise(m => m.PeerAdded += null, new PeerAddedEventArgs { Peer = firstPeer.Object });
             peerManager.Raise(m => m.PeerAdded += null, new PeerAddedEventArgs { Peer = secondPeer.Object });
 
-            var txHash = new byte[] {0x01, 0x02};
-            manager.QueueTransactionRequest(txHash, firstPeer.Object);
+            Message msg = new Message();
+            manager.QueueRequest(msg, firstPeer.Object);
             
             Thread.Sleep(manager.RequestTimeout + 100);
             firstPeer.Verify(mock => mock.EnqueueOutgoing(It.IsAny<Message>()), Times.Once());
@@ -55,8 +55,8 @@ namespace AElf.Network.Tests.NetworkManagerTests
                 receivedEvents.Add(args);
             };
 
-            var txHash = new byte[] {0x01, 0x02};
-            manager.QueueTransactionRequest(txHash, firstPeer.Object);
+            Message msg = new Message();
+            manager.QueueRequest(msg, firstPeer.Object);
             
             // Wait for the request to timeout, the manager tests if it was the 
             // last try, if yes it throw the event.

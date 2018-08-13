@@ -38,15 +38,15 @@ namespace AElf.Kernel.Node
                     var args = _messageQueue.Take();
 
                     var message = args.Message;
-                    var msgType = (MessageType) message.Type;
+                    var msgType = (AElfProtocolType) message.Type;
 
                     _logger?.Trace($"Handling message {message}");
 
-                    if (msgType == MessageType.RequestBlock)
+                    if (msgType == AElfProtocolType.RequestBlock)
                     {
                         await HandleBlockRequest(message, args.PeerMessage);
                     }
-                    else if (msgType == MessageType.TxRequest)
+                    else if (msgType == AElfProtocolType.TxRequest)
                     {
                         await HandleTxRequest(message, args.PeerMessage);
                     }
@@ -64,7 +64,9 @@ namespace AElf.Kernel.Node
             {
                 var breq = BlockRequest.Parser.ParseFrom(message.Payload);
                 var block = await _handler.GetBlockAtHeight(breq.Height);
-                var req = NetRequestFactory.CreateMessage(MessageType.Block, block.ToByteArray());
+                Message req = NetRequestFactory.CreateMessage(AElfProtocolType.Block, block.ToByteArray());
+                if (message.HasId)
+                    req.Id = message.Id;
 
                 args.Peer.EnqueueOutgoing(req);
 
@@ -91,7 +93,12 @@ namespace AElf.Kernel.Node
                     return;
                 }
 
-                var req = NetRequestFactory.CreateMessage(MessageType.Tx, t.ToByteArray());
+                Message req = NetRequestFactory.CreateMessage(AElfProtocolType.Tx, t.ToByteArray());
+                if (message.HasId)
+                {
+                    req.HasId = true;
+                    req.Id = message.Id;
+                }
                 args.Peer.EnqueueOutgoing(req);
 
                 _logger?.Trace("Send tx " + t.GetHash().ToHex() + " to " + args.Peer + "(" + t.ToByteArray().Length +
