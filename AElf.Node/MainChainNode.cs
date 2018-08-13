@@ -36,6 +36,7 @@ namespace AElf.Kernel.Node
     [LoggerName("Node")]
     public class MainChainNode : IAElfNode
     {
+        // ReSharper disable once InconsistentNaming
         private readonly IP2P _p2p;
         public ECKeyPair NodeKeyPair { get; private set; }
         private readonly ITxPoolService _txPoolService;
@@ -59,11 +60,10 @@ namespace AElf.Kernel.Node
 
         public IBlockChain BlockChain { get; }
 
-        public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, SmartContractType.AElfDPoS);
+        public Hash ContractAccountHash =>
+            _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, SmartContractType.AElfDPoS);
 
         public int IsMiningInProcess => _minerHelper.IsMiningInProcess;
-
-        public Hash ChainId => _nodeConfig.ChainId;
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager,
             ILogger logger,
@@ -96,9 +96,13 @@ namespace AElf.Kernel.Node
             BlockChain = _chainService.GetBlockChain(_nodeConfig.ChainId);
         }
 
-        public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData,
-            byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero)
+        public bool Start(ECKeyPair nodeKeyPair, byte[] tokenContractCode, byte[] consensusContractCode,
+            byte[] basicContractZero)
         {
+            NodeKeyPair = nodeKeyPair;
+
+            #region setup
+
             SetupConsensus();
             SetupMinerHelper();
             if (_nodeConfig == null)
@@ -115,54 +119,18 @@ namespace AElf.Kernel.Node
 
             try
             {
-                _logger?.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToHex());
-                var genesis = GetGenesisContractHash(SmartContractType.BasicContractZero);
-                _logger?.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"", genesis.ToHex());
-                    
-                var tokenContractAddress = GetGenesisContractHash(SmartContractType.TokenContract);
-                _logger?.Log(LogLevel.Debug, "Token contract address = \"{0}\"", tokenContractAddress.ToHex());
-                    
-                var consensusAddress = GetGenesisContractHash(SmartContractType.AElfDPoS);
-                _logger?.Log(LogLevel.Debug, "DPoS contract address = \"{0}\"", consensusAddress.ToHex());
-                
-                var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
-                var curHash = blockchain.GetCurrentBlockHashAsync().Result;
+                PrintChainInfo();
+
+                var curHash = BlockChain.GetCurrentBlockHashAsync().Result;
                 var chainExists = curHash != null && !curHash.Equals(Hash.Genesis);
                 if (!chainExists)
                 {
                     // Creation of the chain if it doesn't already exist
-                    var tokenSCReg = new SmartContractRegistration
-                    {
-                        Category = 0,
-                        ContractBytes = ByteString.CopyFrom(tokenContractCode),
-                        ContractHash = tokenContractCode.CalculateHash(),
-                        Type = (int)SmartContractType.TokenContract
-                    };
-                    
-                    var consensusCReg = new SmartContractRegistration
-                    {
-                        Category = 0,
-                        ContractBytes = ByteString.CopyFrom(consensusContractCode),
-                        ContractHash = consensusContractCode.CalculateHash(),
-                        Type = (int)SmartContractType.AElfDPoS
-                    };
-                    
-                    var basicReg = new SmartContractRegistration
-                    {
-                        Category = 0,
-                        ContractBytes = ByteString.CopyFrom(basicContractZero),
-                        ContractHash = basicContractZero.CalculateHash(),
-                        Type = (int)SmartContractType.BasicContractZero
-                    };
-                    var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId,
-                        new List<SmartContractRegistration> {basicReg, tokenSCReg, consensusCReg}).Result;
-
-                    _logger?.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.ToHex());
-                    
+                    CreateNewChain(tokenContractCode, consensusContractCode, basicContractZero);
                 }
                 else
                 {
-                    var preBlockHash = GetLastValidBlockHash().Result;
+                    var preBlockHash = BlockChain.GetCurrentBlockHashAsync().Result;
                     _worldStateDictator.SetWorldStateAsync(preBlockHash);
 
                     _worldStateDictator.PreBlockHash = preBlockHash;
@@ -178,15 +146,15 @@ namespace AElf.Kernel.Node
             // set world state
             _worldStateDictator.SetChainId(_nodeConfig.ChainId);
 
-            NodeKeyPair = nodeKeyPair;
+            #endregion setup
+
+
+            #region start
 
             _txPoolService.Start();
 
             Task.Run(() => _netManager.Start());
 
-//            _netManager.MessageReceived += ProcessPeerMessage;
-
-            //_protocolDirector.SetCommandContext(this, _nodeConfig.ConsensusInfoGenerater); // If not miner do sync
             if (!_nodeConfig.ConsensusInfoGenerater)
             {
 //                _synchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
@@ -198,15 +166,10 @@ namespace AElf.Kernel.Node
             }
 
             Task.Run(() => _synchronizer.Start(this, !_nodeConfig.ConsensusInfoGenerater));
-            // akka env 
-            var servicePack = new ServicePack
-            {
-                ChainContextService = _chainContextService,
-                SmartContractService = _smartContractService,
-                ResourceDetectionService = new ResourceUsageDetectionService(_functionMetadataService),
-                WorldStateDictator = _worldStateDictator
-            };
-            var grouper = new Grouper(servicePack.ResourceDetectionService, _logger);
+
+            var resourceDetectionService = new ResourceUsageDetectionService(_functionMetadataService);
+
+            var grouper = new Grouper(resourceDetectionService, _logger);
             _blockExecutor.Start(grouper);
             if (_nodeConfig.IsMiner)
             {
@@ -216,10 +179,62 @@ namespace AElf.Kernel.Node
             }
 
             _logger?.Log(LogLevel.Debug, "AElf node started.");
-
             Task.Run(async () => await _p2p.ProcessLoop()).ConfigureAwait(false);
 
+            #endregion start
+
             return true;
+        }
+
+        #region private methods
+
+        private Hash GetGenesisContractHash(SmartContractType contractType)
+        {
+            return _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, contractType);
+        }
+
+        private void PrintChainInfo()
+        {
+            _logger?.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToHex());
+            var genesis = GetGenesisContractHash(SmartContractType.BasicContractZero);
+            _logger?.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"", genesis.ToHex());
+
+            var tokenContractAddress = GetGenesisContractHash(SmartContractType.TokenContract);
+            _logger?.Log(LogLevel.Debug, "Token contract address = \"{0}\"", tokenContractAddress.ToHex());
+
+            var consensusAddress = GetGenesisContractHash(SmartContractType.AElfDPoS);
+            _logger?.Log(LogLevel.Debug, "DPoS contract address = \"{0}\"", consensusAddress.ToHex());
+        }
+
+        private void CreateNewChain(byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero)
+        {
+            var tokenCReg = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(tokenContractCode),
+                ContractHash = tokenContractCode.CalculateHash(),
+                Type = (int) SmartContractType.TokenContract
+            };
+
+            var consensusCReg = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(consensusContractCode),
+                ContractHash = consensusContractCode.CalculateHash(),
+                Type = (int) SmartContractType.AElfDPoS
+            };
+
+            var basicReg = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(basicContractZero),
+                ContractHash = basicContractZero.CalculateHash(),
+                Type = (int) SmartContractType.BasicContractZero
+            };
+            var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId,
+                new List<SmartContractRegistration> {basicReg, tokenCReg, consensusCReg}).Result;
+
+            _logger?.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.ToHex());
         }
 
         private void SetupConsensus()
@@ -228,28 +243,31 @@ namespace AElf.Kernel.Node
             {
                 return;
             }
+
             switch (Globals.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    _consensus=new DPoS(_logger,this,_nodeConfig, _worldStateDictator, _accountContextService, _txPoolService, _p2p);
+                    _consensus = new DPoS(_logger, this, _nodeConfig, _worldStateDictator, _accountContextService,
+                        _txPoolService, _p2p);
                     break;
-                
+
                 case ConsensusType.PoTC:
-                    _consensus=new PoTC(_logger, this, _miner, _accountContextService, _txPoolService, _p2p);
+                    _consensus = new PoTC(_logger, this, _miner, _accountContextService, _txPoolService, _p2p);
                     break;
-                
+
                 case ConsensusType.SingleNode:
-                    _consensus=new StandaloneNodeConsensusPlaceHolder(_logger, this, _p2p);
+                    _consensus = new StandaloneNodeConsensusPlaceHolder(_logger, this, _p2p);
                     break;
             }
         }
-        
+
         private void SetupMinerHelper()
         {
             if (_minerHelper != null)
             {
                 return;
             }
+
             _minerHelper = new MinerHelper(_logger, this, _txPoolService, _nodeConfig,
                 _worldStateDictator, _blockExecutor, _chainService, _chainContextService,
                 _blockVaildationService, _miner, _consensus, _synchronizer);
@@ -265,19 +283,13 @@ namespace AElf.Kernel.Node
             }
         }
 
-        private async Task<Hash> GetLastValidBlockHash()
-        {
-            return await BlockChain.GetCurrentBlockHashAsync();
-        }
+        #endregion private methods
+
+        #region Legacy Methods
 
         public async Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block)
         {
             return await _minerHelper.ExecuteAndAddBlock(block);
-        }
-
-        private Hash GetGenesisContractHash(SmartContractType contractType)
-        {
-            return _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, contractType);
         }
 
         public async Task<IBlock> Mine()
@@ -285,24 +297,6 @@ namespace AElf.Kernel.Node
             return await _minerHelper.Mine();
         }
 
-//        /// <summary>
-//        /// Broadcasts a transaction to the network. This method
-//        /// also places it in the transaction pool.
-//        /// </summary>
-//        /// <param name="tx">The tx to broadcast</param>
-//        public async Task BroadcastTransaction(ITransaction tx)
-//        {
-//            if(tx.From.Equals(NodeKeyPair.GetAddress()))
-//                _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().ToHex() + ", threadId: " +
-//                           Thread.CurrentThread.ManagedThreadId);
-//            try
-//            {
-//                await _txPoolService.AddTxAsync(tx);
-//            }
-//            catch (Exception e)
-//            {
-//                _logger?.Trace("Transaction insertion failed: {0},\n{1}", e.Message, tx.GetTransactionInfo());
-//            }
-//        }
+        #endregion Legacy Methods
     }
 }

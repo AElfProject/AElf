@@ -7,14 +7,10 @@ namespace AElf.Kernel.Node
 {
     public interface IAElfNode
     {
-        bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData, byte[] code,
-            byte[] consensusGenesisContractCode, byte[] basicContractZero);
+        bool Start(ECKeyPair nodeKeyPair, byte[] tokenContractCode, byte[] consensusGenesisContractCode,
+            byte[] basicContractZero);
 
         Task<BlockExecutionResult> ExecuteAndAddBlock(IBlock block);
-
-//        Task ReceiveTransaction(byte[] messagePayload, bool isFromSend);
-
-//        BlockProducer BlockProducers { get; }
 
         Hash ContractAccountHash { get; }
 

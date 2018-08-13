@@ -116,8 +116,7 @@ namespace AElf.Launcher
 
                 var node = scope.Resolve<IAElfNode>();
                 // Start the system
-                node.Start(nodeKey, confParser.Rpc, confParser.RpcPort, confParser.RpcHost, initData,
-                    TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero);
+                node.Start(nodeKey, TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero);
 
                 var txPoolService = scope.Resolve<ITxPoolService>();
                 node.Subscribe<IncomingTransaction>(
