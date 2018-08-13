@@ -31,7 +31,7 @@ namespace AElf.Kernel.Node
         }
 
         private readonly IMiner _miner;
-        private readonly Consensus _consensus;
+        private readonly IConsensus _consensus;
         private readonly IBlockSynchronizer _synchronizer;
 
         public MinerHelper(ILogger logger, MainChainNode node,
@@ -41,7 +41,7 @@ namespace AElf.Kernel.Node
             IBlockExecutor blockExecutor,
             IChainService chainService,
             IChainContextService chainContextService, IBlockVaildationService blockVaildationService,
-            IMiner miner, Consensus consensus, IBlockSynchronizer synchronizer)
+            IMiner miner, IConsensus consensus, IBlockSynchronizer synchronizer)
         {
             _logger = logger;
             Node = node;
@@ -89,13 +89,13 @@ namespace AElf.Kernel.Node
                 //Which means this node will do nothing in this round.
                 try
                 {
-                    await Node.CheckUpdatingConsensusProcess();
+                    await _consensus.Update();
                 }
                 catch (Exception e)
                 {
                     _logger?.Error(e, "Somehow failed to update DPoS observables. Will recover soon.");
                     //In case just config one node to produce blocks.
-                    _consensus.AElfDPoSObserver.RecoverMining();
+                    await _consensus.RecoverMining();
                 }
 
                 return task.Result;
@@ -167,7 +167,7 @@ namespace AElf.Kernel.Node
                 Interlocked.CompareExchange(ref _flag, 0, 1);
 
                 Task.WaitAll();
-                await Node.CheckUpdatingConsensusProcess();
+                await _consensus.Update();
 
                 return new BlockExecutionResult(executed, error);
                 //return new BlockExecutionResult(true, error);

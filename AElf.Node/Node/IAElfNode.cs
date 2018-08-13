@@ -18,13 +18,6 @@ namespace AElf.Kernel.Node
 
         Hash ContractAccountHash { get; }
 
-        IDisposable ConsensusDisposable { get; set; }
-
-        ulong ConsensusMemory { get; set; }
-
-        // ReSharper disable once InconsistentNaming
-        Task CheckUpdatingConsensusProcess();
-
         int IsMiningInProcess { get; }
     }
 }

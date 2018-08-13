@@ -1,11 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.ChainController;
 using NLog;
 
 namespace AElf.Kernel.Node
 {
-    public class PoTC
+    public class PoTC : IConsensus
     {
+        public IDisposable ConsensusDisposable { get; set; }
         public MainChainNode Node { get; }
         public ulong ConsensusMemory { get; set; }
         private ILogger _logger;
@@ -25,8 +27,13 @@ namespace AElf.Kernel.Node
             Node = node;
         }
 
+        public async Task Start()
+        {
+            await Node.Mine();
+        }
+
         // ReSharper disable once InconsistentNaming
-        public async Task PoTCProcess()
+        public async Task Update()
         {
             while (true)
             {
@@ -44,6 +51,11 @@ namespace AElf.Kernel.Node
                     await _p2p.BroadcastBlock(block);
                 }
             }
+        }
+
+        public async Task RecoverMining()
+        {
+            await Task.CompletedTask;
         }
     }
 }

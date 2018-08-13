@@ -14,7 +14,8 @@ using NLog;
 
 namespace AElf.Kernel.Node
 {
-    public class Consensus
+    // ReSharper disable once InconsistentNaming
+    public class DPoS : IConsensus
     {
         private readonly ILogger _logger;
         private bool IsMining { get; set; }
@@ -42,7 +43,7 @@ namespace AElf.Kernel.Node
             MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        public Consensus(ILogger logger, MainChainNode node, INodeConfig nodeConfig,
+        public DPoS(ILogger logger, MainChainNode node, INodeConfig nodeConfig,
             IWorldStateDictator worldStateDictator, IAccountContextService accountContextService,
             ITxPoolService txPoolService,
             IP2P p2p
@@ -76,51 +77,79 @@ namespace AElf.Kernel.Node
             }
         }
 
-        /// <summary>
-        /// temple mine to generate fake block data with loop
-        /// </summary>
-        public async void StartConsensusProcess()
+        public async Task Start()
         {
             if (IsMining)
                 return;
 
             IsMining = true;
 
-            switch (Globals.ConsensusType)
+            if (!BlockProducers.Nodes.Contains(NodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
             {
-                case ConsensusType.AElfDPoS:
-                    if (!BlockProducers.Nodes.Contains(NodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
-                    {
-                        break;
-                    }
+                return;
+            }
 
-                    if (_nodeConfig.ConsensusInfoGenerater && !await DPoSHelper.HasGenerated())
-                    {
-                        AElfDPoSObserver.Initialization();
-                        break;
-                    }
-                    else
-                    {
-                        DPoSHelper.SyncMiningInterval();
-                        _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms.");
-                    }
+            if (_nodeConfig.ConsensusInfoGenerater && !await DPoSHelper.HasGenerated())
+            {
+                AElfDPoSObserver.Initialization();
+                return;
+            }
 
-                    if (DPoSHelper.CanRecoverDPoSInformation())
-                    {
-                        AElfDPoSObserver.RecoverMining();
-                    }
+            DPoSHelper.SyncMiningInterval();
+            _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms.");
 
-                    break;
 
-                case ConsensusType.PoTC:
-                    await Node.Mine();
-                    break;
-
-                case ConsensusType.SingleNode:
-                    Node.SingleNodeTestProcess();
-                    break;
+            if (DPoSHelper.CanRecoverDPoSInformation())
+            {
+                AElfDPoSObserver.RecoverMining();
             }
         }
+
+        /// <summary>
+        /// temple mine to generate fake block data with loop
+        /// </summary>
+//        public async void StartConsensusProcess()
+//        {
+//            if (IsMining)
+//                return;
+//
+//            IsMining = true;
+//
+//            switch (Globals.ConsensusType)
+//            {
+//                case ConsensusType.AElfDPoS:
+//                    if (!BlockProducers.Nodes.Contains(NodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
+//                    {
+//                        break;
+//                    }
+//
+//                    if (_nodeConfig.ConsensusInfoGenerater && !await DPoSHelper.HasGenerated())
+//                    {
+//                        AElfDPoSObserver.Initialization();
+//                        break;
+//                    }
+//                    else
+//                    {
+//                        DPoSHelper.SyncMiningInterval();
+//                        _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms.");
+//                    }
+//
+//                    if (DPoSHelper.CanRecoverDPoSInformation())
+//                    {
+//                        AElfDPoSObserver.RecoverMining();
+//                    }
+//
+//                    break;
+//
+//                case ConsensusType.PoTC:
+//                    await Node.Mine();
+//                    break;
+//
+//                case ConsensusType.SingleNode:
+//                    Node.SingleNodeTestProcess();
+//                    break;
+//            }
+//        }
 
         // ReSharper disable once InconsistentNaming
         public async Task MiningWithInitializingAElfDPoSInformation()
@@ -288,7 +317,7 @@ namespace AElf.Kernel.Node
             await _p2p.BroadcastBlock(block);
         }
 
-        public async Task AElfDPoSProcess()
+        public async Task Update()
         {
             var blockchain = Node.BlockChain;
             var hash = await blockchain.GetCurrentBlockHashAsync();
@@ -319,6 +348,12 @@ namespace AElf.Kernel.Node
 
             //Update current round number.
             ConsensusMemory = DPoSHelper.CurrentRoundNumber.Value;
+        }
+
+        public async Task RecoverMining()
+        {
+            AElfDPoSObserver.RecoverMining();
+            await Task.CompletedTask;
         }
     }
 }

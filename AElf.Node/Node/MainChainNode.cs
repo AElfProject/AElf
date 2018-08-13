@@ -53,25 +53,14 @@ namespace AElf.Kernel.Node
         private readonly INetworkManager _netManager;
         private readonly IBlockSynchronizer _synchronizer;
         private readonly IBlockExecutor _blockExecutor;
-//        private readonly AElfDPoSHelper _dPoSHelper;
-        private readonly Consensus _consensus;
-        private readonly PoTC _poTc;
-        public IBlockChain BlockChain { get; }
+        private IConsensus _consensus;
+        private MinerHelper _minerHelper;
 
-        private readonly MinerHelper _minerHelper;
+        public IBlockChain BlockChain { get; }
 
         public Hash ContractAccountHash => _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, SmartContractType.AElfDPoS);
 
-        /// <summary>
-        /// Just used to dispose previous consensus observer.
-        /// </summary>
-        public IDisposable ConsensusDisposable { get; set; }
-
-        public ulong ConsensusMemory { get; set; }
-
         public int IsMiningInProcess => _minerHelper.IsMiningInProcess;
-
-        private SingleNodeTestObserver SingleNodeTestObserver => new SingleNodeTestObserver(_logger, SingleNodeMining);
 
         public Hash ChainId => _nodeConfig.ChainId;
 
@@ -103,19 +92,14 @@ namespace AElf.Kernel.Node
             _netManager = netManager;
             _synchronizer = synchronizer;
             _p2p = p2p;
-            _consensus= new Consensus(logger,this,nodeConfig, worldStateDictator, _accountContextService, _txPoolService, _p2p);
-            _minerHelper = new MinerHelper(logger, this, _txPoolService, nodeConfig,
-                worldStateDictator, blockExecutor,chainService,chainContextService,
-                blockVaildationService, miner, _consensus, synchronizer);
-            BlockChain = chainService.GetBlockChain(_nodeConfig.ChainId);
-            _poTc = new PoTC(logger, this, miner, accountContextService, _txPoolService, _p2p);
-//            _dPoSHelper = new AElfDPoSHelper(_worldStateDictator, _nodeKeyPair, ChainId, BlockProducers,
-//                ContractAccountHash, _logger);
+            BlockChain = _chainService.GetBlockChain(_nodeConfig.ChainId);
         }
- 
+
         public bool Start(ECKeyPair nodeKeyPair, bool startRpc, int rpcPort, string rpcHost, string initData,
             byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero)
         {
+            SetupConsensus();
+            SetupMinerHelper();
             if (_nodeConfig == null)
             {
                 _logger?.Log(LogLevel.Error, "No node configuration.");
@@ -241,11 +225,47 @@ namespace AElf.Kernel.Node
             return true;
         }
 
+
+        private void SetupConsensus()
+        {
+            if (_consensus != null)
+            {
+                return;
+            }
+            switch (Globals.ConsensusType)
+            {
+                case ConsensusType.AElfDPoS:
+                    _consensus=new DPoS(_logger,this,_nodeConfig, _worldStateDictator, _accountContextService, _txPoolService, _p2p);
+                    break;
+                
+                case ConsensusType.PoTC:
+                    _consensus=new PoTC(_logger, this, _miner, _accountContextService, _txPoolService, _p2p);
+                    break;
+                
+                case ConsensusType.SingleNode:
+                    _consensus=new StandaloneNodeConsensusPlaceHolder(_logger, this, _p2p);
+                    break;
+            }
+        }
+        
+        private void SetupMinerHelper()
+        {
+            if (_minerHelper != null)
+            {
+                return;
+            }
+            _minerHelper = new MinerHelper(_logger, this, _txPoolService, _nodeConfig,
+                _worldStateDictator, _blockExecutor, _chainService, _chainContextService,
+                _blockVaildationService, _miner, _consensus, _synchronizer);
+        }
+
         private void StartMining()
         {
             if (_nodeConfig.IsMiner)
             {
-               _consensus.StartConsensusProcess();
+                SetupConsensus();
+                SetupMinerHelper();
+                _consensus?.Start();
             }
         }
 
@@ -346,34 +366,6 @@ namespace AElf.Kernel.Node
         public Hash GetGenesisContractHash(SmartContractType contractType)
         {
             return _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, contractType);
-        }
-
-        // ReSharper disable once InconsistentNaming
-        public async Task CheckUpdatingConsensusProcess()
-        {
-            switch (Globals.ConsensusType)
-            {
-                case ConsensusType.AElfDPoS:
-                    await _consensus.AElfDPoSProcess();
-                    break;
-                
-                case ConsensusType.PoTC:
-                    await _poTc.PoTCProcess();
-                    break;
-            }
-        }
-
-        public void SingleNodeTestProcess()
-        {
-            ConsensusDisposable = SingleNodeTestObserver.SubscribeSingleNodeTestProcess();
-        }
-
-        private async Task SingleNodeMining()
-        {
-            _logger.Trace("Single node mining start.");
-            var block = await Mine();
-            await _p2p.BroadcastBlock(block);
-            _logger.Trace("Single node mining end.");
         }
 
         public async Task<IBlock> Mine()
