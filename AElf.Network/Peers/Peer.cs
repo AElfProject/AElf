@@ -339,7 +339,7 @@ namespace AElf.Network.Peers
             
             _logger?.Trace($"Sending authentification : {nd}");
             
-            _messageWriter.EnqueueMessage(new Message { Type = (int)MessageType.Auth, Length = packet.Length, Payload = packet});
+            _messageWriter.EnqueueMessage(new Message { Type = (int)MessageType.Auth, HasId = false, Length = packet.Length, Payload = packet});
             
             StartAuthTimer();
         }
