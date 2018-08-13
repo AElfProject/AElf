@@ -18,6 +18,8 @@ namespace AElf.Deployment
         public void RemoveSideChain(string chainId)
         {
             GetHandler().Excute(DeployType.Remove, chainId);
+
+            string a = $"dfef{chainId}";
         }
 
         private IDeployHandler GetHandler()

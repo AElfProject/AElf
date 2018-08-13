@@ -13,11 +13,11 @@ namespace AElf.Deployment.Command
         
         public void Action(string chainId, DeployArg arg)
         {
-            DeployService(chainId,arg);
-            DeployStatefulSet(chainId, arg);
+            AddService(chainId,arg);
+            AddStatefulSet(chainId, arg);
         }
 
-        private void DeployService(string chainId, DeployArg arg)
+        private void AddService(string chainId, DeployArg arg)
         {
             var body = new V1Service
             {
@@ -46,7 +46,7 @@ namespace AElf.Deployment.Command
             K8SRequestHelper.CreateNamespacedService(body, chainId);
         }
 
-        private void DeployStatefulSet(string chainId, DeployArg arg)
+        private void AddStatefulSet(string chainId, DeployArg arg)
         {
             var body = new V1beta1StatefulSet
             {
