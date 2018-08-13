@@ -1,5 +1,8 @@
-﻿using AElf.ChainController;
+﻿using System.Threading.Tasks;
+using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Cryptography.ECDSA;
+using AsyncEventAggregator;
 using Google.Protobuf;
 using NLog;
 using Xunit;
@@ -18,6 +21,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             _accountContextService = accountContextService;
             _logger = logger;
+            this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
         }
 
         private ContractTxPool GetPool(ulong feeThreshold = 0, uint txSize = 0)

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
@@ -23,6 +24,7 @@ using ServiceStack;
 using AElf.Runtime.CSharp;
 using NLog;
 using AElf.Types.CSharp;
+using AsyncEventAggregator;
 
 namespace AElf.Kernel.Tests.Miner
 {
@@ -83,7 +85,7 @@ namespace AElf.Kernel.Tests.Miner
 
             _worldStateDictator = worldStateDictator;
             _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
-            
+            this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
             Initialize();
         }
 

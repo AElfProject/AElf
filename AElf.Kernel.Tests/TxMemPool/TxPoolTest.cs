@@ -2,7 +2,9 @@
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.SmartContract;
+using AsyncEventAggregator;
 using Google.Protobuf;
 using NLog;
 using Xunit;
@@ -20,6 +22,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             _logger = logger;
             _worldStateDictator = worldStateDictator;
+            this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
         }
 
         private ContractTxPool GetPool(TxPoolConfig config, ECKeyPair ecKeyPair = null)
