@@ -15,7 +15,7 @@ namespace AElf.Management.Commands
 
         public void Action(string chainId, DeployArg arg)
         {
-            //AddService(chainId, arg);
+            AddService(chainId, arg);
             AddDeployment(chainId, arg);
         }
 
@@ -33,11 +33,11 @@ namespace AElf.Management.Commands
                 },
                 Spec = new V1ServiceSpec
                 {
-                    Type = "NodePort",
+                    Type = "LoadBalancer",
                     Ports = new List<V1ServicePort>
                     {
-                        new V1ServicePort(NodePort, "node-port", NodePort, "TCP", NodePort),
-                        new V1ServicePort(RpcPort, "rpc-port", RpcPort, "TCP", RpcPort)
+                        new V1ServicePort(NodePort, "node-port", null, "TCP", NodePort),
+                        new V1ServicePort(RpcPort, "rpc-port", null, "TCP", RpcPort)
                     },
                     Selector = new Dictionary<string, string>
                     {

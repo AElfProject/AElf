@@ -15,6 +15,12 @@ namespace AElf.Management.Website.Controllers
             _sideChainService = sideChainService;
         }
 
+        [HttpGet("{value}")]
+        public string Test(string value)
+        {
+            return "reciced:" + value;
+        }
+
         [HttpPost("{chainId}")]
         public void Post(string chainId, [FromBody] DeployArg arg)
         {

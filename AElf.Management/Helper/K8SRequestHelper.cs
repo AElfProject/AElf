@@ -13,6 +13,38 @@ namespace AElf.Management.Helper
             var client = new Kubernetes(_clientConfiguration);
             return client;
         }
+        
+        public static V1Namespace CreateNamespace(V1Namespace body, string pretty = default(string))
+        {
+            using (var client = GetClient())
+            {
+                return client.CreateNamespace(body, pretty);
+            }
+        }
+
+        public static V1NamespaceList ListNamespace(string continueParameter = default(string), string fieldSelector = default(string), bool? includeUninitialized = default(bool?), string labelSelector = default(string), int? limit = default(int?), string resourceVersion = default(string), int? timeoutSeconds = default(int?), bool? watch = default(bool?), string pretty = default(string))
+        {
+            using (var client = GetClient())
+            {
+                return client.ListNamespace(continueParameter, fieldSelector, includeUninitialized, labelSelector, limit, resourceVersion, timeoutSeconds, watch, pretty);
+            }
+        }
+
+        public static V1Status DeleteNamespace(V1DeleteOptions body, string name, int? gracePeriodSeconds = default(int?), bool? orphanDependents = default(bool?), string propagationPolicy = default(string), string pretty = default(string))
+        {
+            using (var client = GetClient())
+            {
+                return client.DeleteNamespace(body, name, gracePeriodSeconds, orphanDependents, propagationPolicy, pretty);
+            }
+        }
+
+        public static V1Namespace ReadNamespace(string name, bool? exact = null, bool? export = null, string pretty = null)
+        {
+            using (var client = GetClient())
+            {
+                return client.ReadNamespace(name, exact, export, pretty);
+            }
+        }
 
         public static V1PodList ListNamespacedPod(string namespaceParameter, string continueParameter = null, string fieldSelector = null, bool? includeUninitialized = null, string labelSelector = null, int? limit = null, string resourceVersion = null, int? timeoutSeconds = null, bool? watch = null, string pretty = null)
         {
@@ -46,30 +78,7 @@ namespace AElf.Management.Helper
             }
         }
 
-        public static V1Namespace CreateNamespace(V1Namespace body, string pretty = default(string))
-        {
-            using (var client = GetClient())
-            {
-                return client.CreateNamespace(body, pretty);
-            }
-        }
-
-        public static V1NamespaceList ListNamespace(string continueParameter = default(string), string fieldSelector = default(string), bool? includeUninitialized = default(bool?), string labelSelector = default(string), int? limit = default(int?), string resourceVersion = default(string), int? timeoutSeconds = default(int?), bool? watch = default(bool?), string pretty = default(string))
-        {
-            using (var client = GetClient())
-            {
-                return client.ListNamespace(continueParameter, fieldSelector, includeUninitialized, labelSelector, limit, resourceVersion, timeoutSeconds, watch, pretty);
-            }
-        }
-
-        public static V1Status DeleteNamespace(V1DeleteOptions body, string name, int? gracePeriodSeconds = default(int?), bool? orphanDependents = default(bool?), string propagationPolicy = default(string), string pretty = default(string))
-        {
-            using (var client = GetClient())
-            {
-                return client.DeleteNamespace(body, name, gracePeriodSeconds, orphanDependents, propagationPolicy, pretty);
-            }
-        }
-
+        
         public static V1ConfigMapList ListNamespacedConfigMap(string namespaceParameter, string continueParameter = null, string fieldSelector = null, bool? includeUninitialized = null, string labelSelector = null, int? limit = null, string resourceVersion = null, int? timeoutSeconds = null, bool? watch = null, string pretty = null)
         {
             using (var client = GetClient())

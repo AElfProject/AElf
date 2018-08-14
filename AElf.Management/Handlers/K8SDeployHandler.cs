@@ -19,12 +19,12 @@ namespace AElf.Management.Handlers
 
         private K8SDeployHandler()
         {
-//            _deployCommands.Add(new K8SAddNamespaceCommand());
-//            _deployCommands.Add(new K8SAddRedisCommand());
-//            _deployCommands.Add(new K8SAddConfigCommand());
-//            _deployCommands.Add(new K8SAddAccountKeyCommand());
-//            _deployCommands.Add(new K8SAddManagerCommand());
-//            _deployCommands.Add(new K8SAddWorkerCommand());
+            _deployCommands.Add(new K8SAddNamespaceCommand());
+            _deployCommands.Add(new K8SAddRedisCommand());
+            _deployCommands.Add(new K8SAddConfigCommand());
+            _deployCommands.Add(new K8SAddAccountKeyCommand());
+            _deployCommands.Add(new K8SAddManagerCommand());
+            _deployCommands.Add(new K8SAddWorkerCommand());
             _deployCommands.Add(new K8SAddLauncherCommand());
 
             _removeCommands.Add(new K8SDeleteNamespaceCommand());
