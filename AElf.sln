@@ -99,6 +99,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Management", "AElf.Man
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Management.Tests", "AElf.Management.Tests\AElf.Management.Tests.csproj", "{71DFC40C-FD36-4F6A-891E-23A24A143ECC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Management.Website", "AElf.Management.Website\AElf.Management.Website.csproj", "{C6F923F1-5C7D-4750-A9EA-E684F265F644}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -297,6 +299,10 @@ Global
 		{71DFC40C-FD36-4F6A-891E-23A24A143ECC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71DFC40C-FD36-4F6A-891E-23A24A143ECC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71DFC40C-FD36-4F6A-891E-23A24A143ECC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6F923F1-5C7D-4750-A9EA-E684F265F644}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6F923F1-5C7D-4750-A9EA-E684F265F644}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6F923F1-5C7D-4750-A9EA-E684F265F644}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6F923F1-5C7D-4750-A9EA-E684F265F644}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
