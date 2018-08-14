@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using AElf.Management.Command;
+using AElf.Management.Commands;
 using AElf.Management.Models;
 
-namespace AElf.Management.Handler
+namespace AElf.Management.Handlers
 {
     public class K8SDeployHandler : IDeployHandler
     {

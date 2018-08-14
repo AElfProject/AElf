@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AElf.Management.Handler
+namespace AElf.Management.Handlers
 {
     public class DeployHandlerFactory
     {
@@ -12,7 +12,7 @@ namespace AElf.Management.Handler
                 case "k8s":
                     return K8SDeployHandler.Instance;
                 default:
-                    throw new Exception();
+                    throw new ArgumentException("deploy type is incorrect");
             }
         }
 

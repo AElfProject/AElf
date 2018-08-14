@@ -1,6 +1,6 @@
 ﻿using AElf.Management.Models;
 
-namespace AElf.Management.Handler
+namespace AElf.Management.Handlers
 {
     public interface IDeployHandler
     {

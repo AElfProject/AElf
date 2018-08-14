@@ -1,6 +1,6 @@
 ﻿using AElf.Management.Models;
 
-namespace AElf.Management.Command
+namespace AElf.Management.Commands
 {
     public interface IDeployCommand
     {

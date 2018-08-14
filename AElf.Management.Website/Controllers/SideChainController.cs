@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using AElf.Management.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AElf.Management.Website.Controllers
@@ -8,24 +8,23 @@ namespace AElf.Management.Website.Controllers
     [ApiController]
     public class SideChainController : ControllerBase
     {
-        // POST api/sidechain
-        [HttpPost("{chainId}")]
-        public void Post(string chainId,[FromBody] TestModel value)
+        private readonly ISideChainService _sideChainService;
+
+        public SideChainController(ISideChainService sideChainService)
         {
-            Console.WriteLine(chainId);
-            Console.WriteLine(value.Value);
+            _sideChainService = sideChainService;
         }
 
-        // DELETE api/sidechain/abcde
+        [HttpPost("{chainId}")]
+        public void Post(string chainId, [FromBody] DeployArg arg)
+        {
+            _sideChainService.Deploy(chainId, arg);
+        }
+
         [HttpDelete("{chainId}")]
         public void Delete(string chainId)
         {
-            Console.WriteLine(chainId);
+            _sideChainService.Remove(chainId);
         }
-    }
-
-    public class TestModel
-    {
-        public string Value { get; set; }
     }
 }

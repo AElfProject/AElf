@@ -3,7 +3,7 @@ using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s.Models;
 
-namespace AElf.Management.Command
+namespace AElf.Management.Commands
 {
     public class K8SAddManagerCommand:IDeployCommand
     {

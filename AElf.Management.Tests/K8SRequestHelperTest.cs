@@ -14,7 +14,6 @@ namespace AElf.Management.Tests
         {
             var pods = K8SRequestHelper.ListNamespacedPod("default");
 
-            
             var body = new Extensionsv1beta1Deployment();
             body.ApiVersion = "extensions/v1beta1";
             body.Kind = "Deployment";
