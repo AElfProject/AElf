@@ -172,7 +172,7 @@ namespace AElf.ChainController
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
-        private async Task<HashSet<Hash>> InsertTxs(List<ITransaction> executedTxs, List<TransactionResult> txResults)
+        private async Task<HashSet<Hash>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults)
         {
             var addrs = new HashSet<Hash>();
             foreach (var t in executedTxs)

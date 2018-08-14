@@ -101,7 +101,7 @@ namespace AElf.Sdk.CSharp
             return dp;
         }
 
-        public static ITransaction GetTransaction()
+        public static Transaction GetTransaction()
         {
             return _transactionContext.Transaction.ToReadOnly();
         }

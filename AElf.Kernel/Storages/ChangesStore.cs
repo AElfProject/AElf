@@ -24,7 +24,7 @@ namespace AElf.Kernel.Storages
         public async Task<Change> GetChangeAsync(Hash pathHash)
         {
             var key = pathHash.GetKeyString(TypeIndex);
-            var value = await _keyValueDatabase.GetAsync(key, typeof(Change));
+            var value = await _keyValueDatabase.GetAsync(key);
             return value == null ? null : Change.Parser.ParseFrom(value);
         }
 
@@ -39,7 +39,7 @@ namespace AElf.Kernel.Storages
         public async Task<Hash> GetPointerAsync(Hash pathHash)
         {
             var key = pathHash.GetKeyString(TypeIndex);
-            var changeByte = await _keyValueDatabase.GetAsync(key, typeof(Change));
+            var changeByte = await _keyValueDatabase.GetAsync(key);
             var change = changeByte == null ? null : Change.Parser.ParseFrom(changeByte);
             return change?.After;
         }

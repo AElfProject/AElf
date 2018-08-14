@@ -1,25 +1,32 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.Storages;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Managers
 {
     public class TransactionManager: ITransactionManager
     {
-        private readonly ITransactionStore _transactionStore;
+        private IDataStore _dataStore;
 
-        public TransactionManager(ITransactionStore transactionStore)
+        public TransactionManager(IDataStore dataStore)
         {
-            _transactionStore = transactionStore;
+            _dataStore = dataStore;
         }
 
-        public async Task<Hash> AddTransactionAsync(ITransaction tx)
+        public async Task<Hash> AddTransactionAsync(Transaction tx)
         {
-            return await _transactionStore.InsertAsync(tx);
+            await _dataStore.InsertAsync(tx.GetHash(), tx);
+            return tx.GetHash();
         }
 
-        public async Task<ITransaction> GetTransaction(Hash txId)
+        public async Task<Transaction> GetTransaction(Hash txId)
         {
-            return await _transactionStore.GetAsync(txId);
+            return await _dataStore.GetAsync<Transaction>(txId);
+        }
+
+        public async Task RemoveTransaction(Hash txId)
+        {
+            await _dataStore.RemoveAsync<Transaction>(txId);
         }
     }
 }

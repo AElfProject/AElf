@@ -46,6 +46,12 @@ message StateValueChange{
     bytes AfterValue = 3;
 }
 
+message EventField
+{
+    string Name = 1;
+    google.protobuf.Any Value = 2;
+}
+
 message LogEvent
 {
     Hash Address = 1;

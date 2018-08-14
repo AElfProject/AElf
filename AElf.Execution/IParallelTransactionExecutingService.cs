@@ -8,6 +8,6 @@ namespace AElf.Execution
 	public interface IParallelTransactionExecutingService
     {
 	    int TimeoutMilliSeconds { get; set; }
-	    Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId);
+	    Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId);
     }
 }

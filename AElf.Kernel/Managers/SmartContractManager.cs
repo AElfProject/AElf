@@ -6,21 +6,21 @@ namespace AElf.Kernel.Managers
 {
     public class SmartContractManager : ISmartContractManager
     {
-        private readonly ISmartContractStore _smartContractStore;
+        private readonly IDataStore _dataStore;
 
-        public SmartContractManager(ISmartContractStore smartContractStore)
+        public SmartContractManager(IDataStore dataStore)
         {
-            _smartContractStore = smartContractStore;
+            _dataStore = dataStore;
         }
 
         public async Task<SmartContractRegistration> GetAsync(Hash contractHash)
         {
-            return await _smartContractStore.GetAsync(contractHash);
+            return await _dataStore.GetAsync<SmartContractRegistration>(contractHash);
         }
 
         public async Task InsertAsync(Hash address, SmartContractRegistration reg)
         {
-            await _smartContractStore.InsertAsync(address, reg);
+            await _dataStore.InsertAsync(address, reg);
         }
     }
 }

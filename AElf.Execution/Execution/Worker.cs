@@ -222,7 +222,7 @@ namespace AElf.Execution
             return retMsg;
         }
 
-        private async Task<TransactionTrace> ExecuteTransaction(IChainContext chainContext, ITransaction transaction, Dictionary<Hash, StateCache> stateCache)
+        private async Task<TransactionTrace> ExecuteTransaction(IChainContext chainContext, Transaction transaction, Dictionary<Hash, StateCache> stateCache)
         {
             
             var trace = new TransactionTrace()

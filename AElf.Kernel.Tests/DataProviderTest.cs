@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.SmartContract;
 using AElf.ChainController;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Kernel.TxMemPool;
 using NLog;
@@ -19,26 +20,22 @@ namespace AElf.Kernel.Tests
         private readonly IDataStore _dataStore;
         private readonly BlockTest _blockTest;
         private readonly ILogger _logger;
-        private readonly ITxPoolService _txPoolService;
-        private readonly IBlockHeaderStore _blockHeaderStore;
-        private readonly IBlockBodyStore _blockBodyStore;
-        private readonly ITransactionStore _transactionStore;
+        private readonly ITransactionManager _transactionManager;
+        private readonly IBlockManager _blockManager;
+        private readonly IPointerManager _pointerManager;
 
         public DataProviderTest(IWorldStateStore worldStateStore,
             IChangesStore changesStore, IDataStore dataStore,
-            BlockTest blockTest, ILogger logger,
-            ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
-            ITransactionStore transactionStore)
+            BlockTest blockTest, ILogger logger, ITransactionManager transactionManager, IBlockManager blockManager, IPointerManager pointerManager)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _blockTest = blockTest;
             _logger = logger;
-            _txPoolService = txPoolService;
-            _blockHeaderStore = blockHeaderStore;
-            _blockBodyStore = blockBodyStore;
-            _transactionStore = transactionStore;
+            _transactionManager = transactionManager;
+            _blockManager = blockManager;
+            _pointerManager = pointerManager;
         }
 
         [Fact]
@@ -52,8 +49,10 @@ namespace AElf.Kernel.Tests
 
             var address = Hash.Generate();
 
-            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                _blockHeaderStore, _blockBodyStore, _transactionStore, _logger).SetChainId(chain.Id);
+            var worldStateDictator =
+                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,_logger, _transactionManager, 
+                        _blockManager, _pointerManager)
+                    .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
 
             await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);

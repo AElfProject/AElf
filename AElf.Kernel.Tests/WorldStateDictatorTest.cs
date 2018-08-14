@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.SmartContract;
 using AElf.ChainController;
+using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Kernel.TxMemPool;
 using NLog;
@@ -15,16 +16,14 @@ namespace AElf.Kernel.Tests
     {
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly ILogger _logger;
-        
         private readonly BlockTest _blockTest;
 
         public WorldStateDictatorTest(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore,
-            IBlockBodyStore blockBodyStore,
-            ITransactionStore transactionStore, BlockTest blockTest, ILogger logger)
+            IDataStore dataStore, ITxPoolService txPoolService, BlockTest blockTest, ILogger logger,
+            ITransactionManager transactionManager, IBlockManager blockManager, IPointerManager pointerManager)
         {
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore,
-                blockHeaderStore, blockBodyStore, transactionStore, _logger)
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger, 
+                transactionManager, blockManager, pointerManager)
             {
                 BlockProducerAccountAddress = Hash.Generate()
             };

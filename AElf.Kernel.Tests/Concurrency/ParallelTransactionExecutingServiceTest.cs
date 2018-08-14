@@ -38,7 +38,7 @@ namespace AElf.Kernel.Tests.Concurrency
                 _mock.Initialize1(addbal.Item1, (ulong) addbal.Item2);
             }
 
-            var txs = new List<ITransaction>()
+            var txs = new List<Transaction>()
             {
                 _mock.GetTransferTxn1(addresses[0], addresses[1], 10),
             };
@@ -96,7 +96,7 @@ namespace AElf.Kernel.Tests.Concurrency
                 _mock.Initialize1(addbal.Item1, addbal.Item2);
             }
 
-            var txs = new List<ITransaction>()
+            var txs = new List<Transaction>()
             {
                 _mock.GetTransferTxn1(addresses[0], addresses[1], 10),
                 _mock.GetTransferTxn1(addresses[1], addresses[2], 9),

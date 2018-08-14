@@ -15,9 +15,6 @@ namespace AElf.Kernel.Modules.AutofacModule
 
             builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();
 
-            var assembly2 = typeof(ISerializer<>).Assembly;
-            builder.RegisterAssemblyTypes(assembly2).AsImplementedInterfaces();
-
             var assembly3 = typeof(WorldStateDictator).Assembly;
             builder.RegisterAssemblyTypes(assembly3).AsImplementedInterfaces();
 
@@ -34,11 +31,6 @@ namespace AElf.Kernel.Modules.AutofacModule
             builder.RegisterAssemblyTypes(assembly7).AsImplementedInterfaces();
 
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));
-
-            builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
-
-                        
-
             
             base.Load(builder);
         }

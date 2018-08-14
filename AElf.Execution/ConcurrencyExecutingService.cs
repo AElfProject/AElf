@@ -38,7 +38,7 @@ namespace AElf.Execution
             _isInit = false;
         }
 
-        public async Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId, IGrouper grouper)
+        public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId, IGrouper grouper)
         {
             if (!_isInit)
             {
