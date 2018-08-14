@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
-using k8s;
+﻿using k8s;
+using Newtonsoft.Json;
 
-namespace AElf.Deployment.Models
+namespace AElf.Management.Models
 {
     public class K8SCredential : IKubernetesObject
     {

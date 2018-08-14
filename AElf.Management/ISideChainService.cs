@@ -1,6 +1,6 @@
-﻿using AElf.Deployment.Models;
+﻿using AElf.Management.Models;
 
-namespace AElf.Deployment
+namespace AElf.Management
 {
     public interface ISideChainService
     {

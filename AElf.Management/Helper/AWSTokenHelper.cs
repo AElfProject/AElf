@@ -1,7 +1,7 @@
-﻿using AElf.Deployment.Models;
+﻿using AElf.Management.Models;
 using Newtonsoft.Json;
 
-namespace AElf.Deployment.Helper
+namespace AElf.Management.Helper
 {
     public class AWSTokenHelper
     {

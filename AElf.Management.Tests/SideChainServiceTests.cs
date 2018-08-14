@@ -1,13 +1,12 @@
-﻿using System;
-using AElf.Deployment.Models;
+﻿using AElf.Management.Models;
 using Xunit;
 
-namespace AElf.Deployment.Tests
+namespace AElf.Management.Tests
 {
-    public class DeployServiceTests
+    public class SideChainServiceTests
     {
         [Fact]
-        public void DeploySideChainTest()
+        public void DeployTest()
         {
             var arg = new DeployArg();
             arg.MainChainAccount = "0x04b8b111fdbc2f5409a006339fa1758e1ed1";
@@ -21,7 +20,7 @@ namespace AElf.Deployment.Tests
         }
         
         [Fact]
-        public void RemoveSideChainTest()
+        public void RemoveTest()
         {
             var chainId = "ed7d50f2a4b94d9b9e7ec6ec6935e14e";//Guid.NewGuid().ToString("N");
             new SideChainService().Remove(chainId);

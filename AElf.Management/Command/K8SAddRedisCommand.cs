@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using AElf.Deployment.Helper;
-using AElf.Deployment.Models;
+using AElf.Management.Helper;
+using AElf.Management.Models;
 using k8s.Models;
 
-namespace AElf.Deployment.Command
+namespace AElf.Management.Command
 {
     public class K8SAddRedisCommand : IDeployCommand
     {

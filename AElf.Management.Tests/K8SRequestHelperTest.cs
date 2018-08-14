@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using AElf.Deployment.Helper;
+using AElf.Management.Helper;
 using k8s.Models;
-using Xunit;
 using Microsoft.AspNetCore.JsonPatch;
+using Xunit;
 
-namespace AElf.Deployment.Tests
+namespace AElf.Management.Tests
 {
-    public class DeploymentServiceTest
+    public class K8SRequestHelperTest
     {
         [Fact]
         public void CreateDeploymentTest()

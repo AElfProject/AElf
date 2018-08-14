@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using AElf.Deployment.Handler;
-using AElf.Deployment.Helper;
-using AElf.Deployment.Models;
-using k8s.Models;
-using Microsoft.AspNetCore.JsonPatch;
+﻿using AElf.Management.Handler;
+using AElf.Management.Models;
 
-namespace AElf.Deployment
+namespace AElf.Management
 {
     public class SideChainService : ISideChainService
     {

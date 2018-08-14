@@ -1,7 +1,7 @@
-﻿using Xunit;
-using AElf.Deployment.Helper;
+﻿using AElf.Management.Helper;
+using Xunit;
 
-namespace AElf.Deployment.Tests
+namespace AElf.Management.Tests
 {
     public class AWSTokenHelperTest
     {

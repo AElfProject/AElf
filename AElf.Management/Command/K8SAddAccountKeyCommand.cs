@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using AElf.Deployment.Helper;
-using AElf.Deployment.Models;
+﻿using System;
+using System.Collections.Generic;
+using AElf.Management.Helper;
+using AElf.Management.Models;
 using k8s.Models;
-using System;
 
-namespace AElf.Deployment.Command
+namespace AElf.Management.Command
 {
     public class K8SAddAccountKeyCommand : IDeployCommand
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AElf.Deployment.Handler
+namespace AElf.Management.Handler
 {
     public class DeployHandlerFactory
     {

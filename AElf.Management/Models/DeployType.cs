@@ -1,4 +1,4 @@
-﻿namespace AElf.Deployment.Models
+﻿namespace AElf.Management.Models
 {
     public enum DeployType
     {

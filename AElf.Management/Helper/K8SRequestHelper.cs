@@ -1,7 +1,7 @@
 ﻿using k8s;
 using k8s.Models;
 
-namespace AElf.Deployment.Helper
+namespace AElf.Management.Helper
 {
     public static class K8SRequestHelper
     {
