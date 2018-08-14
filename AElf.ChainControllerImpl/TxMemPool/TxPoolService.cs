@@ -172,12 +172,12 @@ namespace AElf.Kernel.TxMemPool
                 // TODO: remove this limit
                 available = true;
                 var execCount = _contractTxPool.GetExecutableSize();
+                count = execCount;
                 if (execCount < _contractTxPool.Least)
                 {
                     return;
                 }
 
-                count = execCount;
                 contractTxs = _contractTxPool.ReadyTxs();
             }).Wait(TimeSpan.FromMilliseconds(30));
             
