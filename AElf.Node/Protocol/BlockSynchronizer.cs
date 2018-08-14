@@ -13,6 +13,7 @@ using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Peers;
+using Google.Protobuf;
 using NLog;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
@@ -101,15 +102,15 @@ namespace AElf.Kernel.Node.Protocol
             if (sender != null && e is NetMessageReceivedArgs args && args.Message != null)
             {
                 var message = args.Message;
-                var msgType = (MessageType) message.Type;
+                var msgType = (AElfProtocolType) message.Type;
                 
                 _logger?.Trace($"Handling message {message} from {args.PeerMessage.Peer}.");
 
-                if (msgType == MessageType.Tx || msgType == MessageType.BroadcastTx)
+                if (msgType == AElfProtocolType.Tx || msgType == AElfProtocolType.BroadcastTx)
                 {
                     try
                     {
-                        var fromSend = message.Type == (int) MessageType.Tx;
+                        var fromSend = message.Type == (int) AElfProtocolType.Tx;
                         ReceiveTransaction(message.Payload, fromSend);
                     }
                     catch (Exception ex)
@@ -120,7 +121,7 @@ namespace AElf.Kernel.Node.Protocol
 
                     EnqueueJob(new Job {Transaction = Transaction.Parser.ParseFrom(message.Payload)});
                 }
-                else if (message.Type == (int) MessageType.Block || message.Type == (int) MessageType.BroadcastBlock)
+                else if (message.Type == (int) AElfProtocolType.Block || message.Type == (int) AElfProtocolType.BroadcastBlock)
                 {
                     try
                     {
@@ -184,7 +185,7 @@ namespace AElf.Kernel.Node.Protocol
 
                     for (var i = 1; i < SyncTargetHeight; i++)
                     {
-                        _networkManager.QueueBlockRequestByIndex(i);
+                        _networkManager.QueueRequest(GetRequestMessageForIndex(i), null);
                     }
 
                     Task.Run(() => DoSync());
@@ -314,7 +315,12 @@ namespace AElf.Kernel.Node.Protocol
 
             foreach (var tx in listOfMissingTxToRequest)
             {
-                _networkManager.QueueTransactionRequest(tx.Key, tx.Value);
+                TxRequest br = new TxRequest { TxHash = ByteString.CopyFrom(tx.Key) };
+                var msg = NetRequestFactory.CreateMessage(AElfProtocolType.TxRequest, br.ToByteArray());
+                
+                msg.RequestLogString = $"transaction with hash {tx.Key.ToHex()}";
+                
+                _networkManager.QueueRequest(msg, tx.Value);
             }
         }
 
@@ -442,31 +448,7 @@ namespace AElf.Kernel.Node.Protocol
                         // The current blocks index is higher than the current height so we're missing
                         if (!ShouldDoInitialSync && (int) block.Header.Index > CurrentExecHeight)
                         {
-//                            if (_syncPeers.Count > 0)
-//                            {
-//                                // for now we use only one - the one with the highest hight
-//                                var peerHeightKvp = _syncPeers
-//                                    .Where(p => !p.AlreadyRequested.Contains(pendingBlock.BlockHash))
-//                                    .OrderByDescending(p => p.LastKnownHight)
-//                                    .FirstOrDefault();
-//                                if (peerHeightKvp != null)
-//                                {
-//                                    _logger?.Trace("Missing block, request for height : " + CurrentExecHeight +
-//                                                   ", to : " + peerHeightKvp.Peer);
-//                                    
-//                                    await SendBlockRequest(peerHeightKvp.Peer, CurrentExecHeight);
-//                                    
-//                                    peerHeightKvp.AlreadyRequested.Enqueue(pendingBlock.BlockHash);
-//                                }
-//                                else
-//                                {
-//                                    _logger?.Trace("All peers already tried for request.");
-//                                }
-//                            }
-
-                            _networkManager.QueueBlockRequestByIndex(CurrentExecHeight);
-
-                            // At this point no need to execute more
+                            _networkManager.QueueRequest(GetRequestMessageForIndex(CurrentExecHeight), null);
                             break;
                         }
                     }
@@ -492,6 +474,16 @@ namespace AElf.Kernel.Node.Protocol
             }
 
             return executed;
+        }
+
+        private Message GetRequestMessageForIndex(int index)
+        {
+            BlockRequest br = new BlockRequest { Height = index };
+            
+            Message message = NetRequestFactory.CreateMessage(AElfProtocolType.RequestBlock, br.ToByteArray()); 
+            message.RequestLogString = $"block at index {index}";
+            
+            return message;
         }
 
         /// <summary>

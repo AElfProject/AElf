@@ -2,24 +2,10 @@
 {
     public enum MessageType
     {
-        Auth,
+        Auth = 0,
         Ping,
         Pong,
-        Disconnect,
-        
-        TxRequest,
-        Tx,
-        
-        HeightRequest,
-        Height,
-        
         RequestPeers,
-        Peers,
-        
-        BroadcastTx,
-        BroadcastBlock,
-        
-        RequestBlock,
-        Block
+        Peers
     }
 }

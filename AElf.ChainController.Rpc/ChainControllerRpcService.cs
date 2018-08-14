@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.ChainController.EventMessages;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Kernel;
@@ -186,7 +187,7 @@ namespace AElf.ChainController.Rpc
             var transaction = Transaction.Parser.ParseFrom(hexString);
 
             // TODO: Wrap Transaction into a message
-            await this.Publish(transaction.AsTask());
+            await this.Publish(new IncomingTransaction(transaction).AsTask());
 
             var res = new JObject {["hash"] = transaction.GetHash().ToHex()};
             return await Task.FromResult(res);
