@@ -45,19 +45,19 @@ namespace AElf.Contracts.Genesis.Tests
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, ISmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService,
+            IDataStore dataStore, IChainContextService chainContextService,
+            IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
             _worldStateDictator = worldStateDictator;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            SmartContractManager = new SmartContractManager(smartContractStore);
-            Task.Factory.StartNew(async () =>
-            {
-                await Init();
-            }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator, _functionMetadataService);
+            SmartContractManager = new SmartContractManager(dataStore);
+            Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
+            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerFactory,
+                _worldStateDictator, _functionMetadataService);
 
             ServicePack = new ServicePack()
             {

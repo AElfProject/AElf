@@ -12,7 +12,7 @@ namespace AElf.ChainController
         /// </summary>
         /// <param name="tx"></param>
         /// <returns></returns>
-        Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx);
+        Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx);
 
         /// <summary>
         /// remove a tx from collection not pool
@@ -29,7 +29,7 @@ namespace AElf.ChainController
         /// return ready txs can be executed 
         /// </summary>
         /// <returns></returns>
-        Task<List<ITransaction>> GetReadyTxsAsync();
+        Task<List<Transaction>> GetReadyTxsAsync();
 
         /// <summary>
         /// return pool size
@@ -42,7 +42,7 @@ namespace AElf.ChainController
         /// </summary>
         /// <param name="txHash"></param>
         /// <returns></returns>
-        bool TryGetTx(Hash txHash, out ITransaction tx);
+        bool TryGetTx(Hash txHash, out Transaction tx);
 
         /// <summary>
         /// Given a block this method will return the blocks transactions
@@ -103,7 +103,7 @@ namespace AElf.ChainController
         /// roll back
         /// </summary>
         /// <returns></returns>
-        Task RollBack(List<ITransaction> txsOut);
+        Task RollBack(List<Transaction> txsOut);
 
         void SetBlockVolume(ulong minimal, ulong maximal);
     }

@@ -112,7 +112,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 i++;
             }
             
-            var txList = new List<ITransaction>();
+            var txList = new List<Transaction>();
 
             var txCount = threadNum * r;
             while (count++ < txCount)
@@ -197,7 +197,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                 i++;
             }
             
-            var txList = new List<ITransaction>();
+            var txList = new List<Transaction>();
             
             while (count++ < txNum)
             {

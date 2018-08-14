@@ -62,21 +62,19 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
         public MockSetup(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
-            ITransactionStore transactionStore, IChainCreationService chainCreationService,
-            IChainService chainService, ISmartContractStore smartContractStore,
+            IDataStore dataStore, IChainCreationService chainCreationService,
+            IChainService chainService,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger)
         {
             _logger = logger;
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore,
-                blockHeaderStore, blockBodyStore, transactionStore, _logger);
+            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger);
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            SmartContractManager = new SmartContractManager(smartContractStore);
+            SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
                 new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator,
@@ -294,7 +292,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             };
         }
 
-        public DateTime GetTransactionStartTime1(ITransaction tx)
+        public DateTime GetTransactionStartTime1(Transaction tx)
         {
             var txn = GetSTTxn(SampleContractAddress1, tx.GetHash());
             var txnCtxt = new TransactionContext()
@@ -310,7 +308,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
         }
 
-        public DateTime GetTransactionEndTime1(ITransaction tx)
+        public DateTime GetTransactionEndTime1(Transaction tx)
         {
             var txn = GetETTxn(SampleContractAddress1, tx.GetHash());
             var txnCtxt = new TransactionContext()

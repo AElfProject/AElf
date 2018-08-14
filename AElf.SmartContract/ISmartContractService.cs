@@ -27,6 +27,6 @@ namespace AElf.SmartContract
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<IEnumerable<string>> GetInvokingParams(ITransaction transaction);
+        Task<IEnumerable<string>> GetInvokingParams(Transaction transaction);
     }
 }

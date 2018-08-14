@@ -121,7 +121,7 @@ namespace AElf.SmartContract
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<string>> GetInvokingParams(ITransaction transaction)
+        public async Task<IEnumerable<string>> GetInvokingParams(Transaction transaction)
         {
             var reg = await _smartContractManager.GetAsync(transaction.To);
             var abi = (Module) GetAbiAsync(reg);

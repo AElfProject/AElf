@@ -75,7 +75,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             // Add a valid transaction
             var tx = BuildTransaction();
-            var tmp = new HashSet<ITransaction> {tx};
+            var tmp = new HashSet<Transaction> {tx};
             var accountContextService = new AccountContextService(_worldStateDictator);
             var ctx = await accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
             pool.TrySetNonce(tx.From,ctx.IncrementId);
@@ -123,7 +123,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var config = TxPoolConfig.Default;
             config.Maximal = 10;
             var pool = GetPool(config, ecKeyPair);
-            var tmp = new HashSet<ITransaction>();
+            var tmp = new HashSet<Transaction>();
             var accountContextService = new AccountContextService(_worldStateDictator);
 
             // Add valid transactions
@@ -140,7 +140,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             // add miner txs
             int minerTxCount = 5;
             i = 0;
-            var minerTxs = new HashSet<ITransaction>();
+            var minerTxs = new HashSet<Transaction>();
 
             while (i++ < minerTxCount)
             {

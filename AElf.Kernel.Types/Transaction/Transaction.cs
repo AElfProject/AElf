@@ -20,11 +20,6 @@ namespace AElf.Kernel
             return this.ToByteArray();
         }
 
-        public Hash LastBlockHashWhenCreating()
-        {
-            throw new NotImplementedException();
-        }
-
         public ECSignature GetSignature()
         {
             return new ECSignature(R.ToByteArray(), S.ToByteArray());

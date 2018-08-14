@@ -114,7 +114,7 @@ namespace AElf.Launcher
                 node.Start(nodeKey, confParser.Rpc, confParser.RpcPort, confParser.RpcHost, initData,
                     TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero);
 
-                node.Subscribe<ITransaction>(
+                node.Subscribe<Transaction>(
                     async (transaction) =>
                 {
                     await ((MainChainNode) node).BroadcastTransaction(await transaction);

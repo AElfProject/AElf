@@ -28,7 +28,7 @@ namespace AElf.SmartContract
 
         Task RollbackToBlockHash(Hash blockHash);
         
-        Task<List<ITransaction>> RollbackToSpecificHeight(ulong specificHeight);
+        Task<List<Transaction>> RollbackToSpecificHeight(ulong specificHeight);
 
         Task<List<Hash>> GetPathsAsync(Hash blockHash = null);
 

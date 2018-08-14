@@ -21,12 +21,12 @@ namespace AElf.Kernel.Tests
         private readonly BlockTest _blockTest;
         private readonly ILogger _logger;
         private readonly ITransactionManager _transactionManager;
-        private readonly IBlockManager _blockManager;
+        private readonly IBlockManagerBasic _blockManager;
         private readonly IPointerManager _pointerManager;
 
         public DataProviderTest(IWorldStateStore worldStateStore,
             IChangesStore changesStore, IDataStore dataStore,
-            BlockTest blockTest, ILogger logger, ITransactionManager transactionManager, IBlockManager blockManager, IPointerManager pointerManager)
+            BlockTest blockTest, ILogger logger, ITransactionManager transactionManager, IBlockManagerBasic blockManager, IPointerManager pointerManager)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;

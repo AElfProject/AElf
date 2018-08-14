@@ -20,9 +20,6 @@ namespace AElf.SmartContract
         private readonly IWorldStateStore _worldStateStore;
         private readonly IDataStore _dataStore;
         private readonly IChangesStore _changesStore;
-        private readonly IBlockHeaderStore _blockHeaderStore;
-        private readonly IBlockBodyStore _blockBodyStore;
-        private readonly ITransactionStore _transactionStore;
         #endregion
 
         private readonly ILogger _logger;
@@ -36,16 +33,12 @@ namespace AElf.SmartContract
         public Hash BlockProducerAccountAddress { get; set; }
 
         public WorldStateDictator(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, IBlockHeaderStore blockHeaderStore,
-            IBlockBodyStore blockBodyStore, ITransactionStore transactionStore, ILogger logger)
+            IDataStore dataStore, ILogger logger)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _logger = logger;
-            _blockHeaderStore = blockHeaderStore;
-            _blockBodyStore = blockBodyStore;
-            _transactionStore = transactionStore;
         }
 
         public IWorldStateDictator SetChainId(Hash chainId)
@@ -136,7 +129,7 @@ namespace AElf.SmartContract
         /// </summary>
         /// <param name="specificHeight"></param>
         /// <returns></returns>
-        public async Task<List<ITransaction>> RollbackToSpecificHeight(ulong specificHeight)
+        public async Task<List<Transaction>> RollbackToSpecificHeight(ulong specificHeight)
         {
             if (specificHeight < 1)
             {
@@ -169,9 +162,9 @@ namespace AElf.SmartContract
             return txs;
         }
 
-        private async Task<List<ITransaction>> RollbackTxs(ulong currentHeight, ulong specificHeight)
+        private async Task<List<Transaction>> RollbackTxs(ulong currentHeight, ulong specificHeight)
         {
-            var txs = new List<ITransaction>();
+            var txs = new List<Transaction>();
             for (var i = currentHeight - 1; i >= specificHeight; i--)
             {
                 var rollBackBlockHash =

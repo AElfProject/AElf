@@ -397,7 +397,7 @@ namespace AElf.Kernel.Node
         /// </summary>
         /// <param name="txId"></param>
         /// <returns></returns>
-        public async Task<ITransaction> GetTransaction(Hash txId)
+        public async Task<Transaction> GetTransaction(Hash txId)
         {
             if (_txPoolService.TryGetTx(txId, out var tx))
             {
@@ -768,7 +768,7 @@ namespace AElf.Kernel.Node
         /// also places it in the transaction pool.
         /// </summary>
         /// <param name="tx">The tx to broadcast</param>
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> BroadcastTransaction(ITransaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> BroadcastTransaction(Transaction tx)
         {
             if(tx.From.Equals(_nodeKeyPair.GetAddress()))
                 _logger?.Trace("Try to insert DPoS transaction to pool: " + tx.GetHash().ToHex() + ", threadId: " +
@@ -823,7 +823,7 @@ namespace AElf.Kernel.Node
         #region Private Methods for DPoS
 
         // ReSharper disable once InconsistentNaming
-        private ITransaction GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters,
+        private Transaction GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters,
             ulong incrementIdOffset = 0)
         {
             var tx = new Transaction

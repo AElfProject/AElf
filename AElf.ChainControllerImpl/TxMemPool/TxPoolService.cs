@@ -40,12 +40,12 @@ namespace AElf.Kernel.TxMemPool
         private TxPoolSchedulerLock DPoSTxLock { get; } = new TxPoolSchedulerLock();
 
 
-        private readonly ConcurrentDictionary<Hash, ITransaction> _txs = new ConcurrentDictionary<Hash, ITransaction>();
-        private readonly ConcurrentDictionary<Hash, ITransaction> _dPoStxs = new ConcurrentDictionary<Hash, ITransaction>();
+        private readonly ConcurrentDictionary<Hash, Transaction> _txs = new ConcurrentDictionary<Hash, Transaction>();
+        private readonly ConcurrentDictionary<Hash, Transaction> _dPoStxs = new ConcurrentDictionary<Hash, Transaction>();
         private readonly ConcurrentBag<Hash> _bpAddrs = new ConcurrentBag<Hash>();
 
         /// <inheritdoc/>
-        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx)
+        public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(Transaction tx)
         {
             if (Cts.IsCancellationRequested) return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
 
@@ -55,11 +55,11 @@ namespace AElf.Kernel.TxMemPool
             return await AddTransaction(tx);
         }
 
-        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(ITransaction tx)
+        private async Task<TxValidation.TxInsertionAndBroadcastingError> AddTransaction(Transaction tx)
         {
             IPool pool;
             ILock @lock;
-            ConcurrentDictionary<Hash, ITransaction> transactions;
+            ConcurrentDictionary<Hash, Transaction> transactions;
             if (tx.Type == TransactionType.DposTransaction)
             {
                 pool = _dpoSTxPool;
@@ -133,7 +133,7 @@ namespace AElf.Kernel.TxMemPool
         /// </summary>
         /// <param name="txs"></param>
         /// <returns></returns>
-        private void PersistTxs(IEnumerable<ITransaction> txs)
+        private void PersistTxs(IEnumerable<Transaction> txs)
         {
             foreach (var t in txs)
             {
@@ -143,7 +143,7 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public async Task<List<ITransaction>> GetReadyTxsAsync()
+        public async Task<List<Transaction>> GetReadyTxsAsync()
         {
             var dpos = await DPoSTxLock.WriteLock(() =>
             {
@@ -156,7 +156,7 @@ namespace AElf.Kernel.TxMemPool
                 return readyTxs;
             });
             
-            List<ITransaction> contractTxs = null;
+            List<Transaction> contractTxs = null;
             bool available = false;
             ulong count = 0;
             var t = ContractTxLock.WriteLock(() =>
@@ -223,7 +223,7 @@ namespace AElf.Kernel.TxMemPool
         }
 
         /// <inheritdoc/>
-        public bool TryGetTx(Hash txHash, out ITransaction tx)
+        public bool TryGetTx(Hash txHash, out Transaction tx)
         {
             return _txs.TryGetValue(txHash, out tx) || _dPoStxs.TryGetValue(txHash, out tx);
         }
@@ -342,18 +342,18 @@ namespace AElf.Kernel.TxMemPool
 
 
         /// <inheritdoc/>
-        public async Task RollBack(List<ITransaction> txsOut)
+        public async Task RollBack(List<Transaction> txsOut)
         {
             try
             {
                 var nonces = txsOut.Select(async p => await TrySetNonce(p.From, p.Type));
                 await Task.WhenAll(nonces);
  
-                var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(),  (current, p) =>
+                var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<Transaction>>(),  (current, p) =>
                 {
                     if (!current.TryGetValue(p.From, out var _))
                     {
-                        current[p.From] = new HashSet<ITransaction>();
+                        current[p.From] = new HashSet<Transaction>();
                     }
 
                     current[p.From].Add(p);
@@ -366,7 +366,7 @@ namespace AElf.Kernel.TxMemPool
                     
                     ILock @lock;
                     IPool pool;
-                    ConcurrentDictionary<Hash, ITransaction> transactions;
+                    ConcurrentDictionary<Hash, Transaction> transactions;
                     if (!_bpAddrs.Contains(kv.Key))
                     {
                         @lock = ContractTxLock;

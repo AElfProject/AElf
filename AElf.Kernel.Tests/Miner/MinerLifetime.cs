@@ -170,7 +170,7 @@ namespace AElf.Kernel.Tests.Miner
             txnDep.R = ByteString.CopyFrom(signature.R); 
             txnDep.S = ByteString.CopyFrom(signature.S);
             
-            var txs = new List<ITransaction>(){
+            var txs = new List<Transaction>(){
                 txnDep
             };
             
@@ -180,7 +180,7 @@ namespace AElf.Kernel.Tests.Miner
         }
         
         
-        public List<ITransaction> CreateTxs(Hash chainId)
+        public List<Transaction> CreateTxs(Hash chainId)
         {
             var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
 
@@ -223,7 +223,7 @@ namespace AElf.Kernel.Tests.Miner
             txPrint.R = ByteString.CopyFrom(signature.R); 
             txPrint.S = ByteString.CopyFrom(signature.S);
             
-            var txs = new List<ITransaction>(){
+            var txs = new List<Transaction>(){
                 txPrint
             };
 

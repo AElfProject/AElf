@@ -4,7 +4,7 @@ namespace AElf.Kernel.Node
 {
     internal static class DtoExtensions
     {
-        internal static JObject GetTransactionInfo(this ITransaction tx)
+        internal static JObject GetTransactionInfo(this Transaction tx)
         {
             return new JObject
             {
