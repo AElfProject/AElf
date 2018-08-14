@@ -22,6 +22,7 @@ namespace AElf.Kernel.Node
         
         public async Task Start()
         {
+            ConsensusDisposable = SingleNodeTestObserver.SubscribeSingleNodeTestProcess();
             await Task.CompletedTask;
         }
 
@@ -33,11 +34,6 @@ namespace AElf.Kernel.Node
         public async Task RecoverMining()
         {
             await Task.CompletedTask;
-        }
-        
-        public void SingleNodeTestProcess()
-        {
-            ConsensusDisposable = SingleNodeTestObserver.SubscribeSingleNodeTestProcess();
         }
 
         private async Task SingleNodeMining()
