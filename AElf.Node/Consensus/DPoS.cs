@@ -106,52 +106,6 @@ namespace AElf.Kernel.Node
             }
         }
 
-        /// <summary>
-        /// temple mine to generate fake block data with loop
-        /// </summary>
-//        public async void StartConsensusProcess()
-//        {
-//            if (IsMining)
-//                return;
-//
-//            IsMining = true;
-//
-//            switch (Globals.ConsensusType)
-//            {
-//                case ConsensusType.AElfDPoS:
-//                    if (!BlockProducers.Nodes.Contains(NodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
-//                    {
-//                        break;
-//                    }
-//
-//                    if (_nodeConfig.ConsensusInfoGenerater && !await DPoSHelper.HasGenerated())
-//                    {
-//                        AElfDPoSObserver.Initialization();
-//                        break;
-//                    }
-//                    else
-//                    {
-//                        DPoSHelper.SyncMiningInterval();
-//                        _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms.");
-//                    }
-//
-//                    if (DPoSHelper.CanRecoverDPoSInformation())
-//                    {
-//                        AElfDPoSObserver.RecoverMining();
-//                    }
-//
-//                    break;
-//
-//                case ConsensusType.PoTC:
-//                    await Node.Mine();
-//                    break;
-//
-//                case ConsensusType.SingleNode:
-//                    Node.SingleNodeTestProcess();
-//                    break;
-//            }
-//        }
-
         // ReSharper disable once InconsistentNaming
         public async Task MiningWithInitializingAElfDPoSInformation()
         {
