@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using AElf.Management.Helper;
 using AElf.Management.Models;
+using k8s;
 using k8s.Models;
 
 namespace AElf.Management.Commands
@@ -79,7 +80,7 @@ namespace AElf.Management.Commands
 
             };
 
-            var result = K8SRequestHelper.CreateNamespacedDeployment3(body, chainId);
+            var result = K8SRequestHelper.GetClient().CreateNamespacedDeployment3(body, chainId);
         }
     }
 }

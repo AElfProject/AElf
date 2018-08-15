@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using AElf.Management.Helper;
 using AElf.Management.Models;
+using k8s;
 using k8s.Models;
 
 namespace AElf.Management.Commands
@@ -43,7 +44,7 @@ namespace AElf.Management.Commands
                 }
             };
 
-            K8SRequestHelper.CreateNamespacedService(body, chainId);
+            K8SRequestHelper.GetClient().CreateNamespacedService(body, chainId);
         }
 
         private void AddStatefulSet(string chainId, DeployArg arg)
@@ -109,7 +110,7 @@ namespace AElf.Management.Commands
                 }
             };
 
-            K8SRequestHelper.CreateNamespacedStatefulSet1(body, chainId);
+            K8SRequestHelper.GetClient().CreateNamespacedStatefulSet1(body, chainId);
         }
     }
 }

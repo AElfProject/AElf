@@ -1,5 +1,6 @@
 ﻿using AElf.Management.Helper;
 using AElf.Management.Models;
+using k8s;
 using k8s.Models;
 
 namespace AElf.Management.Commands
@@ -16,7 +17,7 @@ namespace AElf.Management.Commands
                 }
             };
             
-            K8SRequestHelper.CreateNamespace(body);
+            K8SRequestHelper.GetClient().CreateNamespace(body);
         }
     }
 }

@@ -2,6 +2,7 @@
 using AElf.Configuration;
 using AElf.Management.Helper;
 using AElf.Management.Models;
+using k8s;
 using k8s.Models;
 
 namespace AElf.Management.Commands
@@ -29,7 +30,7 @@ namespace AElf.Management.Commands
                 }
             };
 
-            K8SRequestHelper.CreateNamespacedConfigMap(body, chainId);
+            K8SRequestHelper.GetClient().CreateNamespacedConfigMap(body, chainId);
         }
 
         private string GetActorConfigJson(string chainId, DeployArg arg)

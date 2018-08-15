@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AElf.Management.Helper;
 using AElf.Management.Models;
+using k8s;
 using k8s.Models;
 
 namespace AElf.Management.Commands
@@ -24,7 +25,7 @@ namespace AElf.Management.Commands
                 Data = GetAccoutKey(chainId,arg)
             };
 
-            K8SRequestHelper.CreateNamespacedConfigMap(body, chainId);
+            K8SRequestHelper.GetClient().CreateNamespacedConfigMap(body, chainId);
         }
 
         private Dictionary<string, string> GetAccoutKey(string chainId, DeployArg arg)
