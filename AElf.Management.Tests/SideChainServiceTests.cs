@@ -7,6 +7,7 @@ namespace AElf.Management.Tests
     public class SideChainServiceTests
     {
         [Fact(Skip = "require aws account")]
+        //[Fact]
         public void DeployTest()
         {
             var arg = new DeployArg();
@@ -15,7 +16,7 @@ namespace AElf.Management.Tests
             arg.DBArg = new DeployDBArg();
             arg.WorkArg = new DeployWorkArg();
 
-            var chainId = Guid.NewGuid().ToString("N");
+            var chainId = "ed7d50f2a4b94d9b9e7ec6ec6935e14e";//Guid.NewGuid().ToString("N");
 
             var service = new SideChainService();
             service.Deploy(chainId, arg);
