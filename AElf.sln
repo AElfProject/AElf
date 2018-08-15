@@ -93,6 +93,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Concurrency.Manager", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus", "AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj", "{0B29AFEC-6BAB-4E47-991A-F0002F7CF497}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Management", "AElf.Management\AElf.Management.csproj", "{14DDF323-FFDB-48FA-8E57-B5CBDAE5DB6F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Management.Tests", "AElf.Management.Tests\AElf.Management.Tests.csproj", "{71DFC40C-FD36-4F6A-891E-23A24A143ECC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Management.Website", "AElf.Management.Website\AElf.Management.Website.csproj", "{C6F923F1-5C7D-4750-A9EA-E684F265F644}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus", "AElf.Contracts.Consensus\AElf.Contracts.Consensus.csproj", "{548B9649-EE72-445A-92BC-97E9F1858827}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ChainController.Rpc", "AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj", "{2AE2D692-6450-4339-B725-F6DF76CDF437}"
@@ -293,6 +299,18 @@ Global
 		{0B29AFEC-6BAB-4E47-991A-F0002F7CF497}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B29AFEC-6BAB-4E47-991A-F0002F7CF497}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B29AFEC-6BAB-4E47-991A-F0002F7CF497}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14DDF323-FFDB-48FA-8E57-B5CBDAE5DB6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14DDF323-FFDB-48FA-8E57-B5CBDAE5DB6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14DDF323-FFDB-48FA-8E57-B5CBDAE5DB6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14DDF323-FFDB-48FA-8E57-B5CBDAE5DB6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71DFC40C-FD36-4F6A-891E-23A24A143ECC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71DFC40C-FD36-4F6A-891E-23A24A143ECC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71DFC40C-FD36-4F6A-891E-23A24A143ECC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71DFC40C-FD36-4F6A-891E-23A24A143ECC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6F923F1-5C7D-4750-A9EA-E684F265F644}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6F923F1-5C7D-4750-A9EA-E684F265F644}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6F923F1-5C7D-4750-A9EA-E684F265F644}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6F923F1-5C7D-4750-A9EA-E684F265F644}.Release|Any CPU.Build.0 = Release|Any CPU
 		{548B9649-EE72-445A-92BC-97E9F1858827}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{548B9649-EE72-445A-92BC-97E9F1858827}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{548B9649-EE72-445A-92BC-97E9F1858827}.Release|Any CPU.ActiveCfg = Release|Any CPU
