@@ -51,7 +51,7 @@ namespace AElf.Kernel.TxMemPool
         {
             if (Cts.IsCancellationRequested) return TxValidation.TxInsertionAndBroadcastingError.PoolClosed;
 
-            if (_txs.ContainsKey(tx.GetHash()))
+            if (_txs.ContainsKey(tx.GetHash()) || _dPoStxs.ContainsKey(tx.GetHash()))
                 return TxValidation.TxInsertionAndBroadcastingError.AlreadyInserted;
             
             var res = await AddTransaction(tx);

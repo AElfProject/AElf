@@ -244,8 +244,9 @@ namespace AElf.ChainController
             if (_executable.TryGetValue(addr, out var executableList) && executableList.Count > 0 &&
                 executableList.Last().IncrementId >= tx.IncrementId)
             {
+                // NOTE: directly return true withput insertion
                 // todo: try to replace the old one
-                return false;
+                return true;
             }
 
             if (!_waiting.TryGetValue(tx.From, out var waitingList))
@@ -255,8 +256,9 @@ namespace AElf.ChainController
             
             if (waitingList.TryGetValue(tx.IncrementId, out var oldTx))
             {
-                // todo: try to replace the old one
-                return false;
+                // NOTE: directly return true withput insertion
+                // todo: try to replace the old one, 
+                return true;
             }
 
             // add to waiting list
