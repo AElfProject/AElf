@@ -17,8 +17,7 @@ namespace AElf.Management
 
         private IDeployHandler GetHandler()
         {
-            var type = "k8s";
-            return DeployHandlerFactory.GetHandler(type);
+            return DeployHandlerFactory.GetHandler();
         }
     }
 }

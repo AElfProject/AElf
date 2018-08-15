@@ -12,7 +12,7 @@ namespace AElf.Management.Tests
 {
     public class K8SRequestHelperTest
     {
-        [Fact(Skip = "require aws access token")]
+        [Fact(Skip = "require aws account")]
         public void GetClientTest()
         {
             var name = "test";

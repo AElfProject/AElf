@@ -1,12 +1,13 @@
 ﻿using System;
+using AElf.Configuration.Config.Management;
 
 namespace AElf.Management.Handlers
 {
     public class DeployHandlerFactory
     {
-        public static IDeployHandler GetHandler(string type)
+        public static IDeployHandler GetHandler()
         {
-            type = type.ToLower();
+            var type = DeployConfig.Instance.Type.ToLower();
             switch (type)
             {
                 case "k8s":
