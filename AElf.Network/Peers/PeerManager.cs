@@ -27,9 +27,8 @@ namespace AElf.Network.Peers
         public PeerMessageReceivedArgs Message { get; set; }
     }
     
-    [Path("/net")]
     [LoggerName(nameof(PeerManager))]
-    public class PeerManager : IPeerManager, IJsonRpcService
+    public class PeerManager : IPeerManager
     {
         public event EventHandler PeerAdded;
         
@@ -92,10 +91,19 @@ namespace AElf.Network.Peers
             Task.Run(() => StartProcessing()).ConfigureAwait(false);
         }
 
-        [JsonRpcMethod("get_peers")]
         public async Task<JObject> GetPeers()
         {
-            return null;
+            List<NodeData> pl = _peers.Select(p => p.DistantNodeData).ToList();
+            
+            PeerListData pldata = new PeerListData();
+            foreach (var peer in pl)
+            {
+                pldata.NodeData.Add(peer);
+            }
+            
+            await Task.Delay(0);
+            
+            return JObject.Parse(JsonFormatter.Default.Format(pldata));
         }
 
         private void StartProcessing()

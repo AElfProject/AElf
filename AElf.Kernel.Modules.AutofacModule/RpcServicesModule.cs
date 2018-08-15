@@ -1,5 +1,5 @@
 ﻿using AElf.ChainController.Rpc;
-using AElf.Network.Peers;
+using AElf.Net.Rpc;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
@@ -9,7 +9,7 @@ namespace AElf.Kernel.Modules.AutofacModule
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<ChainControllerRpcService>().PropertiesAutowired();
-            builder.RegisterType<PeerManager>();
+            builder.RegisterType<NetRpcService>().PropertiesAutowired();
         }
     }
 }

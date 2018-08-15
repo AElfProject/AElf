@@ -494,11 +494,13 @@ namespace AElf.CLI
                         // RPC
                         HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
                         string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString(), def.GetUrl());
+                        
                         if (resp == null)
                         { 
                             _screenManager.PrintError(ServerConnError);
                             return;
                         }
+                        
                         if (resp.IsEmpty())
                         {
                             _screenManager.PrintError(NoReplyContentError);
@@ -508,16 +510,18 @@ namespace AElf.CLI
                         JObject jObj = JObject.Parse(resp);
                         
                         var j = jObj["result"];
+                        
                         if (j["error"] != null)
                         {
                             _screenManager.PrintLine(j["error"].ToString());
                             return;
                         }
                         
-                        if (j["result"]["BasicContractZero"] != null)
+                        if (j["result"]?["BasicContractZero"] != null)
                         {
                             _genesisAddress = j["result"]["BasicContractZero"].ToString();
                         }
+                        
                         string toPrint = def.GetPrintString(JObject.FromObject(j));
                         
                         _screenManager.PrintLine(toPrint);

@@ -1,11 +1,11 @@
 ﻿using AElf.Network;
 using AElf.Network.Config;
 using AElf.Network.Connection;
-using AElf.Network.Data;
 using AElf.Network.Peers;
 using Autofac;
- 
- namespace AElf.Kernel.Modules.AutofacModule
+using Community.AspNetCore.JsonRpc;
+
+namespace AElf.Kernel.Modules.AutofacModule
  {
      public class NetworkModule : Module
      {
@@ -28,6 +28,8 @@ using Autofac;
                  builder.RegisterType<PeerManager>().As<IPeerManager>();*/
 
              builder.RegisterType<PeerManager>().As<IPeerManager>().SingleInstance();
+             //builder.RegisterType<PeerManager>().As<IPeerManager>().As<IJsonRpcService>();
+             
              builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
              builder.RegisterType<ConnectionListener>().As<IConnectionListener>();
                  

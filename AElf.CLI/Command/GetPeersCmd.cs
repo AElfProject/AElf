@@ -56,7 +56,7 @@ namespace AElf.CLI.Command
             
             try
             {
-                var peersList = resp["data"];
+                JArray peersList = JArray.Parse(resp["nodeData"].ToString());
 
                 foreach (var p in peersList.Children())
                 {
