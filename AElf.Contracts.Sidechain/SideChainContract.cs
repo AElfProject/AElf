@@ -90,6 +90,29 @@ namespace AElf.Contracts.SideChain
 
         #endregion Fields
         
+        [View]
+        public ulong CurrentSideChainSerialNumber()
+        {
+            return _sideChainSerialNumber.Value;
+        }
+
+        public ulong LockedToken(Hash chainId)
+        {
+            Api.Assert(_sideChainInfos.GetValue(chainId) != null, "Not existed side chain.");
+            var info = _sideChainInfos[chainId];
+            Api.Assert(info.Status != (SideChainStatus) 3, "Disposed side chain.");
+            return info.LockedToken;
+        }
+        
+        public byte[] LockedAddress(Hash chainId)
+        {
+            Api.Assert(_sideChainInfos.GetValue(chainId) != null, "Not existed side chain.");
+            var info = _sideChainInfos[chainId];
+            Api.Assert(info.Status != (SideChainStatus) 3, "Disposed side chain.");
+            return info.LockedAddress.GetHashBytes();
+        }
+
+        #region Actions
         public byte[] CreateSideChain(Hash chainId, Hash lockedAddress, ulong lockedToken)
         {
             ulong serialNumber = _sideChainSerialNumber.Increment().Value;
@@ -138,6 +161,17 @@ namespace AElf.Contracts.SideChain
                 chainId = chainId
             }.Fire();
         }
+        
+
+        #endregion
+        
+
+        public int GetChainStatus(Hash chainId)
+        {
+            Api.Assert(_sideChainInfos.GetValue(chainId) != null, "Not existed side chain.");
+            var info = _sideChainInfos[chainId];
+            return (int) info.Status;
+        } 
 
     }
     

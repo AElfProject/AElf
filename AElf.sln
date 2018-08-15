@@ -105,6 +105,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.SideChain.Creation", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Sidechain", "AElf.Contracts.Sidechain\AElf.Contracts.Sidechain.csproj", "{DC3BBD77-6350-4695-BD8A-61E7C69AAE51}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.SideChain.Tests", "AElf.Contracts.SideChain.Tests\AElf.Contracts.SideChain.Tests.csproj", "{986B7FDA-38C5-4A25-8531-DC8CBDD88175}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -311,6 +313,10 @@ Global
 		{DC3BBD77-6350-4695-BD8A-61E7C69AAE51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC3BBD77-6350-4695-BD8A-61E7C69AAE51}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC3BBD77-6350-4695-BD8A-61E7C69AAE51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{986B7FDA-38C5-4A25-8531-DC8CBDD88175}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{986B7FDA-38C5-4A25-8531-DC8CBDD88175}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{986B7FDA-38C5-4A25-8531-DC8CBDD88175}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{986B7FDA-38C5-4A25-8531-DC8CBDD88175}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
