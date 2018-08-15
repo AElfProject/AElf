@@ -185,7 +185,7 @@ namespace AElf.Launcher
             {
                 IsMiner = IsMiner,
                 FullNode = true,
-                Coinbase = Coinbase.Value.ToByteArray()
+                Coinbase = Coinbase?.Value.ToByteArray()
             };
 
             // Actor
