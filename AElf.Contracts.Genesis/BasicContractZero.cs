@@ -16,9 +16,7 @@ namespace AElf.Contracts.Genesis
     public static class FieldNames
     {
         public static readonly string ContractSerialNumber = "__ContractSerialNumber__";
-        public static readonly string SideChainSerialNumber = "__SideChainSerialNumber__";
         public static readonly string ContractInfos = "__ContractInfos__";
-        public static readonly string SideChainInfos = "__sideChainInfos__";
     }
 
     #endregion Field Names
@@ -85,41 +83,6 @@ namespace AElf.Contracts.Genesis
         }
     }
 
-    internal class SideChainSerialNumber : UInt64Field
-    {
-        internal static SideChainSerialNumber Instance { get; } = new SideChainSerialNumber();
-
-        private SideChainSerialNumber() : this(FieldNames.SideChainSerialNumber)
-        {
-        }
-
-        private SideChainSerialNumber(string name) : base(name)
-        {
-        }
-
-        private ulong _value;
-
-        public ulong Value
-        {
-            get
-            {
-                if (_value == 0)
-                {
-                    _value = GetValue();
-                }
-
-                return _value;
-            }
-            private set { _value = value; }
-        }
-
-        public SideChainSerialNumber Increment()
-        {
-            this.Value = this.Value + 1;
-            SetValue(this.Value);
-            return this;
-        }
-    }
 
     #endregion Customized Field Types
 
@@ -128,7 +91,6 @@ namespace AElf.Contracts.Genesis
         #region Fields
 
         private readonly ContractSerialNumber _contractSerialNumber = ContractSerialNumber.Instance;
-        private readonly SideChainSerialNumber _sideChainSerialNumber = SideChainSerialNumber.Instance;
         private readonly Map<Hash, ContractInfo> _contractInfos = new Map<Hash, ContractInfo>(FieldNames.ContractInfos);
 
         #endregion Fields
@@ -137,12 +99,6 @@ namespace AElf.Contracts.Genesis
         public ulong CurrentContractSerialNumber()
         {
             return _contractSerialNumber.Value;
-        }
-
-        [View]
-        public ulong CurrentSideChainSerialNumber()
-        {
-            return _sideChainSerialNumber.Value;
         }
 
         [View]

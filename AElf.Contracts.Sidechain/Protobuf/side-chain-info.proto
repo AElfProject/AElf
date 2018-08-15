@@ -20,4 +20,5 @@ message SideChainInfo
     SideChainStatus Status = 4;
     Hash LockedAddress = 5;
     uint64 LockedToken = 6;
+    uint64 CreationHeight =7;
 }

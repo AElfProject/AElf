@@ -73,6 +73,11 @@ namespace AElf.Sdk.CSharp
         {
             return _transactionContext.PreviousBlockHash.ToReadOnly();
         }
+        
+        public static ulong GetCurerntHeight()
+        {
+            return _transactionContext.BlockHeight;
+        }
 
         public static Hash GetContractAddress()
         {

@@ -32,11 +32,9 @@ namespace AElf.Contracts.SideChain
         public SideChainInfo Info;
     }
 
-    public class OwnerHasBeenChanged : Event
+    public class SideChainDisposal : Event
     {
-        [Indexed] public Hash Address;
-        [Indexed] public Hash OldOwner;
-        [Indexed] public Hash NewOwner;
+        public Hash chainId;
     }
 
     #endregion Events
@@ -102,7 +100,8 @@ namespace AElf.Contracts.SideChain
                 SerialNumer = serialNumber,
                 Status = SideChainStatus.Pending,
                 LockedAddress = lockedAddress,
-                LockedToken = lockedToken
+                LockedToken = lockedToken,
+                CreationHeight = Api.GetCurerntHeight() + 1 
             };
             _sideChainInfos[chainId] = info;
             new SideChainCreationRequested()
@@ -129,9 +128,15 @@ namespace AElf.Contracts.SideChain
     
         public void DisposeSideChain(Hash chainId)
         {
-            Api.Assert(_sideChainInfos.GetValue(chainId) != null, "Not found side chain");
+            Api.Assert(_sideChainInfos.GetValue(chainId) != null, "Not existed side chain");
+            // TODO: Only privileged account can trigger this method
             var info = _sideChainInfos[chainId];
-            Api.Assert(Api.GetTransaction().From.Equals(info.Owner), "");
+            info.Status = SideChainStatus.Terminated;
+            _sideChainInfos[chainId] = info;
+            new SideChainDisposal()
+            {
+                chainId = chainId
+            }.Fire();
         }
 
     }
