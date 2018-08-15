@@ -154,5 +154,10 @@ namespace AElf.Launcher
         public string InitData { get; set; }
 
         #endregion
+
+        #region Management
+        [Option("management.url", HelpText = "The url for the management api.")]
+        public string ManagementUrl { get; set; }
+        #endregion
     }
 }

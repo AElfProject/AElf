@@ -10,6 +10,7 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using AElf.Contracts.Genesis;
 using AElf.Kernel.Managers;
+using Newtonsoft.Json.Linq;
 using NLog;
 
 namespace AElf.SideChain.Creation
@@ -21,16 +22,19 @@ namespace AElf.SideChain.Creation
         private ITransactionResultManager TransactionResultManager { get; set; }
         private IChainCreationService ChainCreationService { get; set; }
         private INodeConfig NodeConfig { get; set; }
+        private IManagementConfig ManagementConfig { get; set; }
         private LogEvent _interestedLogEvent;
         private Bloom _bloom;
+        private HttpRequestor _httpRequestor;
 
         public ChainCreationEventListener(ILogger logger, ITransactionResultManager transactionResultManager,
-            IChainCreationService chainCreationService, INodeConfig nodeConfig)
+            IChainCreationService chainCreationService, INodeConfig nodeConfig, IManagementConfig managementConfig)
         {
             _logger = logger;
             TransactionResultManager = transactionResultManager;
             ChainCreationService = chainCreationService;
             NodeConfig = nodeConfig;
+            ManagementConfig = managementConfig;
             _interestedLogEvent = new LogEvent()
             {
                 Address = GetGenesisContractHash(),
@@ -40,6 +44,7 @@ namespace AElf.SideChain.Creation
                 }
             };
             _bloom = _interestedLogEvent.GetBloom();
+            _httpRequestor = new HttpRequestor(ManagementConfig.Url);
         }
 
         private Hash GetGenesisContractHash()
@@ -92,6 +97,14 @@ namespace AElf.SideChain.Creation
             foreach (var info in infos)
             {
                 _logger?.Info("Chain creation event: " + info);
+                var res = _httpRequestor.DoRequest(
+                    info.ChainId.ToHex(),
+                    new JObject()
+                    {
+                        ["MainChainAccount"] = ManagementConfig.NodeAccount,
+                        ["AccountPassword"] = ManagementConfig.NodeAccountPassword
+                    }.ToString());
+                _logger?.Info("Management API return message: " + res);
             }
         }
     }

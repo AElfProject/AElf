@@ -26,6 +26,7 @@ namespace AElf.Launcher
         public IMinerConfig MinerConfig { get; private set; }
         public INodeConfig NodeConfig { get; private set; }
         public IRunnerConfig RunnerConfig { get; private set; }
+        public IManagementConfig ManagementConfig { get; private set; }
 
         public bool Rpc { get; private set; }
         public int RpcPort { get; private set; }
@@ -188,6 +189,9 @@ namespace AElf.Launcher
                 Coinbase = Coinbase.Value.ToByteArray()
             };
 
+            // management config
+            ManagementConfig= new ManagementConfig();
+
             // Actor
             if (opts.ActorIsCluster.HasValue)
                 ActorConfig.Instance.IsCluster = opts.ActorIsCluster.Value;
@@ -214,6 +218,9 @@ namespace AElf.Launcher
                 ? ApplicationHelpers.GetDefaultDataDir()
                 : opts.DataDir;
 
+            // management config
+            ManagementConfig.Url = opts.ManagementUrl;
+            
             // runner config
             RunnerConfig = new RunnerConfig
             {
