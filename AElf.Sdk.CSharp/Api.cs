@@ -142,7 +142,7 @@ namespace AElf.Sdk.CSharp
                 }
             }).Unwrap().Wait();
 
-            _transactionContext.Trace.Logs.AddRange(_lastInlineCallContext.Trace.Logs);
+            _transactionContext.Trace.InlineTraces.Add(_lastInlineCallContext.Trace);
 
             // TODO: Put inline transactions into Transaction Result of calling transaction
 

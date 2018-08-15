@@ -117,7 +117,7 @@ namespace AElf.ChainController
 
                 //remove txs from executable list 
                 minerTxs.RemoveRange(0, r);
-            }
+            }  
 
             // get txs from other address
             foreach (var kv in _executable)
@@ -154,7 +154,7 @@ namespace AElf.ChainController
         {
             // disgard the tx if too old
             if (tx.IncrementId < GetNonce(tx.From))
-                return TxValidation.TxInsertionAndBroadcastingError.AlreadyExecuted;
+                  return TxValidation.TxInsertionAndBroadcastingError.AlreadyExecuted;
             
             var error = this.ValidateTx(tx);
             if (error == TxValidation.TxInsertionAndBroadcastingError.Valid)
@@ -163,10 +163,10 @@ namespace AElf.ChainController
                 if (res)
                 {
                     Promote(tx.From);
+                    return TxValidation.TxInsertionAndBroadcastingError.Success;
                 }
-                _logger?.Log(LogLevel.Debug, $"Inserted DPoS transaction {tx.GetHash().ToHex()} from {tx.From.ToHex()}");
-                // return success directlly if the incrementid already inserted
-                return TxValidation.TxInsertionAndBroadcastingError.Success;
+
+                return TxValidation.TxInsertionAndBroadcastingError.Failed;
             }
             _logger.Error("InValid transaction: " + error);
             return error;

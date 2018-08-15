@@ -165,10 +165,11 @@ namespace AElf.ChainController
                 if (res)
                 {
                     Promote(tx.From);
+                    // return success directlly if the incrementid already inserted
+                    return TxValidation.TxInsertionAndBroadcastingError.Success;
                 }
-                
-                // return success directlly if the incrementid already inserted
-                return TxValidation.TxInsertionAndBroadcastingError.Success;
+
+                return TxValidation.TxInsertionAndBroadcastingError.Failed;
             }
             _logger.Error("InValid transaction: " + error);
             return error;

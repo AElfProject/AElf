@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Contracts.Genesis";
+
+import "hash.proto";
+
+enum SideChainStatus
+{
+    Undefined = 0;
+    Pending = 1;
+    Active = 2;
+    Terminated = 3;
+}
+
+message SideChainInfo
+{
+    Hash Owner = 1;
+    uint64 SerialNumer = 2;
+    Hash ChainId = 3;
+    SideChainStatus Status = 4;
+}
