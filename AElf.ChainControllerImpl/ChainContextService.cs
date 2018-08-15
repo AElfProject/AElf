@@ -6,20 +6,24 @@ namespace AElf.ChainController
 {
     public class ChainContextService : IChainContextService
     {
-        private IChainManager _chainManager;
-        public ChainContextService(IChainManager chainManager)
+        private IChainService _chainService;
+        public ChainContextService(IChainService chainService)
         {
-            _chainManager = chainManager;
+            _chainService = chainService;
         }
 
         public async Task<IChainContext> GetChainContextAsync(Hash chainId)
         {
+            var blockchain = _chainService.GetBlockChain(chainId);
             IChainContext chainContext = new ChainContext()
             {
                 ChainId = chainId,
-                BlockHeight = await _chainManager.GetChainCurrentHeight(chainId),
-                BlockHash = await _chainManager.GetChainLastBlockHash(chainId)
+                BlockHash = await blockchain.GetCurrentBlockHashAsync()
             };
+            if (chainContext.BlockHash != Hash.Genesis)
+            {
+                chainContext.BlockHeight = ((BlockHeader)await blockchain.GetHeaderByHashAsync(chainContext.BlockHash)).Index;
+            }
             return chainContext;
         }
     }

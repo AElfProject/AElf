@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Security;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -11,15 +12,19 @@ using AElf.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
-using AElf.Kernel.Node.Config;
+using AElf.Configuration;
+using AElf.Kernel.TxMemPool;
+using AElf.Network;
 using AElf.Network.Config;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
+using AsyncEventAggregator;
 using Autofac;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ServiceStack;
 using IContainer = Autofac.IContainer;
+using RpcServer = AElf.RPC.RpcServer;
 
 namespace AElf.Launcher
 {
@@ -46,7 +51,6 @@ namespace AElf.Launcher
             if (!parsed)
                 return;
 
-            var txPoolConf = confParser.TxPoolConfig;
             var netConf = confParser.NetConfig;
             var minerConfig = confParser.MinerConfig;
             var nodeConfig = confParser.NodeConfig;
@@ -60,6 +64,33 @@ namespace AElf.Launcher
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
+
+            // todo : quick fix, to be refactored
+            ECKeyPair nodeKey = null;
+            if (!string.IsNullOrWhiteSpace(confParser.NodeAccount))
+            {
+                try
+                {
+                    var ks = new AElfKeyStore(nodeConfig.DataDir);
+                    var pass = string.IsNullOrWhiteSpace(confParser.NodeAccountPassword)
+                        ? AskInvisible(confParser.NodeAccount)
+                        : confParser.NodeAccountPassword;
+                    ks.OpenAsync(confParser.NodeAccount, pass, false);
+
+                    nodeKey = ks.GetAccountKeyPair(confParser.NodeAccount);
+                    if (nodeKey == null)
+                    {
+                        Console.WriteLine("Load keystore failed");
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("Load keystore failed");
+                }
+            }
+
+            var txPoolConf = confParser.TxPoolConfig;
+            txPoolConf.EcKeyPair = nodeKey;
 
             // Setup ioc 
             var container = SetupIocContainer(isMiner, isNewChain, netConf, txPoolConf,
@@ -77,27 +108,6 @@ namespace AElf.Launcher
                 return;
             }
 
-            // todo : quick fix, to be refactored
-            ECKeyPair nodeKey = null;
-            if (!string.IsNullOrWhiteSpace(confParser.NodeAccount))
-            {
-                try
-                {
-                    var ks = new AElfKeyStore(nodeConfig.DataDir);
-                    var pass = string.IsNullOrWhiteSpace(confParser.NodeAccountPassword) ? AskInvisible(confParser.NodeAccount) : confParser.NodeAccountPassword;
-                    ks.OpenAsync(confParser.NodeAccount, pass, false);
-
-                    nodeKey = ks.GetAccountKeyPair(confParser.NodeAccount);
-                    if (nodeKey == null)
-                    {
-                        Console.WriteLine("Load keystore failed");
-                    }
-                }
-                catch (Exception e)
-                {
-                    throw new Exception("Load keystore failed");
-                }
-            }
 
             using (var scope = container.BeginLifetimeScope())
             {
@@ -105,21 +115,73 @@ namespace AElf.Launcher
                 concurrencySercice.InitActorSystem();
 
                 var node = scope.Resolve<IAElfNode>();
-
                 // Start the system
-                node.Start(nodeKey, confParser.Rpc, confParser.RpcPort, confParser.RpcHost, initData,
-                    SmartContractZeroCode);
+                node.Start(nodeKey, TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero);
+
+                var txPoolService = scope.Resolve<ITxPoolService>();
+                node.Subscribe<IncomingTransaction>(
+                    async (inTx) => { await txPoolService.AddTxAsync((await inTx).Transaction); });
+
+                var netManager = scope.Resolve<INetworkManager>();
+                netManager.Subscribe<TransactionAddedToPool>(
+                    async (txAdded) =>
+                    {
+                        await netManager.BroadcastMessage(AElfProtocolType.BroadcastTx,
+                            (await txAdded).Transaction.Serialize());
+                    }
+                );
+
+                if (confParser.Rpc)
+                {
+                    var rpc = new RpcServer();
+                    rpc.Initialize(scope, confParser.RpcHost, confParser.RpcPort);
+                    rpc.RunAsync();
+                }
 
                 //DoDPos(node);
                 Console.ReadLine();
             }
         }
 
-        private static byte[] SmartContractZeroCode
+        private static byte[] TokenGenesisContractCode
         {
             get
             {
-                var contractZeroDllPath = Path.Combine(AssemblyDir, $"{Globals.GenesisSmartContractZeroAssemblyName}.dll");
+                var contractZeroDllPath = Path.Combine(AssemblyDir, $"{Globals.GenesisTokenContractAssemblyName}.dll");
+
+                byte[] code;
+                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
+                {
+                    code = file.ReadFully();
+                }
+
+                return code;
+            }
+        }
+
+        private static byte[] ConsensusGenesisContractCode
+        {
+            get
+            {
+                var contractZeroDllPath =
+                    Path.Combine(AssemblyDir, $"{Globals.GenesisConsensusContractAssemblyName}.dll");
+
+                byte[] code;
+                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
+                {
+                    code = file.ReadFully();
+                }
+
+                return code;
+            }
+        }
+
+        private static byte[] BasicContractZero
+        {
+            get
+            {
+                var contractZeroDllPath =
+                    Path.Combine(AssemblyDir, $"{Globals.GenesisSmartContractZeroAssemblyName}.dll");
 
                 byte[] code;
                 using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
@@ -145,10 +207,11 @@ namespace AElf.Launcher
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new WorldStateDictatorModule());
-            builder.RegisterModule(new LoggerModule("aelf-node-" + netConf.Port));
+            builder.RegisterModule(new LoggerModule("aelf-node-" + netConf.ListeningPort));
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new NetworkModule(netConf, isMiner));
-            builder.RegisterModule(new RpcServerModule());
+            builder.RegisterModule(new RpcServicesModule());
+            builder.RegisterType<ChainService>().As<IChainService>();
 
             // register SmartContractRunnerFactory 
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
@@ -182,7 +245,7 @@ namespace AElf.Launcher
             minerConfiguration.ChainId = chainId;
             builder.RegisterModule(new MinerModule(minerConfiguration));
 
-            nodeConfig.ChainId = chainId;
+            nodeConfig.ChainId = chainId.Value.ToByteArray();
             builder.RegisterModule(new MainChainNodeModule(nodeConfig));
 
             txPoolConf.ChainId = chainId;

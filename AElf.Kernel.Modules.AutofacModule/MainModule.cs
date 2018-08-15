@@ -29,6 +29,9 @@ namespace AElf.Kernel.Modules.AutofacModule
             
             var assembly6 = typeof(Node.MainChainNode).Assembly;
             builder.RegisterAssemblyTypes(assembly6).AsImplementedInterfaces();
+            
+            var assembly7 = typeof(BlockHeader).Assembly;
+            builder.RegisterAssemblyTypes(assembly7).AsImplementedInterfaces();
 
             builder.RegisterType(typeof(Hash)).As(typeof(IHash));
 

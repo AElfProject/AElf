@@ -4,7 +4,9 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Contracts.Consensus\AElf.Contracts.Consensus.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+    <ProjectReference Include="..\AElf.Contracts.Token\AElf.Contracts.Token.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj">
       <Project>{C7B2F451-DF68-4FBB-AEA1-020F17BB6598}</Project>
       <Name>AElf.Kernel.Modules.AutofacModule</Name>
@@ -12,11 +14,13 @@
     <None Update="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.0" />
     <PackageReference Include="CommandLineParser" Version="2.2.1" />
+    <PackageReference Include="EventAggregator" Version="1.0.0" />
     <PackageReference Include="NLog" Version="4.5.6" />
     <PackageReference Include="ServiceStack" Version="5.1.0" />
   </ItemGroup>

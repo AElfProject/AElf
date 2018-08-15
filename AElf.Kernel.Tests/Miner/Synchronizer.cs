@@ -43,7 +43,7 @@ namespace AElf.Kernel.Tests.Miner
 
         public Synchronizer(
             IChainCreationService chainCreationService, IChainContextService chainContextService,
-            IChainManager chainManager, IBlockManager blockManager, ILogger logger,
+            IChainService chainService, ILogger logger,
             ITransactionResultManager transactionResultManager, ITransactionManager transactionManager,
             FunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService,
             IChangesStore changesStore, IWorldStateStore worldStateStore, IDataStore dataStore,
@@ -54,8 +54,7 @@ namespace AElf.Kernel.Tests.Miner
 
             _chainCreationService = chainCreationService;
             _chainContextService = chainContextService;
-            _chainManager = chainManager;
-            _blockManager = blockManager;
+            _chainService = chainService;
             _logger = logger;
             _transactionResultManager = transactionResultManager;
             _transactionManager = transactionManager;
@@ -131,8 +130,7 @@ namespace AElf.Kernel.Tests.Miner
         
 
         private static int _incrementId;
-        private IChainManager _chainManager;
-        private IBlockManager _blockManager;
+        private IChainService _chainService;
 
         
         public ulong NewIncrementId()
@@ -169,7 +167,7 @@ namespace AElf.Kernel.Tests.Miner
                 ContractHash = SmartContractZeroCode.CalculateHash()
             };
 
-            var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
+            var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
             _worldStateDictator.SetChainId(chainId);
             return chain;
         }
@@ -177,7 +175,7 @@ namespace AElf.Kernel.Tests.Miner
 
         public List<ITransaction> CreateTxs(Hash chainId)
         {
-            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
 
             var code = ExampleContractCode;
             
@@ -191,7 +189,8 @@ namespace AElf.Kernel.Tests.Miner
                 MethodName = "DeploySmartContract",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack((int)0, code)),
                 
-                Fee = TxPoolConfig.Default.FeeThreshold + 1
+                Fee = TxPoolConfig.Default.FeeThreshold + 1,
+                Type = TransactionType.ContractTransaction
             };
             
             Hash hash = txnDep.GetHash();
@@ -209,7 +208,8 @@ namespace AElf.Kernel.Tests.Miner
                 MethodName = "Print",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack("AElf")),
                 
-                Fee = TxPoolConfig.Default.FeeThreshold + 1
+                Fee = TxPoolConfig.Default.FeeThreshold + 1,
+                Type = TransactionType.ContractTransaction
             };
             ECSignature signature2 = signer.Sign(keyPair, txInv_1.GetHash().GetHashBytes());
             txInv_1.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
@@ -224,7 +224,8 @@ namespace AElf.Kernel.Tests.Miner
                 MethodName = "Print",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack("Hoopox")),
                 
-                Fee = TxPoolConfig.Default.FeeThreshold + 1
+                Fee = TxPoolConfig.Default.FeeThreshold + 1,
+                Type = TransactionType.ContractTransaction
             };
             
             ECSignature signature3 = signer.Sign(keyPair, txInv_2.GetHash().GetHashBytes());
@@ -255,10 +256,10 @@ namespace AElf.Kernel.Tests.Miner
             var chain = await CreateChain(NewSmartContractZeroCode);
             poolconfig.ChainId = chain.Id;
             
-            var pool = new TxPool(poolconfig, _logger);
+            var contractTxPool = new ContractTxPool(poolconfig, _logger);
+            var dPoSTxPool = new DPoSTxPool(poolconfig, _logger);
             
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(contractTxPool, _accountContextService, _logger, dPoSTxPool);
             
             poolService.Start();
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, 1);
@@ -280,7 +281,7 @@ namespace AElf.Kernel.Tests.Miner
             block.Body.BlockHeader = block.Header.GetHash();
 
             var synchronizer = new BlockExecutor(poolService,
-                _chainManager, _blockManager, _worldStateDictator, _concurrencyExecutingService, null, _transactionManager, _transactionResultManager);
+                _chainService, _worldStateDictator, _concurrencyExecutingService, null, _transactionManager, _transactionResultManager);
 
             synchronizer.Start(new Grouper(_servicePack.ResourceDetectionService));
             var res = await synchronizer.ExecuteBlock(block);
@@ -290,10 +291,13 @@ namespace AElf.Kernel.Tests.Miner
             Assert.Equal((ulong)2, await poolService.GetExecutableSizeAsync());
             //Assert.False(poolService.TryGetTx(txs[2].GetHash(), out tx));
             Assert.True(poolService.TryGetTx(txs[1].GetHash(), out tx));
-            Assert.Equal((ulong)0, pool.GetNonce(tx.From));
+            Assert.Equal((ulong)0, contractTxPool.GetNonce(tx.From));
 
-            Assert.Equal((ulong)1, await _chainManager.GetChainCurrentHeight(chain.Id));
-            Assert.Equal(chain.GenesisBlockHash, await _chainManager.GetChainLastBlockHash(chain.Id));
+            var blockchain = _chainService.GetBlockChain(chain.Id); 
+            var curHash = await blockchain.GetCurrentBlockHashAsync();
+            var index = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
+            Assert.Equal((ulong)0, index);
+            Assert.Equal(chain.GenesisBlockHash, curHash);
         }
     }
 }

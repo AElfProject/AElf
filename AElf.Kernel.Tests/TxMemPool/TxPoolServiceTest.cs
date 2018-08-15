@@ -4,9 +4,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.SmartContract;
 using AElf.Kernel.Managers;
 using AElf.Kernel.TxMemPool;
+using AsyncEventAggregator;
 using Google.Protobuf;
 using NLog;
 using Xunit;
@@ -31,22 +33,29 @@ namespace AElf.Kernel.Tests.TxMemPool
             _transactionResultManager = transactionResultManager;
             _worldStateDictator = worldStateDictator;
             _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
+            this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
         }
 
-        private TxPool GetPool()
+        private ContractTxPool GetContractTxPool(ITxPoolConfig config)
         {
-            var config = TxPoolConfig.Default;
             _worldStateDictator.SetChainId(config.ChainId);
-            return new TxPool(config, _logger);
+            return new ContractTxPool(config, _logger);
+        }
+        
+        private DPoSTxPool GetDPoSTxPool(ITxPoolConfig config)
+        {
+            _worldStateDictator.SetChainId(config.ChainId);
+            return new DPoSTxPool(config, _logger);
         }
 
         [Fact]
         public async Task AddTxTest()
         {
-            var pool = GetPool();
+            var config = TxPoolConfig.Default;
+            var pool = GetContractTxPool(config);
+            var dPoSPool = GetDPoSTxPool(config);
 
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger, dPoSPool);
             poolService.Start();
 
             var addr11 = Hash.Generate();
@@ -63,10 +72,11 @@ namespace AElf.Kernel.Tests.TxMemPool
         [Fact]
         public async Task WaitingTest()
         {
-            var pool = GetPool();
+            var config = TxPoolConfig.Default;
+            var pool = GetContractTxPool(config);
+            var dPoSPool = GetDPoSTxPool(config);
 
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger, dPoSPool);
             poolService.Start();
             var tx1 = BuildTransaction();
             var res = await poolService.AddTxAsync(tx1);
@@ -86,11 +96,11 @@ namespace AElf.Kernel.Tests.TxMemPool
         [Fact]
         public async Task ReadyTxs()
         {
-            var pool = GetPool();
+            var config = TxPoolConfig.Default;
+            var pool = GetContractTxPool(config);
+            var dPoSPool = GetDPoSTxPool(config);
 
-
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger, dPoSPool);
             poolService.Start();
 
             var keyPair = new KeyPairGenerator().Generate();
@@ -98,7 +108,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var tx2 = BuildTransaction(nonce: 1, keyPair:keyPair);
             await poolService.AddTxAsync(tx1);
             await poolService.AddTxAsync(tx2);
-            var txs1 = await poolService.GetReadyTxsAsync(10);
+            var txs1 = await poolService.GetReadyTxsAsync();
             Assert.Equal(2, txs1.Count);
 
             var txResults1 = txs1.Select(t => new TransactionResult
@@ -119,7 +129,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             await poolService.AddTxAsync(tx3);
             await poolService.AddTxAsync(tx4);
             
-            var txs2 = await poolService.GetReadyTxsAsync(10);
+            var txs2 = await poolService.GetReadyTxsAsync();
             Assert.Equal(2, txs2.Count);
 
             var txResults2 = txs2.Select(t => new TransactionResult
@@ -136,10 +146,11 @@ namespace AElf.Kernel.Tests.TxMemPool
         [Fact]
         public async Task StopTest()
         {
-            var pool = GetPool();
+            var config = TxPoolConfig.Default;
+            var pool = GetContractTxPool(config);
+            var dPoSPool = GetDPoSTxPool(config);
 
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger, dPoSPool);
             poolService.Start();
             
             await poolService.Stop();
@@ -153,9 +164,11 @@ namespace AElf.Kernel.Tests.TxMemPool
         [Fact]
         public async Task AddMultiTxs()
         {
-            var pool = GetPool();
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var config = TxPoolConfig.Default;
+            var pool = GetContractTxPool(config);
+            var dPoSPool = GetDPoSTxPool(config);
+
+            var poolService = new TxPoolService(pool, _accountContextService, _logger, dPoSPool);
             poolService.Start();
             var kp = new KeyPairGenerator().Generate();
             var tx1 = BuildTransaction(keyPair:kp, nonce: 0);
@@ -181,10 +194,11 @@ namespace AElf.Kernel.Tests.TxMemPool
         [Fact]
         public async Task RollBackTest()
         {
-            var pool = GetPool();
+            var config = TxPoolConfig.Default;
+            var pool = GetContractTxPool(config);
+            var dPoSPool = GetDPoSTxPool(config);
 
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger, dPoSPool);
             poolService.Start();
             
             var kp1 = new KeyPairGenerator().Generate();
@@ -235,7 +249,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             Assert.Equal((ulong) 1,
                 (await _accountContextService.GetAccountDataContext(kp4.GetAddress(), pool.ChainId)).IncrementId);
 
-            await poolService.GetReadyTxsAsync(100);
+            await poolService.GetReadyTxsAsync();
             Assert.Equal((ulong)4, pool.GetNonce(kp1.GetAddress()).Value);
             Assert.Equal((ulong)1, pool.GetNonce(kp2.GetAddress()).Value);
             Assert.Equal((ulong)2, pool.GetNonce(kp3.GetAddress()).Value);
@@ -254,6 +268,8 @@ namespace AElf.Kernel.Tests.TxMemPool
             tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
             tx.MethodName = "hello world";
+            tx.Type = TransactionType.ContractTransaction;
+
             tx.Params = ByteString.CopyFrom(new Parameters
             {
                 Params = { new Param

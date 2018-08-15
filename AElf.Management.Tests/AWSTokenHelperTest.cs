@@ -5,7 +5,7 @@ namespace AElf.Management.Tests
 {
     public class AWSTokenHelperTest
     {
-        [Fact]
+        [Fact(Skip = "require aws access token")]
         public void GetTokenTest()
         {
             var credential = AWSTokenHelper.GetToken();

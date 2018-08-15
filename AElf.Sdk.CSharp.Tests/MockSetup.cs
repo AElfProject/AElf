@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
@@ -35,15 +36,13 @@ namespace AElf.Sdk.CSharp.Tests
 
         private IWorldStateDictator _worldStateDictator;
         private IChainCreationService _chainCreationService;
-        private IBlockManager _blockManager;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, IBlockManager blockManager, ISmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, ISmartContractStore smartContractStore, IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
             _worldStateDictator = worldStateDictator;
             _chainCreationService = chainCreationService;
-            _blockManager = blockManager;
             ChainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
@@ -79,8 +78,8 @@ namespace AElf.Sdk.CSharp.Tests
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.Zero
             };
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
-            var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
+            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
+            
             DataProvider1 = await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId1));
         }
 
@@ -88,7 +87,7 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var reg = new SmartContractRegistration
             {
-                Category = 0,
+                Category = 1,
                 ContractBytes = ByteString.CopyFrom(code),
                 ContractHash = new Hash(code)
             };

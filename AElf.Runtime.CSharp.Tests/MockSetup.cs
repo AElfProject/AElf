@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -42,16 +43,14 @@ namespace AElf.Runtime.CSharp.Tests
         private ISmartContractManager _smartContractManager;
         public IWorldStateDictator WorldStateDictator;
         private IChainCreationService _chainCreationService;
-        private IBlockManager _blockManager;
         private IFunctionMetadataService _functionMetadataService;
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, IBlockManager blockManager, SmartContractStore smartContractStore, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
+        public MockSetup(IWorldStateDictator worldStateDictator, IChainCreationService chainCreationService, SmartContractStore smartContractStore, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
             WorldStateDictator = worldStateDictator;
             _chainCreationService = chainCreationService;
-            _blockManager = blockManager;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
             _smartContractManager = new SmartContractManager(smartContractStore);
@@ -80,14 +79,15 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero
+                ContractHash = Hash.Zero,
+                Type = (int)SmartContractType.BasicContractZero
             };
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, reg);
-            var genesis1 = await _blockManager.GetBlockAsync(chain1.GenesisBlockHash);
+            
+            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
             DataProvider1 = await (WorldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId1));
 
-            var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, reg);
-            var genesis2 = await _blockManager.GetBlockAsync(chain2.GenesisBlockHash);
+            var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
+
             DataProvider2 = await (WorldStateDictator.SetChainId(ChainId2)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId2));
         }
 
@@ -95,7 +95,7 @@ namespace AElf.Runtime.CSharp.Tests
         {
             var reg = new SmartContractRegistration
             {
-                Category = 0,
+                Category = 1,
                 ContractBytes = ByteString.CopyFrom(ContractCode),
                 ContractHash = new Hash(ContractCode)
             };

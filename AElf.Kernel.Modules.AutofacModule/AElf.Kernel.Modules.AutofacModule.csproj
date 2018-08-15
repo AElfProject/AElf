@@ -8,6 +8,7 @@
     <PackageReference Include="xunit.frameworks.autofac" Version="0.1.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj" />
     <ProjectReference Include="..\AElf.Node\AElf.Node.csproj" />
   </ItemGroup>
   <ItemGroup>

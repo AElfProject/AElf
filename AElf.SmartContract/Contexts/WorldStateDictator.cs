@@ -121,6 +121,14 @@ namespace AElf.SmartContract
             var keyToGetCount = ResourcePath.CalculatePointerForPathsCount(_chainId, PreBlockHash);
             await _dataStore.SetDataAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
         }
+
+        public async Task RollbackToBlockHash(Hash blockHash)
+        {
+            await Check();
+            await RollbackCurrentChangesAsync();
+            PreBlockHash = blockHash;
+            await RollbackCurrentChangesAsync();
+        }
         
         /// <summary>
         /// The world state will rollback to specific block height's world state
@@ -473,6 +481,8 @@ namespace AElf.SmartContract
         {
             Hash prevBlockHash = await _dataStore.GetDataAsync<Hash>(ResourcePath.CalculatePointerForLastBlockHash(chainId));
             
+            _logger?.Debug($"Pipeline set {cachedActions.Count} data item");
+            
             //Only dirty, i.e., changed data item, will be applied to database
             var pipelineSet = cachedActions.Where(kv => kv.Value.Dirty)
                 .ToDictionary(kv => new Hash(kv.Key.CalculateHashWith(prevBlockHash)), kv => kv.Value.CurrentValue);
@@ -484,17 +494,6 @@ namespace AElf.SmartContract
 
             //return true for read-only 
             return true;
-        }
-        
-        public async Task SetBlockHashToCorrespondingHeight(ulong height, BlockHeader header)
-        {
-            var blockHash = header.GetHash();
-            _logger?.Trace($"Set height {height} block hash: {blockHash.Value.ToByteArray().ToHex()}");
-            await _dataStore.SetDataAsync<Hash>(
-                ResourcePath.CalculatePointerForGettingBlockHashByHeight(
-                    header.ChainId,
-                    height),
-                blockHash.ToByteArray());
         }
 
         #region Private methods

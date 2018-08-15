@@ -15,6 +15,7 @@ using AElf.SmartContract;
 using AElf.SmartContract.MetaData;
 using AElf.Types.CSharp.MetadataAttribute;
  using LiteDB;
+ using Globals = AElf.Kernel.Globals;
 
 namespace AElf.Runtime.CSharp
 {
@@ -62,9 +63,14 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
-            var abiModule = GetAbiModule(reg);
+            string name = null;
+            if (reg.Category == 0)
+                name = ((SmartContractType)reg.Type).ToString();
+            var abiModule = GetAbiModule(reg, name);
+            
             // TODO: Change back
-            var type = assembly.GetTypes().FirstOrDefault(x => x.FullName == abiModule.Name);
+            var types = assembly.GetTypes();
+            var type = types.FirstOrDefault(x => x.FullName.Contains(abiModule.Name));
             if (type == null)
             {
                 throw new InvalidCodeException($"No SmartContract type {abiModule.Name} is defined in the code.");
@@ -84,16 +90,20 @@ namespace AElf.Runtime.CSharp
             return await Task.FromResult(executive);
         }
 
-        private Module GetAbiModule(SmartContractRegistration reg)
+        private Module GetAbiModule(SmartContractRegistration reg, string name = null)
         {
             var code = reg.ContractBytes.ToByteArray();
-            var abiModule = Generator.GetABIModule(code);
+            if (reg.Category == 0)
+            {
+                name = ((SmartContractType)reg.Type).ToString();
+            }
+            var abiModule = Generator.GetABIModule(code, name);
             return abiModule;
         }
 
-        public IMessage GetAbi(SmartContractRegistration reg)
+        public IMessage GetAbi(SmartContractRegistration reg, string name = null)
         {
-            return GetAbiModule(reg);
+            return GetAbiModule(reg, name);
         }
 
         public System.Type GetContractType(SmartContractRegistration reg)
@@ -115,9 +125,9 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
-            var abiModule = Generator.GetABIModule(code);
+            var abiModule = GetAbiModule(reg);
             // TODO: Change back
-            var type = assembly.GetTypes().FirstOrDefault(x => x.FullName == abiModule.Name);
+            var type = assembly.GetTypes().FirstOrDefault(x => x.FullName.Contains(abiModule.Name));
             if (type == null)
             {
                 throw new InvalidCodeException($"No SmartContract type {abiModule.Name} is defined in the code.");

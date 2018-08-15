@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
@@ -23,6 +24,7 @@ using ServiceStack;
 using AElf.Runtime.CSharp;
 using NLog;
 using AElf.Types.CSharp;
+using AsyncEventAggregator;
 
 namespace AElf.Kernel.Tests.Miner
 {
@@ -56,9 +58,7 @@ namespace AElf.Kernel.Tests.Miner
         private ITransactionResultManager _transactionResultManager;
         private IConcurrencyExecutingService _concurrencyExecutingService;
         private IFunctionMetadataService _functionMetadataService;
-
-        private IChainManager _chainManager;
-        private readonly IBlockManager _blockManager;
+        private IChainService _chainService;
 
         private ServicePack _servicePack;
         private IActorRef _requestor;
@@ -67,7 +67,7 @@ namespace AElf.Kernel.Tests.Miner
             IChainCreationService chainCreationService, 
             IChainContextService chainContextService, ILogger logger, IAccountContextService accountContextService, 
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
-            IChainManager chainManager, IBlockManager blockManager, ISmartContractManager smartContractManager, 
+            IChainService chainService, ISmartContractManager smartContractManager, 
             IFunctionMetadataService functionMetadataService, 
             IConcurrencyExecutingService concurrencyExecutingService) : base(new XunitAssertions())
         {
@@ -78,15 +78,14 @@ namespace AElf.Kernel.Tests.Miner
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
 
-            _chainManager = chainManager;
-            _blockManager = blockManager;
+            _chainService = chainService;
             _smartContractManager = smartContractManager;
             _functionMetadataService = functionMetadataService;
             _concurrencyExecutingService = concurrencyExecutingService;
 
             _worldStateDictator = worldStateDictator;
             _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
-            
+            this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
             Initialize();
         }
 
@@ -133,7 +132,7 @@ namespace AElf.Kernel.Tests.Miner
 
         public Mock<ITxPoolService> MockTxPoolService(Hash chainId)
         {
-            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
 
             var code = ExampleContractCode;
 
@@ -178,14 +177,14 @@ namespace AElf.Kernel.Tests.Miner
             };
             
             var mock = new Mock<ITxPoolService>();
-            mock.Setup((s) => s.GetReadyTxsAsync(It.IsAny<ulong>())).Returns(Task.FromResult(txs));
+            mock.Setup((s) => s.GetReadyTxsAsync()).Returns(Task.FromResult(txs));
             return mock;
         }
         
         
         public List<ITransaction> CreateTxs(Hash chainId)
         {
-            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.SmartContractZeroIdString)).ToAccount();
+            var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
 
             var code = ExampleContractCode;
 
@@ -199,26 +198,6 @@ namespace AElf.Kernel.Tests.Miner
             
             ECKeyPair keyPair = new KeyPairGenerator().Generate();
             ECSigner signer = new ECSigner();
-            /*var txnDep = new Transaction()
-            {
-                From = keyPair.GetAddress(),
-                To = contractAddressZero,
-                IncrementId = NewIncrementId(),
-                MethodName = "DeploySmartContract",
-                Params = ByteString.CopyFrom(new Parameters()
-                {
-                    Params = {
-                        new Param
-                        {
-                            RegisterVal = regExample
-                        }
-                    }
-                }.ToByteArray()),
-                
-                Fee = TxPoolConfig.Default.FeeThreshold + 1
-            };*/
-            
-            
             
             var txPrint = new Transaction()
             {
@@ -263,15 +242,15 @@ namespace AElf.Kernel.Tests.Miner
                 ContractHash = SmartContractZeroCode.CalculateHash()
             };
 
-            var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
+            var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
             _worldStateDictator.SetChainId(chainId);
             return chain;
         }
         
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
-        {
-            var miner = new ChainController.Miner(config, poolService, _chainManager, _blockManager, _worldStateDictator,
-                _smartContractService, _concurrencyExecutingService, _transactionManager, _transactionResultManager);
+        {            
+            var miner = new ChainController.Miner(config, poolService, _chainService, _worldStateDictator,
+                _smartContractService, _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger);
 
             return miner;
         }
@@ -280,7 +259,6 @@ namespace AElf.Kernel.Tests.Miner
         {
             return new MinerConfig
             {
-                TxCount = txCountLimit,
                 ChainId = chainId,
                 CoinBase = getAddress
             };
@@ -296,11 +274,9 @@ namespace AElf.Kernel.Tests.Miner
             var minerconfig = GetMinerConfig(chain.Id, 10, keypair.GetAddress());
             var poolconfig = TxPoolConfig.Default;
             poolconfig.ChainId = chain.Id;
-            var pool = new TxPool(poolconfig, _logger);
-            
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
-            
+            var pool = new ContractTxPool(poolconfig, _logger);
+            var dPoSPool = new DPoSTxPool(poolconfig, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger, dPoSPool);
             poolService.Start();
 
             var txs = CreateTxs(chain.Id);
@@ -338,10 +314,9 @@ namespace AElf.Kernel.Tests.Miner
             var minerconfig = GetMinerConfig(chain.Id, 10, keypair.GetAddress());
             var poolconfig = TxPoolConfig.Default;
             poolconfig.ChainId = chain.Id;
-            var pool = new TxPool(poolconfig, _logger);
-            
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var pool = new ContractTxPool(poolconfig, _logger);
+            var dPoSPool = new DPoSTxPool(poolconfig, _logger);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger, dPoSPool);
             
             poolService.Start();
 

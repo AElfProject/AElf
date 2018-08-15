@@ -6,7 +6,7 @@ namespace AElf.Management.Tests
 {
     public class SideChainServiceTests
     {
-        [Fact]
+        [Fact(Skip = "require aws access token")]
         public void DeployTest()
         {
             var arg = new DeployArg();

@@ -1,5 +1,5 @@
 ﻿using Autofac;
-using AElf.Kernel.Node.Config;
+using AElf.Configuration;
 using AElf.Kernel.Node;
 
 namespace AElf.Kernel.Modules.AutofacModule
@@ -19,7 +19,8 @@ namespace AElf.Kernel.Modules.AutofacModule
                 builder.RegisterInstance(_nodeConfig).As<INodeConfig>();
             }
             builder.RegisterType<MainChainNode>().As<IAElfNode>();
-            
+            builder.RegisterType<P2PHandler>().PropertiesAutowired();
+
         }
     }
 }

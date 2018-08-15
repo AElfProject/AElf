@@ -20,6 +20,7 @@ namespace AElf.Network.Connection
     public class MessageReader : IMessageReader
     {   
         private const int IntLength = 4;
+        private const int IdLength = 16;
 
         private ILogger _logger;
         
@@ -58,7 +59,17 @@ namespace AElf.Network.Connection
                 {
                     // Read type 
                     int type = await ReadByte();
+                    
+                    // Read if the message is associated with an id
+                    bool hasId = await ReadBoolean();
 
+                    byte[] id = null;
+                    if (hasId)
+                    {
+                        // The Id is a 128-bit guid
+                        id = await ReadBytesAsync(IdLength);
+                    }
+                    
                     // Is this a partial reception ?
                     bool isBuffered = await ReadBoolean();
 
@@ -91,8 +102,17 @@ namespace AElf.Network.Connection
 
                             // Clear the buffer for the next partial to receive 
                             _partialPacketBuffer.Clear();
-
-                            Message message = new Message {Type = type, Length = allData.Length, Payload = allData};
+                            
+                            Message message;
+                            if (hasId)
+                            {
+                                message = new Message {Type = type, HasId = true, Id = id, Length = allData.Length, Payload = allData};
+                            }
+                            else
+                            {
+                                message = new Message {Type = type, HasId = false, Length = allData.Length, Payload = allData};
+                            }
+                            
                             FireMessageReceivedEvent(message);
                         }
                     }
@@ -103,16 +123,23 @@ namespace AElf.Network.Connection
 
                         byte[] packetData = await ReadBytesAsync(length);
 
-                        Message message = new Message {Type = type, Length = length, Payload = packetData};
+                        Message message;
+                        if (hasId)
+                        {
+                            message = new Message {Type = type, HasId = true, Id = id, Length = length, Payload = packetData};
+                        }
+                        else
+                        {
+                            message = new Message {Type = type, HasId = false, Length = length, Payload = packetData};
+                        }
+                        
                         FireMessageReceivedEvent(message);
                     }
                 }
             }
             catch (PeerDisconnectedException e)
             {
-                _logger.Trace(e, "Connection was aborted.\n");
                 StreamClosed?.Invoke(this, EventArgs.Empty);
-                
                 Close();
             }
             catch (Exception e)
@@ -125,9 +152,6 @@ namespace AElf.Network.Connection
                 }
 
                 Close();
-                
-                _logger.Trace(e, "[Message reader] Connection was aborted.\n");
-                
                 StreamClosed?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -135,7 +159,6 @@ namespace AElf.Network.Connection
         private void FireMessageReceivedEvent(Message message)
         {
             PacketReceivedEventArgs args = new PacketReceivedEventArgs { Message = message };
-
             PacketReceived?.Invoke(this, args);
         }
 

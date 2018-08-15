@@ -44,7 +44,7 @@ namespace AElf.Network.Peers
                 _logger?.Trace(e, "Exception during connection");
             }
             
-            _logger?.Trace("Could not connect, operation timed out.");
+            _logger?.Trace($"Could not connect to {_ipAddress}:{_port}, operation timed out.");
             
             return null;
         }

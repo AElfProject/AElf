@@ -19,8 +19,7 @@ namespace AElf.ChainController
     public class BlockExecutor : IBlockExecutor
     {
         private readonly ITxPoolService _txPoolService;
-        private readonly IChainManager _chainManager;
-        private readonly IBlockManager _blockManager;
+        private readonly IChainService _chainService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IWorldStateDictator _worldStateDictator;
@@ -28,14 +27,13 @@ namespace AElf.ChainController
         private IGrouper _grouper;
         private ILogger _logger;
 
-        public BlockExecutor(ITxPoolService txPoolService, IChainManager chainManager,
-            IBlockManager blockManager, IWorldStateDictator worldStateDictator,
+        public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
+            IWorldStateDictator worldStateDictator,
             IConcurrencyExecutingService concurrencyExecutingService, 
             ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             _txPoolService = txPoolService;
-            _chainManager = chainManager;
-            _blockManager = blockManager;
+            _chainService = chainService;
             _worldStateDictator = worldStateDictator;
             _concurrencyExecutingService = concurrencyExecutingService;
             _logger = logger;
@@ -83,7 +81,9 @@ namespace AElf.ChainController
                         return false;
                     }
                     readyTxs.Add(tx);
-                    await _txPoolService.RemoveAsync(tx.GetHash());
+                    
+                    // remove from tx collection
+                    _txPoolService.RemoveAsync(tx.GetHash());
                     var from = tx.From;
                     if (!map.ContainsKey(from))
                         map[from] = new HashSet<ulong>();
@@ -115,12 +115,10 @@ namespace AElf.ChainController
                     // get ready txs from pool
                     var ready = await _txPoolService.GetReadyTxsAsync(addr, ids.Min(), (ulong) ids.Count);
 
-                    if (!ready)
-                    {
-                        _logger?.Trace($"ExecuteBlock - No transactions are ready.");
-                        await Rollback(readyTxs);
-                        return false;
-                    }
+                    if (ready) continue;
+                    _logger?.Trace($"ExecuteBlock - No transactions are ready.");
+                    await Rollback(readyTxs);
+                    return false;
                 }
                 
                 var traces = readyTxs.Count == 0
@@ -177,9 +175,9 @@ namespace AElf.ChainController
                     await Rollback(readyTxs);
                     return false;
                 }
-                
-                await _chainManager.AppendBlockToChainAsync(block);
-                await _blockManager.AddBlockAsync(block);
+
+                var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
+                await blockchain.AddBlocksAsync(new List<IBlock>() {block});
             }
             catch (Exception e)
             {

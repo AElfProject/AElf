@@ -26,6 +26,8 @@ namespace AElf.SmartContract
         
         Task RollbackCurrentChangesAsync();
 
+        Task RollbackToBlockHash(Hash blockHash);
+        
         Task<List<ITransaction>> RollbackToSpecificHeight(ulong specificHeight);
 
         Task<List<Hash>> GetPathsAsync(Hash blockHash = null);
@@ -45,8 +47,6 @@ namespace AElf.SmartContract
         Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId);
 
         Task<bool> ApplyCachedDataAction(Dictionary<Hash, StateCache> queue, Hash chainId);
-
-        Task SetBlockHashToCorrespondingHeight(ulong height, BlockHeader header);
         
         Hash PreBlockHash { get; set; }
         

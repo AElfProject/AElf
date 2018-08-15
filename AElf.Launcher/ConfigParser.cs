@@ -8,7 +8,6 @@ using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Node;
-using AElf.Kernel.Node.Config;
 using AElf.Kernel.Types;
 using AElf.Network.Config;
 using AElf.Network.Data;
@@ -99,7 +98,7 @@ namespace AElf.Launcher
                 netConfig.Peers = opts.Peers.ToList();
 
             if (opts.Port.HasValue)
-                netConfig.Port = opts.Port.Value;
+                netConfig.ListeningPort = opts.Port.Value;
 
             NetConfig = netConfig;
 
@@ -172,21 +171,21 @@ namespace AElf.Launcher
 
             MinerConfig = new MinerConfig
             {
-                CoinBase = Coinbase,
-                TxCount = opts.TxCountLimit
+                CoinBase = Coinbase
             };
 
             // tx pool config
             TxPoolConfig = ChainController.TxPoolConfig.Default;
             TxPoolConfig.FeeThreshold = opts.MinimalFee;
             TxPoolConfig.PoolLimitSize = opts.PoolCapacity;
+            TxPoolConfig.Maximal = opts.TxCountLimit;
 
             // node config
             NodeConfig = new NodeConfig
             {
                 IsMiner = IsMiner,
                 FullNode = true,
-                Coinbase = Coinbase
+                Coinbase = Coinbase.Value.ToByteArray()
             };
 
             // Actor

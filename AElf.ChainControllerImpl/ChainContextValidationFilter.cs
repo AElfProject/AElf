@@ -12,12 +12,12 @@ namespace AElf.ChainController
     [LoggerName(nameof(ChainContextValidationFilter))]
     public class ChainContextValidationFilter : IBlockValidationFilter
     {
-        private readonly IBlockManager _blockManager;
+        private readonly IChainService _chainService;
         private readonly ILogger _logger;
 
-        public ChainContextValidationFilter(IBlockManager blockManager, ILogger logger)
+        public ChainContextValidationFilter(IChainService chainService, ILogger logger)
         {
-            _blockManager = blockManager;
+            _chainService = chainService;
             _logger = logger;
         }
 
@@ -41,7 +41,7 @@ namespace AElf.ChainController
                 var currentPreviousBlockHash = context.BlockHash;
     
                 // other block needed before this one
-                if (index > currentChainHeight)
+                if (index > currentChainHeight + 1)
                 {
                     _logger?.Trace("Received block index:" + index);
                     _logger?.Trace("Current chain height:" + currentChainHeight);
@@ -50,7 +50,7 @@ namespace AElf.ChainController
                 }
                 
                 // can be added to chain
-                if (currentChainHeight == index)
+                if (previousBlockHash == Hash.Genesis ||  index == currentChainHeight + 1)
                 {
                     if (!currentPreviousBlockHash.Equals(previousBlockHash))
                     {
@@ -63,9 +63,10 @@ namespace AElf.ChainController
                         : ValidationError.OrphanBlock;
                 }
                 
-                if (index < currentChainHeight)
+                if (index <= currentChainHeight)
                 {
-                    var b = await _blockManager.GetBlockByHeight(block.Header.ChainId, index);
+                    var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
+                    var b = await blockchain.GetBlockByHeightAsync(index);
                     if (b == null)
                     {
                         return ValidationError.FailedToGetBlockByHeight;

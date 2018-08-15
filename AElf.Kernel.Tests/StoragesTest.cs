@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace AElf.Kernel.Tests
         private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
         private readonly BlockTest _blockTest;
-        private readonly ChainManager _chainManager;
+        private readonly IChainService _chainService;
         private readonly ILogger _logger;
         private readonly ITxPoolService _txPoolService;
         private readonly IBlockHeaderStore _blockHeaderStore;
@@ -30,14 +31,14 @@ namespace AElf.Kernel.Tests
         private readonly ITransactionStore _transactionStore;
 
         public StoragesTest(IWorldStateStore worldStateStore, IChangesStore changesStore, 
-            IDataStore dataStore, BlockTest blockTest, ChainManager chainManager,
+            IDataStore dataStore, BlockTest blockTest, IChainService chainService,
             ILogger logger, ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore, ITransactionStore transactionStore, IBlockBodyStore blockBodyStore)
         {
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
             _blockTest = blockTest;
-            _chainManager = chainManager;
+            _chainService = chainService;
             _logger = logger;
             _txPoolService = txPoolService;
             _blockHeaderStore = blockHeaderStore;
@@ -51,7 +52,8 @@ namespace AElf.Kernel.Tests
             //Create a chain with one block.
             var chain = await _blockTest.CreateChain();
             var block = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
-            await _chainManager.AppendBlockToChainAsync(block);
+            var blockchain = _chainService.GetBlockChain(chain.Id);
+            await blockchain.AddBlocksAsync(new List<IBlock>() { block });
 
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
@@ -99,7 +101,8 @@ namespace AElf.Kernel.Tests
 
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             
-            await _chainManager.AppendBlockToChainAsync(block1);
+            var blockchain = _chainService.GetBlockChain(chain.Id);
+            await blockchain.AddBlocksAsync(new List<IBlock>() { block1 });
 
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
@@ -124,7 +127,7 @@ namespace AElf.Kernel.Tests
             var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
             
             await worldStateDictator.SetWorldStateAsync(block1.GetHash());
-            await _chainManager.AppendBlockToChainAsync(block2);
+            await blockchain.AddBlocksAsync(new List<IBlock>() { block2 });
             
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
@@ -156,7 +159,8 @@ namespace AElf.Kernel.Tests
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
 
             //Add first block.
-            await _chainManager.AppendBlockToChainAsync(block1);
+            var blockchain = _chainService.GetBlockChain(chain.Id);
+            await blockchain.AddBlocksAsync(new List<IBlock>() { block1 });
 
             //Create an Account as well as an AccountDataProvider.
             var address = Hash.Generate();
@@ -180,7 +184,7 @@ namespace AElf.Kernel.Tests
             
             var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
 
-            await _chainManager.AppendBlockToChainAsync(block2);
+            await blockchain.AddBlocksAsync(new List<IBlock>() { block2 });
 
             //Must refresh the DataProviders before set new data.
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
@@ -203,7 +207,7 @@ namespace AElf.Kernel.Tests
             
             var block3 = CreateBlock(block2.GetHash(), chain.Id, 3);
 
-            await _chainManager.AppendBlockToChainAsync(block3);
+            await blockchain.AddBlocksAsync(new List<IBlock>() { block3 });
             
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();

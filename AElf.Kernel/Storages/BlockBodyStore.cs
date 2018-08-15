@@ -24,6 +24,10 @@ namespace AElf.Kernel.Storages
         {
             var key = bodyHash.GetKeyString(TypeIndex);
             var blockBody =  await _keyValueDatabase.GetAsync(key, typeof(BlockBody));
+            if (blockBody == null)
+            {
+                return null;
+            }
             return BlockBody.Parser.ParseFrom(blockBody);
         }
     }

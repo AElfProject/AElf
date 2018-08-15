@@ -6,9 +6,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.SmartContract;
 using AElf.Kernel.Managers;
 using AElf.Kernel.TxMemPool;
+using AsyncEventAggregator;
 using Google.Protobuf;
 using NLog;
 using ServiceStack;
@@ -22,37 +24,30 @@ namespace AElf.Kernel.Tests.TxMemPool
     {
         private IAccountContextService _accountContextService;
         private readonly ILogger _logger;
-        private readonly ITransactionManager _transactionManager;
-        private readonly ITransactionResultManager _transactionResultManager;
-        private readonly IChainCreationService _chainCreationService;
-        private IBlockManager _blockManager;
         private IWorldStateDictator _worldStateDictator;
 
-        public IntegrationTest(ILogger logger,
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
-            IChainCreationService chainCreationService, IBlockManager blockManager, 
-            IWorldStateDictator worldStateDictator)
+        public IntegrationTest(ILogger logger, IWorldStateDictator worldStateDictator)
         {
             _logger = logger;
-            _transactionManager = transactionManager;
-            _transactionResultManager = transactionResultManager;
-            _chainCreationService = chainCreationService;
-            _blockManager = blockManager;
             _worldStateDictator = worldStateDictator;
             _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
-            
             _accountContextService = new AccountContextService(worldStateDictator);
-
+            this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
         }
         
-        private TxPool GetPool(Hash chainId = null)
+        private ContractTxPool GetContractTxPool(ITxPoolConfig config)
         {
-            var config = TxPoolConfig.Default;
             _worldStateDictator.SetChainId(config.ChainId);
-            return new TxPool(config, _logger);
+            return new ContractTxPool(config, _logger);
+        }
+        
+        private DPoSTxPool GetDPoSTxPool(ITxPoolConfig config)
+        {
+            _worldStateDictator.SetChainId(config.ChainId);
+            return new DPoSTxPool(config, _logger);
         }
 
-        public static Transaction BuildTransaction(Hash adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
+        public static Transaction BuildTransaction(Hash adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null, TransactionType type = TransactionType.ContractTransaction)
         {
             
             keyPair = keyPair ?? new KeyPairGenerator().Generate();
@@ -64,6 +59,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             tx.P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded());
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
             tx.MethodName = "hello world";
+            tx.Type = type;
             tx.Params = ByteString.CopyFrom(new Parameters
             {
                 Params = { new Param
@@ -92,10 +88,10 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             /*var chainId = Hash.Generate();
             var chain = CreateChain(chainId);*/
-            var pool = GetPool();
-
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var config = TxPoolConfig.Default;
+            var pool = GetContractTxPool(config);
+            var dPoSPool = GetDPoSTxPool(config);
+            var poolService = new TxPoolService(pool, _accountContextService, _logger, dPoSPool);
             poolService.Start();
             var Num = 3;
             var threadNum = 5;
@@ -140,7 +136,7 @@ namespace AElf.Kernel.Tests.TxMemPool
 
                 if (j1 % txCount == 0)
                 {
-                    var txs = await poolService.GetReadyTxsAsync(2000);
+                    var txs = await poolService.GetReadyTxsAsync();
 
                     var resLists =new List<TransactionResult>();
                     foreach (var t in txs)
@@ -156,33 +152,6 @@ namespace AElf.Kernel.Tests.TxMemPool
                 j1++;
             }
         }
-
-        public byte[] SmartContractZeroCode
-        {
-            get
-            {
-                byte[] code = null;
-                using (FileStream file = File.OpenRead(System.IO.Path.GetFullPath("../../../../AElf.Contracts.SmartContractZero/bin/Debug/netstandard2.0/AElf.Contracts.SmartContractZero.dll")))
-                {
-                    code = file.ReadFully();
-                }
-                return code;
-            }
-        }
-        
-        
-        public async Task<IChain> CreateChain(Hash chainId = null)
-        {
-            var reg = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero
-            };
-            var chain = await _chainCreationService.CreateNewChainAsync(chainId, reg);
-            var genesis = await _blockManager.GetBlockAsync(chain.GenesisBlockHash);
-            return chain;
-        }
         
         //[Fact(Skip = "todo")]
         [Fact]
@@ -190,22 +159,29 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             //var chainId = Hash.Generate();
             //var chain = CreateChain(chainId);
-            var pool = GetPool();
+            var config = TxPoolConfig.Default;
+            var contractTxPool = GetContractTxPool(config);
+            var dPoSPool = GetDPoSTxPool(config);
 
             _worldStateDictator.SetChainId(TxPoolConfig.Default.ChainId);
             _accountContextService = new AccountContextService(_worldStateDictator);
 
-            var poolService = new TxPoolService(pool, _accountContextService, _transactionManager,
-                _transactionResultManager, _logger);
+            var poolService = new TxPoolService(contractTxPool, _accountContextService, _logger, dPoSPool);
+
             poolService.Start();
             
             var results = new List<TransactionResult>();
 
             var idDict = new Dictionary<Hash, ulong>();
             int k = 0;
+            
+            // address number
             var Num = 100;
+            
             var r = 5;
-            var threadNum = Num *r;
+            
+            // tx number
+            var txNum = Num *r;
 
             int count = 0;
             
@@ -224,12 +200,15 @@ namespace AElf.Kernel.Tests.TxMemPool
             
             var txList = new List<ITransaction>();
             
-            while (count++ < threadNum)
+            while (count++ < txNum)
             {
                 var index = count % Num;
                 var id =  new Random().Next(r);
                 sortedSet[addrList[index].GetAddress()].Add(id);
-                var tx = BuildTransaction(keyPair:addrList[index], nonce: (ulong)id);
+                var tx = BuildTransaction(keyPair: addrList[index], nonce: (ulong) id,
+                    type: index == 0
+                        ? TransactionType.DposTransaction
+                        : TransactionType.ContractTransaction);
                 txList.Add(tx);
             }
 
@@ -271,7 +250,7 @@ namespace AElf.Kernel.Tests.TxMemPool
                     
                         if (j1 == Num-1)
                         {
-                            var txs = await poolService.GetReadyTxsAsync(2000);
+                            var txs = await poolService.GetReadyTxsAsync();
 
                             var resLists =new List<TransactionResult>();
                             foreach (var t in txs)
@@ -291,19 +270,10 @@ namespace AElf.Kernel.Tests.TxMemPool
                 rr++;
             }
             
-            
-            // var execSize = pool.GetExecutableSize();
-            // var waitingSize = pool.GetWaitingSize();
             var sortedCount = sortedSet.Values.Aggregate(0, (current, p) => current + p.Count);
-            Assert.True(sortedCount >= (int)pool.Size);
+            Assert.True(sortedCount >= (int)contractTxPool.Size);
 
-            //await poolService.PromoteAsync();
-
-            // executable list size 
-            /*Assert.Equal(exec, await poolService.GetExecutableSizeAsync());
-            Assert.Equal(queued - exec, await poolService.GetWaitingSizeAsync());*/
-
-            var list = await poolService.GetReadyTxsAsync(2000);
+            var list = await poolService.GetReadyTxsAsync();
 
             var txReuslts = list.Select(t => new TransactionResult
             {
@@ -311,15 +281,24 @@ namespace AElf.Kernel.Tests.TxMemPool
             }).ToList();
             
             await poolService.UpdateAccountContext(new HashSet<Hash>(addrList.Select(kp=> new Hash(kp.GetAddress()))));
-            
+
+            int cc = 0;
             foreach (var address in addrList)
             {
+                IPool pool;
+                if (cc++ % Num == 0)
+                    pool = dPoSPool;
+                else
+                {
+                    pool = contractTxPool;
+                }
+                
                 // pool state
                 Assert.Equal(idDict[address.GetAddress()], pool.GetNonce(address.GetAddress()));
                 
                 // account state
                 Assert.Equal(idDict[address.GetAddress()],
-                    (await _accountContextService.GetAccountDataContext(address.GetAddress(), pool.ChainId)).IncrementId);
+                    (await _accountContextService.GetAccountDataContext(address.GetAddress(), config.ChainId)).IncrementId);
             }
         }
         

@@ -13,25 +13,26 @@ using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Kernel;
 using AElf.ChainController.Execution;
+ using NLog;
 
 namespace AElf.ChainController
 {
-    [LoggerName("Node")]
+    [LoggerName("Miner")]
     public class Miner : IMiner
     {
         private readonly ITxPoolService _txPoolService;
         private ECKeyPair _keyPair;
-        private readonly IChainManager _chainManager;
-        private readonly IBlockManager _blockManager;
+        private readonly IChainService _chainService;
         private readonly IWorldStateDictator _worldStateDictator;
-        private ISmartContractService _smartContractService;
-        private IConcurrencyExecutingService _concurrencyExecutingService;
-        private ITransactionManager _transactionManager;
-        private ITransactionResultManager _transactionResultManager;
+        private readonly ISmartContractService _smartContractService;
+        private readonly IConcurrencyExecutingService _concurrencyExecutingService;
+        private readonly ITransactionManager _transactionManager;
+        private readonly ITransactionResultManager _transactionResultManager;
 
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
         private MinerLock Lock { get; } = new MinerLock();
+        private readonly ILogger _logger;
         
         /// <summary>
         /// Signals to a CancellationToken that mining should be canceled
@@ -44,19 +45,20 @@ namespace AElf.ChainController
 
         public Hash Coinbase => Config.CoinBase;
 
-        public Miner(IMinerConfig config, ITxPoolService txPoolService, 
-                IChainManager chainManager, IBlockManager blockManager, IWorldStateDictator worldStateDictator, 
-            ISmartContractService smartContractService, IConcurrencyExecutingService concurrencyExecutingService, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
+        public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
+            IWorldStateDictator worldStateDictator,  ISmartContractService smartContractService, 
+            IConcurrencyExecutingService concurrencyExecutingService, ITransactionManager transactionManager, 
+            ITransactionResultManager transactionResultManager, ILogger logger)
         {
             Config = config;
             _txPoolService = txPoolService;
-            _chainManager = chainManager;
-            _blockManager = blockManager;
+            _chainService = chainService;
             _worldStateDictator = worldStateDictator;
             _smartContractService = smartContractService;
             _concurrencyExecutingService = concurrencyExecutingService;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
+            _logger = logger;
         }
 
         
@@ -67,11 +69,12 @@ namespace AElf.ChainController
                 if (Cts == null || Cts.IsCancellationRequested)
                     return null;            
 
-                var readyTxs = await _txPoolService.GetReadyTxsAsync(Config.TxCount);
+                var readyTxs = await _txPoolService.GetReadyTxsAsync();
                 // TODO：dispatch txs with ISParallel, return list of tx results
 
                 // reset Promotable and update account context
-            
+                
+                _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                 List<TransactionTrace> traces = null;
                 if(Config.IsParallel)
                 {  
@@ -90,6 +93,7 @@ namespace AElf.ChainController
                             {
                                 Transaction = transaction
                             };
+                            _worldStateDictator.PreBlockHash = await _chainService.GetBlockChain(Config.ChainId).GetCurrentBlockHashAsync();
                             await executive.SetTransactionContext(txnInitCtxt).Apply(true);
                         }
                         finally
@@ -99,7 +103,7 @@ namespace AElf.ChainController
 
                     }
                 }
-                
+                _logger?.Log(LogLevel.Debug, "End Executing Transactions..");
                 var results = new List<TransactionResult>();
                 foreach (var trace in traces)
                 {
@@ -112,6 +116,8 @@ namespace AElf.ChainController
                         res.Logs.AddRange(trace.FlattenedLogs);
                         res.Status = Status.Mined;
                         res.RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes());
+                        res.Logs.AddRange(trace.FlattenedLogs);
+                        res.UpdateBloom();
                     }
                     else
                     {
@@ -127,9 +133,17 @@ namespace AElf.ChainController
                 var addrs = await InsertTxs(readyTxs, results);
                 await _txPoolService.UpdateAccountContext(addrs);
             
+                _logger?.Log(LogLevel.Debug, "Generating block..");
                 // generate block
                 var block = await GenerateBlockAsync(Config.ChainId, results);
-                
+
+                block.Header.Bloom =ByteString.CopyFrom( 
+                    Bloom.AndMultipleBloomBytes(
+                        results.Where(x=>!x.Bloom.IsEmpty).Select(x=>x.Bloom.ToByteArray())
+                    )
+                );
+                _logger?.Log(LogLevel.Debug, "Generating block End..");
+
                 // sign block
                 ECSigner signer = new ECSigner();
                 var hash = block.GetHash();
@@ -141,8 +155,8 @@ namespace AElf.ChainController
                 block.Header.S = ByteString.CopyFrom(signature.S);
 
                 // append block
-                await _blockManager.AddBlockAsync(block);
-                await _chainManager.AppendBlockToChainAsync(block);
+                var blockChain = _chainService.GetBlockChain(Config.ChainId);
+                await blockChain.AddBlocksAsync(new List<IBlock>(){ block });
   
                 return block;
             }
@@ -182,10 +196,11 @@ namespace AElf.ChainController
         /// <returns></returns>
         public async Task<IBlock> GenerateBlockAsync(Hash chainId, IEnumerable<TransactionResult> results)
         {
+            var blockChain = _chainService.GetBlockChain(chainId);
             
-            var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
-            var index = await _chainManager.GetChainCurrentHeight(chainId);
-            var block = new Block(lastBlockHash)
+            var currentBlockHash = await blockChain.GetCurrentBlockHashAsync();
+            var index = await blockChain.GetCurrentBlockHeightAsync() + 1;
+            var block = new Block(currentBlockHash)
             {
                 Header =
                 {
@@ -200,21 +215,27 @@ namespace AElf.ChainController
                 block.AddTransaction(r.TransactionId);
             }
         
+            _logger?.Log(LogLevel.Debug, "Calculating MK Tree Root..");
             // calculate and set tx merkle tree root
             block.FillTxsMerkleTreeRootInHeader();
-            
+            _logger?.Log(LogLevel.Debug, "Calculating MK Tree Root End..");
+
             
             // set ws merkle tree root
-            await _worldStateDictator.SetWorldStateAsync(lastBlockHash);
-            var ws = await _worldStateDictator.GetWorldStateAsync(lastBlockHash);
+            await _worldStateDictator.SetWorldStateAsync(currentBlockHash);
+            _logger?.Log(LogLevel.Debug, "End Set WS..");
+            var ws = await _worldStateDictator.GetWorldStateAsync(currentBlockHash);
+            _logger?.Log(LogLevel.Debug, "End Get Ws");
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
-            
 
-            if(ws != null)
+
+            if (ws != null)
+            {
                 block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
+                _logger?.Log(LogLevel.Debug, "End GetWorldStateMerkleTreeRootAsync");
+            }
+               
             block.Body.BlockHeader = block.Header.GetHash();
-
-            
             return block;
         }
         
@@ -228,8 +249,12 @@ namespace AElf.ChainController
         public async Task<IBlockHeader> GenerateBlockHeaderAsync(Hash chainId, Hash merkleTreeRootForTransaction)
         {
             // get ws merkle tree root
-            var lastBlockHash = await _chainManager.GetChainLastBlockHash(chainId);
-            var index = await _chainManager.GetChainCurrentHeight(chainId);
+            var blockChain = _chainService.GetBlockChain(chainId);
+            
+            var lastBlockHash = await blockChain.GetCurrentBlockHashAsync();
+            // TODO: Generic IBlockHeader
+            var lastHeader = (BlockHeader) await blockChain.GetHeaderByHashAsync(lastBlockHash);
+            var index = lastHeader.Index;
             var block = new Block(lastBlockHash);
             block.Header.Index = index + 1;
             block.Header.ChainId = chainId;
