@@ -11,7 +11,6 @@ using AElf.Network.Config;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Peers;
-using Google.Protobuf;
 using NLog;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
@@ -48,6 +47,7 @@ namespace AElf.Network
     public class NetworkManager : INetworkManager
     {
         public const int DefaultMaxBlockHistory = 15;
+        public const int DefaultMaxTransactionHistory = 15;
         
         public const int DefaultRequestTimeout = 1000;
         public const int DefaultRequestMaxRetry = TimeoutRequest.DefaultMaxRetry;
@@ -65,11 +65,14 @@ namespace AElf.Network
         public int RequestTimeout { get; set; } = DefaultRequestTimeout;
         public int RequestMaxRetry { get; set; } = DefaultRequestMaxRetry;
 
-        private Object _pendingRequestsLock = new Object();  
+        private Object _pendingRequestsLock = new Object();
         public List<TimeoutRequest> _pendingRequests;
 
         private BoundedByteArrayQueue _lastBlocksReceived;
         public int MaxBlockHistory { get; set; } = DefaultMaxBlockHistory;
+        public int MaxTransactionHistory { get; set; } = DefaultMaxTransactionHistory;
+        
+        private BoundedByteArrayQueue _lastTxReceived;
 
         private BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
 
@@ -104,6 +107,7 @@ namespace AElf.Network
         {
             // init the queue
             _lastBlocksReceived = new BoundedByteArrayQueue(MaxBlockHistory);
+            _lastTxReceived = new BoundedByteArrayQueue(MaxTransactionHistory);
             
             //todo _peerManager.PeerAdded 
             _peerManager.Start();
@@ -155,6 +159,16 @@ namespace AElf.Network
                     }
                     catch (Exception ex) { } // todo think about removing this try/catch, enqueue should be fire and forget
                 }
+            }
+            else if (args.Message.Type == (int) AElfProtocolType.BroadcastTx)
+            {
+                Transaction t = Transaction.Parser.ParseFrom(args.Message.Payload);
+                byte[] txHash = t.GetHash().Value.ToByteArray();
+
+                if (_lastTxReceived.Contains(txHash))
+                    return;
+
+                _lastTxReceived.Enqueue(txHash);
             }
                 
             var evt = new NetMessageReceivedArgs {

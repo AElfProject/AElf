@@ -139,7 +139,8 @@ namespace AElf.Launcher
                 }
 
                 //DoDPos(node);
-                Console.ReadLine();
+                Console.CancelKeyPress += async (sender, eventArgs) => { await concurrencySercice.StopAsync(); };
+                concurrencySercice.TerminationHandle.Wait();
             }
         }
 

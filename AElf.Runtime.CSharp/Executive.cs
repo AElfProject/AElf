@@ -40,7 +40,7 @@ namespace AElf.Runtime.CSharp
                 {"string", InvokeHandlers.ForStringReturnType},
                 {"byte[]", InvokeHandlers.ForBytesReturnType}
             };
-        
+
         private readonly Dictionary<string, RetVal.Types.RetType> _retTypes =
             new Dictionary<string, RetVal.Types.RetType>()
             {
@@ -222,7 +222,7 @@ namespace AElf.Runtime.CSharp
 
         private readonly Dictionary<Method, Func<byte[], RetVal>> _handlersCache =
             new Dictionary<Method, Func<byte[], RetVal>>();
-        
+
         /// <summary>
         /// Get async handler from cache or by reflection.
         /// </summary>
@@ -238,7 +238,7 @@ namespace AElf.Runtime.CSharp
             var methodInfo = _smartContract.GetType().GetMethod(methodAbi.Name);
 
             _retTypes.TryGetValue(methodAbi.ReturnType, out var retType);
-            
+
             if (!_asyncApplyHanders.TryGetValue(methodAbi.ReturnType, out var applyHandler))
             {
                 if (methodInfo.ReturnType.GenericTypeArguments[0].IsPbMessageType())
@@ -270,7 +270,7 @@ namespace AElf.Runtime.CSharp
                     Data = msg.ToByteString()
                 };
             };
-
+            _asyncHandlersCache[methodAbi] = handler;
             return handler;
         }
 
@@ -287,7 +287,7 @@ namespace AElf.Runtime.CSharp
             }
 
             _retTypes.TryGetValue(methodAbi.ReturnType, out var retType);
-            
+
             var methodInfo = _smartContract.GetType().GetMethod(methodAbi.Name);
             if (!_applyHanders.TryGetValue(methodAbi.ReturnType, out var applyHandler))
             {
@@ -321,10 +321,10 @@ namespace AElf.Runtime.CSharp
                     Data = msg.ToByteString()
                 };
             };
-
+            _handlersCache[methodAbi] = handler;
             return handler;
         }
-        
+
         #endregion
     }
 }
