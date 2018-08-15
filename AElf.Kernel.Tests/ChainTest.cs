@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Google.Protobuf;
@@ -16,32 +15,15 @@ namespace AElf.Kernel.Tests
     public class ChainTest
     {
         private readonly IChainCreationService _chainCreationService;
-        //private readonly ISmartContractZero _smartContractZero;
         private readonly IChainService _chainService;
-        private readonly IWorldStateStore _worldStateStore;
-        private readonly IChangesStore _changesStore;
-        private readonly IDataStore _dataStore;
-        
 
-        public ChainTest(IChainCreationService chainCreationService,
-            IChainService chainService, IWorldStateStore worldStateStore, 
-            IChangesStore changesStore, IDataStore dataStore)
+        public ChainTest(IChainCreationService chainCreationService, IChainService chainService)
         {
-            //_smartContractZero = smartContractZero;
             _chainCreationService = chainCreationService;
             _chainService = chainService;
-            _worldStateStore = worldStateStore;
-            _changesStore = changesStore;
-            _dataStore = dataStore;
         }
 
-        public byte[] SmartContractZeroCode
-        {
-            get
-            {
-                return ContractCodes.TestContractZeroCode;
-            }
-        }
+        private static byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
 
         [Fact]
         public async Task<IChain> CreateChainTest()
@@ -56,14 +38,6 @@ namespace AElf.Kernel.Tests
             var chainId = Hash.Generate();
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
 
-            // add chain to storage
-            
-            //var address = Hash.Generate();
-            //var worldStateManager = await new WorldStateManager(_worldStateStore, 
-            //    _changesStore, _dataStore).SetChainId(chainId);
-            //var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
-            
-            //await _smartContractZero.InitializeAsync(accountDataProvider);
             var blockchain = _chainService.GetBlockChain(chainId);
             var getNextHeight = new Func<Task<ulong>>(async () =>
             {
@@ -95,14 +69,6 @@ namespace AElf.Kernel.Tests
             var chainId = Hash.Generate();
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
 
-            // add chain to storage
-            
-            //var address = Hash.Generate();
-            //var worldStateManager = await new WorldStateManager(_worldStateStore, 
-            //    _changesStore, _dataStore).SetChainId(chainId);
-            //var accountDataProvider = worldStateManager.GetAccountDataProvider(address);
-            
-            //await _smartContractZero.InitializeAsync(accountDataProvider);
             var blockchain = _chainService.GetBlockChain(chainId);
             var getNextHeight = new Func<Task<ulong>>(async () =>
             {
@@ -113,14 +79,14 @@ namespace AElf.Kernel.Tests
             Assert.Equal(await getNextHeight(), (ulong)1);
 
             var block = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
-            await blockchain.AddBlocksAsync(new List<IBlock>(){ block });
-//            await _chainManager.AppendBlockToChainAsync(block);
+            await blockchain.AddBlocksAsync(new List<IBlock> {block});
+            
             Assert.Equal(await getNextHeight(), (ulong)2);
             Assert.Equal(await blockchain.GetCurrentBlockHashAsync(), block.GetHash());
             Assert.Equal(block.Header.Index, (ulong)1);
         }
         
-        private Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)
+        private static Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             
@@ -138,8 +104,5 @@ namespace AElf.Kernel.Tests
 
             return block;
         }
-
-
-        
     }
 }

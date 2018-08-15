@@ -10,7 +10,7 @@ namespace AElf.SmartContract
     {
         IDataProvider GetDataProvider(string name);
 
-        Task<Change> SetAsync(Hash keyHash, byte[] obj);
+        Task SetAsync(Hash keyHash, byte[] obj);
 
         Task<byte[]> GetAsync(Hash keyHash);
         

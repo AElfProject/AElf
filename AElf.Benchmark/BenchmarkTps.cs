@@ -57,7 +57,6 @@ namespace AElf.Benchmark
             ChainId = Hash.Generate();
             
             var worldStateDictator1 = worldStateDictator;
-            worldStateDictator1.SetChainId(ChainId).DeleteChangeBeforesImmidiately = true;
             
             _chainCreationService = chainCreationService;
             _smartContractService = smartContractService;

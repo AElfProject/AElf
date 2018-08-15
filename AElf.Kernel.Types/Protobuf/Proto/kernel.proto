@@ -142,33 +142,26 @@ message SmartContractInvokeContext{
     bytes Params = 4;
 }
 
-message Change{
-    repeated Hash Befores = 1;
-    Hash After = 2;
-    Hash TransactionIds = 3;
-    Hash LatestChangedBlockHash = 4;
+message DataItem {
+    Hash ResourcePath = 1;
+    Hash ResourcePointer = 2;
+    Hash MerkleTreeLeaf = 3;
 }
 
-message PairHashChange{
-    Hash Key = 1;
-    Change Value = 2;
+message WorldState {
+    repeated DataItem Data = 1;
 }
 
-message ChangesDict{
-    repeated PairHashChange Dict = 1;
-}
-
-message Chain{
+message Chain {
     Hash Id = 1;
     Hash GenesisBlockHash = 2;
 }
 
-
-message BlockProducer {
+message Miners {
     repeated string Nodes = 1;
 }
 
-message BPInfo {
+message BlockProducer {
     int32 Order = 1;
     bool IsEBP = 2; //EBP = Extra Block Producer
     Hash InValue = 3;
@@ -177,12 +170,12 @@ message BPInfo {
     google.protobuf.Timestamp TimeSlot = 6;
 }
 
-message RoundInfo {
-    map<string, BPInfo> Info = 1;
+message Round {
+    map<string, BlockProducer> BlockProducers = 1;
 }
 
-message DPoSInfo {
-    repeated RoundInfo RoundInfo = 1;
+message AElfDPoSInformation {
+    repeated Round Rounds = 1;
 }
 
 enum DataAccessMode {

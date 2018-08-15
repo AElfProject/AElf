@@ -61,14 +61,13 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
-        public MockSetup(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, IChainCreationService chainCreationService,
+        public MockSetup(IDataStore dataStore, IChainCreationService chainCreationService,
             IChainService chainService,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger)
         {
             _logger = logger;
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger);
+            _worldStateDictator = new WorldStateDictator(dataStore, _logger);
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             ChainContextService = chainContextService;

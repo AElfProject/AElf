@@ -359,7 +359,7 @@ namespace AElf.Kernel.TxMemPool
  
                 var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<Transaction>>(),  (current, p) =>
                 {
-                    if (!current.TryGetValue(p.From, out var _))
+                    if (!current.TryGetValue(p.From, out _))
                     {
                         current[p.From] = new HashSet<Transaction>();
                     }

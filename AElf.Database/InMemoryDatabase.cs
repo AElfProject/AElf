@@ -21,7 +21,7 @@ namespace AElf.Database
 
         public Task RemoveAsync(string key)
         {
-            _dictionary.TryRemove(key, out var _);
+            _dictionary.TryRemove(key, out _);
             return Task.CompletedTask;
         }
 

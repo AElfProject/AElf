@@ -36,17 +36,14 @@ namespace AElf.Kernel.Tests.Miner
         private ISmartContractManager _smartContractManager;
         private IFunctionMetadataService _functionMetadataService;
         private IConcurrencyExecutingService _concurrencyExecutingService;
-        private IDataStore _dataStore;
-        private IWorldStateStore _worldStateStore;
-        private IChangesStore _changesStore;
         private ServicePack _servicePack;
 
         public Synchronizer(
             IChainCreationService chainCreationService, IChainContextService chainContextService,
             IChainService chainService, ILogger logger,
             ITransactionResultManager transactionResultManager, ITransactionManager transactionManager,
-            FunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService,
-            IChangesStore changesStore, IWorldStateStore worldStateStore, IDataStore dataStore,
+            IFunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService,
+            IDataStore dataStore,
             ISmartContractManager smartContractManager, IAccountContextService accountContextService,
             ITxPoolService txPoolService) : base(new XunitAssertions())
         {
@@ -59,10 +56,7 @@ namespace AElf.Kernel.Tests.Miner
             _transactionManager = transactionManager;
             _functionMetadataService = functionMetadataService;
             _concurrencyExecutingService = concurrencyExecutingService;
-            _changesStore = changesStore;
-            _worldStateStore = worldStateStore;
-            _dataStore = dataStore;
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore, _logger);
+            _worldStateDictator = new WorldStateDictator(dataStore, _logger);
             _smartContractManager = smartContractManager;
             _accountContextService = accountContextService;
 

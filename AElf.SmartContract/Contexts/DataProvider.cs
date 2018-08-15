@@ -1,5 +1,5 @@
+using System;
 using System.Threading.Tasks;
-using AElf.Kernel.Managers;
 using AElf.Kernel;
 
 // ReSharper disable once CheckNamespace
@@ -12,7 +12,7 @@ namespace AElf.SmartContract
 
         /// <summary>
         /// To dictinct DataProviders of same account and same level.
-        /// Using a string value is just a choise, actually we can use any type of value, even integer
+        /// Using a string value is just a choise, actually we can use any type of value, even integer.
         /// </summary>
         private readonly string _dataProviderKey;
 
@@ -61,9 +61,9 @@ namespace AElf.SmartContract
             //Get corresponding path hash
             var pathHash = _resourcePath.RevertPointerToPath().SetDataKey(keyHash).GetPathHash();
             //Using path hash to get Change from WorldState
-            var change = await worldState.GetChangeAsync(pathHash);
+            var pointerHash = worldState.GetPointerHash(pathHash);
 
-            return await _worldStateDictator.GetDataAsync(change.After);
+            return await _worldStateDictator.GetDataAsync(pointerHash);
         }
 
         /// <summary>
@@ -83,40 +83,9 @@ namespace AElf.SmartContract
         /// <param name="keyHash"></param>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public async Task<Change> SetAsync(Hash keyHash, byte[] obj)
+        public async Task SetAsync(Hash keyHash, byte[] obj)
         {
-            //Generate the path hash.
-            var pathHash = GetPathFor(keyHash);
-
-            //Generate the new pointer hash (using previous block hash)
-            var pointerHashAfter = await _worldStateDictator.CalculatePointerHashOfCurrentHeight(_resourcePath);
-
-            var change = await _worldStateDictator.GetChangeAsync(pathHash);
-            if (change == null)
-            {
-                change = new Change
-                {
-                    After = pointerHashAfter
-                };
-            }
-            else
-            {
-                //See whether the latest changes of this Change happened in this height,
-                //If not, clear the change, because this Change is too old to support rollback.
-                if (_worldStateDictator.DeleteChangeBeforesImmidiately || _worldStateDictator.PreBlockHash != change.LatestChangedBlockHash)
-                {
-                    change.ClearChangeBefores();
-                }
-                
-                change.UpdateHashAfter(pointerHashAfter);
-            }
-
-            change.LatestChangedBlockHash = _worldStateDictator.PreBlockHash;
-
-            await _worldStateDictator.InsertChangeAsync(pathHash, change);
-            await _worldStateDictator.SetDataAsync(pointerHashAfter, obj);
-
-            return change;
+            throw new NotImplementedException();
         }
 
         public Hash GetPathFor(Hash keyHash)

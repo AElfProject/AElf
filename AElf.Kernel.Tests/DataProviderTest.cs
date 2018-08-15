@@ -15,27 +15,15 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class DataProviderTest
     {
-        private readonly IWorldStateStore _worldStateStore;
-        private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
         private readonly BlockTest _blockTest;
         private readonly ILogger _logger;
-        private readonly ITransactionManager _transactionManager;
-        private readonly IBlockManagerBasic _blockManager;
-        private readonly IPointerManager _pointerManager;
 
-        public DataProviderTest(IWorldStateStore worldStateStore,
-            IChangesStore changesStore, IDataStore dataStore,
-            BlockTest blockTest, ILogger logger, ITransactionManager transactionManager, IBlockManagerBasic blockManager, IPointerManager pointerManager)
+        public DataProviderTest(IDataStore dataStore, BlockTest blockTest, ILogger logger)
         {
-            _worldStateStore = worldStateStore;
-            _changesStore = changesStore;
             _dataStore = dataStore;
             _blockTest = blockTest;
             _logger = logger;
-            _transactionManager = transactionManager;
-            _blockManager = blockManager;
-            _pointerManager = pointerManager;
         }
 
         [Fact]
@@ -49,10 +37,7 @@ namespace AElf.Kernel.Tests
 
             var address = Hash.Generate();
 
-            var worldStateDictator =
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,_logger, _transactionManager, 
-                        _blockManager, _pointerManager)
-                    .SetChainId(chain.Id);
+            var worldStateDictator = new WorldStateDictator(_dataStore, _logger).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
 
             await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);

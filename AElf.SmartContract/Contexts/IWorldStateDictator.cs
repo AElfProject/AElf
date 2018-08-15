@@ -6,8 +6,6 @@ namespace AElf.SmartContract
 {
     public interface IWorldStateDictator
     {
-        bool DeleteChangeBeforesImmidiately { get; set; }
-        
         IWorldStateDictator SetChainId(Hash chainId);
         
         Task<IWorldState> GetWorldStateAsync(Hash blockHash);
@@ -20,23 +18,11 @@ namespace AElf.SmartContract
         
         Task<Hash> CalculatePointerHashOfCurrentHeight(IResourcePath resourcePath);
         
-        Task InsertChangeAsync(Hash pathHash, Change change);
-
-        Task<Change> GetChangeAsync(Hash pathHash);
-        
-        Task RollbackCurrentChangesAsync();
+        Task RollbackToPreviousBlock();
 
         Task RollbackToBlockHash(Hash blockHash);
         
         Task<List<Transaction>> RollbackToSpecificHeight(ulong specificHeight);
-
-        Task<List<Hash>> GetPathsAsync(Hash blockHash = null);
-
-        Task<List<Change>> GetChangesAsync(Hash blockHash);
-
-        Task<List<Change>> GetChangesAsync();
-
-        Task<Dictionary<Hash, Change>> GetChangesDictionaryAsync();
 
         Task<IAccountDataProvider> GetAccountDataProvider(Hash accountAddress);
 
@@ -44,7 +30,7 @@ namespace AElf.SmartContract
 
         Task<byte[]> GetDataAsync(Hash pointerHash);
 
-        Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId);
+        Task ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId);
 
         Task<bool> ApplyCachedDataAction(Dictionary<Hash, StateCache> queue, Hash chainId);
         

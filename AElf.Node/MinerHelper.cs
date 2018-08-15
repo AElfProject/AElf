@@ -142,7 +142,7 @@ namespace AElf.Kernel.Node
 
                             await _txPoolService.RollBack(txs);
                             _worldStateDictator.PreBlockHash = block.Header.PreviousBlockHash;
-                            await _worldStateDictator.RollbackCurrentChangesAsync();
+                            await _worldStateDictator.RollbackToPreviousBlock();
 
                             var ws = await _worldStateDictator.GetWorldStateAsync(block.GetHash());
                             _logger?.Trace(

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
@@ -13,20 +12,20 @@ namespace AElf.Kernel.Consensus
     public class AElfDPoSHelper
     {
         private readonly IDataProvider _dataProvider;
-        private readonly BlockProducer _blockProducer;
+        private readonly Miners _miners;
         private readonly ILogger _logger;
 
-        public BlockProducer BlockProducer
+        public Miners Miners
         {
             get
             {
                 try
                 {
-                    return BlockProducer.Parser.ParseFrom(GetBytes(Globals.AElfDPoSBlockProducerString.CalculateHash()));
+                    return Miners.Parser.ParseFrom(GetBytes(Globals.AElfDPoSBlockProducerString.CalculateHash()));
                 }
                 catch (Exception)
                 {
-                    return default(BlockProducer);
+                    return default(Miners);
                 }
             }
         }
@@ -65,24 +64,24 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public RoundInfo CurrentRoundInfo
+        private Round CurrentRoundInfo
         {
             get
             {
                 try
                 {
-                    return RoundInfo.Parser.ParseFrom(GetBytes(CurrentRoundNumber.CalculateHash(),
+                    return Round.Parser.ParseFrom(GetBytes(CurrentRoundNumber.CalculateHash(),
                         Globals.AElfDPoSInformationString));
                 }
                 catch (Exception e)
                 {
                     _logger?.Error(e, "Failed to get DPoS information of current round.");
-                    return default(RoundInfo);
+                    return default(Round);
                 }
             }
         }
 
-        public Int32Value MiningInterval
+        private Int32Value MiningInterval
         {
             get
             {
@@ -98,7 +97,7 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public StringValue FirstPlaceBlockProducerOfCurrentRound
+        private StringValue FirstPlaceBlockProducerOfCurrentRound
         {
             get
             {
@@ -123,24 +122,18 @@ namespace AElf.Kernel.Consensus
         /// <returns></returns>
         private byte[] GetBytes(Hash keyHash, string resourceStr = "")
         {
-            byte[] bytes;
-            if (resourceStr != "")
-            {
-                bytes = _dataProvider.GetDataProvider(resourceStr).GetAsync(keyHash).Result;
-            }
-            else
-            {
-                bytes = _dataProvider.GetAsync(keyHash).Result;
-            }
+            var bytes = resourceStr != ""
+                ? _dataProvider.GetDataProvider(resourceStr).GetAsync(keyHash).Result
+                : _dataProvider.GetAsync(keyHash).Result;
 
             return bytes;
         }
 
-        public AElfDPoSHelper(IWorldStateDictator worldStateDictator, ECKeyPair keyPair, Hash chainId,
-            BlockProducer blockProducer, Hash contractAddressHash, ILogger logger)
+        public AElfDPoSHelper(IWorldStateDictator worldStateDictator, Hash chainId, Miners miners,
+            Hash contractAddressHash, ILogger logger)
         {
             worldStateDictator.SetChainId(chainId);
-            _blockProducer = blockProducer;
+            _miners = miners;
             _logger = logger;
 
             _dataProvider = worldStateDictator.GetAccountDataProvider(contractAddressHash).Result.GetDataProvider();
@@ -150,38 +143,38 @@ namespace AElf.Kernel.Consensus
         /// Get block producer information of current round.
         /// </summary>
         /// <param name="accountAddress"></param>
-        public BPInfo this[string accountAddress]
+        public BlockProducer this[string accountAddress]
         {
             get
             {
                 try
                 {
                     var bytes = GetBytes(CurrentRoundNumber.CalculateHash(), Globals.AElfDPoSInformationString);
-                    var round = RoundInfo.Parser.ParseFrom(bytes);
-                    return round.Info[accountAddress];
+                    var round = Round.Parser.ParseFrom(bytes);
+                    return round.BlockProducers[accountAddress];
                 }
                 catch (Exception e)
                 {
                     _logger.Error(e, "Failed to get BPInfo of current round.");
-                    return default(BPInfo);
+                    return default(BlockProducer);
                 }
             }
         }
 
-        public RoundInfo this[UInt64Value roundNumber]
+        private Round this[UInt64Value roundNumber]
         {
             get
             {
                 try
                 {
                     var bytes = GetBytes(roundNumber.CalculateHash(), Globals.AElfDPoSInformationString);
-                    var round = RoundInfo.Parser.ParseFrom(bytes);
+                    var round = Round.Parser.ParseFrom(bytes);
                     return round;
                 }
                 catch (Exception e)
                 {
                     _logger.Error(e, "Failed to get RoundInfo of provided round number.");
-                    return default(RoundInfo);
+                    return default(Round);
                 }
             }
         }
@@ -192,12 +185,12 @@ namespace AElf.Kernel.Consensus
             return bytes != null;
         }
 
-        public DPoSInfo GenerateInfoForFirstTwoRounds()
+        public AElfDPoSInformation GenerateInfoForFirstTwoRounds()
         {
             var dict = new Dictionary<string, int>();
 
             // First round
-            foreach (var node in _blockProducer.Nodes)
+            foreach (var node in _miners.Nodes)
             {
                 dict.Add(node, node[0]);
             }
@@ -209,12 +202,12 @@ namespace AElf.Kernel.Consensus
 
             var enumerable = sortedMiningNodes.ToList();
             
-            var infosOfRound1 = new RoundInfo();
+            var infosOfRound1 = new Round();
 
-            var selected = _blockProducer.Nodes.Count / 2;
+            var selected = _miners.Nodes.Count / 2;
             for (var i = 0; i < enumerable.Count; i++)
             {
-                var bpInfo = new BPInfo {IsEBP = false};
+                var bpInfo = new BlockProducer {IsEBP = false};
                 
                 if (i == selected)
                 {
@@ -226,13 +219,13 @@ namespace AElf.Kernel.Consensus
                 bpInfo.Signature = Hash.Generate();
                 bpInfo.TimeSlot = GetTimestampOfUtcNow(i * Globals.AElfDPoSMiningInterval + Globals.AElfWaitFirstRoundTime);
 
-                infosOfRound1.Info.Add(enumerable[i], bpInfo);
+                infosOfRound1.BlockProducers.Add(enumerable[i], bpInfo);
             }
 
             // Second round
             dict = new Dictionary<string, int>();
             
-            foreach (var node in _blockProducer.Nodes)
+            foreach (var node in _miners.Nodes)
             {
                 dict.Add(node, node[0]);
             }
@@ -244,14 +237,14 @@ namespace AElf.Kernel.Consensus
             
             enumerable = sortedMiningNodes.ToList();
             
-            var infosOfRound2 = new RoundInfo();
+            var infosOfRound2 = new Round();
 
             var addition = enumerable.Count * Globals.AElfDPoSMiningInterval + Globals.AElfDPoSMiningInterval;
 
-            selected = _blockProducer.Nodes.Count / 2;
+            selected = _miners.Nodes.Count / 2;
             for (var i = 0; i < enumerable.Count; i++)
             {
-                var bpInfo = new BPInfo {IsEBP = false};
+                var bpInfo = new BlockProducer {IsEBP = false};
 
                 if (i == selected)
                 {
@@ -261,24 +254,24 @@ namespace AElf.Kernel.Consensus
                 bpInfo.TimeSlot = GetTimestampOfUtcNow(i * Globals.AElfDPoSMiningInterval + addition + Globals.AElfWaitFirstRoundTime);
                 bpInfo.Order = i + 1;
 
-                infosOfRound2.Info.Add(enumerable[i], bpInfo);
+                infosOfRound2.BlockProducers.Add(enumerable[i], bpInfo);
             }
 
-            var dPoSInfo = new DPoSInfo
+            var dPoSInfo = new AElfDPoSInformation
             {
-                RoundInfo = {infosOfRound1, infosOfRound2}
+                Rounds = { infosOfRound1, infosOfRound2}
             };
 
             return dPoSInfo;
         }
 
-        public async Task<RoundInfo> SupplyPreviousRoundInfo()
+        private Round SupplyPreviousRoundInfo()
         {
             try
             {
                 var roundInfo = CurrentRoundInfo;
 
-                foreach (var info in roundInfo.Info)
+                foreach (var info in roundInfo.BlockProducers)
                 {
                     if (info.Value.InValue != null && info.Value.OutValue != null) continue;
 
@@ -295,7 +288,7 @@ namespace AElf.Kernel.Consensus
                         info.Value.Signature = signature;
                     }
 
-                    roundInfo.Info[info.Key] = info.Value;
+                    roundInfo.BlockProducers[info.Key] = info.Value;
                 }
 
                 return roundInfo;
@@ -303,7 +296,7 @@ namespace AElf.Kernel.Consensus
             catch (Exception e)
             {
                 _logger?.Error(e, "Failed to supply previous round info");
-                return new RoundInfo();
+                return new Round();
             }
         }
         
@@ -312,9 +305,9 @@ namespace AElf.Kernel.Consensus
             try
             {
                 var add = Hash.Default;
-                foreach (var node in _blockProducer.Nodes)
+                foreach (var node in _miners.Nodes)
                 {
-                    var lastSignature = this[RoundNumberMinusOne(CurrentRoundNumber)].Info[node].Signature;
+                    var lastSignature = this[RoundNumberMinusOne(CurrentRoundNumber)].BlockProducers[node].Signature;
                     add = add.CalculateHashWith(lastSignature);
                 }
 
@@ -328,17 +321,17 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public async Task<RoundInfo> GenerateNextRoundOrder()
+        private Round GenerateNextRoundOrder()
         {
             try
             {
-                var infosOfNextRound = new RoundInfo();
+                var infosOfNextRound = new Round();
                 var signatureDict = new Dictionary<Hash, string>();
                 var orderDict = new Dictionary<int, string>();
 
-                var blockProducerCount = _blockProducer.Nodes.Count;
+                var blockProducerCount = _miners.Nodes.Count;
 
-                foreach (var node in _blockProducer.Nodes)
+                foreach (var node in _miners.Nodes)
                 {
                     var s = this[node].Signature;
                     if (s == null)
@@ -379,14 +372,14 @@ namespace AElf.Kernel.Consensus
 
                 for (var i = 0; i < orderDict.Count; i++)
                 {
-                    var bpInfoNew = new BPInfo
+                    var bpInfoNew = new BlockProducer
                     {
                         TimeSlot = GetTimestampWithOffset(baseTimeslot,
                             i * Globals.AElfDPoSMiningInterval + Globals.AElfDPoSMiningInterval * 2),
                         Order = i + 1
                     };
 
-                    infosOfNextRound.Info[orderDict[i]] = bpInfoNew;
+                    infosOfNextRound.BlockProducers[orderDict[i]] = bpInfoNew;
                 }
 
                 return infosOfNextRound;
@@ -394,11 +387,11 @@ namespace AElf.Kernel.Consensus
             catch (Exception e)
             {
                 _logger?.Error(e, "Failed to generate info of next round");
-                return new RoundInfo();
+                return new Round();
             }
         }
 
-        public StringValue CalculateNextExtraBlockProducer()
+        private StringValue CalculateNextExtraBlockProducer()
         {
             try
             {
@@ -412,10 +405,10 @@ namespace AElf.Kernel.Consensus
             
                 var sigNum = BitConverter.ToUInt64(
                     BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
-                var blockProducerCount = _blockProducer.Nodes.Count;
+                var blockProducerCount = _miners.Nodes.Count;
                 var order = GetModulus(sigNum, blockProducerCount);
 
-                var nextEBP = _blockProducer.Nodes[order];
+                var nextEBP = _miners.Nodes[order];
             
                 return new StringValue {Value = nextEBP.RemoveHexPrefix()};
             }
@@ -427,7 +420,7 @@ namespace AElf.Kernel.Consensus
         }
         
         // ReSharper disable once UnusedMember.Global
-        public async Task<StringValue> GetDPoSInfoToString()
+        public StringValue GetDPoSInfoToString()
         {
             ulong count = 1;
 
@@ -440,7 +433,7 @@ namespace AElf.Kernel.Consensus
             ulong i = 1;
             while (i <= count)
             {
-                var roundInfoStr = await GetRoundInfoToString(new UInt64Value {Value = i});
+                var roundInfoStr = GetRoundInfoToString(new UInt64Value {Value = i});
                 infoOfOneRound += $"\n[Round {i}]\n" + roundInfoStr;
                 i++;
             }
@@ -455,7 +448,7 @@ namespace AElf.Kernel.Consensus
             return res;
         }
 
-        private async Task<string> GetDPoSInfoToStringOfLatestRounds(ulong countOfRounds)
+        private string GetDPoSInfoToStringOfLatestRounds(ulong countOfRounds)
         {
             try
             {
@@ -484,7 +477,7 @@ namespace AElf.Kernel.Consensus
                         continue;
                     }
 
-                    var roundInfoStr = await GetRoundInfoToString(new UInt64Value {Value = i});
+                    var roundInfoStr = GetRoundInfoToString(new UInt64Value {Value = i});
                     infoOfOneRound += $"\n[Round {i}]\n" + roundInfoStr;
                     i++;
                 }
@@ -499,10 +492,10 @@ namespace AElf.Kernel.Consensus
             }
         }
         
-        public async Task<Tuple<RoundInfo, RoundInfo, StringValue>> ExecuteTxsForExtraBlock()
+        public Tuple<Round, Round, StringValue> ExecuteTxsForExtraBlock()
         {
-            var currentRoundInfo = await SupplyPreviousRoundInfo();
-            var nextRoundInfo = await GenerateNextRoundOrder();
+            var currentRoundInfo = SupplyPreviousRoundInfo();
+            var nextRoundInfo = GenerateNextRoundOrder();
             var nextEBP = CalculateNextExtraBlockProducer();
             
             return Tuple.Create(currentRoundInfo, nextRoundInfo, nextEBP);
@@ -544,19 +537,19 @@ namespace AElf.Kernel.Consensus
             Globals.AElfDPoSMiningInterval = MiningInterval.Value;
         }
         
-        public async Task<string> GetDPoSInfo(ulong height)
+        public string GetDPoSInfo(ulong height)
         {
             _logger?.Trace("Log dpos information - Start");
-            return await GetDPoSInfoToStringOfLatestRounds(Globals.AElfDPoSLogRoundCount) + $". Current height: {height}";
+            return GetDPoSInfoToStringOfLatestRounds(Globals.AElfDPoSLogRoundCount) + $". Current height: {height}";
         }
 
-        private async Task<string> GetRoundInfoToString(UInt64Value roundNumber)
+        private string GetRoundInfoToString(UInt64Value roundNumber)
         {
             try
             {
                 var result = "";
 
-                foreach (var bpInfo in this[roundNumber].Info)
+                foreach (var bpInfo in this[roundNumber].BlockProducers)
                 {
                     result += bpInfo.Key + ":\n";
                     result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";

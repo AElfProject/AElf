@@ -34,7 +34,9 @@ namespace AElf.Execution
                 WorldStateDictator = worldStateDictator,
                 AccountContextService = accountContextService,
             };
-            _servicePack.WorldStateDictator.DeleteChangeBeforesImmidiately = ActorConfig.Instance.Benchmark;
+            
+            //TODO: Remove related config (because no need)
+            //_servicePack.WorldStateDictator.DeleteChangeBeforesImmidiately = ActorConfig.Instance.Benchmark;
             _isInit = false;
         }
 

@@ -18,8 +18,8 @@ namespace AElf.Contracts.Consensus
         private readonly IConsensus _consensus = new DPoS(new AElfDPoSFiledMapCollection
         {
             CurrentRoundNumberField = new UInt64Field(Globals.AElfDPoSCurrentRoundNumber),
-            BlockProducerField = new PbField<BlockProducer>(Globals.AElfDPoSBlockProducerString),
-            DPoSInfoMap = new Map<UInt64Value, RoundInfo>(Globals.AElfDPoSInformationString),
+            BlockProducerField = new PbField<Miners>(Globals.AElfDPoSBlockProducerString),
+            DPoSInfoMap = new Map<UInt64Value, Round>(Globals.AElfDPoSInformationString),
             EBPMap = new Map<UInt64Value, StringValue>(Globals.AElfDPoSExtraBlockProducerString),
             TimeForProducingExtraBlockField = new PbField<Timestamp>(Globals.AElfDPoSExtraBlockTimeslotString),
             FirstPlaceMap = new Map<UInt64Value, StringValue>(Globals.AElfDPoSFirstPlaceOfEachRoundString),

@@ -7,9 +7,7 @@ namespace AElf.Kernel.Modules.AutofacModule
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<WorldStateStore>().As<IWorldStateStore>();
             builder.RegisterType<DataStore>().As<IDataStore>();
-            builder.RegisterType<ChangesStore>().As<IChangesStore>();
         }
     }
 }

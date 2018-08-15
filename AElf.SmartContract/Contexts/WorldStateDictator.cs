@@ -10,33 +10,25 @@ using Google.Protobuf.WellKnownTypes;
 using AElf.Kernel;
 using NLog;
 
-// ReSharper disable once CheckNamespace
+// ReSharper disable CheckNamespace
 namespace AElf.SmartContract
 {
     [LoggerName(nameof(WorldStateDictator))]
     public class WorldStateDictator: IWorldStateDictator
     {
-        #region Stores
-        private readonly IWorldStateStore _worldStateStore;
         private readonly IDataStore _dataStore;
-        private readonly IChangesStore _changesStore;
-        #endregion
-
         private readonly ILogger _logger;
         
         private bool _isChainIdSetted;
         private Hash _chainId;
 
-        public bool DeleteChangeBeforesImmidiately { get; set; } = false;
-        
+        private WorldState _worldState;
+
         public Hash PreBlockHash { get; set; }
         public Hash BlockProducerAccountAddress { get; set; }
 
-        public WorldStateDictator(IWorldStateStore worldStateStore, IChangesStore changesStore,
-            IDataStore dataStore, ILogger logger)
+        public WorldStateDictator(IDataStore dataStore, ILogger logger)
         {
-            _worldStateStore = worldStateStore;
-            _changesStore = changesStore;
             _dataStore = dataStore;
             _logger = logger;
         }
@@ -49,78 +41,24 @@ namespace AElf.SmartContract
         }
         
         /// <summary>
-        /// Insert a Change to ChangesStore.
-        /// And refresh the paths count of current world state,
-        /// as well as insert a changed path to DataStore.
-        /// The key to get the changed path can be calculated by PreBlockHash and the order.
-        /// </summary>
-        /// <param name="pathHash"></param>
-        /// <param name="change"></param>
-        /// <returns></returns>
-        public async Task InsertChangeAsync(Hash pathHash, Change change)
-        {
-            await Check();
-            
-            await _changesStore.InsertChangeAsync(pathHash, change);
-            
-            var count = new UInt64Value {Value = 0};
-
-            var keyToGetCount = ResourcePath.CalculatePointerForPathsCount(_chainId, PreBlockHash);
-            if (await _dataStore.GetDataAsync<UInt64Value>(keyToGetCount) == null)
-            {
-                await _dataStore.SetDataAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
-            }
-            
-            var result = await _dataStore.GetDataAsync<UInt64Value>(keyToGetCount);
-            if (result == null)
-            {
-                await _dataStore.SetDataAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
-            }
-            else
-            {
-                count = UInt64Value.Parser.ParseFrom(result);
-            }
-            
-            // make a path related to its order
-            var key = CalculateKeyForPath(PreBlockHash, count);
-            await _dataStore.SetDataAsync<Hash>(key, pathHash.GetHashBytes());
-
-            // update the count of changes
-            count = new UInt64Value {Value = count.Value + 1};
-            await _dataStore.SetDataAsync<UInt64Value>(keyToGetCount, count.ToByteArray());
-        }
-
-        public async Task<Change> GetChangeAsync(Hash pathHash)
-        {
-            return await _changesStore.GetChangeAsync(pathHash);
-        }
-        
-        /// <summary>
-        /// Rollback changes of executed transactions
-        /// by rollback the PointerStore.
+        /// Rollback the state to previous block,
+        /// always happen during the mining (before setting world state).
         /// </summary>
         /// <returns></returns>
-        public async Task RollbackCurrentChangesAsync()
+        public async Task RollbackToPreviousBlock()
         {
-            var dict = await GetChangesDictionaryAsync();
-            foreach (var pair in dict)
+            foreach (var data in _worldState.GetContext())
             {
-                if (pair.Value.Befores.Count > 0)
-                {
-                    await _changesStore.UpdatePointerAsync(pair.Key, pair.Value.Befores[0]);
-                }
+                await UpdatePointerAsync(data.ResourcePath, data.ResourcePointer);
             }
-            
-            var keyToGetCount = ResourcePath.CalculatePointerForPathsCount(_chainId, PreBlockHash);
-            await _dataStore.SetDataAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
         }
 
         public async Task RollbackToBlockHash(Hash blockHash)
         {
             await Check();
-            await RollbackCurrentChangesAsync();
+            await RollbackToPreviousBlock();
             PreBlockHash = blockHash;
-            await RollbackCurrentChangesAsync();
+            await RollbackToPreviousBlock();
         }
         
         /// <summary>
@@ -138,7 +76,7 @@ namespace AElf.SmartContract
             
             await Check();
             
-            await RollbackCurrentChangesAsync();
+            await RollbackToPreviousBlock();
             
             var currentHeight = await GetChainCurrentHeight(_chainId);
             
@@ -148,8 +86,7 @@ namespace AElf.SmartContract
             await SetChainCurrentHeight(_chainId, specificHeight);
 
             //Update last block hash of curent chain
-            var lastBlockHash = Hash.Parser.ParseFrom(await _dataStore.GetDataAsync<Hash>(
-                ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, specificHeight - 1)));
+            var lastBlockHash = ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, specificHeight - 1);
             await SetChainLastBlockHash(_chainId, lastBlockHash);
             PreBlockHash = lastBlockHash;
 
@@ -157,7 +94,7 @@ namespace AElf.SmartContract
             
             _logger?.Trace($"Already rollback to height: {await GetChainCurrentHeight(_chainId)}");
             
-            await RollbackCurrentChangesAsync();
+            await RollbackToPreviousBlock();
 
             return txs;
         }
@@ -168,20 +105,19 @@ namespace AElf.SmartContract
             for (var i = currentHeight - 1; i >= specificHeight; i--)
             {
                 var rollBackBlockHash =
-                    Hash.Parser.ParseFrom(
-                        await _dataStore.GetDataAsync<Hash>(
-                            ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, i)));
-                var header = await _blockHeaderStore.GetAsync(rollBackBlockHash);
-                var body = await _blockBodyStore.GetAsync(header.GetHash().CalculateHashWith(header.MerkleTreeRootOfTransactions));
+                    await _dataStore.GetAsync<Hash>(
+                        ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, i));
+                var header = await _dataStore.GetAsync<BlockHeader>(rollBackBlockHash);
+                var body = await _dataStore.GetAsync<BlockBody>(header.GetHash().CalculateHashWith(header.MerkleTreeRootOfTransactions));
                 foreach (var txId in body.Transactions)
                 {
-                    var tx = await _transactionStore.GetAsync(txId);
+                    var tx = await _dataStore.GetAsync<Transaction>(txId);
                     if (tx == null)
                     {
                         _logger?.Trace($"tx {txId} is null");
                     }
                     txs.Add(tx);
-                    await _transactionStore.RemoveAsync(txId);
+                    await _dataStore.RemoveAsync<Transaction>(txId);
                 }
 
                 _logger?.Trace(
@@ -195,30 +131,30 @@ namespace AElf.SmartContract
         private async Task<ulong> GetChainCurrentHeight(Hash chainId)
         {
             var key = ResourcePath.CalculatePointerForCurrentBlockHeight(chainId);
-            var heightBytes = await _dataStore.GetDataAsync<UInt64Value>(key);
-            return UInt64Value.Parser.ParseFrom(heightBytes).Value;
+            var height = await _dataStore.GetAsync<UInt64Value>(key);
+            return height.Value;
         }
         
         public async Task SetChainCurrentHeight(Hash chainId, ulong height)
         {
             var key = ResourcePath.CalculatePointerForCurrentBlockHeight(chainId);
-            await _dataStore.SetDataAsync<UInt64Value>(key, new UInt64Value
+            await _dataStore.InsertAsync(key, new UInt64Value
             {
                 Value = height
-            }.ToByteArray());
+            });
         }
         
         public async Task<Hash> GetChainLastBlockHash(Hash chainId)
         {
             var key = ResourcePath.CalculatePointerForLastBlockHash(chainId);
-            return await _dataStore.GetDataAsync<Hash>(key);
+            return await _dataStore.GetAsync<Hash>(key);
         }
         
         public async Task SetChainLastBlockHash(Hash chainId, Hash blockHash)
         {
             var key = ResourcePath.CalculatePointerForLastBlockHash(chainId);
             PreBlockHash = blockHash;
-            await _dataStore.SetDataAsync<Hash>(key, blockHash.GetHashBytes());
+            await _dataStore.InsertAsync(key, blockHash);
         }
 
         /// <summary>
@@ -244,7 +180,12 @@ namespace AElf.SmartContract
         {
             await Check();
             
-            return await _worldStateStore.GetWorldStateAsync(_chainId, blockHash);
+            return await _dataStore.GetAsync<WorldState>(CalculateHashFroWorldState(_chainId, blockHash));
+        }
+
+        private Hash CalculateHashFroWorldState(Hash chainId, Hash blockHash)
+        {
+            return chainId.CalculateHashWith(blockHash);
         }
         
         /// <summary>
@@ -257,18 +198,7 @@ namespace AElf.SmartContract
         {
             await Check();
             
-            var changes = await GetChangesDictionaryAsync();
-            var dict = new ChangesDict();
-            foreach (var pair in changes)
-            {
-                var pairHashChange = new PairHashChange
-                {
-                    Key = pair.Key.Clone(),
-                    Value = pair.Value.Clone()
-                };
-                dict.Dict.Add(pairHashChange);
-            }
-            await _worldStateStore.InsertWorldStateAsync(_chainId, PreBlockHash, dict);
+            await _dataStore.InsertAsync<WorldState>(CalculateHashFroWorldState(_chainId, PreBlockHash), _worldState);
             
             //Refresh PreBlockHash after setting WorldState.
             PreBlockHash = preBlockHash;
@@ -284,7 +214,7 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task UpdatePointerAsync(Hash pathHash, Hash pointerHash)
         {
-            await _changesStore.UpdatePointerAsync(pathHash, pointerHash);
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -295,11 +225,10 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task<Hash> GetPointerAsync(Hash pathHash)
         {
-            return await _changesStore.GetPointerAsync(pathHash);
+            return await _dataStore.GetAsync<Hash>(pathHash);
         }
         #endregion
 
-        #region Methods about DataStore
         /// <summary>
         /// Using a pointer hash value like a key to set a byte array to DataStore.
         /// </summary>
@@ -308,7 +237,7 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task SetDataAsync(Hash pointerHash, byte[] data)
         {
-            await _dataStore.SetDataAsync<Hash>(pointerHash, data);
+            await _dataStore.InsertAsync<Hash>(pointerHash, data);
         }
 
         /// <summary>
@@ -318,100 +247,8 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task<byte[]> GetDataAsync(Hash pointerHash)
         {
-            return await _dataStore.GetDataAsync<Hash>(pointerHash);
+            return await _dataStore.GetAsync(pointerHash);
         }
-        
-        /// <summary>
-        /// blockHash + order = key.
-        /// Using key to get path from DataSotre.
-        /// Then return all the paths.
-        /// </summary>
-        /// <param name="blockHash"></param>
-        /// <returns></returns>
-        public async Task<List<Hash>> GetPathsAsync(Hash blockHash = null)
-        {
-            await Check();
-            Interlocked.CompareExchange(ref blockHash, PreBlockHash, null);
-            
-            var paths = new List<Hash>();
-
-            var changedPathsCount = await GetChangedPathsCountAsync(blockHash);
-            
-            for (ulong i = 0; i < changedPathsCount; i++)
-            {
-                var key = CalculateKeyForPath(blockHash, new UInt64Value {Value = i});
-                var path = await _dataStore.GetDataAsync<Hash>(key);
-                paths.Add(path);
-            }
-
-            return paths;
-        }
-        #endregion
-
-        #region Get Changes
-        /// <summary>
-        /// Using a paths list to get Changes from a ChangesStore.
-        /// </summary>
-        /// <param name="blockHash"></param>
-        /// <returns></returns>
-        public async Task<List<Change>> GetChangesAsync(Hash blockHash)
-        {
-            await Check();
-
-            var paths = await GetPathsAsync(blockHash);
-            var worldState = await _worldStateStore.GetWorldStateAsync(_chainId, blockHash);
-            var changes = new List<Change>();
-            foreach (var path in paths)
-            {
-                var change = await worldState.GetChangeAsync(path);
-                changes.Add(change);
-            }
-
-            return changes;
-        }
-
-        /// <summary>
-        /// Get Changes from current _changesStore.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<List<Change>> GetChangesAsync()
-        {
-            var paths = await GetPathsAsync();
-            var changes = new List<Change>();
-            if (paths == null)
-                return changes;
-            
-            foreach (var path in paths)
-            {
-                var change = await _changesStore.GetChangeAsync(path);
-                changes.Add(change);
-            }
-
-            return changes;
-        }
-
-        /// <summary>
-        /// Get Dictionary of path - Change of current _changesStore.
-        /// </summary>
-        /// <returns></returns>
-        public async Task<Dictionary<Hash, Change>> GetChangesDictionaryAsync()
-        {
-            var paths = await GetPathsAsync();
-            var dict = new Dictionary<Hash, Change>();
-            if (paths == null)
-            {
-                return dict;
-            }
-            
-            foreach (var path in paths)
-            {
-                var change = await _changesStore.GetChangeAsync(path);
-                dict[path] = change;
-            }
-
-            return dict;
-        }
-        #endregion
 
         /// <summary>
         /// The normal way to get a pointer hash value from a Path instance.
@@ -426,42 +263,9 @@ namespace AElf.SmartContract
                 .SetBlockHash(PreBlockHash).GetPointerHash();
         }
 
-        public async Task<Change> ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId)
+        public async Task ApplyStateValueChangeAsync(StateValueChange stateValueChange, Hash chainId)
         {
-            // The code chunk is copied from DataProvider
-
-            Hash prevBlockHash = await _dataStore.GetDataAsync<Hash>(ResourcePath.CalculatePointerForLastBlockHash(chainId));
-            
-            //Generate the new pointer hash (using previous block hash)
-            var pointerHashAfter = stateValueChange.Path.CalculateHashWith(prevBlockHash);
-
-            var change = await GetChangeAsync(stateValueChange.Path);
-            if (change == null)
-            {
-                change = new Change
-                {
-                    After = pointerHashAfter
-                };
-            }
-            else
-            {
-                //See whether the latest changes of this Change happened in this height,
-                //If not, clear the change, because this Change is too old to support rollback.
-                if (DeleteChangeBeforesImmidiately || prevBlockHash != change.LatestChangedBlockHash)
-                {
-                    change.ClearChangeBefores();
-                }
-
-                change.UpdateHashAfter(pointerHashAfter);
-            }
-
-            change.LatestChangedBlockHash = prevBlockHash;
-
-            await InsertChangeAsync(stateValueChange.Path, change);
-            
-            //set data to database action have been moved to ApplyCachedDataAction, which will be called by worker
-            //await SetDataAsync(pointerHashAfter, stateValueChange.AfterValue.ToByteArray()); 
-            return change;
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -472,7 +276,7 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task<bool> ApplyCachedDataAction(Dictionary<Hash, StateCache> cachedActions, Hash chainId)
         {
-            Hash prevBlockHash = await _dataStore.GetDataAsync<Hash>(ResourcePath.CalculatePointerForLastBlockHash(chainId));
+            Hash prevBlockHash = await _dataStore.GetAsync<Hash>(ResourcePath.CalculatePointerForLastBlockHash(chainId));
             
             _logger?.Debug($"Pipeline set {cachedActions.Count} data item");
             
@@ -482,7 +286,7 @@ namespace AElf.SmartContract
             if (pipelineSet.Count > 0)
             {
                 //_logger?.Debug($"Pipeline set {pipelineSet.Count} data item");
-                return await _dataStore.PipelineSetDataAsync<Hash>(pipelineSet);
+                return await _dataStore.PipelineSetDataAsync(pipelineSet);
             }
 
             //return true for read-only 
@@ -490,48 +294,6 @@ namespace AElf.SmartContract
         }
 
         #region Private methods
-
-        /// <summary>
-        /// Get the count of changed-paths of a specific block.
-        /// </summary>
-        /// <param name="blockHash"></param>
-        /// <returns></returns>
-        private async Task<ulong> GetChangedPathsCountAsync(Hash blockHash)
-        {
-            await Check();
-            
-            var changedPathsCount = new UInt64Value {Value = 0};
-            
-            var keyToGetCount = ResourcePath.CalculatePointerForPathsCount(_chainId, blockHash);
-            if (await _dataStore.GetDataAsync<UInt64Value>(keyToGetCount) == null)
-            {
-                await _dataStore.SetDataAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
-            }
-            
-            var result = await _dataStore.GetDataAsync<UInt64Value>(keyToGetCount);
-            if (result == null)
-            {
-                await _dataStore.SetDataAsync<UInt64Value>(keyToGetCount, new UInt64Value {Value = 0}.ToByteArray());
-            }
-            else
-            {
-                changedPathsCount = UInt64Value.Parser.ParseFrom(result);
-            }
-            
-            return changedPathsCount.Value;
-        }
-
-        /// <summary>
-        /// Just use the result hash to get the path of a specific block and a specific order of changes.
-        /// </summary>
-        /// <param name="blockHash"></param>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        // ReSharper disable once MemberCanBeMadeStatic.Local
-        private Hash CalculateKeyForPath(Hash blockHash, IMessage obj)
-        {
-            return blockHash.CombineReverseHashWith(obj.CalculateHash());
-        }
 
         private async Task Check()
         {
@@ -542,7 +304,7 @@ namespace AElf.SmartContract
 
             if (PreBlockHash == null)
             {
-                var hash = await _dataStore.GetDataAsync<Hash>(ResourcePath.CalculatePointerForLastBlockHash(_chainId));
+                var hash = await _dataStore.GetAsync<Hash>(ResourcePath.CalculatePointerForLastBlockHash(_chainId));
                 PreBlockHash = hash ?? Hash.Genesis;
             }
         }

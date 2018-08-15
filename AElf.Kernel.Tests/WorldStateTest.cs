@@ -21,37 +21,23 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class WorldStateTest
     {
-        private readonly IWorldStateStore _worldStateStore;
-        private readonly IChainStore _chainStore;
-        private readonly IChangesStore _changesStore;
         private readonly IDataStore _dataStore;
         private readonly ILogger _logger;
         private readonly BlockTest _blockTest;
         private readonly ITxPoolService _txPoolService;
-        private readonly IBlockHeaderStore _blockHeaderStore;
-        private readonly IBlockBodyStore _blockBodyStore;
-        private readonly ITransactionStore _transactionStore;
         private readonly IChainService _chainService;
         private readonly IChainManagerBasic _chainManager;
         private readonly IBlockManagerBasic _blockManger;
         private readonly ICanonicalHashStore _canonicalHashStore;
 
-        public WorldStateTest(IChainStore chainStore, IWorldStateStore worldStateStore,
-            IChangesStore changesStore, IDataStore dataStore, BlockTest blockTest, ILogger logger,
-            ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
-            ITransactionStore transactionStore, IChainService chainService, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
+        public WorldStateTest(IDataStore dataStore, BlockTest blockTest, ILogger logger,
+            ITxPoolService txPoolService, IChainService chainService, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
             ICanonicalHashStore canonicalHashStore)
         {
-            _chainStore = chainStore;
-            _worldStateStore = worldStateStore;
-            _changesStore = changesStore;
             _dataStore = dataStore;
             _blockTest = blockTest;
             _logger = logger;
             _txPoolService = txPoolService;
-            _blockHeaderStore = blockHeaderStore;
-            _blockBodyStore = blockBodyStore;
-            _transactionStore = transactionStore;
             _chainService = chainService;
             _chainManager = chainManager;
             _blockManger = blockManager;
@@ -64,8 +50,7 @@ namespace AElf.Kernel.Tests
             // Data preparation
             var chain = await _blockTest.CreateChain();
             var worldStateDictator = 
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                    _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger).SetChainId(chain.Id);
+                new WorldStateDictator(_dataStore,  _logger).SetChainId(chain.Id);
 
             var blockchain = _chainService.GetBlockChain(chain.Id);
             
@@ -96,8 +81,7 @@ namespace AElf.Kernel.Tests
             var chain = await _blockTest.CreateChain();
             
             var worldStateDictator = 
-                new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                    _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger).SetChainId(chain.Id);
+                new WorldStateDictator(_dataStore, _logger).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
             var blockchain = _chainService.GetBlockChain(chain.Id);
@@ -204,7 +188,7 @@ namespace AElf.Kernel.Tests
             subDataProvider5 = dataProvider.GetDataProvider("test5");
             await subDataProvider5.SetAsync(key, data9);
             
-            await worldStateDictator.RollbackCurrentChangesAsync();
+            await worldStateDictator.RollbackToPreviousBlock();
             worldStateDictator.PreBlockHash = ((BlockHeader)await blockchain.GetHeaderByHashAsync(worldStateDictator.PreBlockHash)).PreviousBlockHash;
             
             var getData9 = await subDataProvider5.GetAsync(key);
@@ -219,8 +203,7 @@ namespace AElf.Kernel.Tests
             
             var block1 = CreateBlock(chain.GenesisBlockHash, chain.Id, 1);
             
-            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                    _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger)
+            var worldStateDictator = new WorldStateDictator(_dataStore, _logger)
                 .SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
             var blockchain = _chainService.GetBlockChain(chain.Id);
@@ -256,7 +239,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(data4, getData4);
 
             //Do the rollback
-            await worldStateDictator.RollbackCurrentChangesAsync();
+            await worldStateDictator.RollbackToPreviousBlock();
             worldStateDictator.PreBlockHash = ((BlockHeader)await blockchain.GetHeaderByHashAsync(worldStateDictator.PreBlockHash)).PreviousBlockHash;
 
             //Now the "key"'s value of subDataProvider rollback to previous data.
@@ -289,7 +272,7 @@ namespace AElf.Kernel.Tests
             var getData5 = await subDataProvider.GetAsync(key1);
             Assert.Equal(data5, getData5);
 
-            await worldStateDictator.RollbackCurrentChangesAsync();
+            await worldStateDictator.RollbackToPreviousBlock();
             worldStateDictator.PreBlockHash = ((BlockHeader)await blockchain.GetHeaderByHashAsync(worldStateDictator.PreBlockHash)).PreviousBlockHash;
             
             getData3 = await subDataProvider.GetAsync(key1);
@@ -304,8 +287,7 @@ namespace AElf.Kernel.Tests
             var chain = await _blockTest.CreateChain();
             System.Diagnostics.Debug.WriteLine($"Hash of height 0: {chain.GenesisBlockHash.Value.ToByteArray().ToHex()}");
             
-            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger).SetChainId(chain.Id);
+            var worldStateDictator = new WorldStateDictator(_dataStore, _logger).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
             var blockchain = _chainService.GetBlockChain(chain.Id);

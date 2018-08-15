@@ -134,7 +134,7 @@ namespace AElf.Kernel.Node
                     _worldStateDictator.SetWorldStateAsync(preBlockHash);
 
                     _worldStateDictator.PreBlockHash = preBlockHash;
-                    _worldStateDictator.RollbackCurrentChangesAsync();
+                    _worldStateDictator.RollbackToPreviousBlock();
                 }
             }
             catch (Exception e)

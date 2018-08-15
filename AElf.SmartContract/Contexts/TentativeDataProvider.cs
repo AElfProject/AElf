@@ -62,12 +62,10 @@ namespace AElf.SmartContract
             return dp;
         }
 
-        public async Task<Change> SetAsync(Hash keyHash, byte[] obj)
+        public async Task SetAsync(Hash keyHash, byte[] obj)
         {
             var state = await GetStateAsync(keyHash);
             state.CurrentValue = obj;
-
-            return null;
         }
 
         public async Task<byte[]> GetAsync(Hash keyHash)

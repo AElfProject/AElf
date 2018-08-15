@@ -219,7 +219,7 @@ namespace AElf.ChainController
         private async Task Rollback(List<Transaction> readyTxs)
         {
             await _txPoolService.RollBack(readyTxs);
-            await _worldStateDictator.RollbackCurrentChangesAsync();
+            await _worldStateDictator.RollbackToPreviousBlock();
         }
         
         public void Start(IGrouper grouper)
