@@ -9,7 +9,10 @@ using AElf.Common.Attributes;
 using AElf.Network.Config;
 using AElf.Network.Connection;
 using AElf.Network.Data;
+using AElf.RPC;
+using Community.AspNetCore.JsonRpc;
 using Google.Protobuf;
+using Newtonsoft.Json.Linq;
 using NLog;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
@@ -24,8 +27,9 @@ namespace AElf.Network.Peers
         public PeerMessageReceivedArgs Message { get; set; }
     }
     
+    [Path("/net")]
     [LoggerName(nameof(PeerManager))]
-    public class PeerManager : IPeerManager
+    public class PeerManager : IPeerManager, IJsonRpcService
     {
         public event EventHandler PeerAdded;
         
@@ -87,7 +91,13 @@ namespace AElf.Network.Peers
 
             Task.Run(() => StartProcessing()).ConfigureAwait(false);
         }
-        
+
+        [JsonRpcMethod("get_peers")]
+        public async Task<JObject> GetPeers()
+        {
+            return null;
+        }
+
         private void StartProcessing()
         {
             while (true)

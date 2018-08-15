@@ -24,6 +24,11 @@ namespace AElf.CLI.Command
         {
             throw new System.NotImplementedException();
         }
+        
+        public override string GetUrl()
+        {
+            return "/net";
+        }
 
         public override JObject BuildRequest(CmdParseResult parsedCmd)
         {

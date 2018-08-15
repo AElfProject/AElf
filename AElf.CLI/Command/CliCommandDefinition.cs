@@ -28,6 +28,11 @@ namespace AElf.CLI.Command
             return null;
         }
 
+        public virtual string GetUrl()
+        {
+            return "/chain";
+        }
+
         public abstract string Validate(CmdParseResult parsedCmd);
 
         public virtual string GetPrintString(JObject resp)

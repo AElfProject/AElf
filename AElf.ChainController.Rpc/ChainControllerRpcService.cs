@@ -17,7 +17,7 @@ using Google.Protobuf;
 
 namespace AElf.ChainController.Rpc
 {
-    [Path("")]
+    [Path("/chain")]
     public class ChainControllerRpcService : IJsonRpcService
     {
         #region Properties

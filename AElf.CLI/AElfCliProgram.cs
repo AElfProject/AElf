@@ -493,7 +493,7 @@ namespace AElf.CLI
                     {
                         // RPC
                         HttpRequestor reqhttp = new HttpRequestor(_rpcAddress);
-                        string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString());
+                        string resp = reqhttp.DoRequest(def.BuildRequest(parsedCmd).ToString(), def.GetUrl());
                         if (resp == null)
                         { 
                             _screenManager.PrintError(ServerConnError);
