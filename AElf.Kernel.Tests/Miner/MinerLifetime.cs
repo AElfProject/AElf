@@ -86,6 +86,7 @@ namespace AElf.Kernel.Tests.Miner
             _worldStateDictator = worldStateDictator;
             _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
             this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
+            this.Subscribe<IBlock>(async (t) => { await Task.CompletedTask;});
             Initialize();
         }
 

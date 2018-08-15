@@ -9,6 +9,7 @@ using AElf.Kernel.Managers;
 using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
 using AElf.Kernel.TxMemPool;
+using AsyncEventAggregator;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 using Xunit;
@@ -44,6 +45,7 @@ namespace AElf.Kernel.Tests
             _blockHeaderStore = blockHeaderStore;
             _transactionStore = transactionStore;
             _blockBodyStore = blockBodyStore;
+            this.Subscribe<IBlock>(async (t) => { await Task.CompletedTask;});
         }
         
         [Fact]
