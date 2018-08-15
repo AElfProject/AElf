@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Configuration;
+using AElf.Contracts.SideChain;
 using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using AElf.Contracts.Genesis;
 using AElf.Kernel.Managers;
 using NLog;
 

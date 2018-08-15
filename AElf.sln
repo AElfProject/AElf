@@ -103,6 +103,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RPC", "RPC", "{6037B755-5BB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.SideChain.Creation", "AElf.SideChain.Creation\AElf.SideChain.Creation.csproj", "{6947D9C1-5541-40A7-8422-B531A5AB6530}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Sidechain", "AElf.Contracts.Sidechain\AElf.Contracts.Sidechain.csproj", "{DC3BBD77-6350-4695-BD8A-61E7C69AAE51}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -305,6 +307,10 @@ Global
 		{6947D9C1-5541-40A7-8422-B531A5AB6530}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6947D9C1-5541-40A7-8422-B531A5AB6530}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6947D9C1-5541-40A7-8422-B531A5AB6530}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC3BBD77-6350-4695-BD8A-61E7C69AAE51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC3BBD77-6350-4695-BD8A-61E7C69AAE51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC3BBD77-6350-4695-BD8A-61E7C69AAE51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC3BBD77-6350-4695-BD8A-61E7C69AAE51}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

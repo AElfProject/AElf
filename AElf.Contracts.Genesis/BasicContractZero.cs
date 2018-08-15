@@ -38,11 +38,6 @@ namespace AElf.Contracts.Genesis
         public Hash ChainId;
     }
 
-    public class SideChainCreationRequestApproved : Event
-    {
-        public SideChainInfo Info;
-    }
-
     public class OwnerHasBeenChanged : Event
     {
         [Indexed] public Hash Address;
@@ -136,9 +131,6 @@ namespace AElf.Contracts.Genesis
         private readonly SideChainSerialNumber _sideChainSerialNumber = SideChainSerialNumber.Instance;
         private readonly Map<Hash, ContractInfo> _contractInfos = new Map<Hash, ContractInfo>(FieldNames.ContractInfos);
 
-        private readonly Map<Hash, SideChainInfo> _sideChainInfos =
-            new Map<Hash, SideChainInfo>(FieldNames.SideChainInfos);
-
         #endregion Fields
 
         [View]
@@ -165,17 +157,6 @@ namespace AElf.Contracts.Genesis
             return info.ToString();
         }
 
-        [View]
-        public string GetSideChainInfoFor(Hash chainId)
-        {
-            var info = _sideChainInfos[chainId];
-            if (info == null)
-            {
-                return String.Empty;
-            }
-
-            return info.ToString();
-        }
 
         public async Task<byte[]> DeploySmartContract(int category, byte[] code)
         {
@@ -217,40 +198,7 @@ namespace AElf.Contracts.Genesis
             return address.GetHashBytes();
         }
 
-        public byte[] CreateSideChain(int placeholder)
-        {
-            ulong serialNumber = _sideChainSerialNumber.Increment().Value;
-            var chainId = Hash.Generate();
-            var info = new SideChainInfo()
-            {
-                Owner = Api.GetTransaction().From,
-                ChainId = chainId,
-                SerialNumer = serialNumber,
-                Status = SideChainStatus.Pending
-            };
-            _sideChainInfos[chainId] = info;
-            new SideChainCreationRequested()
-            {
-                ChainId = chainId,
-                Creator = Api.GetTransaction().From
-            }.Fire();
-            return chainId.GetHashBytes();
-        }
-
-        public void ApproveSideChain(Hash chainId)
-        {
-            // TODO: Only privileged account can trigger this method
-            var info = _sideChainInfos[chainId];
-            Api.Assert(info != null, "Invalid chain id.");
-            Api.Assert(info?.Status == SideChainStatus.Pending, "Invalid chain status.");
-            info.Status = SideChainStatus.Active;
-            _sideChainInfos[chainId] = info;
-            new SideChainCreationRequestApproved()
-            {
-                Info = info.Clone()
-            }.Fire();
-        }
-
+        
         public void ChangeContractOwner(Hash contractAddress, Hash newOwner)
         {
             var info = _contractInfos[contractAddress];
@@ -270,12 +218,6 @@ namespace AElf.Contracts.Genesis
         {
             var info = _contractInfos[contractAddress];
             return info.Owner;
-        }
-
-        public String TestInvoking(byte[] str)
-        {
-            Console.WriteLine(str.ToHex());
-            return "Success";
         }
     }
 }
