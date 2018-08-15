@@ -121,20 +121,12 @@ namespace AElf.Kernel.Tests
             subDataProvider3 = dataProvider.GetDataProvider("test3");
             await subDataProvider3.SetAsync(key, data7);
             
-            var changes1 = await worldStateDictator.GetChangesAsync(chain.GenesisBlockHash);
             
             var block2 = CreateBlock(block1.GetHash(), chain.Id, 2);
             await worldStateDictator.SetWorldStateAsync(block2.GetHash()); 
             await AddBlockAsync(blockchain, worldStateDictator, block2);
             
             //Test the continuity of changes (through two sequence world states).
-            var getChanges1 = await worldStateDictator.GetChangesAsync(chain.GenesisBlockHash);
-            var changes2 = await worldStateDictator.GetChangesAsync(block1.GetHash());
-            Assert.True(changes1.Count == getChanges1.Count);
-            Assert.True(changes1[0].After == getChanges1[0].After);
-            Assert.True(changes1[3].After == getChanges1[3].After);
-            Assert.True(changes1.Select(c => c.After).
-                            Intersect(changes2.Select(c => c.Befores.FirstOrDefault())).Count() == 3);
 
             //Test the equality of pointer transfered from path and get from world state.
             var path = new ResourcePath()
@@ -146,8 +138,6 @@ namespace AElf.Kernel.Tests
                 .SetBlockHash(chain.GenesisBlockHash).GetPointerHash();
             var pointerHash2 = path.SetBlockProducerAddress(worldStateDictator.BlockProducerAccountAddress)
                 .SetBlockHash(block1.GetHash()).GetPointerHash();
-            Assert.True(changes2[0].GetLastHashBefore() == pointerHash1);
-            Assert.True(changes2[0].After == pointerHash2);
 
             //Test data equal or not equal from different world states.
             var getData1InHeight1 = await subDataProvider1.GetAsync(key, chain.GenesisBlockHash);
@@ -162,10 +152,6 @@ namespace AElf.Kernel.Tests
             await AddBlockAsync(blockchain, worldStateDictator, block3);
             await worldStateDictator.SetWorldStateAsync(block3.GetHash());
 
-            var changes3 = await worldStateDictator.GetChangesAsync();
-            
-            Assert.True(changes3.Count == 0);
-
             accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
             dataProvider = accountDataProvider.GetDataProvider();
             var data8 = Hash.Generate().Value.ToArray();
@@ -176,9 +162,7 @@ namespace AElf.Kernel.Tests
             await AddBlockAsync(blockchain, worldStateDictator, block4);
             await worldStateDictator.SetWorldStateAsync(block4.GetHash());
 
-            var changes4 = await worldStateDictator.GetChangesAsync(block3.GetHash());
             
-            Assert.True(changes4.Count == 1);
             var getData8 = await subDataProvider5.GetAsync(key);
             Assert.True(data8.SequenceEqual(getData8));
             
@@ -413,8 +397,7 @@ namespace AElf.Kernel.Tests
             var chain = await _blockTest.CreateChain();
             System.Diagnostics.Debug.WriteLine($"Hash of height 0: {chain.GenesisBlockHash.Value.ToByteArray().ToHex()}");
             
-            var worldStateDictator = new WorldStateDictator(_worldStateStore, _changesStore, _dataStore,
-                _blockHeaderStore, _blockBodyStore, _transactionStore,  _logger).SetChainId(chain.Id);
+            var worldStateDictator = new WorldStateDictator(_dataStore, _logger).SetChainId(chain.Id);
             worldStateDictator.BlockProducerAccountAddress = Hash.Generate();//Just fake one
 
             var blockchain = _chainService.GetBlockChain(chain.Id);
