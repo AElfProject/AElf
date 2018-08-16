@@ -40,7 +40,7 @@ namespace AElf.Management.Commands
                 IsCluster = true,
                 HostName = "127.0.0.1",
                 Port = 0,
-                WorkerCount = arg.WorkArg.ActorCount,
+                ActorCount = arg.WorkArg.ActorCount,
                 Benchmark = false,
                 ConcurrencyLevel = arg.WorkArg.ConcurrencyLevel,
                 Seeds = new List<SeedNode> {new SeedNode {HostName = "set-manager-0.service-manager", Port = 4053}},
