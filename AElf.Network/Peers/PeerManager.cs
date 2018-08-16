@@ -351,6 +351,9 @@ namespace AElf.Network.Peers
                         break;
                 }
 
+                if (!pListData.NodeData.Any())
+                    return;
+
                 byte[] payload = pListData.ToByteArray();
                 var resp = new Message
                 {
