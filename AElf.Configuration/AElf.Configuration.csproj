@@ -28,7 +28,7 @@
     <None Update="Config\Executor\manager.hocon" Link="config\manager.hocon">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Database\database.json" Link="config\database.hocon">
+    <None Update="Config\Database\database.json" Link="config\database.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Config\Node\miners.json" Link="config\miners.json">
