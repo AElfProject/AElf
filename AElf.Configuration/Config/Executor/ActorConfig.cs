@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace AElf.Configuration
 {
@@ -23,6 +24,7 @@ namespace AElf.Configuration
         private string _workerHoconConfig;
         private string _managerHoconConfig;
 
+        [JsonIgnore]
         public string SingleHoconConfig
         {
             get
@@ -33,6 +35,7 @@ namespace AElf.Configuration
             }
         }
 
+        [JsonIgnore]
         public string MasterHoconConfig
         {
             get
@@ -43,6 +46,7 @@ namespace AElf.Configuration
             }
         }
 
+        [JsonIgnore]
         public string WorkerHoconConfig
         {
             get
@@ -53,6 +57,7 @@ namespace AElf.Configuration
             }
         }
 
+        [JsonIgnore]
         public string ManagerHoconConfig
         {
             get
