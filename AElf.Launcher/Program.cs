@@ -13,9 +13,8 @@ using AElf.Kernel;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
 using AElf.Configuration;
-using AElf.Kernel.TxMemPool;
+using AElf.Configuration.Config.Network;
 using AElf.Network;
-using AElf.Network.Config;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using AsyncEventAggregator;
@@ -51,7 +50,6 @@ namespace AElf.Launcher
             if (!parsed)
                 return;
 
-            var netConf = confParser.NetConfig;
             var minerConfig = confParser.MinerConfig;
             var nodeConfig = confParser.NodeConfig;
             var isMiner = confParser.IsMiner;
@@ -93,7 +91,7 @@ namespace AElf.Launcher
             txPoolConf.EcKeyPair = nodeKey;
 
             // Setup ioc 
-            var container = SetupIocContainer(isMiner, isNewChain, netConf, txPoolConf,
+            var container = SetupIocContainer(isMiner, isNewChain, txPoolConf,
                 minerConfig, nodeConfig, smartContractRunnerFactory);
 
             if (container == null)
@@ -194,7 +192,7 @@ namespace AElf.Launcher
             }
         }
 
-        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, IAElfNetworkConfig netConf,
+        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, 
             ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig,
             SmartContractRunnerFactory smartContractRunnerFactory)
         {
@@ -208,9 +206,9 @@ namespace AElf.Launcher
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new WorldStateDictatorModule());
-            builder.RegisterModule(new LoggerModule("aelf-node-" + netConf.ListeningPort));
+            builder.RegisterModule(new LoggerModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
             builder.RegisterModule(new DatabaseModule());
-            builder.RegisterModule(new NetworkModule(netConf, isMiner));
+            builder.RegisterModule(new NetworkModule(isMiner));
             builder.RegisterModule(new RpcServicesModule());
             builder.RegisterType<ChainService>().As<IChainService>();
 

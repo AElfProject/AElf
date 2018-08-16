@@ -1,7 +1,6 @@
-﻿using AElf.Network;
-using AElf.Network.Config;
+﻿using AElf.Configuration.Config.Network;
+using AElf.Network;
 using AElf.Network.Connection;
-using AElf.Network.Data;
 using AElf.Network.Peers;
 using Autofac;
  
@@ -9,19 +8,15 @@ using Autofac;
  {
      public class NetworkModule : Module
      {
-         public IAElfNetworkConfig NetConfig { get; }
          public bool IsMiner { get; }
 
-         public NetworkModule(IAElfNetworkConfig netConfig, bool isMiner)
+         public NetworkModule(bool isMiner)
          {
-             NetConfig = netConfig ?? new AElfNetworkConfig();
              IsMiner = isMiner;
          }
 
          protected override void Load(ContainerBuilder builder)
-         {
-             builder.RegisterInstance(NetConfig).As<IAElfNetworkConfig>();
-             
+         {             
              /*if(IsMiner)
                  builder.RegisterType<BootnodePeerManager>().As<IPeerManager>();
              else
@@ -31,7 +26,7 @@ using Autofac;
              builder.RegisterType<NetworkManager>().As<INetworkManager>().SingleInstance();
              builder.RegisterType<ConnectionListener>().As<IConnectionListener>();
                  
-             PeerDataStore peerDb = new PeerDataStore(NetConfig.PeersDbPath);
+             PeerDataStore peerDb = new PeerDataStore(NetworkConfig.Instance.PeersDbPath);
              builder.RegisterInstance(peerDb).As<IPeerDatabase>();
 
              //NodeData nd = NodeData.FromString(NetConfig.Host + ":" + NetConfig.Port);

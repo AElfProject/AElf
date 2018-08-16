@@ -3,7 +3,6 @@ using AElf.Database;
 using AElf.Execution;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Launcher;
-using AElf.Network.Config;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using Autofac;
@@ -32,7 +31,6 @@ namespace AElf.Concurrency.Worker
             if (!parsed)
                 return;
 
-            var netConf = confParser.NetConfig;
             var isMiner = confParser.IsMiner;
 
             var runner = new SmartContractRunner(confParser.RunnerConfig);
@@ -41,7 +39,7 @@ namespace AElf.Concurrency.Worker
             smartContractRunnerFactory.AddRunner(1, runner);
 
             // Setup ioc 
-            var container = SetupIocContainer(isMiner, netConf, smartContractRunnerFactory);
+            var container = SetupIocContainer(isMiner, smartContractRunnerFactory);
             if (container == null)
             {
                 _logger.Error("IoC setup failed");
@@ -64,8 +62,7 @@ namespace AElf.Concurrency.Worker
             }
         }
 
-        private static IContainer SetupIocContainer(bool isMiner, IAElfNetworkConfig netConf,
-            SmartContractRunnerFactory smartContractRunnerFactory)
+        private static IContainer SetupIocContainer(bool isMiner, SmartContractRunnerFactory smartContractRunnerFactory)
         {
             var builder = new ContainerBuilder();
 
@@ -75,7 +72,7 @@ namespace AElf.Concurrency.Worker
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new LoggerModule());
             builder.RegisterModule(new DatabaseModule());
-            builder.RegisterModule(new NetworkModule(netConf, isMiner));
+            builder.RegisterModule(new NetworkModule(isMiner));
             builder.RegisterModule(new MinerModule(null));
             builder.RegisterModule(new WorldStateDictatorModule());
             builder.RegisterModule(new StorageModule());
