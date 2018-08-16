@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Contracts.SideChain;
 using AElf.Kernel;
@@ -20,17 +21,15 @@ namespace AElf.SideChain.Creation
         private ILogger _logger;
         private ITransactionResultManager TransactionResultManager { get; set; }
         private IChainCreationService ChainCreationService { get; set; }
-        private INodeConfig NodeConfig { get; set; }
         private LogEvent _interestedLogEvent;
         private Bloom _bloom;
 
         public ChainCreationEventListener(ILogger logger, ITransactionResultManager transactionResultManager,
-            IChainCreationService chainCreationService, INodeConfig nodeConfig)
+            IChainCreationService chainCreationService)
         {
             _logger = logger;
             TransactionResultManager = transactionResultManager;
             ChainCreationService = chainCreationService;
-            NodeConfig = nodeConfig;
             _interestedLogEvent = new LogEvent()
             {
                 Address = GetGenesisContractHash(),
@@ -44,7 +43,7 @@ namespace AElf.SideChain.Creation
 
         private Hash GetGenesisContractHash()
         {
-            return ChainCreationService.GenesisContractHash(NodeConfig.ChainId, SmartContractType.BasicContractZero);
+            return ChainCreationService.GenesisContractHash(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), SmartContractType.BasicContractZero);
         }
 
         private List<SideChainInfo> GetInterestedEvent(TransactionResult result)
