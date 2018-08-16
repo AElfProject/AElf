@@ -40,5 +40,8 @@
     <None Update="Config\Network\network.json" Link="config\network.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Config\Node\node.json" Link="config\node.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

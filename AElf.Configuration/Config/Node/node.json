@@ -1,0 +1,8 @@
+﻿{
+  "FullNode":false,
+  "IsMiner":false,
+  "ChainId":"",
+  "DataDir":"",
+  "IsChainCreator":false,
+  "ConsensusInfoGenerater":false
+}

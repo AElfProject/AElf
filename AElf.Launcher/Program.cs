@@ -51,12 +51,11 @@ namespace AElf.Launcher
                 return;
 
             var minerConfig = confParser.MinerConfig;
-            var nodeConfig = confParser.NodeConfig;
             var isMiner = confParser.IsMiner;
             var isNewChain = confParser.NewChain;
             var initData = confParser.InitData;
-            nodeConfig.IsChainCreator = confParser.NewChain;
-            nodeConfig.ConsensusInfoGenerater = confParser.IsConsensusInfoGenerater;
+            NodeConfig.Instance.IsChainCreator = confParser.NewChain;
+            NodeConfig.Instance.ConsensusInfoGenerater = confParser.IsConsensusInfoGenerater;
 
             var runner = new SmartContractRunner(confParser.RunnerConfig);
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
@@ -69,7 +68,7 @@ namespace AElf.Launcher
             {
                 try
                 {
-                    var ks = new AElfKeyStore(nodeConfig.DataDir);
+                    var ks = new AElfKeyStore(NodeConfig.Instance.DataDir);
                     var pass = string.IsNullOrWhiteSpace(confParser.NodeAccountPassword)
                         ? AskInvisible(confParser.NodeAccount)
                         : confParser.NodeAccountPassword;
@@ -92,7 +91,7 @@ namespace AElf.Launcher
 
             // Setup ioc 
             var container = SetupIocContainer(isMiner, isNewChain, txPoolConf,
-                minerConfig, nodeConfig, smartContractRunnerFactory);
+                minerConfig, smartContractRunnerFactory);
 
             if (container == null)
             {
@@ -193,7 +192,7 @@ namespace AElf.Launcher
         }
 
         private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, 
-            ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig,
+            ITxPoolConfig txPoolConf, IMinerConfig minerConf,
             SmartContractRunnerFactory smartContractRunnerFactory)
         {
             var builder = new ContainerBuilder();
@@ -244,8 +243,8 @@ namespace AElf.Launcher
             minerConfiguration.ChainId = chainId;
             builder.RegisterModule(new MinerModule(minerConfiguration));
 
-            nodeConfig.ChainId = chainId.Value.ToByteArray();
-            builder.RegisterModule(new MainChainNodeModule(nodeConfig));
+            NodeConfig.Instance.ChainId = chainId.Value.ToByteArray().ToHex();
+            builder.RegisterModule(new MainChainNodeModule());
 
             txPoolConf.ChainId = chainId;
             builder.RegisterModule(new TxPoolServiceModule(txPoolConf));

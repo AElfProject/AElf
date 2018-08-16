@@ -22,7 +22,6 @@ namespace AElf.Launcher
     {
         public ITxPoolConfig TxPoolConfig { get; private set; }
         public IMinerConfig MinerConfig { get; private set; }
-        public INodeConfig NodeConfig { get; private set; }
         public IRunnerConfig RunnerConfig { get; private set; }
 
         public bool Rpc { get; private set; }
@@ -166,12 +165,8 @@ namespace AElf.Launcher
             TxPoolConfig.Maximal = opts.TxCountLimit;
 
             // node config
-            NodeConfig = new NodeConfig
-            {
-                IsMiner = IsMiner,
-                FullNode = true,
-                Coinbase = Coinbase?.Value.ToByteArray()
-            };
+            NodeConfig.Instance.IsMiner = IsMiner;
+            NodeConfig.Instance.FullNode = true;
 
             // Actor
             if (opts.ActorIsCluster.HasValue)
@@ -195,7 +190,7 @@ namespace AElf.Launcher
                 ActorConfig.Instance.Benchmark = opts.Benchmark.Value;
             }
 
-            NodeConfig.DataDir = string.IsNullOrEmpty(opts.DataDir)
+            NodeConfig.Instance.DataDir = string.IsNullOrEmpty(opts.DataDir)
                 ? ApplicationHelpers.GetDefaultDataDir()
                 : opts.DataDir;
 

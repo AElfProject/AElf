@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Node.Protocol;
@@ -14,7 +15,6 @@ namespace AElf.Kernel.Node
     {
         private readonly ILogger _logger;
         private readonly ITxPoolService _txPoolService;
-        private readonly INodeConfig _nodeConfig;
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly IChainContextService _chainContextService;
         private readonly IBlockVaildationService _blockVaildationService;
@@ -36,7 +36,6 @@ namespace AElf.Kernel.Node
 
         public MinerHelper(ILogger logger, MainChainNode node,
             ITxPoolService txPoolService,
-            INodeConfig nodeConfig,
             IWorldStateDictator worldStateDictator,
             IBlockExecutor blockExecutor,
             IChainService chainService,
@@ -46,7 +45,6 @@ namespace AElf.Kernel.Node
             _logger = logger;
             Node = node;
             _txPoolService = txPoolService;
-            _nodeConfig = nodeConfig;
             _worldStateDictator = worldStateDictator;
             _blockExecutor = blockExecutor;
             _chainService = chainService;
@@ -122,12 +120,12 @@ namespace AElf.Kernel.Node
                 if (res == 1)
                     return new BlockExecutionResult(false, ValidationError.Mining);
 
-                var context = await _chainContextService.GetChainContextAsync(_nodeConfig.ChainId);
+                var context = await _chainContextService.GetChainContextAsync(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
                 var error = await _blockVaildationService.ValidateBlockAsync(block, context, NodeKeyPair);
 
                 if (error != ValidationError.Success)
                 {
-                    var blockchain = _chainService.GetBlockChain(_nodeConfig.ChainId);
+                    var blockchain = _chainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
                     var localCorrespondingBlock = await blockchain.GetBlockByHeightAsync(block.Header.Index);
                     if (error == ValidationError.OrphanBlock)
                     {
