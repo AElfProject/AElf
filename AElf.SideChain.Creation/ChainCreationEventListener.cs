@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
@@ -18,6 +21,7 @@ namespace AElf.SideChain.Creation
     [LoggerName(nameof(ChainCreationEventListener))]
     public class ChainCreationEventListener
     {
+        private HttpClient _client;
         private ILogger _logger;
         private ITransactionResultManager TransactionResultManager { get; set; }
         private IChainCreationService ChainCreationService { get; set; }
@@ -25,7 +29,6 @@ namespace AElf.SideChain.Creation
         private IManagementConfig ManagementConfig { get; set; }
         private LogEvent _interestedLogEvent;
         private Bloom _bloom;
-        private HttpRequestor _httpRequestor;
 
         public ChainCreationEventListener(ILogger logger, ITransactionResultManager transactionResultManager,
             IChainCreationService chainCreationService, INodeConfig nodeConfig, IManagementConfig managementConfig)
@@ -44,7 +47,7 @@ namespace AElf.SideChain.Creation
                 }
             };
             _bloom = _interestedLogEvent.GetBloom();
-            _httpRequestor = new HttpRequestor(ManagementConfig.Url);
+            InitializeClient();
         }
 
         private Hash GetGenesisContractHash()
@@ -97,15 +100,54 @@ namespace AElf.SideChain.Creation
             foreach (var info in infos)
             {
                 _logger?.Info("Chain creation event: " + info);
-                var res = _httpRequestor.DoRequest(
-                    info.ChainId.ToHex(),
-                    new JObject()
+                try
+                {
+                    var response = await SendChainDeploymentRequestFor(info.ChainId);
+                    if (response.StatusCode != HttpStatusCode.OK)
                     {
-                        ["MainChainAccount"] = ManagementConfig.NodeAccount,
-                        ["AccountPassword"] = ManagementConfig.NodeAccountPassword
-                    }.ToString());
-                _logger?.Info("Management API return message: " + res);
+                        _logger?.Error(
+                            $"Sending sidechain deployment request for {info.ChainId} failed. " +
+                            "StatusCode: {response.StatusCode}"
+                        );
+                    }
+                    else
+                    {
+                        _logger?.Info(
+                            $"Successfully sent sidechain deployment request for {info.ChainId}. " +
+                            "Management API return message: " + await response.Content.ReadAsStringAsync()
+                        );
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger?.Error(e, $"Sending sidechain deployment request for {info.ChainId} failed due to exception.");
+                }
             }
         }
+
+        #region Http
+
+        private void InitializeClient()
+        {
+            _client = new HttpClient {BaseAddress = new Uri(ManagementConfig.Url)};
+            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        }
+
+        private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(Hash chainId)
+        {
+            var endpoint = ManagementConfig.SideChainServicePath.TrimEnd('/') + "/" + chainId.ToHex();
+            var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            var content = new JObject()
+            {
+                ["MainChainAccount"] = ManagementConfig.NodeAccount,
+                ["AccountPassword"] = ManagementConfig.NodeAccountPassword
+            }.ToString();
+            var c = new StringContent(content);
+            c.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+            request.Content = c;
+            return await _client.SendAsync(request);
+        }
+
+        #endregion Http
     }
 }

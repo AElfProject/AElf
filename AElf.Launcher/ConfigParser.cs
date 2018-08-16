@@ -220,6 +220,7 @@ namespace AElf.Launcher
 
             // management config
             ManagementConfig.Url = opts.ManagementUrl;
+            ManagementConfig.SideChainServicePath = opts.ManagementSideChainServicePath;
             
             // runner config
             RunnerConfig = new RunnerConfig
