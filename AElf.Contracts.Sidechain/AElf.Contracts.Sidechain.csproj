@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>AElf.Contracts.SideChain</AssemblyName>
-    <RootNamespace>AElf.Contracts.SideChain</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
