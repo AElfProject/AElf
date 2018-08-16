@@ -16,6 +16,7 @@
     </None>
     <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+    <ProjectReference Include="..\AElf.SideChain.Creation\AElf.SideChain.Creation.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.0" />

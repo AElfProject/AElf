@@ -235,7 +235,8 @@ namespace AElf.Execution
             {
                 PreviousBlockHash = chainContext.BlockHash,
                 Transaction = transaction,
-                Trace = trace
+                Trace = trace,
+                BlockHeight = chainContext.BlockHeight
             };
 
             IExecutive executive = null;
@@ -248,7 +249,6 @@ namespace AElf.Execution
                 executive.SetDataCache(stateCache);
 
                 await executive.SetTransactionContext(txCtxt).Apply(false);
-                trace.Logs.AddRange(txCtxt.Trace.FlattenedLogs);
                 // TODO: Check run results / logs etc.
             }
             catch (Exception ex)

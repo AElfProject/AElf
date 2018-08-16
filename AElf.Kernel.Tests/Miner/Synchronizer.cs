@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.SmartContract.Metadata;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
@@ -22,6 +23,7 @@ using Xunit;
 using Xunit.Frameworks.Autofac;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
+using AsyncEventAggregator;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 
@@ -67,6 +69,7 @@ namespace AElf.Kernel.Tests.Miner
                 blockHeaderStore, blockBodyStore, transactionStore, _logger);
             _smartContractManager = smartContractManager;
             _accountContextService = accountContextService;
+            this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
 
             Initialize();
         }
