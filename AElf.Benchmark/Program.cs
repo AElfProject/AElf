@@ -71,18 +71,15 @@ namespace AElf.Benchmark
                     return;
                 }
 
-                if (!string.IsNullOrWhiteSpace(opts.Database) || DatabaseConfig.Instance.Type == DatabaseType.InMemory)
+                try
                 {
-                    try
-                    {
-                        DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.Database);
-                    }
-                    catch (ArgumentException)
-                    {
-                        Console.WriteLine(
-                            $"Database {opts.Database} not supported, use one of the following databases: [keyvalue, redis, ssdb]");
-                        return;
-                    }
+                    DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.Database);
+                }
+                catch (ArgumentException)
+                {
+                    Console.WriteLine(
+                        $"Database {opts.Database} not supported, use one of the following databases: [keyvalue, redis, ssdb]");
+                    return;
                 }
 
                 if (!string.IsNullOrWhiteSpace(opts.DbHost))
@@ -159,7 +156,15 @@ namespace AElf.Benchmark
         private static bool CheckDbConnect(IComponentContext container)
         {
             var db = container.Resolve<IKeyValueDatabase>();
-            return db.IsConnected();
+            try
+            {
+                return db.IsConnected();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
         }
     }
 }

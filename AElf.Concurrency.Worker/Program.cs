@@ -101,7 +101,15 @@ namespace AElf.Concurrency.Worker
         private static bool CheckDBConnect(IComponentContext container)
         {
             var db = container.Resolve<IKeyValueDatabase>();
-            return db.IsConnected();
+            try
+            {
+                return db.IsConnected();
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+                return false;
+            }
         }
     }
 }

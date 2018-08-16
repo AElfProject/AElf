@@ -103,10 +103,7 @@ namespace AElf.Launcher
             NetConfig = netConfig;
 
             // Database
-            if (!string.IsNullOrWhiteSpace(opts.DBType) || DatabaseConfig.Instance.Type == DatabaseType.InMemory)
-            {
-                DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
-            }
+            DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
 
             if (!string.IsNullOrWhiteSpace(opts.DBHost))
             {
