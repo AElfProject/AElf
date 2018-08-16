@@ -9,8 +9,8 @@ namespace AElf.Management.Tests
     {
         private string _chainId = "ed7d50f2a4b94d9b9e7ec6ec6935e14e";//Guid.NewGuid().ToString("N");
         
-        //[Fact(Skip = "require aws account")]
-        [Fact]
+        [Fact(Skip = "require aws account")]
+        //[Fact]
         public void DeployTest()
         {
             var arg = new DeployArg();
@@ -24,8 +24,8 @@ namespace AElf.Management.Tests
             service.Deploy(_chainId, arg);
         }
         
-        //[Fact(Skip = "require aws account")]
-        [Fact]
+        [Fact(Skip = "require aws account")]
+        //[Fact]
         public void RemoveTest()
         {
             var service = new SideChainService();
