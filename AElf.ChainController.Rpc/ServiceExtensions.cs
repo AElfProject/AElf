@@ -214,7 +214,8 @@ namespace AElf.ChainController.Rpc
             {
                 PreviousBlockHash = chainContext.BlockHash,
                 Transaction = tx,
-                Trace = trace
+                Trace = trace,
+                BlockHeight = chainContext.BlockHeight
             };
 
             var executive = await s.SmartContractService.GetExecutiveAsync(tx.To, s.NodeConfig.ChainId);

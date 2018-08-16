@@ -7,8 +7,13 @@ using Google.Protobuf;
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public partial class Hash : IHash
+    public partial class Hash : IHash, ICustomDiagnosticMessage
     {
+        public string ToDiagnosticString()
+        {
+            return $@"""{ToHex()}""";
+        }
+
         public static Hash Generate()
         {
             return new Hash(

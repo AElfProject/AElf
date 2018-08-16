@@ -21,16 +21,12 @@ namespace AElf.Kernel.Tests.TxMemPool
     {
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
-        private readonly ITransactionManager _transactionManager;
-        private readonly ITransactionResultManager _transactionResultManager;
         private readonly IWorldStateDictator _worldStateDictator;
-        public TxPoolServiceTest(IAccountContextService accountContextService, ILogger logger,
-            ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, IWorldStateDictator worldStateDictator)
+        public TxPoolServiceTest(IAccountContextService accountContextService, ILogger logger, 
+            IWorldStateDictator worldStateDictator)
         {
             _accountContextService = accountContextService;
             _logger = logger;
-            _transactionManager = transactionManager;
-            _transactionResultManager = transactionResultManager;
             _worldStateDictator = worldStateDictator;
             _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
             this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });

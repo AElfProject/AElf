@@ -211,3 +211,10 @@ message Key
     uint32 type = 2;
 }
 
+message SideChain{
+    Hash ChainId = 1;
+    Hash LockedAddress = 2;
+    uint64 LockedToken = 3;
+    uint64 CreationHeight = 4;
+    bool Indexed = 5;
+}
