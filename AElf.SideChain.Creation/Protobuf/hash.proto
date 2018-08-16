@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel";
+
+message Hash{
+    bytes Value = 1;
+}
