@@ -100,10 +100,11 @@ namespace AElf.Network.Peers
             {
                 pldata.NodeData.Add(peer);
             }
+
+             JObject peers = JObject.Parse(JsonFormatter.Default.Format(pldata));
+            peers["auth"] = _authentifyingPeer.Count;
             
-            await Task.Delay(0);
-            
-            return JObject.Parse(JsonFormatter.Default.Format(pldata));
+            return peers;
         }
 
         private void StartProcessing()

@@ -52,10 +52,12 @@ namespace AElf.CLI.Command
         public override string GetPrintString(JObject resp)
         {
             StringBuilder strBuilder = new StringBuilder();
-            strBuilder.AppendLine("-- List of connected peers on the node");
             
             try
             {
+                int authCount = resp["auth"].ToObject<int>();
+                strBuilder.AppendLine($"Nodes connected ({authCount} authentifying) :");
+                
                 JArray peersList = JArray.Parse(resp["nodeData"].ToString());
 
                 foreach (var p in peersList.Children())
