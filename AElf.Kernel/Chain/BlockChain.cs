@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using AsyncEventAggregator;
 
 namespace AElf.Kernel
 {
@@ -36,6 +37,8 @@ namespace AElf.Kernel
         {
             await AddHeaderAsync(block.Header);
             await _blockManager.AddBlockBodyAsync(block.Header.GetHash(), block.Body);
+            // TODO: Don't await
+            //await this.Publish(block.AsTask());
         }
 
         public async Task AddBlocksAsync(IEnumerable<IBlock> blocks)

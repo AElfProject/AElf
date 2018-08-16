@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Security;
+using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common.ByteArrayHelpers;
@@ -17,6 +18,7 @@ using AElf.Kernel.TxMemPool;
 using AElf.Network;
 using AElf.Network.Config;
 using AElf.Runtime.CSharp;
+using AElf.SideChain.Creation;
 using AElf.SmartContract;
 using AsyncEventAggregator;
 using Autofac;
@@ -114,6 +116,12 @@ namespace AElf.Launcher
                 var concurrencySercice = scope.Resolve<IConcurrencyExecutingService>();
                 concurrencySercice.InitActorSystem();
 
+                var evListener = scope.Resolve<ChainCreationEventListener>();
+                evListener.Subscribe<IBlock>(async (t) =>
+                {
+                    await evListener.OnBlockAppended(t.Result);
+                });
+                
                 var node = scope.Resolve<IAElfNode>();
                 // Start the system
                 node.Start(nodeKey, TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero);
@@ -213,6 +221,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new NetworkModule(netConf, isMiner));
             builder.RegisterModule(new RpcServicesModule());
             builder.RegisterType<ChainService>().As<IChainService>();
+            builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
 
             // register SmartContractRunnerFactory 
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();

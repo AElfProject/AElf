@@ -33,6 +33,7 @@ namespace AElf.Kernel.Storages
         Transaction,
         ChangesDict,
         FunctionMetadata,
-        SerializedCallGraph
+        SerializedCallGraph,
+        SideChain
     }
 }
