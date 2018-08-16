@@ -8,7 +8,7 @@ namespace AElf.Kernel.Managers
 {
     public class BlockManagerBasic : IBlockManagerBasic
     {
-         private readonly IDataStore _dataStore;
+        private readonly IDataStore _dataStore;
 
         private readonly ILogger _logger;
 

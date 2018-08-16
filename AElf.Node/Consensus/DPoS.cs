@@ -110,7 +110,7 @@ namespace AElf.Kernel.Node
                 DPoSHelper.GenerateInfoForFirstTwoRounds().ToByteArray(),
                 new Int32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray()
             };
-            _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms");
+            _logger?.Trace($"Set AElf DPoS mining interval to: {Globals.AElfDPoSMiningInterval} ms");
             // ReSharper disable once InconsistentNaming
             var txToInitializeAElfDPoS = GenerateTransaction("InitializeAElfDPoS", parameters);
             await BroadcastTransaction(txToInitializeAElfDPoS);

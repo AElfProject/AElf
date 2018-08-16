@@ -35,6 +35,12 @@ namespace AElf.Kernel
             Value = value;
         }
 
+        public Hash SetType(HashType hashType)
+        {
+            HashType = hashType;
+            return this;
+        }
+
         public byte[] GetHashBytes() => Value.ToByteArray();
 
         public bool Equals(IHash other)

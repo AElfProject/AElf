@@ -11,7 +11,7 @@ namespace AElf.Kernel
         public async Task<Hash> GetWorldStateMerkleTreeRootAsync()
         {
             var merkleTree = new BinaryMerkleTree();
-            merkleTree.AddNodes(Data.Select(p => p.MerkleTreeLeaf));
+            merkleTree.AddNodes(Data.Select(p => p.StateMerkleTreeLeaf));
             return await Task.FromResult(merkleTree.ComputeRootHash());
         }
 

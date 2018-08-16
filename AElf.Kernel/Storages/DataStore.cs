@@ -8,7 +8,8 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.Storages
 {
-    public class DataStore : IDataStore
+    // ReSharper disable once ClassNeverInstantiated.Global
+    public sealed class DataStore : IDataStore
     {
         private readonly IKeyValueDatabase _keyValueDatabase;
 
@@ -39,12 +40,17 @@ namespace AElf.Kernel.Storages
                 {
                     throw new Exception("Point hash cannot be null.");
                 }
-                if (!Enum.TryParse<Types>(typeof(T).Name, out var result))
+
+                if (obj == null)
+                {
+                    throw new Exception("Cannot insert null value.");
+                }
+                
+                if (!Enum.TryParse<Types>(typeof(T).Name, out var typeIndex))
                 {
                     throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
                 }
-                
-                var key = pointerHash.GetKeyString((uint)result);
+                var key = pointerHash.GetKeyString((uint)typeIndex);
                 await _keyValueDatabase.SetAsync(key, obj.ToByteArray());
             }
             catch (Exception e)
@@ -62,12 +68,13 @@ namespace AElf.Kernel.Storages
                 {
                     throw new Exception("Pointer hash cannot be null.");
                 }
-                if (!Enum.TryParse<Types>(typeof(T).Name, out var result))
+                
+                if (!Enum.TryParse<Types>(typeof(T).Name, out var typeIndex))
                 {
                     throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
                 }
                 
-                var key = pointerHash.GetKeyString((uint)result);
+                var key = pointerHash.GetKeyString((uint)typeIndex);
                 var res = await _keyValueDatabase.GetAsync(key);
                 return  res == null ? default(T): res.Deserialize<T>();
             }
@@ -100,11 +107,11 @@ namespace AElf.Kernel.Storages
                 {
                     throw new Exception("Pointer hash cannot be null.");
                 }
-                if (!Enum.TryParse<Types>(typeof(T).Name, out var result))
+                if (!Enum.TryParse<Types>(typeof(T).Name, out var typeIndex))
                 {
                     throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
                 }
-                var key = pointerHash.GetKeyString((uint)result);
+                var key = pointerHash.GetKeyString((uint)typeIndex);
                 await _keyValueDatabase.RemoveAsync(key);
             }
             catch (Exception e)

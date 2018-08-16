@@ -8,17 +8,17 @@ namespace AElf.Kernel.Storages
     {
         public static string GetKeyString(this Hash hash, uint type)
         {
-            var key=new Key
+            return new Key
             {
                 Type = type,
                 Value = ByteString.CopyFrom(hash.GetHashBytes())
             }.ToByteArray().ToHex();
-
-            return key;
         }
     }
     
-    public enum Types{
+    // ReSharper disable UnusedMember.Global
+    public enum Types
+    {
         UInt64Value = 0,
         Hash,
         BlockBody,

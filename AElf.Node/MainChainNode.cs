@@ -33,10 +33,10 @@ using NLog;
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
 {
+    // ReSharper disable InconsistentNaming
     [LoggerName("Node")]
     public class MainChainNode : IAElfNode
     {
-        // ReSharper disable once InconsistentNaming
         private readonly IP2P _p2p;
         public ECKeyPair NodeKeyPair { get; private set; }
         private readonly ITxPoolService _txPoolService;

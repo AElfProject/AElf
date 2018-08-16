@@ -9,7 +9,6 @@ namespace AElf.Kernel.Managers
         private readonly ICurrentHashStore _currentHashStore;
         private readonly ICanonicalHashStore _canonicalHashStore;
 
-        // TODO: Replace ChainManager class with this class
         public ChainManagerBasic(IGenesisHashStore genesisHashStore, ICurrentHashStore currentHashStore, ICanonicalHashStore canonicalHashStore)
         {
             _genesisHashStore = genesisHashStore;
