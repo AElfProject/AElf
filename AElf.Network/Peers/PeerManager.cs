@@ -406,22 +406,6 @@ namespace AElf.Network.Peers
                 _logger?.Error(e, "Invalid peer(s) - Could not receive peer(s) from the network", null);
             }
         }
-        
-        /// <summary>
-        /// Removes a peer from the list of peers.
-        /// </summary>
-        /// <param name="peer">the peer to remove</param>
-        public void RemovePeer(IPeer peer)
-        {
-            if (peer == null)
-                return;
-            
-            _peers.Remove(peer);
-            
-            _logger?.Trace("Peer removed : " + peer);
-            
-            //PeerRemoved?.Invoke(this, new PeerRemovedEventArgs { Peer = peer });
-        }
 
         #endregion
 
