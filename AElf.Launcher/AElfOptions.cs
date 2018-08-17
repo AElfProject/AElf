@@ -154,5 +154,12 @@ namespace AElf.Launcher
         public string InitData { get; set; }
 
         #endregion
+
+        #region Management
+        [Option("management.url", HelpText = "The url for the management api.")]
+        public string ManagementUrl { get; set; }
+        [Option("management.sidechainservicepath", Default = "/api/sidechain", HelpText = "The path for the side chain service endpoint.")]
+        public string ManagementSideChainServicePath { get; set; }
+        #endregion
     }
 }

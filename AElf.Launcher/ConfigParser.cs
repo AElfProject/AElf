@@ -194,6 +194,10 @@ namespace AElf.Launcher
                 ? ApplicationHelpers.GetDefaultDataDir()
                 : opts.DataDir;
 
+            // management config
+            ManagementConfig.Instance.Url = opts.ManagementUrl;
+            ManagementConfig.Instance.SideChainServicePath = opts.ManagementSideChainServicePath;
+            
             // runner config
             RunnerConfig = new RunnerConfig
             {

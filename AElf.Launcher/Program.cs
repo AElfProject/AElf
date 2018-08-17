@@ -76,6 +76,9 @@ namespace AElf.Launcher
                         : confParser.NodeAccountPassword;
                     ks.OpenAsync(confParser.NodeAccount, pass, false);
 
+                    ManagementConfig.Instance.NodeAccount = confParser.NodeAccount;
+                    ManagementConfig.Instance.NodeAccountPassword = pass;
+                    
                     nodeKey = ks.GetAccountKeyPair(confParser.NodeAccount);
                     if (nodeKey == null)
                     {
