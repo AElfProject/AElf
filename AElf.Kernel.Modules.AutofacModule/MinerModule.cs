@@ -27,6 +27,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             
             builder.RegisterType(typeof(ParallelTransactionExecutingService)).As<IParallelTransactionExecutingService>();
             builder.RegisterType(typeof(Miner.Miner.Miner)).As<IMiner>();
+            builder.RegisterType(typeof(BlockExecutor)).As<IBlockExecutor>();
             builder.RegisterType(typeof(ConcurrencyExecutingService)).As<IConcurrencyExecutingService>().SingleInstance();
         }
     }
