@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AsyncEventAggregator;
 using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -16,7 +15,6 @@ namespace AElf.Kernel.Tests
         public ChainCreationServiceTests(IChainCreationService service)
         {
             _service = service;
-            this.Subscribe<IBlock>(async (t) => { await Task.CompletedTask;});
         }
         
         public byte[] SmartContractZeroCode

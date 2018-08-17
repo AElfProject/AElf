@@ -10,6 +10,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="EventAggregator" Version="1.0.0" />
+    <PackageReference Include="Easy.MessageHub" Version="3.4.0" />
   </ItemGroup>
 </Project>
