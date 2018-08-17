@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -19,6 +20,11 @@ namespace AElf.Configuration
 
         private static readonly Dictionary<string, ConfigInfo> ConfigInfos = new Dictionary<string, ConfigInfo>();
         private static readonly object ConfigLock = new object();
+
+        static ConfigManager()
+        {
+            FileWatcher.FileChanged += ConfigChanged;
+        }
 
         internal static T GetConfigInstance<T>()
         {
@@ -45,6 +51,7 @@ namespace AElf.Configuration
                 config = new ConfigInfo(configName, typeof(T), configContent);
                 ConfigInfos.Add(configName, config);
             }
+            FileWatcher.AddWatch(name);
 
             return (T) config.Value;
         }
@@ -68,6 +75,24 @@ namespace AElf.Configuration
                 into filePath
                 where File.Exists(filePath)
                 select File.ReadAllText(filePath)).FirstOrDefault();
+        }
+
+        private static void ConfigChanged(object sender, FileSystemEventArgs e)
+        {
+            var fileName = e.Name.ToLower();
+            var configInfo = ConfigInfos[fileName];
+            
+            var configContent = GetFromLocalFile(fileName);
+            var newConfig = JsonSerializer.Instance.Deserialize(configContent, configInfo.Type);
+
+            CloneObject(newConfig, configInfo.Value);
+        }
+        
+        private static void CloneObject(object srcObject, object targetObject)
+        {
+            var type = targetObject.GetType();
+            var propInstance = type.GetProperty("Instance", BindingFlags.Static | BindingFlags.Public | BindingFlags.SetProperty | BindingFlags.GetProperty | BindingFlags.FlattenHierarchy);
+            propInstance.SetValue(null, srcObject, null);
         }
     }
 }
