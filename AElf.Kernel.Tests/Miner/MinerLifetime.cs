@@ -46,7 +46,7 @@ namespace AElf.Kernel.Tests.Miner
         private IActorRef _generalExecutor;
         private IChainCreationService _chainCreationService;
         private readonly ILogger _logger;
-        private IWorldStateDictator _worldStateDictator;
+        private IStateDictator _stateDictator;
         private ISmartContractManager _smartContractManager;
 
         private IActorRef _serviceRouter;
@@ -63,7 +63,7 @@ namespace AElf.Kernel.Tests.Miner
         private ServicePack _servicePack;
         private IActorRef _requestor;
         
-        public MinerLifetime(IWorldStateDictator worldStateDictator, 
+        public MinerLifetime(IStateDictator stateDictator, 
             IChainCreationService chainCreationService, 
             IChainContextService chainContextService, ILogger logger, IAccountContextService accountContextService, 
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
@@ -83,8 +83,8 @@ namespace AElf.Kernel.Tests.Miner
             _functionMetadataService = functionMetadataService;
             _concurrencyExecutingService = concurrencyExecutingService;
 
-            _worldStateDictator = worldStateDictator;
-            _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
+            _stateDictator = stateDictator;
+            _stateDictator.BlockProducerAccountAddress = Hash.Generate();
             this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
             Initialize();
         }
@@ -94,14 +94,14 @@ namespace AElf.Kernel.Tests.Miner
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateDictator, _functionMetadataService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator, _functionMetadataService);
             
             _servicePack = new ServicePack
             {
                 ChainContextService = _chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new NewMockResourceUsageDetectionService(),
-                WorldStateDictator = _worldStateDictator
+                StateDictator = _stateDictator
             };
             
             
@@ -243,13 +243,13 @@ namespace AElf.Kernel.Tests.Miner
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
-            _worldStateDictator.SetChainId(chainId);
+            _stateDictator.SetChainId(chainId);
             return chain;
         }
         
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {            
-            var miner = new ChainController.Miner(config, poolService, _chainService, _worldStateDictator,
+            var miner = new ChainController.Miner(config, poolService, _chainService, _stateDictator,
                 _smartContractService, _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger);
 
             return miner;

@@ -53,7 +53,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 
         public ServicePack ServicePack;
 
-        private IWorldStateDictator _worldStateDictator;
+        private IStateDictator _stateDictator;
         private IChainCreationService _chainCreationService;
         private IChainService _chainService;
         private IFunctionMetadataService _functionMetadataService;
@@ -67,7 +67,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger)
         {
             _logger = logger;
-            _worldStateDictator = new WorldStateDictator(dataStore, _logger);
+            _stateDictator = new StateDictator(dataStore, _logger);
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             ChainContextService = chainContextService;
@@ -76,7 +76,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             SmartContractManager = new SmartContractManager(dataStore);
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _worldStateDictator,
+                new SmartContractService(SmartContractManager, _smartContractRunnerFactory, _stateDictator,
                     functionMetadataService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
@@ -84,7 +84,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 ChainContextService = chainContextService,
                 SmartContractService = SmartContractService,
                 ResourceDetectionService = new NewMockResourceUsageDetectionService(),
-                WorldStateDictator = _worldStateDictator
+                StateDictator = _stateDictator
             };
 
             var workers = new[] {"/user/worker1", "/user/worker2"};
@@ -116,13 +116,13 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1,  new List<SmartContractRegistration>{reg});
             
             DataProvider1 =
-                await (_worldStateDictator.SetChainId(ChainId1)).GetAccountDataProvider(
+                await (_stateDictator.SetChainId(ChainId1)).GetAccountDataProvider(
                     ResourcePath.CalculatePointerForAccountZero(ChainId1));
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
             
             DataProvider2 =
-                await (_worldStateDictator.SetChainId(ChainId2)).GetAccountDataProvider(
+                await (_stateDictator.SetChainId(ChainId2)).GetAccountDataProvider(
                     ResourcePath.CalculatePointerForAccountZero(ChainId2));
         }
 

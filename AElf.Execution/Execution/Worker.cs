@@ -167,7 +167,7 @@ namespace AElf.Execution
                             if (trace.IsSuccessful())
                             {
                                 //commit update results to state cache
-                                var bufferedStateUpdates = await trace.CommitChangesAsync(_servicePack.WorldStateDictator, chainContext.ChainId);
+                                var bufferedStateUpdates = await trace.CommitChangesAsync(_servicePack.StateDictator, chainContext.ChainId);
                                 foreach (var kv in bufferedStateUpdates)
                                 {
                                     stateCache[kv.Key] = kv.Value;
@@ -197,7 +197,7 @@ namespace AElf.Execution
 
             if (chainContext != null)
             {
-                await _servicePack.WorldStateDictator.ApplyCachedDataAction(stateCache, chainContext.ChainId);
+                await _servicePack.StateDictator.ApplyCachedDataAction(stateCache, chainContext.ChainId);
             }
             stateCache.Clear();
             

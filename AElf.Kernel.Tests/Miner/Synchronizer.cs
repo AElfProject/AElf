@@ -34,24 +34,20 @@ namespace AElf.Kernel.Tests.Miner
     {
         private IChainCreationService _chainCreationService;
         private IChainContextService _chainContextService;
-        private IWorldStateDictator _worldStateDictator;
+        private IStateDictator _stateDictator;
         private ISmartContractManager _smartContractManager;
         private IFunctionMetadataService _functionMetadataService;
         private IConcurrencyExecutingService _concurrencyExecutingService;
         private IDataStore _dataStore;
-        private IWorldStateStore _worldStateStore;
-        private IChangesStore _changesStore;
         private ServicePack _servicePack;
 
         public Synchronizer(
             IChainCreationService chainCreationService, IChainContextService chainContextService,
             IChainService chainService, ILogger logger,
             ITransactionResultManager transactionResultManager, ITransactionManager transactionManager,
-            FunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService,
-            IChangesStore changesStore, IWorldStateStore worldStateStore, IDataStore dataStore,
+            FunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService, IDataStore dataStore,
             ISmartContractManager smartContractManager, IAccountContextService accountContextService,
-            ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
-            ITransactionStore transactionStore) : base(new XunitAssertions())
+            ITxPoolService txPoolService) : base(new XunitAssertions())
         {
 
             _chainCreationService = chainCreationService;
@@ -62,11 +58,8 @@ namespace AElf.Kernel.Tests.Miner
             _transactionManager = transactionManager;
             _functionMetadataService = functionMetadataService;
             _concurrencyExecutingService = concurrencyExecutingService;
-            _changesStore = changesStore;
-            _worldStateStore = worldStateStore;
             _dataStore = dataStore;
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore,
-                blockHeaderStore, blockBodyStore, transactionStore, _logger);
+            _stateDictator = new StateDictator(dataStore, _logger);
             _smartContractManager = smartContractManager;
             _accountContextService = accountContextService;
             this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
@@ -79,14 +72,14 @@ namespace AElf.Kernel.Tests.Miner
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateDictator, _functionMetadataService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator, _functionMetadataService);
 
             _servicePack = new ServicePack
             {
                 ChainContextService = _chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new NewMockResourceUsageDetectionService(),
-                WorldStateDictator = _worldStateDictator
+                StateDictator = _stateDictator
             };
             
             var workers = new[] {"/user/worker1", "/user/worker2"};
@@ -171,12 +164,12 @@ namespace AElf.Kernel.Tests.Miner
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
-            _worldStateDictator.SetChainId(chainId);
+            _stateDictator.SetChainId(chainId);
             return chain;
         }
 
 
-        public List<ITransaction> CreateTxs(Hash chainId)
+        public List<Transaction> CreateTxs(Hash chainId)
         {
             var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
 
@@ -236,7 +229,7 @@ namespace AElf.Kernel.Tests.Miner
             txInv_2.R = ByteString.CopyFrom(signature3.R); 
             txInv_2.S = ByteString.CopyFrom(signature3.S);
             
-            var txs = new List<ITransaction>(){
+            var txs = new List<Transaction>(){
                 txnDep, txInv_1, txInv_2
             };
 
@@ -284,7 +277,7 @@ namespace AElf.Kernel.Tests.Miner
             block.Body.BlockHeader = block.Header.GetHash();
 
             var synchronizer = new BlockExecutor(poolService,
-                _chainService, _worldStateDictator, _concurrencyExecutingService, null, _transactionManager, _transactionResultManager);
+                _chainService, _stateDictator, _concurrencyExecutingService, null, _transactionManager, _transactionResultManager);
 
             synchronizer.Start(new Grouper(_servicePack.ResourceDetectionService));
             var res = await synchronizer.ExecuteBlock(block);

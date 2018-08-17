@@ -4,14 +4,14 @@ namespace AElf.SmartContract
 {
     public class AccountDataProvider : IAccountDataProvider
     {
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
         
         public IAccountDataContext Context { get; set; }
 
         public AccountDataProvider(Hash chainId, Hash accountAddress, 
-            IWorldStateDictator worldStateDictator)
+            IStateDictator stateDictator)
         {
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
 
             //Just use its structure to store info.
             Context = new AccountDataContext
@@ -24,7 +24,7 @@ namespace AElf.SmartContract
 
         public IDataProvider GetDataProvider()
         {
-            return new DataProvider(Context, _worldStateDictator);
+            return new DataProvider(Context, _stateDictator);
         }
     }
 }

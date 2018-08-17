@@ -22,19 +22,19 @@ namespace AElf.ChainController
         private readonly IChainService _chainService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
         private readonly IConcurrencyExecutingService _concurrencyExecutingService;
         private IGrouper _grouper;
         private ILogger _logger;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
-            IWorldStateDictator worldStateDictator,
+            IStateDictator stateDictator,
             IConcurrencyExecutingService concurrencyExecutingService, 
             ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             _txPoolService = txPoolService;
             _chainService = chainService;
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             _concurrencyExecutingService = concurrencyExecutingService;
             _logger = logger;
             _transactionManager = transactionManager;
@@ -51,8 +51,8 @@ namespace AElf.ChainController
         {
             var readyTxs = new List<Transaction>();
 
-            await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
-            var worldState = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
+            await _stateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
+            var worldState = await _stateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
             //_logger?.Trace($"Merkle Tree Root before execution:{(await worldState.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
             
             try
@@ -69,7 +69,7 @@ namespace AElf.ChainController
 
                 var uncompressedPrivKey = block.Header.P.ToByteArray();
                 var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
-                _worldStateDictator.BlockProducerAccountAddress = recipientKeyPair.GetAddress();
+                _stateDictator.BlockProducerAccountAddress = recipientKeyPair.GetAddress();
                 
                 var txs = block.Body.Transactions;
                 foreach (var id in txs)
@@ -154,8 +154,8 @@ namespace AElf.ChainController
                 var addrs = await InsertTxs(readyTxs, results);
                 await _txPoolService.UpdateAccountContext(addrs);
                 
-                await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
-                var ws = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
+                await _stateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
+                var ws = await _stateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
 
                 if (ws == null)
                 {
@@ -169,7 +169,7 @@ namespace AElf.ChainController
                     _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
                     _logger?.Trace($"Merkle tree root hash of execution: {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
                     _logger?.Trace($"Merkle tree root hash of received block: {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
-                    _logger?.Trace($"Pre block hash of mime:{_worldStateDictator.PreBlockHash.ToHex()}");
+                    _logger?.Trace($"Pre block hash of mime:{block.Header.PreviousBlockHash.ToHex()}");
                     _logger?.Trace($"Pre block hash of received block:{block.Header.PreviousBlockHash.ToHex()}");
 
                     await Rollback(readyTxs);
@@ -219,7 +219,7 @@ namespace AElf.ChainController
         private async Task Rollback(List<Transaction> readyTxs)
         {
             await _txPoolService.RollBack(readyTxs);
-            await _worldStateDictator.RollbackToPreviousBlock();
+            await _stateDictator.RollbackToPreviousBlock();
         }
         
         public void Start(IGrouper grouper)

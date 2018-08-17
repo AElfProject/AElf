@@ -52,11 +52,11 @@ namespace AElf.Benchmark
         public Benchmarks(IChainCreationService chainCreationService,
             IChainContextService chainContextService, ISmartContractService smartContractService,
             ILogger logger, IFunctionMetadataService functionMetadataService,
-            IAccountContextService accountContextService, IWorldStateDictator worldStateDictator, BenchmarkOptions options, IConcurrencyExecutingService concurrencyExecutingService)
+            IAccountContextService accountContextService, IStateDictator stateDictator, BenchmarkOptions options, IConcurrencyExecutingService concurrencyExecutingService)
         {
             ChainId = Hash.Generate();
             
-            var worldStateDictator1 = worldStateDictator;
+            var worldStateDictator1 = stateDictator;
             
             _chainCreationService = chainCreationService;
             _smartContractService = smartContractService;
@@ -70,7 +70,7 @@ namespace AElf.Benchmark
                 ChainContextService = chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new ResourceUsageDetectionService(functionMetadataService),
-                WorldStateDictator = worldStateDictator1,
+                StateDictator = worldStateDictator1,
                 AccountContextService = accountContextService,
             };
 

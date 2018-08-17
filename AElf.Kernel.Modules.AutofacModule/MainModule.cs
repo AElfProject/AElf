@@ -9,13 +9,13 @@ namespace AElf.Kernel.Modules.AutofacModule
         {
             //TODO : REVIEW - probably not a good idea
 
-            var assembly1 = typeof(IWorldStateDictator).Assembly;
+            var assembly1 = typeof(IStateDictator).Assembly;
 
             builder.RegisterInstance<IHash>(new Hash()).As<Hash>();
 
             builder.RegisterAssemblyTypes(assembly1).AsImplementedInterfaces();
 
-            var assembly3 = typeof(WorldStateDictator).Assembly;
+            var assembly3 = typeof(StateDictator).Assembly;
             builder.RegisterAssemblyTypes(assembly3).AsImplementedInterfaces();
 
             var assembly4 = typeof(ChainController.BlockVaildationService).Assembly;

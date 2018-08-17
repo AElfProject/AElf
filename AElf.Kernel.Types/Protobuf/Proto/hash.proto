@@ -11,9 +11,9 @@ message Hash
 enum HashType
 {
     AccountAddress = 0;
-    ResourcePath = 1;
-    ResourcePointer = 2;
-    StateMerkleTreeLeaf = 3;
-    CononicalBlockHash = 4;
+    General = 1;
+    ResourcePath = 2;
+    ResourcePointer = 3;
+    StateHash = 4;
     
 }

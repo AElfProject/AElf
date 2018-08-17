@@ -20,14 +20,14 @@ namespace AElf.SmartContract
         private readonly ISmartContractManager _smartContractManager;
         private readonly ISmartContractRunnerFactory _smartContractRunnerFactory;
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
         private readonly IFunctionMetadataService _functionMetadataService;
 
-        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerFactory smartContractRunnerFactory, IWorldStateDictator worldStateDictator, IFunctionMetadataService functionMetadataService)
+        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerFactory smartContractRunnerFactory, IStateDictator stateDictator, IFunctionMetadataService functionMetadataService)
         {
             _smartContractManager = smartContractManager;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             _functionMetadataService = functionMetadataService;
         }
 
@@ -60,13 +60,13 @@ namespace AElf.SmartContract
 
             // get account dataprovider
             var dataProvider =
-                new TentativeDataProvider((await _worldStateDictator.SetChainId(chainId).GetAccountDataProvider(account)).GetDataProvider());
+                new TentativeDataProvider((await _stateDictator.SetChainId(chainId).GetAccountDataProvider(account)).GetDataProvider());
 
             // run smartcontract executive info and return executive
 
             executive = await runner.RunAsync(reg);
 
-            executive.SetWorldStateManager(_worldStateDictator);
+            executive.SetWorldStateManager(_stateDictator);
             
             executive.SetSmartContractContext(new SmartContractContext()
             {

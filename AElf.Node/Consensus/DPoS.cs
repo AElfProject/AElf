@@ -40,7 +40,7 @@ namespace AElf.Kernel.Node
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
         public DPoS(ILogger logger, MainChainNode node, INodeConfig nodeConfig,
-            IWorldStateDictator worldStateDictator, IAccountContextService accountContextService,
+            IStateDictator stateDictator, IAccountContextService accountContextService,
             ITxPoolService txPoolService,
             IP2P p2p
         )
@@ -51,7 +51,7 @@ namespace AElf.Kernel.Node
             _p2p = p2p;
             _txPoolService = txPoolService;
             Node = node;
-            DPoSHelper = new AElfDPoSHelper(worldStateDictator, nodeConfig.ChainId, Miners,
+            DPoSHelper = new AElfDPoSHelper(stateDictator, nodeConfig.ChainId, Miners,
                 Node.ContractAccountHash, _logger);
         }
 

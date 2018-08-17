@@ -11,12 +11,12 @@ namespace AElf.Kernel.Tests
     {
         private readonly AccountContextService _accountContextService;
 
-        public AccountContextTest(IWorldStateDictator worldStateDictator)
+        public AccountContextTest(IStateDictator stateDictator)
         {
-            worldStateDictator.SetChainId(Hash.Generate());
-            worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
+            stateDictator.SetChainId(Hash.Generate());
+            stateDictator.BlockProducerAccountAddress = Hash.Generate();
 
-            _accountContextService = new AccountContextService(worldStateDictator);
+            _accountContextService = new AccountContextService(stateDictator);
         }
 
         [Fact]

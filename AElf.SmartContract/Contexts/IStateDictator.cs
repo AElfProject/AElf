@@ -2,27 +2,23 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
 {
-    public interface IWorldStateDictator
+    /// <summary>
+    /// Act as a service for DataProviders:
+    /// Get / Set WorldState
+    /// Formulate StateHash in ResourcePath instance
+    /// </summary>
+    public interface IStateDictator
     {
-        IWorldStateDictator SetChainId(Hash chainId);
-        
-        Task<IWorldState> GetWorldStateAsync(Hash blockHash);
+        Task<WorldState> GetWorldStateAsync(Hash stateHash);
 
-        Task SetWorldStateAsync(Hash currentBlockHash);
-
-        Task UpdatePointerAsync(Hash pathHash, Hash pointerHash);
+        Task SetWorldStateAsync(Hash stateHash, WorldState worldState);
         
         Task<Hash> GetPointerAsync(Hash pathHash);
         
-        Task<Hash> CalculatePointerHashOfCurrentHeight(IResourcePath resourcePath);
-        
         Task RollbackToPreviousBlock();
-
-        Task RollbackToBlockHash(Hash blockHash);
-        
-        Task<List<Transaction>> RollbackToSpecificHeight(ulong specificHeight);
 
         Task<IAccountDataProvider> GetAccountDataProvider(Hash accountAddress);
 
@@ -34,9 +30,8 @@ namespace AElf.SmartContract
 
         Task<bool> ApplyCachedDataAction(Dictionary<Hash, StateCache> queue, Hash chainId);
         
-        Hash PreBlockHash { get; set; }
+        ulong CurrentRoundNumber { get; set; }
         
         Hash BlockProducerAccountAddress { get; set; }
-
     }
 }

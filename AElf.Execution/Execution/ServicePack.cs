@@ -9,6 +9,6 @@ namespace AElf.Execution
         public ISmartContractService SmartContractService { get; set; }
         public IChainContextService ChainContextService { get; set; }
         public IAccountContextService AccountContextService { get; set; }
-        public IWorldStateDictator WorldStateDictator { get; set; }
+        public IStateDictator StateDictator { get; set; }
     }
 }

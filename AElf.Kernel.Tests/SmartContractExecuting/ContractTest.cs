@@ -24,7 +24,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             return (ulong)n;
         }
 
-        private IWorldStateDictator _worldStateDictator;
+        private IStateDictator _stateDictator;
         private IChainCreationService _chainCreationService;
         private IChainContextService _chainContextService;
         private IChainService _chainService;
@@ -37,12 +37,12 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
         private Hash ChainId { get; } = Hash.Generate();
 
-        public ContractTest(IWorldStateDictator worldStateDictator,
+        public ContractTest(IStateDictator stateDictator,
             IChainCreationService chainCreationService, IChainService chainService,
             ITransactionManager transactionManager, ISmartContractManager smartContractManager,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerFactory smartContractRunnerFactory)
         {
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _transactionManager = transactionManager;
@@ -50,7 +50,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             _chainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerFactory = smartContractRunnerFactory;
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateDictator, _functionMetadataService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator, _functionMetadataService);
         }
 
         public byte[] SmartContractZeroCode

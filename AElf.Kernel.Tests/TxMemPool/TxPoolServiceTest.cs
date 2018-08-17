@@ -21,26 +21,26 @@ namespace AElf.Kernel.Tests.TxMemPool
     {
         private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
         public TxPoolServiceTest(IAccountContextService accountContextService, ILogger logger, 
-            IWorldStateDictator worldStateDictator)
+            IStateDictator stateDictator)
         {
             _accountContextService = accountContextService;
             _logger = logger;
-            _worldStateDictator = worldStateDictator;
-            _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
+            _stateDictator = stateDictator;
+            _stateDictator.BlockProducerAccountAddress = Hash.Generate();
             this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
         }
 
         private ContractTxPool GetContractTxPool(ITxPoolConfig config)
         {
-            _worldStateDictator.SetChainId(config.ChainId);
+            _stateDictator.SetChainId(config.ChainId);
             return new ContractTxPool(config, _logger);
         }
         
         private DPoSTxPool GetDPoSTxPool(ITxPoolConfig config)
         {
-            _worldStateDictator.SetChainId(config.ChainId);
+            _stateDictator.SetChainId(config.ChainId);
             return new DPoSTxPool(config, _logger);
         }
 

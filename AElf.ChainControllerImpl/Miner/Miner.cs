@@ -23,7 +23,7 @@ namespace AElf.ChainController
         private readonly ITxPoolService _txPoolService;
         private ECKeyPair _keyPair;
         private readonly IChainService _chainService;
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
         private readonly ISmartContractService _smartContractService;
         private readonly IConcurrencyExecutingService _concurrencyExecutingService;
         private readonly ITransactionManager _transactionManager;
@@ -46,14 +46,14 @@ namespace AElf.ChainController
         public Hash Coinbase => Config.CoinBase;
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
-            IWorldStateDictator worldStateDictator,  ISmartContractService smartContractService, 
+            IStateDictator stateDictator,  ISmartContractService smartContractService, 
             IConcurrencyExecutingService concurrencyExecutingService, ITransactionManager transactionManager, 
             ITransactionResultManager transactionResultManager, ILogger logger)
         {
             Config = config;
             _txPoolService = txPoolService;
             _chainService = chainService;
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             _smartContractService = smartContractService;
             _concurrencyExecutingService = concurrencyExecutingService;
             _transactionManager = transactionManager;
@@ -95,7 +95,6 @@ namespace AElf.ChainController
                                 Transaction = transaction,
                                 BlockHeight = await blockChain.GetCurrentBlockHeightAsync()
                             };
-                            _worldStateDictator.PreBlockHash = await _chainService.GetBlockChain(Config.ChainId).GetCurrentBlockHashAsync();
                             await executive.SetTransactionContext(txnInitCtxt).Apply(true);
                         }
                         finally
@@ -222,9 +221,9 @@ namespace AElf.ChainController
 
             
             // set ws merkle tree root
-            await _worldStateDictator.SetWorldStateAsync(currentBlockHash);
+            await _stateDictator.SetWorldStateAsync(currentBlockHash);
             _logger?.Log(LogLevel.Debug, "End Set WS..");
-            var ws = await _worldStateDictator.GetWorldStateAsync(currentBlockHash);
+            var ws = await _stateDictator.GetWorldStateAsync(currentBlockHash);
             _logger?.Log(LogLevel.Debug, "End Get Ws");
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
 
@@ -260,7 +259,7 @@ namespace AElf.ChainController
             block.Header.ChainId = chainId;
             
             
-            var ws = await _worldStateDictator.GetWorldStateAsync(lastBlockHash);
+            var ws = await _stateDictator.GetWorldStateAsync(lastBlockHash);
             var state = await ws.GetWorldStateMerkleTreeRootAsync();
             
             var header = new BlockHeader

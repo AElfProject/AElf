@@ -8,7 +8,7 @@ namespace AElf.Kernel.Modules.AutofacModule
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<WorldStateDictator>().As<IWorldStateDictator>().SingleInstance();
+            builder.RegisterType<StateDictator>().As<IStateDictator>().SingleInstance();
         }
     }
 }

@@ -26,43 +26,6 @@ namespace AElf.Kernel.Tests
             _logger = logger;
         }
 
-        [Fact]
-        public async Task SetTest()
-        {
-            const int count = 5;
-            var setList = CreateSet(count).ToList();
-            var keys = GenerateKeys(setList).ToList();
-
-            var chain = await _blockTest.CreateChain();
-
-            var address = Hash.Generate();
-
-            var worldStateDictator = new WorldStateDictator(_dataStore, _logger).SetChainId(chain.Id);
-            worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
-
-            await worldStateDictator.SetWorldStateAsync(chain.GenesisBlockHash);
-            
-            var accountDataProvider = await worldStateDictator.GetAccountDataProvider(address);
-            var dataProvider = accountDataProvider.GetDataProvider();
-
-            for (var i = 0; i < count; i++)
-            {
-                await dataProvider.SetAsync(keys[i], setList[i]);
-            }
-
-            for (var i = 0; i < count; i++)
-            {
-                var getData = await dataProvider.GetAsync(keys[i]);
-                Assert.True(getData.SequenceEqual(setList[i]));
-            }
-
-            for (var i = 0; i < count - 1; i++)
-            {
-                var getData = await dataProvider.GetAsync(keys[i]);
-                Assert.False(getData.SequenceEqual(setList[i + 1]));
-            }
-        }
-        
         private IEnumerable<byte[]> CreateSet(int count)
         {
             var list = new List<byte[]>(count);

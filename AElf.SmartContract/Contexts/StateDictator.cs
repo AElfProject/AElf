@@ -13,31 +13,23 @@ using NLog;
 // ReSharper disable CheckNamespace
 namespace AElf.SmartContract
 {
-    [LoggerName(nameof(WorldStateDictator))]
-    public class WorldStateDictator: IWorldStateDictator
+    [LoggerName(nameof(StateDictator))]
+    public class StateDictator: IStateDictator
     {
+        private readonly Hash _chainId;
         private readonly IDataStore _dataStore;
         private readonly ILogger _logger;
-        
-        private bool _isChainIdSetted;
-        private Hash _chainId;
 
         private WorldState _worldState;
 
-        public Hash PreBlockHash { get; set; }
         public Hash BlockProducerAccountAddress { get; set; }
+        public ulong CurrentRoundNumber { get; set; }
 
-        public WorldStateDictator(IDataStore dataStore, ILogger logger)
-        {
-            _dataStore = dataStore;
-            _logger = logger;
-        }
-
-        public IWorldStateDictator SetChainId(Hash chainId)
+        public StateDictator(Hash chainId, IDataStore dataStore, ILogger logger = null)
         {
             _chainId = chainId;
-            _isChainIdSetted = true;
-            return this;
+            _dataStore = dataStore;
+            _logger = logger;
         }
         
         /// <summary>
@@ -55,9 +47,6 @@ namespace AElf.SmartContract
 
         public async Task RollbackToBlockHash(Hash blockHash)
         {
-            await Check();
-            await RollbackToPreviousBlock();
-            PreBlockHash = blockHash;
             await RollbackToPreviousBlock();
         }
         
@@ -74,8 +63,6 @@ namespace AElf.SmartContract
                 throw new InvalidOperationException("Cannot only rollback world state to height greater than 0");
             }
             
-            await Check();
-            
             await RollbackToPreviousBlock();
             
             var currentHeight = await GetChainCurrentHeight(_chainId);
@@ -87,8 +74,6 @@ namespace AElf.SmartContract
 
             //Update last block hash of curent chain
             var lastBlockHash = ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, specificHeight - 1);
-            await SetChainLastBlockHash(_chainId, lastBlockHash);
-            PreBlockHash = lastBlockHash;
 
             var txs = await RollbackTxs(currentHeight, specificHeight);
             
@@ -149,13 +134,6 @@ namespace AElf.SmartContract
             var key = ResourcePath.CalculatePointerForLastBlockHash(chainId);
             return await _dataStore.GetAsync<Hash>(key);
         }
-        
-        public async Task SetChainLastBlockHash(Hash chainId, Hash blockHash)
-        {
-            var key = ResourcePath.CalculatePointerForLastBlockHash(chainId);
-            PreBlockHash = blockHash;
-            await _dataStore.InsertAsync(key, blockHash);
-        }
 
         /// <summary>
         /// Get an AccountDataProvider instance
@@ -164,8 +142,6 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task<IAccountDataProvider> GetAccountDataProvider(Hash accountAddress)
         {
-            await Check();
-            
             return new AccountDataProvider(_chainId, accountAddress, this);
         }
 
@@ -178,8 +154,6 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task<IWorldState> GetWorldStateAsync(Hash blockHash)
         {
-            await Check();
-            
             return await _dataStore.GetAsync<WorldState>(CalculateHashFroWorldState(_chainId, blockHash));
         }
 
@@ -198,7 +172,7 @@ namespace AElf.SmartContract
         {
             await Check();
             
-            await _dataStore.InsertAsync<WorldState>(CalculateHashFroWorldState(_chainId, PreBlockHash), _worldState);
+            await _dataStore.InsertAsync(CalculateHashFroWorldState(_chainId, PreBlockHash), _worldState);
             
             //Refresh PreBlockHash after setting WorldState.
             PreBlockHash = preBlockHash;
@@ -216,7 +190,6 @@ namespace AElf.SmartContract
         {
             throw new NotImplementedException();
         }
-
         /// <summary>
         /// Using path hash value to get a pointer hash value from PointerStore.
         /// The pointer hash value represents a actual address of database.
@@ -257,8 +230,6 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public async Task<Hash> CalculatePointerHashOfCurrentHeight(IResourcePath resourcePath)
         {
-            await Check();
-            
             return resourcePath.SetBlockProducerAddress(BlockProducerAccountAddress)
                 .SetBlockHash(PreBlockHash).GetPointerHash();
         }
@@ -292,22 +263,5 @@ namespace AElf.SmartContract
             //return true for read-only 
             return true;
         }
-
-        #region Private methods
-
-        private async Task Check()
-        {
-            if (!_isChainIdSetted)
-            {
-                throw new InvalidOperationException("Should set chain id before using a WorldStateDictator");
-            }
-
-            if (PreBlockHash == null)
-            {
-                var hash = await _dataStore.GetAsync<Hash>(ResourcePath.CalculatePointerForLastBlockHash(_chainId));
-                PreBlockHash = hash ?? Hash.Genesis;
-            }
-        }
-        #endregion
     }
 }

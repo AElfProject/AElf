@@ -30,6 +30,7 @@ namespace AElf.Kernel
         public static readonly Hash Default = new Hash(new byte[]{});
         
         public static readonly Hash Genesis = new Hash("Genesis".CalculateHash());
+            
         public Hash(byte[] buffer)
         {
             Value = ByteString.CopyFrom(buffer);
@@ -38,12 +39,6 @@ namespace AElf.Kernel
         public Hash(ByteString value)
         {
             Value = value;
-        }
-
-        public Hash SetType(HashType hashType)
-        {
-            HashType = hashType;
-            return this;
         }
 
         public byte[] GetHashBytes() => Value.ToByteArray();

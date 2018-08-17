@@ -16,12 +16,12 @@ namespace AElf.Kernel.Tests.TxMemPool
     public class TxPoolTest
     {
         private readonly ILogger _logger;
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
 
-        public TxPoolTest(ILogger logger, IWorldStateDictator worldStateDictator)
+        public TxPoolTest(ILogger logger, IStateDictator stateDictator)
         {
             _logger = logger;
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
         }
 
@@ -29,7 +29,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             if (ecKeyPair != null)
                 config.EcKeyPair = ecKeyPair;
-            _worldStateDictator.SetChainId(config.ChainId);
+            _stateDictator.SetChainId(config.ChainId);
             return new ContractTxPool(config, _logger);
         }
 
@@ -79,7 +79,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             // Add a valid transaction
             var tx = BuildTransaction();
             var tmp = new HashSet<Transaction> {tx};
-            var accountContextService = new AccountContextService(_worldStateDictator);
+            var accountContextService = new AccountContextService(_stateDictator);
             var ctx = await accountContextService.GetAccountDataContext(tx.From, pool.ChainId);
             pool.TrySetNonce(tx.From,ctx.IncrementId);
             pool.EnQueueTxs(tmp);
@@ -127,7 +127,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             config.Maximal = 10;
             var pool = GetPool(config, ecKeyPair);
             var tmp = new HashSet<Transaction>();
-            var accountContextService = new AccountContextService(_worldStateDictator);
+            var accountContextService = new AccountContextService(_stateDictator);
 
             // Add valid transactions
             int i = 0;

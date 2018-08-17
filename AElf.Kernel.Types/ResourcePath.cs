@@ -8,140 +8,75 @@ namespace AElf.Kernel
     /// <inheritdoc />
     public class ResourcePath : IResourcePath
     {
-        /// <summary>
-        /// For now just change this value manually
-        /// </summary>
-        public bool IsPointer { get; private set; }
+        private Hash _chainId;
+        private ulong _roundNumber;
+        private Hash _blockProducerAddress;
 
-        private Hash _chainHash;
-        private Hash _blockHash;
-        private Hash _accountAddress;
         private Hash _dataProviderHash;
         private Hash _keyHash;
-        private Hash _blockProducerAddress;
+
+        public Hash StateHash
+        {
+            get
+            {
+                if (_chainId == null || _blockProducerAddress == null)
+                {
+                    throw new InvalidOperationException("Should set chain id and bp address before calculating state hash");
+                }
+                return new Hash(_chainId.CalculateHashWith(_blockProducerAddress)).CalculateHashWith(_roundNumber);
+            }
+        }
+
+        public Hash ResourcePathHash => _dataProviderHash.CalculateHashWith(_keyHash);
+
+        public Hash ResourcePointerHash => StateHash.CalculateHashWith(ResourcePathHash);
+
+        /// <inheritdoc />
+        public ResourcePath RemoveState()
+        {
+            _roundNumber = 0;
+            _blockProducerAddress = null;
+            return this;
+        }
+
+        /// <inheritdoc />
+        public ResourcePath RemovePath()
+        {
+            _dataProviderHash = null;
+            _keyHash = null;
+            return this;
+        }
 
         public ResourcePath SetChainId(Hash chainId)
         {
-            _chainHash = chainId;
-            if (PointerValidation())
-            {
-                IsPointer = true;
-            }
+            _chainId = chainId;
             return this;
         }
         
-        /// <inheritdoc />
-        public ResourcePath SetBlockHash(Hash blockHash)
+        public ResourcePath SetRoundNumber(ulong roundNumber)
         {
-            _blockHash = blockHash;
-            if (PointerValidation())
-            {
-                IsPointer = true;
-            }
+            _roundNumber = roundNumber;
             return this;
         }
         
         public ResourcePath SetBlockProducerAddress(Hash blockProducerAddress)
         {
             _blockProducerAddress = blockProducerAddress;
-            if (PointerValidation())
-            {
-                IsPointer = true;
-            }
             return this;
         }
 
-        /// <inheritdoc />
-        public ResourcePath RevertPointerToPath()
-        {
-            _blockHash = null;
-            _blockProducerAddress = null;
-            IsPointer = false;
-            return this;
-        }
-
-        public ResourcePath SetAccountAddress(Hash accountAddress)
-        {
-            _accountAddress = accountAddress;
-            if (PointerValidation())
-            {
-                IsPointer = true;
-            }
-            return this;
-        }
-        
         public ResourcePath SetDataProvider(Hash dataProviderHash)
         {
             _dataProviderHash = dataProviderHash;
-            if (PointerValidation())
-            {
-                IsPointer = true;
-            }
             return this;
         }
         
         public ResourcePath SetDataKey(Hash keyHash)
         {
             _keyHash = keyHash;
-            if (PointerValidation())
-            {
-                IsPointer = true;
-            }
             return this;
         }
 
-        public Hash GetPointerHash()
-        {
-            if (!PointerValidation())
-            {
-                throw new InvalidOperationException("Invalid pointer.");
-            }
-
-            return CalculateHashOfHashList(_chainHash, _accountAddress, _dataProviderHash, _keyHash, _blockHash,
-                _blockProducerAddress);
-        }
-
-        public Hash GetPathHash()
-        {
-            if (!PathValidation())
-            {
-                throw new InvalidOperationException("Invalid path.");
-            }
-
-            return CalculateHashOfHashList(_chainHash, _accountAddress, _dataProviderHash, _keyHash);
-        }
-        
-        #region Private methods
-        
-        private bool PointerValidation()
-        {
-            return _chainHash != null && _blockHash != null && _accountAddress != null && _dataProviderHash != null &&
-                   _keyHash != null && _blockProducerAddress != null;
-        }
-
-        private bool PathValidation()
-        {
-            return _chainHash != null && _accountAddress != null && _dataProviderHash != null && _keyHash != null;
-        }
-
-        /// <summary>
-        /// Calculate hash value of a hash list one by one
-        /// </summary>
-        /// <param name="hashes"></param>
-        /// <returns></returns>
-        private static Hash CalculateHashOfHashList(params Hash[] hashes)
-        {
-            if (hashes.Length == 1)
-            {
-                return hashes[0];
-            }
-            
-            var remains = hashes.Skip(1).ToArray();
-            return hashes[0].CombineHashWith(CalculateHashOfHashList(remains));
-        }
-        
-        #endregion
-        
         /*
          * Directly calculate pointer value zone
          */
@@ -217,7 +152,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Hash CalculatePointerForGettingBlockHashByHeight(Hash chainId, ulong height)
         {
-            return CalculateHashOfHashList(chainId, "HeightHashMap".CalculateHash(),
+            return HashExtensions.CalculateHashOfHashList(chainId, "HeightHashMap".CalculateHash(),
                 new UInt64Value {Value = height}.CalculateHash());
         }
         
@@ -246,7 +181,7 @@ namespace AElf.Kernel
 
         public static Hash CalculatePointerForPathsCount(Hash chainId, Hash blockHash)
         {
-            return CalculateHashOfHashList(chainId, blockHash, "PathsCount".CalculateHash());
+            return HashExtensions.CalculateHashOfHashList(chainId, blockHash, "PathsCount".CalculateHash());
         }
         
         #endregion

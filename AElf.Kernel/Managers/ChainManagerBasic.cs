@@ -7,13 +7,11 @@ namespace AElf.Kernel.Managers
     {
         private readonly IGenesisHashStore _genesisHashStore;
         private readonly ICurrentHashStore _currentHashStore;
-        private readonly ICanonicalHashStore _canonicalHashStore;
 
-        public ChainManagerBasic(IGenesisHashStore genesisHashStore, ICurrentHashStore currentHashStore, ICanonicalHashStore canonicalHashStore)
+        public ChainManagerBasic(IGenesisHashStore genesisHashStore, ICurrentHashStore currentHashStore)
         {
             _genesisHashStore = genesisHashStore;
             _currentHashStore = currentHashStore;
-            _canonicalHashStore = canonicalHashStore;
         }
 
         public async Task AddChainAsync(Hash chainId, Hash genesisBlockHash)
@@ -38,6 +36,5 @@ namespace AElf.Kernel.Managers
             var hash = await _currentHashStore.GetAsync(chainId);
             return hash;
         }
-
     }
 }

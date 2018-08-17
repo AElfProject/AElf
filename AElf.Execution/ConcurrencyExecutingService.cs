@@ -24,14 +24,14 @@ namespace AElf.Execution
         
         public Task TerminationHandle => _actorSystem.WhenTerminated;
 
-        public ConcurrencyExecutingService(IChainContextService chainContextService, ISmartContractService smartContractService, IFunctionMetadataService functionMetadataService, IWorldStateDictator worldStateDictator, IAccountContextService accountContextService)
+        public ConcurrencyExecutingService(IChainContextService chainContextService, ISmartContractService smartContractService, IFunctionMetadataService functionMetadataService, IStateDictator stateDictator, IAccountContextService accountContextService)
         {
             _servicePack = new ServicePack()
             {
                 ChainContextService = chainContextService,
                 SmartContractService = smartContractService,
                 ResourceDetectionService = new ResourceUsageDetectionService(functionMetadataService),
-                WorldStateDictator = worldStateDictator,
+                StateDictator = stateDictator,
                 AccountContextService = accountContextService,
             };
             

@@ -12,6 +12,8 @@ namespace AElf.Kernel.Modules.AutofacModule
             builder.RegisterType<TransactionManager>().As<ITransactionManager>();
             builder.RegisterType<TransactionResultManager>().As<ITransactionResultManager>();
             builder.RegisterType<PointerManager>().As<IPointerManager>();
+            builder.RegisterType<BlockManagerBasic>().As<IBlockManagerBasic>();
+            builder.RegisterType<ChainManagerBasic>().As<IChainManagerBasic>();
         }
     }
 }

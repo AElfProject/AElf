@@ -129,14 +129,14 @@ namespace AElf.Kernel.Consensus
             return bytes;
         }
 
-        public AElfDPoSHelper(IWorldStateDictator worldStateDictator, Hash chainId, Miners miners,
+        public AElfDPoSHelper(IStateDictator stateDictator, Hash chainId, Miners miners,
             Hash contractAddressHash, ILogger logger)
         {
-            worldStateDictator.SetChainId(chainId);
+            stateDictator.SetChainId(chainId);
             _miners = miners;
             _logger = logger;
 
-            _dataProvider = worldStateDictator.GetAccountDataProvider(contractAddressHash).Result.GetDataProvider();
+            _dataProvider = stateDictator.GetAccountDataProvider(contractAddressHash).Result.GetDataProvider();
         }
 
         /// <summary>

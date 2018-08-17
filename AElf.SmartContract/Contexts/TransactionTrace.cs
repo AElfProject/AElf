@@ -6,6 +6,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Kernel;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
 {
     public partial class TransactionTrace
@@ -40,7 +41,7 @@ namespace AElf.SmartContract
             return successful;
         }
 
-        public async Task<Dictionary<Hash, StateCache>> CommitChangesAsync(IWorldStateDictator worldStateDictator,
+        public async Task<Dictionary<Hash, StateCache>> CommitChangesAsync(IStateDictator stateDictator,
             Hash chainId)
         {
             Dictionary<Hash, StateCache> changedDict = new Dictionary<Hash, StateCache>();
@@ -53,7 +54,7 @@ namespace AElf.SmartContract
             {
                 foreach (var vc in ValueChanges)
                 {
-                    await worldStateDictator.ApplyStateValueChangeAsync(vc, chainId);
+                    await stateDictator.ApplyStateValueChangeAsync(vc, chainId);
 
                     //add changes into 
                     var valueCache = new StateCache(vc.BeforeValue.ToByteArray());
@@ -64,7 +65,7 @@ namespace AElf.SmartContract
                 //TODO: Question: should inline trace commit to tentative cache once the calling func return? In other word, does inlineTraces overwrite the original content in changeDict?
                 foreach (var trc in InlineTraces)
                 {
-                    var inlineCacheDict = await trc.CommitChangesAsync(worldStateDictator, chainId);
+                    var inlineCacheDict = await trc.CommitChangesAsync(stateDictator, chainId);
                     foreach (var kv in inlineCacheDict)
                     {
                         changedDict[kv.Key] = kv.Value;

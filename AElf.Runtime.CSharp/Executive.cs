@@ -65,7 +65,7 @@ namespace AElf.Runtime.CSharp
         private ISmartContract _smartContract;
         private ITransactionContext _currentTransactionContext;
         private ISmartContractContext _currentSmartContractContext;
-        private IWorldStateDictator _worldStateDictator;
+        private IStateDictator _stateDictator;
 
         public Executive(Module abiModule)
         {
@@ -75,9 +75,9 @@ namespace AElf.Runtime.CSharp
             }
         }
 
-        public IExecutive SetWorldStateManager(IWorldStateDictator worldStateDictator)
+        public IExecutive SetWorldStateManager(IStateDictator stateDictator)
         {
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             return this;
         }
 
@@ -139,7 +139,7 @@ namespace AElf.Runtime.CSharp
 
         public async Task Apply(bool autoCommit)
         {
-            _worldStateDictator.PreBlockHash = _currentTransactionContext.PreviousBlockHash;
+            _stateDictator.PreBlockHash = _currentTransactionContext.PreviousBlockHash;
             var s = _currentTransactionContext.Trace.StartTime = DateTime.UtcNow;
             var methodName = _currentTransactionContext.Transaction.MethodName;
 
@@ -198,9 +198,9 @@ namespace AElf.Runtime.CSharp
                         .GetValueChanges());
                     if (autoCommit)
                     {
-                        var changeDict = await _currentTransactionContext.Trace.CommitChangesAsync(_worldStateDictator,
+                        var changeDict = await _currentTransactionContext.Trace.CommitChangesAsync(_stateDictator,
                             _currentSmartContractContext.ChainId);
-                        await _worldStateDictator.ApplyCachedDataAction(changeDict,
+                        await _stateDictator.ApplyCachedDataAction(changeDict,
                             _currentSmartContractContext.ChainId);
                         _currentSmartContractContext.DataProvider.StateCache.Clear(); //clear state cache for special tx that called with "autoCommit = true"
                     }

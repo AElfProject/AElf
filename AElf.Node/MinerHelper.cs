@@ -15,7 +15,7 @@ namespace AElf.Kernel.Node
         private readonly ILogger _logger;
         private readonly ITxPoolService _txPoolService;
         private readonly INodeConfig _nodeConfig;
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
         private readonly IChainContextService _chainContextService;
         private readonly IBlockVaildationService _blockVaildationService;
         private readonly IChainService _chainService;
@@ -37,7 +37,7 @@ namespace AElf.Kernel.Node
         public MinerHelper(ILogger logger, MainChainNode node,
             ITxPoolService txPoolService,
             INodeConfig nodeConfig,
-            IWorldStateDictator worldStateDictator,
+            IStateDictator stateDictator,
             IBlockExecutor blockExecutor,
             IChainService chainService,
             IChainContextService chainContextService, IBlockVaildationService blockVaildationService,
@@ -47,7 +47,7 @@ namespace AElf.Kernel.Node
             Node = node;
             _txPoolService = txPoolService;
             _nodeConfig = nodeConfig;
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             _blockExecutor = blockExecutor;
             _chainService = chainService;
             _chainContextService = chainContextService;
@@ -66,7 +66,7 @@ namespace AElf.Kernel.Node
             {
                 _logger?.Trace($"Mine - Entered mining {res}");
 
-                _worldStateDictator.BlockProducerAccountAddress = NodeKeyPair.GetAddress();
+                _stateDictator.BlockProducerAccountAddress = NodeKeyPair.GetAddress();
 
                 var task = Task.Run(async () => await _miner.Mine());
 
@@ -138,13 +138,13 @@ namespace AElf.Kernel.Node
                             //Rollback world state
 //                            var txs = await _worldStateDictator.RollbackToSpecificHeight(block.Header.Index);
                             var txs = await Node.BlockChain.RollbackToHeight(block.Header.Index - 1);
-                            await _worldStateDictator.RollbackToBlockHash(block.Header.PreviousBlockHash);
+                            await _stateDictator.RollbackToBlockHash(block.Header.PreviousBlockHash);
 
                             await _txPoolService.RollBack(txs);
-                            _worldStateDictator.PreBlockHash = block.Header.PreviousBlockHash;
-                            await _worldStateDictator.RollbackToPreviousBlock();
+                            //_stateDictator.PreBlockHash = block.Header.PreviousBlockHash;
+                            await _stateDictator.RollbackToPreviousBlock();
 
-                            var ws = await _worldStateDictator.GetWorldStateAsync(block.GetHash());
+                            var ws = await _stateDictator.GetWorldStateAsync(block.GetHash());
                             _logger?.Trace(
                                 $"Current world state {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
 

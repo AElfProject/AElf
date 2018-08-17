@@ -49,7 +49,7 @@ namespace AElf.Kernel.Node
         private readonly IChainContextService _chainContextService;
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
         private readonly ISmartContractService _smartContractService;
         private readonly IFunctionMetadataService _functionMetadataService;
         private readonly INetworkManager _netManager;
@@ -70,14 +70,14 @@ namespace AElf.Kernel.Node
             INodeConfig nodeConfig, IMiner miner, IAccountContextService accountContextService,
             IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
-            IChainCreationService chainCreationService, IWorldStateDictator worldStateDictator,
+            IChainCreationService chainCreationService, IStateDictator stateDictator,
             IChainService chainService, ISmartContractService smartContractService,
             IFunctionMetadataService functionMetadataService, INetworkManager netManager,
             IBlockSynchronizer synchronizer, IP2P p2p)
         {
             _chainCreationService = chainCreationService;
             _chainService = chainService;
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             _smartContractService = smartContractService;
             _functionMetadataService = functionMetadataService;
             _txPoolService = poolService;
@@ -88,7 +88,7 @@ namespace AElf.Kernel.Node
             _accountContextService = accountContextService;
             _blockVaildationService = blockVaildationService;
             _chainContextService = chainContextService;
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             _blockExecutor = blockExecutor;
             _netManager = netManager;
             _synchronizer = synchronizer;
@@ -131,10 +131,9 @@ namespace AElf.Kernel.Node
                 else
                 {
                     var preBlockHash = BlockChain.GetCurrentBlockHashAsync().Result;
-                    _worldStateDictator.SetWorldStateAsync(preBlockHash);
+                    _stateDictator.SetWorldStateAsync(preBlockHash);
 
-                    _worldStateDictator.PreBlockHash = preBlockHash;
-                    _worldStateDictator.RollbackToPreviousBlock();
+                    _stateDictator.RollbackToPreviousBlock();
                 }
             }
             catch (Exception e)
@@ -144,7 +143,7 @@ namespace AElf.Kernel.Node
             }
 
             // set world state
-            _worldStateDictator.SetChainId(_nodeConfig.ChainId);
+            _stateDictator.SetChainId(_nodeConfig.ChainId);
 
             #endregion setup
 
@@ -247,7 +246,7 @@ namespace AElf.Kernel.Node
             switch (Globals.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    _consensus = new DPoS(_logger, this, _nodeConfig, _worldStateDictator, _accountContextService,
+                    _consensus = new DPoS(_logger, this, _nodeConfig, _stateDictator, _accountContextService,
                         _txPoolService, _p2p);
                     break;
 
@@ -269,7 +268,7 @@ namespace AElf.Kernel.Node
             }
 
             _minerHelper = new MinerHelper(_logger, this, _txPoolService, _nodeConfig,
-                _worldStateDictator, _blockExecutor, _chainService, _chainContextService,
+                _stateDictator, _blockExecutor, _chainService, _chainContextService,
                 _blockVaildationService, _miner, _consensus, _synchronizer);
         }
 

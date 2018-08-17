@@ -73,16 +73,6 @@ namespace AElf.SmartContract
             return (await GetStateAsync(keyHash)).CurrentValue ?? new byte[0];
         }
 
-        public async Task<byte[]> GetAsync(Hash keyHash, Hash preBlockHash)
-        {
-            // This method seems not necessary here.
-            // It is not required for contract execution.
-            // It may only be required if user wants to retrieve
-            // previous state via rpc.
-            throw new NotImplementedException();
-            await Task.CompletedTask;
-        }
-
         public Hash GetHash()
         {
             // This method is not needed here.

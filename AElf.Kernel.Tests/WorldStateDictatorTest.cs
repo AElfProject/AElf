@@ -14,14 +14,13 @@ namespace AElf.Kernel.Tests
     [UseAutofacTestFramework]
     public class WorldStateDictatorTest
     {
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
         private readonly ILogger _logger;
         private readonly BlockTest _blockTest;
 
-        public WorldStateDictatorTest(IDataStore dataStore, ITxPoolService txPoolService, BlockTest blockTest, ILogger logger,
-            ITransactionManager transactionManager, IBlockManagerBasic blockManager, IPointerManager pointerManager)
+        public WorldStateDictatorTest(IDataStore dataStore, BlockTest blockTest, ILogger logger)
         {
-            _worldStateDictator = new WorldStateDictator(dataStore, _logger)
+            _stateDictator = new StateDictator(dataStore, _logger)
             {
                 BlockProducerAccountAddress = Hash.Generate()
             };
@@ -34,9 +33,9 @@ namespace AElf.Kernel.Tests
         {
             var key = Hash.Generate();
             var data = Hash.Generate().Value.ToArray();
-            await _worldStateDictator.SetDataAsync(key, data);
+            await _stateDictator.SetDataAsync(key, data);
 
-            var getData = await _worldStateDictator.GetDataAsync(key);
+            var getData = await _stateDictator.GetDataAsync(key);
             
             Assert.True(data.SequenceEqual(getData));
         }
@@ -48,9 +47,9 @@ namespace AElf.Kernel.Tests
             
             var address = Hash.Generate();
 
-            _worldStateDictator.SetChainId(chain.Id);
+            _stateDictator.SetChainId(chain.Id);
             
-            var accountDataProvider = await _worldStateDictator.GetAccountDataProvider(address);
+            var accountDataProvider = await _stateDictator.GetAccountDataProvider(address);
             
             Assert.True(accountDataProvider.Context.Address == address);
             Assert.True(accountDataProvider.Context.ChainId == chain.Id);

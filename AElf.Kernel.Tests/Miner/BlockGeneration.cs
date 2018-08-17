@@ -16,19 +16,19 @@ namespace AElf.Kernel.Tests.Miner
     public class BlockGeneration
     {
         private readonly IChainService _chainService;
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
 
-        public BlockGeneration(IChainService chainService, IWorldStateDictator worldStateDictator)
+        public BlockGeneration(IChainService chainService, IStateDictator stateDictator)
         {
             _chainService = chainService;
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
         }
 
 
         public async Task SetWorldState()
         {
             var address = Hash.Generate();
-            var accountDataProvider = await _worldStateDictator.GetAccountDataProvider(address);
+            var accountDataProvider = await _stateDictator.GetAccountDataProvider(address);
             var dataProvider = accountDataProvider.GetDataProvider();
             var data1 = Hash.Generate().Value.ToArray();
             var key = new Hash("testkey".CalculateHash());
