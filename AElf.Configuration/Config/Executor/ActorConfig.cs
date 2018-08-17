@@ -10,7 +10,7 @@ namespace AElf.Configuration
         public bool IsCluster { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
-        public int WorkerCount { get; set; }
+        public int ActorCount { get; set; }
         public bool Benchmark { get; set; }
         public List<SeedNode> Seeds { get; set; }
 

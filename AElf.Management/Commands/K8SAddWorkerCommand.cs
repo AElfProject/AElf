@@ -31,7 +31,7 @@ namespace AElf.Management.Commands
                 Spec = new Extensionsv1beta1DeploymentSpec
                 {
                     Selector = new V1LabelSelector {MatchLabels = new Dictionary<string, string> {{"name", DeploymentName}}},
-                    Replicas = 5,
+                    Replicas = 1,
                     Template = new V1PodTemplateSpec
                     {
                         Metadata = new V1ObjectMeta {Labels = new Dictionary<string, string> {{"name", DeploymentName}}},

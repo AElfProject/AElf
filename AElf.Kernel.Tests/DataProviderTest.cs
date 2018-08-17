@@ -5,6 +5,7 @@ using AElf.SmartContract;
 using AElf.ChainController;
 using AElf.Kernel.Storages;
 using AElf.Kernel.TxMemPool;
+using AsyncEventAggregator;
 using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -39,6 +40,7 @@ namespace AElf.Kernel.Tests
             _blockHeaderStore = blockHeaderStore;
             _blockBodyStore = blockBodyStore;
             _transactionStore = transactionStore;
+            this.Subscribe<IBlock>(async (t) => { await Task.CompletedTask;});
         }
 
         [Fact]

@@ -9,8 +9,10 @@ namespace AElf.Kernel
 
     public enum SmartContractType
     {
+        // type name should be contained in the contract name  
         BasicContractZero = 0,
         AElfDPoS = 1,
-        TokenContract = 2    
+        TokenContract = 2,
+        SideChainContract = 3
     }
 }

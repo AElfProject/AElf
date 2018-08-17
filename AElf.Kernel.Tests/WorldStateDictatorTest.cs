@@ -4,6 +4,7 @@ using AElf.SmartContract;
 using AElf.ChainController;
 using AElf.Kernel.Storages;
 using AElf.Kernel.TxMemPool;
+using AsyncEventAggregator;
 using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -30,6 +31,7 @@ namespace AElf.Kernel.Tests
             };
             _blockTest = blockTest;
             _logger = logger;
+            this.Subscribe<IBlock>(async (t) => { await Task.CompletedTask;});
         }
 
         [Fact]
