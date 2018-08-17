@@ -163,18 +163,24 @@ namespace AElf.Network.Peers
         public void AddPeer(NodeData nodeData)
         {
             if (nodeData == null)
+            {
+                _logger?.Trace("Data is null, cannot add peer.");
                 return; // todo exception
+            }
             
             NodeDialer dialer = new NodeDialer(nodeData.IpAddress, nodeData.Port);
             TcpClient client = dialer.DialAsync().GetAwaiter().GetResult(); // todo async 
 
+            if (client == null)
+            {
+                _logger?.Trace($"Could not connect to {nodeData.IpAddress}:{nodeData.Port}, operation timed out.");
+                return;
+            }
+            
             IPeer peer = CreatePeerFromConnection(client);
             peer.PeerDisconnected += ProcessClientDisconnection;
             
             StartAuthentification(peer);
-            
-            // todo hookup disconnection
-            // todo start auth
         }
 
         /// <summary>
