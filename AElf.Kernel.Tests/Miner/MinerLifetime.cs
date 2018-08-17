@@ -80,7 +80,7 @@ namespace AElf.Kernel.Tests.Miner
 
             _chainService = chainService;
             _smartContractManager = smartContractManager;
-            _functionMetadataService = functionMetadataService;123
+            _functionMetadataService = functionMetadataService;
             _concurrencyExecutingService = concurrencyExecutingService;
 
             _worldStateDictator = worldStateDictator;
