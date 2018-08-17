@@ -195,8 +195,15 @@ namespace AElf.Launcher
                 : opts.DataDir;
 
             // management config
-            ManagementConfig.Instance.Url = opts.ManagementUrl;
-            ManagementConfig.Instance.SideChainServicePath = opts.ManagementSideChainServicePath;
+            if (!string.IsNullOrWhiteSpace(opts.ManagementUrl))
+            {
+                ManagementConfig.Instance.Url = opts.ManagementUrl;
+            }
+            if (!string.IsNullOrWhiteSpace(opts.ManagementSideChainServicePath))
+            {
+                ManagementConfig.Instance.SideChainServicePath = opts.ManagementSideChainServicePath;
+            }
+
             
             // runner config
             RunnerConfig = new RunnerConfig
