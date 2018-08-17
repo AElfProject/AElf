@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Miner";
+import "hash.proto";
+
+message ReponseIndexedInfo{
+    repeated HeaderInfo Headers = 1;
+}
+
+
+message RequestIndexedInfo{
+    Hash from = 1;
+    uint64 begin = 2;
+}
+
+message HeaderInfo{
+    Hash BlockHeaderHash = 1;
+    Hash TransactionHash = 2;
+    Hash WorldStateHash = 3;
+}
+
+service RouteGuide {
+    rpc GetHeaderInfo(RequestIndexedInfo) returns (ReponseIndexedInfo) {}
+}
+
+

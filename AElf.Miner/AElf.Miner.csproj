@@ -5,4 +5,15 @@
   <ItemGroup>
     <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Grpc" Version="1.14.1" />
+  </ItemGroup>
+  <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+    <Exec Command="protoc -I ./Protobuf/Proto --csharp_opt=file_extension=.g.cs --csharp_out=./Protobuf/Generated/ --grpc_out=./Protobuf/Generated/ ./Protobuf/Proto/headerinfo.proto --plugin=protoc-gen-grpc=/usr/local/bin/grpc_csharp_plugin" />
+  </Target>
+  <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+      <Compile Include="./Protobuf/Generated/*.cs" />
+    </ItemGroup>
+  </Target>
 </Project>
