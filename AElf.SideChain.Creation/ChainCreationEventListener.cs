@@ -26,18 +26,16 @@ namespace AElf.SideChain.Creation
         private ITransactionResultManager TransactionResultManager { get; set; }
         private IChainCreationService ChainCreationService { get; set; }
         private INodeConfig NodeConfig { get; set; }
-        private IManagementConfig ManagementConfig { get; set; }
         private LogEvent _interestedLogEvent;
         private Bloom _bloom;
 
         public ChainCreationEventListener(ILogger logger, ITransactionResultManager transactionResultManager,
-            IChainCreationService chainCreationService, INodeConfig nodeConfig, IManagementConfig managementConfig)
+            IChainCreationService chainCreationService, INodeConfig nodeConfig)
         {
             _logger = logger;
             TransactionResultManager = transactionResultManager;
             ChainCreationService = chainCreationService;
             NodeConfig = nodeConfig;
-            ManagementConfig = managementConfig;
             _interestedLogEvent = new LogEvent()
             {
                 Address = GetGenesisContractHash(),
@@ -129,18 +127,18 @@ namespace AElf.SideChain.Creation
 
         private void InitializeClient()
         {
-            _client = new HttpClient {BaseAddress = new Uri(ManagementConfig.Url)};
+            _client = new HttpClient {BaseAddress = new Uri(ManagementConfig.Instance.Url)};
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(Hash chainId)
         {
-            var endpoint = ManagementConfig.SideChainServicePath.TrimEnd('/') + "/" + chainId.ToHex();
+            var endpoint = ManagementConfig.Instance.SideChainServicePath.TrimEnd('/') + "/" + chainId.ToHex();
             var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             var content = new JObject()
             {
-                ["MainChainAccount"] = ManagementConfig.NodeAccount,
-                ["AccountPassword"] = ManagementConfig.NodeAccountPassword
+                ["MainChainAccount"] = ManagementConfig.Instance.NodeAccount,
+                ["AccountPassword"] = ManagementConfig.Instance.NodeAccountPassword
             }.ToString();
             var c = new StringContent(content);
             c.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");

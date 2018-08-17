@@ -67,7 +67,6 @@ namespace AElf.Launcher
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
 
-            var managementConfig = confParser.ManagementConfig;
             // todo : quick fix, to be refactored
             ECKeyPair nodeKey = null;
             if (!string.IsNullOrWhiteSpace(confParser.NodeAccount))
@@ -80,8 +79,8 @@ namespace AElf.Launcher
                         : confParser.NodeAccountPassword;
                     ks.OpenAsync(confParser.NodeAccount, pass, false);
 
-                    managementConfig.NodeAccount = confParser.NodeAccount;
-                    managementConfig.NodeAccountPassword = pass;
+                    ManagementConfig.Instance.NodeAccount = confParser.NodeAccount;
+                    ManagementConfig.Instance.NodeAccountPassword = pass;
                     
                     nodeKey = ks.GetAccountKeyPair(confParser.NodeAccount);
                     if (nodeKey == null)
@@ -100,7 +99,7 @@ namespace AElf.Launcher
 
             // Setup ioc 
             var container = SetupIocContainer(isMiner, isNewChain, netConf, txPoolConf,
-                minerConfig, nodeConfig, managementConfig, smartContractRunnerFactory);
+                minerConfig, nodeConfig, smartContractRunnerFactory);
 
             if (container == null)
             {
@@ -207,7 +206,7 @@ namespace AElf.Launcher
         }
 
         private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, IAElfNetworkConfig netConf,
-            ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig, IManagementConfig managementConfig,
+            ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig,
             SmartContractRunnerFactory smartContractRunnerFactory)
         {
             var builder = new ContainerBuilder();
@@ -226,7 +225,6 @@ namespace AElf.Launcher
             builder.RegisterModule(new RpcServicesModule());
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
-            builder.RegisterInstance(managementConfig).As<IManagementConfig>();
 
             // register SmartContractRunnerFactory 
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();

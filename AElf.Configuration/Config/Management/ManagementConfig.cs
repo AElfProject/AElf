@@ -1,6 +1,7 @@
 ﻿namespace AElf.Configuration
 {
-    public class ManagementConfig : IManagementConfig
+    [ConfigFile(FileName = "management.json")]
+    public class ManagementConfig : ConfigBase<ManagementConfig>
     {
         public string Url { get; set; }
         public string SideChainServicePath { get; set; }
