@@ -7,7 +7,6 @@ using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Collections;
 using AElf.Kernel;
-using AElf.Network.Config;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Peers;
@@ -55,7 +54,6 @@ namespace AElf.Network
         public event EventHandler MessageReceived;
         public event EventHandler RequestFailed;
         
-        private readonly IAElfNetworkConfig _networkConfig;
         private readonly IPeerManager _peerManager;
         private readonly ILogger _logger;
         
@@ -76,12 +74,11 @@ namespace AElf.Network
 
         private BlockingPriorityQueue<PeerMessageReceivedArgs> _incomingJobs;
 
-        public NetworkManager(IAElfNetworkConfig config, IPeerManager peerManager, ILogger logger)
+        public NetworkManager(IPeerManager peerManager, ILogger logger)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
             _pendingRequests = new List<TimeoutRequest>();
             
-            _networkConfig = config;
             _peerManager = peerManager;
             _logger = logger;
             

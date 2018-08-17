@@ -1,5 +1,6 @@
 ﻿using System;
 using AElf.Management.Models;
+using AElf.Management.Website.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AElf.Management.Website.Controllers
@@ -16,21 +17,23 @@ namespace AElf.Management.Website.Controllers
         }
 
         [HttpGet("{value}")]
-        public string Test(string value)
+        public ApiResult Test(string value)
         {
-            return "reciced:" + value;
+            return new TestResult {Value = value};
         }
 
         [HttpPost("{chainId}")]
-        public void Post(string chainId, [FromBody] DeployArg arg)
+        public ApiResult Post(string chainId, [FromBody] DeployArg arg)
         {
             _sideChainService.Deploy(chainId, arg);
+            return new ApiResult();
         }
 
         [HttpDelete("{chainId}")]
-        public void Delete(string chainId)
+        public ApiResult Delete(string chainId)
         {
             _sideChainService.Remove(chainId);
+            return new ApiResult();
         }
     }
 }

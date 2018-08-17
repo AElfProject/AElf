@@ -17,13 +17,6 @@ namespace AElf.Kernel.Modules.AutofacModule
                     builder.RegisterType<RedisDatabase>().As<IKeyValueDatabase>().SingleInstance();
                     break;
                 case DatabaseType.Ssdb:
-#if DEBUG
-                    if (!new SsdbDatabase().IsConnected())
-                    {
-                        builder.RegisterType<InMemoryDatabase>().As<IKeyValueDatabase>().SingleInstance();
-                        break;
-                    }
-#endif
                     builder.RegisterType<SsdbDatabase>().As<IKeyValueDatabase>().SingleInstance();
                     break;
             }
