@@ -22,7 +22,6 @@ namespace AElf.ChainController.Rpc
     {
         #region Properties
 
-        public INodeConfig NodeConfig { get; set; }
         public IChainService ChainService { get; set; }
         public IChainContextService ChainContextService { get; set; }
         public IChainCreationService ChainCreationService { get; set; }
@@ -69,7 +68,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var chainId = NodeConfig.ChainId;
+                var chainId = NodeConfig.Instance.ChainId;
                 var basicContractZero = this.GetGenesisContractHash(SmartContractType.BasicContractZero);
                 var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
                 var response = new JObject()
@@ -79,7 +78,7 @@ namespace AElf.ChainController.Rpc
                         {
                             [SmartContractType.BasicContractZero.ToString()] = basicContractZero.ToHex(),
                             [SmartContractType.TokenContract.ToString()] = tokenContract.ToHex(),
-                            ["chain_id"] = chainId.ToHex()
+                            ["chain_id"] = chainId
                         }
                 };
 

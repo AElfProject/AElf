@@ -76,6 +76,7 @@ namespace AElf.ChainController
                 
                 _logger?.Log(LogLevel.Debug, "Executing Transactions..");
                 List<TransactionTrace> traces = null;
+                var blockChain = _chainService.GetBlockChain(Config.ChainId);
                 if(Config.IsParallel)
                 {  
                     traces = readyTxs.Count == 0
@@ -91,7 +92,8 @@ namespace AElf.ChainController
                         {
                             var txnInitCtxt = new TransactionContext()
                             {
-                                Transaction = transaction
+                                Transaction = transaction,
+                                BlockHeight = await blockChain.GetCurrentBlockHeightAsync()
                             };
                             _worldStateDictator.PreBlockHash = await _chainService.GetBlockChain(Config.ChainId).GetCurrentBlockHashAsync();
                             await executive.SetTransactionContext(txnInitCtxt).Apply(true);
@@ -154,7 +156,6 @@ namespace AElf.ChainController
                 block.Header.S = ByteString.CopyFrom(signature.S);
 
                 // append block
-                var blockChain = _chainService.GetBlockChain(Config.ChainId);
                 await blockChain.AddBlocksAsync(new List<IBlock>(){ block });
   
                 return block;

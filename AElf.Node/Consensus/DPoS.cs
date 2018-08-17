@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Kernel.Types;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
@@ -26,7 +27,6 @@ namespace AElf.Kernel.Node
             get => Node.NodeKeyPair;
         }
 
-        private readonly INodeConfig _nodeConfig;
         private readonly IAccountContextService _accountContextService;
         private readonly ITxPoolService _txPoolService;
         private readonly IP2P _p2p;
@@ -44,19 +44,18 @@ namespace AElf.Kernel.Node
             MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        public DPoS(ILogger logger, MainChainNode node, INodeConfig nodeConfig,
+        public DPoS(ILogger logger, MainChainNode node,
             IWorldStateDictator worldStateDictator, IAccountContextService accountContextService,
             ITxPoolService txPoolService,
             IP2P p2p
         )
         {
             _logger = logger;
-            _nodeConfig = nodeConfig;
             _accountContextService = accountContextService;
             _p2p = p2p;
             _txPoolService = txPoolService;
             Node = node;
-            DPoSHelper = new AElfDPoSHelper(worldStateDictator, NodeKeyPair, nodeConfig.ChainId, BlockProducers,
+            DPoSHelper = new AElfDPoSHelper(worldStateDictator, NodeKeyPair, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), BlockProducers,
                 Node.ContractAccountHash, _logger);
         }
 
@@ -90,7 +89,7 @@ namespace AElf.Kernel.Node
                 return;
             }
 
-            if (_nodeConfig.ConsensusInfoGenerater && !await DPoSHelper.HasGenerated())
+            if (NodeConfig.Instance.ConsensusInfoGenerater && !await DPoSHelper.HasGenerated())
             {
                 AElfDPoSObserver.Initialization();
                 return;
@@ -137,7 +136,7 @@ namespace AElf.Kernel.Node
                               DPoSHelper.BlockProducer.Nodes.Contains(addr.ToHex().RemoveHexPrefix());
 
                 // ReSharper disable once InconsistentNaming
-                var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId))
+                var idInDB = (await _accountContextService.GetAccountDataContext(addr, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)))
                     .IncrementId;
                 _logger?.Log(LogLevel.Debug, $"Trying to get increment id, {isDPoS}");
                 var idInPool = _txPoolService.GetIncrementId(addr, isDPoS);

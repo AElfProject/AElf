@@ -235,7 +235,8 @@ namespace AElf.Execution
             {
                 PreviousBlockHash = chainContext.BlockHash,
                 Transaction = transaction,
-                Trace = trace
+                Trace = trace,
+                BlockHeight = chainContext.BlockHeight
             };
 
             IExecutive executive = null;
