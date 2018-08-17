@@ -31,8 +31,6 @@ namespace AElf.Miner.Miner
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
 
-        private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
-
         private MinerLock Lock { get; } = new MinerLock();
         private readonly ILogger _logger;
         

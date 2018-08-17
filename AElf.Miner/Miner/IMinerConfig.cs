@@ -16,5 +16,20 @@ namespace AElf.Miner.Miner
         
         
         Hash ChainId { get; set; }
+        
+        /// <summary>
+        /// merge mining flag
+        /// </summary>
+        bool IsMergeMining { get; set; }
+        
+        /// <summary>
+        /// parent miner address
+        /// </summary>
+        string ParentAdddress { get; set; }
+        
+        /// <summary>
+        /// parent miner port for rpc
+        /// </summary>
+        string ParentPort { get; set; }
     }
 }
