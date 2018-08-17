@@ -1,7 +1,6 @@
-﻿using AElf.Kernel.Types;
-using AElf.Kernel;
+﻿using AElf.Kernel;
 
-namespace AElf.ChainController
+namespace AElf.Miner.Miner
 {
     public interface IMinerConfig
     {

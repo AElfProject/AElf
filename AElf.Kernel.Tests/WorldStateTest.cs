@@ -5,11 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.SmartContract;
 using AElf.ChainController;
+using AElf.ChainController.TxMemPool;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Tests.BlockSyncTests;
-using AElf.Kernel.TxMemPool;
+using AsyncEventAggregator;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
@@ -56,6 +56,7 @@ namespace AElf.Kernel.Tests
             _chainManager = chainManager;
             _blockManger = blockManager;
             _canonicalHashStore = canonicalHashStore;
+            this.Subscribe<IBlock>(async (t) => { await Task.CompletedTask;});
         }
 
         [Fact]

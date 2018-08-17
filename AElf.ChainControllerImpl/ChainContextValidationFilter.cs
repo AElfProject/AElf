@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Managers;
-using NLog;
-using ServiceStack;
 using AElf.Kernel;
+using NLog;
 
-namespace AElf.ChainController
+namespace AElf.ChainControllerImpl
 {
     [LoggerName(nameof(ChainContextValidationFilter))]
     public class ChainContextValidationFilter : IBlockValidationFilter

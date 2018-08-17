@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
-using AElf.Kernel.Managers;
+using AElf.ChainController;
 using AElf.Kernel;
 
-namespace AElf.ChainController
+namespace AElf.ChainControllerImpl
 {
     public class ChainContextService : IChainContextService
     {

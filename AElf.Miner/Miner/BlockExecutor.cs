@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.Managers;
-using Google.Protobuf;
-using NLog;
-using AElf.Kernel;
-using AElf.Execution;
+using AElf.ChainController;
 using AElf.ChainController.Execution;
-using AElf.SmartContract;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution;
+using AElf.Kernel;
+using AElf.Kernel.Managers;
+using AElf.SmartContract;
+using Google.Protobuf;
+using NLog;
+using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
 
-namespace AElf.ChainController
+namespace AElf.Miner.Miner
 {
     [LoggerName(nameof(BlockExecutor))]
     public class BlockExecutor : IBlockExecutor

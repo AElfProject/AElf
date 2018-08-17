@@ -1,6 +1,7 @@
 ﻿
 using Autofac;
 using AElf.ChainController;
+using AElf.ChainControllerImpl;
 using AElf.SmartContract;
 using AElf.SmartContract.Metadata;
 using AElf.Execution;

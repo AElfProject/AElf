@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
-using AElf.Network.Config;
+using AElf.Configuration.Config.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
@@ -28,9 +28,7 @@ namespace AElf.Network.Peers
     public class PeerManager : IPeerManager
     {
         public event EventHandler PeerAdded;
-        
-        private readonly IAElfNetworkConfig _networkConfig;
-        
+                
         public const int TargetPeerCount = 8;
         
         private readonly ILogger _logger;
@@ -47,47 +45,44 @@ namespace AElf.Network.Peers
         
         private BlockingCollection<PeerManagerJob> _jobQueue;
 
-        public PeerManager(IAElfNetworkConfig config, IConnectionListener connectionListener, ILogger logger)
+        public PeerManager(IConnectionListener connectionListener, ILogger logger)
         {
             _jobQueue = new BlockingCollection<PeerManagerJob>();
             _connectionListener = connectionListener;
             _logger = logger;
-            _networkConfig = config;
         }
-        
+
         public void Start()
         {
-            Task.Run(() => _connectionListener.StartListening(_networkConfig.ListeningPort));
-            
+            Task.Run(() => _connectionListener.StartListening(NetworkConfig.Instance.ListeningPort));
+
             _connectionListener.IncomingConnection += OnIncomingConnection;
             _connectionListener.ListeningStopped += OnListeningStopped;
-            
+
             _maintenanceTimer = new System.Threading.Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
-            
-            if (_networkConfig != null)
+
+            // Add the provided bootnodes
+            if (NetworkConfig.Instance.Bootnodes != null && NetworkConfig.Instance.Bootnodes.Any())
             {
-                // Add the provided bootnodes
-                if (_networkConfig.Bootnodes != null && _networkConfig.Bootnodes.Any())
+                // todo add jobs
+                foreach (var btn in NetworkConfig.Instance.Bootnodes)
                 {
-                    // todo add jobs
-                    foreach (var btn in _networkConfig.Bootnodes)
-                    {
-                        var dialJob = new PeerManagerJob { Type = PeerManagerJobType.DialNode, Node = btn };
-                        _jobQueue.Add(dialJob);
-                    }
+                    NodeData nd = NodeData.FromString(btn);
+                    var dialJob = new PeerManagerJob {Type = PeerManagerJobType.DialNode, Node = nd};
+                    _jobQueue.Add(dialJob);
                 }
-                else
-                {
-                    _logger?.Trace("Warning : bootnode list is empty.");
-                }
-            
-                // todo consider removing the Peers option
-                // todo exceptions
             }
+            else
+            {
+                _logger?.Trace("Warning : bootnode list is empty.");
+            }
+
+            // todo consider removing the Peers option
+            // todo exceptions
 
             Task.Run(() => StartProcessing()).ConfigureAwait(false);
         }
-        
+
         private void StartProcessing()
         {
             while (true)
@@ -182,7 +177,7 @@ namespace AElf.Network.Peers
             MessageReader reader = new MessageReader(nsStream);
             MessageWriter writer = new MessageWriter(nsStream);
             
-            IPeer peer = new Peer(client, reader, writer, _networkConfig.ListeningPort);
+            IPeer peer = new Peer(client, reader, writer, NetworkConfig.Instance.ListeningPort);
             
             return peer;
         }

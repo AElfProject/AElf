@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AElf.ChainController;
+using AElf.ChainController.TxMemPool;
 using AElf.Common.Application;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
+using AElf.Configuration.Config.Network;
 using AElf.Kernel;
 using AElf.Kernel.Node;
 using AElf.Kernel.Types;
-using AElf.Network.Config;
-using AElf.Network.Data;
+using AElf.Miner.Miner;
 using AElf.Runtime.CSharp;
 using CommandLine;
 using Google.Protobuf;
@@ -21,10 +22,8 @@ namespace AElf.Launcher
 {
     public class ConfigParser
     {
-        public IAElfNetworkConfig NetConfig { get; private set; }
         public ITxPoolConfig TxPoolConfig { get; private set; }
         public IMinerConfig MinerConfig { get; private set; }
-        public INodeConfig NodeConfig { get; private set; }
         public IRunnerConfig RunnerConfig { get; private set; }
 
         public bool Rpc { get; private set; }
@@ -74,39 +73,26 @@ namespace AElf.Launcher
             InitData = opts.InitData;
 
             // Network
-            var netConfig = new AElfNetworkConfig();
             if (opts.Bootnodes != null && opts.Bootnodes.Any())
             {
-                netConfig.Bootnodes = new List<NodeData>();
-                foreach (var strNodeData in opts.Bootnodes)
-                {
-                    var nd = NodeData.FromString(strNodeData);
-                    if (nd == null) continue;
-                    //nd.IsBootnode = true;
-                    netConfig.Bootnodes.Add(nd);
-                }
+                NetworkConfig.Instance.Bootnodes = opts.Bootnodes.ToList();
             }
             else
             {
-                netConfig.Bootnodes = new List<NodeData>();
+                NetworkConfig.Instance.Bootnodes = new List<string>();
             }
 
             if (opts.PeersDbPath != null)
-                netConfig.PeersDbPath = opts.PeersDbPath;
+                NetworkConfig.Instance.PeersDbPath = opts.PeersDbPath;
 
             if (opts.Peers != null)
-                netConfig.Peers = opts.Peers.ToList();
+                NetworkConfig.Instance.Peers = opts.Peers.ToList();
 
             if (opts.Port.HasValue)
-                netConfig.ListeningPort = opts.Port.Value;
-
-            NetConfig = netConfig;
+                NetworkConfig.Instance.ListeningPort = opts.Port.Value;
 
             // Database
-            if (!string.IsNullOrWhiteSpace(opts.DBType) || DatabaseConfig.Instance.Type == DatabaseType.InMemory)
-            {
-                DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
-            }
+            DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
 
             if (!string.IsNullOrWhiteSpace(opts.DBHost))
             {
@@ -175,18 +161,14 @@ namespace AElf.Launcher
             };
 
             // tx pool config
-            TxPoolConfig = ChainController.TxPoolConfig.Default;
+            TxPoolConfig = ChainControllerImpl.TxMemPool.TxPoolConfig.Default;
             TxPoolConfig.FeeThreshold = opts.MinimalFee;
             TxPoolConfig.PoolLimitSize = opts.PoolCapacity;
             TxPoolConfig.Maximal = opts.TxCountLimit;
 
             // node config
-            NodeConfig = new NodeConfig
-            {
-                IsMiner = IsMiner,
-                FullNode = true,
-                Coinbase = Coinbase?.Value.ToByteArray()
-            };
+            NodeConfig.Instance.IsMiner = IsMiner;
+            NodeConfig.Instance.FullNode = true;
 
             // Actor
             if (opts.ActorIsCluster.HasValue)
@@ -210,10 +192,14 @@ namespace AElf.Launcher
                 ActorConfig.Instance.Benchmark = opts.Benchmark.Value;
             }
 
-            NodeConfig.DataDir = string.IsNullOrEmpty(opts.DataDir)
+            NodeConfig.Instance.DataDir = string.IsNullOrEmpty(opts.DataDir)
                 ? ApplicationHelpers.GetDefaultDataDir()
                 : opts.DataDir;
 
+            // management config
+            ManagementConfig.Instance.Url = opts.ManagementUrl;
+            ManagementConfig.Instance.SideChainServicePath = opts.ManagementSideChainServicePath;
+            
             // runner config
             RunnerConfig = new RunnerConfig
             {

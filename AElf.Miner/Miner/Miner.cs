@@ -1,21 +1,23 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController;
+using AElf.ChainController.Execution;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Managers;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
-using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Kernel;
-using AElf.ChainController.Execution;
- using NLog;
+using AElf.Kernel.Managers;
+using AElf.SmartContract;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using NLog;
+using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
+using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
-namespace AElf.ChainController
+namespace AElf.Miner.Miner
 {
     [LoggerName("Miner")]
     public class Miner : IMiner

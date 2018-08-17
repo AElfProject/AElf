@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.ChainController.Execution;
+using AElf.Kernel;
 
-namespace AElf.ChainController
+namespace AElf.Miner.Miner
 {
     public interface IBlockExecutor
     {

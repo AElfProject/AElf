@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Kernel.Managers;
+using AsyncEventAggregator;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
@@ -24,6 +25,7 @@ namespace AElf.Kernel.Tests
             _chainTest = chainTest;
             _chainCreationService = chainCreationService;
             _chainService = chainService;
+            this.Subscribe<IBlock>(async (t) => { await Task.CompletedTask;});
         }
 
         public byte[] SmartContractZeroCode

@@ -1,5 +1,6 @@
 ﻿using AElf.SmartContract;
 using AElf.ChainController;
+using AElf.ChainControllerImpl.TxMemPool;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
 using Autofac;

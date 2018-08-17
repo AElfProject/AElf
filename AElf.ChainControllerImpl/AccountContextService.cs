@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading.Tasks; 
-using AElf.Kernel.Managers;
-using AElf.Kernel.Types;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
+﻿using System.Collections.Concurrent;
+using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Kernel;
 using AElf.SmartContract;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.ChainController
+namespace AElf.ChainControllerImpl
 {
     public class AccountContextService : IAccountContextService
     {

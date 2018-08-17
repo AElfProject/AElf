@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.TxMemPool;
+using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Kernel.Managers;
 
@@ -8,13 +10,12 @@ namespace AElf.Kernel.Node
     public class P2PHandler
     {
         public IChainService ChainService { get; set; }
-        public INodeConfig NodeConfig { get; set; }
         public ITxPoolService TxPoolService { get; set; }
         public ITransactionManager TransactionManager { get; set; }
 
         public async Task<Block> GetBlockAtHeight(int height)
         {
-            var blockchain = ChainService.GetBlockChain(NodeConfig.ChainId);
+            var blockchain = ChainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
             return (Block) await blockchain.GetBlockByHeightAsync((ulong) height);
         }
 

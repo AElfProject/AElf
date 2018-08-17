@@ -80,19 +80,32 @@ namespace AElf.Management.Commands
                                     Ports = new List<V1ContainerPort>
                                     {
                                         new V1ContainerPort(NodePort),
-                                        new V1ContainerPort(RpcPort)
+                                        new V1ContainerPort(RpcPort),
+                                        new V1ContainerPort(ActorPort)
+                                    },
+                                    Env = new List<V1EnvVar>
+                                    {
+                                        new V1EnvVar
+                                        {
+                                            Name = "POD_IP",
+                                            ValueFrom = new V1EnvVarSource {FieldRef = new V1ObjectFieldSelector {FieldPath = "status.podIP"}}
+                                        }
                                     },
                                     Command = new List<string> {"dotnet", "AElf.Launcher.dll"},
                                     Args = new List<string>
                                     {
                                         "--mine.enable",
                                         "true",
+                                        "--rpc.host",
+                                        "0.0.0.0",
                                         "--rpc.port",
                                         RpcPort.ToString(),
                                         "--node.account",
                                         arg.MainChainAccount,
                                         "--node.port",
                                         NodePort.ToString(),
+                                        "--actor.host",
+                                        "$(POD_IP)",
                                         "--actor.port",
                                         ActorPort.ToString(),
                                         "--node.accountpassword",

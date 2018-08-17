@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices.ComTypes;
 using AElf.Management.Models;
 using Xunit;
 
@@ -6,6 +7,8 @@ namespace AElf.Management.Tests
 {
     public class SideChainServiceTests
     {
+        private string _chainId = "ed7d50f2a4b94d9b9e7ec6ec6935e14e";//Guid.NewGuid().ToString("N");
+        
         [Fact(Skip = "require aws account")]
         //[Fact]
         public void DeployTest()
@@ -15,13 +18,19 @@ namespace AElf.Management.Tests
             arg.AccountPassword = "123";
             arg.DBArg = new DeployDBArg();
             arg.WorkArg = new DeployWorkArg();
-
-            var chainId = "ed7d50f2a4b94d9b9e7ec6ec6935e14e";//Guid.NewGuid().ToString("N");
+            arg.WorkArg.ActorCount = 1;
 
             var service = new SideChainService();
-            service.Deploy(chainId, arg);
+            service.Deploy(_chainId, arg);
+        }
+        
+        [Fact(Skip = "require aws account")]
+        //[Fact]
+        public void RemoveTest()
+        {
+            var service = new SideChainService();
 
-            service.Remove(chainId);
+            service.Remove(_chainId);
         }
     }
 }

@@ -9,6 +9,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj" />
+    <ProjectReference Include="..\AElf.Miner\AElf.Miner.csproj" />
     <ProjectReference Include="..\AElf.Node\AElf.Node.csproj" />
   </ItemGroup>
   <ItemGroup>

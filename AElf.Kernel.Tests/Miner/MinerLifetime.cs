@@ -7,12 +7,14 @@ using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
+using AElf.ChainController.TxMemPool;
+using AElf.ChainControllerImpl.TxMemPool;
 using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
-using AElf.Kernel.TxMemPool;
+using AElf.Miner.Miner;
 using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
@@ -86,6 +88,7 @@ namespace AElf.Kernel.Tests.Miner
             _worldStateDictator = worldStateDictator;
             _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
             this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
+            this.Subscribe<IBlock>(async (t) => { await Task.CompletedTask;});
             Initialize();
         }
 
@@ -249,7 +252,7 @@ namespace AElf.Kernel.Tests.Miner
         
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {            
-            var miner = new ChainController.Miner(config, poolService, _chainService, _worldStateDictator,
+            var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _worldStateDictator,
                 _smartContractService, _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger);
 
             return miner;
