@@ -11,7 +11,7 @@ using AElf.Common.Attributes;
 using AElf.Common.Synchronisation;
 using AElf.Kernel;
 using AElf.SmartContract;
-using AsyncEventAggregator;
+using Easy.MessageHub;
 using NLog;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
@@ -58,7 +58,7 @@ namespace AElf.ChainControllerImpl.TxMemPool
             var res = await AddTransaction(tx);
             if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
             {
-                await this.Publish(new TransactionAddedToPool(tx).AsTask());
+                MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
             }
 
             return res;

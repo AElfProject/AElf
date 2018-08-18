@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
-using AsyncEventAggregator;
 
 namespace AElf.Kernel
 {

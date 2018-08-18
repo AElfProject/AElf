@@ -8,7 +8,6 @@ using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.ChainControllerImpl.TxMemPool;
 using AElf.SmartContract;
-using AsyncEventAggregator;
 using Google.Protobuf;
 using NLog;
 using Xunit;
@@ -29,7 +28,6 @@ namespace AElf.Kernel.Tests.TxMemPool
             _logger = logger;
             _worldStateDictator = worldStateDictator;
             _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
-            this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
         }
 
         private ContractTxPool GetContractTxPool(ITxPoolConfig config)

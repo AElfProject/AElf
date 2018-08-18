@@ -11,7 +11,7 @@ using AElf.Kernel.Managers;
 using AElf.RPC;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
-using AsyncEventAggregator;
+using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
@@ -187,7 +187,7 @@ namespace AElf.ChainController.Rpc
             var transaction = Transaction.Parser.ParseFrom(hexString);
 
             // TODO: Wrap Transaction into a message
-            await this.Publish(new IncomingTransaction(transaction).AsTask());
+            MessageHub.Instance.Publish(new IncomingTransaction(transaction));
 
             var res = new JObject {["hash"] = transaction.GetHash().ToHex()};
             return await Task.FromResult(res);

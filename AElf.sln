@@ -115,8 +115,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.SideChain", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Miner", "AElf.Miner\AElf.Miner.csproj", "{E6CC3DBC-471B-4B17-A540-6AEEE0FBABBD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Miner.Rpc", "AElf.Miner.Rpc\AElf.Miner.Rpc.csproj", "{2E9B78E2-EB9F-420B-A413-580164B00911}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -343,10 +341,6 @@ Global
 		{E6CC3DBC-471B-4B17-A540-6AEEE0FBABBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E6CC3DBC-471B-4B17-A540-6AEEE0FBABBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E6CC3DBC-471B-4B17-A540-6AEEE0FBABBD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2E9B78E2-EB9F-420B-A413-580164B00911}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2E9B78E2-EB9F-420B-A413-580164B00911}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2E9B78E2-EB9F-420B-A413-580164B00911}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2E9B78E2-EB9F-420B-A413-580164B00911}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -357,6 +351,5 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{2AE2D692-6450-4339-B725-F6DF76CDF437} = {6037B755-5BBF-4515-81AB-B63C52A4D067}
 		{AE13A559-B20D-4680-971A-17BAD5C2AFE6} = {6037B755-5BBF-4515-81AB-B63C52A4D067}
-		{2E9B78E2-EB9F-420B-A413-580164B00911} = {6037B755-5BBF-4515-81AB-B63C52A4D067}
 	EndGlobalSection
 EndGlobal
