@@ -14,9 +14,9 @@ message RequestIndexedInfo{
 }
 
 message HeaderInfo{
-    Hash BlockHeaderHash = 1;
-    Hash TransactionHash = 2;
-    Hash WorldStateHash = 3;
+    Hash BlockHeaderMKRoot = 1;
+    Hash TransactionMKRoot = 2;
+    Hash WorldStateMKRoot = 3;
 }
 
 service RouteGuide {
