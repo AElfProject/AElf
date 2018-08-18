@@ -12,11 +12,6 @@ namespace AElf.Configuration.Tests
     {
         private readonly List<string> _fileNames = new List<string>();
 
-        public ConfigBaseTest()
-        {
-            ConfigManager.ConfigFilePaths.Insert(0, "aelfconfig/");
-        }
-
         [Fact]
         public void FromFileTest()
         {
