@@ -19,8 +19,8 @@ using AElf.Network;
 using AElf.Runtime.CSharp;
 using AElf.SideChain.Creation;
 using AElf.SmartContract;
-using AsyncEventAggregator;
 using Autofac;
+using Easy.MessageHub;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ServiceStack;
@@ -117,9 +117,9 @@ namespace AElf.Launcher
                 concurrencySercice.InitActorSystem();
 
                 var evListener = scope.Resolve<ChainCreationEventListener>();
-                evListener.Subscribe<IBlock>(async (t) =>
+                MessageHub.Instance.Subscribe<IBlock>(async (t) =>
                 {
-                    await evListener.OnBlockAppended(t.Result);
+                    await evListener.OnBlockAppended(t);
                 });
                 
                 var node = scope.Resolve<IAElfNode>();
@@ -127,15 +127,15 @@ namespace AElf.Launcher
                 node.Start(nodeKey, TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero);
 
                 var txPoolService = scope.Resolve<ITxPoolService>();
-                node.Subscribe<IncomingTransaction>(
-                    async (inTx) => { await txPoolService.AddTxAsync((await inTx).Transaction); });
+                MessageHub.Instance.Subscribe<IncomingTransaction>(
+                    async (inTx) => { await txPoolService.AddTxAsync(inTx.Transaction); });
 
                 var netManager = scope.Resolve<INetworkManager>();
-                netManager.Subscribe<TransactionAddedToPool>(
+                MessageHub.Instance.Subscribe<TransactionAddedToPool>(
                     async (txAdded) =>
                     {
                         await netManager.BroadcastMessage(AElfProtocolType.BroadcastTx,
-                            (await txAdded).Transaction.Serialize());
+                            txAdded.Transaction.Serialize());
                     }
                 );
 

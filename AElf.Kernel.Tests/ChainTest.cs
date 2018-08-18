@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
-using AsyncEventAggregator;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using Google.Protobuf;
@@ -34,7 +33,6 @@ namespace AElf.Kernel.Tests
             _worldStateStore = worldStateStore;
             _changesStore = changesStore;
             _dataStore = dataStore;
-            this.Subscribe<IBlock>(async (t) => { await Task.CompletedTask;});
         }
 
         public byte[] SmartContractZeroCode

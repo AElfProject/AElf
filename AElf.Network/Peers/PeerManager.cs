@@ -9,7 +9,10 @@ using AElf.Common.Attributes;
 using AElf.Configuration.Config.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
+using AElf.RPC;
+using Community.AspNetCore.JsonRpc;
 using Google.Protobuf;
+using Newtonsoft.Json.Linq;
 using NLog;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
@@ -83,6 +86,22 @@ namespace AElf.Network.Peers
             Task.Run(() => StartProcessing()).ConfigureAwait(false);
         }
 
+        public async Task<JObject> GetPeers()
+        {
+            List<NodeData> pl = _peers.Select(p => p.DistantNodeData).ToList();
+            
+            PeerListData pldata = new PeerListData();
+            foreach (var peer in pl)
+            {
+                pldata.NodeData.Add(peer);
+            }
+
+             JObject peers = JObject.Parse(JsonFormatter.Default.Format(pldata));
+            peers["auth"] = _authentifyingPeer.Count;
+            
+            return peers;
+        }
+        
         private void StartProcessing()
         {
             while (true)
@@ -144,18 +163,24 @@ namespace AElf.Network.Peers
         public void AddPeer(NodeData nodeData)
         {
             if (nodeData == null)
+            {
+                _logger?.Trace("Data is null, cannot add peer.");
                 return; // todo exception
+            }
             
             NodeDialer dialer = new NodeDialer(nodeData.IpAddress, nodeData.Port);
             TcpClient client = dialer.DialAsync().GetAwaiter().GetResult(); // todo async 
 
+            if (client == null)
+            {
+                _logger?.Trace($"Could not connect to {nodeData.IpAddress}:{nodeData.Port}, operation timed out.");
+                return;
+            }
+            
             IPeer peer = CreatePeerFromConnection(client);
             peer.PeerDisconnected += ProcessClientDisconnection;
             
             StartAuthentification(peer);
-            
-            // todo hookup disconnection
-            // todo start auth
         }
 
         /// <summary>
@@ -386,22 +411,6 @@ namespace AElf.Network.Peers
             {
                 _logger?.Error(e, "Invalid peer(s) - Could not receive peer(s) from the network", null);
             }
-        }
-        
-        /// <summary>
-        /// Removes a peer from the list of peers.
-        /// </summary>
-        /// <param name="peer">the peer to remove</param>
-        public void RemovePeer(IPeer peer)
-        {
-            if (peer == null)
-                return;
-            
-            _peers.Remove(peer);
-            
-            _logger?.Trace("Peer removed : " + peer);
-            
-            //PeerRemoved?.Invoke(this, new PeerRemovedEventArgs { Peer = peer });
         }
 
         #endregion

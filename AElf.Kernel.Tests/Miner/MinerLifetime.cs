@@ -24,7 +24,7 @@ using ServiceStack;
 using AElf.Runtime.CSharp;
 using NLog;
 using AElf.Types.CSharp;
-using AsyncEventAggregator;
+using Easy.MessageHub;
 
 namespace AElf.Kernel.Tests.Miner
 {
@@ -85,8 +85,6 @@ namespace AElf.Kernel.Tests.Miner
 
             _worldStateDictator = worldStateDictator;
             _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
-            this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
-            this.Subscribe<IBlock>(async (t) => { await Task.CompletedTask;});
             Initialize();
         }
 
