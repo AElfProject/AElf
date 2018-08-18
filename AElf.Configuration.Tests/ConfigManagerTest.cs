@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using Xunit;
 
@@ -16,12 +17,47 @@ namespace AElf.Configuration.Tests
         }
 
         [Fact]
-        public void TempTest()
+        public void FileChangeTest()
         {
-            while (true)
+            var fileName = "test.json";
+            CheckAndCreateFile(fileName);
+
+            Assert.Equal(TestConfig.Instance.StringValue, "str-a");
+
+            ChangeFile(fileName);
+            Thread.Sleep(10000);
+            
+            Assert.Equal(TestConfig.Instance.StringValue, "str-b");
+            
+            DeleteFile(fileName);
+        }
+        
+        private void CheckAndCreateFile(string fileName)
+        {
+            var filePath = Path.Combine(ConfigManager.ConfigFilePaths[0],fileName);
+            if (!Directory.Exists(ConfigManager.ConfigFilePaths[0]))
             {
-                Console.WriteLine(TestConfig.Instance.Host);
-                Thread.Sleep(1000);
+                Directory.CreateDirectory(ConfigManager.ConfigFilePaths[0]);
+            }
+            if (File.Exists(filePath))
+            {
+                DeleteFile(fileName);
+            }
+            File.AppendAllText(filePath, "{\"StringValue\":\"str-a\"}");
+        }
+
+        private void ChangeFile(string fileName)
+        {
+            var filePath = Path.Combine(ConfigManager.ConfigFilePaths[0],fileName);
+            File.WriteAllText(filePath, "{\"StringValue\":\"str-b\"}");
+        }
+        
+        private void DeleteFile(string fileName)
+        {
+            var filePath = Path.Combine(ConfigManager.ConfigFilePaths[0],fileName);
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
             }
         }
     }
@@ -36,10 +72,6 @@ namespace AElf.Configuration.Tests
     [ConfigFile(FileName = "test.json")]
     public class TestConfig : ConfigBase<TestConfig>
     {
-        public DatabaseType Type { get; set; }
-        
-        public string Host { get; set; }
-        
-        public int Port { get; set; }
+        public string StringValue { get; set; }
     }
 }

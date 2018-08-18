@@ -16,7 +16,7 @@ namespace AElf.Configuration
     {
         private static readonly ILogger _logger;
         
-        public static readonly List<string> ConfigFilePaths = new List<string>
+        public static List<string> ConfigFilePaths = new List<string>
         {
             Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "config"),
             Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "config")
