@@ -7,6 +7,6 @@ namespace AElf.ChainController
     public interface IBlockExecutor
     {
         Task<bool> ExecuteBlock(IBlock block);
-        void Start(IGrouper grouper);
+        void Start();
     }
 }

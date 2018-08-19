@@ -25,7 +25,7 @@ namespace AElf.ChainController
         private readonly IChainService _chainService;
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly ISmartContractService _smartContractService;
-        private readonly IConcurrencyExecutingService _concurrencyExecutingService;
+        private readonly IExecutingService _executingService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
 
@@ -38,8 +38,6 @@ namespace AElf.ChainController
         /// Signals to a CancellationToken that mining should be canceled
         /// </summary>
         public CancellationTokenSource Cts { get; private set; }
-
-        private IGrouper _grouper;
         
         public IMinerConfig Config { get; }
 
@@ -47,7 +45,7 @@ namespace AElf.ChainController
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
             IWorldStateDictator worldStateDictator,  ISmartContractService smartContractService, 
-            IConcurrencyExecutingService concurrencyExecutingService, ITransactionManager transactionManager, 
+            IExecutingService executingService, ITransactionManager transactionManager, 
             ITransactionResultManager transactionResultManager, ILogger logger)
         {
             Config = config;
@@ -55,7 +53,7 @@ namespace AElf.ChainController
             _chainService = chainService;
             _worldStateDictator = worldStateDictator;
             _smartContractService = smartContractService;
-            _concurrencyExecutingService = concurrencyExecutingService;
+            _executingService = executingService;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _logger = logger;
@@ -75,36 +73,11 @@ namespace AElf.ChainController
                 // reset Promotable and update account context
                 
                 _logger?.Log(LogLevel.Debug, "Executing Transactions..");
-                List<TransactionTrace> traces = null;
-                var blockChain = _chainService.GetBlockChain(Config.ChainId);
-                if(Config.IsParallel)
-                {  
-                    traces = readyTxs.Count == 0
-                    ? new List<TransactionTrace>()
-                    : await _concurrencyExecutingService.ExecuteAsync(readyTxs, Config.ChainId, _grouper);
-                }
-                else
-                {
-                    foreach (var transaction in readyTxs)
-                    {
-                        var executive = await _smartContractService.GetExecutiveAsync(transaction.To, Config.ChainId);
-                        try
-                        {
-                            var txnInitCtxt = new TransactionContext()
-                            {
-                                Transaction = transaction,
-                                BlockHeight = await blockChain.GetCurrentBlockHeightAsync()
-                            };
-                            _worldStateDictator.PreBlockHash = await _chainService.GetBlockChain(Config.ChainId).GetCurrentBlockHashAsync();
-                            await executive.SetTransactionContext(txnInitCtxt).Apply(true);
-                        }
-                        finally
-                        {
-                            await _smartContractService.PutExecutiveAsync(transaction.To, executive);    
-                        }
 
-                    }
-                }
+                var blockChain = _chainService.GetBlockChain(Config.ChainId);
+                var traces = readyTxs.Count == 0
+                    ? new List<TransactionTrace>()
+                    : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, Cts.Token);
                 _logger?.Log(LogLevel.Debug, "End Executing Transactions..");
                 var results = new List<TransactionResult>();
                 foreach (var trace in traces)
@@ -280,11 +253,10 @@ namespace AElf.ChainController
         /// <summary>
         /// start mining  
         /// </summary>
-        public void Start(ECKeyPair nodeKeyPair, IGrouper grouper)
+        public void Start(ECKeyPair nodeKeyPair)
         {
             Cts = new CancellationTokenSource();
             _keyPair = nodeKeyPair;
-            _grouper = grouper;
             //MiningResetEvent = new AutoResetEvent(false);
         }
 

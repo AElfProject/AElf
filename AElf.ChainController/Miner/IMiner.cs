@@ -8,7 +8,7 @@ namespace AElf.ChainController
 {
     public interface IMiner
     {
-        void Start(ECKeyPair nodeKeyPair, IGrouper grouper );
+        void Start(ECKeyPair nodeKeyPair);
         void Stop();
 
         Hash Coinbase { get; }
