@@ -79,7 +79,7 @@ namespace AElf.Concurrency.Worker
 
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
             builder.RegisterType<ServicePack>().PropertiesAutowired();
-            builder.RegisterType<ActorEnvironment>();
+            builder.RegisterType<ActorEnvironment>().SingleInstance();
             IContainer container;
             try
             {

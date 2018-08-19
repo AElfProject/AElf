@@ -244,6 +244,7 @@ namespace AElf.Launcher
             {
                 builder.RegisterType<Grouper>().As<IGrouper>();
                 builder.RegisterType<ServicePack>().PropertiesAutowired();
+                builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
                 builder.RegisterType<ParallelTransactionExecutingService>().As<IExecutingService>();
             }
             else
