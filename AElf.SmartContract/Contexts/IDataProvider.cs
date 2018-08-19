@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel;
 
 // ReSharper disable once CheckNamespace
@@ -30,5 +31,28 @@ namespace AElf.SmartContract
         /// <param name="keyHash"></param>
         /// <returns></returns>
         Task<byte[]> GetAsync(Hash keyHash);
+
+        /// <summary>
+        /// DataProvider hash + Key hash
+        /// </summary>
+        /// <param name="keyHash"></param>
+        /// <returns></returns>
+        Hash GetPathFor(Hash keyHash);
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<StateValueChange> GetValueChanges();
+        
+        /// <summary>
+        /// Injected from outside for entry data provider of the executive (in worker actor)
+        /// </summary>
+        Dictionary<Hash, StateCache> StateCache { get; set; }
+        
+        /// <summary>
+        /// Clear cache of this instance and sub DataProviders instance.
+        /// </summary>
+        void ClearCache();
     }
 }

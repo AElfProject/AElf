@@ -10,7 +10,7 @@
             _currentValue = initialValue;
         }
 
-        public bool Dirty { get; private set; } = false;
+        public bool Dirty { get; private set; }
 
         public byte[] InitialValue { get; }
 

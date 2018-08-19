@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Managers
@@ -14,28 +15,22 @@ namespace AElf.Kernel.Managers
 
         public async Task<Hash> GetHash(Hash hash)
         {
-            var key = GetKey(hash);
-            return await _dataStore.GetAsync<Hash>(key);
+            if (hash.HashType == HashType.General)
+            {
+                throw new InvalidOperationException("Please use other managers to get data via general hash.");
+            }
+
+            return await _dataStore.GetAsync(hash);
         }
 
         public async Task SetHash(Hash hash, Hash another)
         {
-            var key = GetKey(hash);
-            await _dataStore.InsertAsync(key, another);
-        }
-
-        private Hash GetKey(Hash hash)
-        {
-            var key = hash;
-            var type = hash.HashType;
-            switch (type)
+            if (hash.HashType == HashType.General)
             {
-                case HashType.ResourcePath:
-                    key = hash.CalculateHashWith(type.ToString());
-                    break;
+                throw new InvalidOperationException("Please use other managers to set data via general hash.");
             }
-
-            return key;
+            
+            await _dataStore.InsertAsync(hash, another);
         }
     }
 }

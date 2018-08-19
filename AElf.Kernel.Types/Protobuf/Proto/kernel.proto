@@ -6,8 +6,7 @@ import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 import "hash.proto";
 
-message Transaction
-{
+message Transaction {
     Hash From = 1;
     Hash To = 2;
     uint64 IncrementId = 3;
@@ -20,22 +19,19 @@ message Transaction
     TransactionType type = 10;
 }
 
-enum TransactionType
-{
+enum TransactionType {
     DposTransaction = 0;
     ContractTransaction = 1;
 }
 
-enum Status
-{
+enum Status {
     NotExisted = 0;
     Pending = 1;
     Failed = 2;
     Mined = 3;
 }
 
-message TransactionResult
-{
+message TransactionResult {
     Hash TransactionId = 1;
     Status status = 2;
     repeated LogEvent Logs = 3;
@@ -43,28 +39,23 @@ message TransactionResult
     bytes RetVal = 5;
 }
 
-message StateValueChange
-{
-    Hash Path = 1;
-    bytes BeforeValue = 2;
-    bytes AfterValue = 3;
+message StateValueChange {
+    DataPath Path = 1;
+    bytes CurrentValue = 2;
 }
 
-message EventField
-{
+message EventField {
     string Name = 1;
     google.protobuf.Any Value = 2;
 }
 
-message LogEvent
-{
+message LogEvent {
     Hash Address = 1;
     repeated bytes Topics = 2;
     bytes Data = 3;
 }
 
-message RetVal
-{
+message RetVal {
     RetType Type = 1;
     bytes Data = 2;
     enum RetType {
@@ -81,8 +72,7 @@ message RetVal
     }
 }
 
-message BlockHeader
-{
+message BlockHeader {
     int32 Version = 1;
     Hash PreviousBlockHash = 2;
     Hash MerkleTreeRootOfTransactions = 3;
@@ -96,43 +86,37 @@ message BlockHeader
     Hash ChainId = 11;
 }
 
-message BlockBody
-{
+message BlockBody {
     Hash BlockHeader = 1;
     repeated Hash Transactions = 2;
 }
 
-message Block
-{
+message Block {
     BlockHeader Header = 1;
     BlockBody Body = 2;
     repeated Transaction fullTransactions = 3;
 }
 
-message SmartContractRegistration
-{
+message SmartContractRegistration {
     int32 Category = 1;
     Hash ContractHash = 2;
     bytes ContractBytes = 3;
     int32 Type = 4;
 }
 
-message SmartContractDeployment
-{
+message SmartContractDeployment {
     Hash ContractHash = 1;
     Hash Caller = 2;
     bytes ConstructParams = 3;
     uint64 IncrementId = 4;
 }
 
-message Parameters
-{
+message Parameters {
     repeated Param Params = 1;
 }
 
-message Param
-{
-    oneof data{
+message Param {
+    oneof data {
         int32 intVal = 1;
         uint32 uintVal = 2;
         int64 longVal = 3;
@@ -147,39 +131,33 @@ message Param
     }
 }
 
-message SmartContractInvokeContext
-{
+message SmartContractInvokeContext {
     Hash Caller = 1;
     uint64 IncrementId = 2;
     string MethodName = 3;
     bytes Params = 4;
 }
 
-message DataItem
-{
+message DataItem {
     Hash ResourcePath = 1;
     Hash ResourcePointer = 2;
     Hash StateMerkleTreeLeaf = 3;
 }
 
-message WorldState
-{
+message WorldState {
     repeated DataItem Data = 1;
 }
 
-message Chain
-{
+message Chain {
     Hash Id = 1;
     Hash GenesisBlockHash = 2;
 }
 
-message Miners
-{
+message Miners {
     repeated string Nodes = 1;
 }
 
-message BlockProducer
-{
+message BlockProducer {
     int32 Order = 1;
     bool IsEBP = 2; //EBP = Extra Block Producer
     Hash InValue = 3;
@@ -188,33 +166,38 @@ message BlockProducer
     google.protobuf.Timestamp TimeSlot = 6;
 }
 
-message Round
-{
+message Round {
     map<string, BlockProducer> BlockProducers = 1;
 }
 
-message AElfDPoSInformation
-{
+message AElfDPoSInformation {
     repeated Round Rounds = 1;
 }
 
-enum DataAccessMode
-{
+enum DataAccessMode {
     ReadOnlyAccountSharing = 0;
     ReadWriteAccountSharing = 1;
     AccountSpecific = 2;
 }
 
-message Key
-{
+message Key {
     bytes Value = 1;
     uint32 type = 2;
 }
 
-message SideChain{
+message SideChain {
     Hash ChainId = 1;
     Hash LockedAddress = 2;
     uint64 LockedToken = 3;
     uint64 CreationHeight = 4;
     bool Indexed = 5;
+}
+
+message DataPath {
+    Hash ChainId = 1;
+    uint64 RoundNumber = 2;
+    Hash BlockProducerAddress = 3;
+    Hash ContractAddress = 4;
+    Hash DataProviderHash = 5;
+    Hash KeyHash = 6;
 }

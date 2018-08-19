@@ -132,11 +132,11 @@ namespace AElf.Kernel.Consensus
         public AElfDPoSHelper(IStateDictator stateDictator, Hash chainId, Miners miners,
             Hash contractAddressHash, ILogger logger)
         {
-            stateDictator.SetChainId(chainId);
+            stateDictator.ChainId = chainId;
             _miners = miners;
             _logger = logger;
 
-            _dataProvider = stateDictator.GetAccountDataProvider(contractAddressHash).Result.GetDataProvider();
+            _dataProvider = stateDictator.GetAccountDataProvider(contractAddressHash).GetDataProvider();
         }
 
         /// <summary>

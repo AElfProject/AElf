@@ -34,11 +34,19 @@ namespace AElf.Kernel
         public Hash(byte[] buffer)
         {
             Value = ByteString.CopyFrom(buffer);
+            HashType = HashType.General;
         }
 
         public Hash(ByteString value)
         {
             Value = value;
+            HashType = HashType.General;
+        }
+
+        public Hash SetHashType(HashType hashType)
+        {
+            HashType = hashType;
+            return this;
         }
 
         public byte[] GetHashBytes() => Value.ToByteArray();

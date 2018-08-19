@@ -139,7 +139,6 @@ namespace AElf.Runtime.CSharp
 
         public async Task Apply(bool autoCommit)
         {
-            _stateDictator.PreBlockHash = _currentTransactionContext.PreviousBlockHash;
             var s = _currentTransactionContext.Trace.StartTime = DateTime.UtcNow;
             var methodName = _currentTransactionContext.Transaction.MethodName;
 
@@ -162,7 +161,7 @@ namespace AElf.Runtime.CSharp
 
                     try
                     {
-                        _currentSmartContractContext.DataProvider.ClearTentativeCache();
+                        _currentSmartContractContext.DataProvider.ClearCache();
                         var retVal = await handler(tx.Params.ToByteArray());
                         _currentTransactionContext.Trace.RetVal = retVal;
                     }
@@ -182,7 +181,7 @@ namespace AElf.Runtime.CSharp
 
                     try
                     {
-                        _currentSmartContractContext.DataProvider.ClearTentativeCache();
+                        _currentSmartContractContext.DataProvider.ClearCache();
                         var retVal = handler(tx.Params.ToByteArray());
                         _currentTransactionContext.Trace.RetVal = retVal;
                     }
@@ -194,14 +193,11 @@ namespace AElf.Runtime.CSharp
 
                 if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful())
                 {
-                    _currentTransactionContext.Trace.ValueChanges.AddRange(_currentSmartContractContext.DataProvider
-                        .GetValueChanges());
+                    _currentTransactionContext.Trace.ValueChanges.AddRange(_currentSmartContractContext.DataProvider.GetValueChanges());
                     if (autoCommit)
                     {
-                        var changeDict = await _currentTransactionContext.Trace.CommitChangesAsync(_stateDictator,
-                            _currentSmartContractContext.ChainId);
-                        await _stateDictator.ApplyCachedDataAction(changeDict,
-                            _currentSmartContractContext.ChainId);
+                        var changeDict = await _currentTransactionContext.Trace.CommitChangesAsync(_stateDictator);
+                        await _stateDictator.ApplyCachedDataAction(changeDict);
                         _currentSmartContractContext.DataProvider.StateCache.Clear(); //clear state cache for special tx that called with "autoCommit = true"
                     }
                 }
@@ -210,6 +206,7 @@ namespace AElf.Runtime.CSharp
             {
                 _currentTransactionContext.Trace.StdErr += ex + "\n";
             }
+            
 
             var e = _currentTransactionContext.Trace.EndTime = DateTime.UtcNow;
             _currentTransactionContext.Trace.Elapsed = (e - s).Ticks;

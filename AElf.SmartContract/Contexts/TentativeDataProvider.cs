@@ -8,9 +8,9 @@ namespace AElf.SmartContract
 {
     public class TentativeDataProvider : ITentativeDataProvider
     {
-        private IDataProvider _dataProvider;
+        private readonly IDataProvider _dataProvider;
 
-        private List<TentativeDataProvider> _children = new List<TentativeDataProvider>();
+        private readonly List<TentativeDataProvider> _children = new List<TentativeDataProvider>();
 
         private readonly Dictionary<Hash, StateCache> _tentativeCache = new Dictionary<Hash, StateCache>();
         
@@ -29,7 +29,6 @@ namespace AElf.SmartContract
         }
 
         private Dictionary<Hash, StateCache> _stateCache;
-
 
         private async Task<StateCache> GetStateAsync(Hash keyHash)
         {
@@ -56,8 +55,10 @@ namespace AElf.SmartContract
 
         public IDataProvider GetDataProvider(string name)
         {
-            var dp = new TentativeDataProvider(_dataProvider.GetDataProvider(name));
-            dp.StateCache = StateCache;
+            var dp = new TentativeDataProvider(_dataProvider.GetDataProvider(name))
+            {
+                StateCache = StateCache
+            };
             _children.Add(dp);
             return dp;
         }
@@ -94,8 +95,7 @@ namespace AElf.SmartContract
                     changes.Add(new StateValueChange()
                     {
                         Path = GetPathFor(keyState.Key),
-                        BeforeValue = ByteString.CopyFrom(keyState.Value.InitialValue ?? new byte[0]),
-                        AfterValue = ByteString.CopyFrom(keyState.Value.CurrentValue ?? new byte[0])
+                        CurrentValue = ByteString.CopyFrom(keyState.Value.CurrentValue ?? new byte[0])
                     });
                 }
             }

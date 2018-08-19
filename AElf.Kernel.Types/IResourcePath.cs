@@ -32,7 +32,8 @@ namespace AElf.Kernel
         ResourcePath SetChainId(Hash chainId);
         ResourcePath SetRoundNumber(ulong roundNumber);
         ResourcePath SetBlockProducerAddress(Hash blockProducerAddress);
-        
+
+        ResourcePath SetAccountAddress(Hash contractAddress);
         ResourcePath SetDataProvider(Hash dataProvider);
         ResourcePath SetDataKey(Hash keyHash);
 

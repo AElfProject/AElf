@@ -20,15 +20,16 @@ namespace AElf.ChainController
     {
         private readonly ITxPoolService _txPoolService;
         private readonly IChainService _chainService;
+        private readonly HashManager _hashManager;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IStateDictator _stateDictator;
         private readonly IConcurrencyExecutingService _concurrencyExecutingService;
         private IGrouper _grouper;
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
-            IStateDictator stateDictator,
+            IStateDictator stateDictator, HashManager hashManager,
             IConcurrencyExecutingService concurrencyExecutingService, 
             ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
@@ -39,6 +40,7 @@ namespace AElf.ChainController
             _logger = logger;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
+            _hashManager = hashManager;
         }
 
         /// <summary>
@@ -51,10 +53,6 @@ namespace AElf.ChainController
         {
             var readyTxs = new List<Transaction>();
 
-            await _stateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
-            var worldState = await _stateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
-            //_logger?.Trace($"Merkle Tree Root before execution:{(await worldState.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
-            
             try
             {
                 if (Cts == null || Cts.IsCancellationRequested)
@@ -153,9 +151,9 @@ namespace AElf.ChainController
 
                 var addrs = await InsertTxs(readyTxs, results);
                 await _txPoolService.UpdateAccountContext(addrs);
-                
-                await _stateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
-                var ws = await _stateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
+
+                var ws = await _stateDictator.GetWorldStateAsync(
+                    await _hashManager.GetHash(block.GetHash().SetHashType(HashType.BlockHash)));
 
                 if (ws == null)
                 {

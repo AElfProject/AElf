@@ -59,8 +59,10 @@ namespace AElf.SmartContract
             }
 
             // get account dataprovider
-            var dataProvider =
-                new TentativeDataProvider((await _stateDictator.SetChainId(chainId).GetAccountDataProvider(account)).GetDataProvider());
+            _stateDictator.BlockProducerAccountAddress = GetBlockProducerAddress();
+            _stateDictator.ChainId = chainId;
+            _stateDictator.CurrentRoundNumber = GetCurrentRoundNumber();
+            var dataProvider = _stateDictator.GetAccountDataProvider(account).GetDataProvider();
 
             // run smartcontract executive info and return executive
 
@@ -77,6 +79,18 @@ namespace AElf.SmartContract
             });
 
             return executive;
+        }
+
+        //TODO: 
+        private Hash GetBlockProducerAddress()
+        {
+            throw new NotImplementedException();
+        }
+
+        //TODO:
+        private ulong GetCurrentRoundNumber()
+        {
+            throw new NotImplementedException();
         }
 
         public async Task PutExecutiveAsync(Hash account, IExecutive executive)

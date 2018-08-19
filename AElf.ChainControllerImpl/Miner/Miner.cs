@@ -28,6 +28,7 @@ namespace AElf.ChainController
         private readonly IConcurrencyExecutingService _concurrencyExecutingService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
+        private readonly HashManager _hashManager;
 
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
@@ -48,7 +49,7 @@ namespace AElf.ChainController
         public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
             IStateDictator stateDictator,  ISmartContractService smartContractService, 
             IConcurrencyExecutingService concurrencyExecutingService, ITransactionManager transactionManager, 
-            ITransactionResultManager transactionResultManager, ILogger logger)
+            ITransactionResultManager transactionResultManager, ILogger logger, HashManager hashManager)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -59,6 +60,7 @@ namespace AElf.ChainController
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _logger = logger;
+            _hashManager = hashManager;
         }
 
         
@@ -218,15 +220,14 @@ namespace AElf.ChainController
             // calculate and set tx merkle tree root
             block.FillTxsMerkleTreeRootInHeader();
             _logger?.Log(LogLevel.Debug, "Calculating MK Tree Root End..");
-
             
             // set ws merkle tree root
-            await _stateDictator.SetWorldStateAsync(currentBlockHash);
+            var stateHash = await _hashManager.GetHash(currentBlockHash.SetHashType(HashType.BlockHash));
+            await _stateDictator.SetWorldStateAsync(stateHash);
             _logger?.Log(LogLevel.Debug, "End Set WS..");
             var ws = await _stateDictator.GetWorldStateAsync(currentBlockHash);
             _logger?.Log(LogLevel.Debug, "End Get Ws");
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
-
 
             if (ws != null)
             {

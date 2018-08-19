@@ -138,7 +138,8 @@ namespace AElf.Kernel.Node
                             //Rollback world state
 //                            var txs = await _worldStateDictator.RollbackToSpecificHeight(block.Header.Index);
                             var txs = await Node.BlockChain.RollbackToHeight(block.Header.Index - 1);
-                            await _stateDictator.RollbackToBlockHash(block.Header.PreviousBlockHash);
+                            //TODO: to implement
+                            //await _stateDictator.RollbackToBlockHash(block.Header.PreviousBlockHash);
 
                             await _txPoolService.RollBack(txs);
                             //_stateDictator.PreBlockHash = block.Header.PreviousBlockHash;

@@ -1,15 +1,72 @@
-using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
 {
     public class DataProvider : IDataProvider
     {
-        private readonly IResourcePath _resourcePath;
-
+        private readonly DataPath _dataPath;
         private readonly IStateDictator _stateDictator;
+        private int _layer;
+        
+        private readonly List<DataProvider> _children = new List<DataProvider>();
+        
+        /// <summary>
+        /// Key hash - State
+        /// </summary>
+        private Dictionary<Hash, StateCache> _caches = new Dictionary<Hash, StateCache>();
+
+        public IEnumerable<StateValueChange> GetValueChanges()
+        {
+            var changes = new List<StateValueChange>();
+            foreach (var keyState in _caches)
+            {
+                if (keyState.Value.Dirty)
+                {
+                    changes.Add(new StateValueChange
+                    {
+                        Path = _dataPath.SetDataKey(keyState.Key),
+                        CurrentValue = ByteString.CopyFrom(keyState.Value.CurrentValue ?? new byte[0])
+                    });
+                }
+            }
+
+            foreach (var dp in _children)
+            {
+                changes.AddRange(dp.GetValueChanges());
+            }
+
+            return changes;
+        }
+
+        /// <summary>
+        /// Key hash - StateCache
+        /// </summary>
+        public Dictionary<Hash, StateCache> StateCache
+        {
+            get => _caches;
+            set
+            {
+                _caches = value;
+                foreach (var dataProvider in _children)
+                {
+                    dataProvider.StateCache = value;
+                }
+            }
+        }
+
+        public void ClearCache()
+        {
+            _caches.Clear();
+            foreach (var dp in _children)
+            {
+                dp.ClearCache();
+            }
+        }
 
         /// <summary>
         /// To dictinct DataProviders of same account and same level.
@@ -17,48 +74,76 @@ namespace AElf.SmartContract
         /// </summary>
         private readonly string _dataProviderKey;
 
-        public DataProvider(IResourcePath resourcePath, IStateDictator stateDictator, string dataProviderKey = "")
+        public DataProvider(DataPath dataPath, IStateDictator stateDictator, int layer = 0,
+            string dataProviderKey = "")
         {
             _stateDictator = stateDictator;
             _dataProviderKey = dataProviderKey;
-            _resourcePath = resourcePath;
+            _dataPath = dataPath;
+            _layer = layer;
         }
 
         private Hash GetHash()
         {
-            return _accountDataContext.GetHash().CalculateHashWith(_dataProviderKey);
+            return new Int32Value {Value = _layer}.CalculateHashWith(_dataProviderKey);
         }
 
+        /// <inheritdoc />
         /// <summary>
-        /// Get a sub-level DataProvider.
+        /// Get a child DataProvider.
         /// </summary>
-        /// <param name="dataProviderKey">sub-level DataProvider's name</param>
+        /// <param name="dataProviderKey">child DataProvider's name</param>
         /// <returns></returns>
         public IDataProvider GetDataProvider(string dataProviderKey)
         {
-            return new DataProvider(_resourcePath, _stateDictator, dataProviderKey);
+            var dp = new DataProvider(_dataPath, _stateDictator, _layer++, dataProviderKey)
+            {
+                StateCache = StateCache
+            };
+            _children.Add(dp);
+            return dp;
         }
 
-        /// <summary>
-        /// Get data from current maybe-not-setted-yet "WorldState"
-        /// </summary>
-        /// <param name="keyHash"></param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<byte[]> GetAsync(Hash keyHash)
         {
-            var pointerHash = await _stateDictator.GetPointerAsync(GetPathFor(keyHash));
-            return await _stateDictator.GetDataAsync(pointerHash);
+            return (await GetStateAsync(keyHash)).CurrentValue ?? new byte[0];
         }
 
-        /// <summary>
-        /// Set a data
-        /// </summary>
-        /// <param name="keyHash"></param>
-        /// <param name="obj"></param>
-        /// <returns></returns>
         public async Task SetAsync(Hash keyHash, byte[] obj)
         {
+            var state = await GetStateAsync(keyHash);
+            state.CurrentValue = obj;
+        }
+
+        public Hash GetPathFor(Hash keyHash)
+        {
+            return ((Hash)GetHash().CalculateHashWith(keyHash)).SetHashType(HashType.ResourcePath);
+        }
+        
+        private async Task<StateCache> GetStateAsync(Hash keyHash)
+        {
+            if (_caches.TryGetValue(keyHash, out var state)) 
+                return state;
             
+            if (!StateCache.TryGetValue(GetPathFor(keyHash), out state))
+            {
+                state = new StateCache(await GetDataAsync(keyHash));
+                StateCache.Add(GetPathFor(keyHash), state);
+            }
+            
+            _caches.Add(keyHash, state);
+
+            return state;
+        }
+
+        private async Task<byte[]> GetDataAsync(Hash keyHash)
+        {
+            //Get resource pointer.
+            var pointerHash = await _stateDictator.GetHashAsync(GetPathFor(keyHash));
+            
+            //Use resource pointer get data.
+            return await _stateDictator.GetDataAsync(pointerHash);
         }
     }
 }

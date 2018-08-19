@@ -99,7 +99,7 @@ namespace AElf.Kernel
 
         protected Hash GetHeightHash(ulong height)
         {
-            return ResourcePath.CalculatePointerForGettingBlockHashByHeight(_chainId, height);
+            return DataPath.CalculatePointerForGettingBlockHashByHeight(_chainId, height);
         }
 
         protected async Task<Hash> GetCanonicalHashAsync(ulong height)

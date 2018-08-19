@@ -82,13 +82,14 @@ namespace AElf.Runtime.CSharp.Tests
                 ContractHash = Hash.Zero,
                 Type = (int)SmartContractType.BasicContractZero
             };
-            
+
+            StateDictator.ChainId = ChainId1;
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
-            DataProvider1 = await (StateDictator.SetChainId(ChainId1)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId1));
+            DataProvider1 = StateDictator.GetAccountDataProvider(ChainId1.SetHashType(HashType.AccountZero));
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
-
-            DataProvider2 = await (StateDictator.SetChainId(ChainId2)).GetAccountDataProvider(ResourcePath.CalculatePointerForAccountZero(ChainId2));
+            StateDictator.ChainId = ChainId2;
+            DataProvider2 = StateDictator.GetAccountDataProvider(ChainId2.SetHashType(HashType.AccountZero));
         }
 
         private async Task DeploySampleContracts()

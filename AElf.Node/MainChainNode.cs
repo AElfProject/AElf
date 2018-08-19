@@ -143,10 +143,9 @@ namespace AElf.Kernel.Node
             }
 
             // set world state
-            _stateDictator.SetChainId(_nodeConfig.ChainId);
+            _stateDictator.ChainId = _nodeConfig.ChainId;
 
             #endregion setup
-
 
             #region start
 

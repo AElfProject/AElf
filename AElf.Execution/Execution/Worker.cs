@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using AElf.Kernel;
 using AElf.SmartContract;
-using Akka.Dispatch;
 
 /*
     Todo: #338
@@ -13,6 +12,7 @@ using Akka.Dispatch;
     Some of the code is annotated, marked with "todo" and optimized later.
  */
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Execution
 {
     /// <summary>
@@ -112,8 +112,7 @@ namespace AElf.Execution
 
             Exception chainContextException = null;
             
-            //path <-> value
-            Dictionary<Hash, StateCache> stateCache = new Dictionary<Hash, StateCache>();
+            var stateCache = new Dictionary<Hash, StateCache>();
             
             try
             {
@@ -167,7 +166,7 @@ namespace AElf.Execution
                             if (trace.IsSuccessful())
                             {
                                 //commit update results to state cache
-                                var bufferedStateUpdates = await trace.CommitChangesAsync(_servicePack.StateDictator, chainContext.ChainId);
+                                var bufferedStateUpdates = await trace.CommitChangesAsync(_servicePack.StateDictator);
                                 foreach (var kv in bufferedStateUpdates)
                                 {
                                     stateCache[kv.Key] = kv.Value;
@@ -197,7 +196,7 @@ namespace AElf.Execution
 
             if (chainContext != null)
             {
-                await _servicePack.StateDictator.ApplyCachedDataAction(stateCache, chainContext.ChainId);
+                await _servicePack.StateDictator.ApplyCachedDataAction(stateCache);
             }
             stateCache.Clear();
             

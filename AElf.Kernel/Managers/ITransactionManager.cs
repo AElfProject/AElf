@@ -1,6 +1,5 @@
-﻿using System.Threading.Tasks;
-using AElf.Kernel.Types;
-using Google.Protobuf;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AElf.Kernel.Managers
 {
@@ -9,5 +8,6 @@ namespace AElf.Kernel.Managers
         Task<Hash> AddTransactionAsync(Transaction tx);
         Task<Transaction> GetTransaction(Hash txId);
         Task RemoveTransaction(Hash txId);
+        Task<List<Transaction>> RollbackTransactions(Hash chainId, ulong currentHeight, ulong specificHeight);
     }
 }
