@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
@@ -112,7 +113,7 @@ namespace AElf.Execution
 
             Exception chainContextException = null;
             
-            var stateCache = new Dictionary<Hash, StateCache>();
+            var stateCache = new Dictionary<DataPath, StateCache>();
             
             try
             {
@@ -157,7 +158,9 @@ namespace AElf.Execution
                     else
                     {
                         // TODO: The job is still running but we will leave it, we need a way to abort the job if it runs for too long
-                        var task = Task.Run(async () => await ExecuteTransaction(chainContext, tx, stateCache),
+                        var task = Task.Run(
+                            async () => await ExecuteTransaction(chainContext, tx,
+                                stateCache.ToDictionary(kv => kv.Key.KeyHash, kv => kv.Value)),
                             _cancellationTokenSource.Token);
                         try
                         {
