@@ -34,13 +34,13 @@ namespace AElf.Kernel.Tests.TxMemPool
 
         private ContractTxPool GetContractTxPool(ITxPoolConfig config)
         {
-            _stateDictator.SetChainId(config.ChainId);
+            _stateDictator.ChainId = config.ChainId;
             return new ContractTxPool(config, _logger);
         }
         
         private DPoSTxPool GetDPoSTxPool(ITxPoolConfig config)
         {
-            _stateDictator.SetChainId(config.ChainId);
+            _stateDictator.ChainId = config.ChainId;
             return new DPoSTxPool(config, _logger);
         }
 

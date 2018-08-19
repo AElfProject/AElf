@@ -37,13 +37,13 @@ namespace AElf.Kernel.Tests.TxMemPool
         
         private ContractTxPool GetContractTxPool(ITxPoolConfig config)
         {
-            _stateDictator.SetChainId(config.ChainId);
+            _stateDictator.ChainId = config.ChainId;
             return new ContractTxPool(config, _logger);
         }
         
         private DPoSTxPool GetDPoSTxPool(ITxPoolConfig config)
         {
-            _stateDictator.SetChainId(config.ChainId);
+            _stateDictator.ChainId = config.ChainId;
             return new DPoSTxPool(config, _logger);
         }
 
@@ -163,7 +163,7 @@ namespace AElf.Kernel.Tests.TxMemPool
             var contractTxPool = GetContractTxPool(config);
             var dPoSPool = GetDPoSTxPool(config);
 
-            _stateDictator.SetChainId(TxPoolConfig.Default.ChainId);
+            _stateDictator.ChainId = TxPoolConfig.Default.ChainId;
             _accountContextService = new AccountContextService(_stateDictator);
 
             var poolService = new TxPoolService(contractTxPool, _accountContextService, _logger, dPoSPool);

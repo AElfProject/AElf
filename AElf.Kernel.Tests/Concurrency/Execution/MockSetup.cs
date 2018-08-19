@@ -59,15 +59,20 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private IFunctionMetadataService _functionMetadataService;
         private ILogger _logger;
 
+        private readonly HashManager _hashManager;
+        private readonly TransactionManager _transactionManager;
+
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
         public MockSetup(IDataStore dataStore, IChainCreationService chainCreationService,
             IChainService chainService,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger)
+            ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger, HashManager hashManager, TransactionManager transactionManager)
         {
             _logger = logger;
-            _stateDictator = new StateDictator(dataStore, _logger);
+            _hashManager = hashManager;
+            _transactionManager = transactionManager;
+            _stateDictator = new StateDictator(_hashManager,transactionManager, dataStore, _logger);
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             ChainContextService = chainContextService;
@@ -114,16 +119,14 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 Type = (int) SmartContractType.BasicContractZero
             };
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1,  new List<SmartContractRegistration>{reg});
-            
-            DataProvider1 =
-                await (_stateDictator.SetChainId(ChainId1)).GetAccountDataProvider(
-                    ResourcePath.CalculatePointerForAccountZero(ChainId1));
+
+            _stateDictator.ChainId = ChainId1;
+            DataProvider1 = _stateDictator.GetAccountDataProvider(ChainId1.SetHashType(HashType.AccountZero));
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
             
-            DataProvider2 =
-                await (_stateDictator.SetChainId(ChainId2)).GetAccountDataProvider(
-                    ResourcePath.CalculatePointerForAccountZero(ChainId2));
+            _stateDictator.ChainId = ChainId2;
+            DataProvider2 = _stateDictator.GetAccountDataProvider(ChainId2.SetHashType(HashType.AccountZero));
         }
 
         private async Task DeploySampleContracts()

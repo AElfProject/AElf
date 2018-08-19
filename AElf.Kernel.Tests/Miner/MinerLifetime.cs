@@ -59,6 +59,7 @@ namespace AElf.Kernel.Tests.Miner
         private IConcurrencyExecutingService _concurrencyExecutingService;
         private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
+        private readonly HashManager _hashManager;
 
         private ServicePack _servicePack;
         private IActorRef _requestor;
@@ -69,7 +70,7 @@ namespace AElf.Kernel.Tests.Miner
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
             IChainService chainService, ISmartContractManager smartContractManager, 
             IFunctionMetadataService functionMetadataService, 
-            IConcurrencyExecutingService concurrencyExecutingService) : base(new XunitAssertions())
+            IConcurrencyExecutingService concurrencyExecutingService, HashManager hashManager) : base(new XunitAssertions())
         {
             _chainCreationService = chainCreationService;
             _chainContextService = chainContextService;
@@ -82,6 +83,7 @@ namespace AElf.Kernel.Tests.Miner
             _smartContractManager = smartContractManager;
             _functionMetadataService = functionMetadataService;
             _concurrencyExecutingService = concurrencyExecutingService;
+            _hashManager = hashManager;
 
             _stateDictator = stateDictator;
             _stateDictator.BlockProducerAccountAddress = Hash.Generate();
@@ -243,14 +245,14 @@ namespace AElf.Kernel.Tests.Miner
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
-            _stateDictator.SetChainId(chainId);
+            _stateDictator.ChainId = chainId;
             return chain;
         }
         
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {            
             var miner = new ChainController.Miner(config, poolService, _chainService, _stateDictator,
-                _smartContractService, _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger);
+                _smartContractService, _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger, _hashManager);
 
             return miner;
         }

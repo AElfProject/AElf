@@ -28,7 +28,7 @@ namespace AElf.Kernel.Tests.Miner
         public async Task SetWorldState()
         {
             var address = Hash.Generate();
-            var accountDataProvider = await _stateDictator.GetAccountDataProvider(address);
+            var accountDataProvider = _stateDictator.GetAccountDataProvider(address);
             var dataProvider = accountDataProvider.GetDataProvider();
             var data1 = Hash.Generate().Value.ToArray();
             var key = new Hash("testkey".CalculateHash());

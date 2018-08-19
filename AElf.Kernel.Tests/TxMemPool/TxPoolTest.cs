@@ -29,7 +29,7 @@ namespace AElf.Kernel.Tests.TxMemPool
         {
             if (ecKeyPair != null)
                 config.EcKeyPair = ecKeyPair;
-            _stateDictator.SetChainId(config.ChainId);
+            _stateDictator.ChainId = config.ChainId;
             return new ContractTxPool(config, _logger);
         }
 

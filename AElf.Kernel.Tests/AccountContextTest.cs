@@ -13,7 +13,7 @@ namespace AElf.Kernel.Tests
 
         public AccountContextTest(IStateDictator stateDictator)
         {
-            stateDictator.SetChainId(Hash.Generate());
+            stateDictator.ChainId = Hash.Generate();
             stateDictator.BlockProducerAccountAddress = Hash.Generate();
 
             _accountContextService = new AccountContextService(stateDictator);

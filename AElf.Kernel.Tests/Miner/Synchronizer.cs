@@ -40,11 +40,12 @@ namespace AElf.Kernel.Tests.Miner
         private IConcurrencyExecutingService _concurrencyExecutingService;
         private IDataStore _dataStore;
         private ServicePack _servicePack;
+        private readonly HashManager _hashManager;
 
         public Synchronizer(
             IChainCreationService chainCreationService, IChainContextService chainContextService,
             IChainService chainService, ILogger logger,
-            ITransactionResultManager transactionResultManager, ITransactionManager transactionManager,
+            ITransactionResultManager transactionResultManager, TransactionManager transactionManager,
             FunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService, IDataStore dataStore,
             ISmartContractManager smartContractManager, IAccountContextService accountContextService,
             ITxPoolService txPoolService) : base(new XunitAssertions())
@@ -59,7 +60,7 @@ namespace AElf.Kernel.Tests.Miner
             _functionMetadataService = functionMetadataService;
             _concurrencyExecutingService = concurrencyExecutingService;
             _dataStore = dataStore;
-            _stateDictator = new StateDictator(dataStore, _logger);
+            _stateDictator = new StateDictator(_hashManager, transactionManager, dataStore, _logger);
             _smartContractManager = smartContractManager;
             _accountContextService = accountContextService;
             this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
@@ -164,7 +165,7 @@ namespace AElf.Kernel.Tests.Miner
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
-            _stateDictator.SetChainId(chainId);
+            _stateDictator.ChainId = chainId;
             return chain;
         }
 
@@ -276,8 +277,8 @@ namespace AElf.Kernel.Tests.Miner
             block.FillTxsMerkleTreeRootInHeader();
             block.Body.BlockHeader = block.Header.GetHash();
 
-            var synchronizer = new BlockExecutor(poolService,
-                _chainService, _stateDictator, _concurrencyExecutingService, null, _transactionManager, _transactionResultManager);
+            var synchronizer = new BlockExecutor(poolService, _chainService, _stateDictator, _hashManager,
+                _concurrencyExecutingService, null, _transactionManager, _transactionResultManager);
 
             synchronizer.Start(new Grouper(_servicePack.ResourceDetectionService));
             var res = await synchronizer.ExecuteBlock(block);
