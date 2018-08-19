@@ -12,6 +12,7 @@ using AElf.Execution.Scheduling;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
+using Akka.Actor;
 using Autofac;
 using CommandLine;
 
@@ -112,8 +113,6 @@ namespace AElf.Benchmark
                 builder.RegisterModule(new ServicesModule());
                 builder.RegisterModule(new ManagersModule());
                 builder.RegisterModule(new MetadataModule());
-                builder.RegisterType(typeof(ParallelTransactionExecutingService)).As<IExecutingService>()
-                    .SingleInstance();
                 builder.RegisterType<Benchmarks>().WithParameter("options", opts);
                 var runner = new SmartContractRunner(opts.SdkDir);
                 SmartContractRunnerFactory smartContractRunnerFactory = new SmartContractRunnerFactory();
@@ -124,7 +123,8 @@ namespace AElf.Benchmark
                 if (ParallelConfig.Instance.IsParallelEnable)
                 {
                     builder.RegisterType<Grouper>().As<IGrouper>();
-                    builder.RegisterType<ServicePack>().PropertiesAutowired();
+                    builder.RegisterType<ServicePack>().As<ServicePack>().PropertiesAutowired();
+                    builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
                     builder.RegisterType<ParallelTransactionExecutingService>().As<IExecutingService>();
                 }
                 else
@@ -148,15 +148,22 @@ namespace AElf.Benchmark
 
                 using (var scope = container.BeginLifetimeScope())
                 {
-                    IActorEnvironment actorEnv = null;
                     if (ParallelConfig.Instance.IsParallelEnable)
                     {
-                        actorEnv = scope.Resolve<IActorEnvironment>();
-                        actorEnv.InitActorSystem();   
+                        var actorEnv = scope.Resolve<IActorEnvironment>();
+                        try
+                        {
+                            actorEnv.InitActorSystem();
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+                           
                     }
 
                     var benchmarkTps = scope.Resolve<Benchmarks>();
-
+                    await benchmarkTps.InitContract();
                     Thread.Sleep(200); //sleep 200 ms to let async console print in order 
                     await benchmarkTps.BenchmarkEvenGroup();
                 }

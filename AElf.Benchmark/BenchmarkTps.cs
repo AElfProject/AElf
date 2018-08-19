@@ -83,8 +83,6 @@ namespace AElf.Benchmark
             }
             _contractHash = Prepare(code).Result;
             
-            InitContract(_contractHash, _dataGenerater.KeyList).GetResult();
-            
         }
 
         
@@ -135,10 +133,7 @@ namespace AElf.Benchmark
                 swExec.Start();
 
                 var cts = new CancellationTokenSource();
-                var txResult = await Task.Factory.StartNew(async () =>
-                {
-                    return await _executingService.ExecuteAsync(txList, ChainId, cts.Token);
-                }).Unwrap();
+                var txResult = await _executingService.ExecuteAsync(txList, ChainId, cts.Token);
         
                 swExec.Stop();
                 timeused += swExec.ElapsedMilliseconds;
@@ -285,6 +280,11 @@ namespace AElf.Benchmark
             return contractAddr;
         }
 
+        public async Task InitContract()
+        {
+            await InitContract(_contractHash, _dataGenerater.KeyList);
+        }
+        
         public async Task InitContract(Hash contractAddr, IEnumerable<Hash> addrBook)
         {
             //init contract
