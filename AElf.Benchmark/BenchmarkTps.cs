@@ -25,7 +25,7 @@ namespace AElf.Benchmark
         private readonly ISmartContractService _smartContractService;
         private readonly ILogger _logger;
         private readonly BenchmarkOptions _options;
-        private readonly IConcurrencyExecutingService _concurrencyExecutingService;
+        private readonly IExecutingService _executingService;
 
 
         private readonly ServicePack _servicePack;
@@ -52,7 +52,7 @@ namespace AElf.Benchmark
         public Benchmarks(IChainCreationService chainCreationService,
             IChainContextService chainContextService, ISmartContractService smartContractService,
             ILogger logger, IFunctionMetadataService functionMetadataService,
-            IAccountContextService accountContextService, IWorldStateDictator worldStateDictator, BenchmarkOptions options, IConcurrencyExecutingService concurrencyExecutingService)
+            IAccountContextService accountContextService, IWorldStateDictator worldStateDictator, BenchmarkOptions options, IExecutingService executingService)
         {
             ChainId = Hash.Generate();
             
@@ -63,7 +63,7 @@ namespace AElf.Benchmark
             _smartContractService = smartContractService;
             _logger = logger;
             _options = options;
-            _concurrencyExecutingService = concurrencyExecutingService;
+            _executingService = executingService;
 
 
             _servicePack = new ServicePack
@@ -134,9 +134,10 @@ namespace AElf.Benchmark
                 Stopwatch swExec = new Stopwatch();
                 swExec.Start();
 
+                var cts = new CancellationTokenSource();
                 var txResult = await Task.Factory.StartNew(async () =>
                 {
-                    return await _concurrencyExecutingService.ExecuteAsync(txList, ChainId,new Grouper(_servicePack.ResourceDetectionService, _logger) );
+                    return await _executingService.ExecuteAsync(txList, ChainId, cts.Token);
                 }).Unwrap();
         
                 swExec.Stop();
@@ -325,7 +326,8 @@ namespace AElf.Benchmark
                 
                 initTxList.Add(txnBalInit);
             }
-            var txTrace = await _concurrencyExecutingService.ExecuteAsync(initTxList, ChainId,new Grouper(_servicePack.ResourceDetectionService, _logger));
+            var cts = new CancellationTokenSource();
+            var txTrace = await _executingService.ExecuteAsync(initTxList, ChainId, cts.Token);
             foreach (var trace in txTrace)
             {
                 if (!trace.StdErr.IsNullOrEmpty())
