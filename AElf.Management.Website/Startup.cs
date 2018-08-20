@@ -27,6 +27,8 @@ namespace AElf.Management.Website
             var builder = new ContainerBuilder();
 
             builder.RegisterType<SideChainService>().As<ISideChainService>().SingleInstance();
+            builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
+            builder.RegisterType<WorkerService>().As<IWorkerService>().SingleInstance();
 
             builder.Populate(services);
             ApplicationContainer = builder.Build();

@@ -16,12 +16,6 @@ namespace AElf.Management.Website.Controllers
             _sideChainService = sideChainService;
         }
 
-        [HttpGet("{value}")]
-        public ApiResult<string> Test(string value)
-        {
-            return new ApiResult<string>(value);
-        }
-
         [HttpPost("{chainId}")]
         public ApiEmptyResult Post(string chainId, [FromBody] DeployArg arg)
         {
