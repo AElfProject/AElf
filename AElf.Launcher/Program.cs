@@ -229,7 +229,7 @@ namespace AElf.Launcher
             Hash chainId;
             if (isNewChain)
             {
-                chainId = Hash.Generate();
+                chainId = Hash.Generate().ToChainId();
                 var obj = new JObject(new JProperty("id", chainId.ToHex()));
 
                 // write JSON directly to a file
