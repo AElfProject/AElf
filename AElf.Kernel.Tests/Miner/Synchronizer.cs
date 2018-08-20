@@ -23,9 +23,9 @@ using Xunit;
 using Xunit.Frameworks.Autofac;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
-using AsyncEventAggregator;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
+using ByteString = Google.Protobuf.ByteString;
 
 namespace AElf.Kernel.Tests.Miner
 {
@@ -63,7 +63,6 @@ namespace AElf.Kernel.Tests.Miner
             _stateDictator = new StateDictator(_hashManager, transactionManager, dataStore, _logger);
             _smartContractManager = smartContractManager;
             _accountContextService = accountContextService;
-            this.Subscribe<TransactionAddedToPool>(async (t) => { await Task.CompletedTask; });
 
             Initialize();
         }

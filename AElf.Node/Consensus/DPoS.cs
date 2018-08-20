@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.Common.ByteArrayHelpers;
+using AElf.Kernel.Types;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
@@ -23,12 +25,11 @@ namespace AElf.Kernel.Node
 
         private ECKeyPair NodeKeyPair => Node.NodeKeyPair;
 
-        private readonly INodeConfig _nodeConfig;
         private readonly IAccountContextService _accountContextService;
         private readonly ITxPoolService _txPoolService;
         private readonly IP2P _p2p;
-        private ulong ConsensusMemory { get; set; }
-        private IDisposable ConsensusDisposable { get; set; }
+        public ulong ConsensusMemory { get; set; }
+        public IDisposable ConsensusDisposable { get; set; }
 
         private AElfDPoSHelper DPoSHelper { get; }
         private MainChainNode Node { get; }
@@ -39,19 +40,15 @@ namespace AElf.Kernel.Node
             MiningWithInitializingAElfDPoSInformation,
             MiningWithPublishingOutValueAndSignature, PublishInValue, MiningWithUpdatingAElfDPoSInformation);
 
-        public DPoS(ILogger logger, MainChainNode node, INodeConfig nodeConfig,
-            IStateDictator stateDictator, IAccountContextService accountContextService,
-            ITxPoolService txPoolService,
-            IP2P p2p
+        public DPoS(ILogger logger, MainChainNode node, IStateDictator stateDictator, IAccountContextService accountContextService, ITxPoolService txPoolService, IP2P p2p
         )
         {
             _logger = logger;
-            _nodeConfig = nodeConfig;
             _accountContextService = accountContextService;
             _p2p = p2p;
             _txPoolService = txPoolService;
             Node = node;
-            DPoSHelper = new AElfDPoSHelper(stateDictator, nodeConfig.ChainId, Miners,
+            DPoSHelper = new AElfDPoSHelper(stateDictator, NodeKeyPair, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), Miners,
                 Node.ContractAccountHash, _logger);
         }
 
@@ -85,7 +82,7 @@ namespace AElf.Kernel.Node
                 return;
             }
 
-            if (_nodeConfig.ConsensusInfoGenerater && !await DPoSHelper.HasGenerated())
+            if (NodeConfig.Instance.ConsensusInfoGenerater && !await DPoSHelper.HasGenerated())
             {
                 AElfDPoSObserver.Initialization();
                 return;
@@ -131,7 +128,7 @@ namespace AElf.Kernel.Node
                 bool isDPoS = addr.Equals(NodeKeyPair.GetAddress()) ||
                               DPoSHelper.Miners.Nodes.Contains(addr.ToHex().RemoveHexPrefix());
 
-                var idInDB = (await _accountContextService.GetAccountDataContext(addr, _nodeConfig.ChainId))
+                var idInDB = (await _accountContextService.GetAccountDataContext(addr,  ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)))
                     .IncrementId;
                 _logger?.Log(LogLevel.Debug, $"Trying to get increment id, {isDPoS}");
                 var idInPool = _txPoolService.GetIncrementId(addr, isDPoS);

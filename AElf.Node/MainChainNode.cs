@@ -42,7 +42,6 @@ namespace AElf.Kernel.Node
         private readonly ITxPoolService _txPoolService;
         private readonly ITransactionManager _transactionManager;
         private readonly ILogger _logger;
-        private readonly INodeConfig _nodeConfig;
         private readonly IMiner _miner;
         private readonly IAccountContextService _accountContextService;
         private readonly IBlockVaildationService _blockVaildationService;
@@ -61,13 +60,12 @@ namespace AElf.Kernel.Node
         public IBlockChain BlockChain { get; }
 
         public Hash ContractAccountHash =>
-            _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, SmartContractType.AElfDPoS);
+            _chainCreationService.GenesisContractHash(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), SmartContractType.AElfDPoS);
 
         public int IsMiningInProcess => _minerHelper.IsMiningInProcess;
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager,
-            ILogger logger,
-            INodeConfig nodeConfig, IMiner miner, IAccountContextService accountContextService,
+            ILogger logger, IMiner miner, IAccountContextService accountContextService,
             IBlockVaildationService blockVaildationService,
             IChainContextService chainContextService, IBlockExecutor blockExecutor,
             IChainCreationService chainCreationService, IStateDictator stateDictator,
@@ -83,17 +81,15 @@ namespace AElf.Kernel.Node
             _txPoolService = poolService;
             _transactionManager = txManager;
             _logger = logger;
-            _nodeConfig = nodeConfig;
             _miner = miner;
             _accountContextService = accountContextService;
             _blockVaildationService = blockVaildationService;
             _chainContextService = chainContextService;
-            _stateDictator = stateDictator;
             _blockExecutor = blockExecutor;
             _netManager = netManager;
             _synchronizer = synchronizer;
             _p2p = p2p;
-            BlockChain = _chainService.GetBlockChain(_nodeConfig.ChainId);
+            BlockChain = _chainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
         }
 
         public bool Start(ECKeyPair nodeKeyPair, byte[] tokenContractCode, byte[] consensusContractCode,
@@ -105,13 +101,8 @@ namespace AElf.Kernel.Node
 
             SetupConsensus();
             SetupMinerHelper();
-            if (_nodeConfig == null)
-            {
-                _logger?.Log(LogLevel.Error, "No node configuration.");
-                return false;
-            }
-
-            if (_nodeConfig.ChainId == null || _nodeConfig.ChainId.Length <= 0)
+            
+            if (string.IsNullOrWhiteSpace(NodeConfig.Instance.ChainId))
             {
                 _logger?.Log(LogLevel.Error, "No chain id.");
                 return false;
@@ -139,11 +130,11 @@ namespace AElf.Kernel.Node
             catch (Exception e)
             {
                 _logger?.Log(LogLevel.Error,
-                    "Could not create the chain : " + _nodeConfig.ChainId.ToHex());
+                    "Could not create the chain : " + NodeConfig.Instance.ChainId);
             }
 
             // set world state
-            _stateDictator.ChainId = _nodeConfig.ChainId;
+            _stateDictator.ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
 
             #endregion setup
 
@@ -153,7 +144,7 @@ namespace AElf.Kernel.Node
 
             Task.Run(() => _netManager.Start());
 
-            if (!_nodeConfig.ConsensusInfoGenerater)
+            if (!NodeConfig.Instance.ConsensusInfoGenerater)
             {
 //                _synchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
                 _synchronizer.SyncFinished += (s, e) => { StartMining(); };
@@ -163,13 +154,13 @@ namespace AElf.Kernel.Node
                 StartMining();
             }
 
-            Task.Run(() => _synchronizer.Start(this, !_nodeConfig.ConsensusInfoGenerater));
+            Task.Run(() => _synchronizer.Start(this, !NodeConfig.Instance.ConsensusInfoGenerater));
 
             var resourceDetectionService = new ResourceUsageDetectionService(_functionMetadataService);
 
             var grouper = new Grouper(resourceDetectionService, _logger);
             _blockExecutor.Start(grouper);
-            if (_nodeConfig.IsMiner)
+            if (NodeConfig.Instance.IsMiner)
             {
                 _miner.Start(nodeKeyPair, grouper);
 
@@ -188,12 +179,12 @@ namespace AElf.Kernel.Node
 
         private Hash GetGenesisContractHash(SmartContractType contractType)
         {
-            return _chainCreationService.GenesisContractHash(_nodeConfig.ChainId, contractType);
+            return _chainCreationService.GenesisContractHash(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), contractType);
         }
 
         private void PrintChainInfo()
         {
-            _logger?.Log(LogLevel.Debug, "Chain Id = \"{0}\"", _nodeConfig.ChainId.ToHex());
+            _logger?.Log(LogLevel.Debug, "Chain Id = \"{0}\"", NodeConfig.Instance.ChainId);
             var genesis = GetGenesisContractHash(SmartContractType.BasicContractZero);
             _logger?.Log(LogLevel.Debug, "Genesis contract address = \"{0}\"", genesis.ToHex());
 
@@ -229,7 +220,7 @@ namespace AElf.Kernel.Node
                 ContractHash = basicContractZero.CalculateHash(),
                 Type = (int) SmartContractType.BasicContractZero
             };
-            var res = _chainCreationService.CreateNewChainAsync(_nodeConfig.ChainId,
+            var res = _chainCreationService.CreateNewChainAsync(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
                 new List<SmartContractRegistration> {basicReg, tokenCReg, consensusCReg}).Result;
 
             _logger?.Log(LogLevel.Debug, "Genesis block hash = \"{0}\"", res.GenesisBlockHash.ToHex());
@@ -245,7 +236,7 @@ namespace AElf.Kernel.Node
             switch (Globals.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
-                    _consensus = new DPoS(_logger, this, _nodeConfig, _stateDictator, _accountContextService,
+                    _consensus = new DPoS(_logger, this, _stateDictator, _accountContextService,
                         _txPoolService, _p2p);
                     break;
 
@@ -266,14 +257,14 @@ namespace AElf.Kernel.Node
                 return;
             }
 
-            _minerHelper = new MinerHelper(_logger, this, _txPoolService, _nodeConfig,
+            _minerHelper = new MinerHelper(_logger, this, _txPoolService,
                 _stateDictator, _blockExecutor, _chainService, _chainContextService,
                 _blockVaildationService, _miner, _consensus, _synchronizer);
         }
 
         private void StartMining()
         {
-            if (_nodeConfig.IsMiner)
+            if (NodeConfig.Instance.IsMiner)
             {
                 SetupConsensus();
                 SetupMinerHelper();

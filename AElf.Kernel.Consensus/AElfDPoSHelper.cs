@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
@@ -129,7 +130,7 @@ namespace AElf.Kernel.Consensus
             return bytes;
         }
 
-        public AElfDPoSHelper(IStateDictator stateDictator, Hash chainId, Miners miners,
+        public AElfDPoSHelper(IStateDictator stateDictator, ECKeyPair keyPair, Hash chainId, Miners miners,
             Hash contractAddressHash, ILogger logger)
         {
             stateDictator.ChainId = chainId;
