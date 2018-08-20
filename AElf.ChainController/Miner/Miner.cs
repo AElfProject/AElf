@@ -84,7 +84,7 @@ namespace AElf.ChainController
                     {
                         TransactionId = trace.TransactionId
                     };
-                    if (string.IsNullOrEmpty(trace.StdErr))
+                    if (trace.IsSuccessful())
                     {
                         res.Logs.AddRange(trace.FlattenedLogs);
                         res.Status = Status.Mined;

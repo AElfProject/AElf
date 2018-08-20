@@ -134,6 +134,7 @@ namespace AElf.Execution
                     trace = new TransactionTrace()
                     {
                         TransactionId = tx.GetHash(),
+                        ExecutionStatus = ExecutionStatus.SystemError,
                         StdErr = chainContextException + "\n"
                     };
                 }
@@ -142,6 +143,7 @@ namespace AElf.Execution
                     trace = new TransactionTrace()
                     {
                         TransactionId = tx.GetHash(),
+                        ExecutionStatus = ExecutionStatus.SystemError,
                         StdErr = "Execution Cancelled"
                     };
                 }
@@ -152,6 +154,7 @@ namespace AElf.Execution
                         trace = new TransactionTrace()
                         {
                             TransactionId = tx.GetHash(),
+                            ExecutionStatus = ExecutionStatus.SystemError,
                             StdErr = "Invalid chain"
                         };
                     }
@@ -179,7 +182,8 @@ namespace AElf.Execution
                             trace = new TransactionTrace()
                             {
                                 TransactionId = tx.GetHash(),
-                                StdErr = "Execution Cancelled"
+                                ExecutionStatus = ExecutionStatus.Canceled,
+                                StdErr = "Execution Canceled"
                             };
                         }
                         catch (Exception e)
@@ -187,6 +191,7 @@ namespace AElf.Execution
                             trace = new TransactionTrace()
                             {
                                 TransactionId = tx.GetHash(),
+                                ExecutionStatus = ExecutionStatus.SystemError,
                                 StdErr = e + "\n"
                             };
                         }
@@ -253,6 +258,7 @@ namespace AElf.Execution
             }
             catch (Exception ex)
             {
+                txCtxt.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
                 // TODO: Improve log
                 txCtxt.Trace.StdErr += ex + "\n";
             }
