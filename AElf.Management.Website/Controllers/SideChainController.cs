@@ -17,23 +17,23 @@ namespace AElf.Management.Website.Controllers
         }
 
         [HttpGet("{value}")]
-        public ApiResult Test(string value)
+        public ApiResult<string> Test(string value)
         {
-            return new TestResult {Value = value};
+            return new ApiResult<string>(value);
         }
 
         [HttpPost("{chainId}")]
-        public ApiResult Post(string chainId, [FromBody] DeployArg arg)
+        public ApiEmptyResult Post(string chainId, [FromBody] DeployArg arg)
         {
             _sideChainService.Deploy(chainId, arg);
-            return new ApiResult();
+            return ApiEmptyResult.Default;
         }
 
         [HttpDelete("{chainId}")]
-        public ApiResult Delete(string chainId)
+        public ApiEmptyResult Delete(string chainId)
         {
             _sideChainService.Remove(chainId);
-            return new ApiResult();
+            return ApiEmptyResult.Default;
         }
     }
 }
