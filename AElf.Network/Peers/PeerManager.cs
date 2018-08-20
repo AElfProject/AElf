@@ -452,7 +452,8 @@ namespace AElf.Network.Peers
             if (sender != null && eventArgs is IncomingConnectionArgs args)
             {
                 IPeer peer = CreatePeerFromConnection(args.Client);
-                // todo if null
+                peer.PeerDisconnected += ProcessClientDisconnection;
+                
                 StartAuthentification(peer);
             }
         }
