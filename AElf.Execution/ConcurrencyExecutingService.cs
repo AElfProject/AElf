@@ -85,7 +85,7 @@ namespace AElf.Execution
 
         private void InitWorkerServicePack()
         {
-            for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
+            for (var i = 0; i < ActorConfig.Instance.ActorCount; i++)
             {
                 var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker" + i);
                 worker.Tell(new LocalSerivcePack(_servicePack));
@@ -110,7 +110,7 @@ namespace AElf.Execution
             
             var workerPaths = new StringBuilder();
             workerPaths.Append("akka.actor.deployment./router.routees.paths = [");
-            for (var i = 0; i < ActorConfig.Instance.WorkerCount; i++)
+            for (var i = 0; i < ActorConfig.Instance.ActorCount; i++)
             {
                 workerPaths.Append("\"/user/worker" + i).Append("\"").Append(",");
             }

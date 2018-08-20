@@ -6,10 +6,13 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
-using AElf.Network.Config;
+using AElf.Configuration.Config.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
+using AElf.RPC;
+using Community.AspNetCore.JsonRpc;
 using Google.Protobuf;
+using Newtonsoft.Json.Linq;
 using NLog;
 
 [assembly:InternalsVisibleTo("AElf.Network.Tests")]
@@ -28,9 +31,7 @@ namespace AElf.Network.Peers
     public class PeerManager : IPeerManager
     {
         public event EventHandler PeerAdded;
-        
-        private readonly IAElfNetworkConfig _networkConfig;
-        
+                
         public const int TargetPeerCount = 8;
         
         private readonly ILogger _logger;
@@ -47,45 +48,58 @@ namespace AElf.Network.Peers
         
         private BlockingCollection<PeerManagerJob> _jobQueue;
 
-        public PeerManager(IAElfNetworkConfig config, IConnectionListener connectionListener, ILogger logger)
+        public PeerManager(IConnectionListener connectionListener, ILogger logger)
         {
             _jobQueue = new BlockingCollection<PeerManagerJob>();
             _connectionListener = connectionListener;
             _logger = logger;
-            _networkConfig = config;
         }
-        
+
         public void Start()
         {
-            Task.Run(() => _connectionListener.StartListening(_networkConfig.ListeningPort));
-            
+            Task.Run(() => _connectionListener.StartListening(NetworkConfig.Instance.ListeningPort));
+
             _connectionListener.IncomingConnection += OnIncomingConnection;
             _connectionListener.ListeningStopped += OnListeningStopped;
-            
+
             _maintenanceTimer = new System.Threading.Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
-            
-            if (_networkConfig != null)
+
+            // Add the provided bootnodes
+            if (NetworkConfig.Instance.Bootnodes != null && NetworkConfig.Instance.Bootnodes.Any())
             {
-                // Add the provided bootnodes
-                if (_networkConfig.Bootnodes != null && _networkConfig.Bootnodes.Any())
+                // todo add jobs
+                foreach (var btn in NetworkConfig.Instance.Bootnodes)
                 {
-                    // todo add jobs
-                    foreach (var btn in _networkConfig.Bootnodes)
-                    {
-                        var dialJob = new PeerManagerJob { Type = PeerManagerJobType.DialNode, Node = btn };
-                        _jobQueue.Add(dialJob);
-                    }
+                    NodeData nd = NodeData.FromString(btn);
+                    var dialJob = new PeerManagerJob {Type = PeerManagerJobType.DialNode, Node = nd};
+                    _jobQueue.Add(dialJob);
                 }
-                else
-                {
-                    _logger?.Trace("Warning : bootnode list is empty.");
-                }
-            
-                // todo consider removing the Peers option
-                // todo exceptions
+            }
+            else
+            {
+                _logger?.Trace("Warning : bootnode list is empty.");
             }
 
+            // todo consider removing the Peers option
+            // todo exceptions
+
             Task.Run(() => StartProcessing()).ConfigureAwait(false);
+        }
+
+        public async Task<JObject> GetPeers()
+        {
+            List<NodeData> pl = _peers.Select(p => p.DistantNodeData).ToList();
+            
+            PeerListData pldata = new PeerListData();
+            foreach (var peer in pl)
+            {
+                pldata.NodeData.Add(peer);
+            }
+
+             JObject peers = JObject.Parse(JsonFormatter.Default.Format(pldata));
+            peers["auth"] = _authentifyingPeer.Count;
+            
+            return peers;
         }
         
         private void StartProcessing()
@@ -149,18 +163,24 @@ namespace AElf.Network.Peers
         public void AddPeer(NodeData nodeData)
         {
             if (nodeData == null)
+            {
+                _logger?.Trace("Data is null, cannot add peer.");
                 return; // todo exception
+            }
             
             NodeDialer dialer = new NodeDialer(nodeData.IpAddress, nodeData.Port);
             TcpClient client = dialer.DialAsync().GetAwaiter().GetResult(); // todo async 
 
+            if (client == null)
+            {
+                _logger?.Trace($"Could not connect to {nodeData.IpAddress}:{nodeData.Port}, operation timed out.");
+                return;
+            }
+            
             IPeer peer = CreatePeerFromConnection(client);
             peer.PeerDisconnected += ProcessClientDisconnection;
             
             StartAuthentification(peer);
-            
-            // todo hookup disconnection
-            // todo start auth
         }
 
         /// <summary>
@@ -182,7 +202,7 @@ namespace AElf.Network.Peers
             MessageReader reader = new MessageReader(nsStream);
             MessageWriter writer = new MessageWriter(nsStream);
             
-            IPeer peer = new Peer(client, reader, writer, _networkConfig.ListeningPort);
+            IPeer peer = new Peer(client, reader, writer, NetworkConfig.Instance.ListeningPort);
             
             return peer;
         }
@@ -391,22 +411,6 @@ namespace AElf.Network.Peers
             {
                 _logger?.Error(e, "Invalid peer(s) - Could not receive peer(s) from the network", null);
             }
-        }
-        
-        /// <summary>
-        /// Removes a peer from the list of peers.
-        /// </summary>
-        /// <param name="peer">the peer to remove</param>
-        public void RemovePeer(IPeer peer)
-        {
-            if (peer == null)
-                return;
-            
-            _peers.Remove(peer);
-            
-            _logger?.Trace("Peer removed : " + peer);
-            
-            //PeerRemoved?.Invoke(this, new PeerRemovedEventArgs { Peer = peer });
         }
 
         #endregion

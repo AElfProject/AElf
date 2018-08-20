@@ -48,7 +48,7 @@ namespace AElf.Database
             }
             catch (Exception ex)
             {
-                return false;
+                throw ex;
             }
         }
     }

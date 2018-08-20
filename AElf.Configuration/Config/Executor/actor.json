@@ -2,7 +2,7 @@
     "IsCluster": false,
     "HostName": "127.0.0.1",
     "Port": 0,
-    "WorkerCount": 8,
+    "ActorCount": 8,
     "Benchmark":false,
     "ConcurrencyLevel": 16,
     "Seeds": [

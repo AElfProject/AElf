@@ -76,7 +76,7 @@ namespace AElf.ABI.CSharp
                 {
                     var length = s.Length;
                     length -= IsHex(s) ? 2 : 0;
-                    if (length != 36)
+                    if (length != 36 && length != 64)
                     {
                         throw new Exception("Hash has to be a byte array of fixed length.");
                     }

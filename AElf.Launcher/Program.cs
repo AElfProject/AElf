@@ -14,14 +14,13 @@ using AElf.Kernel;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
 using AElf.Configuration;
-using AElf.Kernel.TxMemPool;
+using AElf.Configuration.Config.Network;
 using AElf.Network;
-using AElf.Network.Config;
 using AElf.Runtime.CSharp;
 using AElf.SideChain.Creation;
 using AElf.SmartContract;
-using AsyncEventAggregator;
 using Autofac;
+using Easy.MessageHub;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ServiceStack;
@@ -53,14 +52,12 @@ namespace AElf.Launcher
             if (!parsed)
                 return;
 
-            var netConf = confParser.NetConfig;
             var minerConfig = confParser.MinerConfig;
-            var nodeConfig = confParser.NodeConfig;
             var isMiner = confParser.IsMiner;
             var isNewChain = confParser.NewChain;
             var initData = confParser.InitData;
-            nodeConfig.IsChainCreator = confParser.NewChain;
-            nodeConfig.ConsensusInfoGenerater = confParser.IsConsensusInfoGenerater;
+            NodeConfig.Instance.IsChainCreator = confParser.NewChain;
+            NodeConfig.Instance.ConsensusInfoGenerater = confParser.IsConsensusInfoGenerater;
 
             var runner = new SmartContractRunner(confParser.RunnerConfig);
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
@@ -73,12 +70,15 @@ namespace AElf.Launcher
             {
                 try
                 {
-                    var ks = new AElfKeyStore(nodeConfig.DataDir);
+                    var ks = new AElfKeyStore(NodeConfig.Instance.DataDir);
                     var pass = string.IsNullOrWhiteSpace(confParser.NodeAccountPassword)
                         ? AskInvisible(confParser.NodeAccount)
                         : confParser.NodeAccountPassword;
                     ks.OpenAsync(confParser.NodeAccount, pass, false);
 
+                    ManagementConfig.Instance.NodeAccount = confParser.NodeAccount;
+                    ManagementConfig.Instance.NodeAccountPassword = pass;
+                    
                     nodeKey = ks.GetAccountKeyPair(confParser.NodeAccount);
                     if (nodeKey == null)
                     {
@@ -95,8 +95,8 @@ namespace AElf.Launcher
             txPoolConf.EcKeyPair = nodeKey;
 
             // Setup ioc 
-            var container = SetupIocContainer(isMiner, isNewChain, netConf, txPoolConf,
-                minerConfig, nodeConfig, smartContractRunnerFactory);
+            var container = SetupIocContainer(isMiner, isNewChain, txPoolConf,
+                minerConfig, smartContractRunnerFactory);
 
             if (container == null)
             {
@@ -117,9 +117,9 @@ namespace AElf.Launcher
                 concurrencySercice.InitActorSystem();
 
                 var evListener = scope.Resolve<ChainCreationEventListener>();
-                evListener.Subscribe<IBlock>(async (t) =>
+                MessageHub.Instance.Subscribe<IBlock>(async (t) =>
                 {
-                    await evListener.OnBlockAppended(t.Result);
+                    await evListener.OnBlockAppended(t);
                 });
                 
                 var node = scope.Resolve<IAElfNode>();
@@ -127,15 +127,15 @@ namespace AElf.Launcher
                 node.Start(nodeKey, TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero);
 
                 var txPoolService = scope.Resolve<ITxPoolService>();
-                node.Subscribe<IncomingTransaction>(
-                    async (inTx) => { await txPoolService.AddTxAsync((await inTx).Transaction); });
+                MessageHub.Instance.Subscribe<IncomingTransaction>(
+                    async (inTx) => { await txPoolService.AddTxAsync(inTx.Transaction); });
 
                 var netManager = scope.Resolve<INetworkManager>();
-                netManager.Subscribe<TransactionAddedToPool>(
+                MessageHub.Instance.Subscribe<TransactionAddedToPool>(
                     async (txAdded) =>
                     {
                         await netManager.BroadcastMessage(AElfProtocolType.BroadcastTx,
-                            (await txAdded).Transaction.Serialize());
+                            txAdded.Transaction.Serialize());
                     }
                 );
 
@@ -202,8 +202,8 @@ namespace AElf.Launcher
             }
         }
 
-        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, IAElfNetworkConfig netConf,
-            ITxPoolConfig txPoolConf, IMinerConfig minerConf, INodeConfig nodeConfig,
+        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, 
+            ITxPoolConfig txPoolConf, IMinerConfig minerConf,
             SmartContractRunnerFactory smartContractRunnerFactory)
         {
             var builder = new ContainerBuilder();
@@ -216,9 +216,9 @@ namespace AElf.Launcher
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new TransactionManagerModule());
             builder.RegisterModule(new WorldStateDictatorModule());
-            builder.RegisterModule(new LoggerModule("aelf-node-" + netConf.ListeningPort));
+            builder.RegisterModule(new LoggerModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
             builder.RegisterModule(new DatabaseModule());
-            builder.RegisterModule(new NetworkModule(netConf, isMiner));
+            builder.RegisterModule(new NetworkModule(isMiner));
             builder.RegisterModule(new RpcServicesModule());
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
@@ -255,8 +255,8 @@ namespace AElf.Launcher
             minerConfiguration.ChainId = chainId;
             builder.RegisterModule(new MinerModule(minerConfiguration));
 
-            nodeConfig.ChainId = chainId.Value.ToByteArray();
-            builder.RegisterModule(new MainChainNodeModule(nodeConfig));
+            NodeConfig.Instance.ChainId = chainId.Value.ToByteArray().ToHex();
+            builder.RegisterModule(new MainChainNodeModule());
 
             txPoolConf.ChainId = chainId;
             builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
@@ -277,7 +277,15 @@ namespace AElf.Launcher
         private static bool CheckDbConnect(IComponentContext container)
         {
             var db = container.Resolve<IKeyValueDatabase>();
-            return db.IsConnected();
+            try
+            {
+                return db.IsConnected();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
         }
 
         private static string AskInvisible(string prefix)

@@ -5,6 +5,8 @@ using System.Data.JsonRpc;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
@@ -142,7 +144,7 @@ namespace AElf.ChainController.Rpc
             try
             {
                 // ReSharper disable once InconsistentNaming
-                var idInDB = (await s.AccountContextService.GetAccountDataContext(addr, s.NodeConfig.ChainId))
+                var idInDB = (await s.AccountContextService.GetAccountDataContext(addr, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)))
                     .IncrementId;
                 var idInPool = s.TxPoolService.GetIncrementId(addr);
 
@@ -172,7 +174,7 @@ namespace AElf.ChainController.Rpc
 
         internal static Hash GetGenesisContractHash(this Svc s, SmartContractType contractType)
         {
-            return s.ChainCreationService.GenesisContractHash(s.NodeConfig.ChainId, contractType);
+            return s.ChainCreationService.GenesisContractHash(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), contractType);
         }
 
         internal static async Task<IEnumerable<string>> GetTransactionParameters(this Svc s, Transaction tx)
@@ -182,13 +184,13 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<ulong> GetCurrentChainHeight(this Svc s)
         {
-            var chainContext = await s.ChainContextService.GetChainContextAsync(s.NodeConfig.ChainId);
+            var chainContext = await s.ChainContextService.GetChainContextAsync(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
             return chainContext.BlockHeight;
         }
 
         internal static async Task<Block> GetBlockAtHeight(this Svc s, ulong height)
         {
-            var blockchain = s.ChainService.GetBlockChain(s.NodeConfig.ChainId);
+            var blockchain = s.ChainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
             return (Block) await blockchain.GetBlockByHeightAsync(height);
         }
 
@@ -209,7 +211,7 @@ namespace AElf.ChainController.Rpc
                 TransactionId = tx.GetHash()
             };
 
-            var chainContext = await s.ChainContextService.GetChainContextAsync(s.NodeConfig.ChainId);
+            var chainContext = await s.ChainContextService.GetChainContextAsync(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
             var txCtxt = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
@@ -218,7 +220,7 @@ namespace AElf.ChainController.Rpc
                 BlockHeight = chainContext.BlockHeight
             };
 
-            var executive = await s.SmartContractService.GetExecutiveAsync(tx.To, s.NodeConfig.ChainId);
+            var executive = await s.SmartContractService.GetExecutiveAsync(tx.To, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
 
             try
             {

@@ -21,7 +21,7 @@ namespace AElf.Network.Tests.NetworkManagerTests
             Mock<IPeer> secondPeer = new Mock<IPeer>();
             secondPeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
             
-            NetworkManager manager = new NetworkManager(null, peerManager.Object, null);
+            NetworkManager manager = new NetworkManager(peerManager.Object, null);
             peerManager.Raise(m => m.PeerAdded += null, new PeerAddedEventArgs { Peer = firstPeer.Object });
             peerManager.Raise(m => m.PeerAdded += null, new PeerAddedEventArgs { Peer = secondPeer.Object });
 
@@ -43,7 +43,7 @@ namespace AElf.Network.Tests.NetworkManagerTests
             Mock<IPeer> firstPeer = new Mock<IPeer>();
             firstPeer.Setup(m => m.EnqueueOutgoing(It.IsAny<Message>()));
             
-            NetworkManager manager = new NetworkManager(null, peerManager.Object, null);
+            NetworkManager manager = new NetworkManager(peerManager.Object, null);
             
             // Set tries to 1 : no retries.
             manager.RequestMaxRetry = 1;
