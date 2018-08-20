@@ -143,8 +143,8 @@ namespace AElf.Execution
                     trace = new TransactionTrace()
                     {
                         TransactionId = tx.GetHash(),
-                        ExecutionStatus = ExecutionStatus.SystemError,
-                        StdErr = "Execution Cancelled"
+                        ExecutionStatus = ExecutionStatus.Canceled,
+                        StdErr = "Execution Canceled"
                     };
                 }
                 else
@@ -258,7 +258,7 @@ namespace AElf.Execution
             }
             catch (Exception ex)
             {
-                txCtxt.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
+                txCtxt.Trace.ExecutionStatus = ExecutionStatus.SystemError;
                 // TODO: Improve log
                 txCtxt.Trace.StdErr += ex + "\n";
             }
