@@ -19,6 +19,11 @@
   <ItemGroup>
     <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="IParallelTransactionExecutingService.cs" />
+    <Compile Remove="IConcurrencyExecutingService.cs" />
+    <Compile Remove="ConcurrencyExecutingService.cs" />
+  </ItemGroup>
   <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
     <Exec Command="protoc --proto_path=../AElf.Kernel.Types/Protobuf/Proto/ --csharp_out=./Protobuf/Generated --csharp_opt=file_extension=.g.cs ../AElf.Kernel.Types/Protobuf/Proto/execution.proto" />
   </Target>

@@ -1,5 +1,4 @@
 ﻿using System;
-using AElf.Launcher;
 using NLog;
 
 namespace AElf.Concurrency.Manager

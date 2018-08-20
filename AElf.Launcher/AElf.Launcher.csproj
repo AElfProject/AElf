@@ -7,6 +7,7 @@
     <ProjectReference Include="..\AElf.Contracts.Consensus\AElf.Contracts.Consensus.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Token\AElf.Contracts.Token.csproj" />
+    <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj">
       <Project>{C7B2F451-DF68-4FBB-AEA1-020F17BB6598}</Project>
       <Name>AElf.Kernel.Modules.AutofacModule</Name>

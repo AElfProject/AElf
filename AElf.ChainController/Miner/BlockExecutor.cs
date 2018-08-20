@@ -7,8 +7,6 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using NLog;
 using AElf.Kernel;
-using AElf.Execution;
-using AElf.ChainController.Execution;
 using AElf.SmartContract;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
@@ -23,19 +21,18 @@ namespace AElf.ChainController
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IWorldStateDictator _worldStateDictator;
-        private readonly IConcurrencyExecutingService _concurrencyExecutingService;
-        private IGrouper _grouper;
+        private readonly IExecutingService _executingService;
         private ILogger _logger;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
             IWorldStateDictator worldStateDictator,
-            IConcurrencyExecutingService concurrencyExecutingService, 
+            IExecutingService executingService, 
             ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             _txPoolService = txPoolService;
             _chainService = chainService;
             _worldStateDictator = worldStateDictator;
-            _concurrencyExecutingService = concurrencyExecutingService;
+            _executingService = executingService;
             _logger = logger;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
@@ -120,10 +117,10 @@ namespace AElf.ChainController
                     await Rollback(readyTxs);
                     return false;
                 }
-                
+
                 var traces = readyTxs.Count == 0
                     ? new List<TransactionTrace>()
-                    : await _concurrencyExecutingService.ExecuteAsync(readyTxs, block.Header.ChainId, _grouper);
+                    : await _executingService.ExecuteAsync(readyTxs, block.Header.ChainId, Cts.Token);
                 
                 foreach (var trace in traces)
                 {
@@ -221,10 +218,9 @@ namespace AElf.ChainController
             await _worldStateDictator.RollbackCurrentChangesAsync();
         }
         
-        public void Start(IGrouper grouper)
+        public void Start()
         {
             Cts = new CancellationTokenSource();
-            _grouper = grouper;
         }
     }
 }
