@@ -7,13 +7,13 @@ namespace AElf.ChainController
     public interface IMiner
     {
         void Start(ECKeyPair nodeKeyPair);
-        void Stop();
+//        void Stop();
 
         Hash Coinbase { get; }
         /// <summary>
         /// mining functionality
         /// </summary>
         /// <returns></returns>
-        Task<IBlock> Mine();
+        Task<IBlock> Mine(int timeoutMilliseconds);
     }
 }

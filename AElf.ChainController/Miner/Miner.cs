@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,6 +12,7 @@ using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 using AElf.SmartContract;
 using AElf.Kernel;
 using NLog;
+using NServiceKit.Common.Extensions;
 
 namespace AElf.ChainController
 {
@@ -31,19 +32,19 @@ namespace AElf.ChainController
 
         private MinerLock Lock { get; } = new MinerLock();
         private readonly ILogger _logger;
-        
+
         /// <summary>
         /// Signals to a CancellationToken that mining should be canceled
         /// </summary>
-        public CancellationTokenSource Cts { get; private set; }
-        
+//        public CancellationTokenSource Cts { get; private set; }
+
         public IMinerConfig Config { get; }
 
         public Hash Coinbase => Config.CoinBase;
 
-        public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
-            IWorldStateDictator worldStateDictator,  ISmartContractService smartContractService, 
-            IExecutingService executingService, ITransactionManager transactionManager, 
+        public Miner(IMinerConfig config, ITxPoolService txPoolService, IChainService chainService,
+            IWorldStateDictator worldStateDictator, ISmartContractService smartContractService,
+            IExecutingService executingService, ITransactionManager transactionManager,
             ITransactionResultManager transactionResultManager, ILogger logger)
         {
             Config = config;
@@ -57,87 +58,135 @@ namespace AElf.ChainController
             _logger = logger;
         }
 
-        
-        public async Task<IBlock> Mine()
+
+        public async Task<IBlock> Mine(int timeoutMilliseconds)
         {
-            try
+            // ReSharper disable once AccessToDisposedClosure
+            using (var cancellationTokenSource = new CancellationTokenSource())
+            using (var timer = new Timer((s) => cancellationTokenSource.Cancel()))
             {
-                if (Cts == null || Cts.IsCancellationRequested)
-                    return null;            
-
-                var readyTxs = await _txPoolService.GetReadyTxsAsync();
-                // TODO：dispatch txs with ISParallel, return list of tx results
-
-                // reset Promotable and update account context
-                
-                _logger?.Log(LogLevel.Debug, "Executing Transactions..");
-
-                var blockChain = _chainService.GetBlockChain(Config.ChainId);
-                var traces = readyTxs.Count == 0
-                    ? new List<TransactionTrace>()
-                    : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, Cts.Token);
-                _logger?.Log(LogLevel.Debug, "End Executing Transactions..");
-                var results = new List<TransactionResult>();
-                foreach (var trace in traces)
+                timer.Change(timeoutMilliseconds, Timeout.Infinite);
+                try
                 {
-                    var res = new TransactionResult()
+                    if (cancellationTokenSource.IsCancellationRequested)
+                        return null;
+
+                    var readyTxs = await _txPoolService.GetReadyTxsAsync();
+                    // TODO：dispatch txs with ISParallel, return list of tx results
+
+                    // reset Promotable and update account context
+
+                    _logger?.Log(LogLevel.Debug, "Executing Transactions..");
+
+                    var blockChain = _chainService.GetBlockChain(Config.ChainId);
+                    var traces = readyTxs.Count == 0
+                        ? new List<TransactionTrace>()
+                        : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, cancellationTokenSource.Token);
+                    _logger?.Log(LogLevel.Debug, "End Executing Transactions..");
+                    var canceledTxIds = new List<Hash>();
+                    var results = new List<TransactionResult>();
+                    foreach (var trace in traces)
                     {
-                        TransactionId = trace.TransactionId
-                    };
-                    if (trace.IsSuccessful())
-                    {
-                        res.Logs.AddRange(trace.FlattenedLogs);
-                        res.Status = Status.Mined;
-                        res.RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes());
-                        res.UpdateBloom();
+                        switch (trace.ExecutionStatus)
+                        {
+                            case ExecutionStatus.Canceled:
+                                // Put back transaction
+                                canceledTxIds.Add(trace.TransactionId);
+                                break;
+                            case ExecutionStatus.ExecutedAndCommitted:
+                                // Successful
+                                var txRes = new TransactionResult()
+                                {
+                                    TransactionId = trace.TransactionId,
+                                    Status = Status.Mined,
+                                    RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes())
+                                };
+                                txRes.UpdateBloom();
+                                results.Add(txRes);
+                                break;
+                            case ExecutionStatus.ContractError:
+                                var txResF = new TransactionResult()
+                                {
+                                    TransactionId = trace.TransactionId,
+                                    Status = Status.Failed,
+                                    RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes())
+                                };
+                                results.Add(txResF);
+                                break;
+                            case ExecutionStatus.Undefined:
+                                _logger?.Fatal(
+                                    $@"Transaction Id ""{
+                                            trace.TransactionId
+                                        } is executed with status Undefined. Transaction trace: {trace}""");
+                                break;
+                            case ExecutionStatus.SystemError:
+                                // SystemError shouldn't happen, and need to fix
+                                _logger?.Fatal(
+                                    $@"Transaction Id ""{
+                                            trace.TransactionId
+                                        } is executed with status SystemError. Transaction trace: {trace}""");
+                                break;
+                            case ExecutionStatus.ExecutedButNotCommitted:
+                                // If this happens, there's problem with the code
+                                _logger?.Fatal(
+                                    $@"Transaction Id ""{
+                                            trace.TransactionId
+                                        } is executed with status ExecutedButNotCommitted. Transaction trace: {
+                                            trace
+                                        }""");
+                                break;
+                        }
                     }
-                    else
+
+                    // insert txs to db
+                    // update tx pool state
+                    var addrs = await InsertTxs(readyTxs, results);
+                    await _txPoolService.UpdateAccountContext(addrs);
+
+                    _logger?.Log(LogLevel.Debug, "Generating block..");
+                    // generate block
+                    var block = await GenerateBlockAsync(Config.ChainId, results);
+
+                    block.Header.Bloom = ByteString.CopyFrom(
+                        Bloom.AndMultipleBloomBytes(
+                            results.Where(x => !x.Bloom.IsEmpty).Select(x => x.Bloom.ToByteArray())
+                        )
+                    );
+                    _logger?.Log(LogLevel.Debug, "Generating block End..");
+
+                    // sign block
+                    ECSigner signer = new ECSigner();
+                    var hash = block.GetHash();
+                    var bytes = hash.GetHashBytes();
+                    ECSignature signature = signer.Sign(_keyPair, bytes);
+
+                    block.Header.P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded());
+                    block.Header.R = ByteString.CopyFrom(signature.R);
+                    block.Header.S = ByteString.CopyFrom(signature.S);
+
+                    // append block
+                    await blockChain.AddBlocksAsync(new List<IBlock>() {block});
+
+                    // put back canceled transactions
+                    var canceled = canceledTxIds.ToHashSet();
+                    foreach (var tx in readyTxs)
                     {
-                        res.Status = Status.Failed;
-                        res.RetVal = ByteString.CopyFromUtf8(trace.StdErr);
-                        Console.WriteLine("Failed to execute tx:\n" + trace.StdErr);
+                        if (canceled.Contains(tx.GetHash()))
+                        {
+                            await _txPoolService.AddTxAsync(tx);
+                        }
                     }
-                    results.Add(res);
+
+                    return block;
                 }
-                
-                // insert txs to db
-                // update tx pool state
-                var addrs = await InsertTxs(readyTxs, results);
-                await _txPoolService.UpdateAccountContext(addrs);
-            
-                _logger?.Log(LogLevel.Debug, "Generating block..");
-                // generate block
-                var block = await GenerateBlockAsync(Config.ChainId, results);
-
-                block.Header.Bloom =ByteString.CopyFrom( 
-                    Bloom.AndMultipleBloomBytes(
-                        results.Where(x=>!x.Bloom.IsEmpty).Select(x=>x.Bloom.ToByteArray())
-                    )
-                );
-                _logger?.Log(LogLevel.Debug, "Generating block End..");
-
-                // sign block
-                ECSigner signer = new ECSigner();
-                var hash = block.GetHash();
-                var bytes = hash.GetHashBytes();
-                ECSignature signature = signer.Sign(_keyPair, bytes);
-
-                block.Header.P = ByteString.CopyFrom(_keyPair.PublicKey.Q.GetEncoded());
-                block.Header.R = ByteString.CopyFrom(signature.R);
-                block.Header.S = ByteString.CopyFrom(signature.S);
-
-                // append block
-                await blockChain.AddBlocksAsync(new List<IBlock>(){ block });
-  
-                return block;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return null;
+                catch (Exception e)
+                {
+                    _logger?.Error(e, "Mining failed with exception.");
+                    return null;
+                }
             }
         }
-        
+
         /// <summary>
         /// update database
         /// </summary>
@@ -151,14 +200,11 @@ namespace AElf.ChainController
                 addrs.Add(t.From);
                 await _transactionManager.AddTransactionAsync(t);
             }
-            
-            txResults.ForEach(async r =>
-            {
-                await _transactionResultManager.AddTransactionResultAsync(r);
-            });
+
+            txResults.ForEach(async r => { await _transactionResultManager.AddTransactionResultAsync(r); });
             return addrs;
         }
-        
+
         /// <summary>
         /// generate block
         /// </summary>
@@ -168,7 +214,7 @@ namespace AElf.ChainController
         public async Task<IBlock> GenerateBlockAsync(Hash chainId, IEnumerable<TransactionResult> results)
         {
             var blockChain = _chainService.GetBlockChain(chainId);
-            
+
             var currentBlockHash = await blockChain.GetCurrentBlockHashAsync();
             var index = await blockChain.GetCurrentBlockHeightAsync() + 1;
             var block = new Block(currentBlockHash)
@@ -185,13 +231,13 @@ namespace AElf.ChainController
             {
                 block.AddTransaction(r.TransactionId);
             }
-        
+
             _logger?.Log(LogLevel.Debug, "Calculating MK Tree Root..");
             // calculate and set tx merkle tree root
             block.FillTxsMerkleTreeRootInHeader();
             _logger?.Log(LogLevel.Debug, "Calculating MK Tree Root End..");
 
-            
+
             // set ws merkle tree root
             await _worldStateDictator.SetWorldStateAsync(currentBlockHash);
             _logger?.Log(LogLevel.Debug, "End Set WS..");
@@ -205,12 +251,12 @@ namespace AElf.ChainController
                 block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
                 _logger?.Log(LogLevel.Debug, "End GetWorldStateMerkleTreeRootAsync");
             }
-               
+
             block.Body.BlockHeader = block.Header.GetHash();
             return block;
         }
-        
-        
+
+
         /// <summary>
         /// generate block header
         /// </summary>
@@ -221,7 +267,7 @@ namespace AElf.ChainController
         {
             // get ws merkle tree root
             var blockChain = _chainService.GetBlockChain(chainId);
-            
+
             var lastBlockHash = await blockChain.GetCurrentBlockHashAsync();
             // TODO: Generic IBlockHeader
             var lastHeader = (BlockHeader) await blockChain.GetHeaderByHashAsync(lastBlockHash);
@@ -229,11 +275,11 @@ namespace AElf.ChainController
             var block = new Block(lastBlockHash);
             block.Header.Index = index + 1;
             block.Header.ChainId = chainId;
-            
-            
+
+
             var ws = await _worldStateDictator.GetWorldStateAsync(lastBlockHash);
             var state = await ws.GetWorldStateMerkleTreeRootAsync();
-            
+
             var header = new BlockHeader
             {
                 Version = 0,
@@ -243,17 +289,15 @@ namespace AElf.ChainController
             };
 
             return header;
-
         }
-        
 
-        
+
         /// <summary>
         /// start mining  
         /// </summary>
         public void Start(ECKeyPair nodeKeyPair)
         {
-            Cts = new CancellationTokenSource();
+//            Cts = new CancellationTokenSource();
             _keyPair = nodeKeyPair;
             //MiningResetEvent = new AutoResetEvent(false);
         }
@@ -265,16 +309,14 @@ namespace AElf.ChainController
         {
             Lock.WriteLock(() =>
             {
-                Cts.Cancel();
-                Cts.Dispose();
+//                Cts.Cancel();
+//                Cts.Dispose();
                 _keyPair = null;
                 //MiningResetEvent.Dispose();
             });
-            
         }
-
     }
-    
+
     /// <inheritdoc />
     /// <summary>
     /// A lock for managing asynchronous access to memory pool.

@@ -47,7 +47,7 @@ namespace AElf.Kernel.Node
                 if (count >= Globals.ExpectedTransanctionCount)
                 {
                     _logger?.Trace("Will produce one block.");
-                    var block = await _miner.Mine();
+                    var block = await _miner.Mine(Globals.AElfDPoSMiningInterval * 9 / 10);
                     await _p2p.BroadcastBlock(block);
                 }
             }
