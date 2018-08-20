@@ -12,12 +12,11 @@ namespace AElf.Configuration.Tests
     {
         private readonly List<string> _fileNames = new List<string>();
 
-        public ConfigBaseTest()
-        {
-            ConfigManager.ConfigFilePaths.Insert(0, "aelfconfig/");
-        }
+//        public ConfigBaseTest()
+//        {
+//            ConfigManager.ConfigFilePaths.Insert(0, "aelfconfig/");
+//        }
 
-        
         [Fact]
         public void FromFileTest()
         {
@@ -61,7 +60,6 @@ namespace AElf.Configuration.Tests
 
             Assert.True(sringValue == "SetValue");
         }
-        
 
         private void CheckAndCreateFile(string fileName)
         {
@@ -73,8 +71,8 @@ namespace AElf.Configuration.Tests
             if (!File.Exists(filePath))
             {
                 File.AppendAllText(filePath, "{\"stringvalue\":\"sting\",\"IntValue\":9}");
+                _fileNames.Add(fileName);
             }
-            _fileNames.Add(fileName);
         }
 
         private void DeleteFiles(List<string> fileNames)
