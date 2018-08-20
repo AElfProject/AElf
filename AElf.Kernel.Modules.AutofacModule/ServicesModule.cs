@@ -1,9 +1,7 @@
-﻿
-using Autofac;
+﻿using Autofac;
 using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.SmartContract.Metadata;
-using AElf.Execution;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
@@ -16,7 +14,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             builder.RegisterType<TransactionResultService>().As<ITransactionResultService>();
             builder.RegisterType<SmartContractService>().As<ISmartContractService>();
             builder.RegisterType<AccountContextService>().As<IAccountContextService>().SingleInstance();
-            builder.RegisterType<ConcurrencyExecutingService>().As<IConcurrencyExecutingService>();
+//            builder.RegisterType<ConcurrencyExecutingService>().As<IExecutingService>();
             builder.RegisterType<FunctionMetadataService>().As<IFunctionMetadataService>();
             builder.RegisterType<ChainService>().As<IChainService>();
         }
