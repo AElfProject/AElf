@@ -110,7 +110,6 @@ namespace AElf.Launcher
                 return;
             }
 
-
             using (var scope = container.BeginLifetimeScope())
             {
                 var concurrencySercice = scope.Resolve<IConcurrencyExecutingService>();
@@ -215,11 +214,12 @@ namespace AElf.Launcher
             builder.RegisterModule(new ManagersModule());
             builder.RegisterModule(new MetadataModule());
             builder.RegisterModule(new TransactionManagerModule());
-            builder.RegisterModule(new WorldStateDictatorModule());
+            builder.RegisterModule(new StateDictatorModule());
             builder.RegisterModule(new LoggerModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
             builder.RegisterModule(new DatabaseModule());
             builder.RegisterModule(new NetworkModule(isMiner));
             builder.RegisterModule(new RpcServicesModule());
+            builder.RegisterModule(new StorageModule());
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
 

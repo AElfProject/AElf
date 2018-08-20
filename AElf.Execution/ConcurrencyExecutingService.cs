@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -24,9 +25,11 @@ namespace AElf.Execution
         
         public Task TerminationHandle => _actorSystem.WhenTerminated;
 
-        public ConcurrencyExecutingService(IChainContextService chainContextService, ISmartContractService smartContractService, IFunctionMetadataService functionMetadataService, IStateDictator stateDictator, IAccountContextService accountContextService)
+        public ConcurrencyExecutingService(IChainContextService chainContextService,
+            ISmartContractService smartContractService, IFunctionMetadataService functionMetadataService,
+            IStateDictator stateDictator, IAccountContextService accountContextService)
         {
-            _servicePack = new ServicePack()
+            _servicePack = new ServicePack
             {
                 ChainContextService = chainContextService,
                 SmartContractService = smartContractService,
@@ -34,9 +37,7 @@ namespace AElf.Execution
                 StateDictator = stateDictator,
                 AccountContextService = accountContextService,
             };
-            
-            //TODO: Remove related config (because no need)
-            //_servicePack.WorldStateDictator.DeleteChangeBeforesImmidiately = ActorConfig.Instance.Benchmark;
+
             _isInit = false;
         }
 
