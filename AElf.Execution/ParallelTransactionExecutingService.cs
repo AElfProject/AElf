@@ -8,7 +8,7 @@ using Akka.Actor;
 using ServiceStack.Text;
 using AElf.Kernel;
 using AElf.Configuration;
-using AElf.ChainController.Execution;
+using AElf.Execution.Scheduling;
 using AElf.SmartContract;
 
 namespace AElf.Execution

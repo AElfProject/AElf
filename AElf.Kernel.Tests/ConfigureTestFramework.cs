@@ -1,6 +1,5 @@
 ﻿using AElf.SmartContract;
 using AElf.ChainController;
-using AElf.ChainController.Execution;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel.Modules.AutofacModule;

@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Types;
-using AElf.ChainController.Execution;
 using AElf.Kernel;
 
 namespace AElf.ChainController

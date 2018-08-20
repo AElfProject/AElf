@@ -1,9 +1,7 @@
-﻿
-using Autofac;
+﻿using Autofac;
 using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.SmartContract.Metadata;
-using AElf.Execution;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {

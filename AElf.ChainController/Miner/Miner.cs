@@ -10,10 +10,8 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 using AElf.SmartContract;
-using AElf.Execution;
 using AElf.Kernel;
-using AElf.ChainController.Execution;
- using NLog;
+using NLog;
 
 namespace AElf.ChainController
 {

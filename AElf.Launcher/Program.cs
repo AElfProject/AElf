@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
-using AElf.ChainController.Execution;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;

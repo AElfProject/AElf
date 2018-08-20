@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.ChainController.Execution;
 
 namespace AElf.ChainController
 {

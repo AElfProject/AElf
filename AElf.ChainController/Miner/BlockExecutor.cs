@@ -7,8 +7,6 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using NLog;
 using AElf.Kernel;
-using AElf.Execution;
-using AElf.ChainController.Execution;
 using AElf.SmartContract;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;

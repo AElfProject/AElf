@@ -1,6 +1,5 @@
 ﻿using Autofac;
 using AElf.ChainController;
-using AElf.Execution;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {

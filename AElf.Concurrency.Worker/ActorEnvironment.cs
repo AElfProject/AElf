@@ -10,7 +10,6 @@ using Akka.Routing;
 using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Configuration;
-using AElf.ChainController.Execution;
 using AElf.Execution;
 using Google.Protobuf.WellKnownTypes;
 
