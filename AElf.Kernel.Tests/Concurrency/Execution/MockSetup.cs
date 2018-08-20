@@ -58,6 +58,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private IChainService _chainService;
         private IFunctionMetadataService _functionMetadataService;
         private ILogger _logger;
+        public IActorEnvironment ActorEnvironment { get; private set; }
 
         private ISmartContractRunnerFactory _smartContractRunnerFactory;
 
@@ -66,9 +67,14 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             ITransactionStore transactionStore, IChainCreationService chainCreationService,
             IChainService chainService, ISmartContractStore smartContractStore,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger)
+            ISmartContractRunnerFactory smartContractRunnerFactory, ITxPoolService txPoolService, ILogger logger, IActorEnvironment actorEnvironment)
         {
             _logger = logger;
+            ActorEnvironment = actorEnvironment;
+            if (!ActorEnvironment.Initialized)
+            {
+                ActorEnvironment.InitActorSystem();
+            }
             _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore,
                 blockHeaderStore, blockBodyStore, transactionStore, _logger);
             _chainCreationService = chainCreationService;
