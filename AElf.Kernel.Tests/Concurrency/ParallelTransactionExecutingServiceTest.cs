@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -50,10 +51,10 @@ namespace AElf.Kernel.Tests.Concurrency
                 10
             };
 
-            var service = new ParallelTransactionExecutingService(_mock.Requestor,
+            var service = new ParallelTransactionExecutingService(_mock.ActorEnvironment,
                 new Grouper(_mock.ServicePack.ResourceDetectionService));
 
-            var traces = await service.ExecuteAsync(txs, _mock.ChainId1);
+            var traces = await service.ExecuteAsync(txs, _mock.ChainId1, CancellationToken.None);
 
             foreach (var txTrace in txs.Zip(traces, Tuple.Create))
             {
@@ -115,10 +116,10 @@ namespace AElf.Kernel.Tests.Concurrency
                 10
             };
 
-            var service = new ParallelTransactionExecutingService(_mock.Requestor,
+            var service = new ParallelTransactionExecutingService(_mock.ActorEnvironment,
                 new Grouper(_mock.ServicePack.ResourceDetectionService));
 
-            var traces = await service.ExecuteAsync(txs, _mock.ChainId1);
+            var traces = await service.ExecuteAsync(txs, _mock.ChainId1, CancellationToken.None);
 
             foreach (var txTrace in txs.Zip(traces, Tuple.Create))
             {
