@@ -1,5 +1,6 @@
 ﻿using AElf.ChainController.Rpc;
 using AElf.Net.Rpc;
+using AElf.Wallet.Rpc;
 using Autofac;
 
 namespace AElf.Kernel.Modules.AutofacModule
@@ -10,6 +11,7 @@ namespace AElf.Kernel.Modules.AutofacModule
         {
             builder.RegisterType<ChainControllerRpcService>().PropertiesAutowired();
             builder.RegisterType<NetRpcService>().PropertiesAutowired();
+            builder.RegisterType<WalletRpcService>().PropertiesAutowired();
         }
     }
 }
