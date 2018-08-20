@@ -23,6 +23,12 @@
     <Compile Remove="Concurrency\Scheduling\IBatcher.cs" />
     <Compile Remove="Managers\IBlockManager.cs" />
     <Compile Remove="Managers\IChainManager.cs" />
+    <Compile Remove="Storages\ICanonicalHashStore.cs" />
+    <Compile Remove="Storages\ICurrentHashStore.cs" />
+    <Compile Remove="Storages\IGenesisHashStore.cs" />
+    <Compile Remove="Storages\GenesisHashStore.cs" />
+    <Compile Remove="Storages\CurrentHashStore.cs" />
+    <Compile Remove="Storages\CanonicalHashStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Akka.Cluster" Version="1.3.8" />

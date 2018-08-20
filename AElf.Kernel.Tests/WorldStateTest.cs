@@ -28,11 +28,9 @@ namespace AElf.Kernel.Tests
         private readonly IChainService _chainService;
         private readonly IChainManagerBasic _chainManager;
         private readonly IBlockManagerBasic _blockManger;
-        private readonly ICanonicalHashStore _canonicalHashStore;
 
         public WorldStateTest(IDataStore dataStore, BlockTest blockTest, ILogger logger,
-            ITxPoolService txPoolService, IChainService chainService, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
-            ICanonicalHashStore canonicalHashStore)
+            ITxPoolService txPoolService, IChainService chainService, IChainManagerBasic chainManager, IBlockManagerBasic blockManager)
         {
             _dataStore = dataStore;
             _blockTest = blockTest;
@@ -41,7 +39,6 @@ namespace AElf.Kernel.Tests
             _chainService = chainService;
             _chainManager = chainManager;
             _blockManger = blockManager;
-            _canonicalHashStore = canonicalHashStore;
         }
 
         /// <summary>

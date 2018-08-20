@@ -5,35 +5,33 @@ namespace AElf.Kernel.Managers
 {
     public class ChainManagerBasic : IChainManagerBasic
     {
-        private readonly IGenesisHashStore _genesisHashStore;
-        private readonly ICurrentHashStore _currentHashStore;
+        private readonly IDataStore _dataStore;
 
-        public ChainManagerBasic(IGenesisHashStore genesisHashStore, ICurrentHashStore currentHashStore)
+        public ChainManagerBasic(IDataStore dataStore)
         {
-            _genesisHashStore = genesisHashStore;
-            _currentHashStore = currentHashStore;
+            _dataStore = dataStore;
         }
 
         public async Task AddChainAsync(Hash chainId, Hash genesisBlockHash)
         {
-            await _genesisHashStore.InsertAsync(chainId, genesisBlockHash);
+            await _dataStore.InsertAsync(chainId.SetHashType(HashType.GenesisHash), genesisBlockHash);
             await UpdateCurrentBlockHashAsync(chainId, genesisBlockHash);
         }
 
         public async Task<Hash> GetGenesisBlockHashAsync(Hash chainId)
         {
-            var hash = await _genesisHashStore.GetAsync(chainId);
+            var hash = await _dataStore.GetAsync(chainId.SetHashType(HashType.GenesisHash));
             return hash;
         }
 
         public async Task UpdateCurrentBlockHashAsync(Hash chainId, Hash blockHash)
         {
-            await _currentHashStore.InsertOrUpdateAsync(chainId, blockHash);
+            await _dataStore.InsertAsync(chainId.SetHashType(HashType.CurrentHash), blockHash);
         }
         
         public async Task<Hash> GetCurrentBlockHashAsync(Hash chainId)
         {
-            var hash = await _currentHashStore.GetAsync(chainId);
+            var hash = await _dataStore.GetAsync(chainId.SetHashType(HashType.CurrentHash));
             return hash;
         }
     }

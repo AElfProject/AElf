@@ -12,8 +12,8 @@ namespace AElf.Kernel
         private readonly ITransactionManager _transactionManager;
         
         public BlockChain(Hash chainId, IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
-            ITransactionManager transactionManager, ICanonicalHashStore canonicalHashStore) : base(
-            chainId, chainManager, blockManager, canonicalHashStore)
+            ITransactionManager transactionManager, IDataStore dataStore) : base(
+            chainId, chainManager, blockManager, dataStore)
         {
             _transactionManager = transactionManager;
         }
@@ -89,7 +89,7 @@ namespace AElf.Kernel
 
             for (var i = currentHeight - 1; i > height; i--)
             {
-                await _canonicalHashStore.RemoveAsync(GetHeightHash(currentHeight));
+                await _dataStore.RemoveAsync<Hash>(GetHeightHash(currentHeight).SetHashType(HashType.CanonicalHash));
             }
 
             var hash = await GetCanonicalHashAsync(height);

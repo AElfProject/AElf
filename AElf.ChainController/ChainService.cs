@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using ServiceStack;
 
 namespace AElf.ChainController
 {
@@ -11,25 +12,25 @@ namespace AElf.ChainController
         private readonly IChainManagerBasic _chainManager;
         private readonly IBlockManagerBasic _blockManager;
         private readonly ITransactionManager _transactionManager;
-        private readonly ICanonicalHashStore _canonicalHashStore;
+        private readonly IDataStore _dataStore;
 
         public ChainService(IChainManagerBasic chainManager, IBlockManagerBasic blockManager,
-            ITransactionManager transactionManager, ICanonicalHashStore canonicalHashStore)
+            ITransactionManager transactionManager, IDataStore dataStore)
         {
             _chainManager = chainManager;
             _blockManager = blockManager;
             _transactionManager = transactionManager;
-            _canonicalHashStore = canonicalHashStore;
+            _dataStore = dataStore;
         }
 
         public IBlockChain GetBlockChain(Hash chainId)
         {
-            return new BlockChain(chainId, _chainManager, _blockManager, _transactionManager, _canonicalHashStore);
+            return new BlockChain(chainId, _chainManager, _blockManager, _transactionManager, _dataStore);
         }
 
         public ILightChain GetLightChain(Hash chainId)
         {
-            return new LightChain(chainId, _chainManager, _blockManager, _canonicalHashStore);
+            return new LightChain(chainId, _chainManager, _blockManager, _dataStore);
         }
     }
 }

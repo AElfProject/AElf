@@ -21,4 +21,7 @@ enum HashType
     PreviousBlockHash = 8;
     CallingGraph = 9;
     TxResult = 10;
+    CanonicalHash = 11;
+    CurrentHash = 12;
+    GenesisHash = 13;
 }

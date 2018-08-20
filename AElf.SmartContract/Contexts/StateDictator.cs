@@ -141,6 +141,21 @@ namespace AElf.SmartContract
         public async Task ApplyStateValueChangeAsync(StateValueChange stateValueChange)
         {
             await SetHashAsync(stateValueChange.Path.ResourcePathHash, stateValueChange.Path.ResourcePointerHash);
+            var dataItem = new DataItem
+            {
+                ResourcePath = stateValueChange.Path.ResourcePathHash,
+                ResourcePointer = stateValueChange.Path.ResourcePointerHash,
+                StateMerkleTreeLeaf = CalculateMerkleTreeLeaf(stateValueChange)
+            };
+            _worldState.Data.Add(dataItem);
+        }
+
+        private Hash CalculateMerkleTreeLeaf(StateValueChange stateValueChange)
+        {
+            var data = stateValueChange.CurrentValue;
+            var length = data.Length / 3;
+            var represent = stateValueChange.ToString().Substring(length, data.Length > 150 ? 50 : length);
+            return stateValueChange.Path.ResourcePathHash.CalculateHashWith(represent);
         }
 
         /// <summary>

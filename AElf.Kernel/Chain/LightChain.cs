@@ -15,16 +15,16 @@ namespace AElf.Kernel
         protected readonly Hash _chainId;
         protected readonly IChainManagerBasic _chainManager;
         protected readonly IBlockManagerBasic _blockManager;
-        protected readonly ICanonicalHashStore _canonicalHashStore;
+        protected readonly IDataStore _dataStore;
 
         public LightChain(Hash chainId,
             IChainManagerBasic chainManager,
-            IBlockManagerBasic blockManager, ICanonicalHashStore canonicalHashStore)
+            IBlockManagerBasic blockManager, IDataStore dataStore)
         {
             _chainId = chainId;
             _chainManager = chainManager;
             _blockManager = blockManager;
-            _canonicalHashStore = canonicalHashStore;
+            _dataStore = dataStore;
         }
 
         public async Task<ulong> GetCurrentBlockHeightAsync()
@@ -104,7 +104,7 @@ namespace AElf.Kernel
 
         protected async Task<Hash> GetCanonicalHashAsync(ulong height)
         {
-            var blockHash = await _canonicalHashStore.GetAsync(GetHeightHash(height));
+            var blockHash = await _dataStore.GetAsync(GetHeightHash(height).SetHashType(HashType.CanonicalHash));
             return blockHash;
         }
 
@@ -183,7 +183,7 @@ namespace AElf.Kernel
             if (currentHeader.GetHash().Equals(((BlockHeader) header).PreviousBlockHash) ||
                 ((BlockHeader) header).PreviousBlockHash.Equals(Hash.Genesis))
             {
-                await _canonicalHashStore.InsertOrUpdateAsync(GetHeightHash(((BlockHeader) header).Index),
+                await _dataStore.InsertAsync(GetHeightHash(((BlockHeader) header).Index).SetHashType(HashType.CanonicalHash),
                     header.GetHash());
                 await _chainManager.UpdateCurrentBlockHashAsync(_chainId, header.GetHash());
                 return;
@@ -197,8 +197,8 @@ namespace AElf.Kernel
                 {
                     foreach (var newBranchHeader in branches.Item2)
                     {
-                        await _canonicalHashStore.InsertOrUpdateAsync(
-                            GetHeightHash(((BlockHeader) newBranchHeader).Index), newBranchHeader.GetHash());
+                        await _dataStore.InsertAsync(
+                            GetHeightHash(((BlockHeader) newBranchHeader).Index).SetHashType(HashType.CanonicalHash), newBranchHeader.GetHash());
                     }
                 }
             }
