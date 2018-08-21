@@ -122,7 +122,7 @@ namespace AElf.Launcher
             using (var scope = container.BeginLifetimeScope())
             {
                 IActorEnvironment actorEnv = null;
-                if (!ParallelConfig.Instance.IsParallelEnable)
+                if (ParallelConfig.Instance.IsParallelEnable)
                 {
                     actorEnv = scope.Resolve<IActorEnvironment>();
                     actorEnv.InitActorSystem();   
@@ -248,9 +248,6 @@ namespace AElf.Launcher
             builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
             builder.RegisterType<ResourceUsageDetectionService>().As<IResourceUsageDetectionService>();
 
-            builder.RegisterType<Grouper>().As<IGrouper>();
-            builder.RegisterType<ServicePack>().PropertiesAutowired();
-            builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
             if (ParallelConfig.Instance.IsParallelEnable)
             {
                 builder.RegisterType<Grouper>().As<IGrouper>();
