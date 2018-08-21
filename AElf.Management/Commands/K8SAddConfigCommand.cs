@@ -89,7 +89,7 @@ namespace AElf.Management.Commands
         {
             var config = new ParallelConfig
             {
-                IsParallelEnable = true
+                IsParallelEnable = false
             };
 
             var result = JsonSerializer.Instance.Serialize(config);
