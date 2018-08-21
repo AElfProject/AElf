@@ -14,9 +14,11 @@ namespace AElf.Kernel.Consensus
     // ReSharper disable InconsistentNaming
     public class AElfDPoSHelper
     {
-        private readonly IDataProvider _dataProvider;
+        private IDataProvider _dataProvider;
         private readonly Miners _miners;
         private readonly ILogger _logger;
+        private readonly Hash _contractAddressHash;
+        private readonly IStateDictator _stateDictator;
 
         public Miners Miners
         {
@@ -139,8 +141,9 @@ namespace AElf.Kernel.Consensus
             _logger = logger;
 
             stateDictator.CurrentRoundNumber = CurrentRoundNumber.Value;
-
-            _dataProvider = stateDictator.GetAccountDataProvider(contractAddressHash).GetDataProvider();
+            _contractAddressHash = contractAddressHash;
+            _stateDictator = stateDictator;
+            _dataProvider = _stateDictator.GetAccountDataProvider(_contractAddressHash).GetDataProvider();
         }
 
         /// <summary>
@@ -216,7 +219,6 @@ namespace AElf.Kernel.Consensus
                 if (i == selected)
                 {
                     bpInfo.IsEBP = true;
-
                 }
 
                 bpInfo.Order = i + 1;
@@ -458,7 +460,7 @@ namespace AElf.Kernel.Consensus
             {
                 if (CurrentRoundNumber.Value == 0)
                 {
-                    return "Somehow current round number is 0.";
+                    return "Somehow current round number is 0";
                 }
             
                 var currentRoundNumber = CurrentRoundNumber.Value;

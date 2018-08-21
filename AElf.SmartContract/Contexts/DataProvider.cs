@@ -108,7 +108,7 @@ namespace AElf.SmartContract
         /// <inheritdoc />
         public async Task<byte[]> GetAsync(Hash keyHash)
         {
-            return (await GetStateAsync(keyHash)).CurrentValue ?? new byte[0];
+            return (await GetStateAsync(keyHash)).CurrentValue ?? (await GetDataAsync(keyHash) ?? new byte[0]);
         }
 
         public async Task SetAsync(Hash keyHash, byte[] obj)
@@ -126,7 +126,7 @@ namespace AElf.SmartContract
         
         private async Task<StateCache> GetStateAsync(Hash keyHash)
         {
-            if (_caches.TryGetValue(keyHash, out var state)) 
+            if (_caches.TryGetValue(keyHash, out var state))
                 return state;
             
             if (!StateCache.TryGetValue(GetPathFor(keyHash), out state))
@@ -142,8 +142,11 @@ namespace AElf.SmartContract
 
         public async Task<byte[]> GetDataAsync(Hash keyHash)
         {
+            _dataPath.SetDataProvider(GetHash())
+                .SetDataKey(keyHash);
+            
             //Get resource pointer.
-            var pointerHash = await _stateDictator.GetHashAsync(GetPathFor(keyHash));
+            var pointerHash = await _stateDictator.GetHashAsync(_dataPath.ResourcePathHash);
             
             //Use resource pointer get data.
             return await _stateDictator.GetDataAsync(pointerHash);
