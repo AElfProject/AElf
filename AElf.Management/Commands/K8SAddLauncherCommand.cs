@@ -10,8 +10,8 @@ namespace AElf.Management.Commands
     {
         private const string ServiceName = "service-launcher";
         private const string DeploymentName = "deploy-launcher";
-        private const int NodePort = 30800;
-        private const int RpcPort = 30600;
+        private const int NodePort = 30801;
+        private const int RpcPort = 30601;
         private const int ActorPort = 32550;
 
         public void Action(string chainId, DeployArg arg)
