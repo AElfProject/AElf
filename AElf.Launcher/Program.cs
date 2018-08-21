@@ -59,6 +59,7 @@ namespace AElf.Launcher
             var minerConfig = confParser.MinerConfig;
             var isMiner = confParser.IsMiner;
             var isNewChain = confParser.NewChain;
+            var chainId = confParser.ChainId;
             var initData = confParser.InitData;
             NodeConfig.Instance.IsChainCreator = confParser.NewChain;
             NodeConfig.Instance.ConsensusInfoGenerater = confParser.IsConsensusInfoGenerater;
@@ -99,7 +100,7 @@ namespace AElf.Launcher
             txPoolConf.EcKeyPair = nodeKey;
 
             // Setup ioc 
-            var container = SetupIocContainer(isMiner, isNewChain, txPoolConf,
+            var container = SetupIocContainer(isMiner, isNewChain, chainId, txPoolConf,
                 minerConfig, smartContractRunnerFactory);
 
             if (container == null)
@@ -219,7 +220,7 @@ namespace AElf.Launcher
             }
         }
 
-        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, 
+        private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, string chainId,
             ITxPoolConfig txPoolConf, IMinerConfig minerConf,
             SmartContractRunnerFactory smartContractRunnerFactory)
         {
@@ -249,17 +250,26 @@ namespace AElf.Launcher
             }
             else
             {
+                    
                 builder.RegisterType<SimpleExecutingService>().As<IExecutingService>();
             }
             
             // register SmartContractRunnerFactory 
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
 
-            Hash chainId;
+            Hash chainIdHash;
             if (isNewChain)
             {
-                chainId = Hash.Generate().ToChainId();
-                var obj = new JObject(new JProperty("id", chainId.ToHex()));
+                if (string.IsNullOrWhiteSpace(chainId))
+                {
+                    chainIdHash = Hash.Generate().ToChainId();
+                }
+                else
+                {
+                    chainIdHash = ByteArrayHelpers.FromHexString(chainId);
+                }
+
+                var obj = new JObject(new JProperty("id", chainIdHash.ToHex()));
 
                 // write JSON directly to a file
                 using (var file = File.CreateText(FilePath))
@@ -275,19 +285,19 @@ namespace AElf.Launcher
                 using (var reader = new JsonTextReader(file))
                 {
                     var chain = (JObject) JToken.ReadFrom(reader);
-                    chainId = ByteArrayHelpers.FromHexString(chain.GetValue("id").ToString());
+                    chainIdHash = ByteArrayHelpers.FromHexString(chain.GetValue("id").ToString());
                 }
             }
 
             // register miner config
             var minerConfiguration = isMiner ? minerConf : MinerConfig.Default;
-            minerConfiguration.ChainId = chainId;
+            minerConfiguration.ChainId = chainIdHash;
             builder.RegisterModule(new MinerModule(minerConfiguration));
 
-            NodeConfig.Instance.ChainId = chainId.Value.ToByteArray().ToHex();
+            NodeConfig.Instance.ChainId = chainIdHash.Value.ToByteArray().ToHex();
             builder.RegisterModule(new MainChainNodeModule());
 
-            txPoolConf.ChainId = chainId;
+            txPoolConf.ChainId = chainIdHash;
             builder.RegisterModule(new TxPoolServiceModule(txPoolConf));
 
             IContainer container;

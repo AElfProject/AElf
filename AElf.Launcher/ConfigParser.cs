@@ -43,7 +43,7 @@ namespace AElf.Launcher
         /// </summary>
         public bool NewChain { get; private set; }
 
-
+        public string ChainId { get; private set; }
         /// <summary>
         /// chainId
         /// </summary>
@@ -142,6 +142,8 @@ namespace AElf.Launcher
                 IsMiner = true;
                 NewChain = true;
             }
+
+            ChainId = opts.ChainId;
 
             if (IsMiner)
             {

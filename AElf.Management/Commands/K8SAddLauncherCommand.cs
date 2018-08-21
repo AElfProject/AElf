@@ -113,7 +113,9 @@ namespace AElf.Management.Commands
                                         "--dpos.generator",
                                         "true",
                                         "--chain.new",
-                                        "true"
+                                        "true",
+                                        "--chain.id",
+                                        chainId
                                     },
                                     VolumeMounts = new List<V1VolumeMount>
                                     {
