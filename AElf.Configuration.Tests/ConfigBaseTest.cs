@@ -12,15 +12,10 @@ namespace AElf.Configuration.Tests
     {
         private readonly List<string> _fileNames = new List<string>();
 
-        public ConfigBaseTest()
-        {
-            ConfigManager.ConfigFilePaths.Insert(0, "aelfconfig/");
-        }
-
         [Fact]
         public void FromFileTest()
         {
-            var fileName = "testfromfile.conf";
+            var fileName = "testfromfile.json";
             CheckAndCreateFile(fileName);
             
             var sringValue = TestFromFileConfig.Instance.StingValue;
@@ -41,7 +36,7 @@ namespace AElf.Configuration.Tests
         [Fact]
         public void DefaultValueTest()
         {
-            var fileName = "testdefaultvalue.conf";
+            var fileName = "testdefaultvalue.json";
             CheckAndCreateFile(fileName);
             
             var sringValue = TestDefaultValueConfig.Instance.StingValue;
@@ -52,7 +47,7 @@ namespace AElf.Configuration.Tests
         [Fact]
         public void SetValueTest()
         {
-            var fileName = "testsetvalue.conf";
+            var fileName = "testsetvalue.json";
             CheckAndCreateFile(fileName);
 
             TestSetValueConfig.Instance.StingValue = "SetValue";
@@ -60,11 +55,10 @@ namespace AElf.Configuration.Tests
 
             Assert.True(sringValue == "SetValue");
         }
-        
 
         private void CheckAndCreateFile(string fileName)
         {
-            var filePath = ConfigManager.ConfigFilePaths[0] + fileName;
+            var filePath = Path.Combine(ConfigManager.ConfigFilePaths[0],fileName);
             if (!Directory.Exists(ConfigManager.ConfigFilePaths[0]))
             {
                 Directory.CreateDirectory(ConfigManager.ConfigFilePaths[0]);
@@ -72,8 +66,8 @@ namespace AElf.Configuration.Tests
             if (!File.Exists(filePath))
             {
                 File.AppendAllText(filePath, "{\"stringvalue\":\"sting\",\"IntValue\":9}");
+                _fileNames.Add(fileName);
             }
-            _fileNames.Add(fileName);
         }
 
         private void DeleteFiles(List<string> fileNames)
@@ -86,7 +80,7 @@ namespace AElf.Configuration.Tests
 
         private void DeleteFile(string fileName)
         {
-            var filePath = ConfigManager.ConfigFilePaths[0] + fileName;
+            var filePath = Path.Combine(ConfigManager.ConfigFilePaths[0],fileName);
             if (File.Exists(filePath))
             {
                 File.Delete(filePath);
@@ -99,7 +93,7 @@ namespace AElf.Configuration.Tests
         }
     }
     
-    [ConfigFile(FileName = "testfromfile.conf")]
+    [ConfigFile(FileName = "testfromfile.json")]
     public class TestFromFileConfig : ConfigBase<TestFromFileConfig>
     {
         [JsonProperty("stringvalue")] 
@@ -108,7 +102,7 @@ namespace AElf.Configuration.Tests
         public int IntValue { get; set; }
     }
     
-    [ConfigFile(FileName = "nothing")]
+    [ConfigFile(FileName = "nothing.json")]
     public class TestNoFileConfig : ConfigBase<TestNoFileConfig>
     {
         [JsonProperty("stringvalue")] 
@@ -117,7 +111,7 @@ namespace AElf.Configuration.Tests
         public int IntValue { get; set; }
     }
     
-    [ConfigFile(FileName = "testdefaultvalue.conf")]
+    [ConfigFile(FileName = "testdefaultvalue.json")]
     public class TestDefaultValueConfig : ConfigBase<TestDefaultValueConfig>
     {
         [JsonProperty("stringvalue")] 
@@ -131,7 +125,7 @@ namespace AElf.Configuration.Tests
         }
     }
     
-    [ConfigFile(FileName = "testsetvalue.conf")]
+    [ConfigFile(FileName = "testsetvalue.json")]
     public class TestSetValueConfig : ConfigBase<TestSetValueConfig>
     {
         [JsonProperty("stringvalue")] 

@@ -176,8 +176,19 @@ namespace AElf.Network.Peers
                 _logger?.Trace($"Could not connect to {nodeData.IpAddress}:{nodeData.Port}, operation timed out.");
                 return;
             }
+
+            IPeer peer;
             
-            IPeer peer = CreatePeerFromConnection(client);
+            try
+            {
+                peer = CreatePeerFromConnection(client);
+            }
+            catch (Exception e)
+            {
+                _logger?.Trace(e, "Creation of peer object failed");
+                return;
+            }
+            
             peer.PeerDisconnected += ProcessClientDisconnection;
             
             StartAuthentification(peer);
@@ -191,13 +202,10 @@ namespace AElf.Network.Peers
         /// <returns></returns>
         private IPeer CreatePeerFromConnection(TcpClient client)
         {
-            if (client == null)
-                return null; // todo exception
-            
-            NetworkStream nsStream = client.GetStream();
+            NetworkStream nsStream = client?.GetStream();
             
             if (nsStream == null)
-                return null; // todo log
+                throw new ArgumentNullException(nameof(client), "The client or its stream was null.");
             
             MessageReader reader = new MessageReader(nsStream);
             MessageWriter writer = new MessageWriter(nsStream);
@@ -209,8 +217,6 @@ namespace AElf.Network.Peers
 
         internal void StartAuthentification(IPeer peer)
         {
-            // todo verification : must be connected
-
             lock (_peerListLock)
             {
                 _authentifyingPeer.Add(peer);
@@ -451,8 +457,20 @@ namespace AElf.Network.Peers
         {
             if (sender != null && eventArgs is IncomingConnectionArgs args)
             {
-                IPeer peer = CreatePeerFromConnection(args.Client);
-                // todo if null
+                IPeer peer;
+                
+                try
+                {
+                    peer = CreatePeerFromConnection(args.Client);
+                }
+                catch (Exception e)
+                {
+                    _logger?.Trace(e, "Creation of peer object failed");
+                    return;
+                }
+                
+                peer.PeerDisconnected += ProcessClientDisconnection;
+                
                 StartAuthentification(peer);
             }
         }
