@@ -14,6 +14,7 @@
       <Name>AElf.Net.Rpc</Name>
     </ProjectReference>
     <ProjectReference Include="..\AElf.Node\AElf.Node.csproj" />
+    <ProjectReference Include="..\AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="NLog.config">
