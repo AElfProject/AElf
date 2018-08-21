@@ -140,7 +140,22 @@ namespace AElf.ChainController
 
                     // insert txs to db
                     // update tx pool state
-                    var addrs = await InsertTxs(readyTxs, results);
+                    var canceled = canceledTxIds.ToHashSet();
+                    var executed = new List<ITransaction>();
+                    var rollback = new List<ITransaction>();
+                    foreach (var tx in readyTxs)
+                    {
+                        if (canceled.Contains(tx.GetHash()))
+                        {
+                            rollback.Add(tx);
+                        }
+                        else
+                        {
+                            executed.Add(tx);
+                        }
+                    }
+
+                    var addrs = await InsertTxs(executed, results);
                     await _txPoolService.UpdateAccountContext(addrs);
 
                     _logger?.Log(LogLevel.Debug, "Generating block..");
@@ -168,14 +183,7 @@ namespace AElf.ChainController
                     await blockChain.AddBlocksAsync(new List<IBlock>() {block});
 
                     // put back canceled transactions
-                    var canceled = canceledTxIds.ToHashSet();
-                    foreach (var tx in readyTxs)
-                    {
-                        if (canceled.Contains(tx.GetHash()))
-                        {
-                            await _txPoolService.AddTxAsync(tx);
-                        }
-                    }
+                    await _txPoolService.RollBack(rollback);
 
                     return block;
                 }
