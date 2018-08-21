@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -29,7 +30,7 @@ namespace AElf.SmartContract
                 {
                     changes.Add(new StateValueChange
                     {
-                        Path = _dataPath.SetDataKey(keyState.Key),
+                        Path = _dataPath.SetDataProvider(GetHash()).SetDataKey(keyState.Key),
                         CurrentValue = ByteString.CopyFrom(keyState.Value.CurrentValue ?? new byte[0])
                     });
                 }
@@ -118,7 +119,9 @@ namespace AElf.SmartContract
 
         public Hash GetPathFor(Hash keyHash)
         {
-            return ((Hash)GetHash().CalculateHashWith(keyHash)).SetHashType(HashType.ResourcePath);
+            Console.WriteLine($"DataProvider: {GetHash()}");
+            Console.WriteLine($"KeyHash: {keyHash.ToHex()}");
+            return ((Hash)GetHash().CalculateHashWith(keyHash)).OfType(HashType.ResourcePath);
         }
         
         private async Task<StateCache> GetStateAsync(Hash keyHash)
@@ -137,7 +140,7 @@ namespace AElf.SmartContract
             return state;
         }
 
-        private async Task<byte[]> GetDataAsync(Hash keyHash)
+        public async Task<byte[]> GetDataAsync(Hash keyHash)
         {
             //Get resource pointer.
             var pointerHash = await _stateDictator.GetHashAsync(GetPathFor(keyHash));

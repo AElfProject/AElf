@@ -30,8 +30,9 @@ namespace AElf.Kernel.Node
         private readonly IP2P _p2p;
         public ulong ConsensusMemory { get; set; }
         public IDisposable ConsensusDisposable { get; set; }
+        private readonly IStateDictator _stateDictator;
 
-        private AElfDPoSHelper DPoSHelper { get; }
+        private AElfDPoSHelper DPoSHelper { get; set; }
         private MainChainNode Node { get; }
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
         private bool _incrementIdNeedToAddOne;
@@ -48,8 +49,8 @@ namespace AElf.Kernel.Node
             _p2p = p2p;
             _txPoolService = txPoolService;
             Node = node;
-            DPoSHelper = new AElfDPoSHelper(stateDictator, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
-                Miners, Node.ContractAccountHash, _logger);
+            _stateDictator = stateDictator;
+
         }
 
         private static Miners Miners
@@ -72,6 +73,9 @@ namespace AElf.Kernel.Node
 
         public async Task Start()
         {
+            DPoSHelper = new AElfDPoSHelper(_stateDictator, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
+                Miners, Node.ContractAccountHash, _logger);
+            
             if (IsMining)
                 return;
 
@@ -84,6 +88,7 @@ namespace AElf.Kernel.Node
 
             if (NodeConfig.Instance.ConsensusInfoGenerater && !await DPoSHelper.HasGenerated())
             {
+                Console.WriteLine("DPoS initializing...");
                 AElfDPoSObserver.Initialization();
                 return;
             }
@@ -91,11 +96,11 @@ namespace AElf.Kernel.Node
             DPoSHelper.SyncMiningInterval();
             _logger?.Trace($"Set AElf DPoS mining interval to: {Globals.AElfDPoSMiningInterval} ms.");
 
-
             if (DPoSHelper.CanRecoverDPoSInformation())
             {
                 AElfDPoSObserver.RecoverMining();
             }
+
         }
 
         // ReSharper disable once InconsistentNaming
@@ -128,7 +133,8 @@ namespace AElf.Kernel.Node
                 bool isDPoS = addr.Equals(NodeKeyPair.GetAddress()) ||
                               DPoSHelper.Miners.Nodes.Contains(addr.ToHex().RemoveHexPrefix());
 
-                var idInDB = (await _accountContextService.GetAccountDataContext(addr,  ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)))
+                var idInDB = (await _accountContextService.GetAccountDataContext(addr,
+                        ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)))
                     .IncrementId;
                 _logger?.Log(LogLevel.Debug, $"Trying to get increment id, {isDPoS}");
                 var idInPool = _txPoolService.GetIncrementId(addr, isDPoS);

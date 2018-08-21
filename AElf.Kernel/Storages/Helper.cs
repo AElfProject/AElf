@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Google.Protobuf;
 using static AElf.Kernel.Storages.Types;
 
@@ -11,7 +12,8 @@ namespace AElf.Kernel.Storages
             return new Key
             {
                 Type = type,
-                Value = ByteString.CopyFrom(hash.GetHashBytes())
+                Value = ByteString.CopyFrom(hash.GetHashBytes()),
+                HashType = (uint) hash.HashType
             }.ToByteArray().ToHex();
         }
     }
@@ -24,16 +26,13 @@ namespace AElf.Kernel.Storages
         BlockBody,
         BlockHeader,
         Chain,
-        GenesisHash,
-        CurrentHash,
-        CanonicalBlockHash,
         Change,
         SmartContractRegistration,
         TransactionResult,
         Transaction,
-        ChangesDict,
         FunctionMetadata,
         SerializedCallGraph,
-        SideChain
+        SideChain,
+        WorldState
     }
 }

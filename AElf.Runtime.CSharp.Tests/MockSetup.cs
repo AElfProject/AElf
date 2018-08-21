@@ -85,11 +85,11 @@ namespace AElf.Runtime.CSharp.Tests
 
             StateDictator.ChainId = ChainId1;
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
-            DataProvider1 = StateDictator.GetAccountDataProvider(ChainId1.SetHashType(HashType.AccountZero));
+            DataProvider1 = StateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
             StateDictator.ChainId = ChainId2;
-            DataProvider2 = StateDictator.GetAccountDataProvider(ChainId2.SetHashType(HashType.AccountZero));
+            DataProvider2 = StateDictator.GetAccountDataProvider(ChainId2.OfType(HashType.AccountZero));
         }
 
         private async Task DeploySampleContracts()

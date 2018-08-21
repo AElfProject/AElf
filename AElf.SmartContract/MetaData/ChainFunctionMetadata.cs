@@ -55,7 +55,7 @@ namespace AElf.SmartContract
                 }
 
                 //if no exception is thrown, merge the tempMap into FunctionMetadataMap and update call graph in database
-                await _dataStore.InsertAsync(chainId.SetHashType(HashType.CallingGraph),
+                await _dataStore.InsertAsync(chainId.OfType(HashType.CallingGraph),
                     SerializeCallingGraph(newCallGraph));
                 
                 foreach (var functionMetadata in tempMap)
@@ -288,7 +288,7 @@ namespace AElf.SmartContract
         #region Serialize
         private async Task<CallGraph> GetCallingGraphForChain(Hash chainId)
         {
-            var graphCache = await _dataStore.GetAsync<SerializedCallGraph>(chainId.SetHashType(HashType.CallingGraph));
+            var graphCache = await _dataStore.GetAsync<SerializedCallGraph>(chainId.OfType(HashType.CallingGraph));
             if (graphCache == null)
             {
                 return new CallGraph();

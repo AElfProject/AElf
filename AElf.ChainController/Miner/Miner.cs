@@ -19,7 +19,7 @@ using NLog;
 
 namespace AElf.ChainController
 {
-    [LoggerName("Miner")]
+    [LoggerName(nameof(Miner))]
     public class Miner : IMiner
     {
         private readonly ITxPoolService _txPoolService;
@@ -30,8 +30,10 @@ namespace AElf.ChainController
         private readonly IExecutingService _executingService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly AElfDPoSHelper _consensusHelper;
+        private AElfDPoSHelper _consensusHelper;
         private readonly IChainCreationService _chainCreationService;
+        private readonly IChainManagerBasic _chainManagerBasic;
+        private readonly IBlockManagerBasic _blockManagerBasic;
 
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
@@ -50,7 +52,7 @@ namespace AElf.ChainController
         public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
             IStateDictator stateDictator,  ISmartContractService smartContractService, 
             IExecutingService executingService, ITransactionManager transactionManager, 
-            ITransactionResultManager transactionResultManager, ILogger logger, IChainCreationService chainCreationService)
+            ITransactionResultManager transactionResultManager, ILogger logger, IChainCreationService chainCreationService, IChainManagerBasic chainManagerBasic, IBlockManagerBasic blockManagerBasic)
         {
             Config = config;
             _txPoolService = txPoolService;
@@ -62,11 +64,12 @@ namespace AElf.ChainController
             _transactionResultManager = transactionResultManager;
             _logger = logger;
             _chainCreationService = chainCreationService;
+            _chainManagerBasic = chainManagerBasic;
+            _blockManagerBasic = blockManagerBasic;
 
-            _consensusHelper = new AElfDPoSHelper(stateDictator,
-                ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), Miners,
-                _chainCreationService.GenesisContractHash(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
-                    SmartContractType.AElfDPoS), _logger);
+
+            var chainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
+            _stateDictator.ChainId = chainId;
         }
         
         private static Miners Miners
@@ -89,6 +92,15 @@ namespace AElf.ChainController
 
         public async Task<IBlock> Mine()
         {
+            _stateDictator.ChainId = Config.ChainId;
+            _stateDictator.BlockProducerAccountAddress = _keyPair.GetAddress();
+            
+            var consensusContractAddress = _chainCreationService.GenesisContractHash(
+                ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), SmartContractType.AElfDPoS);
+            _consensusHelper = new AElfDPoSHelper(_stateDictator, Config.ChainId, Miners, consensusContractAddress, _logger);
+            
+            _stateDictator.CurrentRoundNumber = _consensusHelper.CurrentRoundNumber.Value;
+
             try
             {
                 if (Cts == null || Cts.IsCancellationRequested)
@@ -197,16 +209,19 @@ namespace AElf.ChainController
         /// <returns></returns>
         public async Task<IBlock> GenerateBlockAsync(Hash chainId, IEnumerable<TransactionResult> results)
         {
-            var blockChain = _chainService.GetBlockChain(chainId);
+            //var blockChain = _chainService.GetBlockChain(chainId);
             
-            var currentBlockHash = await blockChain.GetCurrentBlockHashAsync();
-            var index = await blockChain.GetCurrentBlockHeightAsync() + 1;
+            //var currentBlockHash = await blockChain.GetCurrentBlockHashAsync();
+            var currentBlockHash = await _chainManagerBasic.GetCurrentBlockHashAsync(chainId);
+            var index = (await _blockManagerBasic.GetBlockHeaderAsync(currentBlockHash)).Index + 1;
+            
             var block = new Block(currentBlockHash)
             {
                 Header =
                 {
                     Index = index,
-                    ChainId = chainId
+                    ChainId = chainId,
+                    PreviousBlockHash = currentBlockHash
                 }
             };
 
@@ -221,14 +236,12 @@ namespace AElf.ChainController
             block.FillTxsMerkleTreeRootInHeader();
             _logger?.Log(LogLevel.Debug, "Calculating MK Tree Root End..");
 
-            
             // set ws merkle tree root
             await _stateDictator.SetWorldStateAsync();
             _logger?.Log(LogLevel.Debug, "End Set WS..");
             var ws = await _stateDictator.GetLatestWorldStateAsync();
             _logger?.Log(LogLevel.Debug, "End Get Ws");
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
-
 
             if (ws != null)
             {
@@ -275,8 +288,6 @@ namespace AElf.ChainController
             return header;
 
         }
-        
-
         
         /// <summary>
         /// start mining  

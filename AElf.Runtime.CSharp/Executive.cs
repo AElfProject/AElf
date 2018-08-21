@@ -75,7 +75,7 @@ namespace AElf.Runtime.CSharp
             }
         }
 
-        public IExecutive SetWorldStateManager(IStateDictator stateDictator)
+        public IExecutive SetStateDictator(IStateDictator stateDictator)
         {
             _stateDictator = stateDictator;
             return this;

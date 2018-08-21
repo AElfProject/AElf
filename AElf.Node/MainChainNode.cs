@@ -112,9 +112,8 @@ namespace AElf.Kernel.Node
             try
             {
                 PrintChainInfo();
-
                 var curHash = BlockChain.GetCurrentBlockHashAsync().Result;
-                var chainExists = curHash != null && !curHash.Equals(Hash.Genesis);
+                var chainExists = !curHash.IsNull() && !curHash.Equals(Hash.Genesis);
                 if (!chainExists)
                 {
                     // Creation of the chain if it doesn't already exist

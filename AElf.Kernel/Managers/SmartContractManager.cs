@@ -13,14 +13,14 @@ namespace AElf.Kernel.Managers
             _dataStore = dataStore;
         }
 
-        public async Task<SmartContractRegistration> GetAsync(Hash contractHash)
+        public async Task<SmartContractRegistration> GetAsync(Hash contractAddress)
         {
-            return await _dataStore.GetAsync<SmartContractRegistration>(contractHash);
+            return await _dataStore.GetAsync<SmartContractRegistration>(contractAddress);
         }
 
-        public async Task InsertAsync(Hash address, SmartContractRegistration reg)
+        public async Task InsertAsync(Hash contractAddress, SmartContractRegistration reg)
         {
-            await _dataStore.InsertAsync(address, reg);
+            await _dataStore.InsertAsync(contractAddress, reg);
         }
     }
 }

@@ -14,24 +14,25 @@ namespace AElf.Kernel.Managers
 
         public async Task AddChainAsync(Hash chainId, Hash genesisBlockHash)
         {
-            await _dataStore.InsertAsync(chainId.SetHashType(HashType.GenesisHash), genesisBlockHash);
+            await _dataStore.InsertAsync(chainId.OfType(HashType.GenesisHash), genesisBlockHash);
             await UpdateCurrentBlockHashAsync(chainId, genesisBlockHash);
         }
 
         public async Task<Hash> GetGenesisBlockHashAsync(Hash chainId)
         {
-            var hash = await _dataStore.GetAsync(chainId.SetHashType(HashType.GenesisHash));
-            return hash;
+            return await _dataStore.GetAsync<Hash>(chainId.OfType(HashType.GenesisHash));
         }
 
         public async Task UpdateCurrentBlockHashAsync(Hash chainId, Hash blockHash)
         {
-            await _dataStore.InsertAsync(chainId.SetHashType(HashType.CurrentHash), blockHash);
+            var key = chainId.OfType(HashType.CurrentHash);
+            await _dataStore.InsertAsync(key, blockHash);
         }
         
         public async Task<Hash> GetCurrentBlockHashAsync(Hash chainId)
         {
-            var hash = await _dataStore.GetAsync(chainId.SetHashType(HashType.CurrentHash));
+            var key = chainId.OfType(HashType.CurrentHash);
+            var hash = await _dataStore.GetAsync<Hash>(key);
             return hash;
         }
     }

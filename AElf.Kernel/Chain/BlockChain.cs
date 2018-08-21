@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using Microsoft.AspNetCore.Server.Kestrel.Transport.Libuv.Internal.Networking;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -18,8 +19,14 @@ namespace AElf.Kernel
             _transactionManager = transactionManager;
         }
 
-        // TODO: Implement
-        public IBlock CurrentBlock { get; }
+        public IBlock CurrentBlock
+        {
+            get
+            {
+                var currentBlockHash = _chainManager.GetCurrentBlockHashAsync(_chainId).Result;
+                return _blockManager.GetBlockAsync(currentBlockHash).Result;
+            }
+        }
 
         public async Task<bool> HasBlock(Hash blockId)
         {
@@ -89,7 +96,7 @@ namespace AElf.Kernel
 
             for (var i = currentHeight - 1; i > height; i--)
             {
-                await _dataStore.RemoveAsync<Hash>(GetHeightHash(currentHeight).SetHashType(HashType.CanonicalHash));
+                await _dataStore.RemoveAsync<Hash>(GetHeightHash(currentHeight).OfType(HashType.CanonicalHash));
             }
 
             var hash = await GetCanonicalHashAsync(height);

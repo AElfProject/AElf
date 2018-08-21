@@ -227,7 +227,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
                     }
                 }
             };
-            Assert.Equal(callGraph, await _dataStore.GetAsync<SerializedCallGraph>(chainId.SetHashType(HashType.CallingGraph)));
+            Assert.Equal(callGraph, await _dataStore.GetAsync<SerializedCallGraph>(chainId.OfType(HashType.CallingGraph)));
         }
     }
 }

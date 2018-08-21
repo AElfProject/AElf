@@ -110,7 +110,7 @@ namespace AElf.Contracts.Token.Tests
                 await _chainCreationService.CreateNewChainAsync(ChainId1,
                     new List<SmartContractRegistration> {reg0, reg1});
             _stateDictator.ChainId = ChainId1;
-            DataProvider1 = _stateDictator.GetAccountDataProvider(ChainId1.SetHashType(HashType.AccountZero));
+            DataProvider1 = _stateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
         }
         
         public async Task<IExecutive> GetExecutiveAsync(Hash address)

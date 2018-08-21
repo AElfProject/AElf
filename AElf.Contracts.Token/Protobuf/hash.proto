@@ -24,4 +24,6 @@ enum HashType
     CanonicalHash = 11;
     CurrentHash = 12;
     GenesisHash = 13;
+    BlockHeaderHash = 14;
+    BlockBodyHash = 15;
 }

@@ -25,12 +25,15 @@ namespace AElf.SmartContract
         /// <returns></returns>
         Task SetAsync(Hash keyHash, byte[] obj);
 
+
+        Task<byte[]> GetAsync(Hash keyHash);
+
         /// <summary>
         /// Get data from database.
         /// </summary>
         /// <param name="keyHash"></param>
         /// <returns></returns>
-        Task<byte[]> GetAsync(Hash keyHash);
+        Task<byte[]> GetDataAsync(Hash keyHash);
 
         /// <summary>
         /// DataProvider hash + Key hash
@@ -40,7 +43,7 @@ namespace AElf.SmartContract
         Hash GetPathFor(Hash keyHash);
         
         /// <summary>
-        /// 
+        /// Failed to get current round number. 
         /// </summary>
         /// <returns></returns>
         IEnumerable<StateValueChange> GetValueChanges();

@@ -104,7 +104,7 @@
                         new List<SmartContractRegistration> {reg0, reg1});
                 _stateDictator.ChainId = ChainId1;
                 _stateDictator.GetAccountDataProvider(
-                    ChainId1.SetHashType(HashType.AccountZero));
+                    ChainId1.OfType(HashType.AccountZero));
             }
             
             public async Task<IExecutive> GetExecutiveAsync(Hash address)

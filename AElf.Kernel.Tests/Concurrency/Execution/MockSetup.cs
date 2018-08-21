@@ -125,12 +125,12 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1,  new List<SmartContractRegistration>{reg});
 
             _stateDictator.ChainId = ChainId1;
-            DataProvider1 = _stateDictator.GetAccountDataProvider(ChainId1.SetHashType(HashType.AccountZero));
+            DataProvider1 = _stateDictator.GetAccountDataProvider(ChainId1.OfType(HashType.AccountZero));
 
             var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
             
             _stateDictator.ChainId = ChainId2;
-            DataProvider2 = _stateDictator.GetAccountDataProvider(ChainId2.SetHashType(HashType.AccountZero));
+            DataProvider2 = _stateDictator.GetAccountDataProvider(ChainId2.OfType(HashType.AccountZero));
         }
 
         private async Task DeploySampleContracts()

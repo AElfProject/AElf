@@ -48,8 +48,15 @@ namespace AElf.Kernel
             HashType = HashType.General;
         }
 
-        public Hash SetHashType(HashType hashType)
+        public Hash OfType(HashType hashType)
         {
+            HashType = hashType;
+            return this;
+        }
+
+        public Hash OfType(int typeIndex)
+        {
+            var hashType = (HashType) typeIndex;
             HashType = hashType;
             return this;
         }

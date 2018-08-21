@@ -61,6 +61,8 @@ namespace AElf.Kernel.Tests.Miner
         private IExecutingService _concurrencyExecutingService;
         private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
+        private readonly IChainManagerBasic _chainManagerBasic;
+        private readonly IBlockManagerBasic _blockManagerBasic;
         
         public MinerLifetime(IStateDictator stateDictator, 
             IChainCreationService chainCreationService, 
@@ -83,7 +85,6 @@ namespace AElf.Kernel.Tests.Miner
             _concurrencyExecutingService = concurrencyExecutingService;
 
             _stateDictator = stateDictator;
-            _stateDictator.BlockProducerAccountAddress = Hash.Generate();
             Initialize();
         }
 
@@ -232,7 +233,7 @@ namespace AElf.Kernel.Tests.Miner
         {
             var miner = new ChainController.Miner(config, poolService, _chainService, _stateDictator,
                 _smartContractService, _concurrencyExecutingService, _transactionManager, _transactionResultManager,
-                _logger, _chainCreationService);
+                _logger, _chainCreationService, _chainManagerBasic, _blockManagerBasic);
 
             return miner;
         }

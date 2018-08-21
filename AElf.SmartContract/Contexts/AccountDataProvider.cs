@@ -1,3 +1,4 @@
+using System;
 using AElf.Kernel;
 
 // ReSharper disable once CheckNamespace
@@ -23,6 +24,10 @@ namespace AElf.SmartContract
 
         public IDataProvider GetDataProvider()
         {
+            Console.WriteLine($"ChainId: {_dataPath.ChainId.ToHex()}");
+            Console.WriteLine($"RoundNumber: {_dataPath.RoundNumber}");
+            Console.WriteLine($"BP: {_dataPath.BlockProducerAddress.ToHex()}");
+            Console.WriteLine($"ContractAddress: {_dataPath.ContractAddress.ToHex()}");
             return new DataProvider(_dataPath, _stateDictator);
         }
     }

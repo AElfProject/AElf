@@ -41,14 +41,14 @@ namespace AElf.SmartContract
             return pool;
         }
 
-        public async Task<IExecutive> GetExecutiveAsync(Hash account, Hash chainId)
+        public async Task<IExecutive> GetExecutiveAsync(Hash contractAddress, Hash chainId)
         {
-            var pool = GetPoolFor(account);
+            var pool = GetPoolFor(contractAddress);
             if (pool.TryTake(out var executive))
                 return executive;
 
             // get registration
-            var reg = await _smartContractManager.GetAsync(account);
+            var reg = await _smartContractManager.GetAsync(contractAddress);
 
             // get runnner
             var runner = _smartContractRunnerFactory.GetRunner(reg.Category);
@@ -59,38 +59,23 @@ namespace AElf.SmartContract
             }
 
             // get account dataprovider
-            _stateDictator.BlockProducerAccountAddress = GetBlockProducerAddress();
-            _stateDictator.ChainId = chainId;
-            _stateDictator.CurrentRoundNumber = GetCurrentRoundNumber();
-            var dataProvider = _stateDictator.GetAccountDataProvider(account).GetDataProvider();
+            var dataProvider = _stateDictator.GetAccountDataProvider(contractAddress).GetDataProvider();
 
             // run smartcontract executive info and return executive
 
             executive = await runner.RunAsync(reg);
 
-            executive.SetWorldStateManager(_stateDictator);
+            executive.SetStateDictator(_stateDictator);
             
             executive.SetSmartContractContext(new SmartContractContext()
             {
                 ChainId = chainId,
-                ContractAddress = account,
+                ContractAddress = contractAddress,
                 DataProvider = dataProvider,
                 SmartContractService = this
             });
 
             return executive;
-        }
-
-        //TODO: 
-        private Hash GetBlockProducerAddress()
-        {
-            throw new NotImplementedException();
-        }
-
-        //TODO:
-        private ulong GetCurrentRoundNumber()
-        {
-            throw new NotImplementedException();
         }
 
         public async Task PutExecutiveAsync(Hash account, IExecutive executive)
@@ -112,7 +97,7 @@ namespace AElf.SmartContract
         }
         
         /// <inheritdoc/>
-        public async Task DeployContractAsync(Hash chainId, Hash account, SmartContractRegistration registration, bool isPrivileged)
+        public async Task DeployContractAsync(Hash chainId, Hash contractAddress, SmartContractRegistration registration, bool isPrivileged)
         {
             // get runnner
             var runner = _smartContractRunnerFactory.GetRunner(registration.Category);
@@ -122,10 +107,10 @@ namespace AElf.SmartContract
             {
                 var contractType = runner.GetContractType(registration);
                 var contractTemplate = runner.ExtractMetadata(contractType);
-                await _functionMetadataService.DeployContract(chainId, account, contractTemplate);
+                await _functionMetadataService.DeployContract(chainId, contractAddress, contractTemplate);
             }
             
-            await _smartContractManager.InsertAsync(account, registration);
+            await _smartContractManager.InsertAsync(contractAddress, registration);
         }
 
         public async Task<IMessage> GetAbiAsync(Hash account, string name = null)

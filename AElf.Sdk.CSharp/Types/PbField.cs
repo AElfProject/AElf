@@ -138,7 +138,7 @@ namespace AElf.Sdk.CSharp.Types
 
     public class UInt64Field
     {
-        private PbField<UInt64Value> _inner;
+        private readonly PbField<UInt64Value> _inner;
         public UInt64Field(string name)
         {
             _inner = new PbField<UInt64Value>(name);
@@ -161,6 +161,7 @@ namespace AElf.Sdk.CSharp.Types
         {
             await _inner.SetAsync(new UInt64Value { Value = value });
         }
+        
         public async Task<ulong> GetAsync()
         {
             return (await _inner.GetAsync())?.Value ?? 0;
@@ -169,7 +170,7 @@ namespace AElf.Sdk.CSharp.Types
 
     public class Int64Field
     {
-        private PbField<SInt64Value> _inner;
+        private readonly PbField<SInt64Value> _inner;
         public Int64Field(string name)
         {
             _inner = new PbField<SInt64Value>(name);
@@ -190,8 +191,9 @@ namespace AElf.Sdk.CSharp.Types
         
         public async Task SetAsync(long value)
         {
-            await _inner.SetAsync(new SInt64Value() { Value = value });
+            await _inner.SetAsync(new SInt64Value { Value = value });
         }
+        
         public async Task<long> GetAsync()
         {
             return (await _inner.GetAsync())?.Value ?? default(long);

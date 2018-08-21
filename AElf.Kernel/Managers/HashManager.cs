@@ -20,7 +20,7 @@ namespace AElf.Kernel.Managers
                 throw new InvalidOperationException("Please use other managers to get data via general hash.");
             }
 
-            return await _dataStore.GetAsync(hash);
+            return await _dataStore.GetAsync<Hash>(hash);
         }
 
         public async Task SetHash(Hash hash, Hash another)

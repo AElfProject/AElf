@@ -16,15 +16,15 @@ namespace AElf.Kernel
                 }
 
                 return ((Hash) new Hash(ChainId.CalculateHashWith(BlockProducerAddress)).CalculateHashWith(
-                    RoundNumber)).SetHashType(HashType.StateHash);
+                    RoundNumber)).OfType(HashType.StateHash);
             }
         }
 
         public Hash ResourcePathHash => HashExtensions
-            .CalculateHashOfHashList(ContractAddress, DataProviderHash, KeyHash).SetHashType(HashType.ResourcePath);
+            .CalculateHashOfHashList(ContractAddress, DataProviderHash, KeyHash).OfType(HashType.ResourcePath);
 
         public Hash ResourcePointerHash =>
-            ((Hash) StateHash.CalculateHashWith(ResourcePathHash)).SetHashType(HashType.ResourcePointer);
+            ((Hash) StateHash.CalculateHashWith(ResourcePathHash)).OfType(HashType.ResourcePointer);
 
         public DataPath RemoveState()
         {

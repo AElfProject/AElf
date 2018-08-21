@@ -10,7 +10,6 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Consensus;
 
 namespace AElf.ChainController
 {
@@ -23,7 +22,6 @@ namespace AElf.ChainController
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IStateDictator _stateDictator;
         private readonly IExecutingService _executingService;
-        private readonly AElfDPoSHelper _consensusHelper;
         private ILogger _logger;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
@@ -62,32 +60,34 @@ namespace AElf.ChainController
                 if (block?.Body?.Transactions == null || block.Body.Transactions.Count <= 0)
                     _logger?.Trace($"ExecuteBlock - Null block or no transactions.");
 
-                var uncompressedPrivKey = block.Header.P.ToByteArray();
+                var uncompressedPrivKey = block?.Header.P.ToByteArray();
                 var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
                 var blockProducerAddress = recipientKeyPair.GetAddress();
-                _stateDictator.ChainId = block.Header.ChainId;
-                _stateDictator.CurrentRoundNumber = block.RoundNumber;
+                _stateDictator.ChainId = block?.Header.ChainId;
+                _stateDictator.CurrentRoundNumber = block?.RoundNumber ?? 0;
                 _stateDictator.BlockProducerAccountAddress = blockProducerAddress;
                 
-                var txs = block.Body.Transactions;
-                foreach (var id in txs)
-                {
-                    if (!_txPoolService.TryGetTx(id, out var tx))
+                var txs = block?.Body?.Transactions;
+                if (txs != null)
+                    foreach (var id in txs)
                     {
-                        _logger?.Trace($"ExecuteBlock - Transaction not in pool {id.ToHex()}.");
-                        await Rollback(readyTxs);
-                        return false;
-                    }
-                    readyTxs.Add(tx);
-                    
-                    // remove from tx collection
-                    _txPoolService.RemoveAsync(tx.GetHash());
-                    var from = tx.From;
-                    if (!map.ContainsKey(from))
-                        map[from] = new HashSet<ulong>();
+                        if (!_txPoolService.TryGetTx(id, out var tx))
+                        {
+                            _logger?.Trace($"ExecuteBlock - Transaction not in pool {id.ToHex()}.");
+                            await Rollback(readyTxs);
+                            return false;
+                        }
 
-                    map[from].Add(tx.IncrementId);
-                }
+                        readyTxs.Add(tx);
+
+                        // remove from tx collection
+                        _txPoolService.RemoveAsync(tx.GetHash());
+                        var from = tx.From;
+                        if (!map.ContainsKey(@from))
+                            map[@from] = new HashSet<ulong>();
+
+                        map[@from].Add(tx.IncrementId);
+                    }
 
                 // promote txs from these address
                 //await _txPoolService.PromoteAsync(map.Keys.ToList());
@@ -153,7 +153,7 @@ namespace AElf.ChainController
                 await _txPoolService.UpdateAccountContext(addrs);
                 
                 await _stateDictator.SetWorldStateAsync();
-                var ws = await _stateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
+                var ws = await _stateDictator.GetLatestWorldStateAsync();
 
                 if (ws == null)
                 {
@@ -167,15 +167,13 @@ namespace AElf.ChainController
                     _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
                     _logger?.Trace($"Merkle tree root hash of execution: {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
                     _logger?.Trace($"Merkle tree root hash of received block: {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
-                    _logger?.Trace($"Current round number:{_stateDictator.CurrentRoundNumber}");
-                    _logger?.Trace($"Pre block hash of received block:{block.Header.PreviousBlockHash.ToHex()}");
 
                     await Rollback(readyTxs);
                     return false;
                 }
 
                 var blockchain = _chainService.GetBlockChain(block.Header.ChainId);
-                await blockchain.AddBlocksAsync(new List<IBlock>() {block});
+                await blockchain.AddBlocksAsync(new List<IBlock> {block});
             }
             catch (Exception e)
             {

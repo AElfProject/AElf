@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
 using Google.Protobuf.WellKnownTypes;
@@ -9,6 +10,7 @@ using NLog;
 
 namespace AElf.Kernel.Consensus
 {
+    [LoggerName(nameof(AElfDPoSHelper))]
     // ReSharper disable InconsistentNaming
     public class AElfDPoSHelper
     {
@@ -41,7 +43,7 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception)
                 {
-                    _logger.Info("Failed to get current round number.");
+                    _logger?.Info("Failed to get current round number.");
                     return new UInt64Value {Value = 0};
                 }
             }
@@ -136,6 +138,8 @@ namespace AElf.Kernel.Consensus
             _miners = miners;
             _logger = logger;
 
+            stateDictator.CurrentRoundNumber = CurrentRoundNumber.Value;
+
             _dataProvider = stateDictator.GetAccountDataProvider(contractAddressHash).GetDataProvider();
         }
 
@@ -181,8 +185,8 @@ namespace AElf.Kernel.Consensus
 
         public async Task<bool> HasGenerated()
         {
-            var bytes = await _dataProvider.GetAsync(Globals.AElfDPoSCurrentRoundNumber.CalculateHash());
-            return bytes != null;
+            var bytes = await _dataProvider.GetAsync(Globals.AElfDPoSBlockProducerString.CalculateHash());
+            return bytes.Length != 0;
         }
 
         public AElfDPoSInformation GenerateInfoForFirstTwoRounds()
@@ -534,6 +538,10 @@ namespace AElf.Kernel.Consensus
 
         public void SyncMiningInterval()
         {
+            if (MiningInterval.Value == 0)
+            {
+                return;
+            }
             Globals.AElfDPoSMiningInterval = MiningInterval.Value;
         }
         

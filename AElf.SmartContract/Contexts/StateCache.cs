@@ -3,6 +3,7 @@
     public class StateCache
     {
         private byte[] _currentValue;
+        public Kernel.Storages.Types Type { get; set; }
 
         public StateCache(byte[] initialValue)
         {
@@ -11,7 +12,7 @@
         }
 
         public bool Dirty { get; private set; }
-
+        
         public byte[] InitialValue { get; }
 
         public byte[] CurrentValue

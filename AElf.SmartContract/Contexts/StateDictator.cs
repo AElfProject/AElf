@@ -24,7 +24,7 @@ namespace AElf.SmartContract
         private WorldState _worldState = new WorldState();
 
         public Hash ChainId { get; set; }
-        public Hash BlockProducerAccountAddress { get; set; }
+        public Hash BlockProducerAccountAddress { get; set; } = Hash.Zero;
         public ulong CurrentRoundNumber { get; set; }
 
         public StateDictator(IHashManager hashManager, ITransactionManager transactionManager, IDataStore dataStore, ILogger logger = null)
@@ -38,14 +38,14 @@ namespace AElf.SmartContract
 
         public async Task<ulong> GetChainCurrentHeightAsync(Hash chainId)
         {
-            var key = chainId.SetHashType(HashType.ChainHeight);
+            var key = chainId.OfType(HashType.ChainHeight);
             var height = await _dataStore.GetAsync<UInt64Value>(key);
             return height.Value;
         }
 
         public async Task SetChainCurrentHeightAsync(Hash chainId, ulong height)
         {
-            var key = chainId.SetHashType(HashType.ChainHeight);
+            var key = chainId.OfType(HashType.ChainHeight);
             await _dataStore.InsertAsync(key, new UInt64Value
             {
                 Value = height
@@ -61,7 +61,6 @@ namespace AElf.SmartContract
         {
             return new AccountDataProvider(accountAddress, this);
         }
-
 
         /// <summary>
         /// Get a WorldState instance.

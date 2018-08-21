@@ -142,5 +142,10 @@ namespace AElf.Kernel
             var remains = hashes.Skip(1).ToArray();
             return hashes[0].CombineHashWith(CalculateHashOfHashList(remains));
         }
+        
+        public static bool IsNull(this Hash hash)
+        {
+            return hash == null || hash.ToHex().RemoveHexPrefix().Length == 0;
+        }
     }
 }
