@@ -150,16 +150,6 @@ namespace AElf.Kernel.Node
 
             Task.Run(() => _netManager.Start());
 
-            if (!NodeConfig.Instance.ConsensusInfoGenerater)
-            {
-//                _synchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
-                _synchronizer.SyncFinished += (s, e) => { StartMining(); };
-            }
-            else
-            {
-                StartMining();
-            }
-
             Task.Run(() => _synchronizer.Start(this, !NodeConfig.Instance.ConsensusInfoGenerater));
 
 //            var resourceDetectionService = new ResourceUsageDetectionService(_functionMetadataService);
@@ -175,7 +165,16 @@ namespace AElf.Kernel.Node
 
             _logger?.Log(LogLevel.Debug, "AElf node started.");
             Task.Run(async () => await _p2p.ProcessLoop()).ConfigureAwait(false);
-
+            Thread.Sleep(1000);
+            if (!NodeConfig.Instance.ConsensusInfoGenerater)
+            {
+//                _synchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
+                _synchronizer.SyncFinished += (s, e) => { StartMining(); };
+            }
+            else
+            {
+                StartMining();
+            }
             #endregion start
 
             return true;
