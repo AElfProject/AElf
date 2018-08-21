@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 
-namespace AElf.ChainController.Execution
+namespace AElf.Execution.Scheduling
 {
 	public interface IGrouper
     {

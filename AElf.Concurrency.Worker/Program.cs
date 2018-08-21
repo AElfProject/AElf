@@ -2,7 +2,6 @@
 using AElf.Database;
 using AElf.Execution;
 using AElf.Kernel.Modules.AutofacModule;
-using AElf.Launcher;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using Autofac;
@@ -31,15 +30,13 @@ namespace AElf.Concurrency.Worker
             if (!parsed)
                 return;
 
-            var isMiner = confParser.IsMiner;
-
             var runner = new SmartContractRunner(confParser.RunnerConfig);
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
 
             // Setup ioc 
-            var container = SetupIocContainer(isMiner, smartContractRunnerFactory);
+            var container = SetupIocContainer(true, smartContractRunnerFactory);
             if (container == null)
             {
                 _logger.Error("IoC setup failed");
@@ -54,7 +51,7 @@ namespace AElf.Concurrency.Worker
 
             using (var scope = container.BeginLifetimeScope())
             {
-                var service = scope.Resolve<IConcurrencyExecutingService>();
+                var service = scope.Resolve<ActorEnvironment>();
                 service.InitWorkActorSystem();
                 Console.WriteLine("Press Control + C to terminate.");
                 Console.CancelKeyPress += async (sender, eventArgs) => { await service.StopAsync(); };
@@ -81,7 +78,8 @@ namespace AElf.Concurrency.Worker
             builder.RegisterModule(new MetadataModule());
 
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
-
+            builder.RegisterType<ServicePack>().PropertiesAutowired();
+            builder.RegisterType<ActorEnvironment>().SingleInstance();
             IContainer container;
             try
             {

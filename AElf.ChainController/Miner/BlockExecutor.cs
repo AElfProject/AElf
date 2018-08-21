@@ -7,8 +7,6 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using NLog;
 using AElf.Kernel;
-using AElf.Execution;
-using AElf.ChainController.Execution;
 using AElf.SmartContract;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
@@ -20,27 +18,24 @@ namespace AElf.ChainController
     {
         private readonly ITxPoolService _txPoolService;
         private readonly IChainService _chainService;
-        private readonly HashManager _hashManager;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly IStateDictator _stateDictator;
-        private readonly IConcurrencyExecutingService _concurrencyExecutingService;
-        private IGrouper _grouper;
-        private readonly ILogger _logger;
+        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IExecutingService _executingService;
+        private ILogger _logger;
 
         public BlockExecutor(ITxPoolService txPoolService, IChainService chainService,
-            IStateDictator stateDictator, HashManager hashManager,
-            IConcurrencyExecutingService concurrencyExecutingService, 
+            IWorldStateDictator worldStateDictator,
+            IExecutingService executingService, 
             ILogger logger, ITransactionManager transactionManager, ITransactionResultManager transactionResultManager)
         {
             _txPoolService = txPoolService;
             _chainService = chainService;
-            _stateDictator = stateDictator;
-            _concurrencyExecutingService = concurrencyExecutingService;
+            _worldStateDictator = worldStateDictator;
+            _executingService = executingService;
             _logger = logger;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
-            _hashManager = hashManager;
         }
 
         /// <summary>
@@ -51,8 +46,12 @@ namespace AElf.ChainController
         /// <inheritdoc/>
         public async Task<bool> ExecuteBlock(IBlock block)
         {
-            var readyTxs = new List<Transaction>();
+            var readyTxs = new List<ITransaction>();
 
+            await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
+            var worldState = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
+            //_logger?.Trace($"Merkle Tree Root before execution:{(await worldState.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
+            
             try
             {
                 if (Cts == null || Cts.IsCancellationRequested)
@@ -67,7 +66,7 @@ namespace AElf.ChainController
 
                 var uncompressedPrivKey = block.Header.P.ToByteArray();
                 var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
-                _stateDictator.BlockProducerAccountAddress = recipientKeyPair.GetAddress();
+                _worldStateDictator.BlockProducerAccountAddress = recipientKeyPair.GetAddress();
                 
                 var txs = block.Body.Transactions;
                 foreach (var id in txs)
@@ -118,10 +117,10 @@ namespace AElf.ChainController
                     await Rollback(readyTxs);
                     return false;
                 }
-                
+
                 var traces = readyTxs.Count == 0
                     ? new List<TransactionTrace>()
-                    : await _concurrencyExecutingService.ExecuteAsync(readyTxs, block.Header.ChainId, _grouper);
+                    : await _executingService.ExecuteAsync(readyTxs, block.Header.ChainId, Cts.Token);
                 
                 foreach (var trace in traces)
                 {
@@ -151,9 +150,9 @@ namespace AElf.ChainController
 
                 var addrs = await InsertTxs(readyTxs, results);
                 await _txPoolService.UpdateAccountContext(addrs);
-
-                var ws = await _stateDictator.GetWorldStateAsync(
-                    await _hashManager.GetHash(block.GetHash().SetHashType(HashType.BlockHash)));
+                
+                await _worldStateDictator.SetWorldStateAsync(block.Header.PreviousBlockHash);
+                var ws = await _worldStateDictator.GetWorldStateAsync(block.Header.PreviousBlockHash);
 
                 if (ws == null)
                 {
@@ -167,7 +166,7 @@ namespace AElf.ChainController
                     _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
                     _logger?.Trace($"Merkle tree root hash of execution: {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
                     _logger?.Trace($"Merkle tree root hash of received block: {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
-                    _logger?.Trace($"Pre block hash of mime:{block.Header.PreviousBlockHash.ToHex()}");
+                    _logger?.Trace($"Pre block hash of mime:{_worldStateDictator.PreBlockHash.ToHex()}");
                     _logger?.Trace($"Pre block hash of received block:{block.Header.PreviousBlockHash.ToHex()}");
 
                     await Rollback(readyTxs);
@@ -192,13 +191,12 @@ namespace AElf.ChainController
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
-        private async Task<HashSet<Hash>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults)
+        private async Task<HashSet<Hash>> InsertTxs(List<ITransaction> executedTxs, List<TransactionResult> txResults)
         {
             var addrs = new HashSet<Hash>();
             foreach (var t in executedTxs)
             {
                 addrs.Add(t.From);
-                var type = t.GetType();
                 await _transactionManager.AddTransactionAsync(t);
             }
             
@@ -214,16 +212,15 @@ namespace AElf.ChainController
         /// </summary>
         /// <param name="readyTxs"></param>
         /// <returns></returns>
-        private async Task Rollback(List<Transaction> readyTxs)
+        private async Task Rollback(List<ITransaction> readyTxs)
         {
             await _txPoolService.RollBack(readyTxs);
-            await _stateDictator.RollbackToPreviousBlock();
+            await _worldStateDictator.RollbackCurrentChangesAsync();
         }
         
-        public void Start(IGrouper grouper)
+        public void Start()
         {
             Cts = new CancellationTokenSource();
-            _grouper = grouper;
         }
     }
 }

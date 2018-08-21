@@ -1,6 +1,5 @@
 ﻿using Autofac;
 using AElf.ChainController;
-using AElf.Execution;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
@@ -24,9 +23,9 @@ namespace AElf.Kernel.Modules.AutofacModule
                 builder.RegisterInstance(MinerConfig.Default).As<IMinerConfig>();
             }
             
-            builder.RegisterType(typeof(ParallelTransactionExecutingService)).As<IParallelTransactionExecutingService>();
+//            builder.RegisterType(typeof(ParallelTransactionExecutingService));//.As<IParallelTransactionExecutingService>();
             builder.RegisterType(typeof(Miner)).As<IMiner>();
-            builder.RegisterType(typeof(ConcurrencyExecutingService)).As<IConcurrencyExecutingService>().SingleInstance();
+//            builder.RegisterType(typeof(ConcurrencyExecutingService)).As<IExecutingService>().SingleInstance();
         }
     }
 }    

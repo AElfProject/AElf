@@ -5,32 +5,27 @@ namespace AElf.Configuration
     public class ConfigInfo
     {
         private string _name;
-        private Type _type;
-        private object _value;
-
-        public object Value
-        {
-            get { return _value; }
-        }
+        public Type Type { get; }
+        public object Value { get; }
 
         public ConfigInfo(string name, Type type, string content)
         {
             _name = name;
-            _type = type;
+            Type = type;
             if (string.IsNullOrWhiteSpace(content))
             {
-                _value = CreateDefaultInstance(type);
+                Value = CreateDefaultInstance(type);
             }
             else
             {
                 try
                 {
-                    _value = JsonSerializer.Instance.Deserialize(content, type);
+                    Value = JsonSerializer.Instance.Deserialize(content, type);
                 }
                 catch (Exception e)
                 {
                     //Todo log error
-                    _value = CreateDefaultInstance(type);
+                    Value = CreateDefaultInstance(type);
                 }
             }
         }

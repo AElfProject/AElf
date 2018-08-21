@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -10,51 +10,32 @@ using Akka.Routing;
 using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Configuration;
-using AElf.ChainController.Execution;
+using AElf.Execution;
+using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Execution
+namespace AElf.Concurrency.Worker
 {
-    public class ConcurrencyExecutingService : IExecutingService
+    public class ActorEnvironment
     {
+        private const string SystemName = "AElfSystem";
         private ActorSystem _actorSystem;
         private IActorRef _router;
-        private bool _isInit;
-        private const string SystemName = "AElfSystem";
         private readonly ServicePack _servicePack;
-        private readonly IGrouper _grouper;
-        private IExecutingService _service;
-
-        private IExecutingService Service
-        {
-            get
-            {
-                if (_service != null)
-                {
-                    var requestor = _actorSystem.ActorOf(Requestor.Props(_router));
-                    _service = new ParallelTransactionExecutingService(requestor, _grouper);
-                }
-
-                return _service;
-            }
-        }
 
         public Task TerminationHandle => _actorSystem.WhenTerminated;
 
-        public ConcurrencyExecutingService(ServicePack servicePack, IGrouper grouper)
+        public ActorEnvironment(ServicePack servicePack)
         {
             _servicePack = servicePack;
-            _grouper = grouper;
-            _isInit = false;
+            _servicePack.WorldStateDictator.DeleteChangeBeforesImmidiately = ActorConfig.Instance.Benchmark;
         }
 
-        public async Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId,
-            CancellationToken token)
+        public void InitWorkActorSystem()
         {
-            if (!_isInit)
-            {
-                InitActorSystem();
-            }
-            return await Service.ExecuteAsync(transactions, chainId, token);
+            var config = PrepareActorConfig(ActorConfig.Instance.WorkerHoconConfig);
+
+            _actorSystem = ActorSystem.Create(SystemName, config);
+            InitLocalWorkers();
         }
 
         public void InitActorSystem()
@@ -74,18 +55,7 @@ namespace AElf.Execution
 
                 _actorSystem = ActorSystem.Create(SystemName, config);
                 _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");
-                InitWorkerServicePack();
-            }
-
-            _isInit = true;
-        }
-
-        private void InitWorkerServicePack()
-        {
-            for (var i = 0; i < ActorConfig.Instance.ActorCount; i++)
-            {
-                var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker" + i);
-                worker.Tell(new LocalSerivcePack(_servicePack));
+                InitLocalWorkers();
             }
         }
 
@@ -93,7 +63,16 @@ namespace AElf.Execution
         {
             await CoordinatedShutdown.Get(_actorSystem).Run();
         }
-        
+
+        private void InitLocalWorkers()
+        {
+            for (var i = 0; i < ActorConfig.Instance.ActorCount; i++)
+            {
+                var worker = _actorSystem.ActorOf(Props.Create<Execution.Worker>(), "worker" + i);
+                worker.Tell(new LocalSerivcePack(_servicePack));
+            }
+        }
+
         #region static method
 
         private static Config PrepareActorConfig(string content)

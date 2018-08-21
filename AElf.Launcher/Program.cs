@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Security;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
@@ -15,6 +16,7 @@ using AElf.Kernel.Modules.AutofacModule;
 using AElf.Kernel.Node;
 using AElf.Configuration;
 using AElf.Configuration.Config.Network;
+using AElf.Execution.Scheduling;
 using AElf.Network;
 using AElf.Runtime.CSharp;
 using AElf.SideChain.Creation;
@@ -33,6 +35,7 @@ namespace AElf.Launcher
     {
         private static string AssemblyDir { get; } = Path.GetDirectoryName(typeof(Program).Assembly.Location);
         private const string FilePath = @"ChainInfo.json";
+        private static int _stopped;
 
         static void Main(string[] args)
         {
@@ -112,8 +115,12 @@ namespace AElf.Launcher
 
             using (var scope = container.BeginLifetimeScope())
             {
-                var concurrencySercice = scope.Resolve<IConcurrencyExecutingService>();
-                concurrencySercice.InitActorSystem();
+                IActorEnvironment actorEnv = null;
+                if (ParallelConfig.Instance.IsParallelEnable)
+                {
+                    actorEnv = scope.Resolve<IActorEnvironment>();
+                    actorEnv.InitActorSystem();   
+                }
 
                 var evListener = scope.Resolve<ChainCreationEventListener>();
                 MessageHub.Instance.Subscribe<IBlock>(async (t) =>
@@ -146,8 +153,17 @@ namespace AElf.Launcher
                 }
 
                 //DoDPos(node);
-                Console.CancelKeyPress += async (sender, eventArgs) => { await concurrencySercice.StopAsync(); };
-                concurrencySercice.TerminationHandle.Wait();
+                if (actorEnv!=null)
+                {
+                    Console.CancelKeyPress += async (sender, eventArgs) => { await actorEnv.StopAsync(); };
+                    actorEnv.TerminationHandle.Wait();
+                }
+
+                Console.CancelKeyPress += (s, e) => { Interlocked.CompareExchange(ref _stopped, 1, 0); };
+                while (_stopped == 0)
+                {
+                    Console.ReadKey();
+                }
             }
         }
 
@@ -223,13 +239,25 @@ namespace AElf.Launcher
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
 
+            if (ParallelConfig.Instance.IsParallelEnable)
+            {
+                builder.RegisterType<Grouper>().As<IGrouper>();
+                builder.RegisterType<ServicePack>().PropertiesAutowired();
+                builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
+                builder.RegisterType<ParallelTransactionExecutingService>().As<IExecutingService>();
+            }
+            else
+            {
+                builder.RegisterType<SimpleExecutingService>().As<IExecutingService>();
+            }
+            
             // register SmartContractRunnerFactory 
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
 
             Hash chainId;
             if (isNewChain)
             {
-                chainId = Hash.Generate();
+                chainId = Hash.Generate().ToChainId();
                 var obj = new JObject(new JProperty("id", chainId.ToHex()));
 
                 // write JSON directly to a file
