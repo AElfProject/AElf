@@ -37,7 +37,7 @@ namespace AElf.Management.Commands
         {
             var config = new ActorConfig
             {
-                IsCluster = true,
+                IsCluster = arg.ManagerArg.IsCluster,
                 HostName = "127.0.0.1",
                 Port = 0,
                 ActorCount = arg.WorkArg.ActorCount,

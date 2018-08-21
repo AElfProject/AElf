@@ -37,22 +37,26 @@ namespace AElf.Management.Services
                 chainId = SHA256.Create().ComputeHash(Guid.NewGuid().ToByteArray()).Take(ECKeyPair.AddressLength).ToArray().ToHex();
             }
 
-            var commands = new List<IDeployCommand>();
-            commands.Add(new K8SAddNamespaceCommand());
-            commands.Add(new K8SAddRedisCommand());
-            commands.Add(new K8SAddConfigCommand());
-            commands.Add(new K8SAddAccountKeyCommand());
-            commands.Add(new K8SAddManagerCommand());
-            commands.Add(new K8SAddWorkerCommand());
-            commands.Add(new K8SAddLauncherCommand());
-            
+            var commands = new List<IDeployCommand>
+            {
+                new K8SAddNamespaceCommand(), 
+                new K8SAddRedisCommand(), 
+                new K8SAddConfigCommand(), 
+                new K8SAddAccountKeyCommand(), 
+                new K8SAddManagerCommand(), 
+                new K8SAddWorkerCommand(), 
+                new K8SAddLauncherCommand()
+            };
+
             commands.ForEach(c => c.Action(chainId, arg));
         }
 
         public void RemoveMainChain(string chainId)
         {
-            var commands = new List<IDeployCommand>();
-            commands.Add(new K8SDeleteNamespaceCommand());
+            var commands = new List<IDeployCommand>
+            {
+                new K8SDeleteNamespaceCommand()
+            };
 
             commands.ForEach(c => c.Action(chainId, null));
         }
