@@ -244,6 +244,7 @@ namespace AElf.Launcher
             builder.RegisterModule(new RpcServicesModule());
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
+            builder.RegisterType<ResourceUsageDetectionService>().As<IResourceUsageDetectionService>();
 
             if (ParallelConfig.Instance.IsParallelEnable)
             {
