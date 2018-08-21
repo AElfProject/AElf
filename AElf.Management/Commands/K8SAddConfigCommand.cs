@@ -87,9 +87,9 @@ namespace AElf.Management.Commands
 
         private string GetParallelConfigJson(string chainId, DeployArg arg)
         {
-            var config = new ParallelConfig()
+            var config = new ParallelConfig
             {
-                IsParallelEnable = true;
+                IsParallelEnable = true
             };
 
             var result = JsonSerializer.Instance.Serialize(config);
