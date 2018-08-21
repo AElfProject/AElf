@@ -3,15 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.Managers;
-using Google.Protobuf;
-using NLog;
-using AElf.Kernel;
-using AElf.SmartContract;
+using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution;
+using AElf.Execution.Scheduling;
+using AElf.Kernel;
+using AElf.Kernel.Managers;
+using AElf.SmartContract;
+using Google.Protobuf;
+using NLog;
+using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
 
-namespace AElf.ChainController
+namespace AElf.Miner.Miner
 {
     [LoggerName(nameof(BlockExecutor))]
     public class BlockExecutor : IBlockExecutor
@@ -117,7 +121,7 @@ namespace AElf.ChainController
                     await Rollback(readyTxs);
                     return false;
                 }
-
+                
                 var traces = readyTxs.Count == 0
                     ? new List<TransactionTrace>()
                     : await _executingService.ExecuteAsync(readyTxs, block.Header.ChainId, Cts.Token);

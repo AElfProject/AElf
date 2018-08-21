@@ -1,16 +1,17 @@
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Common.Extensions;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
+using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 using ServiceStack;
-using AElf.SmartContract;
-using AElf.Kernel;
 
-namespace AElf.ChainController
+namespace AElf.ChainControllerImpl
 {
     [LoggerName(nameof(ConsensusBlockValidationFilter))]
     public class ConsensusBlockValidationFilter: IBlockValidationFilter

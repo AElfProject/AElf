@@ -1,19 +1,24 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution;
+using AElf.Execution.Scheduling;
+using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
-using AElf.SmartContract;
-using AElf.Kernel;
 using NLog;
+using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
+using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
+using Status = AElf.Kernel.Status;
 
-namespace AElf.ChainController
+namespace AElf.Miner.Miner
 {
     [LoggerName("Miner")]
     public class Miner : IMiner
@@ -27,16 +32,15 @@ namespace AElf.ChainController
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
 
-        private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
-
         private MinerLock Lock { get; } = new MinerLock();
         private readonly ILogger _logger;
+        
         
         /// <summary>
         /// Signals to a CancellationToken that mining should be canceled
         /// </summary>
         public CancellationTokenSource Cts { get; private set; }
-        
+
         public IMinerConfig Config { get; }
 
         public Hash Coinbase => Config.CoinBase;
@@ -71,11 +75,36 @@ namespace AElf.ChainController
                 // reset Promotable and update account context
                 
                 _logger?.Log(LogLevel.Debug, "Executing Transactions..");
-
+                List<TransactionTrace> traces = null;
                 var blockChain = _chainService.GetBlockChain(Config.ChainId);
-                var traces = readyTxs.Count == 0
+                if(Config.IsParallel)
+                {  
+                    traces = readyTxs.Count == 0
                     ? new List<TransactionTrace>()
                     : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, Cts.Token);
+                }
+                else
+                {
+                    foreach (var transaction in readyTxs)
+                    {
+                        var executive = await _smartContractService.GetExecutiveAsync(transaction.To, Config.ChainId);
+                        try
+                        {
+                            var txnInitCtxt = new TransactionContext()
+                            {
+                                Transaction = transaction,
+                                BlockHeight = await blockChain.GetCurrentBlockHeightAsync()
+                            };
+                            _worldStateDictator.PreBlockHash = await _chainService.GetBlockChain(Config.ChainId).GetCurrentBlockHashAsync();
+                            await executive.SetTransactionContext(txnInitCtxt).Apply(true);
+                        }
+                        finally
+                        {
+                            await _smartContractService.PutExecutiveAsync(transaction.To, executive);    
+                        }
+
+                    }
+                }
                 _logger?.Log(LogLevel.Debug, "End Executing Transactions..");
                 var results = new List<TransactionResult>();
                 foreach (var trace in traces)
@@ -245,17 +274,20 @@ namespace AElf.ChainController
             return header;
 
         }
-        
 
+        
         
         /// <summary>
         /// start mining  
         /// </summary>
         public void Start(ECKeyPair nodeKeyPair)
         {
-            Cts = new CancellationTokenSource();
-            _keyPair = nodeKeyPair;
-            //MiningResetEvent = new AutoResetEvent(false);
+            if (Cts == null || Cts.IsCancellationRequested)
+            {
+                Cts = new CancellationTokenSource();
+                _keyPair = nodeKeyPair;
+                // init miner rpc server
+            }
         }
 
         /// <summary>

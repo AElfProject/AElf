@@ -1,8 +1,9 @@
 ﻿using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 
-namespace AElf.ChainController
+namespace AElf.ChainControllerImpl
 {
     public class BlockValidationFilter : IBlockValidationFilter
     {

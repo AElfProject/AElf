@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
+using AElf.ChainController.TxMemPool;
+using AElf.ChainControllerImpl;
+using AElf.ChainControllerImpl.TxMemPool;
 using AElf.SmartContract;
-using AElf.Kernel.Managers;
-using AElf.Kernel.TxMemPool;
 using Google.Protobuf;
 using NLog;
-using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 
