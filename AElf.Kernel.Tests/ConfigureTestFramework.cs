@@ -1,6 +1,8 @@
 ﻿using AElf.SmartContract;
 using AElf.ChainController;
 using AElf.ChainControllerImpl.TxMemPool;
+using AElf.Execution;
+using AElf.Execution.Scheduling;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
 using Autofac;
@@ -31,6 +33,10 @@ namespace AElf.Kernel.Tests
             builder.RegisterModule(new ManagersModule());
             builder.RegisterModule(new TxPoolServiceModule(new TxPoolConfig()));
             builder.RegisterType<ChainService>().As<IChainService>();
+            builder.RegisterType<Grouper>().As<IGrouper>();
+            builder.RegisterType<ServicePack>().PropertiesAutowired();
+            builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
+            builder.RegisterType<SimpleExecutingService>().As<IExecutingService>();
 
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);

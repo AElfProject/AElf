@@ -10,7 +10,12 @@
   <ItemGroup>
     <ProjectReference Include="..\AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj" />
     <ProjectReference Include="..\AElf.Miner\AElf.Miner.csproj" />
+    <ProjectReference Include="..\AElf.Net.Rpc\AElf.Net.Rpc.csproj">
+      <Project>{DF493C51-FB0B-4E78-B66A-10BA484ED12B}</Project>
+      <Name>AElf.Net.Rpc</Name>
+    </ProjectReference>
     <ProjectReference Include="..\AElf.Node\AElf.Node.csproj" />
+    <ProjectReference Include="..\AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="NLog.config">

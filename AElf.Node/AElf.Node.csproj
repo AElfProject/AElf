@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.ChainControllerImpl\AElf.ChainControllerImpl.csproj" />
+    <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
     <ProjectReference Include="..\AElf.Miner\AElf.Miner.csproj" />
     <ProjectReference Include="..\AElf.Network\AElf.Network.csproj">

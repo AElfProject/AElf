@@ -2,10 +2,10 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
 using AElf.ChainControllerImpl.TxMemPool;
+using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
@@ -21,6 +21,7 @@ using Xunit.Frameworks.Autofac;
 using AElf.Runtime.CSharp;
 using Moq;
 using NLog;
+using MinerConfig = AElf.Miner.Miner.MinerConfig;
 using Parameters = AElf.Kernel.Parameters;
 
 namespace AElf.Miner.Tests
@@ -53,7 +54,7 @@ namespace AElf.Miner.Tests
         private IAccountContextService _accountContextService;
         private ITransactionManager _transactionManager;
         private ITransactionResultManager _transactionResultManager;
-        private IConcurrencyExecutingService _concurrencyExecutingService;
+        private IExecutingService _executingService;
         private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
 
@@ -66,7 +67,7 @@ namespace AElf.Miner.Tests
             ITransactionManager transactionManager, ITransactionResultManager transactionResultManager, 
             IChainService chainService, ISmartContractManager smartContractManager, 
             IFunctionMetadataService functionMetadataService, 
-            IConcurrencyExecutingService concurrencyExecutingService) : base(new XunitAssertions())
+            IExecutingService executingService) : base(new XunitAssertions())
         {
             _chainCreationService = chainCreationService;
             _chainContextService = chainContextService;
@@ -78,7 +79,7 @@ namespace AElf.Miner.Tests
             _chainService = chainService;
             _smartContractManager = smartContractManager;
             _functionMetadataService = functionMetadataService;
-            _concurrencyExecutingService = concurrencyExecutingService;
+            _executingService = executingService;
 
             _worldStateDictator = worldStateDictator;
             _worldStateDictator.BlockProducerAccountAddress = Hash.Generate();
@@ -246,7 +247,7 @@ namespace AElf.Miner.Tests
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {            
             var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _worldStateDictator,
-                _smartContractService, _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger);
+                _smartContractService, _executingService, _transactionManager, _transactionResultManager, _logger);
 
             return miner;
         }
@@ -283,9 +284,7 @@ namespace AElf.Miner.Tests
             
             var miner = GetMiner(minerconfig, poolService);
 
-            var parallelTransactionExecutingService = new ParallelTransactionExecutingService(_requestor,
-                new Grouper(_servicePack.ResourceDetectionService));
-            miner.Start(keypair, new Grouper(_servicePack.ResourceDetectionService));
+            miner.Start(keypair);
             
             var block = await miner.Mine();
             
@@ -321,7 +320,7 @@ namespace AElf.Miner.Tests
             /*var parallelTransactionExecutingService = new ParallelTransactionExecutingService(_requestor,
                 new Grouper(_servicePack.ResourceDetectionService));*/
             
-            miner.Start(keypair, new Grouper(_servicePack.ResourceDetectionService));
+            miner.Start(keypair);
             
             var block = await miner.Mine();
             

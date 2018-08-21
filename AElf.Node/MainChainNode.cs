@@ -162,13 +162,13 @@ namespace AElf.Kernel.Node
 
             Task.Run(() => _synchronizer.Start(this, !NodeConfig.Instance.ConsensusInfoGenerater));
 
-            var resourceDetectionService = new ResourceUsageDetectionService(_functionMetadataService);
-
-            var grouper = new Grouper(resourceDetectionService, _logger);
-            _blockExecutor.Start(grouper);
+//            var resourceDetectionService = new ResourceUsageDetectionService(_functionMetadataService);
+//
+//            var grouper = new Grouper(resourceDetectionService, _logger);
+            _blockExecutor.Start();
             if (NodeConfig.Instance.IsMiner)
             {
-                _miner.Start(nodeKeyPair, grouper);
+                _miner.Start(nodeKeyPair);
 
                 _logger?.Log(LogLevel.Debug, "Coinbase = \"{0}\"", _miner.Coinbase.ToHex());
             }

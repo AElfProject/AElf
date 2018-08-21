@@ -24,6 +24,11 @@ namespace AElf.Kernel
             return GetHashBytes().Take(ECKeyPair.AddressLength).ToArray();
         }
         
+        public Hash ToChainId()
+        {
+            return GetHashBytes().Take(ECKeyPair.AddressLength).ToArray();
+        }
+        
         public static readonly Hash Zero = new Hash("AElf".CalculateHash()).ToAccount();
         
         public static readonly Hash Default = new Hash(new byte[]{});

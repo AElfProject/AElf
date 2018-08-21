@@ -24,9 +24,9 @@ namespace AElf.Kernel.Modules.AutofacModule
 
             var assembly4 = typeof(BlockVaildationService).Assembly;
             builder.RegisterAssemblyTypes(assembly4).AsImplementedInterfaces();
-
-            var assembly5 = typeof(Execution.ParallelTransactionExecutingService).Assembly;
-            builder.RegisterAssemblyTypes(assembly5).AsImplementedInterfaces();
+//
+  var assembly5 = typeof(Execution.ParallelTransactionExecutingService).Assembly;
+builder.RegisterAssemblyTypes(assembly5).AsImplementedInterfaces();
             
             var assembly6 = typeof(Node.MainChainNode).Assembly;
             builder.RegisterAssemblyTypes(assembly6).AsImplementedInterfaces();

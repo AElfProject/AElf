@@ -12,7 +12,6 @@ using AElf.Execution.Scheduling;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
-using AElf.Miner.Miner;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using AElf.SmartContract.Metadata;
@@ -26,6 +25,7 @@ using NLog;
 using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
+using BlockExecutor = AElf.Miner.Miner.BlockExecutor;
 
 namespace AElf.Miner.Tests
 {
@@ -37,7 +37,7 @@ namespace AElf.Miner.Tests
         private IWorldStateDictator _worldStateDictator;
         private ISmartContractManager _smartContractManager;
         private IFunctionMetadataService _functionMetadataService;
-        private IConcurrencyExecutingService _concurrencyExecutingService;
+        private IExecutingService _executingService;
         private IDataStore _dataStore;
         private IWorldStateStore _worldStateStore;
         private IChangesStore _changesStore;
@@ -47,7 +47,7 @@ namespace AElf.Miner.Tests
             IChainCreationService chainCreationService, IChainContextService chainContextService,
             IChainService chainService, ILogger logger,
             ITransactionResultManager transactionResultManager, ITransactionManager transactionManager,
-            FunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService,
+            FunctionMetadataService functionMetadataService, IExecutingService executingService,
             IChangesStore changesStore, IWorldStateStore worldStateStore, IDataStore dataStore,
             ISmartContractManager smartContractManager, IAccountContextService accountContextService,
             ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
@@ -61,7 +61,7 @@ namespace AElf.Miner.Tests
             _transactionResultManager = transactionResultManager;
             _transactionManager = transactionManager;
             _functionMetadataService = functionMetadataService;
-            _concurrencyExecutingService = concurrencyExecutingService;
+            _executingService = executingService;
             _changesStore = changesStore;
             _worldStateStore = worldStateStore;
             _dataStore = dataStore;
@@ -283,9 +283,9 @@ namespace AElf.Miner.Tests
             block.Body.BlockHeader = block.Header.GetHash();
 
             var synchronizer = new BlockExecutor(poolService,
-                _chainService, _worldStateDictator, _concurrencyExecutingService, null, _transactionManager, _transactionResultManager);
+                _chainService, _worldStateDictator, _executingService, null, _transactionManager, _transactionResultManager);
 
-            synchronizer.Start(new Grouper(_servicePack.ResourceDetectionService));
+            synchronizer.Start();
             var res = await synchronizer.ExecuteBlock(block);
             Assert.False(res);
 

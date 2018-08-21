@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using AElf.ChainController.Execution;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 
@@ -7,7 +6,7 @@ namespace AElf.Miner.Miner
 {
     public interface IMiner
     {
-        void Start(ECKeyPair nodeKeyPair, IGrouper grouper );
+        void Start(ECKeyPair nodeKeyPair);
         void Stop();
 
         Hash Coinbase { get; }

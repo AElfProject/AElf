@@ -13,7 +13,6 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.ChainControllerImpl\AElf.ChainControllerImpl.csproj" />
     <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />

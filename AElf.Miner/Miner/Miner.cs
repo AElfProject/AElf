@@ -4,10 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.ChainController.Execution;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution;
+using AElf.Execution.Scheduling;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.SmartContract;
@@ -28,27 +28,26 @@ namespace AElf.Miner.Miner
         private readonly IChainService _chainService;
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly ISmartContractService _smartContractService;
-        private readonly IConcurrencyExecutingService _concurrencyExecutingService;
+        private readonly IExecutingService _executingService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
 
         private MinerLock Lock { get; } = new MinerLock();
         private readonly ILogger _logger;
         
+        
         /// <summary>
         /// Signals to a CancellationToken that mining should be canceled
         /// </summary>
         public CancellationTokenSource Cts { get; private set; }
 
-        private IGrouper _grouper;
-        
         public IMinerConfig Config { get; }
 
         public Hash Coinbase => Config.CoinBase;
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
             IWorldStateDictator worldStateDictator,  ISmartContractService smartContractService, 
-            IConcurrencyExecutingService concurrencyExecutingService, ITransactionManager transactionManager, 
+            IExecutingService executingService, ITransactionManager transactionManager, 
             ITransactionResultManager transactionResultManager, ILogger logger)
         {
             Config = config;
@@ -56,7 +55,7 @@ namespace AElf.Miner.Miner
             _chainService = chainService;
             _worldStateDictator = worldStateDictator;
             _smartContractService = smartContractService;
-            _concurrencyExecutingService = concurrencyExecutingService;
+            _executingService = executingService;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _logger = logger;
@@ -82,7 +81,7 @@ namespace AElf.Miner.Miner
                 {  
                     traces = readyTxs.Count == 0
                     ? new List<TransactionTrace>()
-                    : await _concurrencyExecutingService.ExecuteAsync(readyTxs, Config.ChainId, _grouper);
+                    : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, Cts.Token);
                 }
                 else
                 {
@@ -281,14 +280,12 @@ namespace AElf.Miner.Miner
         /// <summary>
         /// start mining  
         /// </summary>
-        public void Start(ECKeyPair nodeKeyPair, IGrouper grouper)
+        public void Start(ECKeyPair nodeKeyPair)
         {
             if (Cts == null || Cts.IsCancellationRequested)
             {
                 Cts = new CancellationTokenSource();
                 _keyPair = nodeKeyPair;
-                _grouper = grouper;
-                
                 // init miner rpc server
             }
         }

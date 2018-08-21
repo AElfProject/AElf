@@ -18,6 +18,7 @@
     <PackageReference Include="ServiceStack" Version="5.1.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Modules.AutofacModule\AElf.Kernel.Modules.AutofacModule.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Tests.TestContractZero\AElf.Kernel.Tests.TestContractZero.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Tests.TestContract\AElf.Kernel.Tests.TestContract.csproj" />

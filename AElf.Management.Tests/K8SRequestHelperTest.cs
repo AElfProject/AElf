@@ -13,9 +13,10 @@ namespace AElf.Management.Tests
     public class K8SRequestHelperTest
     {
         [Fact(Skip = "require aws account")]
+        //[Fact]
         public void GetClientTest()
         {
-            var name = "test";
+            var name = "0x7ef9c60a1283681b895dbeb1f28c0d0d8559";
             var body = new V1Namespace
             {
                 Metadata = new V1ObjectMeta

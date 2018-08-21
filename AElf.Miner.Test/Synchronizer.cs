@@ -39,17 +39,16 @@ namespace AElf.Kernel.Tests.Miner
         private IWorldStateDictator _worldStateDictator;
         private ISmartContractManager _smartContractManager;
         private IFunctionMetadataService _functionMetadataService;
-        private IConcurrencyExecutingService _concurrencyExecutingService;
+        private IExecutingService _executingService;
         private IDataStore _dataStore;
         private IWorldStateStore _worldStateStore;
         private IChangesStore _changesStore;
-        private ServicePack _servicePack;
 
         public Synchronizer(
             IChainCreationService chainCreationService, IChainContextService chainContextService,
             IChainService chainService, ILogger logger,
             ITransactionResultManager transactionResultManager, ITransactionManager transactionManager,
-            FunctionMetadataService functionMetadataService, IConcurrencyExecutingService concurrencyExecutingService,
+            FunctionMetadataService functionMetadataService, IExecutingService executingService,
             IChangesStore changesStore, IWorldStateStore worldStateStore, IDataStore dataStore,
             ISmartContractManager smartContractManager, IAccountContextService accountContextService,
             ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
@@ -63,7 +62,7 @@ namespace AElf.Kernel.Tests.Miner
             _transactionResultManager = transactionResultManager;
             _transactionManager = transactionManager;
             _functionMetadataService = functionMetadataService;
-            _concurrencyExecutingService = concurrencyExecutingService;
+            _executingService = executingService;
             _changesStore = changesStore;
             _worldStateStore = worldStateStore;
             _dataStore = dataStore;
@@ -81,23 +80,6 @@ namespace AElf.Kernel.Tests.Miner
             var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
             _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateDictator, _functionMetadataService);
-
-            _servicePack = new ServicePack
-            {
-                ChainContextService = _chainContextService,
-                SmartContractService = _smartContractService,
-                ResourceDetectionService = new NewMockResourceUsageDetectionService(),
-                WorldStateDictator = _worldStateDictator
-            };
-            
-            var workers = new[] {"/user/worker1", "/user/worker2"};
-            var worker1 = Sys.ActorOf(Props.Create<Worker>(), "worker1");
-            var worker2 = Sys.ActorOf(Props.Create<Worker>(), "worker2");
-            var router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
-            worker1.Tell(new LocalSerivcePack(_servicePack));
-            worker2.Tell(new LocalSerivcePack(_servicePack));
-            _requestor = Sys.ActorOf(Requestor.Props(router));
-
         }
         
         public byte[] OldSmartContractZeroCode
@@ -285,9 +267,9 @@ namespace AElf.Kernel.Tests.Miner
             block.Body.BlockHeader = block.Header.GetHash();
 
             var synchronizer = new BlockExecutor(poolService,
-                _chainService, _worldStateDictator, _concurrencyExecutingService, null, _transactionManager, _transactionResultManager);
+                _chainService, _worldStateDictator, _executingService, null, _transactionManager, _transactionResultManager);
 
-            synchronizer.Start(new Grouper(_servicePack.ResourceDetectionService));
+            synchronizer.Start();
             var res = await synchronizer.ExecuteBlock(block);
             Assert.False(res);
 
