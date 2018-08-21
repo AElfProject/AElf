@@ -241,6 +241,7 @@ namespace AElf.Launcher
 
             if (NodeConfig.Instance.ExecutorType == "akka")
             {
+                builder.RegisterType<ResourceUsageDetectionService>().As<IResourceUsageDetectionService>();
                 builder.RegisterType<Grouper>().As<IGrouper>();
                 builder.RegisterType<ServicePack>().PropertiesAutowired();
                 builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
