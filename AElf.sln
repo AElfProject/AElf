@@ -118,6 +118,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Miner.Rpc", "AElf.Miner.Rpc\AElf.Miner.Rpc.csproj", "{0CBE4CD3-C586-4AAB-BD56-993B1797B60C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Miner.Tests", "AElf.Miner.Tests\AElf.Miner.Tests.csproj", "{5A728F9A-9B25-48E0-8642-BB9098799F78}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Wallet.Rpc", "AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj", "{1F7DA3BB-54AC-41D5-B93D-88C74500937D}"
 EndProject
 Global

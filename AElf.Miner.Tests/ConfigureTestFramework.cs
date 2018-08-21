@@ -1,5 +1,7 @@
 ﻿using AElf.ChainController;
 using AElf.ChainControllerImpl.TxMemPool;
+using AElf.Execution;
+using AElf.Execution.Scheduling;
 using AElf.Kernel.Modules.AutofacModule;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
@@ -31,14 +33,16 @@ namespace AElf.Miner.Tests
             builder.RegisterModule(new ManagersModule());
             builder.RegisterModule(new TxPoolServiceModule(new TxPoolConfig()));
             builder.RegisterType<ChainService>().As<IChainService>();
+            builder.RegisterType<Grouper>().As<IGrouper>();
+            builder.RegisterType<ServicePack>().PropertiesAutowired();
+            builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
+            builder.RegisterType<SimpleExecutingService>().As<IExecutingService>();
 
             var smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerFactory>().SingleInstance();
-            // configure your container
-            // e.g. builder.RegisterModule<TestOverrideModule>();
         }
     }
 }
