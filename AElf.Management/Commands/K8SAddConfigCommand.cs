@@ -26,7 +26,8 @@ namespace AElf.Management.Commands
                 {
                     {"actor.json", GetActorConfigJson(chainId, arg)}, 
                     {"database.json", GetDatabaseConfigJson(chainId, arg)}, 
-                    {"miners.json", GetMinersConfigJson(chainId, arg)}
+                    {"miners.json", GetMinersConfigJson(chainId, arg)}, 
+                    {"parallel.json", GetParallelConfigJson(chainId, arg)}
                 }
             };
 
@@ -77,6 +78,18 @@ namespace AElf.Management.Commands
                 {
                     {"1", new Dictionary<string, string> {{"address", arg.MainChainAccount}}}
                 }
+            };
+
+            var result = JsonSerializer.Instance.Serialize(config);
+
+            return result;
+        }
+
+        private string GetParallelConfigJson(string chainId, DeployArg arg)
+        {
+            var config = new ParallelConfig()
+            {
+                IsParallelEnable = true;
             };
 
             var result = JsonSerializer.Instance.Serialize(config);

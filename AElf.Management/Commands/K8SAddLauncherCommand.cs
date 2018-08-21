@@ -76,13 +76,14 @@ namespace AElf.Management.Commands
                                 new V1Container
                                 {
                                     Name = DeploymentName,
-                                    Image = "aelf/node",
+                                    Image = "aelf/node:test",
                                     Ports = new List<V1ContainerPort>
                                     {
                                         new V1ContainerPort(NodePort),
                                         new V1ContainerPort(RpcPort),
                                         new V1ContainerPort(ActorPort)
                                     },
+                                    ImagePullPolicy = "Always",
                                     Env = new List<V1EnvVar>
                                     {
                                         new V1EnvVar

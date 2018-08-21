@@ -162,12 +162,15 @@ namespace AElf.Launcher
                     Console.CancelKeyPress += async (sender, eventArgs) => { await actorEnv.StopAsync(); };
                     actorEnv.TerminationHandle.Wait();
                 }
-
-                Console.CancelKeyPress += (s, e) => { Interlocked.CompareExchange(ref _stopped, 1, 0); };
-                while (_stopped == 0)
+                else
                 {
-                    Console.ReadKey();
+                    Console.CancelKeyPress += (s, e) => { Interlocked.CompareExchange(ref _stopped, 1, 0); };
+                    while (_stopped == 0)
+                    {
+                        Console.ReadKey();
+                    }
                 }
+
             }
         }
 
