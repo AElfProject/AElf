@@ -21,6 +21,7 @@
   <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
     <ItemGroup>
       <Compile Include="./Protobuf/Generated/*.g.cs" />
+      <Compile Include="./Protobuf/Generated/*Grpc.cs" />
     </ItemGroup>
   </Target>
 </Project>
