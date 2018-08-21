@@ -39,6 +39,7 @@ namespace AElf.Launcher
         private static string AssemblyDir { get; } = Path.GetDirectoryName(typeof(Program).Assembly.Location);
         private const string FilePath = @"ChainInfo.json";
         private static int _stopped;
+        private static readonly AutoResetEvent _closing = new AutoResetEvent(false);
 
         static void Main(string[] args)
         {
@@ -125,15 +126,12 @@ namespace AElf.Launcher
                 if (ParallelConfig.Instance.IsParallelEnable)
                 {
                     actorEnv = scope.Resolve<IActorEnvironment>();
-                    actorEnv.InitActorSystem();   
+                    actorEnv.InitActorSystem();
                 }
 
                 var evListener = scope.Resolve<ChainCreationEventListener>();
-                MessageHub.Instance.Subscribe<IBlock>(async (t) =>
-                {
-                    await evListener.OnBlockAppended(t);
-                });
-                
+                MessageHub.Instance.Subscribe<IBlock>(async (t) => { await evListener.OnBlockAppended(t); });
+
                 var node = scope.Resolve<IAElfNode>();
                 // Start the system
                 node.Start(nodeKey, TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero);
@@ -159,21 +157,20 @@ namespace AElf.Launcher
                 }
 
                 //DoDPos(node);
-                if (actorEnv!=null)
+                if (actorEnv != null)
                 {
                     Console.CancelKeyPress += async (sender, eventArgs) => { await actorEnv.StopAsync(); };
                     actorEnv.TerminationHandle.Wait();
                 }
-                else
-                {
-                    Console.CancelKeyPress += (s, e) => { Interlocked.CompareExchange(ref _stopped, 1, 0); };
-                    while (_stopped == 0)
-                    {
-                        Console.ReadKey();
-                    }
-                }
 
+                Console.CancelKeyPress += OnExit;
+                _closing.WaitOne();
             }
+        }
+        
+        protected static void OnExit(object sender, ConsoleCancelEventArgs args)
+        {
+            _closing.Set();
         }
 
         private static byte[] TokenGenesisContractCode
