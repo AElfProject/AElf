@@ -117,7 +117,7 @@ namespace AElf.Launcher
             using (var scope = container.BeginLifetimeScope())
             {
                 IActorEnvironment actorEnv = null;
-                if (ParallelConfig.Instance.IsParallelEnable)
+                if (NodeConfig.Instance.ExecutorType == "akka")
                 {
                     actorEnv = scope.Resolve<IActorEnvironment>();
                     actorEnv.InitActorSystem();   
@@ -239,7 +239,7 @@ namespace AElf.Launcher
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
 
-            if (ParallelConfig.Instance.IsParallelEnable)
+            if (NodeConfig.Instance.ExecutorType == "akka")
             {
                 builder.RegisterType<Grouper>().As<IGrouper>();
                 builder.RegisterType<ServicePack>().PropertiesAutowired();

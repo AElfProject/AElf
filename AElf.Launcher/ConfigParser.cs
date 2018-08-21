@@ -167,6 +167,7 @@ namespace AElf.Launcher
             // node config
             NodeConfig.Instance.IsMiner = IsMiner;
             NodeConfig.Instance.FullNode = true;
+            NodeConfig.Instance.ExecutorType = opts.ExecutorType;
 
             // Actor
             if (opts.ActorIsCluster.HasValue)
