@@ -108,8 +108,7 @@ namespace AElf.ChainController
                                 var txResF = new TransactionResult()
                                 {
                                     TransactionId = trace.TransactionId,
-                                    Status = Status.Failed,
-                                    RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes())
+                                    Status = Status.Failed
                                 };
                                 results.Add(txResF);
                                 break;
