@@ -37,9 +37,6 @@ namespace AElf.Kernel.Modules.AutofacModule
 
             builder.RegisterGeneric(typeof(Serializer<>)).As(typeof(ISerializer<>));
 
-                        
-
-            
             base.Load(builder);
         }
     }

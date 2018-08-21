@@ -27,13 +27,13 @@ namespace AElf.Execution
             _grouper = grouper;
         }
 
-        public async Task<List<TransactionTrace>> ExecuteAsync(List<ITransaction> transactions, Hash chainId,
+        public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
             CancellationToken token)
         {
             token.Register(() => _actorEnvironment.Requestor.Tell(JobExecutionCancelMessage.Instance));
 
-            List<List<ITransaction>> groups;
-            Dictionary<ITransaction, Exception> failedTxs;
+            List<List<Transaction>> groups;
+            Dictionary<Transaction, Exception> failedTxs;
 
             //disable parallel module by default because it doesn't finish yet (don't support contract call)
             if (ParallelConfig.Instance.IsParallelEnable)
@@ -45,10 +45,9 @@ namespace AElf.Execution
             }
             else
             {
-                groups = new List<List<ITransaction>>() {transactions};
-                failedTxs = new Dictionary<ITransaction, Exception>();
+                groups = new List<List<Transaction>>() {transactions};
+                failedTxs = new Dictionary<Transaction, Exception>();
             }
-
 
             var tasks = groups.Select(
                 txs => Task.Run(() => AttemptToSendExecutionRequest(chainId, txs, token), token)
@@ -70,7 +69,7 @@ namespace AElf.Execution
         }
 
         private async Task<List<TransactionTrace>> AttemptToSendExecutionRequest(Hash chainId,
-            List<ITransaction> transactions, CancellationToken token)
+            List<Transaction> transactions, CancellationToken token)
         {
             while (!token.IsCancellationRequested)
             {

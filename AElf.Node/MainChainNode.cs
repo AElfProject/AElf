@@ -89,6 +89,7 @@ namespace AElf.Kernel.Node
             _netManager = netManager;
             _synchronizer = synchronizer;
             _p2p = p2p;
+            
             BlockChain = _chainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
         }
 
@@ -121,8 +122,13 @@ namespace AElf.Kernel.Node
                 }
                 else
                 {
-                    var preBlockHash = BlockChain.GetCurrentBlockHashAsync().Result;
-                    _stateDictator.SetWorldStateAsync(preBlockHash);
+                    var uncompressedPrivKey = BlockChain.CurrentBlock.Header.P.ToByteArray();
+                    var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
+                    Hash blockProducerAddress = recipientKeyPair.GetAddress();
+                    _stateDictator.ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
+                    _stateDictator.CurrentRoundNumber = BlockChain.CurrentBlock.RoundNumber;
+                    _stateDictator.BlockProducerAccountAddress = blockProducerAddress;
+                    _stateDictator.SetWorldStateAsync();
 
                     _stateDictator.RollbackToPreviousBlock();
                 }

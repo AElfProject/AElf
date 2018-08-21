@@ -130,8 +130,7 @@ namespace AElf.Kernel.Consensus
             return bytes;
         }
 
-        public AElfDPoSHelper(IStateDictator stateDictator, ECKeyPair keyPair, Hash chainId, Miners miners,
-            Hash contractAddressHash, ILogger logger)
+        public AElfDPoSHelper(IStateDictator stateDictator, Hash chainId, Miners miners, Hash contractAddressHash, ILogger logger)
         {
             stateDictator.ChainId = chainId;
             _miners = miners;

@@ -48,8 +48,8 @@ namespace AElf.Kernel.Node
             _p2p = p2p;
             _txPoolService = txPoolService;
             Node = node;
-            DPoSHelper = new AElfDPoSHelper(stateDictator, NodeKeyPair, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), Miners,
-                Node.ContractAccountHash, _logger);
+            DPoSHelper = new AElfDPoSHelper(stateDictator, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
+                Miners, Node.ContractAccountHash, _logger);
         }
 
         private static Miners Miners
@@ -89,7 +89,7 @@ namespace AElf.Kernel.Node
             }
 
             DPoSHelper.SyncMiningInterval();
-            _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms.");
+            _logger?.Trace($"Set AElf DPoS mining interval to: {Globals.AElfDPoSMiningInterval} ms.");
 
 
             if (DPoSHelper.CanRecoverDPoSInformation())

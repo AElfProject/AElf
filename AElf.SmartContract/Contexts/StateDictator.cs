@@ -7,6 +7,7 @@ using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using Mono.Cecil;
 using NLog;
 
 // ReSharper disable CheckNamespace
@@ -17,16 +18,16 @@ namespace AElf.SmartContract
     {
         private readonly IDataStore _dataStore;
         private readonly ILogger _logger;
-        private readonly HashManager _hashManager;
-        private readonly TransactionManager _transactionManager;
-        
-        private WorldState _worldState;
+        private readonly IHashManager _hashManager;
+        private readonly ITransactionManager _transactionManager;
+
+        private WorldState _worldState = new WorldState();
 
         public Hash ChainId { get; set; }
         public Hash BlockProducerAccountAddress { get; set; }
         public ulong CurrentRoundNumber { get; set; }
 
-        public StateDictator(HashManager hashManager, TransactionManager transactionManager, IDataStore dataStore, ILogger logger = null)
+        public StateDictator(IHashManager hashManager, ITransactionManager transactionManager, IDataStore dataStore, ILogger logger = null)
         {
             _dataStore = dataStore;
             _logger = logger;
@@ -61,24 +62,37 @@ namespace AElf.SmartContract
             return new AccountDataProvider(accountAddress, this);
         }
 
+
         /// <summary>
         /// Get a WorldState instance.
         /// </summary>
-        /// <param name="blockHash"></param>
+        /// <param name="stateHash"></param>
         /// <returns></returns>
-        public async Task<WorldState> GetWorldStateAsync(Hash blockHash)
+        public async Task<WorldState> GetWorldStateAsync(Hash stateHash)
         {
-            return await _dataStore.GetAsync<WorldState>(CalculateHashFroWorldState(ChainId, blockHash));
-        }
-
-        private static Hash CalculateHashFroWorldState(Hash chainId, Hash blockHash)
-        {
-            return chainId.CalculateHashWith(blockHash);
+            return await _dataStore.GetAsync<WorldState>(stateHash);
         }
         
-        public async Task SetWorldStateAsync(Hash stateHash)
+        public async Task<WorldState> GetLatestWorldStateAsync()
+        {            
+            var dataPath = new DataPath
+            {
+                ChainId = ChainId,
+                RoundNumber = CurrentRoundNumber,
+                BlockProducerAddress = BlockProducerAccountAddress
+            };
+            return await _dataStore.GetAsync<WorldState>(dataPath.StateHash);
+        }
+
+        public async Task SetWorldStateAsync()
         {
-            await _dataStore.InsertAsync(stateHash, _worldState);
+            var dataPath = new DataPath
+            {
+                ChainId = ChainId,
+                RoundNumber = CurrentRoundNumber,
+                BlockProducerAddress = BlockProducerAccountAddress
+            };
+            await _dataStore.InsertAsync(dataPath.StateHash, _worldState);
             _worldState = new WorldState();
         }
 
@@ -135,7 +149,8 @@ namespace AElf.SmartContract
 
         public Task RollbackToPreviousBlock()
         {
-            throw new NotImplementedException();
+            _worldState = new WorldState();
+            return Task.CompletedTask;
         }
 
         public async Task ApplyStateValueChangeAsync(StateValueChange stateValueChange)

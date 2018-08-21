@@ -21,8 +21,9 @@ namespace AElf.SmartContract
   /*
    * WorldState
    */
+  Task<WorldState> GetLatestWorldStateAsync();
   Task<WorldState> GetWorldStateAsync(Hash stateHash);
-  Task SetWorldStateAsync(Hash stateHash);
+  Task SetWorldStateAsync();
 
   /*
    * Hash

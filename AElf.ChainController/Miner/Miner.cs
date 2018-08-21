@@ -1,9 +1,11 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Common.ByteArrayHelpers;
+using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
 using Google.Protobuf;
@@ -11,6 +13,8 @@ using Google.Protobuf.WellKnownTypes;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 using AElf.SmartContract;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
+using Akka.Cluster;
 using NLog;
 
 namespace AElf.ChainController
@@ -21,11 +25,13 @@ namespace AElf.ChainController
         private readonly ITxPoolService _txPoolService;
         private ECKeyPair _keyPair;
         private readonly IChainService _chainService;
-        private readonly IWorldStateDictator _worldStateDictator;
+        private readonly IStateDictator _stateDictator;
         private readonly ISmartContractService _smartContractService;
         private readonly IExecutingService _executingService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
+        private readonly AElfDPoSHelper _consensusHelper;
+        private readonly IChainCreationService _chainCreationService;
 
         private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
@@ -42,22 +48,45 @@ namespace AElf.ChainController
         public Hash Coinbase => Config.CoinBase;
 
         public Miner(IMinerConfig config, ITxPoolService txPoolService,  IChainService chainService, 
-            IWorldStateDictator worldStateDictator,  ISmartContractService smartContractService, 
+            IStateDictator stateDictator,  ISmartContractService smartContractService, 
             IExecutingService executingService, ITransactionManager transactionManager, 
-            ITransactionResultManager transactionResultManager, ILogger logger)
+            ITransactionResultManager transactionResultManager, ILogger logger, IChainCreationService chainCreationService)
         {
             Config = config;
             _txPoolService = txPoolService;
             _chainService = chainService;
-            _worldStateDictator = worldStateDictator;
+            _stateDictator = stateDictator;
             _smartContractService = smartContractService;
             _executingService = executingService;
             _transactionManager = transactionManager;
             _transactionResultManager = transactionResultManager;
             _logger = logger;
+            _chainCreationService = chainCreationService;
+
+            _consensusHelper = new AElfDPoSHelper(stateDictator,
+                ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), Miners,
+                _chainCreationService.GenesisContractHash(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
+                    SmartContractType.AElfDPoS), _logger);
+        }
+        
+        private static Miners Miners
+        {
+            get
+            {
+                var dict = MinersConfig.Instance.Producers;
+                var miners = new Miners();
+
+                foreach (var bp in dict.Values)
+                {
+                    var b = bp["address"].RemoveHexPrefix();
+                    miners.Nodes.Add(b);
+                }
+
+                Globals.BlockProducerNumber = miners.Nodes.Count;
+                return miners;
+            }
         }
 
-        
         public async Task<IBlock> Mine()
         {
             try
@@ -127,8 +156,9 @@ namespace AElf.ChainController
                 block.Header.S = ByteString.CopyFrom(signature.S);
 
                 // append block
-                await blockChain.AddBlocksAsync(new List<IBlock>(){ block });
-  
+                await blockChain.AddBlocksAsync(new List<IBlock> {block});
+
+                block.RoundNumber = _consensusHelper.CurrentRoundNumber.Value;
                 return block;
             }
             catch (Exception e)
@@ -143,7 +173,7 @@ namespace AElf.ChainController
         /// </summary>
         /// <param name="executedTxs"></param>
         /// <param name="txResults"></param>
-        private async Task<HashSet<Hash>> InsertTxs(List<ITransaction> executedTxs, List<TransactionResult> txResults)
+        private async Task<HashSet<Hash>> InsertTxs(List<Transaction> executedTxs, List<TransactionResult> txResults)
         {
             var addrs = new HashSet<Hash>();
             foreach (var t in executedTxs)
@@ -193,9 +223,9 @@ namespace AElf.ChainController
 
             
             // set ws merkle tree root
-            await _worldStateDictator.SetWorldStateAsync(currentBlockHash);
+            await _stateDictator.SetWorldStateAsync();
             _logger?.Log(LogLevel.Debug, "End Set WS..");
-            var ws = await _worldStateDictator.GetWorldStateAsync(currentBlockHash);
+            var ws = await _stateDictator.GetLatestWorldStateAsync();
             _logger?.Log(LogLevel.Debug, "End Get Ws");
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
 
@@ -231,7 +261,7 @@ namespace AElf.ChainController
             block.Header.ChainId = chainId;
             
             
-            var ws = await _worldStateDictator.GetWorldStateAsync(lastBlockHash);
+            var ws = await _stateDictator.GetWorldStateAsync(lastBlockHash);
             var state = await ws.GetWorldStateMerkleTreeRootAsync();
             
             var header = new BlockHeader

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public class BlockChain : LightChain, IBlockChain
