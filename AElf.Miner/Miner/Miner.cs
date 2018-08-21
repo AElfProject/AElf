@@ -16,6 +16,7 @@ using Google.Protobuf.WellKnownTypes;
 using NLog;
 using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
+using Status = AElf.Kernel.Status;
 
 namespace AElf.Miner.Miner
 {
@@ -274,18 +275,22 @@ namespace AElf.Miner.Miner
             return header;
 
         }
-        
 
+        
         
         /// <summary>
         /// start mining  
         /// </summary>
         public void Start(ECKeyPair nodeKeyPair, IGrouper grouper)
         {
-            Cts = new CancellationTokenSource();
-            _keyPair = nodeKeyPair;
-            _grouper = grouper;
-            //MiningResetEvent = new AutoResetEvent(false);
+            if (Cts == null || Cts.IsCancellationRequested)
+            {
+                Cts = new CancellationTokenSource();
+                _keyPair = nodeKeyPair;
+                _grouper = grouper;
+                
+                // init miner rpc server
+            }
         }
 
         /// <summary>
