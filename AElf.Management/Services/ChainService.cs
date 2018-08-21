@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Management.Helper;
+using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using k8s;
 
-namespace AElf.Management
+namespace AElf.Management.Services
 {
     public class ChainService : IChainService
     {
@@ -20,6 +21,26 @@ namespace AElf.Management
                     Status = np.Status.Phase,
                     CreateTime = np.Metadata.CreationTimestamp
                 }).ToList();
+        }
+
+        public void DeployMainChain()
+        {
+            
+        }
+
+        public void DeploySideChain()
+        {
+            
+        }
+
+        public void RemoveSideChain()
+        {
+            
+        }
+
+        public void UpgreadeChain()
+        {
+            
         }
     }
 }

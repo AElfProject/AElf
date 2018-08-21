@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using AElf.Management.Models;
 
-namespace AElf.Management
+namespace AElf.Management.Interfaces
 {
     public interface ILauncherService
     {

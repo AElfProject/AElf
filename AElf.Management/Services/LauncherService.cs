@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using AElf.Management.Helper;
+using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using k8s;
 
-namespace AElf.Management
+namespace AElf.Management.Services
 {
     public class LauncherService:ILauncherService
     {

@@ -1,4 +1,6 @@
 ﻿using System;
+using AElf.Management.Interfaces;
+using AElf.Management.Services;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
@@ -18,7 +20,7 @@ namespace AElf.Management.Website
 
         public IConfiguration Configuration { get; }
                 
-        public IContainer ApplicationContainer { get; private set; }
+        //public IContainer ApplicationContainer { get; private set; }
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
@@ -33,7 +35,7 @@ namespace AElf.Management.Website
             builder.RegisterType<LauncherService>().As<ILauncherService>().SingleInstance();
 
             builder.Populate(services);
-            ApplicationContainer = builder.Build();
+            var ApplicationContainer = builder.Build();
 
             return new AutofacServiceProvider(ApplicationContainer);
         }
