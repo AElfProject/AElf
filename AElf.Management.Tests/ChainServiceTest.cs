@@ -6,6 +6,8 @@ namespace AElf.Management.Tests
 {
     public class ChainServiceTest
     {
+        private string chainId = "0x86c41f71da5f1fb193660f9267d083d77e6a";
+        
         //[Fact(Skip = "require aws account")]
         [Fact]
         public void DeployTest()
@@ -20,7 +22,7 @@ namespace AElf.Management.Tests
             arg.WorkArg.ActorCount = 4;
 
             var service = new ChainService();
-            service.DeployMainChain(null, arg);
+            service.DeployMainChain(chainId, arg);
         }
         
         //[Fact(Skip = "require aws account")]
@@ -29,7 +31,7 @@ namespace AElf.Management.Tests
         {
             var service = new SideChainService();
 
-            service.Remove(null);
+            service.Remove(chainId);
         }
     }
 }

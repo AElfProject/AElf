@@ -41,6 +41,7 @@ namespace AElf.Launcher
         static void Main(string[] args)
         {
             // Parse options
+            Console.WriteLine(string.Join(" ",args));
             var confParser = new ConfigParser();
             bool parsed;
             try
