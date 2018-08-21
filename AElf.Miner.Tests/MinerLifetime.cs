@@ -1,30 +1,25 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
-using AElf.ChainController.EventMessages;
+using AElf.ChainController.TxMemPool;
+using AElf.ChainControllerImpl.TxMemPool;
+using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
-using AElf.Execution;
-using AElf.Execution.Scheduling;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Tests.Concurrency.Scheduling;
-using AElf.Kernel.TxMemPool;
+using AElf.Miner.Miner;
+using AElf.Miner.Tests;
 using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
 using Google.Protobuf;
-using Moq;
 using Xunit;
 using Xunit.Frameworks.Autofac;
-using ServiceStack;
 using AElf.Runtime.CSharp;
+using Moq;
 using NLog;
-using AElf.Types.CSharp;
-using Easy.MessageHub;
+using MinerConfig = AElf.Miner.Miner.MinerConfig;
 
 namespace AElf.Kernel.Tests.Miner
 {
@@ -228,7 +223,7 @@ namespace AElf.Kernel.Tests.Miner
         
         public IMiner GetMiner(IMinerConfig config, TxPoolService poolService)
         {            
-            var miner = new ChainController.Miner(config, poolService, _chainService, _worldStateDictator,
+            var miner = new AElf.Miner.Miner.Miner(config, poolService, _chainService, _worldStateDictator,
                 _smartContractService, _concurrencyExecutingService, _transactionManager, _transactionResultManager, _logger);
 
             return miner;
@@ -242,7 +237,6 @@ namespace AElf.Kernel.Tests.Miner
                 CoinBase = getAddress
             };
         }
-        
        
         
         [Fact]
@@ -298,7 +292,10 @@ namespace AElf.Kernel.Tests.Miner
             poolService.Start();
 
             var miner = GetMiner(minerconfig, poolService);
-
+            
+            /*var parallelTransactionExecutingService = new ParallelTransactionExecutingService(_requestor,
+                new Grouper(_servicePack.ResourceDetectionService));*/
+            
             miner.Start(keypair);
             
             var block = await miner.Mine();

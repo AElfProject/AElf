@@ -34,7 +34,7 @@ enum Status {
 
 message TransactionResult{
     Hash TransactionId = 1;
-    Status status = 2;
+    Status Status = 2;
     repeated LogEvent Logs = 3;
     bytes Bloom = 4;
     bytes RetVal = 5;

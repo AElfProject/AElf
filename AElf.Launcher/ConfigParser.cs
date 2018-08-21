@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AElf.ChainController;
+using AElf.ChainController.TxMemPool;
 using AElf.Common.Application;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
@@ -10,6 +11,7 @@ using AElf.Configuration.Config.Network;
 using AElf.Kernel;
 using AElf.Kernel.Node;
 using AElf.Kernel.Types;
+using AElf.Miner.Miner;
 using AElf.Runtime.CSharp;
 using CommandLine;
 using Google.Protobuf;
@@ -159,7 +161,7 @@ namespace AElf.Launcher
             };
 
             // tx pool config
-            TxPoolConfig = ChainController.TxPoolConfig.Default;
+            TxPoolConfig = ChainControllerImpl.TxMemPool.TxPoolConfig.Default;
             TxPoolConfig.FeeThreshold = opts.MinimalFee;
             TxPoolConfig.PoolLimitSize = opts.PoolCapacity;
             TxPoolConfig.Maximal = opts.TxCountLimit;

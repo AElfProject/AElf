@@ -2,10 +2,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Node.Protocol;
+using AElf.Miner.Miner;
 using AElf.SmartContract;
 using NLog;
 

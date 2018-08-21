@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using AElf.SmartContract;
 using AElf.ChainController;
+using AElf.ChainController.TxMemPool;
 using AElf.Kernel.Storages;
-using AElf.Kernel.TxMemPool;
 using NLog;
 using Xunit;
 using Xunit.Frameworks.Autofac;

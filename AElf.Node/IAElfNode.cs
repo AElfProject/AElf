@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Cryptography.ECDSA;
+using AElf.Miner.Miner;
 
 namespace AElf.Kernel.Node
 {

@@ -1,6 +1,7 @@
 ﻿using System;
+using AElf.ChainController;
 
-namespace AElf.ChainController
+namespace AElf.Miner.Miner
 {
     public class BlockExecutionResult
     {

@@ -2,12 +2,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
 using AElf.Kernel;
 using NLog;
 
-namespace AElf.ChainController
+namespace AElf.ChainControllerImpl.TxMemPool
 {
     [LoggerName("ContractTxPool")]
     public class ContractTxPool : IContractTxPool
