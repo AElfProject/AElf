@@ -81,7 +81,7 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-        public void SetDataCache(Dictionary<Hash, StateCache> cache)
+        public void SetDataCache(Dictionary<DataPath, StateCache> cache)
         {
             _currentSmartContractContext.DataProvider.StateCache = cache;
         }

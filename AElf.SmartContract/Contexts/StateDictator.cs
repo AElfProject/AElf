@@ -182,8 +182,7 @@ namespace AElf.SmartContract
             _logger?.Debug($"Pipeline set {cachedActions.Count} data item");
             
             //Only dirty, i.e., changed data item, will be applied to database
-            var pipelineSet = cachedActions.Where(kv => kv.Value.Dirty)
-                .ToDictionary(kv => kv.Key.ResourcePointerHash, kv => kv.Value.CurrentValue);
+            var pipelineSet = cachedActions.ToDictionary(kv => kv.Key.ResourcePointerHash, kv => kv.Value.CurrentValue);
             if (pipelineSet.Count > 0)
             {
                 //_logger?.Debug($"Pipeline set {pipelineSet.Count} data item");

@@ -160,7 +160,7 @@ namespace AElf.Execution
                         // TODO: The job is still running but we will leave it, we need a way to abort the job if it runs for too long
                         var task = Task.Run(
                             async () => await ExecuteTransaction(chainContext, tx,
-                                stateCache.ToDictionary(kv => kv.Key.KeyHash, kv => kv.Value)),
+                                stateCache.ToDictionary(kv => kv.Key, kv => kv.Value)),
                             _cancellationTokenSource.Token);
                         try
                         {
@@ -224,7 +224,7 @@ namespace AElf.Execution
             return retMsg;
         }
 
-        private async Task<TransactionTrace> ExecuteTransaction(IChainContext chainContext, Transaction transaction, Dictionary<Hash, StateCache> stateCache)
+        private async Task<TransactionTrace> ExecuteTransaction(IChainContext chainContext, Transaction transaction, Dictionary<DataPath, StateCache> stateCache)
         {
             
             var trace = new TransactionTrace()

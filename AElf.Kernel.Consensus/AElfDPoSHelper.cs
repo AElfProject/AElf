@@ -140,7 +140,6 @@ namespace AElf.Kernel.Consensus
             _miners = miners;
             _logger = logger;
 
-            stateDictator.CurrentRoundNumber = CurrentRoundNumber.Value;
             _contractAddressHash = contractAddressHash;
             _stateDictator = stateDictator;
             _dataProvider = _stateDictator.GetAccountDataProvider(_contractAddressHash).GetDataProvider();
