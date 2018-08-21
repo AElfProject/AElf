@@ -104,7 +104,7 @@ namespace AElf.SideChain.Creation
                     {
                         _logger?.Error(
                             $"Sending sidechain deployment request for {info.ChainId} failed. " +
-                            "StatusCode: {response.StatusCode}"
+                            $"StatusCode: {response.StatusCode}"
                         );
                     }
                     else
