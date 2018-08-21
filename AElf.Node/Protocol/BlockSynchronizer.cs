@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Extensions;
 using AElf.Kernel.Node.Protocol.Exceptions;
 using AElf.Network;
 using AElf.Network.Connection;

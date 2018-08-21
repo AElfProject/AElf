@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Extensions;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Database;

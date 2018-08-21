@@ -1,5 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
+using System.Security.Cryptography;
+using System.Windows.Input;
+using AElf.Common.Extensions;
+using AElf.Cryptography.ECDSA;
+using AElf.Management.Commands;
 using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
@@ -23,9 +30,31 @@ namespace AElf.Management.Services
                 }).ToList();
         }
 
-        public void DeployMainChain()
+        public void DeployMainChain(string chainId, DeployArg arg)
         {
+            if (string.IsNullOrWhiteSpace(chainId))
+            {
+                chainId = SHA256.Create().ComputeHash(Guid.NewGuid().ToByteArray()).Take(ECKeyPair.AddressLength).ToArray().ToHex();
+            }
+
+            var commands = new List<IDeployCommand>();
+            commands.Add(new K8SAddNamespaceCommand());
+            commands.Add(new K8SAddRedisCommand());
+            commands.Add(new K8SAddConfigCommand());
+            commands.Add(new K8SAddAccountKeyCommand());
+            commands.Add(new K8SAddManagerCommand());
+            commands.Add(new K8SAddWorkerCommand());
+            commands.Add(new K8SAddLauncherCommand());
             
+            commands.ForEach(c => c.Action(chainId, arg));
+        }
+
+        public void RemoveMainChain(string chainId)
+        {
+            var commands = new List<IDeployCommand>();
+            commands.Add(new K8SDeleteNamespaceCommand());
+
+            commands.ForEach(c => c.Action(chainId, null));
         }
 
         public void DeploySideChain()

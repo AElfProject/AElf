@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Common.Extensions;
 using AElf.Kernel.Storages;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

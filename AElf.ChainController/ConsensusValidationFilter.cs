@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
+using AElf.Common.Extensions;
 using AElf.Cryptography.ECDSA;
 using AElf.Types.CSharp;
 using Google.Protobuf;

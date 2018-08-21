@@ -37,7 +37,7 @@
 
     public class DeployManagerArg
     {
-        
+        public bool IsCluster { get; set; }
     }
 
     public class DeployWorkArg

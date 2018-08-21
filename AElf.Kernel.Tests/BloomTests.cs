@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Extensions;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using QuickGraph;

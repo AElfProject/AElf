@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.SmartContract;
 using AElf.ChainController;
+using AElf.Common.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node;
 using AElf.Kernel.Storages;
