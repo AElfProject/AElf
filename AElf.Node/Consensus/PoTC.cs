@@ -10,14 +10,14 @@ namespace AElf.Kernel.Node
     public class PoTC : IConsensus
     {
         public IDisposable ConsensusDisposable { get; set; }
-        public MainChainNode Node { get; }
         public ulong ConsensusMemory { get; set; }
         private ILogger _logger;
         private ITxPoolService _txPoolService;
         private IMiner _miner;
         private IP2P _p2p;
 
-        public PoTC(ILogger logger, MainChainNode node, IMiner miner,
+        public PoTC(ILogger logger,
+            IMiner miner,
             IAccountContextService accountContextService,
             ITxPoolService txPoolService,
             IP2P p2p)
@@ -26,12 +26,11 @@ namespace AElf.Kernel.Node
             _miner = miner;
             _p2p = p2p;
             _txPoolService = txPoolService;
-            Node = node;
         }
 
         public async Task Start()
         {
-            await Node.Mine();
+            //await Node.Mine();
         }
 
         // ReSharper disable once InconsistentNaming

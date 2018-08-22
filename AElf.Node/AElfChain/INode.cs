@@ -1,12 +1,9 @@
-﻿using System.Threading.Tasks;
-using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
-using AElf.Miner.Miner;
-
-namespace AElf.Node.AElfChain
+﻿namespace AElf.Node.AElfChain
 {
-    public interface IAElfNode
+    public interface INode
     {
-        bool Start(ECKeyPair nodeKeyPair);
+        void Register(INodeService s);
+        void Initialize(NodeConfiguation conf);
+        bool Start();
     }
 }

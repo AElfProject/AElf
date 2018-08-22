@@ -1,9 +1,9 @@
-﻿namespace AElf.Kernel.Node
+﻿namespace AElf.Node.AElfChain
 {
     public interface INodeService
     {
-        void Initialize();
-        void Start();
+        void Initialize(NodeConfiguation conf);
+        bool Start();
         void Stop();
     }
 }

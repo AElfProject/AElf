@@ -210,7 +210,7 @@ namespace AElf.Launcher
             // runner config
             RunnerConfig = new RunnerConfig
             {
-                SdkDir = Path.GetDirectoryName(typeof(MainChainNode).Assembly.Location)
+                SdkDir = Path.GetDirectoryName(typeof(Node.Node).Assembly.Location)
             };
 
             if (opts.RunnerConfig != null)

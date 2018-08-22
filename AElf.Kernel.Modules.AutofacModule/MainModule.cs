@@ -28,7 +28,7 @@ namespace AElf.Kernel.Modules.AutofacModule
             var assembly5 = typeof(Execution.ParallelTransactionExecutingService).Assembly;
             builder.RegisterAssemblyTypes(assembly5).AsImplementedInterfaces();
             
-            var assembly6 = typeof(Node.MainChainNode).Assembly;
+            var assembly6 = typeof(AElf.Node.Node).Assembly;
             builder.RegisterAssemblyTypes(assembly6).AsImplementedInterfaces();
             
             var assembly7 = typeof(BlockHeader).Assembly;
