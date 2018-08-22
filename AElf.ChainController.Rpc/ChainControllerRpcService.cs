@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
+using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Kernel;

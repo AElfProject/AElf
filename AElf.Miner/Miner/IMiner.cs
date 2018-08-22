@@ -2,7 +2,7 @@
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 
-namespace AElf.ChainController
+namespace AElf.Miner.Miner
 {
     public interface IMiner
     {

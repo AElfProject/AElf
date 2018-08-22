@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.TxMemPool;
+using AElf.Miner.Miner;
 using NLog;
 
 namespace AElf.Kernel.Node

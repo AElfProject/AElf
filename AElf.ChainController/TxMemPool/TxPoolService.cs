@@ -4,20 +4,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common.Attributes;
-using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
+using AElf.ChainController.TxMemPool;
+using AElf.Common.Attributes;
 using AElf.Common.Synchronisation;
+using AElf.Kernel;
 using AElf.SmartContract;
 using Easy.MessageHub;
 using NLog;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
-namespace AElf.Kernel.TxMemPool
+namespace AElf.ChainControllerImpl.TxMemPool
 {
     [LoggerName("Txpool")]
-    public class TxPoolService : ITxPoolService
+    public class TxPoolService : ChainController.TxMemPool.ITxPoolService
     {
         private readonly IContractTxPool _contractTxPool;
         private readonly IDPoSTxPool _dpoSTxPool;

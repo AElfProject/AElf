@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Types;
 using AElf.Kernel;
 
-namespace AElf.ChainController
+namespace AElf.ChainControllerImpl
 {
     public class BlockVaildationService: IBlockVaildationService
     {

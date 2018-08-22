@@ -1,8 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
-using AElf.Kernel;
-
-namespace AElf.ChainController
+﻿namespace AElf.ChainController.TxMemPool
 {
     public interface IDPoSTxPool : IPool
     {

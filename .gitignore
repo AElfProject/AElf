@@ -271,3 +271,5 @@ slnx.sqlite
 
 # Generated Protobuf classes
 *.g.cs
+*plugin
+*Grpc.cs

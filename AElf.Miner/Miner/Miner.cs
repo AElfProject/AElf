@@ -3,18 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution;
+using AElf.Execution.Scheduling;
+using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
-using AElf.SmartContract;
-using AElf.Kernel;
 using NLog;
 using NServiceKit.Common.Extensions;
+using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
+using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
+using Status = AElf.Kernel.Status;
 
-namespace AElf.ChainController
+namespace AElf.Miner.Miner
 {
     [LoggerName("Miner")]
     public class Miner : IMiner
@@ -27,8 +32,6 @@ namespace AElf.ChainController
         private readonly IExecutingService _executingService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultManager _transactionResultManager;
-
-        private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
 
         private MinerLock Lock { get; } = new MinerLock();
         private readonly ILogger _logger;
@@ -297,7 +300,6 @@ namespace AElf.ChainController
 
             return header;
         }
-
 
         /// <summary>
         /// start mining  
