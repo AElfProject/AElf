@@ -31,6 +31,7 @@ using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
+using ServiceStack;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
@@ -38,12 +39,14 @@ namespace AElf.Kernel.Node
     [LoggerName("Node")]
     public class MainChainNode : IAElfNode
     {
-        // ReSharper disable once InconsistentNaming
-        private readonly IP2P _p2p;
-        public ECKeyPair NodeKeyPair { get; private set; }
-        private readonly ITxPoolService _txPoolService;
-        private readonly ITransactionManager _transactionManager;
+//                private readonly ITransactionManager _transactionManager;
+//        private readonly ISmartContractService _smartContractService;
+//        private readonly IFunctionMetadataService _functionMetadataService;
+        
         private readonly ILogger _logger;
+        
+        private readonly IP2P _p2p;
+        private readonly ITxPoolService _txPoolService;
         private readonly IMiner _miner;
         private readonly IAccountContextService _accountContextService;
         private readonly IBlockVaildationService _blockVaildationService;
@@ -51,8 +54,7 @@ namespace AElf.Kernel.Node
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
         private readonly IWorldStateDictator _worldStateDictator;
-        private readonly ISmartContractService _smartContractService;
-        private readonly IFunctionMetadataService _functionMetadataService;
+
         private readonly INetworkManager _netManager;
         private readonly IBlockSynchronizer _synchronizer;
         private readonly IBlockExecutor _blockExecutor;
@@ -65,6 +67,8 @@ namespace AElf.Kernel.Node
             _chainCreationService.GenesisContractHash(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), SmartContractType.AElfDPoS);
 
         public int IsMiningInProcess => _minerHelper.IsMiningInProcess;
+        
+        public ECKeyPair NodeKeyPair { get; private set; }
 
         public MainChainNode(ITxPoolService poolService, ITransactionManager txManager,
             ILogger logger,
@@ -79,10 +83,10 @@ namespace AElf.Kernel.Node
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _worldStateDictator = worldStateDictator;
-            _smartContractService = smartContractService;
-            _functionMetadataService = functionMetadataService;
+            //_smartContractService = smartContractService;
+            //_functionMetadataService = functionMetadataService;
             _txPoolService = poolService;
-            _transactionManager = txManager;
+            //_transactionManager = txManager;
             _logger = logger;
             _miner = miner;
             _accountContextService = accountContextService;
@@ -94,6 +98,11 @@ namespace AElf.Kernel.Node
             _synchronizer = synchronizer;
             _p2p = p2p;
             BlockChain = _chainService.GetBlockChain(ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId));
+        }
+
+        public void Register(Service s)
+        {
+            
         }
 
         public bool Start(ECKeyPair nodeKeyPair, byte[] tokenContractCode, byte[] consensusContractCode,
