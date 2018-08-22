@@ -33,14 +33,16 @@ namespace AElf.Management.Commands
 
         private Dictionary<string, string> GetAndCreateAccountKey(string chainId, DeployArg arg)
         {
-            var keyStore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
-            var key = keyStore.Create(arg.AccountPassword);
+            if (string.IsNullOrWhiteSpace(arg.MainChainAccount))
+            {
+                var keyStore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
+                var key = keyStore.Create(arg.AccountPassword);
+                arg.MainChainAccount = key.GetAddressHex();
+            }
 
-            var keyName = key.GetAddressHex();
-            var fileName = keyName + ".ak";
+            var fileName = arg.MainChainAccount + ".ak";
             var filePath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "keys", fileName);
             var keyContent = File.ReadAllText(filePath);
-            arg.MainChainAccount = keyName;
 
             return new Dictionary<string, string> {{fileName, keyContent}};
         }

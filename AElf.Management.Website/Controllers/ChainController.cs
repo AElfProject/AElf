@@ -33,6 +33,14 @@ namespace AElf.Management.Website.Controllers
             return ApiEmptyResult.Default;
         }
         
+        [HttpPost]
+        [Route("test")]
+        public ApiEmptyResult DeployTestChain()
+        {
+            _chainService.DeployTestChain();
+            return ApiEmptyResult.Default;
+        }
+        
         [HttpDelete]
         [Route("{chianId}")]
         public ApiEmptyResult Remove(string chainId)
