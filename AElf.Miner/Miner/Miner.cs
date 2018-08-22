@@ -21,7 +21,7 @@ using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 using Status = AElf.Kernel.Status;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.ChainController
+namespace AElf.Miner.Miner
 {
     [LoggerName(nameof(Miner))]
     public class Miner : IMiner

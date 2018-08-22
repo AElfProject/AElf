@@ -3,29 +3,31 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
 using AElf.ChainControllerImpl.TxMemPool;
-using AElf.Cryptography.ECDSA;
+using AElf.SmartContract.Metadata;
 using AElf.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
+using AElf.Miner.Miner;
 using AElf.Runtime.CSharp;
-using AElf.SmartContract;
-using AElf.SmartContract.Metadata;
 using AElf.Types.CSharp;
+using AElf.SmartContract;
 using Akka.Actor;
-using Akka.TestKit;
-using Akka.TestKit.Xunit;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using NLog;
+using Akka.IO;
 using ServiceStack;
 using Xunit;
 using Xunit.Frameworks.Autofac;
-using BlockExecutor = AElf.Miner.Miner.BlockExecutor;
+using Akka.TestKit;
+using Akka.TestKit.Xunit;
+using Google.Protobuf.WellKnownTypes;
+using NLog;
+using ByteString = Google.Protobuf.ByteString;
 
 namespace AElf.Miner.Tests
 {
@@ -34,24 +36,21 @@ namespace AElf.Miner.Tests
     {
         private IChainCreationService _chainCreationService;
         private IChainContextService _chainContextService;
-        private IWorldStateDictator _worldStateDictator;
+        private IStateDictator _stateDictator;
         private ISmartContractManager _smartContractManager;
         private IFunctionMetadataService _functionMetadataService;
         private IExecutingService _executingService;
         private IDataStore _dataStore;
-        private IWorldStateStore _worldStateStore;
-        private IChangesStore _changesStore;
         private ServicePack _servicePack;
+        private IHashManager _hashManager;
 
         public Synchronizer(
             IChainCreationService chainCreationService, IChainContextService chainContextService,
             IChainService chainService, ILogger logger,
             ITransactionResultManager transactionResultManager, ITransactionManager transactionManager,
-            FunctionMetadataService functionMetadataService, IExecutingService executingService,
-            IChangesStore changesStore, IWorldStateStore worldStateStore, IDataStore dataStore,
+            FunctionMetadataService functionMetadataService, IExecutingService executingService, IDataStore dataStore,
             ISmartContractManager smartContractManager, IAccountContextService accountContextService,
-            ITxPoolService txPoolService, IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore,
-            ITransactionStore transactionStore) : base(new XunitAssertions())
+            ITxPoolService txPoolService, IHashManager hashManager) : base(new XunitAssertions())
         {
 
             _chainCreationService = chainCreationService;
@@ -62,13 +61,11 @@ namespace AElf.Miner.Tests
             _transactionManager = transactionManager;
             _functionMetadataService = functionMetadataService;
             _executingService = executingService;
-            _changesStore = changesStore;
-            _worldStateStore = worldStateStore;
             _dataStore = dataStore;
-            _worldStateDictator = new WorldStateDictator(worldStateStore, changesStore, dataStore,
-                blockHeaderStore, blockBodyStore, transactionStore, _logger);
+            _stateDictator = new StateDictator(_hashManager, transactionManager, _dataStore, _logger);
             _smartContractManager = smartContractManager;
             _accountContextService = accountContextService;
+            _hashManager = hashManager;
 
             Initialize();
         }
@@ -78,14 +75,14 @@ namespace AElf.Miner.Tests
             _smartContractRunnerFactory = new SmartContractRunnerFactory();
             var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerFactory.AddRunner(0, runner);
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _worldStateDictator, _functionMetadataService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerFactory, _stateDictator, _functionMetadataService);
 
             _servicePack = new ServicePack
             {
                 ChainContextService = _chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new NewMockResourceUsageDetectionService(),
-                WorldStateDictator = _worldStateDictator
+                StateDictator = _stateDictator
             };
             
             var workers = new[] {"/user/worker1", "/user/worker2"};
@@ -170,12 +167,12 @@ namespace AElf.Miner.Tests
             };
 
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
-            _worldStateDictator.SetChainId(chainId);
+            _stateDictator.ChainId = chainId;
             return chain;
         }
 
 
-        public List<ITransaction> CreateTxs(Hash chainId)
+        public List<Transaction> CreateTxs(Hash chainId)
         {
             var contractAddressZero = new Hash(chainId.CalculateHashWith(Globals.GenesisBasicContract)).ToAccount();
 
@@ -235,7 +232,7 @@ namespace AElf.Miner.Tests
             txInv_2.R = ByteString.CopyFrom(signature3.R); 
             txInv_2.S = ByteString.CopyFrom(signature3.S);
             
-            var txs = new List<ITransaction>(){
+            var txs = new List<Transaction>(){
                 txnDep, txInv_1, txInv_2
             };
 
@@ -283,7 +280,7 @@ namespace AElf.Miner.Tests
             block.Body.BlockHeader = block.Header.GetHash();
 
             var synchronizer = new BlockExecutor(poolService,
-                _chainService, _worldStateDictator, _executingService, null, _transactionManager, _transactionResultManager);
+                _chainService, _stateDictator, _executingService, null, _transactionManager, _transactionResultManager);
 
             synchronizer.Start();
             var res = await synchronizer.ExecuteBlock(block);
