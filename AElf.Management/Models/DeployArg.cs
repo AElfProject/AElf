@@ -1,4 +1,6 @@
-﻿namespace AElf.Management.Models
+﻿using System.Collections.Generic;
+
+namespace AElf.Management.Models
 {
     public class DeployArg
     {
@@ -55,6 +57,8 @@
 
     public class DeployLauncherArg
     {
-        
+        public bool IsConsensusInfoGenerator { get; set; }
+
+        public List<string> Bootnodes { get; set; }
     }
 }

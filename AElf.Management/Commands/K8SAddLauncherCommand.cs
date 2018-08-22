@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
@@ -112,11 +113,11 @@ namespace AElf.Management.Commands
                                         "--node.accountpassword",
                                         arg.AccountPassword,
                                         "--dpos.generator",
-                                        "true",
+                                        arg.LauncherArg.IsConsensusInfoGenerator.ToString(),
                                         "--chain.new",
                                         "true",
                                         "--chain.id",
-                                        chainId
+                                        chainId.Split('-').First()
                                     },
                                     VolumeMounts = new List<V1VolumeMount>
                                     {
@@ -148,7 +149,7 @@ namespace AElf.Management.Commands
                                         Name = "config-keys",
                                         Items = new List<V1KeyToPath>
                                         {
-                                            new V1KeyToPath{Key = arg.MainChainAccount+".ak"}
+                                            new V1KeyToPath{Key = arg.MainChainAccount+".ak",Path = arg.MainChainAccount+".ak"}
                                         }
                                     }
                                 }

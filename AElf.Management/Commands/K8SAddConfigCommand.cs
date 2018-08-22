@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using AElf.Configuration;
+using AElf.Configuration.Config.Network;
 using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
@@ -27,7 +29,8 @@ namespace AElf.Management.Commands
                     {"actor.json", GetActorConfigJson(chainId, arg)}, 
                     {"database.json", GetDatabaseConfigJson(chainId, arg)}, 
                     {"miners.json", GetMinersConfigJson(chainId, arg)}, 
-                    {"parallel.json", GetParallelConfigJson(chainId, arg)}
+                    {"parallel.json", GetParallelConfigJson(chainId, arg)}, 
+                    {"network.json", GetNetworkConfigJson(chainId, arg)}
                 }
             };
 
@@ -96,5 +99,22 @@ namespace AElf.Management.Commands
 
             return result;
         }
+
+        private string GetNetworkConfigJson(string chainId, DeployArg arg)
+        {
+            var config = new NetworkConfig();
+            config.Bootnodes=new List<string>();
+            config.Peers = new List<string>();
+
+            if (arg.LauncherArg.Bootnodes != null && arg.LauncherArg.Bootnodes.Any())
+            {
+                config.Bootnodes = arg.LauncherArg.Bootnodes;
+            }
+
+            var result = JsonSerializer.Instance.Serialize(config);
+
+            return result;
+        }
+        
     }
 }

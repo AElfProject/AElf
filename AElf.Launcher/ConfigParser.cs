@@ -77,10 +77,6 @@ namespace AElf.Launcher
             {
                 NetworkConfig.Instance.Bootnodes = opts.Bootnodes.ToList();
             }
-            else
-            {
-                NetworkConfig.Instance.Bootnodes = new List<string>();
-            }
 
             if (opts.PeersDbPath != null)
                 NetworkConfig.Instance.PeersDbPath = opts.PeersDbPath;
