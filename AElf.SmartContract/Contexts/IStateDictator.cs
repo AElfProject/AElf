@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
@@ -34,8 +35,8 @@ namespace AElf.SmartContract
   /*
    * Data operation
    */
-  Task SetDataAsync(Hash pointerHash, byte[] data);
-  Task<byte[]> GetDataAsync(Hash pointerHash);
+  Task SetDataAsync<T>(Hash pointerHash, T data) where T : IMessage;
+  Task<T> GetDataAsync<T>(Hash pointerHash) where T : IMessage, new();
 
   /*
    * Chain height

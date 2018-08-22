@@ -23,7 +23,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             get
             {
                 var interval = _miningIntervalField.GetAsync().Result;
-                return interval.Value == 0 ? 4000 : interval.Value;
+                return interval == 0 ? 4000 : interval;
             }
         }
 
@@ -46,7 +46,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private readonly Map<UInt64Value, StringValue> _firstPlaceMap;
 
-        private readonly PbField<Int32Value> _miningIntervalField;
+        private readonly Int32Field _miningIntervalField;
 
         #endregion
 
@@ -75,7 +75,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         /// 3 args:
         /// [0] Miners
         /// [1] AElfDPoSInformation
-        /// [2] Int32Value
+        /// [2] SInt32Value
         /// </param>
         /// <returns></returns>
         public async Task Initialize(List<byte[]> args)
@@ -89,12 +89,12 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             var round2 = new UInt64Value {Value = 2};
             Miners miners;
             AElfDPoSInformation dPoSInfo;
-            Int32Value miningInterval;
+            SInt32Value miningInterval;
             try
             {
                 miners = Miners.Parser.ParseFrom(args[0]);
                 dPoSInfo = AElfDPoSInformation.Parser.ParseFrom(args[1]);
-                miningInterval = Int32Value.Parser.ParseFrom(args[2]);
+                miningInterval = SInt32Value.Parser.ParseFrom(args[2]);
             }
             catch (Exception e)
             {
@@ -351,9 +351,9 @@ namespace AElf.Contracts.Consensus.ConsensusContract
             await _currentRoundNumberField.SetAsync(currentRoundNumber);
         }
 
-        private async Task SetMiningInterval(Int32Value interval)
+        private async Task SetMiningInterval(SInt32Value interval)
         {
-            await _miningIntervalField.SetAsync(interval);
+            await _miningIntervalField.SetAsync(interval.Value);
         }
 
         private async Task SetFirstPlaceOfSpecificRound(UInt64Value roundNumber, AElfDPoSInformation info)
@@ -391,8 +391,9 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private async Task SetExtraBlockMiningTimeslotOfSpecificRound(UInt64Value roundNumber, AElfDPoSInformation info)
         {
-            await _timeForProducingExtraBlockField.SetAsync(GetTimestampWithOffset(
-                info.GetLastBlockProducerTimeslotOfSpecificRound(roundNumber.Value), Interval));
+            var lastMinerTimeslot = info.GetLastBlockProducerTimeslotOfSpecificRound(roundNumber.Value);
+            var timeslot = GetTimestampWithOffset(lastMinerTimeslot, Interval);
+            await _timeForProducingExtraBlockField.SetAsync(timeslot);
         }
         
         private async Task SetExtraBlockMiningTimeslotOfSpecificRound(Timestamp timestamp)

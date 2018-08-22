@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -11,6 +11,7 @@ using AElf.Miner.Miner;
 using AElf.SmartContract;
 using NLog;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Kernel.Node
 {
     public class MinerHelper

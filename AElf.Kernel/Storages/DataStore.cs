@@ -19,20 +19,6 @@ namespace AElf.Kernel.Storages
             _keyValueDatabase = keyValueDatabase;
         }
 
-        public async Task InsertAsync(Hash pointerHash, byte[] obj)
-        {
-            if (pointerHash == null)
-                return;
-            await _keyValueDatabase.SetAsync(pointerHash.ToHex(), obj);
-        }
-
-        public async Task<byte[]> GetAsync(Hash pointerHash)
-        {
-            if (pointerHash == null)
-                return null;
-            return await _keyValueDatabase.GetAsync(pointerHash.ToHex());
-        }
-
         public async Task InsertAsync<T>(Hash pointerHash, T obj) where T : IMessage
         {
             try
@@ -90,6 +76,10 @@ namespace AElf.Kernel.Storages
         {
             try
             {
+                foreach (var kv in pipelineSet)
+                {
+                    Console.WriteLine($"Set: {kv.Key.ToHex()} - {kv.Value.Length}");
+                }
                 return await _keyValueDatabase.PipelineSetAsync(
                     pipelineSet.ToDictionary(kv => kv.Key.ToHex(), kv => kv.Value));
             }

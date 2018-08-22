@@ -31,7 +31,7 @@ namespace AElf.ChainControllerImpl
 
             _stateDictator.ChainId = chainId;
             var adp = _stateDictator.GetAccountDataProvider(account);
-            var idBytes = await adp.GetDataProvider().GetAsync(GetKeyForIncrementId());
+            var idBytes = await adp.GetDataProvider().GetAsync<UInt64Value>(GetKeyForIncrementId());
             var id = idBytes == null ? 0 : UInt64Value.Parser.ParseFrom(idBytes).Value;
             
             var accountDataContext = new AccountDataContext
@@ -55,7 +55,7 @@ namespace AElf.ChainControllerImpl
             var adp = _stateDictator.GetAccountDataProvider(accountDataContext.Address);
 
             //await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), accountDataContext.IncrementId.ToBytes());
-            await adp.GetDataProvider().SetAsync(GetKeyForIncrementId(), new UInt64Value
+            await adp.GetDataProvider().SetAsync<UInt64Value>(GetKeyForIncrementId(), new UInt64Value
             {
                 Value = accountDataContext.IncrementId
             }.ToByteArray());

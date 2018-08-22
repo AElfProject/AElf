@@ -1,6 +1,4 @@
-﻿using Google.Protobuf;
-
-// ReSharper disable once CheckNamespace
+﻿// ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
 {
     public class StateCache

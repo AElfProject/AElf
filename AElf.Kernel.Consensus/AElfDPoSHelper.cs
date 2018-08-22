@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Attributes;
-using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
 
@@ -14,7 +14,7 @@ namespace AElf.Kernel.Consensus
     // ReSharper disable InconsistentNaming
     public class AElfDPoSHelper
     {
-        private IDataProvider _dataProvider;
+        private readonly IDataProvider _dataProvider;
         private readonly Miners _miners;
         private readonly ILogger _logger;
         private readonly Hash _contractAddressHash;
@@ -26,11 +26,17 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return Miners.Parser.ParseFrom(GetBytes(Globals.AElfDPoSBlockProducerString.CalculateHash()));
+                    var miners = Miners.Parser.ParseFrom(_dataProvider
+                        .GetAsync<Miners>(Globals.AElfDPoSBlockProducerString.CalculateHash()).Result);
+                    foreach (var node in miners.Nodes)
+                    {
+                        Console.WriteLine($"Miner: {node}");
+                    }
+                    return miners;
                 }
                 catch (Exception)
                 {
-                    return default(Miners);
+                    return new Miners();
                 }
             }
         }
@@ -41,11 +47,11 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return UInt64Value.Parser.ParseFrom(GetBytes(Globals.AElfDPoSCurrentRoundNumber.CalculateHash()));
+                    return UInt64Value.Parser.ParseFrom(GetBytes<UInt64Value>(Globals.AElfDPoSCurrentRoundNumber.CalculateHash()));
                 }
                 catch (Exception)
                 {
-                    _logger?.Info("Failed to get current round number.");
+                    _logger?.Info("Failed to get current round number.\n");
                     return new UInt64Value {Value = 0};
                 }
             }
@@ -58,12 +64,12 @@ namespace AElf.Kernel.Consensus
                 try
                 {
                     return Timestamp.Parser.ParseFrom(
-                        GetBytes(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
+                        GetBytes<Timestamp>(Globals.AElfDPoSExtraBlockTimeslotString.CalculateHash()));
                 }
                 catch (Exception e)
                 {
                     _logger.Error(e,
-                        "The DPoS information has initialized but somehow the extra block timeslot is incorrect.");
+                        "The DPoS information has initialized but somehow the extra block timeslot is incorrect.\n");
                     return default(Timestamp);
                 }
             }
@@ -75,29 +81,29 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return Round.Parser.ParseFrom(GetBytes(CurrentRoundNumber.CalculateHash(),
+                    return Round.Parser.ParseFrom(GetBytes<Round>(CurrentRoundNumber.CalculateHash(),
                         Globals.AElfDPoSInformationString));
                 }
                 catch (Exception e)
                 {
-                    _logger?.Error(e, "Failed to get DPoS information of current round.");
-                    return default(Round);
+                    _logger?.Error(e, "Failed to get DPoS information of current round.\n");
+                    return new Round();
                 }
             }
         }
 
-        private Int32Value MiningInterval
+        private SInt32Value MiningInterval
         {
             get
             {
                 try
                 {
-                    return Int32Value.Parser.ParseFrom(GetBytes(Globals.AElfDPoSMiningIntervalString.CalculateHash()));
+                    return SInt32Value.Parser.ParseFrom(GetBytes<SInt32Value>(Globals.AElfDPoSMiningIntervalString.CalculateHash()));
                 }
                 catch (Exception e)
                 {
-                    _logger?.Error(e, "Failed to get DPoS mining interval.");
-                    return new Int32Value {Value = Globals.AElfDPoSMiningInterval};
+                    _logger?.Error(e, "Failed to get DPoS mining interval.\n");
+                    return new SInt32Value {Value = Globals.AElfDPoSMiningInterval};
                 }
             }
         }
@@ -108,13 +114,13 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    return StringValue.Parser.ParseFrom(GetBytes(CurrentRoundNumber.CalculateHash(),
+                    return StringValue.Parser.ParseFrom(GetBytes<StringValue>(CurrentRoundNumber.CalculateHash(),
                         Globals.AElfDPoSFirstPlaceOfEachRoundString));
                 }
                 catch (Exception e)
                 {
                     _logger?.Error(e, "Failed to get first order prodocuer of current round.");
-                    return default(StringValue);
+                    return new StringValue {Value = ""};
                 }
             }
         }
@@ -125,13 +131,11 @@ namespace AElf.Kernel.Consensus
         /// <param name="keyHash"></param>
         /// <param name="resourceStr"></param>
         /// <returns></returns>
-        private byte[] GetBytes(Hash keyHash, string resourceStr = "")
+        private byte[] GetBytes<T>(Hash keyHash, string resourceStr = "") where T : IMessage, new()
         {
-            var bytes = resourceStr != ""
-                ? _dataProvider.GetDataProvider(resourceStr).GetAsync(keyHash).Result
-                : _dataProvider.GetAsync(keyHash).Result;
-
-            return bytes;
+            return resourceStr != ""
+                ? _dataProvider.GetDataProvider(resourceStr).GetAsync<T>(keyHash).Result
+                : _dataProvider.GetAsync<T>(keyHash).Result;
         }
 
         public AElfDPoSHelper(IStateDictator stateDictator, Hash chainId, Miners miners, Hash contractAddressHash, ILogger logger)
@@ -155,7 +159,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    var bytes = GetBytes(CurrentRoundNumber.CalculateHash(), Globals.AElfDPoSInformationString);
+                    var bytes = GetBytes<BlockProducer>(CurrentRoundNumber.CalculateHash(), Globals.AElfDPoSInformationString);
                     var round = Round.Parser.ParseFrom(bytes);
                     return round.BlockProducers[accountAddress];
                 }
@@ -173,7 +177,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    var bytes = GetBytes(roundNumber.CalculateHash(), Globals.AElfDPoSInformationString);
+                    var bytes = GetBytes<Round>(roundNumber.CalculateHash(), Globals.AElfDPoSInformationString);
                     var round = Round.Parser.ParseFrom(bytes);
                     return round;
                 }
@@ -187,8 +191,8 @@ namespace AElf.Kernel.Consensus
 
         public async Task<bool> HasGenerated()
         {
-            var bytes = await _dataProvider.GetAsync(Globals.AElfDPoSBlockProducerString.CalculateHash());
-            return bytes.Length != 0;
+            var bytes = await _dataProvider.GetAsync<Miners>(Globals.AElfDPoSBlockProducerString.CalculateHash());
+            return bytes != null;
         }
 
         public AElfDPoSInformation GenerateInfoForFirstTwoRounds()
@@ -539,10 +543,6 @@ namespace AElf.Kernel.Consensus
 
         public void SyncMiningInterval()
         {
-            if (MiningInterval.Value == 0)
-            {
-                return;
-            }
             Globals.AElfDPoSMiningInterval = MiningInterval.Value;
         }
         
@@ -564,9 +564,9 @@ namespace AElf.Kernel.Consensus
                     result += "IsEBP:\t\t" + bpInfo.Value.IsEBP + "\n";
                     result += "Order:\t\t" + bpInfo.Value.Order + "\n";
                     result += "Timeslot:\t" + bpInfo.Value.TimeSlot.ToDateTime().ToLocalTime().ToString("u") + "\n";
-                    result += "Signature:\t" + bpInfo.Value.Signature?.Value.ToByteArray().ToHex().Remove(0, 2) + "\n";
-                    result += "Out Value:\t" + bpInfo.Value.OutValue?.Value.ToByteArray().ToHex().Remove(0, 2) + "\n";
-                    result += "In Value:\t" + bpInfo.Value.InValue?.Value.ToByteArray().ToHex().Remove(0, 2) + "\n";
+                    result += "Signature:\t" + bpInfo.Value.Signature?.Value.ToByteArray().ToHex().RemoveHexPrefix() + "\n";
+                    result += "Out Value:\t" + bpInfo.Value.OutValue?.Value.ToByteArray().ToHex().RemoveHexPrefix() + "\n";
+                    result += "In Value:\t" + bpInfo.Value.InValue?.Value.ToByteArray().ToHex().RemoveHexPrefix() + "\n";
                 }
 
                 return result + "\n";

@@ -1,7 +1,9 @@
 ﻿using System;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
+// ReSharper disable InconsistentNaming
 namespace AElf.Kernel
 {
     public partial class DataPath
@@ -25,6 +27,41 @@ namespace AElf.Kernel
 
         public Hash ResourcePointerHash =>
             ((Hash) StateHash.CalculateHashWith(ResourcePathHash)).OfType(HashType.ResourcePointer);
+
+        public Hash Key => new Key
+        {
+            Type = (uint) Type,
+            Value = ByteString.CopyFrom(ResourcePointerHash.GetHashBytes()),
+            HashType = (uint) HashType.ResourcePointer
+        }.ToByteArray();
+        
+            
+        public enum Types
+        {
+            UInt64Value = 0,
+            Hash,
+            BlockBody,
+            BlockHeader,
+            Chain,
+            Change,
+            SmartContractRegistration,
+            TransactionResult,
+            Transaction,
+            FunctionMetadata,
+            SerializedCallGraph,
+            SideChain,
+            WorldState,
+            Miners,
+            BlockProducer,
+            Round,
+            AElfDPoSInformation,
+            Int32Value,
+            StringValue,
+            Timestamp,
+            SInt32Value
+        }
+
+        public Types Type { get; set; }
 
         public DataPath RemoveState()
         {
@@ -136,4 +173,5 @@ namespace AElf.Kernel
 
         #endregion
     }
+
 }

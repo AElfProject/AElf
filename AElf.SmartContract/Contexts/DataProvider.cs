@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Enum = System.Enum;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
@@ -29,10 +30,11 @@ namespace AElf.SmartContract
             return changes;
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// DataPath - StateCache
         /// </summary>
-        public Dictionary<DataPath, StateCache> StateCache { get; set; }
+        public Dictionary<DataPath, StateCache> StateCache { get; set; } = new Dictionary<DataPath, StateCache>();
 
         public void ClearCache()
         {
@@ -67,32 +69,38 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public IDataProvider GetDataProvider(string dataProviderKey)
         {
-            return new DataProvider(_dataPath, _stateDictator, _layer++, dataProviderKey)
+            return new DataProvider(_dataPath.Clone(), _stateDictator, _layer++, dataProviderKey)
             {
                 StateCache = StateCache
             };
         }
 
-        /// <inheritdoc />
-        public async Task<byte[]> GetAsync(Hash keyHash)
+        public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
         {
-            var data = (await GetStateAsync(keyHash)).CurrentValue;
-            if (data == null)
-            {
-                Console.WriteLine("Failed to get data via DataProvider");
-                data = new byte[0];
-            }
-
-            return data;
+            return GetStateAsync(keyHash)?.CurrentValue ?? (await GetDataAsync<T>(keyHash))?.ToByteArray();
         }
 
-        public async Task SetAsync(Hash keyHash, byte[] obj)
+        public async Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new()
         {
-            _dataPath.SetDataProvider(GetHash()).SetDataKey(keyHash);
-
-            await _stateDictator.SetHashAsync(_dataPath.ResourcePathHash, _dataPath.ResourcePointerHash);
+            var dataPath = _dataPath.Clone();
+            dataPath.SetDataProvider(GetHash()).SetDataKey(keyHash);
             
-            var state = await GetStateAsync(keyHash);
+            if (!Enum.TryParse<Kernel.Storages.Types>(typeof(T).Name, out var typeIndex))
+            {
+                throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
+            }
+
+            dataPath.Type = (DataPath.Types) (uint) typeIndex;
+            
+            await _stateDictator.SetHashAsync(dataPath.ResourcePathHash, dataPath.ResourcePointerHash);
+            var state = GetStateAsync(keyHash);
+
+            if (state == null)
+            {
+                state = new StateCache((await GetDataAsync<T>(keyHash))?.ToByteArray());
+                StateCache.Add(dataPath, state);
+            }
+            
             state.CurrentValue = obj;
         }
 
@@ -101,31 +109,48 @@ namespace AElf.SmartContract
             return ((Hash)GetHash().CalculateHashWith(keyHash)).OfType(HashType.ResourcePath);
         }
         
-        private async Task<StateCache> GetStateAsync(Hash keyHash)
+        private StateCache GetStateAsync(Hash keyHash)
         {
-            _dataPath.SetDataProvider(GetHash()).SetDataKey(keyHash);
-            
-            if (StateCache.TryGetValue(_dataPath, out var state))
-                return state;
-
-            state = new StateCache(await GetDataAsync(keyHash));
-            StateCache.Add(_dataPath, state);
-
-            return state;
+            var dataPath = _dataPath.Clone();
+            dataPath.SetDataProvider(GetHash()).SetDataKey(keyHash);
+            Console.WriteLine($"Try to get {dataPath.ResourcePathHash.ToHex()} from state cache.");
+            return StateCache.TryGetValue(dataPath, out var state) ? state : null;
         }
 
+        public async Task SetDataAsync<T>(Hash keyHash, T obj) where T : IMessage, new()
+        {
+            var dataPath = _dataPath.Clone();
+            dataPath.SetDataProvider(GetHash()).SetDataKey(keyHash);
+
+            await _stateDictator.SetDataAsync(dataPath.ResourcePointerHash, obj);
+            
+            await _stateDictator.SetHashAsync(dataPath.ResourcePathHash, dataPath.ResourcePointerHash);
+        }
+        
         /// <summary>
         /// Get data from database.
         /// </summary>
         /// <param name="keyHash"></param>
         /// <returns></returns>
-        public async Task<byte[]> GetDataAsync(Hash keyHash)
+        public async Task<T> GetDataAsync<T>(Hash keyHash) where T : IMessage, new()
         {
+            var dataPath = _dataPath.Clone();
+            dataPath.SetDataProvider(GetHash()).SetDataKey(keyHash);
+
+            Console.WriteLine($"Try to get {dataPath.ResourcePathHash.ToHex()} from database.");
+
             //Get resource pointer.
-            var pointerHash = await _stateDictator.GetHashAsync(_dataPath.ResourcePathHash);
+            var pointerHash = await _stateDictator.GetHashAsync(dataPath.ResourcePathHash);
+
+            if (pointerHash == null)
+            {
+                return default(T);
+            }
+            
+            Console.WriteLine($"pointer hash: {pointerHash.ToHex()}");
             
             //Use resource pointer get data.
-            return await _stateDictator.GetDataAsync(pointerHash);
+            return await _stateDictator.GetDataAsync<T>(pointerHash);
         }
     }
 }

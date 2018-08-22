@@ -6,8 +6,6 @@ namespace AElf.Kernel.Storages
 {
     public interface IDataStore
     {
-        Task InsertAsync(Hash pointerHash, byte[] obj);
-        Task<byte[]> GetAsync(Hash pointerHash);
         Task InsertAsync<T>(Hash pointerHash, T obj) where T : IMessage;
         Task<T> GetAsync<T>(Hash pointerHash) where T : IMessage, new();
 

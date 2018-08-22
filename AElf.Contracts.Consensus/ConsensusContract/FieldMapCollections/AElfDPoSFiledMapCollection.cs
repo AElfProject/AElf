@@ -40,6 +40,6 @@ namespace AElf.Contracts.Consensus.ConsensusContract.FieldMapCollections
         /// <summary>
         /// DPoS mining interval.
         /// </summary>
-        public PbField<Int32Value> MiningIntervalField;
+        public Int32Field MiningIntervalField;
     }
 }

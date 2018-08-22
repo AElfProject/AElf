@@ -7,6 +7,7 @@ using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using Google.Protobuf;
 using Mono.Cecil;
 using NLog;
 
@@ -131,9 +132,9 @@ namespace AElf.SmartContract
         /// <param name="pointerHash"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public async Task SetDataAsync(Hash pointerHash, byte[] data)
+        public async Task SetDataAsync<T>(Hash pointerHash, T data) where T : IMessage
         {
-            await _dataStore.InsertAsync<Hash>(pointerHash, data);
+            await _dataStore.InsertAsync(pointerHash, data);
         }
 
         /// <summary>
@@ -141,9 +142,9 @@ namespace AElf.SmartContract
         /// </summary>
         /// <param name="pointerHash"></param>
         /// <returns></returns>
-        public async Task<byte[]> GetDataAsync(Hash pointerHash)
+        public async Task<T> GetDataAsync<T>(Hash pointerHash) where T : IMessage, new()
         {
-            return await _dataStore.GetAsync(pointerHash);
+            return await _dataStore.GetAsync<T>(pointerHash);
         }
 
         public Task RollbackToPreviousBlock()
@@ -155,12 +156,14 @@ namespace AElf.SmartContract
         public async Task ApplyStateValueChangeAsync(StateValueChange stateValueChange)
         {
             await SetHashAsync(stateValueChange.Path.ResourcePathHash, stateValueChange.Path.ResourcePointerHash);
+            
             var dataItem = new DataItem
             {
                 ResourcePath = stateValueChange.Path.ResourcePathHash,
                 ResourcePointer = stateValueChange.Path.ResourcePointerHash,
                 StateMerkleTreeLeaf = CalculateMerkleTreeLeaf(stateValueChange)
             };
+            
             _worldState.Data.Add(dataItem);
         }
 
@@ -182,10 +185,9 @@ namespace AElf.SmartContract
             _logger?.Debug($"Pipeline set {cachedActions.Count} data item");
             
             //Only dirty, i.e., changed data item, will be applied to database
-            var pipelineSet = cachedActions.ToDictionary(kv => kv.Key.ResourcePointerHash, kv => kv.Value.CurrentValue);
+            var pipelineSet = cachedActions.ToDictionary(kv => kv.Key.Key, kv => kv.Value.CurrentValue);
             if (pipelineSet.Count > 0)
             {
-                //_logger?.Debug($"Pipeline set {pipelineSet.Count} data item");
                 return await _dataStore.PipelineSetDataAsync(pipelineSet);
             }
 

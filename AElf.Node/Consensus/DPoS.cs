@@ -95,13 +95,12 @@ namespace AElf.Kernel.Node
             }
 
             DPoSHelper.SyncMiningInterval();
-            _logger?.Trace($"Set AElf DPoS mining interval to: {Globals.AElfDPoSMiningInterval} ms.");
+            _logger?.Trace($"Sync AElf DPoS mining interval to: {Globals.AElfDPoSMiningInterval} ms.");
 
             if (DPoSHelper.CanRecoverDPoSInformation())
             {
                 AElfDPoSObserver.RecoverMining();
             }
-
         }
 
         // ReSharper disable once InconsistentNaming
@@ -111,7 +110,7 @@ namespace AElf.Kernel.Node
             {
                 Miners.ToByteArray(),
                 DPoSHelper.GenerateInfoForFirstTwoRounds().ToByteArray(),
-                new Int32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray()
+                new SInt32Value {Value = Globals.AElfDPoSMiningInterval}.ToByteArray()
             };
             _logger?.Trace($"Set AElf DPoS mining interval to: {Globals.AElfDPoSMiningInterval} ms");
             // ReSharper disable once InconsistentNaming

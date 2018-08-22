@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
@@ -23,18 +24,19 @@ namespace AElf.SmartContract
         /// <param name="keyHash"></param>
         /// <param name="obj"></param>
         /// <returns></returns>
-        Task SetAsync(Hash keyHash, byte[] obj);
+        Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new();
 
 
-        Task<byte[]> GetAsync(Hash keyHash);
+        Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new();
 
         /// <summary>
         /// Get data from database.
         /// </summary>
         /// <param name="keyHash"></param>
         /// <returns></returns>
-        Task<byte[]> GetDataAsync(Hash keyHash);
+        Task<T> GetDataAsync<T>(Hash keyHash) where T : IMessage, new();
 
+        Task SetDataAsync<T>(Hash keyHash, T obj) where T : IMessage, new();
         /// <summary>
         /// DataProvider hash + Key hash
         /// </summary>

@@ -1,8 +1,6 @@
-﻿using System;
-using System.Linq;
-using Google.Protobuf;
-using static AElf.Kernel.Storages.Types;
+﻿using Google.Protobuf;
 
+// ReSharper disable InconsistentNaming
 namespace AElf.Kernel.Storages
 {
     public static class Helper
@@ -33,6 +31,14 @@ namespace AElf.Kernel.Storages
         FunctionMetadata,
         SerializedCallGraph,
         SideChain,
-        WorldState
+        WorldState,
+        Miners,
+        BlockProducer,
+        Round,
+        AElfDPoSInformation,
+        Int32Value,
+        StringValue,
+        Timestamp,
+        SInt32Value
     }
 }

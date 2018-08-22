@@ -7,9 +7,9 @@ using AElf.Types.CSharp;
 
 namespace AElf.Sdk.CSharp.Types
 {
-    public class PbField<T> where T : IMessage
+    public class PbField<T> where T : IMessage, new()
     {
-        public string _name;
+        private readonly string _name;
         public PbField(string name)
         {
             _name = name;
@@ -32,14 +32,13 @@ namespace AElf.Sdk.CSharp.Types
         {
             if (value != null)
             {
-                await Api.GetDataProvider("").SetAsync(_name.CalculateHash(), value.ToByteArray());
+                await Api.GetDataProvider("").SetDataAsync(_name.CalculateHash(), value);
             }
         }
 
         public async Task<T> GetAsync()
         {
-            byte[] bytes = await Api.GetDataProvider("").GetAsync(_name.CalculateHash());
-            return Api.Serializer.Deserialize<T>(bytes);
+            return await Api.GetDataProvider("").GetDataAsync<T>(_name.CalculateHash());
         }
     }
 
@@ -97,7 +96,7 @@ namespace AElf.Sdk.CSharp.Types
         
         public async Task SetAsync(uint value)
         {
-            await _inner.SetAsync(new UInt32Value() { Value = value });
+            await _inner.SetAsync(new UInt32Value { Value = value });
         }
         public async Task<uint> GetAsync()
         {
@@ -107,7 +106,7 @@ namespace AElf.Sdk.CSharp.Types
 
     public class Int32Field
     {
-        private PbField<SInt32Value> _inner;
+        private readonly PbField<SInt32Value> _inner;
         public Int32Field(string name)
         {
             _inner = new PbField<SInt32Value>(name);
@@ -128,11 +127,12 @@ namespace AElf.Sdk.CSharp.Types
         
         public async Task SetAsync(int value)
         {
-            await _inner.SetAsync(new SInt32Value() { Value = value });
+            await _inner.SetAsync(new SInt32Value { Value = value });
         }
+        
         public async Task<int> GetAsync()
         {
-            return (await _inner.GetAsync())?.Value ?? default(int);
+            return (await _inner.GetAsync())?.Value ?? 0;
         }
     }
 
@@ -227,7 +227,7 @@ namespace AElf.Sdk.CSharp.Types
         }
         public async Task<string> GetAsync()
         {
-            return (await _inner.GetAsync())?.Value ?? default(string);
+            return (await _inner.GetAsync())?.Value;
         }
     }
 

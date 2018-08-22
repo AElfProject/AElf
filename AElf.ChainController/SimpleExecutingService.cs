@@ -53,8 +53,6 @@ namespace AElf.ChainController
                 var executive = await _smartContractService.GetExecutiveAsync(transaction.To, chainId);
                 try
                 {
-                    _stateDictator.ChainId = chainId;
-                    //_stateDictator.BlockProducerAccountAddress
                     await executive.SetTransactionContext(txCtxt).Apply(true);
                 }
                 catch (Exception ex)
