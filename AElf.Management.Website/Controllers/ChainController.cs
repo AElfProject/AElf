@@ -25,5 +25,20 @@ namespace AElf.Management.Website.Controllers
             var result = _chainService.GetAllChains();
             return new ApiResult<List<ChainResult>>(result);
         }
+
+        [HttpPost]
+        public ApiEmptyResult Deploy([FromBody] DeployArg arg)
+        {
+            _chainService.DeployMainChain(arg.MainChainId, arg);
+            return ApiEmptyResult.Default;
+        }
+        
+        [HttpDelete]
+        [Route("{chianId}")]
+        public ApiEmptyResult Remove(string chainId)
+        {
+            _chainService.RemoveMainChain(chainId);
+            return ApiEmptyResult.Default;
+        }
     }
 }

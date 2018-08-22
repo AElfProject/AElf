@@ -4,6 +4,8 @@ namespace AElf.Management.Models
 {
     public class DeployArg
     {
+        public string MainChainId { get; set; }
+
         public string MainChainAccount { get; set; }
 
         public string AccountPassword { get; set; }

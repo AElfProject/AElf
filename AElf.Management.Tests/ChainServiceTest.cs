@@ -63,7 +63,7 @@ namespace AElf.Management.Tests
             arg.LauncherArg.Bootnodes=new List<string>
             {
                 "a19097686a5db11e8b7c80ac491fc1bb-366170256.us-west-2.elb.amazonaws.com:30800",
-                "a96c1d39ba5db11e8b7c80ac491fc1bb-1927214852.us-west-2.elb.amazonaws.com:30800"
+                "a6538fc9ea5df11e8b14c02eebb7fa21-1480281286.us-west-2.elb.amazonaws.com:30800"
             };
 
             var service = new ChainService();
