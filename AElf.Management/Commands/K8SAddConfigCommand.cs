@@ -79,7 +79,9 @@ namespace AElf.Management.Commands
             {
                 Producers = new Dictionary<string, Dictionary<string, string>>
                 {
-                    {"1", new Dictionary<string, string> {{"address", arg.MainChainAccount}}}
+                    {"1", new Dictionary<string, string> {{"address", "0x04b8b111fdbc2f5409a006339fa1758e1ed1"}}},
+                    {"2", new Dictionary<string, string> {{"address", "0x0429c477d551aa91abc193d7088f69082000"}}},
+                    {"3", new Dictionary<string, string> {{"address", "0x04bce3e67ec4fbd0fad2822e6e5ed097812c"}}}
                 }
             };
 

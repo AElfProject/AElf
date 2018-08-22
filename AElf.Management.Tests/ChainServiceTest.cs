@@ -41,7 +41,7 @@ namespace AElf.Management.Tests
             arg.WorkArg.ActorCount = 4;
             arg.LauncherArg=new DeployLauncherArg();
             arg.LauncherArg.IsConsensusInfoGenerator = false;
-            arg.LauncherArg.Bootnodes=new List<string>{"af4328122a5ba11e8b7c80ac491fc1bb-219376992.us-west-2.elb.amazonaws.com:30800"};
+            arg.LauncherArg.Bootnodes=new List<string>{"a19097686a5db11e8b7c80ac491fc1bb-366170256.us-west-2.elb.amazonaws.com:30800"};
 
             var service = new ChainService();
             service.DeployMainChain(chainId+"-2", arg);
@@ -60,7 +60,11 @@ namespace AElf.Management.Tests
             arg.WorkArg.ActorCount = 4;
             arg.LauncherArg=new DeployLauncherArg();
             arg.LauncherArg.IsConsensusInfoGenerator = false;
-            arg.LauncherArg.Bootnodes=new List<string>{"af4328122a5ba11e8b7c80ac491fc1bb-219376992.us-west-2.elb.amazonaws.com:30800"};
+            arg.LauncherArg.Bootnodes=new List<string>
+            {
+                "a19097686a5db11e8b7c80ac491fc1bb-366170256.us-west-2.elb.amazonaws.com:30800",
+                "a96c1d39ba5db11e8b7c80ac491fc1bb-1927214852.us-west-2.elb.amazonaws.com:30800"
+            };
 
             var service = new ChainService();
             service.DeployMainChain(chainId+"-3", arg);

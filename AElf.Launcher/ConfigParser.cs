@@ -137,7 +137,7 @@ namespace AElf.Launcher
 
             if (opts.NewChain)
             {
-                IsMiner = true;
+                //IsMiner = true;
                 NewChain = true;
             }
 
