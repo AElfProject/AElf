@@ -5,15 +5,16 @@ using Autofac;
 
 namespace AElf.RPC
 {
-    public class RpcServer
+    public class RpcServer : IRpcServer
     {
         private IWebHost _host;
 
-        public bool Initialize(ILifetimeScope scope, string rpcHost, int rpcPort)
+        public bool Init(ILifetimeScope scope, string rpcHost, int rpcPort)
         {
             try
             {
                 var url = "http://" + rpcHost + ":" + rpcPort;
+                
                 _host = new WebHostBuilder()
                     .UseKestrel()
                     .UseUrls(url)
@@ -29,9 +30,14 @@ namespace AElf.RPC
             return true;
         }
 
-        public async Task RunAsync()
+        public async Task Start()
         {
             await _host.RunAsync();
+        }
+
+        public void Stop()
+        {
+            _host.StopAsync();
         }
     }
 }
