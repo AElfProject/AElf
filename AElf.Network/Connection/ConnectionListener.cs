@@ -46,7 +46,16 @@ namespace AElf.Network.Connection
         private async Task AwaitConnection(TcpListener tcpListener)
         {
             TcpClient client = await tcpListener.AcceptTcpClientAsync();
+            LogConnection(client);
             IncomingConnection?.Invoke(this, new IncomingConnectionArgs { Client = client});
+        }
+
+        private void LogConnection(TcpClient client)
+        {
+            IPEndPoint remoteIpEndPoint = client?.Client?.RemoteEndPoint as IPEndPoint;
+            IPEndPoint localIpEndPoint = client?.Client?.LocalEndPoint as IPEndPoint;
+            
+            _logger?.Trace($"[{localIpEndPoint?.Address}:{localIpEndPoint?.Port}] Accepted a connection from {remoteIpEndPoint?.Address}:{remoteIpEndPoint?.Port}.");
         }
 
         #region Closing and disposing
