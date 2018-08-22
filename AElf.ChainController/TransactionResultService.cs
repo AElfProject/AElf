@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Managers;
+using AElf.ChainController;
+using AElf.ChainController.TxMemPool;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
 
-namespace AElf.ChainController
+namespace AElf.ChainControllerImpl
 {
     public class TransactionResultService : ITransactionResultService
     {

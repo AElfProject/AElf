@@ -3,20 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
-using AElf.SmartContract;
-using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using Akka.Cluster;
+using AElf.Miner.Miner;
 using NLog;
+using ITxPoolService = AElf.ChainController.TxMemPool.ITxPoolService;
+using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
+using Status = AElf.Kernel.Status;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.ChainController
 {
     [LoggerName(nameof(Miner))]
@@ -35,10 +39,9 @@ namespace AElf.ChainController
         private readonly IChainManagerBasic _chainManagerBasic;
         private readonly IBlockManagerBasic _blockManagerBasic;
 
-        private readonly Dictionary<ulong, IBlock> waiting = new Dictionary<ulong, IBlock>();
-
         private MinerLock Lock { get; } = new MinerLock();
         private readonly ILogger _logger;
+        
         
         /// <summary>
         /// Signals to a CancellationToken that mining should be canceled
@@ -112,11 +115,35 @@ namespace AElf.ChainController
                 // reset Promotable and update account context
                 
                 _logger?.Log(LogLevel.Debug, "Executing Transactions..");
-
+                List<TransactionTrace> traces = null;
                 var blockChain = _chainService.GetBlockChain(Config.ChainId);
-                var traces = readyTxs.Count == 0
+                if(Config.IsParallel)
+                {  
+                    traces = readyTxs.Count == 0
                     ? new List<TransactionTrace>()
                     : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, Cts.Token);
+                }
+                else
+                {
+                    foreach (var transaction in readyTxs)
+                    {
+                        var executive = await _smartContractService.GetExecutiveAsync(transaction.To, Config.ChainId);
+                        try
+                        {
+                            var txnInitCtxt = new TransactionContext()
+                            {
+                                Transaction = transaction,
+                                BlockHeight = await blockChain.GetCurrentBlockHeightAsync()
+                            };
+                            await executive.SetTransactionContext(txnInitCtxt).Apply(true);
+                        }
+                        finally
+                        {
+                            await _smartContractService.PutExecutiveAsync(transaction.To, executive);    
+                        }
+
+                    }
+                }
                 _logger?.Log(LogLevel.Debug, "End Executing Transactions..");
                 var results = new List<TransactionResult>();
                 foreach (var trace in traces)
@@ -294,9 +321,12 @@ namespace AElf.ChainController
         /// </summary>
         public void Start(ECKeyPair nodeKeyPair)
         {
-            Cts = new CancellationTokenSource();
-            _keyPair = nodeKeyPair;
-            //MiningResetEvent = new AutoResetEvent(false);
+            if (Cts == null || Cts.IsCancellationRequested)
+            {
+                Cts = new CancellationTokenSource();
+                _keyPair = nodeKeyPair;
+                // init miner rpc server
+            }
         }
 
         /// <summary>

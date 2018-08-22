@@ -8,7 +8,6 @@ using AElf.ChainController;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
-using AElf.Contracts.SideChain;
 using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
@@ -16,6 +15,7 @@ using Google.Protobuf;
 using AElf.Kernel.Managers;
 using Newtonsoft.Json.Linq;
 using NLog;
+using SideChainInfo = AElf.Contracts.SideChain.SideChainInfo;
 
 namespace AElf.SideChain.Creation
 {
@@ -104,7 +104,7 @@ namespace AElf.SideChain.Creation
                     {
                         _logger?.Error(
                             $"Sending sidechain deployment request for {info.ChainId} failed. " +
-                            "StatusCode: {response.StatusCode}"
+                            $"StatusCode: {response.StatusCode}"
                         );
                     }
                     else

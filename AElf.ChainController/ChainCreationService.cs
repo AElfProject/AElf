@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Types;
-using AElf.SmartContract;
+using AElf.ChainController;
 using AElf.Kernel;
+using AElf.SmartContract;
 
-namespace AElf.ChainController
+namespace AElf.ChainControllerImpl
 {
     public class ChainCreationService : IChainCreationService
     {

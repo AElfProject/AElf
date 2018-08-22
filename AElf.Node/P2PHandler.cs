@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Kernel.Managers;

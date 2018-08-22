@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Types;
 using AElf.Kernel;
 
-namespace AElf.ChainController
+namespace AElf.ChainController.TxMemPool
 {
     public interface ITxPoolService
     {

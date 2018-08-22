@@ -2,6 +2,7 @@
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
 using AElf.ChainController;
+using AElf.ChainControllerImpl.TxMemPool;
 using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;

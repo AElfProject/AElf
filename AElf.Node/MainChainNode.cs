@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.TxMemPool;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
@@ -17,6 +18,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Node.Protocol;
 using AElf.Kernel.Types;
+using AElf.Miner.Miner;
 using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -149,16 +151,6 @@ namespace AElf.Kernel.Node
 
             Task.Run(() => _netManager.Start());
 
-            if (!NodeConfig.Instance.ConsensusInfoGenerater)
-            {
-//                _synchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
-                _synchronizer.SyncFinished += (s, e) => { StartMining(); };
-            }
-            else
-            {
-                StartMining();
-            }
-
             Task.Run(() => _synchronizer.Start(this, !NodeConfig.Instance.ConsensusInfoGenerater));
 
 //            var resourceDetectionService = new ResourceUsageDetectionService(_functionMetadataService);
@@ -174,7 +166,16 @@ namespace AElf.Kernel.Node
 
             _logger?.Log(LogLevel.Debug, "AElf node started.");
             Task.Run(async () => await _p2p.ProcessLoop()).ConfigureAwait(false);
-
+            Thread.Sleep(1000);
+            if (!NodeConfig.Instance.ConsensusInfoGenerater)
+            {
+//                _synchronizer.SyncFinished += BlockSynchronizerOnSyncFinished;
+                _synchronizer.SyncFinished += (s, e) => { StartMining(); };
+            }
+            else
+            {
+                StartMining();
+            }
             #endregion start
 
             return true;

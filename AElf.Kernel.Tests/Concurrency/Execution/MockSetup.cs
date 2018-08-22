@@ -6,6 +6,7 @@ using AElf.Kernel.Storages;
 using AElf.Kernel.Managers;
 using Google.Protobuf;
 using AElf.ChainController;
+using AElf.ChainController.TxMemPool;
 using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;

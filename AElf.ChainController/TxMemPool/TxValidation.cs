@@ -1,9 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 
-namespace AElf.ChainController
+namespace AElf.ChainController.TxMemPool
 {
     public static class TxValidation
     {
