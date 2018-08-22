@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using AElf.Common.Application;
+using AElf.Cryptography;
 using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
@@ -22,10 +25,24 @@ namespace AElf.Management.Commands
                     Name = ConfigName,
                     NamespaceProperty = chainId
                 },
-                Data = GetAccoutKey(chainId,arg)
+                Data = GetAndCreateAccountKey(chainId,arg)
             };
 
             K8SRequestHelper.GetClient().CreateNamespacedConfigMap(body, chainId);
+        }
+
+        private Dictionary<string, string> GetAndCreateAccountKey(string chainId, DeployArg arg)
+        {
+            var keyStore = new AElfKeyStore(ApplicationHelpers.GetDefaultDataDir());
+            var key = keyStore.Create(arg.AccountPassword);
+
+            var keyName = key.GetAddressHex();
+            var fileName = keyName + ".ak";
+            var filePath = Path.Combine(ApplicationHelpers.GetDefaultDataDir(), "keys", fileName);
+            var keyContent = File.ReadAllText(filePath);
+            arg.MainChainAccount = keyName;
+
+            return new Dictionary<string, string> {{fileName, keyContent}};
         }
 
         private Dictionary<string, string> GetAccoutKey(string chainId, DeployArg arg)
