@@ -356,9 +356,12 @@ namespace AElf.ChainControllerImpl.TxMemPool
         {
             try
             {
+                _logger?.Log(LogLevel.Debug, "Set nonce..");
                 var nonces = txsOut.Select(async p => await TrySetNonce(p.From, p.Type));
                 await Task.WhenAll(nonces);
- 
+                _logger?.Log(LogLevel.Debug, "Set nonce..");
+
+                _logger?.Log(LogLevel.Debug, "Aggregate {0} txs..", txsOut.Count);
                 var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(),  (current, p) =>
                 {
                     if (!current.TryGetValue(p.From, out _))
@@ -370,6 +373,7 @@ namespace AElf.ChainControllerImpl.TxMemPool
                 
                     return current;
                 });
+                _logger?.Log(LogLevel.Debug, "Aggregated {0} txs", txsOut.Count);
 
                 foreach (var kv in tmap)
                 {
