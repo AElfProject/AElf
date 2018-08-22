@@ -143,7 +143,14 @@ namespace AElf.Management.Commands
                                 new V1Volume
                                 {
                                     Name = "key",
-                                    ConfigMap = new V1ConfigMapVolumeSource {Name = "config-keys"}
+                                    ConfigMap = new V1ConfigMapVolumeSource
+                                    {
+                                        Name = "config-keys",
+                                        Items = new List<V1KeyToPath>
+                                        {
+                                            new V1KeyToPath{Key = arg.MainChainAccount+".ak"}
+                                        }
+                                    }
                                 }
                             }
                         }
