@@ -53,10 +53,16 @@ namespace AElf.Execution
                         _cancellationTokenSource?.Dispose();
                         _cancellationTokenSource = new CancellationTokenSource();
 
-                        RunJob(req).ContinueWith(
-                            task => task.Result,
-                            TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
-                        );
+                        var self = Self;
+                        Task.Run(() =>
+                        {
+                            RunJob(req)
+                                .ContinueWith(
+                                    task => task.Result,
+                                    TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
+                                ).PipeTo(self);
+                        });
+                        
 /*
  Temporarily disabled.
  TODO: https://github.com/AElfProject/AElf/issues/338
@@ -77,14 +83,15 @@ namespace AElf.Execution
                     }
 */
                     break;
-/*
- Temporarily disabled.
- TODO: https://github.com/AElfProject/AElf/issues/338
+
                 case JobExecutionCancelMessage c:
                     _cancellationTokenSource?.Cancel();
                     Sender.Tell(JobExecutionCancelAckMessage.Instance);
                     break;
 
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
                 case JobExecutionStatusQuery query:
                     if (query.RequestId != _servingRequestId)
                     {
