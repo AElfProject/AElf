@@ -514,7 +514,7 @@ namespace AElf.ChainControllerImpl.TxMemPool
         /// <inheritdoc/>
         public bool TrySetNonce(Hash addr, ulong incrementId)
         {
-            if (!_nonces.TryGetValue(addr, out var id))
+            if (!_nonces.TryGetValue(addr, out _))
             {
                 _nonces.TryAdd(addr, incrementId);
                 return true;

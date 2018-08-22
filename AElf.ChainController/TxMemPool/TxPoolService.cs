@@ -75,7 +75,6 @@ namespace AElf.ChainControllerImpl.TxMemPool
                 await TrySetNonce(tx.From, TransactionType.DposTransaction);
                 @lock = DPoSTxLock;
                 transactions = _dPoStxs;
-                _bpAddrs.Add(tx.From);
             }
             else 
             {
@@ -92,6 +91,8 @@ namespace AElf.ChainControllerImpl.TxMemPool
                 {
                     // add tx
                     transactions.GetOrAdd(tx.GetHash(), tx);
+                    if(tx.Type == TransactionType.DposTransaction)
+                        _bpAddrs.Add(tx.From);
                 }
 
                 return res;
@@ -360,7 +361,7 @@ namespace AElf.ChainControllerImpl.TxMemPool
  
                 var tmap = txsOut.Aggregate(new Dictionary<Hash, HashSet<ITransaction>>(),  (current, p) =>
                 {
-                    if (!current.TryGetValue(p.From, out var _))
+                    if (!current.TryGetValue(p.From, out _))
                     {
                         current[p.From] = new HashSet<ITransaction>();
                     }
@@ -390,10 +391,15 @@ namespace AElf.ChainControllerImpl.TxMemPool
                     }
                     var nonce = pool.GetNonce(kv.Key);
                     var min = kv.Value.Min(t => t.IncrementId);
-                    if(min >= nonce.Value)
+                    var n = nonce ?? (await _accountContextService.GetAccountDataContext(kv.Key, pool.ChainId))
+                            .IncrementId;
+                    
+                    // cannot be rollbacked
+                    if(min >= n)
                         continue;
-                
-                    pool.Withdraw(kv.Key, min);
+                    
+                    await @lock.WriteLock(() => { pool.Withdraw(kv.Key, min); });
+                    
                     foreach (var tx in kv.Value)
                     {
                         if (transactions.ContainsKey(tx.GetHash()))
@@ -407,7 +413,6 @@ namespace AElf.ChainControllerImpl.TxMemPool
                         Address = kv.Key,
                         ChainId = pool.ChainId
                     });
-                    Console.WriteLine("After rollback, addr {0}: nonce {1}", kv.Key.ToHex(), pool.GetNonce(kv.Key).Value);
                 }
             }
             catch (Exception e)
@@ -415,8 +420,6 @@ namespace AElf.ChainControllerImpl.TxMemPool
                 Console.WriteLine(e);
                 throw;
             }
-            
-            
         }
 
         public void SetBlockVolume(ulong minimal, ulong maximal)
