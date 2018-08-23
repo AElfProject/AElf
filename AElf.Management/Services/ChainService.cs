@@ -64,7 +64,7 @@ namespace AElf.Management.Services
             commands.ForEach(c => c.Action(chainId, null));
         }
 
-        public void DeployTestChain()
+        public DeployTestChainResult DeployTestChain()
         {
             var chainId = GenerateChainId();
             var password = "123";
@@ -171,8 +171,41 @@ namespace AElf.Management.Services
                 host2 + ":30800"
             };
             arg3.Miners = accounts;
+            
+            var namespace3 = chainId + "-3";
 
-            DeployMainChain(chainId + "-3", arg3);
+            DeployMainChain(namespace3, arg3);
+            
+            string host3 = null;
+            while (true)
+            {
+                Thread.Sleep(3000);
+                var service3 = K8SRequestHelper.GetClient().ReadNamespacedService("service-launcher", namespace3);
+                var ingress = service3.Status.LoadBalancer.Ingress;
+                if (ingress == null)
+                {
+                    continue;
+                }
+                host3 = ingress.FirstOrDefault().Hostname;
+                if (string.IsNullOrWhiteSpace(host3))
+                {
+                    continue;
+                }
+                break;
+            }
+
+            return new DeployTestChainResult
+            {
+                ChainId = chainId,
+                NodePort = 30060,
+                RpcPort = 30080,
+                NodeHost = new List<string>
+                {
+                    host1,
+                    host2,
+                    host3
+                }
+            };
         }
 
         public void RemoveTestChain(string chainId)

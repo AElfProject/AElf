@@ -11,7 +11,7 @@ namespace AElf.Management.Interfaces
 
         void RemoveMainChain(string chainId);
 
-        void DeployTestChain();
+        DeployTestChainResult DeployTestChain();
 
         void RemoveTestChain(string chainId);
     }

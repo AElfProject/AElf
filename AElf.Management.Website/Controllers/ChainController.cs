@@ -35,10 +35,10 @@ namespace AElf.Management.Website.Controllers
         
         [HttpPost]
         [Route("test")]
-        public ApiEmptyResult DeployTestChain()
+        public ApiResult<DeployTestChainResult> DeployTestChain()
         {
-            _chainService.DeployTestChain();
-            return ApiEmptyResult.Default;
+            var result = _chainService.DeployTestChain();
+            return new ApiResult<DeployTestChainResult>(result);
         }
         
         [HttpDelete]

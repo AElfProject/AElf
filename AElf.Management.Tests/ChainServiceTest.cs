@@ -9,8 +9,8 @@ namespace AElf.Management.Tests
     {
         private string chainId = "0x7a9f33c7cfaf7c8bd08f9decb0c286890639";
 
-        //[Fact(Skip = "require aws account")]
-        [Fact]
+        [Fact(Skip = "require aws account")]
+        //[Fact]
         public void DeployTestChain()
         {
             var service = new ChainService();
@@ -18,7 +18,8 @@ namespace AElf.Management.Tests
             service.DeployTestChain();
         }
 
-        [Fact]
+        [Fact(Skip = "require aws account")]
+        //[Fact]
         public void RemoveTestChain()
         {
             var service = new ChainService();
