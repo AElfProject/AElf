@@ -51,7 +51,7 @@ namespace AElf.ChainControllerImpl
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.WriteLine(e); // todo use logger
                 return null;
             }
         }

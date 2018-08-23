@@ -24,8 +24,9 @@ namespace AElf.Miner.Miner
     [LoggerName("Miner")]
     public class Miner : IMiner
     {
-        private readonly ITxPoolService _txPoolService;
         private ECKeyPair _keyPair;
+        
+        private readonly ITxPoolService _txPoolService;
         private readonly IChainService _chainService;
         private readonly IWorldStateDictator _worldStateDictator;
         private readonly ISmartContractService _smartContractService;
@@ -35,7 +36,6 @@ namespace AElf.Miner.Miner
 
         private MinerLock Lock { get; } = new MinerLock();
         private readonly ILogger _logger;
-
         /// <summary>
         /// Signals to a CancellationToken that mining should be canceled
         /// </summary>
@@ -60,7 +60,6 @@ namespace AElf.Miner.Miner
             _transactionResultManager = transactionResultManager;
             _logger = logger;
         }
-
 
         public async Task<IBlock> Mine(int timeoutMilliseconds)
         {
