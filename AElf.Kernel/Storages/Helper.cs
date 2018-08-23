@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Common.Extensions;
 using Google.Protobuf;
 using static AElf.Kernel.Storages.Types;
 

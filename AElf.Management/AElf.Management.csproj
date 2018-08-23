@@ -10,5 +10,6 @@
   <ItemGroup>
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
     <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
+    <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
   </ItemGroup>
 </Project>

@@ -13,6 +13,9 @@ namespace AElf.Launcher
 
         [Option("chain.coinbase", HelpText = "Miner coinbase when a new chain created")]
         public string CoinBase { get; set; }
+        
+        [Option("chain.id", HelpText = "The ID of new chain")]
+        public string ChainId { get; set; }
 
         #endregion
 

@@ -1,10 +1,16 @@
-﻿namespace AElf.Management.Models
+﻿using System.Collections.Generic;
+
+namespace AElf.Management.Models
 {
     public class DeployArg
     {
+        public string MainChainId { get; set; }
+
         public string MainChainAccount { get; set; }
 
         public string AccountPassword { get; set; }
+
+        public List<string> Miners { get; set; }
 
         public float CpuResource { get; set; }
         
@@ -37,7 +43,7 @@
 
     public class DeployManagerArg
     {
-        
+        public bool IsCluster { get; set; }
     }
 
     public class DeployWorkArg
@@ -55,6 +61,8 @@
 
     public class DeployLauncherArg
     {
-        
+        public bool IsConsensusInfoGenerator { get; set; }
+
+        public List<string> Bootnodes { get; set; }
     }
 }

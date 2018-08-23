@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Common.Collections;
+using AElf.Common.Extensions;
 using AElf.Kernel;
 using AElf.Network.Connection;
 using AElf.Network.Data;

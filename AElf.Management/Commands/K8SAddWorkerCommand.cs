@@ -13,7 +13,10 @@ namespace AElf.Management.Commands
         
         public void Action(string chainId, DeployArg arg)
         {
-            AddDeployment(chainId, arg);
+            if (arg.ManagerArg.IsCluster)
+            {
+                AddDeployment(chainId, arg);
+            }
         }
 
         private void AddDeployment(string chainId, DeployArg arg)
