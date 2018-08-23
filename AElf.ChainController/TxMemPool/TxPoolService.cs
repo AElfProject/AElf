@@ -190,12 +190,12 @@ namespace AElf.ChainController.TxMemPool
             ulong count = 0;
             var tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
-            tokenSource.CancelAfter(TimeSpan.FromMilliseconds(150));
+            tokenSource.CancelAfter(TimeSpan.FromMilliseconds(100));
             var t = ContractTxLock.WriteLock(() =>
             {
                 if (token.IsCancellationRequested)
                     return;
-                _logger.Log(LogLevel.Debug, "Got lock");
+                
                 // TODO: remove this limit
                 available = true;
                 var execCount = _contractTxPool.GetExecutableSize();
@@ -385,6 +385,8 @@ namespace AElf.ChainController.TxMemPool
         /// <inheritdoc/>
         public async Task RollBack(List<ITransaction> txsOut)
         {
+            _logger?.Log(LogLevel.Debug, "start rollback {0} txs ...", txsOut.Count);
+
             try
             {
                 var nonces = txsOut.Select(async p => await TrySetNonce(p.From, p.Type));
@@ -401,7 +403,7 @@ namespace AElf.ChainController.TxMemPool
                 
                     return current;
                 });
-                _logger?.Log(LogLevel.Debug, "Start txpool rollback");
+                
 
                 foreach (var kv in tmap)
                 {
@@ -450,14 +452,15 @@ namespace AElf.ChainController.TxMemPool
                         }
                     });
                 }
-                _logger?.Log(LogLevel.Debug, "Start txpool rollback");
-
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 throw;
             }
+            
+            _logger?.Log(LogLevel.Debug, "rollbacked {0} txs ...", txsOut.Count);
+
         }
 
         public void SetBlockVolume(ulong minimal, ulong maximal)

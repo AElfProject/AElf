@@ -185,11 +185,8 @@ namespace AElf.Miner.Miner
                     await blockChain.AddBlocksAsync(new List<IBlock>() {block});
 
                     // put back canceled transactions
-                    _logger?.Log(LogLevel.Debug, "rollback {0} txs ...", rollback.Count);
-                    await _txPoolService.RollBack(rollback);
-                    _logger?.Log(LogLevel.Debug, "rollbacked {0} txs ...", rollback.Count);
-
-
+                    // No await so that it won't affect Consensus
+                    _txPoolService.RollBack(rollback);
                     return block;
                 }
                 catch (Exception e)
