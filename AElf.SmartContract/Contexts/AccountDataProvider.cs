@@ -24,6 +24,10 @@ namespace AElf.SmartContract
 
         public IDataProvider GetDataProvider()
         {
+            Console.WriteLine($"ChainId: {_dataPath.ChainId.ToHex()}");
+            Console.WriteLine($"Round Number: {_dataPath.RoundNumber}");
+            Console.WriteLine($"BP Address: {_dataPath.BlockProducerAddress.ToHex()}");
+            Console.WriteLine($"Contract Address: {_dataPath.ContractAddress.ToHex()}");
             return new DataProvider(_dataPath, _stateDictator);
         }
     }

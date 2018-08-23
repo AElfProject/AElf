@@ -13,8 +13,7 @@ namespace AElf.SmartContract
     {
         private readonly DataPath _dataPath;
         private readonly IStateDictator _stateDictator;
-        private int _layer;
-   
+
         public IEnumerable<StateValueChange> GetValueChanges()
         {
             var changes = new List<StateValueChange>();
@@ -29,6 +28,8 @@ namespace AElf.SmartContract
 
             return changes;
         }
+
+        public int Layer { get; private set; }
 
         /// <inheritdoc />
         /// <summary>
@@ -52,13 +53,17 @@ namespace AElf.SmartContract
         {
             _stateDictator = stateDictator;
             _dataProviderKey = dataProviderKey;
-            _dataPath = dataPath;
-            _layer = layer;
+            Layer = layer;
+            _dataPath = dataPath.Clone();
+
+            _dataPath.SetDataProvider(GetHash());
+            Console.WriteLine("Layer: " + layer);
+            Console.WriteLine("DP Hash: " + GetHash().ToHex());
         }
 
         private Hash GetHash()
         {
-            return new Int32Value {Value = _layer}.CalculateHashWith(_dataProviderKey);
+            return new StringValue {Value = _dataProviderKey}.CalculateHashWith(Layer);
         }
 
         /// <inheritdoc />
@@ -69,7 +74,8 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public IDataProvider GetDataProvider(string dataProviderKey)
         {
-            return new DataProvider(_dataPath.Clone(), _stateDictator, _layer++, dataProviderKey)
+            Layer++;
+            return new DataProvider(_dataPath, _stateDictator, Layer, dataProviderKey)
             {
                 StateCache = StateCache
             };
@@ -77,13 +83,19 @@ namespace AElf.SmartContract
 
         public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
         {
+            Console.WriteLine("Key Hash: " + keyHash.ToHex());
             return GetStateAsync(keyHash)?.CurrentValue ?? (await GetDataAsync<T>(keyHash))?.ToByteArray();
         }
 
         public async Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new()
         {
+            Console.WriteLine("Key Hash: " + keyHash.ToHex());
             var dataPath = _dataPath.Clone();
-            dataPath.SetDataProvider(GetHash()).SetDataKey(keyHash);
+            dataPath.SetDataKey(keyHash);
+            if (!dataPath.AreYouOk())
+            {
+                throw new InvalidOperationException("DataPath: I'm not OK.");
+            }
             
             if (!Enum.TryParse<Kernel.Storages.Types>(typeof(T).Name, out var typeIndex))
             {
@@ -103,27 +115,48 @@ namespace AElf.SmartContract
             
             state.CurrentValue = obj;
         }
-
-        public Hash GetPathFor(Hash keyHash)
-        {
-            return ((Hash)GetHash().CalculateHashWith(keyHash)).OfType(HashType.ResourcePath);
-        }
         
         private StateCache GetStateAsync(Hash keyHash)
         {
             var dataPath = _dataPath.Clone();
-            dataPath.SetDataProvider(GetHash()).SetDataKey(keyHash);
-            Console.WriteLine($"Try to get {dataPath.ResourcePathHash.ToHex()} from state cache.");
-            return StateCache.TryGetValue(dataPath, out var state) ? state : null;
+            dataPath.SetDataKey(keyHash);
+            if (!dataPath.AreYouOk())
+            {
+                throw new InvalidOperationException("DataPath: I'm not OK.");
+            }
+
+            Console.WriteLine("Key:" + _dataProviderKey);
+            Console.WriteLine($"Try to get path {dataPath.ResourcePathHash.ToHex()} from state cache.");
+            if (StateCache.TryGetValue(dataPath, out var state))
+            {
+                return state;
+            }
+            
+            Console.WriteLine("Failed.");
+            return null;;
         }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// Directly set data to database instead of push it to cache.
+        /// </summary>
+        /// <param name="keyHash"></param>
+        /// <param name="obj"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="T:System.InvalidOperationException">If the DataPath is not ready.</exception>
         public async Task SetDataAsync<T>(Hash keyHash, T obj) where T : IMessage, new()
         {
             var dataPath = _dataPath.Clone();
-            dataPath.SetDataProvider(GetHash()).SetDataKey(keyHash);
-
-            await _stateDictator.SetDataAsync(dataPath.ResourcePointerHash, obj);
+            dataPath.SetDataKey(keyHash);
+            if (!dataPath.AreYouOk())
+            {
+                throw new InvalidOperationException("DataPath: I'm not OK.");
+            }
             
+            //Directly set to database.
+            await _stateDictator.SetDataAsync(dataPath.ResourcePointerHash, obj);
+            //Set path hash - pointer hash.
             await _stateDictator.SetHashAsync(dataPath.ResourcePathHash, dataPath.ResourcePointerHash);
         }
         
@@ -135,21 +168,23 @@ namespace AElf.SmartContract
         public async Task<T> GetDataAsync<T>(Hash keyHash) where T : IMessage, new()
         {
             var dataPath = _dataPath.Clone();
-            dataPath.SetDataProvider(GetHash()).SetDataKey(keyHash);
-
+            dataPath.SetDataKey(keyHash);
+            if (!dataPath.AreYouOk())
+            {
+                throw new InvalidOperationException("DataPath: I'm not OK.");
+            }
+            
             Console.WriteLine($"Try to get {dataPath.ResourcePathHash.ToHex()} from database.");
-
             //Get resource pointer.
             var pointerHash = await _stateDictator.GetHashAsync(dataPath.ResourcePathHash);
-
             if (pointerHash == null)
             {
+                Console.WriteLine("But failed.");
                 return default(T);
             }
             
             Console.WriteLine($"pointer hash: {pointerHash.ToHex()}");
             
-            //Use resource pointer get data.
             return await _stateDictator.GetDataAsync<T>(pointerHash);
         }
     }

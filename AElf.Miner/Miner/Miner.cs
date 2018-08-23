@@ -93,10 +93,10 @@ namespace AElf.Miner.Miner
             }
         }
 
-        public async Task<IBlock> Mine()
+        public async Task<IBlock> Mine(bool initial = false)
         {
             _stateDictator.ChainId = Config.ChainId;
-            _stateDictator.BlockProducerAccountAddress = _keyPair.GetAddress();
+            _stateDictator.BlockProducerAccountAddress = initial ? Hash.Zero : _keyPair.GetAddress();
             
             var consensusContractAddress = _chainCreationService.GenesisContractHash(
                 ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId), SmartContractType.AElfDPoS);

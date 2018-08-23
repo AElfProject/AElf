@@ -60,7 +60,7 @@ namespace AElf.ChainControllerImpl.TxMemPool
             {
                 MessageHub.Instance.Publish(new TransactionAddedToPool(tx));
             }
-
+            
             return res;
         }
 
@@ -84,7 +84,7 @@ namespace AElf.ChainControllerImpl.TxMemPool
                 @lock = ContractTxLock;
                 transactions = _txs;
             }
-            
+
             return await @lock.WriteLock(() =>
             {
                 var res = pool.EnQueueTx(tx);

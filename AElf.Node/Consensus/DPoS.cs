@@ -76,12 +76,10 @@ namespace AElf.Kernel.Node
         {
             DPoSHelper = new AElfDPoSHelper(_stateDictator, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId),
                 Miners, Node.ContractAccountHash, _logger);
-            
             if (IsMining)
                 return;
 
             IsMining = true;
-
             if (!Miners.Nodes.Contains(NodeKeyPair.GetAddress().ToHex().RemoveHexPrefix()))
             {
                 return;
@@ -117,7 +115,7 @@ namespace AElf.Kernel.Node
             var txToInitializeAElfDPoS = GenerateTransaction("InitializeAElfDPoS", parameters);
             await BroadcastTransaction(txToInitializeAElfDPoS);
 
-            var block = await Node.Mine();
+            var block = await Node.Mine(true);
             await _p2p.BroadcastBlock(block);
         }
 

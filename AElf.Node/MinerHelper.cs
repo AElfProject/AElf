@@ -58,7 +58,7 @@ namespace AElf.Kernel.Node
             _synchronizer = synchronizer;
         }
 
-        public async Task<IBlock> Mine()
+        public async Task<IBlock> Mine(bool initial = false)
         {
             var res = Interlocked.CompareExchange(ref _flag, 1, 0);
             if (res == 1)
@@ -67,9 +67,9 @@ namespace AElf.Kernel.Node
             {
                 _logger?.Trace($"Mine - Entered mining {res}");
 
-                _stateDictator.BlockProducerAccountAddress = NodeKeyPair.GetAddress();
+                _stateDictator.BlockProducerAccountAddress = initial ? Hash.Zero : NodeKeyPair.GetAddress();
 
-                var task = Task.Run(async () => await _miner.Mine());
+                var task = Task.Run(async () => await _miner.Mine(initial));
 
                 if (!task.Wait(TimeSpan.FromMilliseconds(Globals.AElfDPoSMiningInterval * 0.9)))
                 {

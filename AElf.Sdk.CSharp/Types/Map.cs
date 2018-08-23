@@ -76,12 +76,13 @@ namespace AElf.Sdk.CSharp.Types
 
         public async Task SetValueAsync(TKey key, TValue value)
         {
-            await DataProvider.SetDataAsync(key.CalculateHash(), value);
+            await DataProvider.SetAsync<TValue>(key.CalculateHash(), value.ToByteArray());
         }
 
         public async Task<TValue> GetValueAsync(TKey key)
         {
-            return await DataProvider.GetDataAsync<TValue>(key.CalculateHash());
+            var bytes = await DataProvider.GetAsync<TValue>(key.CalculateHash());
+            return Api.Serializer.Deserialize<TValue>(bytes);
         }
     }
 

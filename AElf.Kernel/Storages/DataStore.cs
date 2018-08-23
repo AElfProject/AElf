@@ -37,7 +37,8 @@ namespace AElf.Kernel.Storages
                 {
                     throw new Exception($"Not Supported Data Type, {typeof(T).Name}.");
                 }
-                var key = pointerHash.GetKeyString((uint)typeIndex);
+
+                var key = pointerHash.GetKeyString((uint) typeIndex);
                 await _keyValueDatabase.SetAsync(key, obj.ToByteArray());
             }
             catch (Exception e)
@@ -63,6 +64,7 @@ namespace AElf.Kernel.Storages
                 
                 var key = pointerHash.GetKeyString((uint)typeIndex);
                 var res = await _keyValueDatabase.GetAsync(key);
+                Console.WriteLine($"Get: {key} - {res?.Length}");
                 return  res == null ? default(T): res.Deserialize<T>();
             }
             catch (Exception e)

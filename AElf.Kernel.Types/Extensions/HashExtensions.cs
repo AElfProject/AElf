@@ -45,6 +45,18 @@ namespace AElf.Kernel
                 return CalculateHash(bytes);
             }
         }
+        
+        public static byte[] CalculateHashWith(this IMessage obj, int another)
+        {
+            var roundNumber = new Int32Value() {Value = another};
+            var bytes = new byte[obj.CalculateSize() + roundNumber.CalculateSize()];
+            using (var stream = new CodedOutputStream(bytes))
+            {
+                obj.WriteTo(stream);
+                roundNumber.WriteTo(stream);
+                return CalculateHash(bytes);
+            }
+        }
 
         /// <summary>
         /// Calculate hash value with a string.

@@ -32,13 +32,14 @@ namespace AElf.Sdk.CSharp.Types
         {
             if (value != null)
             {
-                await Api.GetDataProvider("").SetDataAsync(_name.CalculateHash(), value);
+                await Api.GetDataProvider("").SetAsync<T>(_name.CalculateHash(), value.ToByteArray());
             }
         }
 
         public async Task<T> GetAsync()
         {
-            return await Api.GetDataProvider("").GetDataAsync<T>(_name.CalculateHash());
+            var bytes = await Api.GetDataProvider("").GetAsync<T>(_name.CalculateHash());
+            return Api.Serializer.Deserialize<T>(bytes);
         }
     }
 

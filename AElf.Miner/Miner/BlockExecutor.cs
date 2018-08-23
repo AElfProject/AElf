@@ -67,9 +67,10 @@ namespace AElf.Miner.Miner
                 var uncompressedPrivKey = block?.Header.P.ToByteArray();
                 var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
                 var blockProducerAddress = recipientKeyPair.GetAddress();
+                
                 _stateDictator.ChainId = block?.Header.ChainId;
                 _stateDictator.CurrentRoundNumber = block?.RoundNumber ?? 0;
-                _stateDictator.BlockProducerAccountAddress = blockProducerAddress;
+                _stateDictator.BlockProducerAccountAddress = block?.Header.Index == 1 ? Hash.Zero : blockProducerAddress;
                 
                 var txs = block?.Body?.Transactions;
                 if (txs != null)

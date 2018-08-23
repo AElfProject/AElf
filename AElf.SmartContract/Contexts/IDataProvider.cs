@@ -11,6 +11,8 @@ namespace AElf.SmartContract
     /// </summary>
     public interface IDataProvider
     {
+        int Layer { get; }
+        
         /// <summary>
         /// Get sub DataProvider instance using data provider key.
         /// </summary>
@@ -18,14 +20,7 @@ namespace AElf.SmartContract
         /// <returns></returns>
         IDataProvider GetDataProvider(string name);
 
-        /// <summary>
-        /// Set pointer and data to database.
-        /// </summary>
-        /// <param name="keyHash"></param>
-        /// <param name="obj"></param>
-        /// <returns></returns>
         Task SetAsync<T>(Hash keyHash, byte[] obj) where T : IMessage, new();
-
 
         Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new();
 
@@ -36,18 +31,15 @@ namespace AElf.SmartContract
         /// <returns></returns>
         Task<T> GetDataAsync<T>(Hash keyHash) where T : IMessage, new();
 
-        Task SetDataAsync<T>(Hash keyHash, T obj) where T : IMessage, new();
         /// <summary>
-        /// DataProvider hash + Key hash
+        /// Set data to database.
         /// </summary>
         /// <param name="keyHash"></param>
+        /// <param name="obj"></param>
+        /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        Hash GetPathFor(Hash keyHash);
-        
-        /// <summary>
-        /// Failed to get current round number. 
-        /// </summary>
-        /// <returns></returns>
+        Task SetDataAsync<T>(Hash keyHash, T obj) where T : IMessage, new();
+
         IEnumerable<StateValueChange> GetValueChanges();
         
         /// <summary>

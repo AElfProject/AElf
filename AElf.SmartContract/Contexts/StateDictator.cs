@@ -103,6 +103,7 @@ namespace AElf.SmartContract
 
         public async Task SetHashAsync(Hash origin, Hash another)
         {
+            Console.WriteLine($"Set contract: {origin.ToHex()} : {another.ToHex()}");
             await _hashManager.SetHash(origin, another);
         }
 

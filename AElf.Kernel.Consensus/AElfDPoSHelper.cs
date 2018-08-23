@@ -134,8 +134,10 @@ namespace AElf.Kernel.Consensus
         private byte[] GetBytes<T>(Hash keyHash, string resourceStr = "") where T : IMessage, new()
         {
             return resourceStr != ""
-                ? _dataProvider.GetDataProvider(resourceStr).GetAsync<T>(keyHash).Result
-                : _dataProvider.GetAsync<T>(keyHash).Result;
+                ? _stateDictator.GetAccountDataProvider(_contractAddressHash).GetDataProvider().GetDataProvider("")
+                    .GetDataProvider(resourceStr).GetAsync<T>(keyHash).Result
+                : _stateDictator.GetAccountDataProvider(_contractAddressHash).GetDataProvider()
+                    .GetAsync<T>(keyHash).Result;
         }
 
         public AElfDPoSHelper(IStateDictator stateDictator, Hash chainId, Miners miners, Hash contractAddressHash, ILogger logger)
@@ -159,7 +161,7 @@ namespace AElf.Kernel.Consensus
             {
                 try
                 {
-                    var bytes = GetBytes<BlockProducer>(CurrentRoundNumber.CalculateHash(), Globals.AElfDPoSInformationString);
+                    var bytes = GetBytes<Round>(CurrentRoundNumber.CalculateHash(), Globals.AElfDPoSInformationString);
                     var round = Round.Parser.ParseFrom(bytes);
                     return round.BlockProducers[accountAddress];
                 }
@@ -183,7 +185,7 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(e, "Failed to get RoundInfo of provided round number.");
+                    _logger.Error(e, "Failed to get RoundInfo of provided round number.\n");
                     return default(Round);
                 }
             }

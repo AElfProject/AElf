@@ -348,49 +348,56 @@ namespace AElf.Contracts.Consensus.ConsensusContract
 
         private async Task UpdateCurrentRoundNumber(ulong currentRoundNumber)
         {
+            Console.WriteLine("setting round number");
             await _currentRoundNumberField.SetAsync(currentRoundNumber);
         }
 
         private async Task SetMiningInterval(SInt32Value interval)
         {
+            Console.WriteLine("setting mining interval");
             await _miningIntervalField.SetAsync(interval.Value);
         }
 
         private async Task SetFirstPlaceOfSpecificRound(UInt64Value roundNumber, AElfDPoSInformation info)
         {
+            Console.WriteLine("setting first place miner");
             await _firstPlaceMap.SetValueAsync(roundNumber,
                 new StringValue {Value = info.GetRoundInfo(roundNumber.Value).BlockProducers.First().Key});
         }
         
         private async Task SetFirstPlaceOfSpecificRound(UInt64Value roundNumber, StringValue accountAddress)
         {
+            Console.WriteLine("setting first place miner");
             await _firstPlaceMap.SetValueAsync(roundNumber, accountAddress);
         }
 
-        // ReSharper disable once InconsistentNaming
         private async Task SetDPoSInfoToMap(UInt64Value roundNumber, AElfDPoSInformation info)
         {
+            Console.WriteLine("setting info of round " + roundNumber.Value);
             await _dPoSInfoMap.SetValueAsync(roundNumber, info.GetRoundInfo(roundNumber.Value));
         }
         
-        // ReSharper disable once InconsistentNaming
         private async Task SetDPoSInfoToMap(UInt64Value roundNumber, Round roundInfo)
         {
+            Console.WriteLine("setting info of round " + roundNumber.Value);
             await _dPoSInfoMap.SetValueAsync(roundNumber, roundInfo);
         }
 
         private async Task SetExtraBlockProducerOfSpecificRound(UInt64Value roundNumber, AElfDPoSInformation info)
         {
+            Console.WriteLine("setting ebp of round " + roundNumber.Value);
             await _eBPMap.SetValueAsync(roundNumber, info.GetExtraBlockProducerOfSpecificRound(roundNumber.Value));
         }
 
         private async Task SetExtraBlockProducerOfSpecificRound(UInt64Value roundNumber, StringValue extraBlockProducer)
         {
+            Console.WriteLine("setting ebp of round " + roundNumber.Value);
             await _eBPMap.SetValueAsync(roundNumber, extraBlockProducer);
         }
 
         private async Task SetExtraBlockMiningTimeslotOfSpecificRound(UInt64Value roundNumber, AElfDPoSInformation info)
         {
+            Console.WriteLine("setting ebp time slot of round " + roundNumber.Value);
             var lastMinerTimeslot = info.GetLastBlockProducerTimeslotOfSpecificRound(roundNumber.Value);
             var timeslot = GetTimestampWithOffset(lastMinerTimeslot, Interval);
             await _timeForProducingExtraBlockField.SetAsync(timeslot);
@@ -398,6 +405,7 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         
         private async Task SetExtraBlockMiningTimeslotOfSpecificRound(Timestamp timestamp)
         {
+            Console.WriteLine("setting ebp time slot");
             await _timeForProducingExtraBlockField.SetAsync(timestamp);
         }
         

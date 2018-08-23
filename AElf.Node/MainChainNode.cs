@@ -123,12 +123,9 @@ namespace AElf.Kernel.Node
                 }
                 else
                 {
-                    var uncompressedPrivKey = BlockChain.CurrentBlock.Header.P.ToByteArray();
-                    var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivKey);
-                    Hash blockProducerAddress = recipientKeyPair.GetAddress();
                     _stateDictator.ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
                     _stateDictator.CurrentRoundNumber = BlockChain.CurrentBlock.RoundNumber;
-                    _stateDictator.BlockProducerAccountAddress = blockProducerAddress;
+                    _stateDictator.BlockProducerAccountAddress = Hash.Zero;
                     _stateDictator.SetWorldStateAsync();
 
                     _stateDictator.RollbackToPreviousBlock();
@@ -139,9 +136,6 @@ namespace AElf.Kernel.Node
                 _logger?.Log(LogLevel.Error,
                     "Could not create the chain : " + NodeConfig.Instance.ChainId);
             }
-
-            // set world state
-            _stateDictator.ChainId = ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId);
 
             #endregion setup
 
@@ -199,6 +193,8 @@ namespace AElf.Kernel.Node
 
             var consensusAddress = GetGenesisContractHash(SmartContractType.AElfDPoS);
             _logger?.Log(LogLevel.Debug, "DPoS contract address = \"{0}\"", consensusAddress.ToHex());
+            
+            _logger?.Debug($"Hash.Zero: {Hash.Zero.ToHex()}");
         }
 
         private void CreateNewChain(byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero)
@@ -287,9 +283,9 @@ namespace AElf.Kernel.Node
             return await _minerHelper.ExecuteAndAddBlock(block);
         }
 
-        public async Task<IBlock> Mine()
+        public async Task<IBlock> Mine(bool initial = false)
         {
-            return await _minerHelper.Mine();
+            return await _minerHelper.Mine(initial);
         }
 
         #endregion Legacy Methods

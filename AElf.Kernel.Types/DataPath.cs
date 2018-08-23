@@ -114,6 +114,15 @@ namespace AElf.Kernel
             return this;
         }
 
+        public bool AreYouOk()
+        {
+            return ChainId != null
+                   && BlockProducerAddress != null
+                   && ContractAddress != null
+                   && DataProviderHash != null
+                   && KeyHash != null;
+        }
+
         /*
          * Directly calculate pointer value zone
          */
