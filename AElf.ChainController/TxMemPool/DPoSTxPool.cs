@@ -7,7 +7,7 @@ using AElf.Common.Attributes;
 using AElf.Kernel;
 using NLog;
 
-namespace AElf.ChainControllerImpl.TxMemPool
+namespace AElf.ChainController.TxMemPool
 {
     [LoggerName("DPoSTxPool")]
     public class DPoSTxPool : IDPoSTxPool

@@ -270,8 +270,7 @@ namespace AElf.Kernel.Tests.Miner
 
             miner.Start(keypair);
             
-            var block = await miner.Mine();
-            
+            var block = await miner.Mine(Timeout.Infinite);
             Assert.NotNull(block);
             Assert.Equal((ulong)1, block.Header.Index);
             
@@ -303,7 +302,7 @@ namespace AElf.Kernel.Tests.Miner
 
             miner.Start(keypair);
             
-            var block = await miner.Mine();
+            var block = await miner.Mine(Timeout.Infinite);
             
             Assert.NotNull(block);
             Assert.Equal((ulong)1, block.Header.Index);

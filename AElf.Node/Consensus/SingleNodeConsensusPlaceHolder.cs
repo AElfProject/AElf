@@ -9,14 +9,12 @@ namespace AElf.Kernel.Node
     {
         public IDisposable ConsensusDisposable { get; set; }
         private readonly ILogger _logger;
-        private readonly MainChainNode _node;
         private readonly IP2P _p2p;
         private SingleNodeTestObserver SingleNodeTestObserver => new SingleNodeTestObserver(_logger, SingleNodeMining);
         
-        public StandaloneNodeConsensusPlaceHolder(ILogger logger, MainChainNode node, IP2P p2p)
+        public StandaloneNodeConsensusPlaceHolder(ILogger logger, IP2P p2p)
         {
             _logger = logger;
-            _node = node;
             _p2p = p2p;
         }
         
@@ -39,8 +37,8 @@ namespace AElf.Kernel.Node
         private async Task SingleNodeMining()
         {
             _logger.Trace("Single node mining start.");
-            var block = await _node.Mine();
-            await _p2p.BroadcastBlock(block);
+            //var block = await _node.Mine();
+            //await _p2p.BroadcastBlock(block);
             _logger.Trace("Single node mining end.");
         }
     }

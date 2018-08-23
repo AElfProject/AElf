@@ -140,7 +140,7 @@ namespace AElf.Cryptography.SSL
 
 			if (kp == null || !kp.Private.Equals(akp))
 			{
-				new Exception("Failed to read back test key");
+				throw new Exception("Failed to read back test key");
 			}
 		}
 
@@ -159,11 +159,9 @@ namespace AElf.Cryptography.SSL
 
 			PemReader pr = new PemReader(new StringReader(data), new Password(testPassword));
 
-			AsymmetricCipherKeyPair kp = pr.ReadObject() as AsymmetricCipherKeyPair;
-
-			if (kp == null || !kp.Private.Equals(akp))
+			if (!(pr.ReadObject() is AsymmetricCipherKeyPair kp) || !kp.Private.Equals(akp))
 			{
-				new Exception("Failed to read back test key encoded with: " + algorithm);
+				throw new Exception("Failed to read back test key encoded with: " + algorithm);
 			}
 		}
 

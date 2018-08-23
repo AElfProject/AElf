@@ -10,7 +10,7 @@ using Google.Protobuf.WellKnownTypes;
 using NLog;
 using ServiceStack;
 
-namespace AElf.ChainControllerImpl
+namespace AElf.ChainController
 {
     [LoggerName(nameof(ConsensusBlockValidationFilter))]
     public class ConsensusBlockValidationFilter: IBlockValidationFilter

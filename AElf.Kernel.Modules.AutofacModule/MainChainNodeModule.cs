@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using AElf.Configuration;
 using AElf.Kernel.Node;
+using AElf.Node.AElfChain;
 
 namespace AElf.Kernel.Modules.AutofacModule
 {
@@ -8,7 +9,7 @@ namespace AElf.Kernel.Modules.AutofacModule
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<MainChainNode>().As<IAElfNode>();
+            builder.RegisterType<AElf.Node.Node>().As<INode>();
             builder.RegisterType<P2PHandler>().PropertiesAutowired();
 
         }

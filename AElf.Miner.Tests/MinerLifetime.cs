@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
-using AElf.ChainControllerImpl.TxMemPool;
 using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
 using AElf.Kernel.Managers;
@@ -262,7 +261,7 @@ namespace AElf.Kernel.Tests.Miner
 
             miner.Start(keypair);
             
-            var block = await miner.Mine();
+            var block = await miner.Mine(Timeout.Infinite);
             
             Assert.NotNull(block);
             Assert.Equal((ulong)1, block.Header.Index);
@@ -298,7 +297,7 @@ namespace AElf.Kernel.Tests.Miner
             
             miner.Start(keypair);
             
-            var block = await miner.Mine();
+            var block = await miner.Mine(Timeout.Infinite);
             
             Assert.NotNull(block);
             Assert.Equal((ulong)1, block.Header.Index);

@@ -6,4 +6,9 @@
     <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
     <ProjectReference Include="..\AElf.Miner.Rpc\AElf.Miner.Rpc.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Autofac, Version=4.8.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da">
+      <HintPath>..\..\..\..\.nuget\packages\autofac\4.8.0\lib\netstandard1.1\Autofac.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>

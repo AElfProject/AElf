@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AElf.Common.Synchronisation
@@ -36,9 +37,9 @@ namespace AElf.Common.Synchronisation
         }
         
         /// <inheritdoc />
-        public Task WriteLock(Action action)
+        public Task WriteLock(Action action, CancellationToken token = default(CancellationToken))
         {
-            return ExclusiveWritrer.StartNew(action);
+            return ExclusiveWritrer.StartNew(action, token);
         }
     }
 }
