@@ -1,4 +1,4 @@
-﻿using AElf.ChainControllerImpl;
+﻿using AElf.ChainController;
 using Autofac;
 using AElf.SmartContract;
 

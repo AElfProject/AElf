@@ -161,7 +161,7 @@ namespace AElf.Launcher
             };
 
             // tx pool config
-            TxPoolConfig = ChainControllerImpl.TxMemPool.TxPoolConfig.Default;
+            TxPoolConfig = ChainController.TxMemPool.TxPoolConfig.Default;
             TxPoolConfig.FeeThreshold = opts.MinimalFee;
             TxPoolConfig.PoolLimitSize = opts.PoolCapacity;
             TxPoolConfig.Maximal = opts.TxCountLimit;

@@ -5,7 +5,7 @@ using AElf.ChainController;
 using AElf.Kernel;
 using AElf.SmartContract;
 
-namespace AElf.ChainControllerImpl
+namespace AElf.ChainController
 {
     public class ChainCreationService : IChainCreationService
     {
