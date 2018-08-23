@@ -15,7 +15,7 @@ using Easy.MessageHub;
 using NLog;
 using ReaderWriterLock = AElf.Common.Synchronisation.ReaderWriterLock;
 
-namespace AElf.ChainControllerImpl.TxMemPool
+namespace AElf.ChainController.TxMemPool
 {
     [LoggerName("Txpool")]
     public class TxPoolService : ChainController.TxMemPool.ITxPoolService
