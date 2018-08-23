@@ -22,17 +22,7 @@ namespace AElf.Management.Tests
         public void RemoveTestChain()
         {
             var service = new ChainService();
-            var removeChainIds = new List<string>
-            {
-                chainId+"-1",
-                chainId+"-2",
-                chainId+"-3"
-            };
-
-            foreach (var chainId in removeChainIds)
-            {
-                service.RemoveMainChain(chainId);
-            }
+            service.RemoveTestChain(chainId);
         }
     }
 }

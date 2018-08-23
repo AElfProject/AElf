@@ -48,5 +48,13 @@ namespace AElf.Management.Website.Controllers
             _chainService.RemoveMainChain(chainId);
             return ApiEmptyResult.Default;
         }
+        
+        [HttpDelete]
+        [Route("test/{chianId}")]
+        public ApiEmptyResult RemoveTestChain(string chainId)
+        {
+            _chainService.RemoveTestChain(chainId);
+            return ApiEmptyResult.Default;
+        }
     }
 }

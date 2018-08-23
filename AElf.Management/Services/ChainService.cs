@@ -175,6 +175,15 @@ namespace AElf.Management.Services
             DeployMainChain(chainId + "-3", arg3);
         }
 
+        public void RemoveTestChain(string chainId)
+        {
+            for (var i = 1; i <= 3; i++)
+            {
+                var namespaced = chainId + "-" + i;
+                RemoveMainChain(namespaced);
+            }
+        }
+
         private List<string> CreateAccount(int num,string password)
         {
             var result =new List<string>();
