@@ -42,7 +42,7 @@ namespace AElf.Management.Website.Controllers
         }
         
         [HttpDelete]
-        [Route("{chianId}")]
+        [Route("{chain}")]
         public ApiEmptyResult Remove(string chainId)
         {
             _chainService.RemoveMainChain(chainId);
@@ -50,7 +50,7 @@ namespace AElf.Management.Website.Controllers
         }
         
         [HttpDelete]
-        [Route("test/{chianId}")]
+        [Route("test/{chainId}")]
         public ApiEmptyResult RemoveTestChain(string chainId)
         {
             _chainService.RemoveTestChain(chainId);
