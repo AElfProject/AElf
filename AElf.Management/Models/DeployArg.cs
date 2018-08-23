@@ -10,6 +10,8 @@ namespace AElf.Management.Models
 
         public string AccountPassword { get; set; }
 
+        public List<string> Miners { get; set; }
+
         public float CpuResource { get; set; }
         
         public float MemoryResource { get; set; }

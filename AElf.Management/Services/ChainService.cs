@@ -80,6 +80,7 @@ namespace AElf.Management.Services
             arg1.WorkArg.ActorCount = 4;
             arg1.LauncherArg=new DeployLauncherArg();
             arg1.LauncherArg.IsConsensusInfoGenerator = true;
+            arg1.Miners = accounts;
 
             var namespace1 = chainId + "-1";
 
@@ -122,6 +123,7 @@ namespace AElf.Management.Services
             arg2.LauncherArg=new DeployLauncherArg();
             arg2.LauncherArg.IsConsensusInfoGenerator = false;
             arg2.LauncherArg.Bootnodes = new List<string> {host1 + ":30800"};
+            arg2.Miners = accounts;
             
             var namespace2 = chainId + "-2";
 
@@ -168,6 +170,7 @@ namespace AElf.Management.Services
                 host1 + ":30800",
                 host2 + ":30800"
             };
+            arg3.Miners = accounts;
 
             DeployMainChain(chainId + "-3", arg3);
         }
