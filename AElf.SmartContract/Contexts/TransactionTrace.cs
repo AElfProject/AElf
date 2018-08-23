@@ -44,9 +44,9 @@ namespace AElf.SmartContract
             Hash chainId)
         {
             Dictionary<Hash, StateCache> changedDict = new Dictionary<Hash, StateCache>();
-            if (!IsSuccessful())
+            if (ExecutionStatus != ExecutionStatus.ExecutedButNotCommitted)
             {
-                throw new InvalidOperationException("Attempting to commit an unsuccessful trace.");
+                throw new InvalidOperationException("Attempting to commit a trace with a wrong status.");
             }
 
             if (!_alreadyCommited)
@@ -70,6 +70,8 @@ namespace AElf.SmartContract
                         changedDict[kv.Key] = kv.Value;
                     }
                 }
+
+                ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
             }
 
             _alreadyCommited = true;

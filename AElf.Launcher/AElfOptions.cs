@@ -39,6 +39,8 @@ namespace AElf.Launcher
         [Option("node.datadir", HelpText = "The directory the node uses to store data.")]
         public string DataDir { get; set; }
 
+        [Option('e', "node.executor", Default = "simple", HelpText = "The type of txn executor. Must be in [simple, akka].")]
+        public string ExecutorType { get; set; }
         #endregion
 
         #region Block

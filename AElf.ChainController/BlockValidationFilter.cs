@@ -3,7 +3,7 @@ using AElf.ChainController;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 
-namespace AElf.ChainControllerImpl
+namespace AElf.ChainController
 {
     public class BlockValidationFilter : IBlockValidationFilter
     {

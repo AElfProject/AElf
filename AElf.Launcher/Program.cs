@@ -3,7 +3,6 @@ using System.IO;
 using System.Net;
 using System.Security;
 using System.Threading;
-using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.ChainController.TxMemPool;
@@ -21,6 +20,9 @@ using AElf.Configuration.Config.Network;
 using AElf.Miner.Miner;
 using AElf.Execution.Scheduling;
 using AElf.Network;
+using AElf.Node;
+using AElf.Node.AElfChain;
+using AElf.RPC;
 using AElf.Runtime.CSharp;
 using AElf.SideChain.Creation;
 using AElf.SmartContract;
@@ -28,15 +30,12 @@ using Autofac;
 using Easy.MessageHub;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using ServiceStack;
 using IContainer = Autofac.IContainer;
-using RpcServer = AElf.RPC.RpcServer;
 
 namespace AElf.Launcher
 {
     class Program
     {
-        private static string AssemblyDir { get; } = Path.GetDirectoryName(typeof(Program).Assembly.Location);
         private const string FilePath = @"ChainInfo.json";
         private static int _stopped;
         private static readonly AutoResetEvent _closing = new AutoResetEvent(false);
@@ -46,6 +45,7 @@ namespace AElf.Launcher
             // Parse options
             Console.WriteLine(string.Join(" ",args));
             var confParser = new ConfigParser();
+            
             bool parsed;
             try
             {
@@ -104,8 +104,7 @@ namespace AElf.Launcher
             txPoolConf.EcKeyPair = nodeKey;
 
             // Setup ioc 
-            var container = SetupIocContainer(isMiner, isNewChain, chainId, txPoolConf,
-                minerConfig, smartContractRunnerFactory);
+            var container = SetupIocContainer(isMiner, isNewChain, chainId, txPoolConf, minerConfig, smartContractRunnerFactory);
 
             if (container == null)
             {
@@ -119,22 +118,37 @@ namespace AElf.Launcher
                 return;
             }
 
-
             using (var scope = container.BeginLifetimeScope())
             {
                 IActorEnvironment actorEnv = null;
-                if (ParallelConfig.Instance.IsParallelEnable)
+                if (NodeConfig.Instance.ExecutorType == "akka")
                 {
                     actorEnv = scope.Resolve<IActorEnvironment>();
                     actorEnv.InitActorSystem();
                 }
 
                 var evListener = scope.Resolve<ChainCreationEventListener>();
-                MessageHub.Instance.Subscribe<IBlock>(async (t) => { await evListener.OnBlockAppended(t); });
-
-                var node = scope.Resolve<IAElfNode>();
-                // Start the system
-                node.Start(nodeKey, TokenGenesisContractCode, ConsensusGenesisContractCode, BasicContractZero);
+                MessageHub.Instance.Subscribe<IBlock>(async (t) =>
+                {
+                    await evListener.OnBlockAppended(t);
+                });
+                
+                /************** Node setup ***************/
+                
+                NodeConfiguation confContext = new NodeConfiguation();
+                confContext.KeyPair = nodeKey;
+                confContext.WithRpc = confParser.Rpc;
+                confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+                
+                var mainChainNodeService = scope.Resolve<INodeService>();
+                var rpc = scope.Resolve<IRpcServer>();
+                rpc.Init(scope, confParser.RpcHost, confParser.RpcPort);
+                var node = scope.Resolve<INode>();
+                node.Register(mainChainNodeService);
+                node.Initialize(confContext);
+                node.Start();
+                
+                /*****************************************/
 
                 var txPoolService = scope.Resolve<ITxPoolService>();
                 MessageHub.Instance.Subscribe<IncomingTransaction>(
@@ -148,15 +162,7 @@ namespace AElf.Launcher
                             txAdded.Transaction.Serialize());
                     }
                 );
-
-                if (confParser.Rpc)
-                {
-                    var rpc = new RpcServer();
-                    rpc.Initialize(scope, confParser.RpcHost, confParser.RpcPort);
-                    rpc.RunAsync();
-                }
-
-                //DoDPos(node);
+                
                 if (actorEnv != null)
                 {
                     Console.CancelKeyPress += async (sender, eventArgs) => { await actorEnv.StopAsync(); };
@@ -171,56 +177,6 @@ namespace AElf.Launcher
         protected static void OnExit(object sender, ConsoleCancelEventArgs args)
         {
             _closing.Set();
-        }
-
-        private static byte[] TokenGenesisContractCode
-        {
-            get
-            {
-                var contractZeroDllPath = Path.Combine(AssemblyDir, $"{Globals.GenesisTokenContractAssemblyName}.dll");
-
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
-                {
-                    code = file.ReadFully();
-                }
-
-                return code;
-            }
-        }
-
-        private static byte[] ConsensusGenesisContractCode
-        {
-            get
-            {
-                var contractZeroDllPath =
-                    Path.Combine(AssemblyDir, $"{Globals.GenesisConsensusContractAssemblyName}.dll");
-
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
-                {
-                    code = file.ReadFully();
-                }
-
-                return code;
-            }
-        }
-
-        private static byte[] BasicContractZero
-        {
-            get
-            {
-                var contractZeroDllPath =
-                    Path.Combine(AssemblyDir, $"{Globals.GenesisSmartContractZeroAssemblyName}.dll");
-
-                byte[] code;
-                using (var file = File.OpenRead(Path.GetFullPath(contractZeroDllPath)))
-                {
-                    code = file.ReadFully();
-                }
-
-                return code;
-            }
         }
 
         private static IContainer SetupIocContainer(bool isMiner, bool isNewChain, string chainId,
@@ -243,10 +199,12 @@ namespace AElf.Launcher
             builder.RegisterModule(new RpcServicesModule());
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
-            builder.RegisterType<ResourceUsageDetectionService>().As<IResourceUsageDetectionService>();
-
-            if (ParallelConfig.Instance.IsParallelEnable)
+            builder.RegisterType<MainchainNodeService>().As<INodeService>();
+            builder.RegisterType<RpcServer>().As<IRpcServer>().SingleInstance();
+            
+            if (NodeConfig.Instance.ExecutorType == "akka")
             {
+                builder.RegisterType<ResourceUsageDetectionService>().As<IResourceUsageDetectionService>();
                 builder.RegisterType<Grouper>().As<IGrouper>();
                 builder.RegisterType<ServicePack>().PropertiesAutowired();
                 builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
@@ -254,7 +212,6 @@ namespace AElf.Launcher
             }
             else
             {
-                    
                 builder.RegisterType<SimpleExecutingService>().As<IExecutingService>();
             }
             

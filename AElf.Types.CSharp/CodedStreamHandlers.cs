@@ -51,6 +51,15 @@ namespace AElf.Types.CSharp
             }
         }
 
+        public static object GetDefault(this Type type)
+        {
+            if(type.IsValueType)
+            {
+                return Activator.CreateInstance(type);
+            }
+            return null;
+        }
+        
         public static object ReadFromStream(this Type type, CodedInputStream input)
         {
             if (_readHandlers.TryGetValue(type, out var h))

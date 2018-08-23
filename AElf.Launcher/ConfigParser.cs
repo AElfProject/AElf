@@ -159,7 +159,7 @@ namespace AElf.Launcher
             };
 
             // tx pool config
-            TxPoolConfig = ChainControllerImpl.TxMemPool.TxPoolConfig.Default;
+            TxPoolConfig = ChainController.TxMemPool.TxPoolConfig.Default;
             TxPoolConfig.FeeThreshold = opts.MinimalFee;
             TxPoolConfig.PoolLimitSize = opts.PoolCapacity;
             TxPoolConfig.Maximal = opts.TxCountLimit;
@@ -167,6 +167,7 @@ namespace AElf.Launcher
             // node config
             NodeConfig.Instance.IsMiner = IsMiner;
             NodeConfig.Instance.FullNode = true;
+            NodeConfig.Instance.ExecutorType = opts.ExecutorType;
 
             // Actor
             if (opts.ActorIsCluster.HasValue)
@@ -208,7 +209,7 @@ namespace AElf.Launcher
             // runner config
             RunnerConfig = new RunnerConfig
             {
-                SdkDir = Path.GetDirectoryName(typeof(MainChainNode).Assembly.Location)
+                SdkDir = Path.GetDirectoryName(typeof(Node.Node).Assembly.Location)
             };
 
             if (opts.RunnerConfig != null)

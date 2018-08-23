@@ -9,5 +9,6 @@
         public string DataDir { get; set; }
         public bool IsChainCreator { get; set; }
         public bool ConsensusInfoGenerater { get; set; }
+        public string ExecutorType { get; set; }
     }
 }

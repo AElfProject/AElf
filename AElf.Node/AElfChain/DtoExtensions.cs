@@ -1,6 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using AElf.Kernel;
+using Newtonsoft.Json.Linq;
 
-namespace AElf.Kernel.Node
+namespace AElf.Node.AElfChain
 {
     internal static class DtoExtensions
     {

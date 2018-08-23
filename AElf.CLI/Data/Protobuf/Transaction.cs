@@ -56,7 +56,7 @@ namespace AElf.CLI.Data.Protobuf
     [ProtoContract]
     public enum TransactionType
     {
-        DposTransaction = 0,
-        ContractTransaction = 1
+        ContractTransaction = 0,
+        DposTransaction = 1
     }
 }

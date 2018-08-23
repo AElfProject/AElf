@@ -2,9 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.ChainController;
-using AElf.ChainController.EventMessages;
-using AElf.ChainControllerImpl;
-using AElf.ChainControllerImpl.TxMemPool;
+using AElf.ChainController.TxMemPool;
 using AElf.SmartContract;
 using Google.Protobuf;
 using NLog;

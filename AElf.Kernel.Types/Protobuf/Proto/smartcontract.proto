@@ -31,6 +31,15 @@ message GraphEdge {
     string Target = 2;
 }
 
+enum ExecutionStatus {
+    Undefined = 0;
+    ExecutedAndCommitted = 1;
+    ExecutedButNotCommitted = 2;
+    SystemError = 91;
+    ContractError = 92;
+    Canceled = 99;
+}
+
 message TransactionTrace
 {
     Hash TransactionId = 1;
@@ -41,4 +50,5 @@ message TransactionTrace
     repeated TransactionTrace InlineTraces = 6;
     repeated StateValueChange ValueChanges = 7;
     int64 Elapsed = 8;
+    ExecutionStatus ExecutionStatus = 9;
 }

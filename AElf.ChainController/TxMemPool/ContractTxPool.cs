@@ -7,7 +7,7 @@ using AElf.Common.Attributes;
 using AElf.Kernel;
 using NLog;
 
-namespace AElf.ChainControllerImpl.TxMemPool
+namespace AElf.ChainController.TxMemPool
 {
     [LoggerName("ContractTxPool")]
     public class ContractTxPool : IContractTxPool
@@ -514,7 +514,7 @@ namespace AElf.ChainControllerImpl.TxMemPool
         /// <inheritdoc/>
         public bool TrySetNonce(Hash addr, ulong incrementId)
         {
-            if (!_nonces.TryGetValue(addr, out var id))
+            if (!_nonces.TryGetValue(addr, out _))
             {
                 _nonces.TryAdd(addr, incrementId);
                 return true;
