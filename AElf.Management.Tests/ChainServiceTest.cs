@@ -7,92 +7,32 @@ namespace AElf.Management.Tests
 {
     public class ChainServiceTest
     {
-        private string chainId = "0x86c41f71da5f1fb193660f9267d083d77e6a";
-        
+        private string chainId = "0x7a9f33c7cfaf7c8bd08f9decb0c286890639";
+
         //[Fact(Skip = "require aws account")]
         [Fact]
-        public void DeployTest()
+        public void DeployTestChain()
         {
-            var arg = new DeployArg();
-            arg.MainChainAccount = "0x04b8b111fdbc2f5409a006339fa1758e1ed1";
-            arg.AccountPassword = "123";
-            arg.DBArg = new DeployDBArg();
-            arg.ManagerArg=new DeployManagerArg();
-            arg.ManagerArg.IsCluster = false;
-            arg.WorkArg = new DeployWorkArg();
-            arg.WorkArg.ActorCount = 4;
-            arg.LauncherArg=new DeployLauncherArg();
-            arg.LauncherArg.IsConsensusInfoGenerator = true;
-
             var service = new ChainService();
-            service.DeployMainChain(chainId, arg);
-        }
-        
-        [Fact]
-        public void DeployNode2Test()
-        {
-            var arg = new DeployArg();
-            arg.MainChainAccount = "0x0429c477d551aa91abc193d7088f69082000";
-            arg.AccountPassword = "123";
-            arg.DBArg = new DeployDBArg();
-            arg.ManagerArg=new DeployManagerArg();
-            arg.ManagerArg.IsCluster = false;
-            arg.WorkArg = new DeployWorkArg();
-            arg.WorkArg.ActorCount = 4;
-            arg.LauncherArg=new DeployLauncherArg();
-            arg.LauncherArg.IsConsensusInfoGenerator = false;
-            arg.LauncherArg.Bootnodes=new List<string>{"a19097686a5db11e8b7c80ac491fc1bb-366170256.us-west-2.elb.amazonaws.com:30800"};
 
-            var service = new ChainService();
-            service.DeployMainChain(chainId+"-2", arg);
+            service.DeployTestChain();
         }
-        
+
         [Fact]
-        public void DeployNode3Test()
+        public void RemoveTestChain()
         {
-            var arg = new DeployArg();
-            arg.MainChainAccount = "0x04bce3e67ec4fbd0fad2822e6e5ed097812c";
-            arg.AccountPassword = "123";
-            arg.DBArg = new DeployDBArg();
-            arg.ManagerArg=new DeployManagerArg();
-            arg.ManagerArg.IsCluster = false;
-            arg.WorkArg = new DeployWorkArg();
-            arg.WorkArg.ActorCount = 4;
-            arg.LauncherArg=new DeployLauncherArg();
-            arg.LauncherArg.IsConsensusInfoGenerator = false;
-            arg.LauncherArg.Bootnodes=new List<string>
+            var service = new ChainService();
+            var removeChainIds = new List<string>
             {
-                "a19097686a5db11e8b7c80ac491fc1bb-366170256.us-west-2.elb.amazonaws.com:30800",
-                "a6538fc9ea5df11e8b14c02eebb7fa21-1480281286.us-west-2.elb.amazonaws.com:30800"
+                chainId+"-1",
+                chainId+"-2",
+                chainId+"-3"
             };
 
-            var service = new ChainService();
-            service.DeployMainChain(chainId+"-3", arg);
-        }
-        
-        //[Fact(Skip = "require aws account")]
-        [Fact]
-        public void RemoveTest()
-        {
-            var service = new SideChainService();
-
-            service.Remove(chainId);
-        }
-        
-        [Fact]
-        public void RemoveNode2Test()
-        {
-            var service = new SideChainService();
-
-            service.Remove(chainId+"-2");
-        }
-        
-        [Fact]
-        public void RemoveNode3Test()
-        {
-            var service = new SideChainService();
-
-            service.Remove(chainId+"-3");
+            foreach (var chainId in removeChainIds)
+            {
+                service.RemoveMainChain(chainId);
+            }
         }
     }
 }

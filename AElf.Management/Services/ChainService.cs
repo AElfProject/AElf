@@ -81,12 +81,36 @@ namespace AElf.Management.Services
             arg1.LauncherArg=new DeployLauncherArg();
             arg1.LauncherArg.IsConsensusInfoGenerator = true;
 
-            DeployMainChain(chainId + "-1", arg1);
+            var namespace1 = chainId + "-1";
+
+            DeployMainChain(namespace1, arg1);
             
-            Thread.Sleep(5000);
-            var service1 = K8SRequestHelper.GetClient().ReadNamespacedService("service-launcher", chainId + "-1");
-            var host1 = service1.Spec.ExternalIPs.First();
-            
+            string host1 = null;
+            while (true)
+            {
+                Thread.Sleep(3000);
+                var service1 = K8SRequestHelper.GetClient().ReadNamespacedService("service-launcher", namespace1);
+                var ingress = service1.Status.LoadBalancer.Ingress;
+                if (ingress == null)
+                {
+                    continue;
+                }
+                host1 = ingress.FirstOrDefault().Hostname;
+                if (string.IsNullOrWhiteSpace(host1))
+                {
+                    continue;
+                }
+
+                var pod1 = K8SRequestHelper.GetClient().ListNamespacedPod(namespace1, labelSelector: "name=deploy-launcher");
+                if (pod1 == null || pod1.Items.First().Status.Phase != "Running")
+                {
+                    continue;
+                }
+
+                Thread.Sleep(60000);
+                break;
+            }
+
             var arg2 = new DeployArg();
             arg2.MainChainAccount = accounts[1];
             arg2.AccountPassword = password;
@@ -98,12 +122,36 @@ namespace AElf.Management.Services
             arg2.LauncherArg=new DeployLauncherArg();
             arg2.LauncherArg.IsConsensusInfoGenerator = false;
             arg2.LauncherArg.Bootnodes = new List<string> {host1 + ":30800"};
-
-            DeployMainChain(chainId + "-2", arg2);
             
-            Thread.Sleep(5000);
-            var service2 = K8SRequestHelper.GetClient().ReadNamespacedService("service-launcher", chainId + "-2");
-            var host2 = service2.Spec.ExternalIPs.First();
+            var namespace2 = chainId + "-2";
+
+            DeployMainChain(namespace2, arg2);
+            
+            string host2 = null;
+            while (true)
+            {
+                Thread.Sleep(3000);
+                var service2 = K8SRequestHelper.GetClient().ReadNamespacedService("service-launcher", namespace2);
+                var ingress = service2.Status.LoadBalancer.Ingress;
+                if (ingress == null)
+                {
+                    continue;
+                }
+                host2 = ingress.FirstOrDefault().Hostname;
+                if (string.IsNullOrWhiteSpace(host2))
+                {
+                    continue;
+                }
+
+                var pod2 = K8SRequestHelper.GetClient().ListNamespacedPod(namespace2, labelSelector: "name=deploy-launcher");
+                if (pod2 == null || pod2.Items.First().Status.Phase != "Running")
+                {
+                    continue;
+                }
+
+                Thread.Sleep(60000);
+                break;
+            }
             
             var arg3 = new DeployArg();
             arg3.MainChainAccount = accounts[2];
