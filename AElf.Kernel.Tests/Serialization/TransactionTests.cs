@@ -1,5 +1,6 @@
 ﻿using System;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Extensions;
 using AElf.Types.CSharp;
 using Akka.Util;
 using Google.Protobuf;

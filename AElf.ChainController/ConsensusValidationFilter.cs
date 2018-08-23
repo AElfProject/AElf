@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common.Attributes;
+using AElf.Common.Extensions;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.SmartContract;

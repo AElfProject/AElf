@@ -6,6 +6,7 @@
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
     <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
   </ItemGroup>
   <Target Name="Gen_proto" BeforeTargets="BeforeBuild">

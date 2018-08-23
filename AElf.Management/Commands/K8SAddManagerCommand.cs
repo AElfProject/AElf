@@ -14,8 +14,11 @@ namespace AElf.Management.Commands
         
         public void Action(string chainId, DeployArg arg)
         {
-            AddService(chainId,arg);
-            AddStatefulSet(chainId, arg);
+            if (arg.ManagerArg.IsCluster)
+            {
+                AddService(chainId,arg);
+                AddStatefulSet(chainId, arg);
+            }
         }
 
         private void AddService(string chainId, DeployArg arg)

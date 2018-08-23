@@ -1,7 +1,8 @@
 ﻿using AElf.Management.Handlers;
+using AElf.Management.Interfaces;
 using AElf.Management.Models;
 
-namespace AElf.Management
+namespace AElf.Management.Services
 {
     public class SideChainService : ISideChainService
     {
