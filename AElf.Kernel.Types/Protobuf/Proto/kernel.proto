@@ -21,8 +21,8 @@ message Transaction
 }
 
 enum TransactionType{
-    DposTransaction = 0;
-    ContractTransaction = 1;
+    ContractTransaction = 0;
+    DposTransaction = 1;
 }
 
 enum Status {

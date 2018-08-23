@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AElf.Common.Synchronisation
@@ -27,7 +28,8 @@ namespace AElf.Common.Synchronisation
         /// for delegate calling without return type
         /// </summary>
         /// <param name="action"></param>
+        /// <param name="token"></param>
         /// <returns></returns>
-        Task WriteLock(Action action);
+        Task WriteLock(Action action, CancellationToken token = default(CancellationToken));
     }
 }

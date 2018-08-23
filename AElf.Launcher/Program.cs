@@ -21,6 +21,7 @@ using AElf.Execution.Scheduling;
 using AElf.Network;
 using AElf.Node;
 using AElf.Node.AElfChain;
+using AElf.RPC;
 using AElf.Runtime.CSharp;
 using AElf.SideChain.Creation;
 using AElf.SmartContract;
@@ -116,7 +117,7 @@ namespace AElf.Launcher
             using (var scope = container.BeginLifetimeScope())
             {
                 IActorEnvironment actorEnv = null;
-                if (ParallelConfig.Instance.IsParallelEnable)
+                if (NodeConfig.Instance.ExecutorType == "akka")
                 {
                     actorEnv = scope.Resolve<IActorEnvironment>();
                     actorEnv.InitActorSystem();   
@@ -136,7 +137,8 @@ namespace AElf.Launcher
                 confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Program).Assembly.Location);
                 
                 var mainChainNodeService = scope.Resolve<INodeService>();
-                
+                var rpc = scope.Resolve<IRpcServer>();
+                rpc.Init(scope, confParser.RpcHost, confParser.RpcPort);
                 var node = scope.Resolve<INode>();
                 node.Register(mainChainNodeService);
                 node.Initialize(confContext);
@@ -191,11 +193,12 @@ namespace AElf.Launcher
             builder.RegisterModule(new RpcServicesModule());
             builder.RegisterType<ChainService>().As<IChainService>();
             builder.RegisterType<ChainCreationEventListener>().PropertiesAutowired();
-
             builder.RegisterType<MainchainNodeService>().As<INodeService>();
-
-            if (ParallelConfig.Instance.IsParallelEnable)
+            builder.RegisterType<RpcServer>().As<IRpcServer>().SingleInstance();
+            
+            if (NodeConfig.Instance.ExecutorType == "akka")
             {
+                builder.RegisterType<ResourceUsageDetectionService>().As<IResourceUsageDetectionService>();
                 builder.RegisterType<Grouper>().As<IGrouper>();
                 builder.RegisterType<ServicePack>().PropertiesAutowired();
                 builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();

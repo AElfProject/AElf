@@ -53,10 +53,16 @@ namespace AElf.Execution
                         _cancellationTokenSource?.Dispose();
                         _cancellationTokenSource = new CancellationTokenSource();
 
-                        RunJob(req).ContinueWith(
-                            task => task.Result,
-                            TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
-                        );
+                        var self = Self;
+                        Task.Run(() =>
+                        {
+                            RunJob(req)
+                                .ContinueWith(
+                                    task => task.Result,
+                                    TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
+                                ).PipeTo(self);
+                        });
+                        
 /*
  Temporarily disabled.
  TODO: https://github.com/AElfProject/AElf/issues/338
@@ -77,14 +83,15 @@ namespace AElf.Execution
                     }
 */
                     break;
-/*
- Temporarily disabled.
- TODO: https://github.com/AElfProject/AElf/issues/338
+
                 case JobExecutionCancelMessage c:
                     _cancellationTokenSource?.Cancel();
                     Sender.Tell(JobExecutionCancelAckMessage.Instance);
                     break;
 
+/*
+ Temporarily disabled.
+ TODO: https://github.com/AElfProject/AElf/issues/338
                 case JobExecutionStatusQuery query:
                     if (query.RequestId != _servingRequestId)
                     {
@@ -134,6 +141,7 @@ namespace AElf.Execution
                     trace = new TransactionTrace()
                     {
                         TransactionId = tx.GetHash(),
+                        ExecutionStatus = ExecutionStatus.SystemError,
                         StdErr = chainContextException + "\n"
                     };
                 }
@@ -142,7 +150,8 @@ namespace AElf.Execution
                     trace = new TransactionTrace()
                     {
                         TransactionId = tx.GetHash(),
-                        StdErr = "Execution Cancelled"
+                        ExecutionStatus = ExecutionStatus.Canceled,
+                        StdErr = "Execution Canceled"
                     };
                 }
                 else
@@ -152,6 +161,7 @@ namespace AElf.Execution
                         trace = new TransactionTrace()
                         {
                             TransactionId = tx.GetHash(),
+                            ExecutionStatus = ExecutionStatus.SystemError,
                             StdErr = "Invalid chain"
                         };
                     }
@@ -179,7 +189,8 @@ namespace AElf.Execution
                             trace = new TransactionTrace()
                             {
                                 TransactionId = tx.GetHash(),
-                                StdErr = "Execution Cancelled"
+                                ExecutionStatus = ExecutionStatus.Canceled,
+                                StdErr = "Execution Canceled"
                             };
                         }
                         catch (Exception e)
@@ -187,6 +198,7 @@ namespace AElf.Execution
                             trace = new TransactionTrace()
                             {
                                 TransactionId = tx.GetHash(),
+                                ExecutionStatus = ExecutionStatus.SystemError,
                                 StdErr = e + "\n"
                             };
                         }
@@ -253,6 +265,7 @@ namespace AElf.Execution
             }
             catch (Exception ex)
             {
+                txCtxt.Trace.ExecutionStatus = ExecutionStatus.SystemError;
                 // TODO: Improve log
                 txCtxt.Trace.StdErr += ex + "\n";
             }

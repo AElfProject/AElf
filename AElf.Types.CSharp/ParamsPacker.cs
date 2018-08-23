@@ -51,7 +51,20 @@ namespace AElf.Types.CSharp
             {
                 for (int i = 0; i < types.Length; i++)
                 {
-                    stream.ReadTag();
+                    var tag = stream.ReadTag();
+                    var fieldNumber = WireFormat.GetTagFieldNumber(tag);
+                    var index = fieldNumber - 1;
+                    if (index < i || index > types.Length)
+                    {
+                        throw new Exception("Invalid input. Wrong parameter order or wrong number of parameters.");
+                    }
+
+                    while (i < index)
+                    {
+                        objs[i] = types[i].GetDefault();
+                        i++;
+                    }
+
                     objs[i] = types[i].ReadFromStream(stream);
                 }
             }
