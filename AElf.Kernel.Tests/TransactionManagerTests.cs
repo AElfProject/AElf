@@ -1,8 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
-using AElf.ChainController;
-using AElf.ChainControllerImpl.TxMemPool;
+using AElf.ChainController.TxMemPool;
 using Google.Protobuf;
 using Xunit;
 using Xunit.Frameworks.Autofac;

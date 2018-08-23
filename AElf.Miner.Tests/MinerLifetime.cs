@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
-using AElf.ChainControllerImpl.TxMemPool;
 using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
 using AElf.Kernel.Managers;

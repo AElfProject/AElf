@@ -6,7 +6,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using NLog;
 
-namespace AElf.ChainControllerImpl
+namespace AElf.ChainController
 {
     [LoggerName(nameof(ChainContextValidationFilter))]
     public class ChainContextValidationFilter : IBlockValidationFilter
