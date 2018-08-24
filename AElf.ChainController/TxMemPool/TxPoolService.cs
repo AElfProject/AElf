@@ -190,31 +190,26 @@ namespace AElf.ChainController.TxMemPool
             long count = -1;
             using (var tokenSource = new CancellationTokenSource())
             {
-                var token = tokenSource.Token;
                 tokenSource.CancelAfter(TimeSpan.FromMilliseconds(100));
+                var token = tokenSource.Token;
                 var t = ContractTxLock.WriteLock(() =>
                 {
                     if (token.IsCancellationRequested)
                     {
-                        _logger.Log(LogLevel.Debug, "TIMEOUT! - No time left to get txs");
+                        _logger.Log(LogLevel.Debug, "TIMEOUT! - No time left to get txs.");
                         return;
                     }
                 
                     var execCount = _contractTxPool.GetExecutableSize();
-                    count = (long) execCount;
-                    _logger.Log(LogLevel.Debug, $"ready tx count == {count}");
-                    if (execCount < _contractTxPool.Least)
-                    {
-                        _logger.Log(LogLevel.Debug,
-                            $"{count} Contract tx(s) in pool are ready:  less than {_contractTxPool.Least}");
-                        return;
-                    }
-
                     if (token.IsCancellationRequested)
                     {
                         return;
                     }
-
+                    count = (long) execCount;
+                    if (execCount < _contractTxPool.Least)
+                    {
+                        return;
+                    }
                     available = true;
                     contractTxs = _contractTxPool.ReadyTxs();
                 }, token);
@@ -226,7 +221,7 @@ namespace AElf.ChainController.TxMemPool
                     // NOTE: be careful, some txs maybe lost here without this
                     if (available && contractTxs == null)
                     {
-                        _logger.Log(LogLevel.Debug, "Be careful! it takes more time to get txs");
+                        _logger.Log(LogLevel.Debug, "Be careful! it takes more time to get txs!");
                         t.Wait();
                     }
                         
@@ -234,7 +229,7 @@ namespace AElf.ChainController.TxMemPool
                 catch (AggregateException ae)
                 {
                     if (ae.InnerExceptions.Any(e => e is TaskCanceledException))
-                        Console.WriteLine(ae);
+                        Console.WriteLine("Exception: " + ae.Message);
                     else
                         throw;
                 }
@@ -246,7 +241,6 @@ namespace AElf.ChainController.TxMemPool
             
             if (contractTxs != null)
             {
-                _logger.Log(LogLevel.Debug, $"got contract tx count == {contractTxs.Count}");
                 // get txs successfully
                 dpos.AddRange(contractTxs);
             
@@ -254,16 +248,21 @@ namespace AElf.ChainController.TxMemPool
                 {
                     _contractTxs.TryRemove(tx.GetHash(), out _);
                 }
-                _logger.Log(LogLevel.Debug, $"Got {contractTxs.Count} Contract tx");
+                _logger.Log(LogLevel.Debug, $"Totally {count} txs in pool, got {contractTxs.Count}. ");
             }
             else if(available)
             {
-                // something wrong
+                // something wrong which sholud not happen
                 _logger.Log(LogLevel.Error, "FAILED to get all transactions，some would be lost!");
             }
             else if (count == -1 || count >= (long) _contractTxPool.Least)
             {
-                _logger.Log(LogLevel.Debug, "TIMEOUT! - Unable to get txs");
+                _logger.Log(LogLevel.Debug, "TIMEOUT! - Unable to get txs.");
+            }
+            else
+            {
+                _logger.Log(LogLevel.Debug,
+                    $"Only {count} Contract tx(s) in pool are ready: less than {_contractTxPool.Least}.");
             }
                 
             return dpos;
@@ -337,7 +336,6 @@ namespace AElf.ChainController.TxMemPool
         /// <inheritdoc/>
         public async Task UpdateAccountContext(HashSet<Hash> addrs)
         {
-            _logger?.Log(LogLevel.Debug, "Updating Account Context..");
             foreach (var addr in addrs)
             {
                 IPool pool;
@@ -359,8 +357,6 @@ namespace AElf.ChainController.TxMemPool
                     ChainId = pool.ChainId
                 });
             }
-            _logger?.Log(LogLevel.Debug, "End Updating Account Context..");
-
         }
 
         /// <inheritdoc/>
@@ -410,7 +406,7 @@ namespace AElf.ChainController.TxMemPool
         /// <inheritdoc/>
         public async Task RollBack(List<ITransaction> txsOut)
         {
-            _logger?.Log(LogLevel.Debug, "start rollback {0} txs ...", txsOut.Count);
+            _logger?.Log(LogLevel.Debug, "Rollback {0} txs ...", txsOut.Count);
 
             try
             {
@@ -484,7 +480,7 @@ namespace AElf.ChainController.TxMemPool
                 throw;
             }
             
-            _logger?.Log(LogLevel.Debug, "rollbacked {0} txs ...", txsOut.Count);
+            _logger?.Log(LogLevel.Debug, "Rollbacked {0} txs.", txsOut.Count);
 
         }
 
