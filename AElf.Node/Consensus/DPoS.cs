@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -131,7 +132,7 @@ namespace AElf.Kernel.Node
             };
             _logger?.Trace($"Set AElf DPoS mining interval: {Globals.AElfDPoSMiningInterval} ms");
             // ReSharper disable once InconsistentNaming
-            var txToInitializeAElfDPoS = GenerateTransaction("InitializeAElfDPoS", parameters);
+            var txToInitializeAElfDPoS = await GenerateTransactionAsync("InitializeAElfDPoS", parameters);
             await BroadcastTransaction(txToInitializeAElfDPoS);
 
             var block = await Mine();
@@ -190,36 +191,42 @@ namespace AElf.Kernel.Node
         /// <returns></returns>
         public async Task<ulong> GetIncrementId(Hash addr)
         {
-            try
-            {
-                bool isDPoS = addr.Equals(_nodeKeyPair.GetAddress()) ||
-                              _dposHelpers.BlockProducer.Nodes.Contains(addr.ToHex().RemoveHexPrefix());
-
-                // ReSharper disable once InconsistentNaming
-                var idInDB = (await _accountContextService.GetAccountDataContext(addr, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)))
-                    .IncrementId;
-                _logger?.Log(LogLevel.Debug, $"Trying to get increment id, {isDPoS}");
-                var idInPool = _txPoolService.GetIncrementId(addr, isDPoS);
-                _logger?.Log(LogLevel.Debug, $"End Trying to get increment id, {isDPoS}");
-
-                return Math.Max(idInDB, idInPool);
-            }
-            catch (Exception e)
-            {
-                _logger?.Error(e, "Failed to get increment id.");
-                return 0;
-            }
+//            try
+//            {
+//                bool isDPoS = addr.Equals(_nodeKeyPair.GetAddress()) ||
+//                              _dposHelpers.BlockProducer.Nodes.Contains(addr.ToHex().RemoveHexPrefix());
+//
+//                // ReSharper disable once InconsistentNaming
+//                var idInDB = (await _accountContextService.GetAccountDataContext(addr, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)))
+//                    .IncrementId;
+//                _logger?.Log(LogLevel.Debug, $"Trying to get increment id, {isDPoS}");
+//                var idInPool = _txPoolService.GetIncrementId(addr, isDPoS);
+//                _logger?.Log(LogLevel.Debug, $"End Trying to get increment id, {isDPoS}");
+//
+//                return Math.Max(idInDB, idInPool);
+//            }
+//            catch (Exception e)
+//            {
+//                _logger?.Error(e, "Failed to get increment id.");
+//                return 0;
+//            }
+            return ulong.MaxValue;
         }
 
         // ReSharper disable once InconsistentNaming
-        private ITransaction GenerateTransaction(string methodName, IReadOnlyList<byte[]> parameters,
+        private async Task<ITransaction> GenerateTransactionAsync(string methodName, IReadOnlyList<byte[]> parameters,
             ulong incrementIdOffset = 0)
         {
+            var bn = await _blockchain.GetCurrentBlockHeightAsync();
+            var bh = await _blockchain.GetCurrentBlockHashAsync();
+            var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
             var tx = new Transaction
             {
                 From = _nodeKeyPair.GetAddress(),
                 To = _contractAccountAddressHash,
-                IncrementId = GetIncrementId(_nodeKeyPair.GetAddress()).Result + incrementIdOffset,
+//                IncrementId = GetIncrementId(_nodeKeyPair.GetAddress()).Result + incrementIdOffset,
+                RefBlockNumber = bn,
+                RefBlockPrefix = ByteString.CopyFrom(bhPref),
                 MethodName = methodName,
                 P = ByteString.CopyFrom(_nodeKeyPair.PublicKey.Q.GetEncoded()),
                 Type = TransactionType.DposTransaction
@@ -273,7 +280,7 @@ namespace AElf.Kernel.Node
                 signature.ToByteArray()
             };
 
-            var txToPublishOutValueAndSignature = GenerateTransaction("PublishOutValueAndSignature", parameters);
+            var txToPublishOutValueAndSignature = await GenerateTransactionAsync("PublishOutValueAndSignature", parameters);
 
             await BroadcastTransaction(txToPublishOutValueAndSignature);
 
@@ -300,7 +307,7 @@ namespace AElf.Kernel.Node
                 _consensusData.Pop().ToByteArray()
             };
 
-            var txToPublishInValue = GenerateTransaction("PublishInValue", parameters);
+            var txToPublishInValue = await GenerateTransactionAsync("PublishInValue", parameters);
             await BroadcastTransaction(txToPublishInValue);
         }
 
@@ -319,7 +326,7 @@ namespace AElf.Kernel.Node
             };
             _logger?.Log(LogLevel.Debug, "Generating transaction..");
 
-            var txForExtraBlock = GenerateTransaction(
+            var txForExtraBlock = await GenerateTransactionAsync(
                 "UpdateAElfDPoS",
                 parameters,
                 _incrementIdNeedToAddOne ? (ulong) 1 : 0);

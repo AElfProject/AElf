@@ -50,18 +50,6 @@ namespace AElf.ChainController.TxMemPool
         /// <param name="block"></param>
         /// <returns></returns>
         List<Hash> GetMissingTransactions(IBlock block);
-
-        /// <summary>
-        /// return size of waiting list
-        /// </summary>
-        /// <returns></returns>
-        Task<ulong> GetWaitingSizeAsync();
-
-        /// <summary>
-        /// return size of executable list
-        /// </summary>
-        /// <returns></returns>
-        Task<ulong> GetExecutableSizeAsync();
         
         /// <summary>
         /// return tmp pool size
@@ -87,7 +75,7 @@ namespace AElf.ChainController.TxMemPool
         /// </summary>
         Task Stop();
 
-        ulong GetIncrementId(Hash addr, bool isDPoS = false);
+//        ulong GetIncrementId(Hash addr, bool isDPoS = false);
 
         /// <summary>
         /// 
@@ -96,7 +84,7 @@ namespace AElf.ChainController.TxMemPool
         /// <param name="start"></param>
         /// <param name="ids"></param>
         /// <returns></returns>
-        Task<bool> GetReadyTxsAsync(Hash addr, ulong start, ulong ids);
+//        Task<bool> GetReadyTxsAsync(Hash addr, ulong start, ulong ids);
 
         /// <summary>
         /// roll back

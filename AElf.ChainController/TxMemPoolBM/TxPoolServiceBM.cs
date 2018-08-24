@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
 using AElf.Kernel;
+using AElf.Kernel.Managers;
 using Akka.Dispatch;
 using Easy.MessageHub;
 using Microsoft.Extensions.Logging;
@@ -15,20 +16,28 @@ namespace AElf.ChainController.TxMemPool
 {
     public class TxPoolServiceBM : ITxPoolService
     {
-        private readonly IContractTxPool _contractTxPool;
-        private readonly IDPoSTxPool _dpoSTxPool;
-        private readonly IAccountContextService _accountContextService;
         private readonly ILogger _logger;
         private readonly IChainService _chainService;
         private readonly ITxValidator _txValidator;
+        private readonly ITransactionManager _transactionManager;
 
-        public TxPoolServiceBM(ILogger logger, IChainService chainService, ITxValidator txValidator)
+        public TxPoolServiceBM(ILogger logger, IChainService chainService, ITxValidator txValidator, ITransactionManager transactionManager)
         {
             _logger = logger;
             _chainService = chainService;
             _txValidator = txValidator;
+            _transactionManager = transactionManager;
         }
 
+        public void Start()
+        {
+        }
+
+        public Task Stop()
+        {
+            return Task.CompletedTask;
+        }
+        
         private readonly ConcurrentDictionary<Hash, ITransaction> _contractTxs =
             new ConcurrentDictionary<Hash, ITransaction>();
 
@@ -40,6 +49,11 @@ namespace AElf.ChainController.TxMemPool
         /// <inheritdoc/>
         public async Task<TxValidation.TxInsertionAndBroadcastingError> AddTxAsync(ITransaction tx)
         {
+            var txExecuted = await _transactionManager.GetTransaction(tx.GetHash());
+            if (txExecuted != null)
+            {
+                return TxValidation.TxInsertionAndBroadcastingError.AlreadyExecuted;
+            }
             var res = await AddTransaction(tx);
             if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
             {
@@ -203,6 +217,11 @@ namespace AElf.ChainController.TxMemPool
         public Task RemoveTxWithWorstFeeAsync()
         {
             throw new NotImplementedException();
+        }
+
+        public Task<ulong> GetPoolSize()
+        {
+            return Task.FromResult((ulong) _contractTxs.Count);
         }
     }
 }

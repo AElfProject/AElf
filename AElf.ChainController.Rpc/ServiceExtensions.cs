@@ -144,11 +144,12 @@ namespace AElf.ChainController.Rpc
             try
             {
                 // ReSharper disable once InconsistentNaming
-                var idInDB = (await s.AccountContextService.GetAccountDataContext(addr, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)))
-                    .IncrementId;
-                var idInPool = s.TxPoolService.GetIncrementId(addr);
-
-                return Math.Max(idInDB, idInPool);
+//                var idInDB = (await s.AccountContextService.GetAccountDataContext(addr, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)))
+//                    .IncrementId;
+//                var idInPool = s.TxPoolService.GetIncrementId(addr);
+//
+//                return Math.Max(idInDB, idInPool);
+                return ulong.MaxValue;
             }
             catch (Exception e)
             {
