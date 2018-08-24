@@ -208,6 +208,7 @@ namespace AElf.Miner.Miner
             {
                 addrs.Add(t.From);
                 await _transactionManager.AddTransactionAsync(t);
+                _txPoolService.RemoveAsync(t.GetHash());
             }
 
             txResults.ForEach(async r => { await _transactionResultManager.AddTransactionResultAsync(r); });
