@@ -20,7 +20,8 @@ namespace AElf.Kernel.Modules.AutofacModule
                 builder.RegisterInstance(TxPoolConfig.Default).As<ITxPoolConfig>();
             
             builder.RegisterType<ContractTxPool>().As<IContractTxPool>().SingleInstance();
-            builder.RegisterType<TxPoolService>().As<ITxPoolService>().SingleInstance();
+            builder.RegisterType<TxValidator>().As<ITxValidator>();
+            builder.RegisterType<TxPoolServiceBM>().As<ITxPoolService>().SingleInstance();
         }
     }
 }

@@ -9,8 +9,7 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using Akka.Dispatch;
 using Easy.MessageHub;
-using Microsoft.Extensions.Logging;
-using NServiceKit.Messaging;
+using NLog;
 
 namespace AElf.ChainController.TxMemPool
 {
