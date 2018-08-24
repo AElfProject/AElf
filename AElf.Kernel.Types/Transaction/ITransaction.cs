@@ -1,5 +1,6 @@
 ﻿﻿using AElf.Cryptography.ECDSA;
 using Google.Protobuf;
+ using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -35,6 +36,16 @@ namespace AElf.Kernel
 
         ulong IncrementId { get; set; }
         
+        /// <summary>
+        /// The block number of the referenced block.
+        /// </summary>
+        ulong RefBlockNumber { get; set; }
+
+        /// <summary>
+        /// The prefix of the Hash of the referenced block.
+        /// </summary>
+        ByteString RefBlockPrefix { get; set; }
+
         ITransactionParallelMetaData GetParallelMetaData();
 
         /// <summary>
