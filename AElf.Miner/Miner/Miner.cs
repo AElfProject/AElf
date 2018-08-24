@@ -84,7 +84,7 @@ namespace AElf.Miner.Miner
                     var traces = readyTxs.Count == 0
                         ? new List<TransactionTrace>()
                         : await _executingService.ExecuteAsync(readyTxs, Config.ChainId, cancellationTokenSource.Token);
-                    _logger?.Log(LogLevel.Debug, "End Executing Transactions..");
+                    _logger?.Log(LogLevel.Debug, "Executed Transactions.");
                     var canceledTxIds = new List<Hash>();
                     var results = new List<TransactionResult>();
                     foreach (var trace in traces)
@@ -159,7 +159,7 @@ namespace AElf.Miner.Miner
                     var addrs = await InsertTxs(executed, results);
                     await _txPoolService.UpdateAccountContext(addrs);
 
-                    _logger?.Log(LogLevel.Debug, "Generating block..");
+                    
                     // generate block
                     var block = await GenerateBlockAsync(Config.ChainId, results);
 
@@ -168,7 +168,7 @@ namespace AElf.Miner.Miner
                             results.Where(x => !x.Bloom.IsEmpty).Select(x => x.Bloom.ToByteArray())
                         )
                     );
-                    _logger?.Log(LogLevel.Debug, "Generating block End..");
+                    _logger?.Log(LogLevel.Debug, $"Generated block {block.Header.Index}.");
 
                     // sign block
                     ECSigner signer = new ECSigner();
@@ -241,24 +241,19 @@ namespace AElf.Miner.Miner
                 block.AddTransaction(r.TransactionId);
             }
 
-            _logger?.Log(LogLevel.Debug, "Calculating MK Tree Root..");
             // calculate and set tx merkle tree root
             block.FillTxsMerkleTreeRootInHeader();
-            _logger?.Log(LogLevel.Debug, "Calculating MK Tree Root End..");
 
 
             // set ws merkle tree root
             await _worldStateDictator.SetWorldStateAsync(currentBlockHash);
-            _logger?.Log(LogLevel.Debug, "End Set WS..");
             var ws = await _worldStateDictator.GetWorldStateAsync(currentBlockHash);
-            _logger?.Log(LogLevel.Debug, "End Get Ws");
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
 
 
             if (ws != null)
             {
                 block.Header.MerkleTreeRootOfWorldState = await ws.GetWorldStateMerkleTreeRootAsync();
-                _logger?.Log(LogLevel.Debug, "End GetWorldStateMerkleTreeRootAsync");
             }
 
             block.Body.BlockHeader = block.Header.GetHash();
