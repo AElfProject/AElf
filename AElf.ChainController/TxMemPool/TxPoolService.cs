@@ -171,7 +171,7 @@ namespace AElf.ChainController.TxMemPool
         }
 
         /// <inheritdoc/>
-        public async Task<List<ITransaction>> GetReadyTxsAsync()
+        public async Task<List<ITransaction>> GetReadyTxsAsync(double intervals = 150)
         {
             // get dpos transanction
             var dpos = await DPoSTxLock.WriteLock(() =>
@@ -190,7 +190,8 @@ namespace AElf.ChainController.TxMemPool
             long count = -1;
             using (var tokenSource = new CancellationTokenSource())
             {
-                tokenSource.CancelAfter(TimeSpan.FromMilliseconds(100));
+                intervals = Math.Max(intervals, 150);
+                tokenSource.CancelAfter(TimeSpan.FromMilliseconds(intervals - 50));
                 var token = tokenSource.Token;
                 var t = ContractTxLock.WriteLock(() =>
                 {
@@ -216,7 +217,7 @@ namespace AElf.ChainController.TxMemPool
                 
                 try
                 {
-                    t.Wait(TimeSpan.FromMilliseconds(150));
+                    t.Wait(TimeSpan.FromMilliseconds(intervals));
                     
                     // NOTE: be careful, some txs maybe lost here without this
                     if (available && contractTxs == null)

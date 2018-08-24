@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,7 +151,7 @@ namespace AElf.Kernel.Tests.Miner
             };
             
             var mock = new Mock<ITxPoolService>();
-            mock.Setup((s) => s.GetReadyTxsAsync()).Returns(Task.FromResult(txs));
+            mock.Setup((s) => s.GetReadyTxsAsync(3000)).Returns(Task.FromResult(txs));
             return mock;
         }
         
