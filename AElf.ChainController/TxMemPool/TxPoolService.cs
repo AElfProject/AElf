@@ -187,30 +187,62 @@ namespace AElf.ChainController.TxMemPool
             
             List<ITransaction> contractTxs = null;
             bool available = false;
-            ulong count = 0;
-            var tokenSource = new CancellationTokenSource();
-            var token = tokenSource.Token;
-            tokenSource.CancelAfter(TimeSpan.FromMilliseconds(100));
-            var t = ContractTxLock.WriteLock(() =>
+            long count = -1;
+            using (var tokenSource = new CancellationTokenSource())
             {
-                if (token.IsCancellationRequested)
-                    return;
-                
-                // TODO: remove this limit
-                available = true;
-                var execCount = _contractTxPool.GetExecutableSize();
-                count = execCount;
-                if (execCount < _contractTxPool.Least)
+                var token = tokenSource.Token;
+                tokenSource.CancelAfter(TimeSpan.FromMilliseconds(100));
+                var t = ContractTxLock.WriteLock(() =>
                 {
-                    return;
+                    if (token.IsCancellationRequested)
+                    {
+                        _logger.Log(LogLevel.Debug, "TIMEOUT! - No time left to get txs");
+                        return;
+                    }
+                
+                    var execCount = _contractTxPool.GetExecutableSize();
+                    count = (long) execCount;
+                    _logger.Log(LogLevel.Debug, $"ready tx count == {count}");
+                    if (execCount < _contractTxPool.Least)
+                    {
+                        _logger.Log(LogLevel.Debug,
+                            $"{count} Contract tx(s) in pool are ready:  less than {_contractTxPool.Least}");
+                        return;
+                    }
+
+                    if (token.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    available = true;
+                    contractTxs = _contractTxPool.ReadyTxs();
+                }, token);
+                
+                try
+                {
+                    t.Wait(TimeSpan.FromMilliseconds(150));
+                    
+                    // NOTE: be careful, some txs maybe lost here without this
+                    if (available && contractTxs == null)
+                    {
+                        _logger.Log(LogLevel.Debug, "Be careful! it takes more time to get txs");
+                        t.Wait();
+                    }
+                        
                 }
-
-                if (token.IsCancellationRequested)
-                    return;
-
-                _logger.Log(LogLevel.Debug, $"ready tx count == {count}");
-                contractTxs = _contractTxPool.ReadyTxs();
-            }, token).Wait(TimeSpan.FromMilliseconds(150));
+                catch (AggregateException ae)
+                {
+                    if (ae.InnerExceptions.Any(e => e is TaskCanceledException))
+                        Console.WriteLine(ae);
+                    else
+                        throw;
+                }
+                finally
+                {
+                    tokenSource.Dispose();
+                }
+            }
             
             if (contractTxs != null)
             {
@@ -224,23 +256,16 @@ namespace AElf.ChainController.TxMemPool
                 }
                 _logger.Log(LogLevel.Debug, $"Got {contractTxs.Count} Contract tx");
             }
-            else if(!available)
+            else if(available)
             {
-                // timeout to get lock
-                _logger.Log(LogLevel.Debug, "TIMEOUT! - Unable to get Contract transactions");
-            }
-            else if(count < _contractTxPool.Least)
-            {
-                // not enough tx count
-                _logger.Log(LogLevel.Debug,
-                    $"{count} Contract tx(s) in pool are ready:  less than {_contractTxPool.Least}");
-            }
-            else
-            {
+                // something wrong
                 _logger.Log(LogLevel.Error, "FAILED to get all transactions，some would be lost!");
             }
+            else if (count == -1 || count >= (long) _contractTxPool.Least)
+            {
+                _logger.Log(LogLevel.Debug, "TIMEOUT! - Unable to get txs");
+            }
                 
-            
             return dpos;
         }
 
