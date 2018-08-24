@@ -48,9 +48,9 @@ namespace AElf.SmartContract
    * Block hash - State hash
    */
   Task<Hash> GetBlockHashAsync(Hash stateHash);
-  Task SetBlockHashAsync(Hash stateHash, Hash blockHash);
+  Task SetBlockHashAsync(Hash blockHash);
   Task<Hash> GetStateHashAsync(Hash blockHash);
-  Task SetStateHashAsync(Hash blockHash, Hash stateHash);
+  Task SetStateHashAsync(Hash blockHash);
 
   Task RollbackToPreviousBlock();
   Task ApplyStateValueChangeAsync(StateValueChange stateValueChange);

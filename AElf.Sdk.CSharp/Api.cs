@@ -27,8 +27,7 @@ namespace AElf.Sdk.CSharp
         public static void SetSmartContractContext(ISmartContractContext contractContext)
         {
             _smartContractContext = contractContext;
-            _dataProviders = new Dictionary<string, IDataProvider>();
-            _dataProviders.Add("", _smartContractContext.DataProvider);
+            _dataProviders = new Dictionary<string, IDataProvider> {{"", _smartContractContext.DataProvider}};
         }
 
         public static void SetTransactionContext(ITransactionContext transactionContext)
@@ -97,11 +96,11 @@ namespace AElf.Sdk.CSharp
 
         public static IDataProvider GetDataProvider(string name)
         {
-            if (!_dataProviders.TryGetValue(name, out var dp))
-            {
-                dp = _smartContractContext.DataProvider.GetDataProvider(name);
-                _dataProviders.Add(name, dp);
-            }
+            if (_dataProviders.TryGetValue(name, out var dp))
+                return dp;
+            
+            dp = _smartContractContext.DataProvider.GetDataProvider(name);
+            _dataProviders.Add(name, dp);
 
             return dp;
         }

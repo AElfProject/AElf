@@ -156,6 +156,9 @@ namespace AElf.Miner.Miner
 
                 var addrs = await InsertTxs(readyTxs, results);
                 await _txPoolService.UpdateAccountContext(addrs);
+
+                await _stateDictator.SetBlockHashAsync(block?.GetHash());
+                await _stateDictator.SetStateHashAsync(block?.GetHash());
                 
                 await _stateDictator.SetWorldStateAsync();
                 var ws = await _stateDictator.GetLatestWorldStateAsync();
@@ -167,11 +170,11 @@ namespace AElf.Miner.Miner
                     return false;
                 }
 
-                if (await ws.GetWorldStateMerkleTreeRootAsync() != block.Header.MerkleTreeRootOfWorldState)
+                if (await ws.GetWorldStateMerkleTreeRootAsync() != block?.Header.MerkleTreeRootOfWorldState)
                 {
                     _logger?.Trace($"ExecuteBlock - Incorrect merkle trees.");
                     _logger?.Trace($"Merkle tree root hash of execution: {(await ws.GetWorldStateMerkleTreeRootAsync()).ToHex()}");
-                    _logger?.Trace($"Merkle tree root hash of received block: {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
+                    _logger?.Trace($"Merkle tree root hash of received block: {block?.Header.MerkleTreeRootOfWorldState.ToHex()}");
 
                     await Rollback(readyTxs);
                     return false;

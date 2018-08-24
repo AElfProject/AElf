@@ -277,6 +277,10 @@ namespace AElf.Miner.Miner
             }
                
             block.Body.BlockHeader = block.Header.GetHash();
+
+            await _stateDictator.SetBlockHashAsync(block.GetHash());
+            await _stateDictator.SetStateHashAsync(block.GetHash());
+
             return block;
         }
         

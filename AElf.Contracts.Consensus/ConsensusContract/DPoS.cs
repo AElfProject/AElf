@@ -503,11 +503,9 @@ namespace AElf.Contracts.Consensus.ConsensusContract
         private async Task PublishOutValueAndSignature(UInt64Value roundNumber, StringValue accountAddress, Hash outValue, Hash signature)
         {
             var info = await GetBPInfoOfSpecificRound(accountAddress, roundNumber);
-
             info.OutValue = outValue;
             if (roundNumber.Value > 1)
                 info.Signature = signature;
-
             var roundInfo = await _dPoSInfoMap.GetValueAsync(roundNumber);
             roundInfo.BlockProducers[accountAddress.Value] = info;
             await _dPoSInfoMap.SetValueAsync(roundNumber, roundInfo);

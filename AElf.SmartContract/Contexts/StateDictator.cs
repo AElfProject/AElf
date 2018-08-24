@@ -95,7 +95,7 @@ namespace AElf.SmartContract
             await _dataStore.InsertAsync(dataPath.StateHash, _worldState);
             _worldState = new WorldState();
         }
-
+        
         public async Task<Hash> GetHashAsync(Hash hash)
         {
             return await _hashManager.GetHash(hash);
@@ -103,28 +103,39 @@ namespace AElf.SmartContract
 
         public async Task SetHashAsync(Hash origin, Hash another)
         {
-            Console.WriteLine($"Set contract: {origin.ToHex()} : {another.ToHex()}");
             await _hashManager.SetHash(origin, another);
         }
 
         public async Task<Hash> GetBlockHashAsync(Hash stateHash)
         {
-            return await _hashManager.GetHash(stateHash);
+            return await _hashManager.GetHash(stateHash.OfType(HashType.StateHash));
         }
 
-        public async Task SetBlockHashAsync(Hash stateHash, Hash blockHash)
+        public async Task SetBlockHashAsync(Hash blockHash)
         {
-            await _hashManager.SetHash(stateHash, blockHash);
+            var dataPath = new DataPath
+            {
+                ChainId = ChainId,
+                RoundNumber = CurrentRoundNumber,
+                BlockProducerAddress = BlockProducerAccountAddress
+            };
+            await _hashManager.SetHash(dataPath.StateHash, blockHash.OfType(HashType.BlockHash));
         }
 
         public async Task<Hash> GetStateHashAsync(Hash blockHash)
         {
-            return await _hashManager.GetHash(blockHash);
+            return await _hashManager.GetHash(blockHash.OfType(HashType.BlockHash));
         }
 
-        public async Task SetStateHashAsync(Hash blockHash, Hash stateHash)
+        public async Task SetStateHashAsync(Hash blockHash)
         {
-            await _hashManager.SetHash(blockHash, stateHash);
+            var dataPath = new DataPath
+            {
+                ChainId = ChainId,
+                RoundNumber = CurrentRoundNumber,
+                BlockProducerAddress = BlockProducerAccountAddress
+            };
+            await _hashManager.SetHash(blockHash.OfType(HashType.BlockHash), dataPath.StateHash.OfType(HashType.StateHash));
         }
 
         /// <summary>

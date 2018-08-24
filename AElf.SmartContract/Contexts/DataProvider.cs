@@ -74,8 +74,7 @@ namespace AElf.SmartContract
         /// <returns></returns>
         public IDataProvider GetDataProvider(string dataProviderKey)
         {
-            Layer++;
-            return new DataProvider(_dataPath, _stateDictator, Layer, dataProviderKey)
+            return new DataProvider(_dataPath, _stateDictator, 1, dataProviderKey)
             {
                 StateCache = StateCache
             };
@@ -110,10 +109,10 @@ namespace AElf.SmartContract
             if (state == null)
             {
                 state = new StateCache((await GetDataAsync<T>(keyHash))?.ToByteArray());
-                StateCache.Add(dataPath, state);
             }
             
             state.CurrentValue = obj;
+            StateCache[dataPath] = state;
         }
         
         private StateCache GetStateAsync(Hash keyHash)
@@ -125,14 +124,11 @@ namespace AElf.SmartContract
                 throw new InvalidOperationException("DataPath: I'm not OK.");
             }
 
-            Console.WriteLine("Key:" + _dataProviderKey);
-            Console.WriteLine($"Try to get path {dataPath.ResourcePathHash.ToHex()} from state cache.");
             if (StateCache.TryGetValue(dataPath, out var state))
             {
                 return state;
             }
             
-            Console.WriteLine("Failed.");
             return null;;
         }
 

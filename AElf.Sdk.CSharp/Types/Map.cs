@@ -21,7 +21,7 @@ namespace AElf.Sdk.CSharp.Types
             {
                 if (_dataProvider == null)
                 {
-                    _dataProvider = Api.GetDataProvider("").GetDataProvider(_name);
+                    _dataProvider = Api.GetDataProvider(_name);
                 }
 
                 return _dataProvider;
@@ -37,11 +37,6 @@ namespace AElf.Sdk.CSharp.Types
         internal Map(IDataProvider dataProvider)
         {
             _dataProvider = dataProvider;
-        }
-
-        public IDataProvider GetSubDataProvider(string dataProviderKey)
-        {
-            return Api.GetDataProvider(_name).GetDataProvider(dataProviderKey);
         }
     }
 

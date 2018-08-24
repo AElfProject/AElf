@@ -134,7 +134,7 @@ namespace AElf.Kernel.Consensus
         private byte[] GetBytes<T>(Hash keyHash, string resourceStr = "") where T : IMessage, new()
         {
             return resourceStr != ""
-                ? _stateDictator.GetAccountDataProvider(_contractAddressHash).GetDataProvider().GetDataProvider("")
+                ? _stateDictator.GetAccountDataProvider(_contractAddressHash).GetDataProvider()
                     .GetDataProvider(resourceStr).GetAsync<T>(keyHash).Result
                 : _stateDictator.GetAccountDataProvider(_contractAddressHash).GetDataProvider()
                     .GetAsync<T>(keyHash).Result;
