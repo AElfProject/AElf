@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices.ComTypes;
 using AElf.Management.Models;
+using AElf.Management.Services;
 using Xunit;
 
 namespace AElf.Management.Tests

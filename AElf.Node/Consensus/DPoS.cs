@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
 using AElf.Common.ByteArrayHelpers;
+using AElf.Common.Extensions;
+using AElf.Kernel.Types;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
@@ -198,9 +200,7 @@ namespace AElf.Kernel.Node
                 // ReSharper disable once InconsistentNaming
                 var idInDB = (await _accountContextService.GetAccountDataContext(addr, ByteArrayHelpers.FromHexString(NodeConfig.Instance.ChainId)))
                     .IncrementId;
-                _logger?.Log(LogLevel.Debug, $"Trying to get increment id, {isDPoS}");
                 var idInPool = _txPoolService.GetIncrementId(addr, isDPoS);
-                _logger?.Log(LogLevel.Debug, $"End Trying to get increment id, {isDPoS}");
 
                 return Math.Max(idInDB, idInPool);
             }
@@ -307,9 +307,7 @@ namespace AElf.Kernel.Node
         // ReSharper disable once InconsistentNaming
         public async Task MiningWithUpdatingAElfDPoSInformation()
         {
-            _logger?.Log(LogLevel.Debug, "MiningWithUpdatingAElf..");
             var extraBlockResult = await _dposHelpers.ExecuteTxsForExtraBlock();
-            _logger?.Log(LogLevel.Debug, "End MiningWithUpdatingAElf..");
 
             var parameters = new List<byte[]>
             {
@@ -317,13 +315,11 @@ namespace AElf.Kernel.Node
                 extraBlockResult.Item2.ToByteArray(),
                 extraBlockResult.Item3.ToByteArray()
             };
-            _logger?.Log(LogLevel.Debug, "Generating transaction..");
 
             var txForExtraBlock = GenerateTransaction(
                 "UpdateAElfDPoS",
                 parameters,
                 _incrementIdNeedToAddOne ? (ulong) 1 : 0);
-            _logger?.Log(LogLevel.Debug, "End Generating transaction..");
 
             await BroadcastTransaction(txForExtraBlock);
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common.Extensions;
 using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
 using Google.Protobuf.WellKnownTypes;

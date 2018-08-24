@@ -45,7 +45,7 @@ namespace AElf.Launcher
         /// </summary>
         public bool NewChain { get; private set; }
 
-
+        public string ChainId { get; private set; }
         /// <summary>
         /// chainId
         /// </summary>
@@ -76,10 +76,6 @@ namespace AElf.Launcher
             if (opts.Bootnodes != null && opts.Bootnodes.Any())
             {
                 NetworkConfig.Instance.Bootnodes = opts.Bootnodes.ToList();
-            }
-            else
-            {
-                NetworkConfig.Instance.Bootnodes = new List<string>();
             }
 
             if (opts.PeersDbPath != null)
@@ -141,9 +137,11 @@ namespace AElf.Launcher
 
             if (opts.NewChain)
             {
-                IsMiner = true;
+                //IsMiner = true;
                 NewChain = true;
             }
+
+            ChainId = opts.ChainId;
 
             if (IsMiner)
             {

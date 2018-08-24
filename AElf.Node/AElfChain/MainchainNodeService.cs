@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.TxMemPool;
+using AElf.Common.Attributes;
 using AElf.Common.ByteArrayHelpers;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
@@ -20,6 +21,7 @@ using ServiceStack;
 
 namespace AElf.Kernel.Node
 {
+    [LoggerName("Node")]
     public class MainchainNodeService : INodeService
     {
         private readonly ILogger _logger;

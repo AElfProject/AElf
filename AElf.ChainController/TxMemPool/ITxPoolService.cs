@@ -28,7 +28,7 @@ namespace AElf.ChainController.TxMemPool
         /// return ready txs can be executed 
         /// </summary>
         /// <returns></returns>
-        Task<List<ITransaction>> GetReadyTxsAsync();
+        Task<List<ITransaction>> GetReadyTxsAsync(double intervals = 150);
 
         /// <summary>
         /// return pool size
