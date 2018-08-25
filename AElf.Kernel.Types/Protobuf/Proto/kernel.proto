@@ -196,7 +196,7 @@ message SideChain {
 
 message DataPath {
     Hash ChainId = 1;
-    uint64 RoundNumber = 2;
+    uint64 BlockHeight = 2;
     Hash BlockProducerAddress = 3;
     Hash ContractAddress = 4;
     Hash DataProviderHash = 5;

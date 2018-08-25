@@ -17,7 +17,7 @@ namespace AElf.SmartContract
 
             _dataPath = new DataPath()
                 .SetChainId(stateDictator.ChainId)
-                .SetRoundNumber(stateDictator.CurrentRoundNumber)
+                .SetBlockHeight(stateDictator.CurrentRoundNumber)
                 .SetBlockProducerAddress(stateDictator.BlockProducerAccountAddress)
                 .SetAccountAddress(accountAddress);
         }
@@ -25,7 +25,7 @@ namespace AElf.SmartContract
         public IDataProvider GetDataProvider()
         {
             Console.WriteLine($"ChainId: {_dataPath.ChainId.ToHex()}");
-            Console.WriteLine($"Round Number: {_dataPath.RoundNumber}");
+            Console.WriteLine($"Block Height: {_dataPath.BlockHeight}");
             Console.WriteLine($"BP Address: {_dataPath.BlockProducerAddress.ToHex()}");
             Console.WriteLine($"Contract Address: {_dataPath.ContractAddress.ToHex()}");
             return new DataProvider(_dataPath, _stateDictator);

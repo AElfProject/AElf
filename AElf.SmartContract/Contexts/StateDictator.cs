@@ -78,7 +78,7 @@ namespace AElf.SmartContract
             var dataPath = new DataPath
             {
                 ChainId = ChainId,
-                RoundNumber = CurrentRoundNumber,
+                BlockHeight = CurrentRoundNumber,
                 BlockProducerAddress = BlockProducerAccountAddress
             };
             return await _dataStore.GetAsync<WorldState>(dataPath.StateHash);
@@ -89,7 +89,7 @@ namespace AElf.SmartContract
             var dataPath = new DataPath
             {
                 ChainId = ChainId,
-                RoundNumber = CurrentRoundNumber,
+                BlockHeight = CurrentRoundNumber,
                 BlockProducerAddress = BlockProducerAccountAddress
             };
             await _dataStore.InsertAsync(dataPath.StateHash, _worldState);
@@ -116,7 +116,7 @@ namespace AElf.SmartContract
             var dataPath = new DataPath
             {
                 ChainId = ChainId,
-                RoundNumber = CurrentRoundNumber,
+                BlockHeight = CurrentRoundNumber,
                 BlockProducerAddress = BlockProducerAccountAddress
             };
             await _hashManager.SetHash(dataPath.StateHash, blockHash.OfType(HashType.BlockHash));
@@ -132,7 +132,7 @@ namespace AElf.SmartContract
             var dataPath = new DataPath
             {
                 ChainId = ChainId,
-                RoundNumber = CurrentRoundNumber,
+                BlockHeight = CurrentRoundNumber,
                 BlockProducerAddress = BlockProducerAccountAddress
             };
             await _hashManager.SetHash(blockHash.OfType(HashType.BlockHash), dataPath.StateHash.OfType(HashType.StateHash));

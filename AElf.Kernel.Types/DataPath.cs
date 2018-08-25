@@ -25,7 +25,7 @@ namespace AElf.Kernel
                 }
 
                 return ((Hash) new Hash(ChainId.CalculateHashWith(BlockProducerAddress)).CalculateHashWith(
-                    RoundNumber)).OfType(HashType.StateHash);
+                    BlockHeight)).OfType(HashType.StateHash);
             }
             set => _stateHash = value;
         }
@@ -54,9 +54,9 @@ namespace AElf.Kernel
             return this;
         }
         
-        public DataPath SetRoundNumber(ulong roundNumber)
+        public DataPath SetBlockHeight(ulong blockHeight)
         {
-            RoundNumber = roundNumber;
+            BlockHeight = blockHeight;
             return this;
         }
         
