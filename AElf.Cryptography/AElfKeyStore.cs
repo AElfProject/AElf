@@ -21,6 +21,9 @@ namespace AElf.Cryptography
 
         private const string KeyFileExtension = ".ak";
         private const string KeyFolderName = "keys";
+        
+        private const string PemFileExtension = ".pem";
+        private const string PemFolderName = "pems";
 
         private const string _algo = "AES-256-CFB";
         private readonly string _dataDirectory;
@@ -104,9 +107,14 @@ namespace AElf.Cryptography
             return !res ? null : keyPair;
         }
 
+        /*public bool CreateCertificate(ECKeyPair keyPair)
+        {
+            
+        }*/
+
         public List<string> ListAccounts()
         {
-            var dir = GetOrCreateKeystoreDir();
+            var dir = GetOrCreateKeystoreDir(KeyFolderName);
             FileInfo[] files = dir.GetFiles("*" + KeyFileExtension);
 
             return files.Select(f => Path.GetFileNameWithoutExtension(f.Name)).ToList();
@@ -116,7 +124,7 @@ namespace AElf.Cryptography
         {
             try
             {
-                string keyFilePath = GetKeyFileFullPath(address);
+                string keyFilePath = GetFileFullPath(address, KeyFileExtension);
 
                 AsymmetricCipherKeyPair p;
                 using (var textReader = File.OpenText(keyFilePath))
@@ -165,13 +173,13 @@ namespace AElf.Cryptography
                 
             
             // Ensure path exists
-            GetOrCreateKeystoreDir();
+            GetOrCreateKeystoreDir(KeyFileExtension);
             
             string fullPath = null;
             try
             {
                 var address = keyPair.GetAddressHex();
-                fullPath = GetKeyFileFullPath(address);
+                fullPath = GetFileFullPath(address, KeyFileExtension);
             }
             catch (Exception e)
             {
@@ -190,35 +198,76 @@ namespace AElf.Cryptography
 
             return true;
         }
+
+        private bool WriteCertificate(ECKeyPair keyPair, string password, params string[] addresses)
+        {
+            if (keyPair?.PrivateKey == null || keyPair.PublicKey == null)
+                throw new InvalidKeyPairException("Invalid keypair (null reference).", null);
+
+            if (string.IsNullOrEmpty(password))
+            {
+                // Why here we can just invoke Console.WriteLine? should we use Logger?
+                Console.WriteLine("Invalid password.");
+                return false;
+            }
+            
+            string pemFileFullPath = null;
+            try
+            {
+                var address = keyPair.GetAddressHex();
+                pemFileFullPath = GetFileFullPath(address, PemFileExtension);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Could not calculate the address from the keypair.", e);
+                return false;
+            }
+            
+            var akp = new AsymmetricCipherKeyPair(keyPair.PublicKey, keyPair.PrivateKey);
+            
+            using (var writer = File.CreateText(pemFileFullPath))
+            {
+                var pw = new PemWriter(writer);
+                pw.WriteObject(akp, _algo, password.ToCharArray(), _random);
+                pw.Writer.Close();
+            }
+
+            return true;
+        }
         
         /// <summary>
         /// Return the full path of the files 
         /// </summary>
-        private string GetKeyFileFullPath(string address)
+        private string GetFileFullPath(string address, string extension)
         {
-            var path = GetKeyFileFullPathStrict(address.Replace("0x", ""));
+            if(!extension.Equals(KeyFileExtension) && !extension.Equals(PemFileExtension))
+                throw new Exception("Wrong extension type");
+            var path = GetKeyFileFullPathStrict(address.Replace("0x", ""), extension);
             if (File.Exists(path))
             {
                 return path;
             }
 
-            return GetKeyFileFullPathStrict("0x" + address.Replace("0x", ""));
+            return GetKeyFileFullPathStrict("0x" + address.Replace("0x", ""), extension);
         }
 
-        private string GetKeyFileFullPathStrict(string address)
+        private string GetKeyFileFullPathStrict(string address, string extension)
         {
-            string dirPath = GetKeystoreDirectoryPath();
+            if(!extension.Equals(KeyFileExtension) && !extension.Equals(PemFileExtension))
+                throw new Exception("Wrong extension type");
+            string dirPath =
+                GetKeystoreDirectoryPath(extension.Equals(KeyFileExtension) ? KeyFolderName : PemFolderName);
             string filePath = Path.Combine(dirPath, address);
-            string filePathWithExtension = Path.ChangeExtension(filePath, KeyFileExtension);
+            string filePathWithExtension = Path.ChangeExtension(filePath, extension);
 
             return filePathWithExtension;
         }
 
-        private DirectoryInfo GetOrCreateKeystoreDir()
+        private DirectoryInfo GetOrCreateKeystoreDir(string folderName)
         {
             try
             {
-                string dirPath = GetKeystoreDirectoryPath();
+                string dirPath = GetKeystoreDirectoryPath(folderName);
                 return Directory.CreateDirectory(dirPath);
             }
             catch (Exception e)
@@ -227,9 +276,9 @@ namespace AElf.Cryptography
             }
         }
 
-        private string GetKeystoreDirectoryPath()
+        private string GetKeystoreDirectoryPath(string folderName)
         {
-            return Path.Combine(_dataDirectory, KeyFolderName);
+            return Path.Combine(_dataDirectory, folderName);
         }
     }
 }
