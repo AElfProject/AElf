@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Cryptography;
+using System.Threading;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Types;
 using Google.Protobuf;
@@ -10,6 +11,20 @@ namespace AElf.Kernel
 {
     public partial class Transaction : ITransaction
     {
+        private int _claimed;
+
+        public bool Claim()
+        {
+            var res = Interlocked.CompareExchange(ref _claimed, 1, 0);
+            return res == 0;
+        }
+
+        public bool Unclaim()
+        {
+            var res = Interlocked.CompareExchange(ref _claimed, 0, 1);
+            return res == 1;
+        }
+
         public Hash GetHash()
         {
             return SHA256.Create().ComputeHash(GetSignatureData());
@@ -47,6 +62,8 @@ namespace AElf.Kernel
                 From = From.Clone(),
                 To = To.Clone(),
                 IncrementId = IncrementId,
+                RefBlockNumber = RefBlockNumber,
+                RefBlockPrefix = RefBlockPrefix,
                 MethodName = MethodName,
                 Type = Type
             };

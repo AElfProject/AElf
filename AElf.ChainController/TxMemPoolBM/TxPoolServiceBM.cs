@@ -20,7 +20,8 @@ namespace AElf.ChainController.TxMemPool
         private readonly ITxValidator _txValidator;
         private readonly ITransactionManager _transactionManager;
 
-        public TxPoolServiceBM(ILogger logger, IChainService chainService, ITxValidator txValidator, ITransactionManager transactionManager)
+        public TxPoolServiceBM(ILogger logger, IChainService chainService, ITxValidator txValidator,
+            ITransactionManager transactionManager)
         {
             _logger = logger;
             _chainService = chainService;
@@ -36,7 +37,7 @@ namespace AElf.ChainController.TxMemPool
         {
             return Task.CompletedTask;
         }
-        
+
         private readonly ConcurrentDictionary<Hash, ITransaction> _contractTxs =
             new ConcurrentDictionary<Hash, ITransaction>();
 
@@ -53,6 +54,7 @@ namespace AElf.ChainController.TxMemPool
             {
                 return TxValidation.TxInsertionAndBroadcastingError.AlreadyExecuted;
             }
+
             var res = await AddTransaction(tx);
             if (res == TxValidation.TxInsertionAndBroadcastingError.Success)
             {
@@ -142,6 +144,7 @@ namespace AElf.ChainController.TxMemPool
                 {
                     AddContractTransaction(tx);
                 }
+                tx.Unclaim();
             }
 
             await Task.CompletedTask;
@@ -184,6 +187,11 @@ namespace AElf.ChainController.TxMemPool
             var invalid = new List<Hash>();
             foreach (var kv in _contractTxs)
             {
+                if (!kv.Value.Claim())
+                {
+                    continue;
+                }
+
                 var res = await _txValidator.ValidateReferenceBlockAsync(kv.Value);
                 if (res != TxValidation.TxInsertionAndBroadcastingError.Valid)
                 {

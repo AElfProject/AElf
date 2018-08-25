@@ -64,6 +64,9 @@ namespace AElf.Kernel
         /// transaction type
         /// </summary>
         TransactionType Type { get; set; }
+
+        bool Claim();
+        bool Unclaim();
     }
 
 }
